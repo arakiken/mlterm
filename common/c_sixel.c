@@ -50,9 +50,9 @@ static pixel_t *custom_palette;
 
 #ifndef __GET_PARAMS__
 #define __GET_PARAMS__
-static size_t get_params(int *params, size_t max_params, char **p) {
+static size_t get_params(int *params, size_t max_params, const char **p) {
   size_t count;
-  char *start;
+  const char *start;
 
   memset(params, 0, sizeof(int) * max_params);
 

@@ -1,3 +1,19 @@
+2017-12-29  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.[ch], ui_screen.c: Unless ENABLE_OSC5379PICTURE is defined,
+	  "show_picture" and "add_frame" are removed from OSC 5379.
+
+	* vterm.c, ui_screen.c:
+	  RLogin way of calculating the number of columns and rows of sixel
+	  graphics image is changed from ({width|height} + 1) / col_{width|height}
+	  to {width|height} / col_{width|height}.
+
+	* c_sixel.c: char* => const char*
+
+	* ef_iso2022_parser.[ch], ef_utf{16|32}_conv.[ch]:
+	  The tyep of return value of ef_iso2022_parser_init_func() and
+	  ef_utf{16|32}_conv_use_bom() is changed from int to void.
+
 2017-12-25  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c:

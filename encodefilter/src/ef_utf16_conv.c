@@ -213,12 +213,10 @@ ef_conv_t *ef_utf16le_conv_new(void) {
   return (ef_conv_t*)utf16_conv;
 }
 
-int ef_utf16_conv_use_bom(ef_conv_t *conv) {
+void ef_utf16_conv_use_bom(ef_conv_t *conv) {
   ef_utf16_conv_t *utf16_conv;
 
   utf16_conv = (ef_utf16_conv_t*)conv;
 
   utf16_conv->use_bom = 1;
-
-  return 1;
 }

@@ -169,12 +169,10 @@ ef_conv_t *ef_utf32le_conv_new(void) {
   return (ef_conv_t*)utf32_conv;
 }
 
-int ef_utf32_conv_use_bom(ef_conv_t *conv) {
+void ef_utf32_conv_use_bom(ef_conv_t *conv) {
   ef_utf32_conv_t *utf32_conv;
 
   utf32_conv = (ef_utf32_conv_t*)conv;
 
   utf32_conv->use_bom = 1;
-
-  return 1;
 }

@@ -1778,7 +1778,7 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
                          ) {
 #ifndef DONT_OPTIMIZE_DRAWING_PICTURE
   if (is_sixel == 2) {
-    (*vt_parser->xterm_listener->show_sixel)(vt_parser->xterm_listener->self, file_path);
+    (*vt_parser->xterm_listener->show_tmp_picture)(vt_parser->xterm_listener->self, file_path);
 
     vt_parser->yield = 1;
 
@@ -7310,7 +7310,7 @@ int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd) {
       snapshot(vt_parser, encoding, file, WCA_ALL);
     }
   }
-#ifndef NO_IMAGE
+#if !defined(NO_IMAGE) && defined(ENABLE_OSC5379PICTURE)
   else if (strncmp(cmd, "show_picture ", 13) == 0 || strncmp(cmd, "add_frame ", 10) == 0) {
     int clip_beg_col = 0;
     int clip_beg_row = 0;

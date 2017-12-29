@@ -45,7 +45,7 @@ typedef struct ef_iso2022_parser {
 
 ef_iso2022_parser_t *ef_iso2022_parser_new(void);
 
-int ef_iso2022_parser_init_func(ef_iso2022_parser_t *iso2022_parser);
+void ef_iso2022_parser_init_func(ef_iso2022_parser_t *iso2022_parser);
 
 void ef_iso2022_parser_set_str(ef_parser_t *parser, u_char *str, size_t size);
 

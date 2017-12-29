@@ -29,9 +29,7 @@ version 20171202
                      close_screen | snapshot ("<file name>") ("<encoding name>") |
                      gen_proto_challenge | mlclient "<prefix options>" "<options>" |
                      mlclientx "<prefix options>" "<options>" |
-                     search_prev <pattern> | search_next <pattern> | update_all |
-                     show_picture "<file name>" "(WxH)" "(WxH+X+Y)" |
-                     add_frame "<file name>" "(WxH)" | mlconfig |
+                     search_prev <pattern> | search_next <pattern> | update_all | mlconfig |
                      set_shortcut <key>=<operation> (*) |
                      scp "(local:|remote:)<src file name>" "(local:|remote:)<dst directory name>"
                      "(<encoding name>)"

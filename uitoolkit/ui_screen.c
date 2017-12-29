@@ -5393,8 +5393,8 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
     return NULL;
   }
 
-  width = (*num_cols) *(col_width = ui_col_width(screen));
-  height = (*num_rows) *(line_height = ui_line_height(screen));
+  width = (*num_cols) * (col_width = ui_col_width(screen));
+  height = (*num_rows) * (line_height = ui_line_height(screen));
 
   if (sixel_palette) {
     *sixel_palette = ui_set_custom_sixel_palette(*sixel_palette);
@@ -5410,8 +5410,8 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
     *num_rows = (height + line_height - 1) / line_height;
 
     if (drcs_sixel) {
-      *num_cols_small = (width + 1) / col_width;
-      *num_rows_small = (height + 1) / line_height;
+      *num_cols_small = width / col_width;
+      *num_rows_small = height / line_height;
     } else {
       int max_num_cols = vt_term_get_cols(screen->term) - vt_term_cursor_col(screen->term);
 
@@ -5483,7 +5483,7 @@ static int xterm_get_emoji_data(void *p, vt_char_t *ch1, vt_char_t *ch2) {
 }
 
 #ifndef DONT_OPTIMIZE_DRAWING_PICTURE
-static void xterm_show_sixel(void *p, char *file_path) {
+static void xterm_show_tmp_picture(void *p, char *file_path) {
   ui_screen_t *screen;
   Pixmap pixmap;
   PixmapMask mask;
@@ -5498,15 +5498,16 @@ static void xterm_show_sixel(void *p, char *file_path) {
     ui_delete_tmp_picture(screen->window.disp, pixmap, mask);
 
     /*
-     * ui_display_sync() is not necessary here because xterm_show_sixel()
+     * ui_display_sync() is not necessary here because xterm_show_tmp_picture()
      * is never called by DECINVM.
      */
   }
 }
 #else
-#define xterm_show_sixel NULL
+#define xterm_show_tmp_picture NULL
 #endif
 
+#ifdef ENABLE_OSC5379PICTURE
 static void xterm_add_frame_to_animation(void *p, char *file_path, int *num_cols,
                                          int *num_rows) {
   ui_screen_t *screen;
@@ -5532,10 +5533,11 @@ static void xterm_add_frame_to_animation(void *p, char *file_path, int *num_cols
     screen->prev_inline_pic = idx;
   }
 }
+#endif
 #else
 #define xterm_get_picture_data NULL
 #define xterm_get_emoji_data NULL
-#define xterm_show_sixel NULL
+#define xterm_show_tmp_picture NULL
 #define xterm_add_frame_to_animation NULL
 #endif /* NO_IMAGE */
 
@@ -5735,8 +5737,10 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->xterm_listener.get_window_size = xterm_get_window_size;
   screen->xterm_listener.get_picture_data = xterm_get_picture_data;
   screen->xterm_listener.get_emoji_data = xterm_get_emoji_data;
-  screen->xterm_listener.show_sixel = xterm_show_sixel;
+  screen->xterm_listener.show_tmp_picture = xterm_show_tmp_picture;
+#ifdef ENABLE_OSC5379PICTURE
   screen->xterm_listener.add_frame_to_animation = xterm_add_frame_to_animation;
+#endif
   screen->xterm_listener.hide_cursor = xterm_hide_cursor;
   screen->xterm_listener.check_iscii_font = xterm_check_iscii_font;
 
