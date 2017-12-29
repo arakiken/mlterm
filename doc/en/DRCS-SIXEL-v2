@@ -1,0 +1,35 @@
+DRCS-SIXEL version 2
+
+<DECDLD> = DCS Pfn; Pcn; Pe; Pcmw; Pss; 3; Pcmh; Pcss { SP Dscs <SIXEL> ST
+<SIXEL> = P1; P2; P3; q s...s
+
+ This sequence devides sixel graphics image by cell(*1), and defines image
+pieces as the glyphs of <Pcn+0x20+N>(*2) code of <Dscs> character set in order
+from the top-left corner cell.
+
+(*1) The number of columns and rows are calculated as follows.
+ <columns> = sixel graphics image width / cell width (rounded up)
+ <rows> = sixel graphics image height / cell height (rounded up)
+ (Width and height include transparent pixels)
+
+(*2) 0x20 of <Dscs+1> is next to 0x7f of <Dscs>, and 0x20 of 0x40 set
+   which consists of 96 characters is next to 0x7f of 0x7e set which
+   consists of 94 characters.
+
+[Appendix]
+<Original DRCS-SIXEL (rlogin 2.23.0)>
+o The number of columns and rows of sixel graphic image are calculated
+  as follows.
+  <columns> = sixel graphics image width (+1?) / cell width (rounded down)
+  <rows> = sixel graphics image height (+1?) / cell height (rounded down)
+  (Width and height excludes transparent pixels)
+
+o The range of defining image pieces as font glyphs by DECDLD is
+  <Pcn+0x20> - 0x7f of <Dscs> alone.
+
+<DRCS mapping rule version 2>
+U+10XXYY (0x40 <= 0xXX <= 0x7E, 0x20 <= 0xYY <= 0x7F)
+ => ESC ( SP <\xXX> <\xYY> ESC ( B
+
+U+10XXZZ (0x40 <= 0xXX <= 0x7E, 0xA0 <= 0xZZ <= 0xFF)
+ => ESC - SP <\xXX> <\xZZ>
