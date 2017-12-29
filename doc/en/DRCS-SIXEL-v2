@@ -21,7 +21,7 @@ from the top-left corner cell.
 o The number of columns and rows of sixel graphic image are calculated
   as follows.
   <columns> = sixel graphics image width (+1?) / cell width (rounded down)
-  <rows> = sixel graphics image height (+1?) / cell height (rounded down)
+  <rows> = sixel graphics image height / cell height (rounded down)
   (Width and height excludes transparent pixels)
 
 o The range of defining image pieces as font glyphs by DECDLD is
