@@ -1,3 +1,7 @@
+2017-12-30  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/DRCS-SIXEL-v2: Added.
+
 2017-12-29  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.[ch], ui_screen.c: Unless ENABLE_OSC5379PICTURE is defined,
