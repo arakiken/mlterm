@@ -29,8 +29,8 @@ typedef struct VTerm {
   vt_screen_event_listener_t screen_listener;
   vt_xterm_event_listener_t xterm_listener;
 
-  vt_color_t default_fg;
-  vt_color_t default_bg;
+  VTermColor default_fg;
+  VTermColor default_bg;
 
   int mouse_col;
   int mouse_row;
@@ -455,8 +455,8 @@ VTerm *vterm_new(int rows, int cols) {
                             &vterm->pty_listener, 0);
   vt_term_plug_pty(vterm->term, vterm->pty);
 
-  vterm->default_fg = VT_BLACK;
-  vterm->default_bg = VT_WHITE;
+  vterm->default_fg.red = vterm->default_fg.green = vterm->default_fg.blue = 240;
+  vterm->default_bg.red = vterm->default_bg.green = vterm->default_bg.blue = 0;
 
   return vterm;
 }
@@ -702,17 +702,9 @@ void vterm_state_get_cursorpos(const VTermState *state, VTermPos *cursorpos) {
 void vterm_state_get_default_colors(const VTermState *state, VTermColor *default_fg,
                                     VTermColor *default_bg) {
   VTerm *vterm = state;
-  u_int8_t r, g, b;
 
-  vt_get_color_rgba(vterm->default_fg, &r, &g, &b, NULL);
-  default_fg->red = r;
-  default_fg->green = g;
-  default_fg->blue = b;
-
-  vt_get_color_rgba(vterm->default_bg, &r, &g, &b, NULL);
-  default_bg->red = r;
-  default_bg->green = g;
-  default_bg->blue = b;
+  *default_fg = vterm->default_fg;
+  *default_bg = vterm->default_bg;
 }
 
 void vterm_state_get_palette_color(const VTermState *state, int index, VTermColor *col) {
@@ -728,10 +720,8 @@ void vterm_state_set_default_colors(VTermState *state, const VTermColor *default
                                     const VTermColor *default_bg) {
   VTerm *vterm = state;
 
-  vt_color_force_linear_search(1);
-  vterm->default_fg = vt_get_closest_color(default_fg->red, default_fg->green, default_fg->blue);
-  vterm->default_bg = vt_get_closest_color(default_bg->red, default_bg->green, default_bg->blue);
-  vt_color_force_linear_search(0);
+  vterm->default_fg = *default_fg;
+  vterm->default_bg = *default_bg;
 }
 
 void vterm_state_set_palette_color(VTermState *state, int index, const VTermColor *col) {
@@ -810,8 +800,8 @@ int vterm_screen_get_cell(const VTermScreen *screen, VTermPos pos, VTermScreenCe
   vt_line_t *line;
   int col = pos.col;
   int row = pos.row;
-  vt_color_t fg = vterm->default_fg;
-  vt_color_t bg = vterm->default_bg;
+  vt_color_t fg = VT_FG_COLOR;
+  vt_color_t bg = VT_BG_COLOR;
   u_int8_t r, g, b;
 
   memset(cell, 0, sizeof(*cell));
@@ -822,7 +812,6 @@ int vterm_screen_get_cell(const VTermScreen *screen, VTermPos pos, VTermScreenCe
     if (char_index < line->num_filled_chars) {
       cell->width = vt_char_cols(line->chars + char_index);
       if (col == 0) {
-        /* XXX convert encoding */
         vt_font_t font = vt_char_font(line->chars + char_index);
         vt_line_style_t line_style = vt_char_line_style(line->chars + char_index);
         ef_charset_t cs = vt_char_cs(line->chars + char_index);
@@ -840,18 +829,7 @@ int vterm_screen_get_cell(const VTermScreen *screen, VTermPos pos, VTermScreenCe
         }
 
         fg = vt_char_fg_color(line->chars + char_index);
-        if (fg == VT_FG_COLOR) {
-          fg = vterm->default_fg;
-        } else if (fg == VT_BG_COLOR) {
-          fg = vterm->default_bg;
-        }
-
         bg = vt_char_bg_color(line->chars + char_index);
-        if (bg == VT_FG_COLOR) {
-          bg = vterm->default_fg;
-        } else if (bg == VT_BG_COLOR) {
-          bg = vterm->default_bg;
-        }
 
         if (font & FONT_BOLD) {
           cell->attrs.bold = 1;
@@ -887,21 +865,27 @@ int vterm_screen_get_cell(const VTermScreen *screen, VTermPos pos, VTermScreenCe
     }
   }
 
-  vt_get_color_rgba(fg, &r, &g, &b, NULL);
-  cell->fg.red = r;
-  cell->fg.green = g;
-  cell->fg.blue = b;
-
-  if (fg == VT_RED) {
-    cell->fg.red = 0;
-    cell->fg.green = 0;
-    cell->fg.blue = 2;
+  if (fg == VT_FG_COLOR) {
+    cell->fg = vterm->default_fg;
+  } else if (fg == VT_BG_COLOR) {
+    cell->fg = vterm->default_bg;
+  } else {
+    vt_get_color_rgba(fg, &r, &g, &b, NULL);
+    cell->fg.red = r;
+    cell->fg.green = g;
+    cell->fg.blue = b;
   }
 
-  vt_get_color_rgba(bg, &r, &g, &b, NULL);
-  cell->bg.red = r;
-  cell->bg.green = g;
-  cell->bg.blue = b;
+  if (bg == VT_FG_COLOR) {
+    cell->bg = vterm->default_fg;
+  } else if (bg == VT_BG_COLOR) {
+    cell->bg = vterm->default_bg;
+  } else {
+    vt_get_color_rgba(bg, &r, &g, &b, NULL);
+    cell->bg.red = r;
+    cell->bg.green = g;
+    cell->bg.blue = b;
+  }
 
   return 1;
 }
