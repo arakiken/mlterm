@@ -1,5 +1,6 @@
 * Support libvterm (https://launchpad.net/libvterm) compatible library partially.
 * Support sixel extention of DRCS. (http://nanno.dip.jp/softlib/man/rlogin/ctrlcode.html)
+* Drop "show_picture" and "add_frame" from OSC 5379.
 
 ver 3.8.4
 * Support DECSLPP, DECSCPP, DECBBSM, DECRQTSR, DECCTR, DECRQPSR, DECSNLS, DECSTGLT, DECRSPS,

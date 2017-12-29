@@ -318,8 +318,8 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
     *num_rows = (height + vterm->line_height - 1) / vterm->line_height;
   } else {
     /* for rlogin */
-    *num_cols = (width + 1) / vterm->col_width;
-    *num_rows = (height + 1) / vterm->line_height;
+    *num_cols = width / vterm->col_width;
+    *num_rows = height / vterm->line_height;
   }
 
 #if 0

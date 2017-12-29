@@ -16,6 +16,10 @@
 
 #define PTY_WR_BUFFER_SIZE 100
 
+#if 0
+#define ENABLE_OSC5379PICTURE
+#endif
+
 /*
  * Possible patterns are:
  *  NOT_USE_UNICODE_FONT(0x1)
@@ -124,8 +128,10 @@ typedef struct vt_xterm_event_listener {
   vt_char_t *(*get_picture_data)(void *, char *, int *, int *, int *, int *,
                                  u_int32_t **, int);            /* called in logical context. */
   int (*get_emoji_data)(void *, vt_char_t *, vt_char_t *);      /* called in logical context. */
-  void (*show_sixel)(void *, char *);                           /* called in logical context. */
+  void (*show_tmp_picture)(void *, char *);                     /* called in logical context. */
+#ifdef ENABLE_OSC5379PICTURE
   void (*add_frame_to_animation)(void *, char *, int *, int *); /* called in logical context. */
+#endif
   void (*hide_cursor)(void *, int);                             /* called in logical context. */
   int (*check_iscii_font)(void *, ef_charset_t);
 

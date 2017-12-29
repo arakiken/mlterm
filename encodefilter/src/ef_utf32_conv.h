@@ -9,6 +9,6 @@ ef_conv_t *ef_utf32_conv_new(void);
 
 ef_conv_t *ef_utf32le_conv_new(void);
 
-int ef_utf32_conv_use_bom(ef_conv_t *conv);
+void ef_utf32_conv_use_bom(ef_conv_t *conv);
 
 #endif
