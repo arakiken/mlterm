@@ -1,5 +1,9 @@
 2017-12-30  Araki Ken  <arakiken@users.sf.net>
 
+	* vterm.c, ui_screen.c: RLogin way of calculating the number of columns
+	  of sixel graphics image is changed from 'width / col_width' to
+	  '(width + 1) / col_width'.
+
 	* doc/en/DRCS-SIXEL-v2: Added.
 
 2017-12-29  Araki Ken  <arakiken@users.sf.net>
