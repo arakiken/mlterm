@@ -34,4 +34,8 @@ U+10XXYY (0x40 <= 0xXX <= 0x7E, 0x20 <= 0xYY <= 0x7F)
 U+10XXZZ (0x40 <= 0xXX <= 0x7E, 0xA0 <= 0xZZ <= 0xFF)
  => ESC - SP <\xXX> <\xZZ>
 
+The width of U+10XXYY and U+10XXZZ (PUA) is defined as ambiguous in
+EastAsianWidth.txt, but all of terminal emulators and console applications
+should regard it as halfwidth to show DRCS-SIXEL correctly.
+
 (DRCS mapping rule version 1: https://github.com/saitoha/drcsterm/blob/master/README.rst)

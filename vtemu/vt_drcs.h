@@ -49,6 +49,9 @@ void vt_drcs_add_picture(vt_drcs_font_t *font, int id, int offset, int beg_inx,
 
 int vt_drcs_get_picture(vt_drcs_font_t *font, int *id, int *pos, u_int ch);
 
+#define vt_drcs_is_picture(font, ch) \
+  ((font)->pic_num_rows > 0 && (font)->pic_beg_idx + 0x20 <= ((ch) & 0x7f))
+
 int vt_convert_drcs_to_unicode_pua(ef_char_t *ch);
 
 int vt_convert_unicode_pua_to_drcs(ef_char_t *ch);

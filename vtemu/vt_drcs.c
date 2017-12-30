@@ -147,10 +147,10 @@ int vt_drcs_get_picture(vt_drcs_font_t *font, int *id, int *pos, u_int ch) {
       *id = font->pic_id;
 
       return 1;
-    } else {
-      return 0;
     }
   }
+
+  return 0;
 }
 
 int vt_convert_drcs_to_unicode_pua(ef_char_t *ch) {

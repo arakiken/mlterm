@@ -1,3 +1,13 @@
+2017-12-31  Araki Ken  <arakiken@users.sf.net>
+
+	* DRCS-SIXEL-v2: Updated.
+
+	* vt_parser.c: 'font->pic_num_cols > 0' => vt_drcs_is_picture()
+
+	* vt_drcs.[ch]:
+	  - The position of 'return 0' is fixed.
+	  - vt_drcs_is_picture() is added.
+
 2017-12-30  Araki Ken  <arakiken@users.sf.net>
 
 	* vterm.c: cell->attrs.reverse is set in vterm_screen_get_cell().
