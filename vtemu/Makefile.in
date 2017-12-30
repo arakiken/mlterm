@@ -67,7 +67,7 @@ $(LIBDIR) :
 	mkdir -p $(LIBDIR)
 
 clean :
-	rm -rf $(OBJ) $(OBJ:.o=.lo) $(OBJ_CORE) $(OBJ_CORE:.o=.lo) .libs *.a *.la
+	rm -rf $(OBJ) $(OBJ:.o=.lo) $(OBJ_CORE) $(OBJ_CORE:.o=.lo) mlterm.o .libs *.a *.la
 
 distclean: clean
 	rm -f Makefile

@@ -1,5 +1,9 @@
 2017-12-30  Araki Ken  <arakiken@users.sf.net>
 
+	* vterm.c: xterm_get_picture_data() rejects files except sixel.
+
+2017-12-30  Araki Ken  <arakiken@users.sf.net>
+
 	* vt_parser.c: If vt_parser->pty is NULL or not is checked in write_loopback()
 	  because vt_term_write_loopback() in open_pty_intern() in ui_screen_manager.c
 	  can be called when vt_parser->pty is NULL in connecting to ssh server.
