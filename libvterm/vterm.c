@@ -344,6 +344,7 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
         } else
 #endif
         {
+          /* pua is ambiguous width but always regarded as halfwidth. */
           vt_char_set(buf_p++, code++, ISO10646_UCS4_1, 0 /* fullwidth */, 0 /* comb */,
                       VT_FG_COLOR, VT_BG_COLOR, 0 /* bold */, 0 /* italic */, 0 /* line_style */,
                       0 /* blinking */, 0 /* protected */);
