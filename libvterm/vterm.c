@@ -816,9 +816,8 @@ int vterm_screen_get_cell(const VTermScreen *screen, VTermPos pos, VTermScreenCe
       fg = vt_char_fg_color(line->chars + char_index);
       bg = vt_char_bg_color(line->chars + char_index);
 
-      if (bg == line->chars[char_index].u.ch.fg_color &&
-          fg == line->chars[char_index].u.ch.bg_color) {
-        /* XXX corrupt if combining char. */
+      /* XXX */
+      if (bg == VT_FG_COLOR && fg == VT_BG_COLOR) {
         vt_color_t tmp = fg;
         fg = bg;
         bg = tmp;
