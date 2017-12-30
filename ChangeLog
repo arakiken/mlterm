@@ -1,5 +1,11 @@
 2017-12-30  Araki Ken  <arakiken@users.sf.net>
 
+	* vterm.c: cell->attrs.reverse is set in vterm_screen_get_cell().
+
+	* vt_parser.c: DRCS-Sixel is enclosed by #ifndef NO_IMAGE ... #endif.
+
+2017-12-30  Araki Ken  <arakiken@users.sf.net>
+
 	* vterm.c: xterm_get_picture_data() rejects files except sixel.
 
 2017-12-30  Araki Ken  <arakiken@users.sf.net>

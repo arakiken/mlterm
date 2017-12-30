@@ -5599,6 +5599,7 @@ inline static int parse_vt100_escape_sequence(
             width = height = 0;
           }
 
+#ifndef NO_IMAGE
           if (ps[5] == 3 && cs != UNKNOWN_CS &&
               (path = get_home_file_path("", vt_pty_get_slave_name(vt_parser->pty) + 5,
                                          "six"))) {
@@ -5679,7 +5680,9 @@ inline static int parse_vt100_escape_sequence(
             }
 
             free(path);
-          } else {
+          } else
+#endif
+          {
             u_char *pt = str_p;
 
             if (!get_pt_in_esc_seq(&str_p, &left, 1, 0)) {

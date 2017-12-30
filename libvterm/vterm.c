@@ -809,13 +809,58 @@ int vterm_screen_get_cell(const VTermScreen *screen, VTermPos pos, VTermScreenCe
   if ((line = vt_term_get_line(vterm->term, row))) {
     int char_index = vt_convert_col_to_char_index(line, &col, col, 0);
     if (char_index < line->num_filled_chars) {
-      cell->width = vt_char_cols(line->chars + char_index);
-      if (col == 0) {
-        vt_font_t font = vt_char_font(line->chars + char_index);
-        vt_line_style_t line_style = vt_char_line_style(line->chars + char_index);
-        ef_charset_t cs = vt_char_cs(line->chars + char_index);
+      vt_font_t font = vt_char_font(line->chars + char_index);
+      vt_line_style_t line_style = vt_char_line_style(line->chars + char_index);
+      ef_charset_t cs = vt_char_cs(line->chars + char_index);
 
+      fg = vt_char_fg_color(line->chars + char_index);
+      bg = vt_char_bg_color(line->chars + char_index);
+
+      if (bg == line->chars[char_index].u.ch.fg_color &&
+          fg == line->chars[char_index].u.ch.bg_color) {
+        /* XXX corrupt if combining char. */
+        vt_color_t tmp = fg;
+        fg = bg;
+        bg = tmp;
+        cell->attrs.reverse = 1;
+      }
+
+      if (font & FONT_BOLD) {
+        cell->attrs.bold = 1;
+      }
+
+      if (font & FONT_ITALIC) {
+        cell->attrs.italic = 1;
+      }
+
+      if (line_style & LS_UNDERLINE) {
+        cell->attrs.underline = (line_style & LS_UNDERLINE);
+      }
+
+      if (line_style == LS_CROSSED_OUT) {
+        cell->attrs.strike = 1;
+      }
+
+      if (vt_char_is_blinking(line->chars + char_index)) {
+        cell->attrs.blink = 1;
+      }
+
+      if (line->size_attr & DOUBLE_WIDTH) {
+        cell->attrs.dwl = 1;
+      }
+
+      if (line->size_attr >= DOUBLE_HEIGHT_TOP) {
+        cell->attrs.dhl = (line->size_attr & DOUBLE_HEIGHT_TOP) ? 1 : 2;
+      }
+
+      cell->width = vt_char_cols(line->chars + char_index);
+
+      if (cell->width == 2 && col == 1) {
+        cell->chars[0] = (u_int32_t)-1;
+        cell->width = 1;
+      } else {
         cell->chars[0] = vt_char_code(line->chars + char_index);
+
         if (cs != US_ASCII && !IS_ISO10646_UCS4(cs)) {
           ef_char_t ch;
 
@@ -826,40 +871,6 @@ int vterm_screen_get_cell(const VTermScreen *screen, VTermPos pos, VTermScreenCe
           ef_map_to_ucs4(&ch, &ch);
           cell->chars[0] = ef_bytes_to_int(ch.ch, 4);
         }
-
-        fg = vt_char_fg_color(line->chars + char_index);
-        bg = vt_char_bg_color(line->chars + char_index);
-
-        if (font & FONT_BOLD) {
-          cell->attrs.bold = 1;
-        }
-
-        if (font & FONT_ITALIC) {
-          cell->attrs.italic = 1;
-        }
-
-        if (line_style & LS_UNDERLINE) {
-          cell->attrs.underline = (line_style & LS_UNDERLINE);
-        }
-
-        if (line_style == LS_CROSSED_OUT) {
-          cell->attrs.strike = 1;
-        }
-
-        if (vt_char_is_blinking(line->chars + char_index)) {
-          cell->attrs.blink = 1;
-        }
-
-        if (line->size_attr & DOUBLE_WIDTH) {
-          cell->attrs.dwl = 1;
-        }
-
-        if (line->size_attr >= DOUBLE_HEIGHT_TOP) {
-          cell->attrs.dhl = (line->size_attr & DOUBLE_HEIGHT_TOP) ? 1 : 2;
-        }
-      } else if (cell->width == 2 && col == 1) {
-        cell->chars[0] = (u_int32_t)-1;
-        cell->width = 1;
       }
     }
   }
