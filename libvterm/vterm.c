@@ -201,8 +201,9 @@ static void write_to_stdout(u_char *buf, size_t len) {
   }
 }
 
-static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols /* can be 0 */,
-                                         int *num_rows /* can be 0 */,
+static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
+                                         int *num_cols, /* If *num_cols > 0, ignored. */
+                                         int *num_rows, /* If *num_rows > 0, ignored. */
                                          int *num_cols_small /* set only if drcs_sixel is 1. */,
                                          int *num_rows_small /* set only if drcs_sixel is 1. */,
                                          u_int32_t **sixel_palette, int drcs_sixel) {
@@ -220,10 +221,8 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
   vt_char_t *buf;
   char seq[] = "\x1b[?8800h\x1bP1;0;0;8;1;3;16;0{ @"; /* 29+1 bytes */
 
-  width = (*num_cols) * vterm->col_width;
-  height = (*num_rows) * vterm->line_height;
-
-  if (!(fp = fopen(file_path, "r"))) {
+  if (strcasecmp(file_path + strlen(file_path) - 4, ".six") != 0 || /* accepts sixel alone */
+      !(fp = fopen(file_path, "r"))) {
     return NULL;
   }
 
