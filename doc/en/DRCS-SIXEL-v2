@@ -33,3 +33,5 @@ U+10XXYY (0x40 <= 0xXX <= 0x7E, 0x20 <= 0xYY <= 0x7F)
 
 U+10XXZZ (0x40 <= 0xXX <= 0x7E, 0xA0 <= 0xZZ <= 0xFF)
  => ESC - SP <\xXX> <\xZZ>
+
+(DRCS mapping rule version 1: https://github.com/saitoha/drcsterm/blob/master/README.rst)

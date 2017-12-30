@@ -6148,7 +6148,9 @@ static int write_loopback(vt_parser_t *vt_parser, const u_char *buf, size_t len,
   char *orig_buf;
   size_t orig_left;
 
-  if (vt_pty_get_master_fd(vt_parser->pty) != -1) {
+  if (!vt_parser->pty || /* vt_term_write_loopback() in open_pty_intern() in ui_screen_manager.c can
+                          * be called when vt_parser->pty is NULL */
+      vt_pty_get_master_fd(vt_parser->pty) != -1) {
     if (vt_parser->r_buf.len < len && !change_read_buffer_size(&vt_parser->r_buf, len)) {
       return 0;
     }
