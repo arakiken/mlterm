@@ -10,18 +10,18 @@
  * DEC_SPECIAL(Ft='0').
  */
 
-/* 0x00 - 0x4e (Ft is within 0x30 and 0x7e) */
-#define CS94SB_ID(c) ((u_char)(c)-0x30)
-/* 0x50 - 0x8e (Ft is within 0x40 and 0x7e) */
-#define CS96SB_ID(c) ((u_char)(c) + 0x10)
-/* 0x90 - 0xaf (XXX Ft is within 0x40 and 0x5f) */
-#define CS94MB_ID(c) ((u_char)(c) + 0x50)
+/* 0x00 - 0x4e (Ft is within 0x30 and 0x7e) (0x30-0x3f is for DRCS) */
+#define CS94SB_ID(c) ((u_char)(c) - 0x30)
+/* 0x50 - 0x9e (Ft is within 0x30 and 0x7e) (0x30-0x3f is for DRCS) */
+#define CS96SB_ID(c) ((u_char)(c) + 0x20)
+/* 0xa0 - 0xbf (XXX Ft is within 0x40 and 0x5f) */
+#define CS94MB_ID(c) ((u_char)(c) + 0x60)
 /* No 96^n cs exists. */
 #define CS96MB_ID(c) UNKNOWN_CS
-/* 0xb0 - 0xbf (Ft is within 0x40 and 0x4f) */
-#define NON_ISO2022_1_ID(c) ((u_char)(c) + 0x70)
 /* 0xc0 - 0xcf (Ft is within 0x40 and 0x4f) */
-#define NON_ISO2022_2_ID(c) ((u_char)(c) + 0x80)
+#define NON_ISO2022_1_ID(c) ((u_char)(c) + 0x80)
+/* 0xd0 - 0xdf (Ft is within 0x40 and 0x4f) */
+#define NON_ISO2022_2_ID(c) ((u_char)(c) + 0x90)
 
 /* 0x100 - 0x1bf (= 0x100 | CS9XXB_ID) */
 #define CS_REVISION_1(cs) ((cs) + 0x100)
@@ -33,17 +33,17 @@
  */
 
 #define CS94SB_FT(cs) (((cs)&0xff) + 0x30)
-#define CS96SB_FT(cs) (((cs)&0xff) - 0x10)
-#define CS94MB_FT(cs) (((cs)&0xff) - 0x50)
+#define CS96SB_FT(cs) (((cs)&0xff) - 0x20)
+#define CS94MB_FT(cs) (((cs)&0xff) - 0x60)
 #define CS96MB_FT(cs) ' ' /* dummy */
 
 #define IS_CS94SB(cs) ((unsigned int)((cs)&0xff) <= 0x4e) /* same as 0x00 <= .. <= 0x4e */
-#define IS_CS96SB(cs) (0x50 <= ((cs)&0xff) && ((cs)&0xff) <= 0x8e)
-#define IS_CS94MB(cs) (0x90 <= ((cs)&0xff) && ((cs)&0xff) <= 0xaf)
+#define IS_CS96SB(cs) (0x50 <= ((cs)&0xff) && ((cs)&0xff) <= 0x9e)
+#define IS_CS94MB(cs) (0xa0 <= ((cs)&0xff) && ((cs)&0xff) <= 0xbf)
 #define IS_CS96MB(cs) (0) /* always false */
-#define IS_CS_BASED_ON_ISO2022(cs) (0x0 <= ((cs)&0xff) && ((cs)&0xff) <= 0xaf)
+#define IS_CS_BASED_ON_ISO2022(cs) (0x0 <= ((cs)&0xff) && ((cs)&0xff) <= 0xbf)
 /* without "(cs) != UNKNOWN_CS &&", 0xa0 <= (UNKNOWN_CS & 0xff) returns true. */
-#define IS_NON_ISO2022(cs) ((cs) != UNKNOWN_CS && 0xb0 <= ((cs)&0xff))
+#define IS_NON_ISO2022(cs) ((cs) != UNKNOWN_CS && 0xc0 <= ((cs)&0xff))
 #define IS_ISCII(cs) (0xf0 <= (cs) && (cs) <= 0xfa)
 
 #define IS_FULLWIDTH_CS(cs) (IS_CS94MB(cs) || IS_CS96MB(cs) || (0x1e0 <= (cs) && (cs) <= 0x1ff))

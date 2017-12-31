@@ -8,8 +8,6 @@
 #include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_debug.h>
 
-/* 0x40(@) => 0x10 (ISO646_IRV) => 0x0 */
-#define CS_TO_INDEX(cs) ((cs) -= 0x10)
 #ifndef UINT16_MAX
 #define UINT16_MAX ((1 << 16) - 1)
 #endif
@@ -66,9 +64,8 @@ vt_drcs_font_t *vt_drcs_get_font(vt_drcs_t *drcs, ef_charset_t cs, int create) {
     return NULL;
   }
 
-  CS_TO_INDEX(cs);
-  /* CS94SB(0x40)-CS94SB(0x7e) (0x10-0x4e), CS96SB(0x40)-CS96SB(0x7e) (0x50-0x8e) */
-  if (cs > 0x8e) {
+  /* CS94SB(0x30)-CS94SB(0x7e) (=0x00-0x4e), CS96SB(0x30)-CS96SB(0x7e) (0x50-0x9e) */
+  if (cs > CS96SB_ID(0x7e)) {
     return NULL;
   }
 
@@ -83,8 +80,6 @@ vt_drcs_font_t *vt_drcs_get_font(vt_drcs_t *drcs, ef_charset_t cs, int create) {
 
 void vt_drcs_final(vt_drcs_t *drcs, ef_charset_t cs) {
   if (drcs) {
-    CS_TO_INDEX(cs);
-
     if (drcs->fonts[cs]) {
       int idx;
 
@@ -101,7 +96,7 @@ void vt_drcs_final(vt_drcs_t *drcs, ef_charset_t cs) {
 void vt_drcs_final_full(vt_drcs_t *drcs) {
   ef_charset_t cs;
 
-  for (cs = CS94SB_ID(0x40); cs <= CS96SB_ID(0x7e); cs++) {
+  for (cs = CS94SB_ID(0x30); cs <= CS96SB_ID(0x7e); cs++) {
     vt_drcs_final(drcs, cs);
   }
 }
@@ -179,7 +174,7 @@ int vt_convert_unicode_pua_to_drcs(ef_char_t *ch) {
 
   c = ch->ch;
 
-  if (c[1] == 0x10 && 0x40 <= c[2] && c[2] <= 0x7e && c[0] == 0x00) {
+  if (c[1] == 0x10 && 0x30 <= c[2] && c[2] <= 0x7e && c[0] == 0x00) {
     if (0x20 <= c[3] && c[3] <= 0x7f) {
       ch->cs = CS94SB_ID(c[2]);
     } else if (0xa0 <= c[3] && c[3] <= 0xff) {

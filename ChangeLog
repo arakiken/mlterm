@@ -2,6 +2,27 @@
 
 	* DRCS-SIXEL-v2: Updated.
 
+	* vterm.c:
+	  - q"%d;%d;%d;%d in sixel to be sent to terminal emulator as DRCS-Sixel is
+	    skipped.
+	  - 0x30-0x3f is accepted as vterm->drcs_charset.
+	  - "DRCS_SIXEL_VERSION" environmental varaible is dropped and "DRCS_SIXEL=old"
+	    is used.
+
+	* vt_parser.c:
+	  - 0x30-0x3f character set is accepted for drcs.
+	  - Sixel sequence (in DRCS) which doesn't contain 'q' is accepted.
+	  - "drcs_sixel_version" is dropped and "old_drcs_sixel" is added to OSC 5379-5381.
+
+	* vt_drcs.[ch]: 0x30-0x3f character set is accepted.
+
+	* ef_charset.h: The range of CS96SB_ID() is changed from 0x40-0x7e to 0x30-7e
+	  to handle drcs correctly.
+
+2017-12-31  Araki Ken  <arakiken@users.sf.net>
+
+	* DRCS-SIXEL-v2: Updated.
+
 	* vt_parser.c: 'font->pic_num_cols > 0' => vt_drcs_is_picture()
 
 	* vt_drcs.[ch]:
@@ -78,7 +99,7 @@
 
 	* encodefilter/src/Makefile.in: MAJOR.MINOR 1.0 => 2.0
 
-	* ef_charset.h: The range of CS84SB_ID() is changed from 0x40-0x6f to 0x40-0x7e
+	* ef_charset.h: The range of CS94SB_ID() is changed from 0x40-0x6f to 0x40-0x7e
 	  to handle drcs correctly.
 
 2017-12-19  Araki Ken  <arakiken@users.sf.net>

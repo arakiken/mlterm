@@ -21,7 +21,7 @@ typedef struct vt_drcs_font {
 } vt_drcs_font_t;
 
 typedef struct vt_drcs {
-  vt_drcs_font_t *fonts[0x7f]; /* 0x40-0x7e, 0xc0-0xfe */
+  vt_drcs_font_t *fonts[CS96SB_ID(0x7e)+1];
 
 } vt_drcs_t;
 
