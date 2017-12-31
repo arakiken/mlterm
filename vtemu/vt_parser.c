@@ -206,7 +206,7 @@ static char *secondary_da;
 
 static int is_broadcasting;
 
-static int drcs_sixel_version = 1;
+static int old_drcs_sixel;
 
 #ifdef USE_LIBSSH2
 static int use_scp_full;
@@ -5576,7 +5576,7 @@ inline static int parse_vt100_escape_sequence(
 
           idx = ps[1];
 
-          if (0x40 <= *str_p && *str_p <= 0x7e) {
+          if (0x30 <= *str_p && *str_p <= 0x7e) {
             /* Ft */
             if (ps[7] == 0) {
               cs = CS94SB_ID(*str_p);
@@ -5622,8 +5622,17 @@ inline static int parse_vt100_escape_sequence(
               }
             } while (*str_p == ';' || ('0' <= *str_p && *str_p <= '9'));
 
-            dcs_beg[0] = '\x1b';
-            dcs_beg[1] = 'P';
+            if (*str_p != 'q') {
+              str_p--;
+              left++;
+              dcs_beg--;
+              dcs_beg[0] = '\x1b';
+              dcs_beg[1] = 'P';
+              dcs_beg[2] = 'q';
+            } else {
+              dcs_beg[0] = '\x1b';
+              dcs_beg[1] = 'P';
+            }
 
             if (!save_sixel_or_regis(vt_parser, path, dcs_beg, &str_p, &left)) {
               memmove(vt_parser->r_buf.chars + len, vt_parser->r_buf.chars + 2 /* ESC P */,
@@ -5653,7 +5662,7 @@ inline static int parse_vt100_escape_sequence(
                   vt_parser->drcs = vt_drcs_new();
                 }
 
-                if (drcs_sixel_version == 2) {
+                if (!old_drcs_sixel) {
                   cols_small = cols;
                   rows_small = rows;
                 }
@@ -5668,9 +5677,9 @@ inline static int parse_vt100_escape_sequence(
                   idx = 0;
 
                   if (cs == CS94SB_ID(0x7e)) {
-                    cs = CS96SB_ID(0x40);
+                    cs = CS96SB_ID(0x30);
                   } else if (cs == CS96SB_ID(0x7e)) {
-                    cs = CS94SB_ID(0x40);
+                    cs = CS94SB_ID(0x30);
                   } else {
                     cs++;
                   }
@@ -6832,8 +6841,11 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
 
   if (ch.size == 1) {
     /* single byte cs */
+    vt_drcs_font_t *font;
 
-    if ((ch.ch[0] == 0x0 || ch.ch[0] == 0x7f)) {
+    if ((ch.ch[0] == 0x0 || ch.ch[0] == 0x7f) &&
+        (!(font = vt_drcs_get_font(vt_parser->drcs, US_ASCII, 0)) ||
+         !(vt_drcs_is_picture(font, ch.ch[0])))) {
       /* DECNULM is always set => discarding 0x0 */
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG " 0x0/0x7f sequence is received , ignored...\n");
@@ -7110,9 +7122,12 @@ int vt_parser_get_config(
     } else {
       value = "false";
     }
-  } else if (strcmp(key, "drcs_sixel_version") == 0) {
-    sprintf(digit, "%d", drcs_sixel_version);
-    value = digit;
+  } else if (strcmp(key, "old_drcs_sixel") == 0) {
+    if (old_drcs_sixel) {
+      value = "true";
+    } else {
+      value = "false";
+    }
   } else if (strcmp(key, "challenge") == 0) {
     value = vt_get_proto_challenge();
     if (to_menu < 0) {
@@ -7272,8 +7287,12 @@ int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
     if ((flag = true_or_false(value)) != -1) {
       vt_parser->use_multi_col_char = flag;
     }
-  } else if (strcmp(key, "drcs_sixel_version") == 0) {
-    drcs_sixel_version = atoi(value);
+  } else if (strcmp(key, "old_drcs_sixel") == 0) {
+    int flag;
+
+    if ((flag = true_or_false(value)) != -1) {
+      old_drcs_sixel = flag;
+    }
   } else {
     /* Continue to process it in x_screen.c */
     return 0;

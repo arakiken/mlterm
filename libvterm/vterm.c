@@ -47,7 +47,7 @@ typedef struct VTerm {
 
 /* --- static variables --- */
 
-static const char *env;
+static int old_drcs_sixel = -1;
 
 /* --- static functions --- */
 
@@ -201,6 +201,15 @@ static void write_to_stdout(u_char *buf, size_t len) {
   }
 }
 
+static inline void switch_94_96_cs(VTerm *vterm) {
+  if (vterm->drcs_plane == '0') {
+    vterm->drcs_plane = '1';
+  } else {
+    vterm->drcs_plane = '0';
+  }
+  vterm->drcs_charset = '0';
+}
+
 static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
                                          int *num_cols, /* If *num_cols > 0, ignored. */
                                          int *num_rows, /* If *num_rows > 0, ignored. */
@@ -217,8 +226,8 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
   size_t len;
   size_t skipped_len;
   int x, y;
-  int max_num_cols;
   vt_char_t *buf;
+  u_int buf_size;
   char seq[] = "\x1b[?8800h\x1bP1;0;0;8;1;3;16;0{ @"; /* 29+1 bytes */
 
   if (strcasecmp(file_path + strlen(file_path) - 4, ".six") != 0 || /* accepts sixel alone */
@@ -228,9 +237,7 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
 
   len = fread(data, 1, sizeof(data) - 1, fp);
   if (len < 2) {
-    fclose(fp);
-
-    return NULL;
+    goto error_closing_fp;
   }
 
   data[len] = '\0';
@@ -240,15 +247,17 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
   } else if (strncmp(data, "\x1bP", 2) == 0) {
     data_p = data + 2;
   } else {
-    fclose(fp);
-
-    return NULL;
+    goto error_closing_fp;
   }
 
   while ('0' <= *data_p && *data_p <= ';') { data_p++; }
-  skipped_len = (data_p - data);
 
-  if (*data_p != 'q' || sscanf(data_p + 1, "\"%d;%d;%d;%d", &x, &y, &width, &height) != 4 ||
+  if (*data_p != 'q') {
+    goto error_closing_fp;
+  }
+  data_p ++;
+
+  if (sscanf(data_p, "\"%d;%d;%d;%d", &x, &y, &width, &height) != 4 ||
       width == 0 || height == 0) {
     struct stat st;
     u_char *picture;
@@ -256,9 +265,7 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
     fstat(fileno(fp), &st);
 
     if (!(all_data = malloc(st.st_size + 1))) {
-      fclose(fp);
-
-      return NULL;
+      goto error_closing_fp;
     }
 
     memcpy(all_data, data, len);
@@ -267,31 +274,42 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
 
     if (!(picture = load_sixel_from_data_1bpp(all_data, &width, &height))) {
       free(all_data);
-      fclose(fp);
 
-      return NULL;
+      goto error_closing_fp;
     }
 
     free(picture);
 
+    skipped_len = (data_p - data); /* skip DCS P ... q */
     data_p = all_data + skipped_len;
   } else {
+    /* "%d;%d;%d;%d */
+#if 0
+    /* skip DCS P ... q"X;X;X;X */
+    data_p++;
+    while ('0' <= *data_p && *data_p <= ';') { data_p++; }
+#endif
+    skipped_len = (data_p - data);
+
     all_data = NULL;
   }
 
   len -= skipped_len;
 
   if (vterm->drcs_charset == '\0') {
-    vterm->drcs_charset = '@';
+    vterm->drcs_charset = '0';
     vterm->drcs_plane = '0';
     get_cell_size(vterm);
   }
 
-  if (!env) {
-    if (!(env = getenv("DRCS_SIXEL_VERSION"))) {
-      env = "1";
-    } else if (strcmp(env, "2") == 0) {
-      write_to_stdout("\x1b]5379;drcs_sixel_version=2\x07", 28);
+  if (old_drcs_sixel == -1) {
+    const char *env = getenv("DRCS_SIXEL");
+    if (env && strcmp(env, "old") == 0) {
+      old_drcs_sixel = 1;
+      write_to_stdout("\x1b]5379;old_drcs_sixel=true\x07", 27); /* for mlterm */
+    } else {
+      old_drcs_sixel = 0;
+      write_to_stdout("\x1b]5379;old_drcs_sixel=false\x07", 28); /* for mlterm */
     }
   }
 
@@ -312,13 +330,13 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
 
   fclose(fp);
 
-  if (strcmp(env, "2") == 0) {
+  if (old_drcs_sixel) {
+    /* compatible with old rlogin (2.23.0 or before) */
+    *num_cols = width / vterm->col_width;
+    *num_rows = height / vterm->line_height;
+  } else {
     *num_cols = (width + vterm->col_width - 1) / vterm->col_width;
     *num_rows = (height + vterm->line_height - 1) / vterm->line_height;
-  } else {
-    /* compatible with rlogin */
-    *num_cols = (width + 1) / vterm->col_width;
-    *num_rows = height / vterm->line_height;
   }
 
 #if 0
@@ -326,11 +344,24 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
                   width, vterm->col_width, *num_cols, height, vterm->line_height, *num_rows);
 #endif
 
-  if ((buf = vt_str_new((*num_cols) * (*num_rows)))) {
+  buf_size = (*num_cols) * (*num_rows);
+  if ((buf = vt_str_new(buf_size))) {
     vt_char_t *buf_p;
     int col;
     int row;
     u_int code;
+
+#if 1
+    /*
+     * XXX
+     * The way of drcs_charset increment from 0x7e character set is different between
+     * rlogin and mlterm.
+     */
+    if (vterm->drcs_charset > '0' &&
+        (buf_size + 0x5f) / 0x60 > 0x7e - vterm->drcs_charset + 1) {
+      switch_94_96_cs(vterm);
+    }
+#endif
 
     code = 0x100020 + (vterm->drcs_plane == '1' ? 0x80 : 0) + vterm->drcs_charset * 0x100;
 
@@ -338,7 +369,7 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
     for (row = 0; row < *num_rows; row++) {
       for (col = 0; col < *num_cols; col++) {
 #if 0
-        /* for rlogin */
+        /* for old rlogin */
         if (code == 0x20) {
           vt_char_copy(buf_p++, vt_sp_ch());
         } else
@@ -350,16 +381,11 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
                       0 /* blinking */, 0 /* protected */);
           if ((code & 0x7f) == 0x0) {
 #if 0
-            /* for rlogin */
+            /* for old rlogin */
             code = 0x20;
 #else
             if (vterm->drcs_charset == 0x7e) {
-              if (vterm->drcs_plane == '0') {
-                vterm->drcs_plane = '1';
-              } else {
-                vterm->drcs_plane = '0';
-              }
-              vterm->drcs_charset = '@';
+              switch_94_96_cs(vterm);
             } else {
               vterm->drcs_charset++;
             }
@@ -373,18 +399,18 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
     }
 
     if (vterm->drcs_charset == 0x7e) {
-      if (vterm->drcs_plane == '0') {
-        vterm->drcs_plane = '1';
-      } else {
-        vterm->drcs_plane = '0';
-      }
-      vterm->drcs_charset = '@';
+      switch_94_96_cs(vterm);
     } else {
       vterm->drcs_charset++;
     }
 
     return buf;
   }
+
+  return NULL;
+
+error_closing_fp:
+  fclose(fp);
 
   return NULL;
 }
@@ -445,6 +471,13 @@ VTerm *vterm_new(int rows, int cols) {
 #if 0
   vterm->xterm_listener.resize = resize;
   vterm->xterm_listener.set_mouse_report = xterm_set_mouse_report;
+  /*
+   * XXX
+   * If xterm_get_rgb is implemented, "#0;9;X;X;X" is prepended to sixel sequence
+   * stored in file_path of xterm_get_picture_data, so the way of skipping "\"%d;%d;%d;%d"
+   * in xterm_get_picture_data should be fixed.
+   */
+  vterm->xterm_listener.get_rgb = xterm_get_rgb;
 #endif
   vterm->xterm_listener.bel = xterm_bel;
   vterm->xterm_listener.get_picture_data = xterm_get_picture_data;
