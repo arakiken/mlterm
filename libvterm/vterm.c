@@ -284,8 +284,8 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
     data_p = all_data + skipped_len;
   } else {
     /* "%d;%d;%d;%d */
-#if 0
-    /* skip DCS P ... q"X;X;X;X */
+#if 1
+    /* skip DCS P ... q"X;X;X;X (rlogin 2.23.0 doesn't recognize it) */
     data_p++;
     while ('0' <= *data_p && *data_p <= ';') { data_p++; }
 #endif
