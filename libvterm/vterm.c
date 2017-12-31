@@ -486,6 +486,10 @@ VTerm *vterm_new(int rows, int cols) {
   vterm->term = mlterm_open(NULL, NULL, cols, rows, 1, NULL, NULL, &vterm->xterm_listener,
                             &vterm->config_listener, &vterm->screen_listener,
                             &vterm->pty_listener, 0);
+#if 1
+  /* col_size_of_width_a is forcibly 1 if locale is ja_XX.XX */
+  vterm->term->parser->col_size_of_width_a = 1;
+#endif
   vt_term_plug_pty(vterm->term, vterm->pty);
 
   vterm->default_fg.red = vterm->default_fg.green = vterm->default_fg.blue = 240;
