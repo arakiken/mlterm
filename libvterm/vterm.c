@@ -45,10 +45,6 @@ typedef struct VTerm {
   void *vterm_screen_cbdata;
 } VTerm;
 
-/* --- static variables --- */
-
-static int old_drcs_sixel = -1;
-
 /* --- static functions --- */
 
 static int final(vt_pty_ptr_t pty) { return 1; }
@@ -162,18 +158,16 @@ static void update_screen(VTerm *vterm) {
 }
 
 static void get_cell_size(VTerm *vterm) {
-#ifdef  TIOCGWINSZ
-  {
-    struct winsize ws;
+#ifdef TIOCGWINSZ
+  struct winsize ws;
 
-    if (ioctl(STDIN_FILENO, TIOCGWINSZ, &ws) == 0 && ws.ws_xpixel > 0 &&
-        ws.ws_col > 0 && ws.ws_ypixel > 0 && ws.ws_row > 0) {
-      vterm->col_width = ws.ws_xpixel / ws.ws_col;
-      vterm->line_height = ws.ws_ypixel / ws.ws_row;
-      bl_msg_printf("Cell size is %dx%d\n", vterm->col_width, vterm->line_height);
+  if (ioctl(STDIN_FILENO, TIOCGWINSZ, &ws) == 0 && ws.ws_xpixel > 0 &&
+      ws.ws_col > 0 && ws.ws_ypixel > 0 && ws.ws_row > 0) {
+    vterm->col_width = ws.ws_xpixel / ws.ws_col;
+    vterm->line_height = ws.ws_ypixel / ws.ws_row;
+    bl_msg_printf("Cell size is %dx%d\n", vterm->col_width, vterm->line_height);
 
-      return;
-    }
+    return;
   }
 #endif
 
@@ -216,6 +210,7 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
                                          int *num_cols_small /* set only if drcs_sixel is 1. */,
                                          int *num_rows_small /* set only if drcs_sixel is 1. */,
                                          u_int32_t **sixel_palette, int drcs_sixel) {
+  static int old_drcs_sixel = -1;
   VTerm *vterm = p;
   u_int width;
   u_int height;
@@ -313,6 +308,29 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
     }
   }
 
+  if (old_drcs_sixel) {
+    /* compatible with old rlogin (2.23.0 or before) */
+    *num_cols = width / vterm->col_width;
+    *num_rows = height / vterm->line_height;
+  } else {
+    *num_cols = (width + vterm->col_width - 1) / vterm->col_width;
+    *num_rows = (height + vterm->line_height - 1) / vterm->line_height;
+  }
+
+  buf_size = (*num_cols) * (*num_rows);
+
+#if 1
+  /*
+   * XXX
+   * The way of drcs_charset increment from 0x7e character set may be different
+   * between terminal emulators.
+   */
+  if (vterm->drcs_charset > '0' &&
+      (buf_size + 0x5f) / 0x60 > 0x7e - vterm->drcs_charset + 1) {
+    switch_94_96_cs(vterm);
+  }
+#endif
+
   seq[25] = vterm->drcs_plane;
   seq[28] = vterm->drcs_charset;
   write_to_stdout(seq, sizeof(seq) - 1);
@@ -330,38 +348,16 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
 
   fclose(fp);
 
-  if (old_drcs_sixel) {
-    /* compatible with old rlogin (2.23.0 or before) */
-    *num_cols = width / vterm->col_width;
-    *num_rows = height / vterm->line_height;
-  } else {
-    *num_cols = (width + vterm->col_width - 1) / vterm->col_width;
-    *num_rows = (height + vterm->line_height - 1) / vterm->line_height;
-  }
-
 #if 0
   bl_debug_printf("Image cols %d/%d=%d rows %d/%d=%d\n",
                   width, vterm->col_width, *num_cols, height, vterm->line_height, *num_rows);
 #endif
 
-  buf_size = (*num_cols) * (*num_rows);
   if ((buf = vt_str_new(buf_size))) {
     vt_char_t *buf_p;
     int col;
     int row;
     u_int code;
-
-#if 1
-    /*
-     * XXX
-     * The way of drcs_charset increment from 0x7e character set is different between
-     * rlogin and mlterm.
-     */
-    if (vterm->drcs_charset > '0' &&
-        (buf_size + 0x5f) / 0x60 > 0x7e - vterm->drcs_charset + 1) {
-      switch_94_96_cs(vterm);
-    }
-#endif
 
     code = 0x100020 + (vterm->drcs_plane == '1' ? 0x80 : 0) + vterm->drcs_charset * 0x100;
 

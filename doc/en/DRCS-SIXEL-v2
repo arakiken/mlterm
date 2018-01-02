@@ -13,15 +13,9 @@ from the top-left corner cell.
  <rows> = sixel graphics image height / cell height (rounded up)
  (Width and height include transparent pixels)
 
-(*2) (mlterm 3.8.5 or later)
-     0x20 of <Dscs+1> is next to 0x7f of <Dscs>, and 0x20 of 0x30 set
-    which consists of 96 characters is next to 0x7f of 0x7e set which
-    consists of 94 characters.
-
-     (RLogin 2.23.1 or later)
-     <Dscs> = "I I F"
-     0x20 of I=0x20 F=0x31 is next to 0x7f of I=0x20 F=0x30
-     0x20 of I=0x21 F=0x30 is next to 0x7f of I=0x20 F=0x7e
+(*2) 0x20 of <Dscs+1> is next to 0x7f of <Dscs>, and 0x20 of 0x30 set
+ which consists of 96 characters is next to 0x7f of 0x7e set which
+ consists of 94 characters.
 
 [Appendix]
 <Original DRCS-SIXEL (rlogin 2.23.0)>
