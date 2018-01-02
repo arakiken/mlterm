@@ -1,3 +1,10 @@
+2018-01-02  Araki Ken  <arakiken@users.sf.net>
+
+	* DRCS-SIXEL-v2, libvterm/README: Updated.
+
+	* vterm.c: Adjusting vterm->drcs_charset and vterm->drcs_planeiis placed
+	  before DRCS-SIXEL sequence is output.
+
 2018-01-01  Araki Ken  <arakiken@users.sf.net>
 
 	* DRCS-SIXEL-v2: Updated.

@@ -22,6 +22,14 @@ How to build & install libvterm compatible library using mlterm engine.
   $ neovim => :terminal
 
 * Notice
+  o Sixel graphics is available under these conditions.
+    - Terminal emulators
+      mlterm 3.8.5 or later
+      RLogin 2.23.1 or later
+    - (mlterm) "col_size_of_width_a" option should be 1.
+    - Application using libvte should regard the column width of ambiguous
+      width characters as 1. (e.g. "set ambiwidth=single" on vim)
+
   o Unsupported vte api functions
     - vterm_new_with_allocator
     - vterm_keyboard_start_paste
