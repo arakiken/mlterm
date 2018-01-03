@@ -303,7 +303,7 @@ ui_font_t *ui_font_cache_get_xfont(ui_font_cache_t *font_cache, vt_font_t font) 
     while (next_font & (FONT_BOLD | FONT_ITALIC)) {
       if (next_font & FONT_BOLD) {
         next_font &= ~FONT_BOLD;
-      } else /* if( next_font & FONT_ITALIC) */
+      } else /* if(next_font & FONT_ITALIC) */
       {
         if (!scalable) {
           break;
