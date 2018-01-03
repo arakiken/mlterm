@@ -18,7 +18,7 @@ from the top-left corner cell.
  consists of 94 characters.
 
 [Appendix]
-<Original DRCS-SIXEL (rlogin 2.23.0)>
+<Original DRCS-SIXEL (rlogin 2.23.0 or before)>
 o The number of columns and rows of sixel graphic image are calculated
   as follows.
   <columns> = sixel graphics image width / cell width (rounded down)

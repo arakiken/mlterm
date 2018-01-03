@@ -223,7 +223,7 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
   int x, y;
   vt_char_t *buf;
   u_int buf_size;
-  char seq[] = "\x1b[?8800h\x1bP1;0;0;8;1;3;16;0{ @"; /* 29+1 bytes */
+  char seq[24 + 4 /*%dx2*/ + 2 /*%cx2*/ + 1]; /* \x1b[?8800h\x1bP1;0;0;%d;1;3;%d;%c{ %c */
 
   if (strcasecmp(file_path + strlen(file_path) - 4, ".six") != 0 || /* accepts sixel alone */
       !(fp = fopen(file_path, "r"))) {
@@ -295,6 +295,13 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
     vterm->drcs_charset = '0';
     vterm->drcs_plane = '0';
     get_cell_size(vterm);
+
+    /* Pcmw >= 5 in DECDLD */
+    if (state->col_width < 5 || 99 < state->col_width || 99 < state->line_height) {
+      free(all_data);
+
+      goto error_closing_fp;
+    }
   }
 
   if (old_drcs_sixel == -1) {
@@ -319,7 +326,7 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
 
   buf_size = (*num_cols) * (*num_rows);
 
-#if 1
+#if 0
   /*
    * XXX
    * The way of drcs_charset increment from 0x7e character set may be different
@@ -331,9 +338,9 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
   }
 #endif
 
-  seq[25] = vterm->drcs_plane;
-  seq[28] = vterm->drcs_charset;
-  write_to_stdout(seq, sizeof(seq) - 1);
+  sprintf(seq, "\x1b[?8800h\x1bP1;0;0;%d;1;3;%d;%c{ %c",
+          state->col_width, state->line_height, state->drcs_plane, state->drcs_charset);
+  write_to_stdout(seq, strlen(seq));
   while (1) {
     write_to_stdout(data_p, len);
     if ((len = fread(data, 1, sizeof(data), fp)) == 0) {
@@ -342,10 +349,7 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
     data_p = data;
   }
 
-  if (all_data) {
-    free(all_data);
-  }
-
+  free(all_data);
   fclose(fp);
 
 #if 0
