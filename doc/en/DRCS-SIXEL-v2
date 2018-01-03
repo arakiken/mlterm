@@ -2,8 +2,12 @@ DRCS-SIXEL version 2
 
 <DECDLD> = DCS Pfn; Pcn; Pe; Pcmw; Pss; 3; Pcmh; Pcss { SP Dscs <SIXEL> ST
 <SIXEL> = P1; P2; P3; q s...s
-          ^^^^^^^^^^^^^ => Optional
 
+ * P1; P2; P3; q is optional.
+ * " Pan; Pad; Ph; Pv in s...s is optional.
+ * mlterm ignores Pcmw and Pcmh for now, while RLogin correctly scales image
+   pieces according to them.
+ 
  This sequence devides sixel graphics image by cell(*1), and defines image
 pieces as the glyphs of <Pcn+0x20+N>(*2) code of <Dscs> character set in order
 from the top-left corner cell.

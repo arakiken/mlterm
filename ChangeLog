@@ -1,5 +1,7 @@
 2018-01-03  Araki Ken  <arakiken@users.sf.net>
 
+	* DRCS-SIXEL-v2: Updated.
+
 	* ui_font_config.c: ui_font_config_dump() outputs "_FULLWIDTH".
 
 	* vterm.c: Pcmw and Pcmh in DECDLD are correctly set.
@@ -8,7 +10,7 @@
 
 	* DRCS-SIXEL-v2, libvterm/README: Updated.
 
-	* vterm.c: Adjusting vterm->drcs_charset and vterm->drcs_planeiis placed
+	* vterm.c: Adjusting vterm->drcs_charset and vterm->drcs_plane is placed
 	  before DRCS-SIXEL sequence is output.
 
 2018-01-01  Araki Ken  <arakiken@users.sf.net>
