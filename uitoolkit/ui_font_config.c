@@ -1176,8 +1176,9 @@ char *ui_font_config_dump(ui_font_config_t *font_config) {
 
   list_len = 0;
   for (count = 0; count < size; count++) {
-    list_len += (4 /* CSI2J */ + 15 /* ISO10646_UCS4_1, U+10FFFF-10FFFF */ + 12 /* _BOLD_ITALIC */ +
-                 1 /* = */ + strlen(array[count]->value) + 2 /* \r\n or \0 */);
+    list_len += (4 /* CSI2J */ + 15 /* ISO10646_UCS4_1, U+10FFFF-10FFFF */ +
+                 12 /* _BOLD_ITALIC */ + 10 /* _FULLWIDTH */ + 1 /* = */ +
+                 strlen(array[count]->value) + 2 /* \r\n or \0 */);
   }
 
   if ((font_name_list = malloc(list_len)) == NULL) {
@@ -1222,6 +1223,11 @@ char *ui_font_config_dump(ui_font_config_t *font_config) {
     if (array[count]->key & FONT_ITALIC) {
       strcpy(p, "_ITALIC");
       p += 7;
+    }
+
+    if (array[count]->key & FONT_FULLWIDTH) {
+      strcpy(p, "_FULLWIDTH");
+      p += 10;
     }
 
     sprintf(p, "=%s", array[count]->value);
