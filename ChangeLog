@@ -1,3 +1,15 @@
+2018-01-06  Araki Ken  <arakiken@users.sf.net>
+
+	* DRCS-SIXEL-v2: Updated.
+
+	* vt_parser.c:
+	  - define_drcs_picture() is added.
+	  - "Pan;Pad;Ph;Pv is processed in receiving DRCS-Sixel sequence, and
+	    image pieces is scaled according to Pcmw/Pcmh and Ph/Pv.
+
+	* vterm.c: "Pan;Pad;Ph;Pv is output unless DRCS_SIXEL=old environmental
+	  variable is defined.
+
 2018-01-03  Araki Ken  <arakiken@users.sf.net>
 
 	* DRCS-SIXEL-v2: Updated.

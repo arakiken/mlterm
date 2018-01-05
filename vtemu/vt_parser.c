@@ -1895,10 +1895,70 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
   }
 }
 
+static void define_drcs_picture(vt_parser_t *vt_parser, char *path, ef_charset_t cs, int idx,
+                                u_int pix_width /* can be 0 */, u_int pix_height /* can be 0 */,
+                                u_int col_width, u_int line_height) {
+  if (HAS_XTERM_LISTENER(vt_parser, get_picture_data)) {
+    vt_char_t *data;
+    int cols = 0;
+    int rows = 0;
+    int cols_small = 0;
+    int rows_small = 0;
+
+    if (pix_width > 0 && pix_height > 0) {
+      if (old_drcs_sixel) {
+        cols = pix_width / col_width;
+        rows = pix_height / line_height;
+      } else {
+        cols = (pix_width + col_width - 1) / col_width;
+        rows = (pix_height + line_height - 1) / line_height;
+      }
+    }
+
+    if (idx <= 0x5f &&
+        (data = (*vt_parser->xterm_listener->get_picture_data)(vt_parser->xterm_listener->self,
+                                                               path, &cols, &rows, &cols_small,
+                                                               &rows_small, NULL, 1))) {
+      int pages;
+      int offset = 0;
+      vt_drcs_font_t *font;
+
+      if (!vt_parser->drcs) {
+        vt_parser->drcs = vt_drcs_new();
+      }
+
+      if (!old_drcs_sixel) {
+        cols_small = cols;
+        rows_small = rows;
+      }
+
+      for (pages = (cols_small * rows_small + 95) / 96; pages > 0; pages--) {
+        font = vt_drcs_get_font(vt_parser->drcs, cs, 1);
+
+        vt_drcs_add_picture(font, vt_char_picture_id(vt_get_picture_char(data)),
+                            offset, idx, cols, rows, cols_small, rows_small);
+
+        offset += (96 - idx);
+        idx = 0;
+
+        if (cs == CS94SB_ID(0x7e)) {
+          cs = CS96SB_ID(0x30);
+        } else if (cs == CS96SB_ID(0x7e)) {
+          cs = CS94SB_ID(0x30);
+        } else {
+          cs++;
+        }
+      }
+
+      vt_str_delete(data, cols * rows);
+    }
+  }
+}
+
 static int increment_str(u_char **str, size_t *left);
 
 static int save_sixel_or_regis(vt_parser_t *vt_parser, char *path, u_char *dcs_beg,
-                           u_char **body, size_t *body_len) {
+                               u_char **body /* q ... */ , size_t *body_len) {
   u_char *str_p = *body;
   size_t left = *body_len;
   int is_end;
@@ -2059,6 +2119,26 @@ static int save_sixel_or_regis(vt_parser_t *vt_parser, char *path, u_char *dcs_b
   *body_len = left;
 
   return 1;
+}
+
+static int check_cell_size(vt_parser_t *vt_parser, u_int col_width, u_int line_height) {
+  if (HAS_XTERM_LISTENER(vt_parser, get_window_size)) {
+    u_int width, height;
+
+    (*vt_parser->xterm_listener->get_window_size)(vt_parser->xterm_listener->self, &width, &height);
+
+    /*
+     * XXX
+     * This works except vertical mode, but no problem because images are not
+     * supported on vertical mode.
+     */
+    if (width / vt_screen_get_logical_cols(vt_parser->screen) == col_width &&
+        height / vt_screen_get_logical_rows(vt_parser->screen) == line_height) {
+      return 1;
+    }
+  }
+
+  return 0;
 }
 #endif
 
@@ -5523,14 +5603,13 @@ inline static int parse_vt100_escape_sequence(
 
         u_char *param;
         ef_charset_t cs;
-        vt_drcs_font_t *font;
         int num;
         u_char *p;
         int ps[9];
         int idx;
         int is_end;
-        u_int width;
-        u_int height;
+        u_int col_width;
+        u_int line_height;
 
         if (*dcs_beg == '\x1b') {
           param = dcs_beg + 2;
@@ -5585,19 +5664,19 @@ inline static int parse_vt100_escape_sequence(
             }
 
             if (ps[3] <= 4 || ps[3] >= 255) {
-              width = 15;
+              col_width = 15;
             } else {
-              width = ps[3];
+              col_width = ps[3];
             }
 
             if (ps[6] == 0 || ps[6] >= 255) {
-              height = 12;
+              line_height = 12;
             } else {
-              height = ps[6];
+              line_height = ps[6];
             }
           } else {
             cs = UNKNOWN_CS;
-            width = height = 0;
+            col_width = line_height = 0;
           }
 
 #ifndef NO_IMAGE
@@ -5605,11 +5684,16 @@ inline static int parse_vt100_escape_sequence(
               (path = get_home_file_path("", vt_pty_get_slave_name(vt_parser->pty) + 5,
                                          "six"))) {
             /* DRCS Sixel */
-            u_char *orig;
-            size_t len = str_p - dcs_beg + 1;
+            u_char *orig_drcs_header;
+            size_t drcs_header_len = str_p - dcs_beg + 1;
+            u_char *orig_sixel_size = NULL;
+            size_t sixel_size_len = 0;
+            int tmp;
+            int pix_width = 0;
+            int pix_height = 0;
 
-            orig = alloca(len);
-            memcpy(orig, dcs_beg, len);
+            orig_drcs_header = alloca(drcs_header_len);
+            memcpy(orig_drcs_header, dcs_beg, drcs_header_len);
 
             dcs_beg = str_p - 1;
 
@@ -5623,77 +5707,68 @@ inline static int parse_vt100_escape_sequence(
             } while (*str_p == ';' || ('0' <= *str_p && *str_p <= '9'));
 
             if (*str_p != 'q') {
-              str_p--;
-              left++;
               dcs_beg--;
               dcs_beg[0] = '\x1b';
               dcs_beg[1] = 'P';
               dcs_beg[2] = 'q';
+              str_p--; /* str_p points 'q' */
+              left++;
             } else {
               dcs_beg[0] = '\x1b';
               dcs_beg[1] = 'P';
             }
 
+            /*
+             * Read width and height of sixel graphics from "Pan;Pad;Ph;Pv.
+             * If failed, it is impossible to scale image pieces according to Pcmw and Pcmh.
+             */
+            if (str_p[1] == '"' && !check_cell_size(vt_parser, col_width, line_height) &&
+                sscanf(str_p + 2, "%d;%d;%d;%d", &tmp, &tmp, &pix_width, &pix_height) == 4 &&
+                pix_width > 0 && pix_height > 0) {
+              sixel_size_len = 1;
+              while ('0' <= str_p[++sixel_size_len] && str_p[sixel_size_len] <= ';');
+              orig_sixel_size = alloca(sixel_size_len);
+              memcpy(orig_sixel_size, str_p, sixel_size_len);
+
+              if (str_p[sixel_size_len] == 'q') {
+                /*
+                 * Starting DRCS Sixel:   q"Pan;Pad;Ph;Pv#...
+                 * Continuing DRCS Sixel: q"Pan;Pad;Ph;Pv\0q...
+                 */
+                str_p += sixel_size_len;
+                left -= sixel_size_len;
+              }
+            }
+
             if (!save_sixel_or_regis(vt_parser, path, dcs_beg, &str_p, &left)) {
-              memmove(vt_parser->r_buf.chars + len, vt_parser->r_buf.chars + 2 /* ESC P */,
+              /*
+               * q"Pan;Pad;Ph;Pvq\0...
+               *                ^^^^^^
+               */
+              memmove(vt_parser->r_buf.chars + drcs_header_len + sixel_size_len,
+                      vt_parser->r_buf.chars + 2 /* ESC P */,
                       vt_parser->r_buf.filled_len - 2);
-              memcpy(vt_parser->r_buf.chars, orig, len);
-              vt_parser->r_buf.filled_len += (len - 2);
-              vt_parser->r_buf.left += (len - 2);
+              /*
+               * q"Pan;Pad;Ph;Pvq\0...
+               * ^^^^^^^^^^^^^^^
+               */
+              memcpy(vt_parser->r_buf.chars + drcs_header_len, orig_sixel_size, sixel_size_len);
+              memcpy(vt_parser->r_buf.chars, orig_drcs_header, drcs_header_len);
+              vt_parser->r_buf.filled_len += (drcs_header_len - 2 + sixel_size_len);
+              vt_parser->r_buf.left += (drcs_header_len - 2 + sixel_size_len);
 
               return 0;
             }
 
-            if (HAS_XTERM_LISTENER(vt_parser, get_picture_data)) {
-              vt_char_t *data;
-              int cols = 0;
-              int rows = 0;
-              int cols_small = 0;
-              int rows_small = 0;
-
-              if (idx <= 0x5f &&
-                  (data = (*vt_parser->xterm_listener->get_picture_data)(
-                              vt_parser->xterm_listener->self, path, &cols, &rows,
-                              &cols_small, &rows_small, NULL, 1))) {
-                int pages;
-                int offset = 0;
-
-                if (!vt_parser->drcs) {
-                  vt_parser->drcs = vt_drcs_new();
-                }
-
-                if (!old_drcs_sixel) {
-                  cols_small = cols;
-                  rows_small = rows;
-                }
-
-                for (pages = (cols_small * rows_small + 95) / 96; pages > 0; pages--) {
-                  font = vt_drcs_get_font(vt_parser->drcs, cs, 1);
-
-                  vt_drcs_add_picture(font, vt_char_picture_id(vt_get_picture_char(data)),
-                                      offset, idx, cols, rows, cols_small, rows_small);
-
-                  offset += (96 - idx);
-                  idx = 0;
-
-                  if (cs == CS94SB_ID(0x7e)) {
-                    cs = CS96SB_ID(0x30);
-                  } else if (cs == CS96SB_ID(0x7e)) {
-                    cs = CS94SB_ID(0x30);
-                  } else {
-                    cs++;
-                  }
-                }
-
-                vt_str_delete(data, cols * rows);
-              }
-            }
+            define_drcs_picture(vt_parser, path, cs, idx, pix_width, pix_height,
+                                col_width, line_height);
 
             free(path);
           } else
 #endif
           {
             u_char *pt = str_p;
+            vt_drcs_font_t *font;
 
             if (!get_pt_in_esc_seq(&str_p, &left, 1, 0)) {
               return 0;
@@ -5731,8 +5806,8 @@ inline static int parse_vt100_escape_sequence(
                 }
 
                 if (*p) {
-                  if (strlen(p) == (width + 1) * ((height + 5) / 6) - 1) {
-                    vt_drcs_add_glyph(font, idx, p, width, height);
+                  if (strlen(p) == (col_width + 1) * ((line_height + 5) / 6) - 1) {
+                    vt_drcs_add_glyph(font, idx, p, col_width, line_height);
                   }
 #ifdef DEBUG
                   else {

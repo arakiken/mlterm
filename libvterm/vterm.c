@@ -252,6 +252,17 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
   }
   data_p ++;
 
+  if (old_drcs_sixel == -1) {
+    const char *env = getenv("DRCS_SIXEL");
+    if (env && strcmp(env, "old") == 0) {
+      old_drcs_sixel = 1;
+      write_to_stdout("\x1b]5379;old_drcs_sixel=true\x07", 27); /* for mlterm */
+    } else {
+      old_drcs_sixel = 0;
+      write_to_stdout("\x1b]5379;old_drcs_sixel=false\x07", 28); /* for mlterm */
+    }
+  }
+
   if (sscanf(data_p, "\"%d;%d;%d;%d", &x, &y, &width, &height) != 4 ||
       width == 0 || height == 0) {
     struct stat st;
@@ -279,13 +290,14 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
     data_p = all_data + skipped_len;
   } else {
     /* "%d;%d;%d;%d */
-#if 1
-    /* skip DCS P ... q"X;X;X;X (rlogin 2.23.0 doesn't recognize it) */
-    data_p++;
-    while ('0' <= *data_p && *data_p <= ';') { data_p++; }
-#endif
-    skipped_len = (data_p - data);
 
+    if (old_drcs_sixel) {
+      /* skip "X;X;X;X (rlogin 2.23.0 doesn't recognize it) */
+      data_p++;
+      while ('0' <= *data_p && *data_p <= ';') { data_p++; }
+    }
+
+    skipped_len = (data_p - data);
     all_data = NULL;
   }
 
@@ -297,21 +309,10 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
     get_cell_size(vterm);
 
     /* Pcmw >= 5 in DECDLD */
-    if (state->col_width < 5 || 99 < state->col_width || 99 < state->line_height) {
+    if (vterm->col_width < 5 || 99 < vterm->col_width || 99 < vterm->line_height) {
       free(all_data);
 
       goto error_closing_fp;
-    }
-  }
-
-  if (old_drcs_sixel == -1) {
-    const char *env = getenv("DRCS_SIXEL");
-    if (env && strcmp(env, "old") == 0) {
-      old_drcs_sixel = 1;
-      write_to_stdout("\x1b]5379;old_drcs_sixel=true\x07", 27); /* for mlterm */
-    } else {
-      old_drcs_sixel = 0;
-      write_to_stdout("\x1b]5379;old_drcs_sixel=false\x07", 28); /* for mlterm */
     }
   }
 
@@ -339,7 +340,7 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
 #endif
 
   sprintf(seq, "\x1b[?8800h\x1bP1;0;0;%d;1;3;%d;%c{ %c",
-          state->col_width, state->line_height, state->drcs_plane, state->drcs_charset);
+          vterm->col_width, vterm->line_height, vterm->drcs_plane, vterm->drcs_charset);
   write_to_stdout(seq, strlen(seq));
   while (1) {
     write_to_stdout(data_p, len);
