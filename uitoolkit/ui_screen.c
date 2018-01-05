@@ -5411,7 +5411,7 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
 
     if (drcs_sixel) {
       /* compatible with rlogin */
-      *num_cols_small = (width + 1) / col_width;
+      *num_cols_small = width / col_width;
       *num_rows_small = height / line_height;
     } else {
       int max_num_cols = vt_term_get_cols(screen->term) - vt_term_cursor_col(screen->term);
