@@ -5716,27 +5716,37 @@ inline static int parse_vt100_escape_sequence(
             } else {
               dcs_beg[0] = '\x1b';
               dcs_beg[1] = 'P';
+
+              if (left == 0) {
+                return 0;
+              }
             }
 
             /*
              * Read width and height of sixel graphics from "Pan;Pad;Ph;Pv.
              * If failed, it is impossible to scale image pieces according to Pcmw and Pcmh.
              */
-            if (str_p[1] == '"' && !check_cell_size(vt_parser, col_width, line_height) &&
-                sscanf(str_p + 2, "%d;%d;%d;%d", &tmp, &tmp, &pix_width, &pix_height) == 4 &&
-                pix_width > 0 && pix_height > 0) {
-              sixel_size_len = 1;
-              while ('0' <= str_p[++sixel_size_len] && str_p[sixel_size_len] <= ';');
-              orig_sixel_size = alloca(sixel_size_len);
-              memcpy(orig_sixel_size, str_p, sixel_size_len);
+            if (str_p[1] == '"' && !check_cell_size(vt_parser, col_width, line_height)) {
+              if (left < 2) { /* XXX */
+                return 0;
+              }
 
-              if (str_p[sixel_size_len] == 'q') {
-                /*
-                 * Starting DRCS Sixel:   q"Pan;Pad;Ph;Pv#...
-                 * Continuing DRCS Sixel: q"Pan;Pad;Ph;Pv\0q...
-                 */
-                str_p += sixel_size_len;
-                left -= sixel_size_len;
+              if (sscanf(str_p + 2, "%d;%d;%d;%d", &tmp, &tmp, &pix_width, &pix_height) == 4 &&
+                  pix_width > 0 && pix_height > 0) {
+                sixel_size_len = 1; /* q */
+                while (left > ++sixel_size_len &&
+                       '0' <= str_p[sixel_size_len] && str_p[sixel_size_len] <= ';');
+                orig_sixel_size = alloca(sixel_size_len);
+                memcpy(orig_sixel_size, str_p, sixel_size_len);
+
+                if (str_p[sixel_size_len] == 'q') {
+                  /*
+                   * Starting DRCS Sixel:   q"Pan;Pad;Ph;Pv#...
+                   * Continuing DRCS Sixel: q"Pan;Pad;Ph;Pv\0q...
+                   */
+                  str_p += sixel_size_len;
+                  left -= sixel_size_len;
+                }
               }
             }
 

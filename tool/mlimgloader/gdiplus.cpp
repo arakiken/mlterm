@@ -66,8 +66,8 @@ static void help(void) {
   fprintf(stderr, "  -c       : output XA_CARDINAL format data to stdout.\n");
 }
 
-static u_int32_t* create_cardinals_from_file(
-    const char* path, /* cygwin style path on cygwin/msys. win32 style path on win32. */
+static u_int32_t *create_cardinals_from_file(
+    const char *path, /* cygwin style path on cygwin/msys. win32 style path on win32. */
     u_int width, u_int height) {
   /* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
   wchar_t wpath[MAX_PATH];
@@ -77,16 +77,16 @@ static u_int32_t* create_cardinals_from_file(
   Gdiplus::GdiplusStartupInput startup;
   ULONG_PTR token;
   HMODULE module;
-  IBindCtx* ctx;
-  IMoniker* moniker;
-  IStream* stream;
-  Gdiplus::Bitmap* bitmap;
-  int hash;
-  u_int32_t* cardinal;
-  u_int32_t* p;
+  IBindCtx *ctx;
+  IMoniker *moniker;
+  IStream *stream;
+  Gdiplus::Bitmap *bitmap;
+  u_int32_t *cardinal;
+  u_int32_t *p;
 
   if (strcasecmp(path + strlen(path) - 4, ".six") == 0 &&
-      (cardinal = create_cardinals_from_sixel(path))) {
+      (cardinal = create_cardinals_from_sixel(path)) &&
+      (width == 0 || height == 0)) {
     return cardinal;
   }
 
@@ -94,148 +94,172 @@ static u_int32_t* create_cardinals_from_file(
     return NULL;
   }
 
-  hash = hash_path(path);
-  stream = NULL;
+  if (cardinal) {
+    /* Resize sixel graphics */
+    Graphics *graphics;
 
-  if (strstr(path, "://")) {
-    typedef HRESULT (*func)(IMoniker*, LPCWSTR, IMoniker**, DWORD);
-    func create_url_moniker;
-
-    SetDllDirectory("");
-    if ((module = LoadLibrary("urlmon")) &&
-        (create_url_moniker = (func)GetProcAddress(module, "CreateURLMonikerEx"))) {
-      MultiByteToWideChar(CP_UTF8, 0, path, strlen(path) + 1, wpath, MAX_PATH);
-
-      if ((*create_url_moniker)(NULL, wpath, &moniker, URL_MK_UNIFORM) == S_OK) {
-        if (CreateBindCtx(0, &ctx) == S_OK) {
-          if (moniker->BindToStorage(ctx, NULL, IID_PPV_ARGS(&stream)) != S_OK) {
-            ctx->Release();
-            moniker->Release();
-          }
-        } else {
-          moniker->Release();
-        }
-      }
-
-      if (!stream) {
-        FreeLibrary(module);
-      }
-    }
-  }
-#if defined(__CYGWIN__) || defined(__MSYS__)
-  else if (strchr(path, '/')) /* In case win32 style path is specified on cygwin/msys. */
-  {
-    /* cygwin style path => win32 style path. */
-    if (bl_conv_to_win32_path(path, winpath, sizeof(winpath)) == 0) {
-      path = winpath;
-    }
-  }
-#endif
-
-  if (strcmp(path + strlen(path) - 4, ".gif") == 0) {
-    /* Animation GIF */
-
-    char* dir;
-
-#if defined(__CYGWIN__) || defined(__MSYS__)
-    /* converted to win32 by bl_conv_to_win32_path */
-    if (!strstr(path, "mlterm\\anim") && (dir = bl_get_user_rc_path("mlterm/")))
-#else
-    if (!strstr(path, "mlterm/anim") && (dir = bl_get_user_rc_path("mlterm\\")))
-#endif
-    {
-      char* new_path;
-
-      if (!(new_path = (char*)alloca(strlen(dir) + 8 + 5 + DIGIT_STR_LEN(int)+1))) {
-        goto end0;
-      }
-
-      sprintf(new_path, "%sanim%d.gif", dir, hash);
-
-      if (stream) {
-        FILE* fp;
-        BYTE buf[10240];
-        ULONG rd_len;
-        HRESULT res;
-
-        if (!(fp = fopen(new_path, "wb"))) {
-          goto end0;
-        }
-
-        do {
-          res = stream->Read(buf, sizeof(buf), &rd_len);
-          fwrite(buf, 1, rd_len, fp);
-        } while (res == Gdiplus::Ok);
-
-        fclose(fp);
-
-        stream->Release();
-        ctx->Release();
-        moniker->Release();
-        FreeLibrary(module);
-        stream = NULL;
-
-        path = new_path;
-      }
-
-      split_animation_gif(path, dir, hash);
-
-#if defined(__CYGWIN__) || defined(__MSYS__)
-      if (bl_conv_to_win32_path(new_path, winpath, sizeof(winpath)) == 0) {
-        new_path = winpath;
-      }
-#endif
-
-      /* Replace path by the splitted file. */
-      path = new_path;
-
-    end0:
-      free(dir);
-    }
-  }
-
-  if (!stream) {
-    MultiByteToWideChar(CP_UTF8, 0, path, strlen(path) + 1, wpath, MAX_PATH);
-  }
-
-  cardinal = NULL;
-
-  if (width == 0 || height == 0) {
-    if (stream ? !(bitmap = Gdiplus::Bitmap::FromStream(stream))
-               : !(bitmap = Gdiplus::Bitmap::FromFile(wpath))) {
-      goto end1;
-    }
-  } else {
-    Image* image;
-    Graphics* graphics;
-
-    if ((stream ? !(image = Image::FromStream(stream)) : !(image = Image::FromFile(wpath))) ||
-        image->GetLastStatus() != Gdiplus::Ok) {
-      goto end1;
-    }
+    Gdiplus::Bitmap src(cardinal[0], cardinal[1], cardinal[0] * 4,
+                        PixelFormat32bppARGB, (BYTE*)(cardinal + 2));
 
     if (!(bitmap = new Bitmap(width, height, PixelFormat32bppARGB))) {
-      delete image;
-
       goto end1;
     }
 
     if (!(graphics = Graphics::FromImage(bitmap))) {
-      delete image;
+      delete bitmap;
 
-      goto end2;
+      goto end1;
     }
 
     Gdiplus::Rect rect(0, 0, width, height);
+    graphics->DrawImage(&src, rect, 0, 0, cardinal[0], cardinal[1], UnitPixel);
 
-    graphics->DrawImage(image, rect, 0, 0, image->GetWidth(), image->GetHeight(), UnitPixel);
-
-    delete image;
     delete graphics;
+    free(cardinal);
+  } else {
+    /* Image except sixel graphics */
+    int hash = hash_path(path);
+
+    if (strstr(path, "://")) {
+      typedef HRESULT (*func)(IMoniker*, LPCWSTR, IMoniker**, DWORD);
+      func create_url_moniker;
+
+      SetDllDirectory("");
+      if ((module = LoadLibrary("urlmon")) &&
+          (create_url_moniker = (func)GetProcAddress(module, "CreateURLMonikerEx"))) {
+        MultiByteToWideChar(CP_UTF8, 0, path, strlen(path) + 1, wpath, MAX_PATH);
+
+        if ((*create_url_moniker)(NULL, wpath, &moniker, URL_MK_UNIFORM) == S_OK) {
+          if (CreateBindCtx(0, &ctx) == S_OK) {
+            if (moniker->BindToStorage(ctx, NULL, IID_PPV_ARGS(&stream)) != S_OK) {
+              ctx->Release();
+              moniker->Release();
+            }
+          } else {
+            moniker->Release();
+          }
+        }
+
+        if (!stream) {
+          FreeLibrary(module);
+        }
+      }
+    }
+#if defined(__CYGWIN__) || defined(__MSYS__)
+    else if (strchr(path, '/')) /* In case win32 style path is specified on cygwin/msys. */
+      {
+        /* cygwin style path => win32 style path. */
+        if (bl_conv_to_win32_path(path, winpath, sizeof(winpath)) == 0) {
+          path = winpath;
+        }
+      }
+#endif
+
+    if (strcmp(path + strlen(path) - 4, ".gif") == 0) {
+      /* Animation GIF */
+
+      char *dir;
+
+#if defined(__CYGWIN__) || defined(__MSYS__)
+      /* converted to win32 by bl_conv_to_win32_path */
+      if (!strstr(path, "mlterm\\anim") && (dir = bl_get_user_rc_path("mlterm/")))
+#else
+      if (!strstr(path, "mlterm/anim") && (dir = bl_get_user_rc_path("mlterm\\")))
+#endif
+        {
+          char *new_path;
+
+          if (!(new_path = (char*)alloca(strlen(dir) + 8 + 5 + DIGIT_STR_LEN(int)+1))) {
+            goto end0;
+          }
+
+          sprintf(new_path, "%sanim%d.gif", dir, hash);
+
+          if (stream) {
+            FILE *fp;
+            BYTE buf[10240];
+            ULONG rd_len;
+            HRESULT res;
+
+            if (!(fp = fopen(new_path, "wb"))) {
+              goto end0;
+            }
+
+            do {
+              res = stream->Read(buf, sizeof(buf), &rd_len);
+              fwrite(buf, 1, rd_len, fp);
+            } while (res == Gdiplus::Ok);
+
+            fclose(fp);
+
+            stream->Release();
+            ctx->Release();
+            moniker->Release();
+            FreeLibrary(module);
+            stream = NULL;
+
+            path = new_path;
+          }
+
+          split_animation_gif(path, dir, hash);
+
+#if defined(__CYGWIN__) || defined(__MSYS__)
+          if (bl_conv_to_win32_path(new_path, winpath, sizeof(winpath)) == 0) {
+            new_path = winpath;
+          }
+#endif
+
+          /* Replace path by the splitted file. */
+          path = new_path;
+
+        end0:
+          free(dir);
+        }
+    }
+
+    if (!stream) {
+      MultiByteToWideChar(CP_UTF8, 0, path, strlen(path) + 1, wpath, MAX_PATH);
+    }
+
+    cardinal = NULL;
+
+    if (width == 0 || height == 0) {
+      if (stream ? !(bitmap = Gdiplus::Bitmap::FromStream(stream))
+          : !(bitmap = Gdiplus::Bitmap::FromFile(wpath))) {
+        goto end2;
+      }
+    } else {
+      Image *image;
+      Graphics *graphics;
+
+      if ((stream ? !(image = Image::FromStream(stream)) : !(image = Image::FromFile(wpath))) ||
+          image->GetLastStatus() != Gdiplus::Ok) {
+        goto end2;
+      }
+
+      if (!(bitmap = new Bitmap(width, height, PixelFormat32bppARGB))) {
+        delete image;
+
+        goto end2;
+      }
+
+      if (!(graphics = Graphics::FromImage(bitmap))) {
+        delete image;
+
+        goto end3;
+      }
+
+      Gdiplus::Rect rect(0, 0, width, height);
+
+      graphics->DrawImage(image, rect, 0, 0, image->GetWidth(), image->GetHeight(), UnitPixel);
+
+      delete image;
+      delete graphics;
+    }
   }
 
   if (bitmap->GetLastStatus() != Gdiplus::Ok) {
-    goto end2;
+    goto end3;
   }
 
   width = bitmap->GetWidth();
@@ -243,7 +267,7 @@ static u_int32_t* create_cardinals_from_file(
 
   if (width > ((SSIZE_MAX / sizeof(*cardinal)) - 2) / height || /* integer overflow */
       !(p = cardinal = (u_int32_t*)malloc((width * height + 2) * sizeof(*cardinal)))) {
-    goto end2;
+    goto end3;
   }
 
   *(p++) = width;
@@ -259,10 +283,10 @@ static u_int32_t* create_cardinals_from_file(
     }
   }
 
-end2:
+end3:
   delete bitmap;
 
-end1:
+end2:
   if (stream) {
     stream->Release();
     ctx->Release();
@@ -270,6 +294,7 @@ end1:
     FreeLibrary(module);
   }
 
+end1:
   Gdiplus::GdiplusShutdown(token);
 
   return cardinal;
@@ -277,12 +302,12 @@ end1:
 
 /* --- global functions --- */
 
-int PASCAL WinMain(HINSTANCE hinst, HINSTANCE hprev, char* cmdline, int cmdshow) {
-  WCHAR** w_argv;
-  char** argv;
+int PASCAL WinMain(HINSTANCE hinst, HINSTANCE hprev, char *cmdline, int cmdshow) {
+  WCHAR **w_argv;
+  char **argv;
   int argc;
   int count;
-  u_char* cardinal;
+  u_char *cardinal;
   u_int width;
   u_int height;
   ssize_t size;
