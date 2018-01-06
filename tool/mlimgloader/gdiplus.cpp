@@ -66,9 +66,8 @@ static void help(void) {
   fprintf(stderr, "  -c       : output XA_CARDINAL format data to stdout.\n");
 }
 
-static u_int32_t *create_cardinals_from_file(
-    const char *path, /* cygwin style path on cygwin/msys. win32 style path on win32. */
-    u_int width, u_int height) {
+/* path: cygwin style path on cygwin/msys. win32 style path on win32. */
+static u_int32_t *create_cardinals_from_file(const char *path, u_int width, u_int height) {
   /* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
   wchar_t wpath[MAX_PATH];
 #if defined(__CYGWIN__) || defined(__MSYS__)
@@ -146,18 +145,17 @@ static u_int32_t *create_cardinals_from_file(
       }
     }
 #if defined(__CYGWIN__) || defined(__MSYS__)
-    else if (strchr(path, '/')) /* In case win32 style path is specified on cygwin/msys. */
-      {
-        /* cygwin style path => win32 style path. */
-        if (bl_conv_to_win32_path(path, winpath, sizeof(winpath)) == 0) {
-          path = winpath;
-        }
+    /* In case win32 style path is specified on cygwin/msys. */
+    else if (strchr(path, '/')) {
+      /* cygwin style path => win32 style path. */
+      if (bl_conv_to_win32_path(path, winpath, sizeof(winpath)) == 0) {
+        path = winpath;
       }
+    }
 #endif
 
     if (strcmp(path + strlen(path) - 4, ".gif") == 0) {
       /* Animation GIF */
-
       char *dir;
 
 #if defined(__CYGWIN__) || defined(__MSYS__)
@@ -166,55 +164,55 @@ static u_int32_t *create_cardinals_from_file(
 #else
       if (!strstr(path, "mlterm/anim") && (dir = bl_get_user_rc_path("mlterm\\")))
 #endif
-        {
-          char *new_path;
+      {
+        char *new_path;
 
-          if (!(new_path = (char*)alloca(strlen(dir) + 8 + 5 + DIGIT_STR_LEN(int)+1))) {
+        if (!(new_path = (char*)alloca(strlen(dir) + 8 + 5 + DIGIT_STR_LEN(int)+1))) {
+          goto end0;
+        }
+
+        sprintf(new_path, "%sanim%d.gif", dir, hash);
+
+        if (stream) {
+          FILE *fp;
+          BYTE buf[10240];
+          ULONG rd_len;
+          HRESULT res;
+
+          if (!(fp = fopen(new_path, "wb"))) {
             goto end0;
           }
 
-          sprintf(new_path, "%sanim%d.gif", dir, hash);
+          do {
+            res = stream->Read(buf, sizeof(buf), &rd_len);
+            fwrite(buf, 1, rd_len, fp);
+          } while (res == Gdiplus::Ok);
 
-          if (stream) {
-            FILE *fp;
-            BYTE buf[10240];
-            ULONG rd_len;
-            HRESULT res;
+          fclose(fp);
 
-            if (!(fp = fopen(new_path, "wb"))) {
-              goto end0;
-            }
+          stream->Release();
+          ctx->Release();
+          moniker->Release();
+          FreeLibrary(module);
+          stream = NULL;
 
-            do {
-              res = stream->Read(buf, sizeof(buf), &rd_len);
-              fwrite(buf, 1, rd_len, fp);
-            } while (res == Gdiplus::Ok);
+          path = new_path;
+        }
 
-            fclose(fp);
-
-            stream->Release();
-            ctx->Release();
-            moniker->Release();
-            FreeLibrary(module);
-            stream = NULL;
-
-            path = new_path;
-          }
-
-          split_animation_gif(path, dir, hash);
+        split_animation_gif(path, dir, hash);
 
 #if defined(__CYGWIN__) || defined(__MSYS__)
-          if (bl_conv_to_win32_path(new_path, winpath, sizeof(winpath)) == 0) {
-            new_path = winpath;
-          }
+        if (bl_conv_to_win32_path(new_path, winpath, sizeof(winpath)) == 0) {
+          new_path = winpath;
+        }
 #endif
 
-          /* Replace path by the splitted file. */
-          path = new_path;
+        /* Replace path by the splitted file. */
+        path = new_path;
 
-        end0:
-          free(dir);
-        }
+      end0:
+        free(dir);
+      }
     }
 
     if (!stream) {
