@@ -208,6 +208,19 @@ static int load_file(char *path, /* must be UTF-8 */
   return 1;
 }
 
+static Pixmap resize(Pixmap pixmap, u_int new_width, u_int new_height) {
+  CGColorSpaceRef cs = CGImageGetColorSpace(pixmap);
+  CGContextRef ctx = CGBitmapContextCreate(NULL, new_width, new_height,
+                                           CGImageGetBitsPerComponent(pixmap),
+                                           0, cs, CGImageGetAlphaInfo(pixmap));
+  CGContextDrawImage(ctx, CGRectMake(0, 0, new_width, new_height), pixmap);
+  CGImageRelease(pixmap);
+  Pixmap resized = CGBitmapContextCreateImage(ctx);
+  CGContextRelease(ctx);
+
+  return resized;
+}
+
 /* --- global functions --- */
 
 void ui_imagelib_display_opened(Display *display) {}
@@ -224,17 +237,11 @@ Pixmap ui_imagelib_load_file_for_background(ui_window_t *win, char *path,
     return None;
   }
 
-  CGColorSpaceRef cs = CGImageGetColorSpace(pixmap);
-  CGContextRef ctx = CGBitmapContextCreate(
-      NULL, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win), CGImageGetBitsPerComponent(pixmap),
-      CGImageGetBytesPerRow(pixmap), cs, CGImageGetAlphaInfo(pixmap));
+  if (ACTUAL_WIDTH(win) != width || ACTUAL_HEIGHT(win) != height) {
+    pixmap = resize(pixmap, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
+  }
 
-  CGContextDrawImage(ctx, CGRectMake(0, 0, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win)), pixmap);
-  CGImageRelease(pixmap);
-  Pixmap resized = CGBitmapContextCreateImage(ctx);
-  CGContextRelease(ctx);
-
-  return resized;
+  return pixmap;
 }
 
 int ui_imagelib_root_pixmap_available(Display *display) { return 0; }
@@ -245,12 +252,22 @@ Pixmap ui_imagelib_get_transparent_background(ui_window_t *win, ui_picture_modif
 
 int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, Pixmap *pixmap,
                           PixmapMask *mask, u_int *width, u_int *height) {
+  u_int pix_width = 0;
+  u_int pix_height = 0;
+
   if (cardinal) {
     return 0;
   }
 
-  if (!load_file(path, width, height, NULL, pixmap, mask)) {
+  if (!load_file(path, &pix_width, &pix_height, NULL, pixmap, mask)) {
     return 0;
+  }
+
+  if ((*width > 0 && pix_width != *width) || (*height > 0 && pix_height != *height)) {
+    *pixmap = resize(*pixmap, *width, *height);
+  } else {
+    *width = pix_width;
+    *height = pix_height;
   }
 
   return 1;

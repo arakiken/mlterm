@@ -79,10 +79,13 @@ vt_pty_ptr_t vt_pty_new_with(int master, int slave, pid_t child_pid, u_int cols,
   } else
 #endif
   {
+    /* XXX vt_pty_ssh_new_with() and vt_pty_pipe_new_with() haven't been implemented yet. */
     pty = NULL;
   }
 
-  vt_config_menu_init(&pty->config_menu);
+  if (pty) {
+    vt_config_menu_init(&pty->config_menu);
+  }
 
   return pty;
 }
