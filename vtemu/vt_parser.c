@@ -1919,8 +1919,8 @@ static void define_drcs_picture(vt_parser_t *vt_parser, char *path, ef_charset_t
         (data = (*vt_parser->xterm_listener->get_picture_data)(vt_parser->xterm_listener->self,
                                                                path, &cols, &rows, &cols_small,
                                                                &rows_small, NULL, 1))) {
-      int pages;
-      int offset = 0;
+      u_int pages;
+      u_int offset = 0;
       vt_drcs_font_t *font;
 
       if (!vt_parser->drcs) {

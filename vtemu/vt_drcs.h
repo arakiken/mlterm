@@ -16,7 +16,7 @@ typedef struct vt_drcs_font {
   u_int16_t pic_num_rows;
   u_int16_t pic_num_cols_small;
   u_int16_t pic_num_rows_small;
-  int pic_offset;
+  u_int32_t pic_offset; /* offset from the begining of the picture */
 
 } vt_drcs_font_t;
 
@@ -49,8 +49,10 @@ void vt_drcs_add_picture(vt_drcs_font_t *font, int id, int offset, int beg_inx,
 
 int vt_drcs_get_picture(vt_drcs_font_t *font, int *id, int *pos, u_int ch);
 
+#define vt_drcs_has_picture(font) ((font)->pic_num_rows > 0)
+
 #define vt_drcs_is_picture(font, ch) \
-  ((font)->pic_num_rows > 0 && (font)->pic_beg_idx + 0x20 <= ((ch) & 0x7f))
+  (vt_drcs_has_picture(font) && (font)->pic_beg_idx + 0x20 <= ((ch) & 0x7f))
 
 int vt_convert_drcs_to_unicode_pua(ef_char_t *ch);
 
