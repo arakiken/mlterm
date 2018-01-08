@@ -4,6 +4,12 @@
 
 #ifdef USE_IM_PLUGIN
 
+#if 0
+#define USE_STATUS_LINE
+#endif
+
+#ifndef USE_STATUS_LINE
+
 #include <pobl/bl_mem.h>
 #include <vt_str.h>
 #include <vt_parser.h>
@@ -436,6 +442,89 @@ error:
 
   return NULL;
 }
+
+#else /* USE_STATUS_LINE */
+
+#include <pobl/bl_mem.h>
+#include <vt_parser.h>
+
+/* --- static functions --- */
+
+static void delete(ui_im_status_screen_t *stat_screen) {
+  vt_parser_write_loopback(stat_screen->vtparser, "\x1b[0$~", 5);
+  free(stat_screen);
+}
+
+static void show(ui_im_status_screen_t *stat_screen) {}
+
+static void hide(ui_im_status_screen_t *stat_screen) {
+  vt_parser_write_loopback(stat_screen->vtparser, "\x1b[0$~", 5);
+}
+
+static int set_spot(ui_im_status_screen_t *stat_screen, int x, int y) { return 1; }
+
+static void replace_char(char *str, char orig, char new) {
+  char *p;
+
+  for (p = str; *p; p++) {
+    if (*p == orig) {
+      *p = new;
+    }
+  }
+}
+
+static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, u_char *str) {
+  u_char *seq;
+  size_t len = strlen(str);
+
+  if ((seq = alloca(22 + len))) {
+    replace_char(str, '\n', ' ');
+    memcpy(seq, "\x1b[2$~\x1b[1$}\x1b[2J\x1b[H", 17);
+    memcpy(seq + 17, str, len);
+    memcpy(seq + 17 + len, "\x1b[0$}", 5);
+
+    vt_parser_write_loopback(stat_screen->vtparser, seq, 22 + len);
+  }
+
+  return 1;
+}
+
+/* --- global functions --- */
+
+ui_im_status_screen_t *ui_im_status_screen_new(ui_display_t *disp, ui_font_manager_t *font_man,
+                                               ui_color_manager_t *color_man, void *vtparser,
+                                               int is_vertical, u_int line_height, int x, int y) {
+  ui_im_status_screen_t *stat_screen;
+
+  if ((stat_screen = calloc(1, sizeof(ui_im_status_screen_t))) == NULL) {
+#ifdef DEBUG
+    bl_warn_printf(BL_DEBUG_TAG " malloc failed.\n");
+#endif
+
+    return NULL;
+  }
+
+  stat_screen->font_man = font_man;
+  stat_screen->color_man = color_man;
+  stat_screen->vtparser = vtparser;
+
+  stat_screen->x = x;
+  stat_screen->y = y;
+  stat_screen->line_height = line_height;
+
+  stat_screen->is_vertical = is_vertical;
+
+  /* methods of ui_im_status_screen_t */
+  stat_screen->delete = delete;
+  stat_screen->show = show;
+  stat_screen->hide = hide;
+  stat_screen->set_spot = set_spot;
+  stat_screen->set = set;
+
+  return stat_screen;
+}
+
+#endif /* USE_STATUS_LINE */
 
 #else /* ! USE_IM_PLUGIN */
 

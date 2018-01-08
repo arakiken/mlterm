@@ -1,3 +1,8 @@
+2018-01-09  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_im_status_screen.c: If USE_STATUS_LINE is defined, DECSSDT/DECSASD
+	  is used to show status characters.
+
 2018-01-07  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_picture.c: cleanup_inline_pictures() checks DRCS-SIXEL.
