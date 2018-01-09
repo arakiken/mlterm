@@ -43,7 +43,7 @@ void vt_drcs_final_full(vt_drcs_t *drcs);
 
 void vt_drcs_add_glyph(vt_drcs_font_t *font, int idx, const char *seq, u_int width, u_int height);
 
-void vt_drcs_add_picture(vt_drcs_font_t *font, int id, int offset, int beg_inx,
+void vt_drcs_add_picture(vt_drcs_font_t *font, int id, u_int offset, int beg_inx,
                          u_int num_cols, u_int num_rows, u_int num_cols_small,
                          u_int num_rows_small);
 
