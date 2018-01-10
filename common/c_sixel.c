@@ -123,17 +123,13 @@ static char *read_sixel_file(const char *path) {
 #ifndef __REALLOC_PIXELS_INTERN__
 #define __REALLOC_PIXELS_INTERN__
 static int realloc_pixels_intern(u_char **pixels, size_t new_stride, int new_height,
-                                 size_t cur_stride, int cur_height) {
+                                 size_t cur_stride, int cur_height, int n_copy_rows) {
   u_char *p;
   int y;
-  int n_copy_rows;
-
-  n_copy_rows = K_MIN(new_height, cur_height);
 
   if (new_stride < cur_stride) {
     if (new_height > cur_height) {
-/* Not supported */
-
+      /* Not supported */
 #ifdef DEBUG
       bl_error_printf(BL_DEBUG_TAG
                       " Sixel width bytes is shrunk (%d->%d) but height is lengthen (%d->%d)\n",
@@ -141,10 +137,10 @@ static int realloc_pixels_intern(u_char **pixels, size_t new_stride, int new_hei
 #endif
 
       return 0;
-    } else /* if( new_height < cur_height) */
-    {
+    } else /* if( new_height < cur_height) */ {
 #ifdef DEBUG
-      bl_debug_printf(BL_DEBUG_TAG " Sixel data: %d bytes %d rows -> shrink %d bytes %d rows\n",
+      bl_debug_printf(BL_DEBUG_TAG
+                      " Sixel data: %d bytes %d rows -> shrink %d bytes %d rows (No alloc)\n",
                       cur_stride, cur_height, new_stride, new_height);
 #endif
 
@@ -154,7 +150,9 @@ static int realloc_pixels_intern(u_char **pixels, size_t new_stride, int new_hei
 
       return 1;
     }
-  } else if (new_stride == cur_stride && new_height < cur_height) {
+  }
+  /* 'new_stride == cur_stride && new_height == cur_height' is checked before calling this. */
+  else if (new_stride == cur_stride && new_height < cur_height) {
     /* do nothing */
 
     return 1;
@@ -183,6 +181,20 @@ static int realloc_pixels_intern(u_char **pixels, size_t new_stride, int new_hei
     }
 
     memset(p + cur_stride * cur_height, 0, new_stride * (new_height - cur_height));
+  } else if (new_stride * new_height <= cur_stride * cur_height) {
+    /* cur_stride < new_stride, but cur_stride > new_height */
+#ifdef DEBUG
+    bl_debug_printf(BL_DEBUG_TAG
+                    " Sixel data: %d bytes %d rows -> calloc %d bytes %d rows (No alloc)\n",
+                    cur_stride, cur_height, new_stride, new_height);
+#endif
+
+    for (y = 1; y < n_copy_rows; y++) {
+      memmove(*pixels + (y * new_stride), *pixels + (y * cur_stride), cur_stride);
+      memset(*pixels + (y * new_stride) + cur_stride, 0, new_stride - cur_stride);
+    }
+
+    return 1;
   } else {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " Sixel data: %d bytes %d rows -> calloc %d bytes %d rows\n",
@@ -215,10 +227,10 @@ static int realloc_pixels_intern(u_char **pixels, size_t new_stride, int new_hei
 #endif
 
 /* realloc_pixels() might not be inlined because it is called twice. */
-#define realloc_pixels(pixels, new_width, new_height, cur_width, cur_height) \
+#define realloc_pixels(pixels, new_width, new_height, cur_width, cur_height, n_copy_rows) \
   ((new_width) == (cur_width) && (new_height) == (cur_height) ? \
     1 : realloc_pixels_intern(pixels, new_width * PIXEL_SIZE, new_height, \
-                              cur_width * PIXEL_SIZE, cur_height))
+                              cur_width * PIXEL_SIZE, cur_height, n_copy_rows))
 
 
 /*
@@ -307,13 +319,7 @@ static u_char *load_sixel_from_data(const char *file_data, u_int *width_ret, u_i
 
   pixels = NULL;
   init_width = 0;
-  cur_width = cur_height = 0;
-  width = 1024;
-  height = 1024;
-
-  if (!realloc_pixels(&pixels, width, height, 0, 0)) {
-    return NULL;
-  }
+  cur_width = cur_height = width = height = 0;
 
 #ifndef SIXEL_SHAREPALETTE
 #ifndef SIXEL_1BPP
@@ -485,16 +491,31 @@ body:
       int y;
       u_char *line;
 
+      if (height < pix_y + 6) {
+        new_height = height + 516 /* 6*86 */;
+      } else {
+        new_height = height;
+      }
+
       if (width < pix_x + rep) {
+        u_int h;
+
         new_width = width + 512;
         stride += (512 * PIXEL_SIZE);
+        h = width * height / new_width;
+        /*
+         * h=17, pix_y=6
+         * h=17/6*6=12 == pix_y + 6
+         */
+        if (h >= pix_y + 11) {
+          h = h / 6 * 6;
+          new_height = h;
+        }
       } else {
         new_width = width;
       }
 
-      if (!realloc_pixels(&pixels, new_width,
-                          (new_height = height < pix_y + 6 ? height + 512 : height),
-                          width, height)) {
+      if (!realloc_pixels(&pixels, new_width, new_height, width, height, pix_y + 6)) {
         break;
       }
 
@@ -717,6 +738,10 @@ body:
 #endif
       }
     } else if (*p == '"') /* " Pan ; Pad ; Ph ; Pv */ {
+      u_int new_width = 0;
+      u_int new_height = 0;
+      int need_resize = 0;
+
       if (*(++p) == '\0') {
 #ifdef DEBUG
         bl_debug_printf(BL_DEBUG_TAG " Illegal format.\n.");
@@ -729,17 +754,14 @@ body:
         n = 2;
       }
 
-/* XXX ignored */
-#if 0
       switch (n) {
       case 4:
-        height = params[3];
+        new_height = (params[3] + 5) / 6 * 6;
       case 3:
-        width = params[2];
-        /* XXX realloc_pixels() is necessary here. */
-        stride = width * PIXEL_SIZE;
+        new_width = params[2];
+#if 0
       case 2:
-/* V:H=params[0]:params[1] */
+        /* V:H=params[0]:params[1] */
 #if 0
         asp_x = params[1];
         asp_y = params[0];
@@ -750,12 +772,29 @@ body:
         }
         rep *= asp_x;
 #endif
+#endif
       }
 
-      if (asp_x <= 0) {
-        asp_x = 1;
+      if (width < new_width) {
+        need_resize = 1;
+        if (height > new_height) {
+          new_height = height;
+        }
       }
-#endif
+
+      if (height < new_height) {
+        need_resize = 1;
+        if (width > new_width) {
+          new_width = width;
+        }
+      }
+
+      if (need_resize &&
+          realloc_pixels(&pixels, new_width, new_height, width, height, pix_y + 6)) {
+        width = new_width;
+        stride = new_width * PIXEL_SIZE;
+        height = new_height;
+      }
     } else if (*p == '\x1b') {
       if (*(++p) == '\\') {
 #ifdef DEBUG
@@ -788,8 +827,12 @@ end:
   custom_palette = NULL;
 #endif
 
-  if (cur_width > 0 && realloc_pixels(&pixels, cur_width, cur_height, width, height)) {
+  if (cur_width > 0 && realloc_pixels(&pixels, cur_width, cur_height, width, height, cur_height)) {
     correct_height((pixel_t*)pixels, cur_width, &cur_height);
+
+#ifdef DEBUG
+    bl_debug_printf("Shrink size w %d h %d -> w %d h %d\n", width, height, cur_width, cur_height);
+#endif
 
     *width_ret = cur_width;
     *height_ret = cur_height;
