@@ -116,6 +116,7 @@ void vt_drcs_add_glyph(vt_drcs_font_t *font, int idx, const char *seq, u_int wid
 void vt_drcs_add_picture(vt_drcs_font_t *font, int id, u_int offset, int beg_idx,
                          u_int num_cols, u_int num_rows,
                          u_int num_cols_small, u_int num_rows_small) {
+  /* 'offset > UINT32_MAX' is not necessary to check. */
   if (num_cols > UINT16_MAX || num_rows > UINT16_MAX) {
     return;
   }

@@ -1,3 +1,7 @@
+2018-01-10  Araki Ken  <arakiken@users.sf.net>
+
+	* c_sixel.c: Memory allocation is improved.
+
 2018-01-09  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_im_status_screen.c: If USE_STATUS_LINE is defined, DECSSDT/DECSASD
