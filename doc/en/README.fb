@@ -31,12 +31,14 @@ Framebuffer support
     Add pcf or true type fonts you want to show to ~/.mlterm/font-fb.
     The format of ~/.mlterm/font-fb is almost the same as that of ~/.mlterm/font,
     but specify their file paths, not XLFD. (See etc/font-fb.)
-    If you want to use true type fonts, do ./configure with --enable-anti-alias
-    option (enabled by default) which requires freetype library.
 
-    If ./configure with --enable-fontconfig option (enabled by default) and
-    mlterm-fb starts with --aafont option, mlterm reads ~/.mlterm/*aafont files
-    and searches fonts with the use of fontconfig.
+    It requires freetype library to show true type fonts.
+    If you don't want to use true type fonts, do ./configure with
+    --disable-anti-alias option which requires freetype library.
+
+    If mlterm-fb starts with --aafont option, mlterm-fb reads ~/.mlterm/*aafont
+    files and searches fonts with the use of fontconfig.
+    ./configure with --disable-fontconfig option disables this feature.
 
 * Start
   mlterm-fb (-fg white -bg black -sb=false)
