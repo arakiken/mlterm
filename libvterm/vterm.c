@@ -181,7 +181,7 @@ static void write_to_stdout(u_char *buf, size_t len) {
 
   while (1) {
     if ((written = write(STDOUT_FILENO, buf, len)) < 0) {
-      if (errno = EAGAIN) {
+      if (errno == EAGAIN) {
         usleep(100); /* 0.1 msec */
       } else {
         return;

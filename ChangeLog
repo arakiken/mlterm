@@ -1,3 +1,15 @@
+2018-01-13  Araki Ken  <arakiken@users.sf.net>
+
+	* README.fb, README.comb: Updated.
+
+	* doc/en/README.w3m: Removed.
+
+	* vterm.c: Typo is fixed.
+
+	* drcssixel/DRCS-SIXEL-v2: Moved from doc/en.
+
+	* drcssixel/drcssixel.c, drcssixel/test.c: Added.
+
 2018-01-10  Araki Ken  <arakiken@users.sf.net>
 
 	* c_sixel.c: Memory allocation is improved.

@@ -5,7 +5,7 @@ DRCS-SIXEL version 2
 
  * P1; P2; P3; q is optional.
  * " Pan; Pad; Ph; Pv in s...s is optional.
- 
+
  This sequence devides sixel graphics image by cell(*1), and defines image
 pieces as the glyphs of <Pcn+0x20+N>(*2) code of <Dscs> character set in order
 from the top-left corner cell.
