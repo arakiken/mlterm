@@ -47,10 +47,10 @@ version 20171202
                      icon_path | logging_vt_seq | vt_seq_format | logging_msg | word_separators |
                      use_clipboard | auto_restart | use_alt_buffer | use_ansi_colors |
                      exit_backscroll_by_pty | only_use_unicode_font | not_use_unicode_font |
-                     unicode_noconv_areas | unicode_full_width_areas | box_drawing_font |
-                     use_urgent_bell | allow_osc52 (*) | allow_scp (*) | auto_detect_encodings |
-                     use_auto_detect | use_extended_scroll_shortcut | use_ot_layout |
-                     ot_script | ot_features | regard_uri_as_word | vt_color_mode |
+                     unicode_noconv_areas | unicode_full_width_areas | unicode_half_width_areas |
+                     box_drawing_font | use_urgent_bell | allow_osc52 (*) | allow_scp (*) |
+                     auto_detect_encodings | use_auto_detect | use_extended_scroll_shortcut |
+                     use_ot_layout | ot_script | ot_features | regard_uri_as_word | vt_color_mode |
                      console_encoding | console_sixel_colors | borderless | underline_offset |
                      baseline_offset | trim_trailing_newline_in_pasting | use_vertical_cursor |
                      click_interval
@@ -69,9 +69,9 @@ version 20171202
                      use_alt_buffer | use_ansi_colors | icon_path | logging_vt_seq |
                      vt_seq_format | word_separators | gui | allow_osc52 | allow_scp |
                      only_use_unicode_font | not_use_unicode_font | unicode_noconv_areas |
-                     unicode_full_width_areas | box_drawing_font | auto_detect_encodings |
-                     use_auto_detect | use_ot_layout | ot_script | ot_features |
-                     regard_uri_as_word | borderless | use_aafont | underline_offset |
+                     unicode_full_width_areas | unicode_half_width_areas | box_drawing_font |
+                     auto_detect_encodings | use_auto_detect | use_ot_layout | ot_script |
+                     ot_features | regard_uri_as_word | borderless | use_aafont | underline_offset |
                      baseline_offset | trim_trailing_newline_in_pasting | fontconfig |
                      use_vertical_cursor | click_interval
 
@@ -148,6 +148,7 @@ version 20171202
   underline_offset = <any ASCII decimal digit>
   unicode_noconv_areas = (U+XXXX-XXXX,)*
   unicode_full_width_areas = (U+XXXX-XXXX,)*
+  unicode_half_width_areas = (U+XXXX-XXXX,)*
   use_aafont = true | false
   use_alt_buffer = true | false | switch
   use_ansi_colors = true | false | switch

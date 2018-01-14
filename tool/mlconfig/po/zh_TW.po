@@ -425,12 +425,6 @@ msgstr "--- 簡體中文 ---"
 msgid "auto (currently %s)"
 msgstr "自動 (目前為 %s)"
 
-#: tool/mlconfig/mc_char_width.c:65
-msgid ""
-"Set full width\n"
-"areas manually"
-msgstr ""
-
 #: tool/mlconfig/mc_click.c:49
 msgid "Double click interval (msec)"
 msgstr ""

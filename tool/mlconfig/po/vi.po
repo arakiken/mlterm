@@ -424,12 +424,6 @@ msgstr "--- Hán giản thể ---"
 msgid "auto (currently %s)"
 msgstr "tự động (hiện tại %s)"
 
-#: tool/mlconfig/mc_char_width.c:65
-msgid ""
-"Set full width\n"
-"areas manually"
-msgstr ""
-
 #: tool/mlconfig/mc_click.c:49
 msgid "Double click interval (msec)"
 msgstr ""

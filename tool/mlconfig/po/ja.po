@@ -424,12 +424,11 @@ msgid "auto (currently %s)"
 msgstr "自動 (現在 %s)"
 
 #: tool/mlconfig/mc_char_width.c:65
-msgid ""
-"Set full width\n"
-"areas manually"
-msgstr ""
-"全角幅文字の範\n"
-"囲を手動設定"
+msgid "Add full width areas"
+msgstr "全角幅文字の範囲を追加"
+
+msgid "Add half width areas"
+msgstr "半角幅文字の範囲を追加"
 
 #: tool/mlconfig/mc_click.c:49
 msgid "Double click interval (msec)"

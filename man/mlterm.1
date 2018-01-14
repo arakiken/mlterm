@@ -617,6 +617,11 @@ Force full width regardless of EastAsianWidth.txt.
 
 e.g.) --fullwidth=U+1234-5678,U+0123-4567
 .TP
+\fB\-\-halfwidth\fR=\fIvalue\fR
+Force half width regardless of EastAsianWidth.txt.
+
+e.g.) --halfwidth=U+1234-5678,U+0123-4567
+.TP
 \fB\-\-ibc\fR(=\fIbool\fR)
 Whether to ignore broadcasted characters.
 The default is \fBfalse\fR.
@@ -1657,6 +1662,9 @@ The default is \fB0\fR.
 .TP
 \fBunicode_full_width_areas\fR=\fIvalue\fR (\fB\-\-fullwidth\fR)
 Force full width regardless of EastAsianWidth.txt.
+.TP
+\fBunicode_half_width_areas\fR=\fIvalue\fR (\fB\-\-halfwidth\fR)
+Force half width regardless of EastAsianWidth.txt.
 .TP
 \fBunicode_noconv_areas\fR=\fIvalue\fR (\fB\-\-ucsnoconv\fR)
 Use unicode fonts partially regardless of -n option.

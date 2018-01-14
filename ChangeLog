@@ -1,3 +1,23 @@
+2018-01-14  Araki Ken  <arakiken@users.sf.net>
+
+	* PROTOCOL, README.ja, mlterm.1, etc/main, etc/main.ja: Updated.
+
+	* ui_screen_manager.c:
+	  "main_config.encoding = vt_term_get_encoding(screen->term)" is moved before
+	  create_term_intern() in open_pty().
+
+	* mc_char_width.c, mlconfig/po/*.po:
+	  - "Set full width\nareas manually" is changed to "Add full width areas".
+	  - "Add half width areas" button is added.
+
+	* vt_parser.[ch]:
+	  - vt_set_half_width_areas() is added.
+	  - The char width of EF_AWIDTH property is determined in modify_ucs_property()
+	    (called from vt_convert_to_internal_ch()) instead of put_char().
+	  - "unicode_half_width_areas" is added to OSC 5379, 5380 and 5381.
+
+	* ui_main_config.c: --halfwidth / "unicode_half_width_areas" option is added.
+
 2018-01-13  Araki Ken  <arakiken@users.sf.net>
 
 	* README.fb, README.comb: Updated.
