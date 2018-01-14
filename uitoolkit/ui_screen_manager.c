@@ -750,12 +750,15 @@ static void open_pty(void *p, ui_screen_t *screen, char *dev) {
 #endif
     int ret;
 
+    encoding = main_config.encoding;
+    main_config.encoding = vt_term_get_encoding(screen->term);
+
     if ((new = create_term_intern()) == NULL) {
+      main_config.encoding = encoding;
+
       return;
     }
 
-    encoding = main_config.encoding;
-    main_config.encoding = vt_term_get_encoding(screen->term);
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
     if (!main_config.show_dialog) {
       default_server = main_config.default_server;

@@ -270,6 +270,8 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "use unicode fonts partially regardless of -n option");
   bl_conf_add_opt(conf, '\0', "fullwidth", 0, "unicode_full_width_areas",
                   "force full width regardless of EastAsianWidth.txt");
+  bl_conf_add_opt(conf, '\0', "halfwidth", 0, "unicode_half_width_areas",
+                  "force half width regardless of EastAsianWidth.txt");
   bl_conf_add_opt(conf, '\0', "ade", 0, "auto_detect_encodings",
                   "encodings detected automatically");
   bl_conf_add_opt(conf, '\0', "auto", 1, "use_auto_detect",
@@ -714,6 +716,10 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
 
   if ((value = bl_conf_get_value(conf, "unicode_full_width_areas"))) {
     vt_set_full_width_areas(value);
+  }
+
+  if ((value = bl_conf_get_value(conf, "unicode_half_width_areas"))) {
+    vt_set_half_width_areas(value);
   }
 
   if ((value = bl_conf_get_value(conf, "only_use_unicode_font"))) {

@@ -188,6 +188,8 @@ static u_int num_unicode_noconv_areas;
 
 static area_t *full_width_areas;
 static u_int num_full_width_areas;
+static area_t *half_width_areas;
+static u_int num_half_width_areas;
 
 static char *auto_detect_encodings;
 static struct {
@@ -355,22 +357,47 @@ static inline int is_noconv_unicode(u_char *ch) {
   return 0;
 }
 
-static inline ef_property_t modify_ucs_property(u_int32_t code, ef_property_t prop) {
-  if (full_width_areas && !(prop & EF_FULLWIDTH)) {
-    u_int count;
+static inline ef_property_t modify_ucs_property(u_int32_t code, int col_size_of_width_a,
+                                                ef_property_t prop) {
+  u_int count;
 
-    for (count = 0; count < num_full_width_areas; count++) {
-      if (full_width_areas[count].min <= code && code <= full_width_areas[count].max) {
-        return (prop & ~EF_AWIDTH) | EF_FULLWIDTH;
+  if (prop & EF_AWIDTH) {
+#ifdef SUPPORT_VTE_CJK_WIDTH
+    char *env;
+#endif
+
+    prop &= ~EF_AWIDTH;
+
+    if (col_size_of_width_a == 2) {
+      prop |= EF_FULLWIDTH;
+    }
+#ifdef SUPPORT_VTE_CJK_WIDTH
+    else if ((env = getenv("VTE_CJK_WIDTH")) &&
+             (strcmp(env, "wide") == 0 || strcmp(env, "1") == 0)) {
+      prop |= EF_FULLWIDTH;
+    }
+#endif
+  }
+
+  if (prop & EF_FULLWIDTH) {
+    if (half_width_areas) {
+      for (count = 0; count < num_half_width_areas; count++) {
+        if (half_width_areas[count].min <= code && code <= half_width_areas[count].max) {
+          return prop & ~EF_FULLWIDTH;
+        }
+      }
+    }
+  } else {
+    if (full_width_areas) {
+      for (count = 0; count < num_full_width_areas; count++) {
+        if (full_width_areas[count].min <= code && code <= full_width_areas[count].max) {
+          return prop | EF_FULLWIDTH;
+        }
       }
     }
   }
 
   return prop;
-}
-
-static inline ef_property_t get_ucs_property(u_int32_t code) {
-  return modify_ucs_property(code, ef_get_ucs_property(code));
 }
 
 static void start_vt100_cmd(vt_parser_t *vt_parser,
@@ -839,24 +866,10 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
    * checking width property of the char.
    */
 
-  is_fullwidth = 0;
-
   if (prop & EF_FULLWIDTH) {
     is_fullwidth = 1;
-  } else if (prop & EF_AWIDTH) {
-#ifdef SUPPORT_VTE_CJK_WIDTH
-    char *env;
-#endif
-
-    if (vt_parser->col_size_of_width_a == 2) {
-      is_fullwidth = 1;
-    }
-#ifdef SUPPORT_VTE_CJK_WIDTH
-    else if ((env = getenv("VTE_CJK_WIDTH")) &&
-             (strcmp(env, "wide") == 0 || strcmp(env, "1") == 0)) {
-      is_fullwidth = 1;
-    }
-#endif
+  } else {
+    is_fullwidth = 0;
   }
 
 #ifdef __DEBUG
@@ -6321,6 +6334,10 @@ void vt_set_full_width_areas(char *areas) {
   full_width_areas = set_area_to_table(full_width_areas, &num_full_width_areas, areas);
 }
 
+void vt_set_half_width_areas(char *areas) {
+  half_width_areas = set_area_to_table(half_width_areas, &num_half_width_areas, areas);
+}
+
 void vt_set_use_ttyrec_format(int use) { use_ttyrec_format = use; }
 
 #ifdef USE_LIBSSH2
@@ -6347,6 +6364,9 @@ void vt_parser_final(void) {
 
   free(full_width_areas);
   num_full_width_areas = 0;
+
+  free(half_width_areas);
+  num_half_width_areas = 0;
 
   vt_set_auto_detect_encodings("");
 }
@@ -6798,9 +6818,9 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
 #endif
     else {
       ef_char_t non_ucs;
-      u_int32_t code;
+      u_int32_t code = ef_char_to_int(&ch);
 
-      ch.property = modify_ucs_property((code = ef_char_to_int(&ch)), ch.property);
+      ch.property = modify_ucs_property(code, vt_parser->col_size_of_width_a, ch.property);
 
       if (vt_parser->unicode_policy & NOT_USE_UNICODE_FONT) {
         /* convert ucs4 to appropriate charset */
@@ -6916,8 +6936,11 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
       ef_char_t ucs;
 
       if (ef_map_to_ucs4(&ucs, &ch)) {
+        u_int32_t code = ef_char_to_int(&ucs);
+
         ch = ucs;
-        ch.property = get_ucs_property(ef_char_to_int(&ucs));
+        ch.property = modify_ucs_property(code, vt_parser->col_size_of_width_a,
+                                          ef_get_ucs_property(code));
       }
     } else if (IS_FULLWIDTH_CS(ch.cs)) {
       ch.property = EF_FULLWIDTH;
@@ -6976,7 +6999,8 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
           ef_int_to_bytes(ch.ch, 4, ucs);
           ch.size = 4;
           ch.cs = ISO10646_UCS4_1;
-          ch.property = get_ucs_property(ucs);
+          ch.property = modify_ucs_property(ucs, vt_parser->col_size_of_width_a,
+                                            ef_get_ucs_property(ucs));
         }
       }
     }
@@ -7183,6 +7207,10 @@ int vt_parser_get_config(
     response_area_table(vt_parser->pty, key, full_width_areas, num_full_width_areas, to_menu);
 
     return 1;
+  } else if (strcmp(key, "unicode_half_width_areas") == 0) {
+    response_area_table(vt_parser->pty, key, half_width_areas, num_half_width_areas, to_menu);
+
+    return 1;
   } else if (strcmp(key, "blink_cursor") == 0) {
     if (vt_parser->cursor_style & CS_BLINK) {
       value = "true";
@@ -7282,6 +7310,8 @@ int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
     vt_set_unicode_noconv_areas(value);
   } else if (strcmp(key, "unicode_full_width_areas") == 0) {
     vt_set_full_width_areas(value);
+  } else if (strcmp(key, "unicode_half_width_areas") == 0) {
+    vt_set_half_width_areas(value);
   } else if (strcmp(key, "tabsize") == 0) {
     u_int tab_size;
 

@@ -114,6 +114,8 @@
 
 # unicode_full_width_areas =
 
+# unicode_half_width_areas =
+
 # use_ot_layout = false
 
 # ot_script = latn

@@ -315,6 +315,8 @@ void vt_set_unicode_noconv_areas(char *areas);
 
 void vt_set_full_width_areas(char *areas);
 
+void vt_set_half_width_areas(char *areas);
+
 void vt_set_use_ttyrec_format(int use);
 
 #ifdef USE_LIBSSH2

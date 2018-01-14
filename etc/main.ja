@@ -164,6 +164,9 @@
 # EastAsianWidth.txt に関わらず、常に全角幅で表示する文字の範囲
 # unicode_full_width_areas =
 
+# EastAsianWidth.txt に関わらず、常に半角幅で表示する文字の範囲
+# unicode_half_width_areas =
+
 # Open Type フォントの置換グリフ等を使ってテキストを表示
 # use_ot_layout = false
 
