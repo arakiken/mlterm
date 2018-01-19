@@ -286,11 +286,15 @@ void vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidt
      * If code == 0, unicode_area_max == 0 and unicode_area_min == 0,
      * enter this block unexpectedly, but harmless.
      */
-    for (idx = num_unicode_areas; idx > 0; idx--) {
-      if (unicode_areas[idx - 1].min <= code && code <= unicode_areas[idx - 1].max) {
-        cs = idx;
-        break;
-      }
+    if ((idx = num_unicode_areas) == 1) {
+      cs = 1;
+    } else {
+      do {
+        if (unicode_areas[idx - 1].min <= code && code <= unicode_areas[idx - 1].max) {
+          cs = idx;
+          break;
+        }
+      } while (--idx > 0);
     }
   } else {
     idx = 0;
