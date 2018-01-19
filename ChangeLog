@@ -1,3 +1,12 @@
+2018-01-20  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c:
+	  - Searching unicode_noconv_areas, full_width_areas and half_width_areas
+	    is improved.
+	  - auto_detect_count => num_auto_detect_encodings
+
+	* vt_char.c: Searching unicode_areas in vt_char_set() is improved.
+
 2018-01-14  Araki Ken  <arakiken@users.sf.net>
 
 	* PROTOCOL, README.ja, mlterm.1, etc/main, etc/main.ja: Updated.

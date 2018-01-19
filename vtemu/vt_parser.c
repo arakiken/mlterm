@@ -188,6 +188,7 @@ static u_int num_unicode_noconv_areas;
 
 static area_t *full_width_areas;
 static u_int num_full_width_areas;
+
 static area_t *half_width_areas;
 static u_int num_half_width_areas;
 
@@ -197,7 +198,7 @@ static struct {
   ef_parser_t *parser;
 
 } * auto_detect;
-static u_int auto_detect_count;
+static u_int num_auto_detect_encodings;
 
 static int use_ttyrec_format;
 
@@ -208,7 +209,7 @@ static char *secondary_da;
 
 static int is_broadcasting;
 
-static int old_drcs_sixel;
+static int old_drcs_sixel; /* Compatible behavior with RLogin 2.23.0 or before */
 
 #ifdef USE_LIBSSH2
 static int use_scp_full;
@@ -247,6 +248,17 @@ static void str_replace(char *str, int c1, int c2) {
 static area_t *set_area_to_table(area_t *area_table, u_int *num, char *areas) {
   char *area;
 
+#ifdef __DEBUG
+  if (area_table == unicode_noconv_areas) {
+    bl_debug_printf("Unicode noconv area:");
+  } else if (area_table == full_width_areas) {
+    bl_debug_printf("Unicode full width area:");
+  } else {
+    bl_debug_printf("Unicode half width area:");
+  }
+  bl_msg_printf(" parsing %s\n", areas);
+#endif
+
   if (areas == NULL || *areas == '\0') {
     free(area_table);
     *num = 0;
@@ -269,24 +281,41 @@ static area_t *set_area_to_table(area_t *area_table, u_int *num, char *areas) {
     u_int max;
 
     if (vt_parse_unicode_area(area, &min, &max)) {
-      u_int count;
+      u_int count = 0;
 
-      for (count = 0; count < *num; count++) {
-        if (area_table[count].min <= min && area_table[count].max >= max) {
+      while (1) {
+        if (count == *num) {
+          area_table[*num].min = min;
+          area_table[(*num)++].max = max;
           break;
         }
 
-        if (min <= area_table[count].min && max >= area_table[count].max) {
-          area_table[count].min = min;
-          area_table[count].max = max;
-
+        if (area_table[count].min <= min) {
+          if (area_table[count].max + 1 >= min) {
+            if (area_table[count].max < max) {
+              area_table[count].max = max;
+            }
+            break;
+          }
+        } else {
+          if (area_table[count].min <= max + 1) {
+            if (area_table[count].min > min) {
+              area_table[count].min = min;
+            }
+            if (area_table[count].max < max) {
+              area_table[count].max = max;
+            }
+          } else {
+            memmove(area_table + count + 1, area_table + count,
+                    (*num - count) * sizeof(*area_table));
+            area_table[count].max = max;
+            area_table[count].min = min;
+            (*num)++;
+          }
           break;
         }
-      }
 
-      if (count == *num) {
-        area_table[*num].min = min;
-        area_table[(*num)++].max = max;
+        count++;
       }
     }
   }
@@ -296,7 +325,7 @@ static area_t *set_area_to_table(area_t *area_table, u_int *num, char *areas) {
     u_int count;
 
     for (count = 0; count < *num; count++) {
-      bl_debug_printf("AREA %d-%d\n", area_table[count].min, area_table[count].max);
+      bl_debug_printf("AREA %x-%x\n", area_table[count].min, area_table[count].max);
     }
   }
 #endif
@@ -332,17 +361,30 @@ static void response_area_table(vt_pty_ptr_t pty, u_char *key, area_t *area_tabl
   vt_response_config(pty, key, value, to_menu);
 }
 
-static inline int is_noconv_unicode(u_char *ch) {
-  if (unicode_noconv_areas || ch[2] == 0x20) {
+static inline int hit_area(area_t *areas, u_int num, u_int code) {
+  if (areas[0].min <= code && code <= areas[num - 1].max) {
     u_int count;
-    u_int32_t code;
 
-    code = ef_bytes_to_int(ch, 4);
-
-    for (count = 0; count < num_unicode_noconv_areas; count++) {
-      if (unicode_noconv_areas[count].min <= code && code <= unicode_noconv_areas[count].max) {
+    if (num == 1) {
+      return 1;
+    }
+    count = 0;
+    do {
+      if (areas[count].min <= code && code <= areas[count].max) {
         return 1;
       }
+    } while (++count < num);
+  }
+
+  return 0;
+}
+
+static inline int is_noconv_unicode(u_char *ch) {
+  if (unicode_noconv_areas || ch[2] == 0x20) {
+    u_int32_t code = ef_bytes_to_int(ch, 4);
+
+    if (hit_area(unicode_noconv_areas, num_unicode_noconv_areas, code)) {
+      return 1;
     }
 
     /*
@@ -359,8 +401,6 @@ static inline int is_noconv_unicode(u_char *ch) {
 
 static inline ef_property_t modify_ucs_property(u_int32_t code, int col_size_of_width_a,
                                                 ef_property_t prop) {
-  u_int count;
-
   if (prop & EF_AWIDTH) {
 #ifdef SUPPORT_VTE_CJK_WIDTH
     char *env;
@@ -380,20 +420,12 @@ static inline ef_property_t modify_ucs_property(u_int32_t code, int col_size_of_
   }
 
   if (prop & EF_FULLWIDTH) {
-    if (half_width_areas) {
-      for (count = 0; count < num_half_width_areas; count++) {
-        if (half_width_areas[count].min <= code && code <= half_width_areas[count].max) {
-          return prop & ~EF_FULLWIDTH;
-        }
-      }
+    if (half_width_areas && hit_area(half_width_areas, num_half_width_areas, code)) {
+      return prop & ~EF_FULLWIDTH;
     }
   } else {
-    if (full_width_areas) {
-      for (count = 0; count < num_full_width_areas; count++) {
-        if (full_width_areas[count].min <= code && code <= full_width_areas[count].max) {
-          return prop | EF_FULLWIDTH;
-        }
-      }
+    if (full_width_areas && hit_area(full_width_areas, num_full_width_areas, code)) {
+      return prop | EF_FULLWIDTH;
     }
   }
 
@@ -541,7 +573,7 @@ static int parse_string(ef_parser_t *cc_parser, u_char *str, size_t len) {
   }
 }
 
-/* Check auto_detect_count > 0 before calling this function. */
+/* Check num_auto_detect_encodings > 0 before calling this function. */
 static void detect_encoding(vt_parser_t *vt_parser) {
   u_char *str;
   size_t len;
@@ -565,7 +597,7 @@ static void detect_encoding(vt_parser_t *vt_parser) {
 detect:
   cur_idx = -1;
   threshold = 0;
-  for (idx = 0; idx < auto_detect_count; idx++) {
+  for (idx = 0; idx < num_auto_detect_encodings; idx++) {
     if (auto_detect[idx].encoding == vt_parser->encoding) {
       if ((threshold = parse_string(auto_detect[idx].parser, str, len)) > 1) {
         return;
@@ -577,7 +609,7 @@ detect:
   }
 
   cand_idx = -1;
-  for (idx = 0; idx < auto_detect_count; idx++) {
+  for (idx = 0; idx < num_auto_detect_encodings; idx++) {
     int ret;
 
     if (idx != cur_idx && (ret = parse_string(auto_detect[idx].parser, str, len)) > threshold) {
@@ -758,7 +790,7 @@ end:
     change_read_buffer_size(&vt_parser->r_buf, PTY_RD_BUFFER_SIZE);
   }
 
-  if (vt_parser->use_auto_detect && auto_detect_count > 0) {
+  if (vt_parser->use_auto_detect && num_auto_detect_encodings > 0) {
     detect_encoding(vt_parser);
   }
 
@@ -6721,13 +6753,13 @@ int vt_set_auto_detect_encodings(char *encodings) {
   char *p;
   u_int count;
 
-  if (auto_detect_count > 0) {
-    for (count = 0; count < auto_detect_count; count++) {
+  if (num_auto_detect_encodings > 0) {
+    for (count = 0; count < num_auto_detect_encodings; count++) {
       (*auto_detect[count].parser->delete)(auto_detect[count].parser);
     }
 
     free(auto_detect);
-    auto_detect_count = 0;
+    num_auto_detect_encodings = 0;
   }
 
   free(auto_detect_encodings);
@@ -6745,19 +6777,19 @@ int vt_set_auto_detect_encodings(char *encodings) {
   }
 
   while ((p = bl_str_sep(&encodings, ","))) {
-    if ((auto_detect[auto_detect_count].encoding = vt_get_char_encoding(p)) !=
+    if ((auto_detect[num_auto_detect_encodings].encoding = vt_get_char_encoding(p)) !=
         VT_UNKNOWN_ENCODING) {
-      auto_detect_count++;
+      num_auto_detect_encodings++;
     }
   }
 
-  if (auto_detect_count == 0) {
+  if (num_auto_detect_encodings == 0) {
     free(auto_detect);
 
     return 0;
   }
 
-  for (count = 0; count < auto_detect_count; count++) {
+  for (count = 0; count < num_auto_detect_encodings; count++) {
     auto_detect[count].parser = vt_char_encoding_parser_new(auto_detect[count].encoding);
   }
 
