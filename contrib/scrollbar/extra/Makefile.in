@@ -13,7 +13,7 @@ MOTIF_OBJ = motif.o
 MOZMODERN_OBJ = mozmodern.o
 NEXT_OBJ = next.o
 
-CFLAGS = $(CFLAGS_LOCAL) -I$(top_srcdir)/uitoolkit @CFLAGS@ @CPPFLAGS@ @X_CFLAGS@ -I/usr/include
+CFLAGS = $(CFLAGS_LOCAL) -I$(top_srcdir)/uitoolkit @CFLAGS@ @CPPFLAGS@ @X_CFLAGS@
 
 CC = @CC@
 INSTALL = @INSTALL@

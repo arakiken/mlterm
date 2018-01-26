@@ -1043,7 +1043,8 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
     return;
   }
 
-  if (0x1f000 <= ch && ch <= 0x1f6ff && HAS_XTERM_LISTENER(vt_parser, get_emoji_data)) {
+  if (0x1f000 <= ch && ch <= 0x1f9ff && (ch <= 0x1f6ff || 0x1f900 <= ch) &&
+      HAS_XTERM_LISTENER(vt_parser, get_emoji_data)) {
     /*
      * Emoji pictures (mostly U+1F000-1F6FF) provided by
      * http://github.com/githuub/gemoji

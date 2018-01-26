@@ -715,11 +715,11 @@ static int load_ft(XFontStruct *xfont, const char *file_path, int32_t format, in
   }
 
 face_found:
-  FT_Set_Pixel_Sizes(face, fontsize, fontsize);
+  if (face->units_per_EM == 0 /* units_per_EM can be 0 ("Noto Color Emoji") */) {
+    goto error;
+  }
 
-  xfont->format = format;
-  xfont->face = face;
-  xfont->is_aa = is_aa;
+  FT_Set_Pixel_Sizes(face, fontsize, fontsize);
 
   if (!load_glyph(face, format, get_glyph_index(face, 'M'), is_aa)) {
     bl_msg_printf("%s doesn't have outline glyphs.\n", file_path);
@@ -727,6 +727,9 @@ face_found:
     goto error;
   }
 
+  xfont->format = format;
+  xfont->face = face;
+  xfont->is_aa = is_aa;
   xfont->num_indeces = INITIAL_GLYPH_INDEX_TABLE_SIZE;
 
   if (!(xfont->file = strdup(file_path)) ||

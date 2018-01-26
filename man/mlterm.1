@@ -608,6 +608,11 @@ as the value of \-\-bg option.
 \fB\-\-deffont\fR=\fIvalue\fR
 DEFAULT in ~/.mlterm/*font.
 .TP
+\fB\-\-emoji\fR=\fIvalue\fR
+Specify path of a directory where emoji image files exist or a open type emoji
+font to show unicode emoji characters.
+The default is \fB~/.mlterm/emoji\fR.
+.TP
 \fB\-\-exitbs\fR(=\fIbool\fR)
 Whether to exit backscroll mode on receiving data from pty.
 The default is \fBfalse\fR.
@@ -1472,12 +1477,6 @@ Specify background color for cursor.
 \fBcursor_fg_color=\fIcolor\fR (\fB\-9\fR, \fB\-\-crfg\fR)
 Specify foreground color for cursor.
 .TP
-\fBexit_backscroll_by_pty=\fIbool\fR (\fB\-\-exitbs\fR)
-Exit backscroll mode on receiving data from pty.
-.TP
-\fBencoding=\fIencoding\fR (\fB\-E\fR, \fB\-\-km\fR)
-Specify encoding.
-.TP
 \fBdaemon_mode=\fImode\fR (\fB\-j\fR, \fB\-\-daemon\fR)
 Start as a daemon process.
 .TP
@@ -1492,6 +1491,16 @@ Specify visual depth.
 .TP
 \fBdisplay=\fIvalue\fR (\fB\-d\fR, \fB\-\-display\fR)
 Specify X server to connect.
+.TP
+\fBemoji_path=\fIvalue\fR (\fB\-\-emoji\fR)
+Specify path of a directory where emoji image files exist or a open type emoji
+font to show unicode emoji characters.
+.TP
+\fBencoding=\fIencoding\fR (\fB\-E\fR, \fB\-\-km\fR)
+Specify encoding.
+.TP
+\fBexit_backscroll_by_pty=\fIbool\fR (\fB\-\-exitbs\fR)
+Exit backscroll mode on receiving data from pty.
 .TP
 \fBfade_ratio=\fIratio\fR (\fB\-r\fR, \fB\-\-fade_ratio\fR)
 Specify fading ratio when window is unfocused.

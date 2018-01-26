@@ -537,7 +537,7 @@ static u_int calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs
     if (font->use_ot_layout /* && font->ot_font */) {
 #ifdef USE_WIN32API
       /* GetTextExtentPointI doesn't exist on mingw-i686-pc-mingw */
-      static WINGDIAPI BOOL WINAPI (*func)(HDC, LPWORD, int, LPSIZE);
+      static BOOL (*func)(HDC, LPWORD, int, LPSIZE);
 
       if (!func) {
         func = GetProcAddress(GetModuleHandleA("GDI32.DLL"), "GetTextExtentPointI");

@@ -625,6 +625,10 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o ot_features (liga,clig,dlig,hlig,rlig) (#)
         グリフ置換を行う場合の feature を指定します。
 
+      o emoji_path (~/.mlterm/emoji)
+        絵文字表示に使用する画像又は絵文字フォント(NotoColorEmoji.ttfなど)を指定
+        します。
+
       -- Appearance 関連 --
       o use_transbg (true/*false*) (#)
         擬似的な背景透過を行う。
@@ -1135,10 +1139,15 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       オプションをつけて mlterm を起動し、かつ、ISO10646_UCS4_1 に、記号文字が
       全角になっている Unicode フォントを指定する必要があります。
 
-      Unicode の U+1F000-1F6FF については、~/.mlterm/emoji 以下に 1fXXX.png と
-      いう画像ファイルがあれば、それを適宜拡縮して表示します。画像ファイルは、
-      https://github.com/github/gemoji/archive/master.zip 内の
+      Unicode の U+1F000-1F6FF 又は U+1F900-1F9FF については、~/.mlterm/emoji 以
+      下に 1fXXX.png という画像ファイルがあれば、それを適宜拡縮して表示します。
+      画像ファイルは、https://github.com/github/gemoji/archive/master.zip 内の
       images/emoji/unicode/*.png をコピーしてください。
+
+      --emoji / emoji_path オプションにより、~/.mlterm/emoji 以外のディレクトリ
+      を指定することも可能です。
+      また、NotoColorEmoji.ttf のように絵文字フォントのパスを指定すれば、指定さ
+      れた絵文字フォントを使用して絵文字を表示します。
 
       X Input Method のフォントは、なるべく端末画面で使用されているそれと同じ
       ものが使用されます。
@@ -1459,6 +1468,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
        --trim(=bool)   : trim_trailing_newline_in_pasting
        --bc(=bool)     : broadcast
        --ibc(=bool)    : ignore_broadcasted_chars
+       --emoji=value   : emoji_path
 
     -e ... : 指定したコマンドを起動
 
