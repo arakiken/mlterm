@@ -867,6 +867,8 @@ sdl2_config
 sdl_config
 SDLTTF_LIBS
 SDLTTF_CFLAGS
+EMOJI_LIBS
+EMOJI_CFLAGS
 MLIMGLOADER_LIB
 PERL
 XLFDSEL_OBJ
@@ -898,8 +900,6 @@ CAIRO_CFLAGS
 xft_config
 XFT_LIBS
 XFT_CFLAGS
-FT_LIBS
-FT_CFLAGS
 TYPE_LOADER_OBJ
 CTL_LIBS_FOR_VTE
 CTL_CFLAGS
@@ -919,6 +919,8 @@ MATH_CFLAGS
 MATH_LIBS
 IMAGELIB_LIBS
 IMAGELIB_CFLAGS
+FT_LIBS
+FT_CFLAGS
 imlib2_config
 imlib_config
 have_gdk_pixbuf1
@@ -1101,10 +1103,10 @@ GDK_PIXBUF_CFLAGS
 GDK_PIXBUF_LIBS
 GIO_CFLAGS
 GIO_LIBS
-FRIBIDI_CFLAGS
-FRIBIDI_LIBS
 FT_CFLAGS
 FT_LIBS
+FRIBIDI_CFLAGS
+FRIBIDI_LIBS
 XFT_CFLAGS
 XFT_LIBS
 CAIRO_CFLAGS
@@ -1832,12 +1834,12 @@ Some influential environment variables:
               linker flags for GDK_PIXBUF, overriding pkg-config
   GIO_CFLAGS  C compiler flags for GIO, overriding pkg-config
   GIO_LIBS    linker flags for GIO, overriding pkg-config
+  FT_CFLAGS   C compiler flags for FT, overriding pkg-config
+  FT_LIBS     linker flags for FT, overriding pkg-config
   FRIBIDI_CFLAGS
               C compiler flags for FRIBIDI, overriding pkg-config
   FRIBIDI_LIBS
               linker flags for FRIBIDI, overriding pkg-config
-  FT_CFLAGS   C compiler flags for FT, overriding pkg-config
-  FT_LIBS     linker flags for FT, overriding pkg-config
   XFT_CFLAGS  C compiler flags for XFT, overriding pkg-config
   XFT_LIBS    linker flags for XFT, overriding pkg-config
   CAIRO_CFLAGS
@@ -4714,7 +4716,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4717 "configure"' > conftest.$ac_ext
+  echo '#line 4719 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7282,11 +7284,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7285: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7287: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7289: \$? = $ac_status" >&5
+   echo "$as_me:7291: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7572,11 +7574,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7575: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7577: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7579: \$? = $ac_status" >&5
+   echo "$as_me:7581: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7676,11 +7678,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7679: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7681: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7683: \$? = $ac_status" >&5
+   echo "$as_me:7685: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9701,7 +9703,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9704 "configure"
+#line 9706 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9801,7 +9803,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9804 "configure"
+#line 9806 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12142,11 +12144,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12145: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12147: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12149: \$? = $ac_status" >&5
+   echo "$as_me:12151: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12246,11 +12248,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12249: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12251: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12253: \$? = $ac_status" >&5
+   echo "$as_me:12255: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13829,11 +13831,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13832: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13834: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13836: \$? = $ac_status" >&5
+   echo "$as_me:13838: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13933,11 +13935,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13936: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13938: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13940: \$? = $ac_status" >&5
+   echo "$as_me:13942: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16094,11 +16096,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16097: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16099: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16101: \$? = $ac_status" >&5
+   echo "$as_me:16103: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16384,11 +16386,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16387: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16389: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16391: \$? = $ac_status" >&5
+   echo "$as_me:16393: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16488,11 +16490,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16491: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16493: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16495: \$? = $ac_status" >&5
+   echo "$as_me:16497: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -20645,6 +20647,145 @@ gdk-pixbuf1)
 	;;
 esac
 
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for FT" >&5
+$as_echo_n "checking for FT... " >&6; }
+
+if test -n "$FT_CFLAGS"; then
+    pkg_cv_FT_CFLAGS="$FT_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"freetype2\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "freetype2") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_FT_CFLAGS=`$PKG_CONFIG --cflags "freetype2" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$FT_LIBS"; then
+    pkg_cv_FT_LIBS="$FT_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"freetype2\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "freetype2") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_FT_LIBS=`$PKG_CONFIG --libs "freetype2" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        FT_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "freetype2" 2>&1`
+        else
+	        FT_PKG_ERRORS=`$PKG_CONFIG --print-errors "freetype2" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$FT_PKG_ERRORS" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+                have_ft=no
+elif test $pkg_failed = untried; then
+	have_ft=no
+else
+	FT_CFLAGS=$pkg_cv_FT_CFLAGS
+	FT_LIBS=$pkg_cv_FT_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_ft=yes
+fi
+if test "$have_ft" = "no" ; then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for FT" >&5
+$as_echo_n "checking for FT... " >&6; }
+
+if test -n "$FT_CFLAGS"; then
+    pkg_cv_FT_CFLAGS="$FT_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"freetype\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "freetype") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_FT_CFLAGS=`$PKG_CONFIG --cflags "freetype" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$FT_LIBS"; then
+    pkg_cv_FT_LIBS="$FT_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"freetype\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "freetype") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_FT_LIBS=`$PKG_CONFIG --libs "freetype" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        FT_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "freetype" 2>&1`
+        else
+	        FT_PKG_ERRORS=`$PKG_CONFIG --print-errors "freetype" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$FT_PKG_ERRORS" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+                have_ft=no
+elif test $pkg_failed = untried; then
+	have_ft=no
+else
+	FT_CFLAGS=$pkg_cv_FT_CFLAGS
+	FT_LIBS=$pkg_cv_FT_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_ft=yes
+fi
+fi
+# -DUSE_FREETYPE can be added to FT_CFLAGS later.
+FT_CFLAGS_ORIGINAL=$FT_CFLAGS
+
 if test "$gdk_pixbuf_version" != "" ; then
 	if test "$gdk_pixbuf_version" = "1" ; then
 		# Override GDK_PIXBUF_XXX variables.
@@ -20659,6 +20800,10 @@ if test "$gdk_pixbuf_version" != "" ; then
 	IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DBUILTIN_IMAGELIB"
 	IMAGELIB_LIBS="${GDK_PIXBUF_LIBS}"
 
+	if test "$have_ft" = "yes"; then
+		IMAGELIB_CFLAGS="$IMAGELIB_CFLAGS -DUSE_FREETYPE_EMOJI $FT_CFLAGS_ORIGINAL"
+		IMAGELIB_LIBS="$IMAGELIB_LIBS $FT_LIBS"
+	fi
 elif test "$have_gdk_pixbuf2" != "yes" -a "$have_gdk_pixbuf1" = "yes" ; then
 	GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags|tr -d '\r'`"
 	GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs|tr -d '\r'`"
@@ -21095,142 +21240,6 @@ fi
 
 if test "$anti_alias" != "no"; then
 	if test "$gui" = "fb" -o "$gui" = "wayland"; then
-
-pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for FT" >&5
-$as_echo_n "checking for FT... " >&6; }
-
-if test -n "$FT_CFLAGS"; then
-    pkg_cv_FT_CFLAGS="$FT_CFLAGS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"freetype2\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "freetype2") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_FT_CFLAGS=`$PKG_CONFIG --cflags "freetype2" 2>/dev/null`
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-if test -n "$FT_LIBS"; then
-    pkg_cv_FT_LIBS="$FT_LIBS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"freetype2\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "freetype2") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_FT_LIBS=`$PKG_CONFIG --libs "freetype2" 2>/dev/null`
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-
-
-
-if test $pkg_failed = yes; then
-
-if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
-        _pkg_short_errors_supported=yes
-else
-        _pkg_short_errors_supported=no
-fi
-        if test $_pkg_short_errors_supported = yes; then
-	        FT_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "freetype2" 2>&1`
-        else
-	        FT_PKG_ERRORS=`$PKG_CONFIG --print-errors "freetype2" 2>&1`
-        fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$FT_PKG_ERRORS" >&5
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-                have_ft=no
-elif test $pkg_failed = untried; then
-	have_ft=no
-else
-	FT_CFLAGS=$pkg_cv_FT_CFLAGS
-	FT_LIBS=$pkg_cv_FT_LIBS
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	have_ft=yes
-fi
-		if test "$have_ft" = "no" ; then
-
-pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for FT" >&5
-$as_echo_n "checking for FT... " >&6; }
-
-if test -n "$FT_CFLAGS"; then
-    pkg_cv_FT_CFLAGS="$FT_CFLAGS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"freetype\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "freetype") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_FT_CFLAGS=`$PKG_CONFIG --cflags "freetype" 2>/dev/null`
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-if test -n "$FT_LIBS"; then
-    pkg_cv_FT_LIBS="$FT_LIBS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"freetype\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "freetype") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_FT_LIBS=`$PKG_CONFIG --libs "freetype" 2>/dev/null`
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-
-
-
-if test $pkg_failed = yes; then
-
-if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
-        _pkg_short_errors_supported=yes
-else
-        _pkg_short_errors_supported=no
-fi
-        if test $_pkg_short_errors_supported = yes; then
-	        FT_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "freetype" 2>&1`
-        else
-	        FT_PKG_ERRORS=`$PKG_CONFIG --print-errors "freetype" 2>&1`
-        fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$FT_PKG_ERRORS" >&5
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-                have_ft=no
-elif test $pkg_failed = untried; then
-	have_ft=no
-else
-	FT_CFLAGS=$pkg_cv_FT_CFLAGS
-	FT_LIBS=$pkg_cv_FT_LIBS
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	have_ft=yes
-fi
-		fi
 		if test "$have_ft" = "yes" ; then
 			# "tr ..." is hack for cygwin.
 			# (removing \r which is output by win32 native pkg-config.)
@@ -21787,8 +21796,8 @@ fi
 				echo "Install harfbuzz with --with-coretext=yes in advance."
 				echo ""
 			fi
-		elif test "$PKG_CONFIG" != "" ; then
-			OT_LAYOUT_CFLAGS="$OT_LAYOUT_CFLAGS `$PKG_CONFIG freetype2 --cflags`"
+		elif test "$have_ft" = "yes" ; then
+			OT_LAYOUT_CFLAGS="$OT_LAYOUT_CFLAGS $FT_CFLAGS_ORIGINAL"
 		fi
 	fi
 
@@ -22386,6 +22395,13 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 			MLIMGLOADER_LIB=none
 		fi
 
+
+		if test "$have_ft" = "yes"; then
+			EMOJI_CFLAGS="-DUSE_FREETYPE_EMOJI $FT_CFLAGS_ORIGINAL"
+			EMOJI_LIBS="$FT_LIBS"
+
+
+		fi
 	fi
 	;;
 registobmp)

@@ -821,6 +821,10 @@ void ui_release_icon_picture(ui_icon_picture_t *pic) {
   }
 }
 
+/*
+ * The caller must check if file_path exists or not to avoid to call mlimgloader unnecessarily.
+ * 'file_path' can be /foo/bar.ttf/1f400 for emoji.
+ */
 int ui_load_inline_picture(ui_display_t *disp, char *file_path, u_int *width, /* can be 0 */
                            u_int *height,                                     /* can be 0 */
                            u_int col_width, u_int line_height, vt_term_t *term) {
@@ -921,20 +925,7 @@ int ui_load_inline_picture(ui_display_t *disp, char *file_path, u_int *width, /*
   } else
 #endif
   {
-    int ret;
-
-#ifdef BUILTIN_IMAGELIB
-    ret = load_file(args);
-#else
-    struct stat st;
-
-    ret = (
-#if !defined(HAVE_PTHREAD) && !defined(USE_WIN32API)
-              strstr(file_path, "://") ||
-#endif
-              stat(file_path, &st) == 0) &&
-          load_file(args);
-#endif
+    int ret = load_file(args);
 
     free(args);
 

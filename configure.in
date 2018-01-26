@@ -303,6 +303,13 @@ gdk-pixbuf1)
 	;;
 esac
 
+PKG_CHECK_MODULES(FT, freetype2, have_ft=yes, have_ft=no)
+if test "$have_ft" = "no" ; then
+	PKG_CHECK_MODULES(FT, freetype, have_ft=yes, have_ft=no)
+fi
+# -DUSE_FREETYPE can be added to FT_CFLAGS later.
+FT_CFLAGS_ORIGINAL=$FT_CFLAGS
+
 if test "$gdk_pixbuf_version" != "" ; then
 	if test "$gdk_pixbuf_version" = "1" ; then
 		# Override GDK_PIXBUF_XXX variables.
@@ -317,6 +324,10 @@ if test "$gdk_pixbuf_version" != "" ; then
 	IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DBUILTIN_IMAGELIB"
 	IMAGELIB_LIBS="${GDK_PIXBUF_LIBS}"
 
+	if test "$have_ft" = "yes"; then
+		IMAGELIB_CFLAGS="$IMAGELIB_CFLAGS -DUSE_FREETYPE_EMOJI $FT_CFLAGS_ORIGINAL"
+		IMAGELIB_LIBS="$IMAGELIB_LIBS $FT_LIBS"
+	fi
 elif test "$have_gdk_pixbuf2" != "yes" -a "$have_gdk_pixbuf1" = "yes" ; then
 	GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags|tr -d '\r'`"
 	GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs|tr -d '\r'`"
@@ -491,10 +502,6 @@ AC_ARG_ENABLE(anti_alias,
 
 if test "$anti_alias" != "no"; then
 	if test "$gui" = "fb" -o "$gui" = "wayland"; then
-		PKG_CHECK_MODULES(FT, freetype2, have_ft=yes, have_ft=no)
-		if test "$have_ft" = "no" ; then
-			PKG_CHECK_MODULES(FT, freetype, have_ft=yes, have_ft=no)
-		fi
 		if test "$have_ft" = "yes" ; then
 			# "tr ..." is hack for cygwin.
 			# (removing \r which is output by win32 native pkg-config.)
@@ -675,8 +682,8 @@ else
 				echo "Install harfbuzz with --with-coretext=yes in advance."
 				echo ""
 			fi
-		elif test "$PKG_CONFIG" != "" ; then
-			OT_LAYOUT_CFLAGS="$OT_LAYOUT_CFLAGS `$PKG_CONFIG freetype2 --cflags`"
+		elif test "$have_ft" = "yes" ; then
+			OT_LAYOUT_CFLAGS="$OT_LAYOUT_CFLAGS $FT_CFLAGS_ORIGINAL"
 		fi
 	fi
 
@@ -962,6 +969,13 @@ mlimgloader)
 			MLIMGLOADER_LIB=none
 		fi
 		AC_SUBST(MLIMGLOADER_LIB)
+
+		if test "$have_ft" = "yes"; then
+			EMOJI_CFLAGS="-DUSE_FREETYPE_EMOJI $FT_CFLAGS_ORIGINAL"
+			EMOJI_LIBS="$FT_LIBS"
+			AC_SUBST(EMOJI_CFLAGS)
+			AC_SUBST(EMOJI_LIBS)
+		fi
 	fi
 	;;
 registobmp)

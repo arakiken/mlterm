@@ -17,6 +17,135 @@
 #include <pobl/bl_str.h>     /* bl_str_alloca_dup */
 #include <pobl/bl_conf_io.h> /* bl_get_user_rc_path */
 
+#ifdef USE_FREETYPE_EMOJI
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+#ifdef FT_LOAD_COLOR
+static FT_Library library;
+
+static void pixbuf_destroy_notify_emoji(guchar *pixels, gpointer data) {
+  FT_Done_Face(data); /* free pixels */
+#if 0
+  FT_Done_FreeType(library);
+  library = NULL;
+#endif
+}
+
+static char *is_otf_emoji(const char *path) {
+  char *p;
+
+  while ((p = strchr(path, '.'))) {
+    if (((p[1] | 0x20) == 't' || (p[1] | 0x20) == 'o') &&
+        (p[2] | 0x20) == 't' &&
+        ((p[3] | 0x20) == 'f' || (p[3] | 0x20) == 'c') &&
+        p[4] == '/') {
+      p[4] = '\0';
+
+      return p + 5;
+    }
+    path = p + 5;
+  }
+
+  return NULL;
+}
+
+static GdkPixbuf *gdk_pixbuf_new_from_otf(const char *path) {
+  char *p;
+  FT_Face face;
+  u_int code;
+  FT_UInt idx;
+  int x;
+  int y;
+  unsigned char *buffer;
+  GdkPixbuf *pixbuf = NULL;
+
+  if (!(p = is_otf_emoji(path))) {
+    return NULL;
+  }
+
+  if (sscanf(p, "%x", &code) != 1 || code == 0) {
+    return NULL;
+  }
+
+  if (library == NULL && FT_Init_FreeType(&library)) {
+    return NULL;
+  }
+
+  if (FT_New_Face(library, path, 0, &face)) {
+    goto end1;
+  }
+
+  if ((idx = FT_Get_Char_Index(face, code)) == 0) {
+    goto end2;
+  }
+
+  if (face->num_fixed_sizes > 0) {
+    int nearest = 0;
+#if 0
+    u_int32_t min_diff = 0xffffffff;
+    u_int32_t diff;
+    int count;
+    for (count = 0; count < face->num_fixed_sizes; count++) {
+      diff = abs(font_width - face->available_sizes[0].width);
+      if (min_diff > diff) {
+        min_diff = diff;
+        nearest = count;
+      }
+    }
+#endif
+
+    FT_Select_Size(face, nearest);
+  }
+
+  FT_Load_Glyph(face, idx, FT_LOAD_DEFAULT|FT_LOAD_COLOR);
+#if 0
+  FT_Render_Glyph(face->glyph, FT_RENDER_MODE_LCD);
+#endif
+#ifdef DEBUG
+  bl_debug_printf("%s emoji: code %x idx %x w %d(%d bytes) h %d\n", path, code, idx,
+                  face->glyph->bitmap.width, face->glyph->bitmap.pitch, face->glyph->bitmap.rows);
+#endif
+
+  if (face->glyph->format != FT_GLYPH_FORMAT_BITMAP ||
+      face->glyph->bitmap.pixel_mode != FT_PIXEL_MODE_BGRA) {
+    goto end2;
+  }
+
+  buffer = face->glyph->bitmap.buffer;
+
+  for (y = 0; y < face->glyph->bitmap.rows; y++) {
+    for (x = 0; x < face->glyph->bitmap.pitch; x += 4) {
+      /* BGRA => RGBA */
+      unsigned char tmp = buffer[x];
+      buffer[x] = buffer[x + 2];
+      buffer[x + 2] = tmp;
+    }
+    buffer += face->glyph->bitmap.pitch;
+  }
+
+  return gdk_pixbuf_new_from_data(face->glyph->bitmap.buffer,
+                                  GDK_COLORSPACE_RGB, TRUE, 8, face->glyph->bitmap.width,
+                                  face->glyph->bitmap.rows, face->glyph->bitmap.pitch,
+                                  pixbuf_destroy_notify_emoji, face);
+
+end2:
+  FT_Done_Face(face);
+
+end1:
+#if 0
+  FT_Done_FreeType(library);
+#endif
+
+  return pixbuf;
+}
+#else
+#define gdk_pixbuf_new_from_otf(path) (NULL)
+#endif
+#else
+#define gdk_pixbuf_new_from_otf(path) (NULL)
+#endif
+
 static void pixbuf_destroy_notify(guchar *pixels, gpointer data) { free(pixels); }
 
 static GdkPixbuf *gdk_pixbuf_new_from_sixel(const char *path) {
@@ -89,8 +218,9 @@ static u_int32_t *create_cardinals_from_pixbuf(GdkPixbuf *pixbuf) {
 static GdkPixbuf *gdk_pixbuf_new_from(const char *path) {
   GdkPixbuf *pixbuf;
 
-  if (strcasecmp(path + strlen(path) - 4, ".six") != 0 ||
-      !(pixbuf = gdk_pixbuf_new_from_sixel(path))) {
+  if (!(pixbuf = gdk_pixbuf_new_from_otf(path)) &&
+      (strcasecmp(path + strlen(path) - 4, ".six") != 0 ||
+       !(pixbuf = gdk_pixbuf_new_from_sixel(path)))) {
     if (strcasecmp(path + strlen(path) - 4, ".gif") == 0 && !strstr(path, "mlterm/anim")) {
       /* Animation GIF */
 

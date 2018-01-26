@@ -23,6 +23,7 @@
 #include "ui_xic.h"
 #include "ui_draw_str.h"
 #include "ui_selection_encoding.h"
+#include "ui_emoji.h"
 
 #define HAS_SYSTEM_LISTENER(screen, function) \
   ((screen)->system_listener && (screen)->system_listener->function)
@@ -4240,6 +4241,21 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
   } else if (strcmp(key, "click_interval") == 0) {
     sprintf(digit, "%d", ui_get_click_interval());
     value = digit;
+  } else if (strcmp(key, "emoji_path") == 0) {
+    if ((value = ui_emoji_get_path(0, 0))) {
+      char *p = strrchr(value, '/');
+      *p = '\0';
+      p = bl_str_alloca_dup(value);
+      free(value);
+      if (p) {
+        value = p;
+        goto emoji_path_end;
+      }
+    }
+    value = "";
+
+  emoji_path_end:
+    ;
   }
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
   else if (strcmp(key, "use_aafont") == 0) {
@@ -5454,29 +5470,15 @@ static int xterm_get_emoji_data(void *p, vt_char_t *ch1, vt_char_t *ch2) {
   width = ui_col_width(screen) * vt_char_cols(ch1);
   height = ui_line_height(screen);
 
-  if ((file_path = alloca(18 + DIGIT_STR_LEN(u_int32_t) * 2 + 1))) {
-    if (ch2) {
-      sprintf(file_path, "mlterm/emoji/%x-%x.gif", vt_char_code(ch1), vt_char_code(ch2));
-    } else {
-      sprintf(file_path, "mlterm/emoji/%x.gif", vt_char_code(ch1));
-    }
+  if ((file_path = ui_emoji_get_path(vt_char_code(ch1), ch2 ? vt_char_code(ch2) : 0))) {
+    idx = ui_load_inline_picture(screen->window.disp, file_path, &width, &height,
+                                 width / vt_char_cols(ch1), height, screen->term);
+    free(file_path);
 
-    if ((file_path = bl_get_user_rc_path(file_path))) {
-      struct stat st;
+    if (idx != -1) {
+      vt_char_combine_picture(ch1, idx, 0);
 
-      if (stat(file_path, &st) != 0) {
-        strcpy(file_path + strlen(file_path) - 3, "png");
-      }
-
-      idx = ui_load_inline_picture(screen->window.disp, file_path, &width, &height,
-                                   width / vt_char_cols(ch1), height, screen->term);
-      free(file_path);
-
-      if (idx != -1) {
-        vt_char_combine_picture(ch1, idx, 0);
-
-        return 1;
-      }
+      return 1;
     }
   }
 
@@ -6601,6 +6603,8 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
     if (bl_str_to_int(&interval, value)) {
       ui_set_click_interval(interval);
     }
+  } else if (strcmp(key, "emoji_path") == 0) {
+    ui_emoji_set_path(value);
   }
 #ifdef ROTATABLE_DISPLAY
   else if (strcmp(key, "rotate_display") == 0) {

@@ -1,3 +1,26 @@
+2018-01-27  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja, man/mlterm.1, doc/en/PROTOCOL: Updated.
+
+	* ui_screen.c: "emoji_path" is added to OSC 5379, 5380 and 5381.
+
+	* ui_picture.c: ui_load_inline_picture() doesn't check if path exists.
+	  (The caller should do it.)
+
+	* ui_main_config.c: --emoji / emoji_path option is added.
+
+	* ui_emoji.[ch]: Added.
+
+	* c_imagelib.c: gdk_pixbuf_new_from_otf() which reads emoji fonts such as
+	  NotoColorEmoji.ttf is added if USE_FREETYPE_EMOJI is defined.
+
+	* vt_parser.c: Not only U+1F1000-1F6FF but also U+1F900-1F9FF characters
+	  are treated as emoji.
+
+	* fb/ui_font.c: Whether face->units_per_EM is 0 or not is checked.
+
+	* win32/ui_font.c: Compiling error is fixed.
+
 2018-01-20  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c:

@@ -10,6 +10,7 @@
 
 #include <vt_term_manager.h>
 #include "ui_selection_encoding.h"
+#include "ui_emoji.h"
 
 #if defined(__ANDROID__) || defined(USE_QUARTZ) || defined(USE_WIN32API)
 /* Shrink unused memory */
@@ -320,6 +321,8 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "broadcast input characters to all ptys [false]");
   bl_conf_add_opt(conf, '\0', "ibc", 1, "ignore_broadcasted_chars",
                   "ignore broadcasted characters [false]");
+  bl_conf_add_opt(conf, '\0', "emoji", 0, "emoji_path",
+                  "emoji directory or file path [~/.mlterm/emoji]");
 #ifdef USE_IM_CURSOR_COLOR
   bl_conf_add_opt(conf, '\0', "imcolor", 0, "im_cursor_color",
                   "cursor color when input method is activated. [false]");
@@ -1329,6 +1332,10 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (strcmp(value, "true") == 0) {
       main_config->ignore_broadcasted_chars = 1;
     }
+  }
+
+  if ((value = bl_conf_get_value(conf, "emoji_path"))) {
+    ui_emoji_set_path(value);
   }
 
 #ifdef USE_IM_CURSOR_COLOR
