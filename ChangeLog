@@ -1,3 +1,18 @@
+2018-01-30  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_window.c: 'is_var_col_width' argument is added to draw_string()
+	  to distinguish it in drawing glyphs of true type fonts.
+
+	* ui_font.c:
+	  - IS_PROPORTIONAL() => HAS_POSITION_INFO_BY_GLYPH()
+	  - enable_position_info_by_glyph() which adds 3 bytes position info
+	    to each glyph.
+	  - Position info is stored at the begining of glyph array instead of
+	    at the end.
+
+	* ui_font.h: 'y' argument of ui_get_bitmap_line() is changed to
+	  'offset_bytes' (== y * xfont->glyph_width_bytes)
+
 2018-01-27  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja, man/mlterm.1, doc/en/PROTOCOL: Updated.
