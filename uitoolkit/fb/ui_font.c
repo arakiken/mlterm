@@ -520,7 +520,7 @@ static int load_pcf(XFontStruct *xfont, const char *file_path) {
       for (j = 0; j < xfont->height; j++) {
         u_char *line;
 
-        ui_get_bitmap_line(xfont, bitmap, j, line);
+        ui_get_bitmap_line(xfont, bitmap, j * xfont->glyph_width_bytes, line);
 
         for (i = 0; i < xfont->width; i++) {
           bl_msg_printf("%d", (line && ui_get_bitmap_cell(line, i)) ? 1 : 0);
@@ -575,9 +575,9 @@ static int is_pcf(const char *file_path) {
 /* 0 - 511 */
 #define SEG(idx) (((idx) >> 7) & 0x1ff)
 /* 0 - 127 */
-#define OFF(idx) ((idx)&0x7f)
+#define OFF(idx) ((idx) & 0x7f)
 /* +3 is for storing glyph position info. */
-#define IS_PROPORTIONAL(xfont) \
+#define HAS_POSITION_INFO_BY_GLYPH(xfont) \
   ((xfont)->glyph_size == (xfont)->glyph_width_bytes * (xfont)->height + 3)
 #define FONT_ROTATED (FONT_ITALIC << 1)
 
@@ -835,6 +835,13 @@ static void clear_glyph_cache_ft(XFontStruct *xfont) {
   memset(xfont->glyph_indeces, 0, xfont->num_indeces * sizeof(u_int16_t));
 }
 
+static void enable_position_info_by_glyph(XFontStruct *xfont) {
+  /* Shrink glyph size (+1 is margin) */
+  xfont->glyph_width_bytes = (xfont->width_full / 2 + 1) * 3;
+  /* +3 is for storing glyph position info. */
+  xfont->glyph_size = xfont->glyph_width_bytes * xfont->height + 3;
+}
+
 static void unload_ft(XFontStruct *xfont) {
   FT_Face face;
   int count;
@@ -912,7 +919,7 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
     indeces = xfont->glyph_indeces;
   }
 
-  glyphs = xfont->glyphs;
+  glyphs = xfont->glyphs; /* Cast to u_char* to u_char** */
 
   if (!(idx = indeces[code])) {
     FT_Face face;
@@ -965,6 +972,7 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
       }
     }
 
+    /* idx can be changed if (pitch + left_pitch - 1) / xfont->glyph_width_bytes > 0. */
     idx = ++xfont->num_glyphs;
 
 #if 0
@@ -1020,7 +1028,33 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
     if (xfont->is_aa) {
       left_pitch *= 3;
 
-      if (face->glyph->bitmap.pitch < xfont->glyph_width_bytes) {
+      if (HAS_POSITION_INFO_BY_GLYPH(xfont)) {
+        int additional_glyphs;
+        int count;
+
+        pitch = face->glyph->bitmap.pitch;
+
+        additional_glyphs = (pitch + left_pitch - 1) / xfont->glyph_width_bytes;
+#if 0
+        bl_debug_printf("Use %d(=(%d+%d-1)/%d) glyph slots for one glyph.\n",
+                        1 + additional_glyphs, pitch, left_pitch, xfont->glyph_width_bytes);
+#endif
+        for (count = 0; count < additional_glyphs; count++) {
+          if (OFF(xfont->num_glyphs + count) == 0) {
+            if (1 + additional_glyphs > GLYPH_TABLE_SIZE ||
+                !(glyphs[SEG(xfont->num_glyphs + count)] =
+                    calloc(GLYPH_TABLE_SIZE, xfont->glyph_size))) {
+              xfont->num_glyphs--;
+              indeces[code] = 0;
+
+              return NULL;
+            }
+            xfont->num_glyphs += (1 + count);
+            indeces[code] = idx = xfont->num_glyphs;
+          }
+        }
+        xfont->num_glyphs += additional_glyphs;
+      } else if (face->glyph->bitmap.pitch < xfont->glyph_width_bytes) {
         pitch = face->glyph->bitmap.pitch;
 
         if (pitch + left_pitch > xfont->glyph_width_bytes) {
@@ -1049,39 +1083,42 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
     dst = glyph + (xfont->glyph_width_bytes * y);
 
     if (xfont->is_aa) {
-      for (y = 0; y < rows; y++) {
-        memcpy(dst + left_pitch, src, pitch);
-
-        src += face->glyph->bitmap.pitch;
-        dst += xfont->glyph_width_bytes;
-      }
-
-      if (IS_PROPORTIONAL(xfont)) {
+      if (HAS_POSITION_INFO_BY_GLYPH(xfont)) {
         /* Storing glyph position info. (ISCII or ISO10646_UCS4_1_V) */
 
-        dst = glyph + xfont->glyph_size - 3;
-
-        dst[0] = (face->glyph->advance.x >> 6);                /* advance */
-        dst[2] = (face->glyph->bitmap.width + left_pitch) / 3; /* width */
-        if (dst[2] > xfont->width_full) {
-          dst[2] = xfont->width_full; /* == glyph_width_bytes / 3 */
-        }
+        glyph[0] = (face->glyph->advance.x >> 6);                /* advance */
+        glyph[2] = (face->glyph->bitmap.width + left_pitch) / 3; /* width */
 
         if (face->glyph->bitmap_left < 0) {
-          dst[1] = -face->glyph->bitmap_left; /* retreat */
+          glyph[1] = -face->glyph->bitmap_left; /* retreat */
         } else {
-          dst[1] = 0;
+          glyph[1] = 0;
         }
 
-        if (dst[0] == 0 && dst[2] > dst[0] + dst[1]) {
-          dst[1] = dst[2] - dst[0]; /* retreat */
+        if (glyph[0] == 0 && glyph[2] > glyph[0] + glyph[1]) {
+          glyph[1] = glyph[2] - glyph[0]; /* retreat */
         }
+
+        dst = glyph + glyph[2] * 3 * y + 3;
 
 #if 0
         bl_debug_printf("%x %c A %d R %d W %d-> A %d R %d W %d\n", code, code,
                         face->glyph->advance.x >> 6, face->glyph->bitmap_left,
-                        face->glyph->bitmap.width, dst[0], dst[1], dst[2]);
+                        face->glyph->bitmap.width, glyph[0], glyph[1], glyph[2]);
 #endif
+        for (y = 0; y < rows; y++) {
+          memcpy(dst + left_pitch, src, pitch);
+
+          src += face->glyph->bitmap.pitch;
+          dst += (glyph[2] * 3);
+        }
+      } else {
+        for (y = 0; y < rows; y++) {
+          memcpy(dst + left_pitch, src, pitch);
+
+          src += face->glyph->bitmap.pitch;
+          dst += xfont->glyph_width_bytes;
+        }
       }
     } else {
       int shift;
@@ -1443,9 +1480,7 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
     }
 
     if ((code = get_glyph_index(xfont->face, ch)) == 0) {
-      if (!IS_PROPORTIONAL(xfont)) {
-        goto compl_font;
-      }
+      goto compl_font;
     }
   } else {
     code = ch;
@@ -1534,12 +1569,19 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
         }
 
         xfont->compl_xfonts[count] = compl;
+      } else {
+        compl = xfont->compl_xfonts[count];
       }
 
-      if ((code = get_glyph_index(xfont->compl_xfonts[count]->face, ch)) > 0) {
-        if ((bitmap = get_ft_bitmap_intern(xfont->compl_xfonts[count], code, ch))) {
+      if (HAS_POSITION_INFO_BY_GLYPH(xfont) && !HAS_POSITION_INFO_BY_GLYPH(compl)) {
+        clear_glyph_cache_ft(compl);
+        enable_position_info_by_glyph(compl);
+      }
+
+      if ((code = get_glyph_index(compl->face, ch)) > 0) {
+        if ((bitmap = get_ft_bitmap_intern(compl, code, ch))) {
           if (compl_xfont) {
-            *compl_xfont = xfont->compl_xfonts[count];
+            *compl_xfont = compl;
           }
 #ifdef __DEBUG
           bl_debug_printf("Use %s font to show U+%x\n", (*compl_xfont)->file, ch);
@@ -1912,24 +1954,23 @@ xfont_loaded:
     cols = 1;
   }
 
-/*
- * font->is_var_col_width == false and font->is_proportional == true
- * is impossible on framebuffer.
- */
 #ifdef USE_FREETYPE
+  if (HAS_POSITION_INFO_BY_GLYPH(font->xfont)) {
+    font->is_proportional = 1;
+  }
+
   if (IS_ISCII(cs) && font->xfont->is_aa &&
-      (font->xfont->ref_count == 1 || IS_PROPORTIONAL(font->xfont))) {
+      (font->xfont->ref_count == 1 || HAS_POSITION_INFO_BY_GLYPH(font->xfont))) {
     /* Proportional glyph is available on ISCII alone for now. */
     font->is_var_col_width = font->is_proportional = 1;
 
     if (font->xfont->ref_count == 1) {
       init_iscii_ft(font->xfont->face);
-      /* +3 is for storing glyph position info. */
-      font->xfont->glyph_size += 3;
+      enable_position_info_by_glyph(font->xfont);
     }
   } else
 #endif
-      if (font_present & FONT_VAR_WIDTH) {
+  if (font_present & FONT_VAR_WIDTH) {
     /*
      * If you use fixed-width fonts whose width is differnet from
      * each other.
@@ -1937,18 +1978,13 @@ xfont_loaded:
     font->is_var_col_width = 1;
 
 #ifdef USE_FREETYPE
-    if (cs == ISO10646_UCS4_1_V) {
-      font->is_proportional = 1;
+    font->is_proportional = 1;
 
-      if (font->xfont->ref_count == 1) {
-        /* +3 is for storing glyph position info. */
-        font->xfont->glyph_size += 3;
-      } else if (!IS_PROPORTIONAL(font->xfont)) {
-        clear_glyph_cache_ft(font->xfont);
-
-        /* +3 is for storing glyph position info. */
-        font->xfont->glyph_size += 3;
-      }
+    if (font->xfont->ref_count == 1) {
+      enable_position_info_by_glyph(font->xfont);
+    } else if (!HAS_POSITION_INFO_BY_GLYPH(font->xfont)) {
+      clear_glyph_cache_ft(font->xfont);
+      enable_position_info_by_glyph(font->xfont);
     }
 #endif
   }
@@ -2141,6 +2177,12 @@ int ui_font_has_ot_layout_table(ui_font_t *font) {
 
         return 0;
       }
+
+      if (!HAS_POSITION_INFO_BY_GLYPH(font->xfont)) {
+        clear_glyph_cache_ft(font->xfont);
+        enable_position_info_by_glyph(font->xfont);
+      }
+      font->is_proportional = 1; /* font->is_var_col_width can be 0 or 1. */
     }
 
     return 1;
@@ -2165,7 +2207,7 @@ u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, in
   }
 
 #if defined(USE_FREETYPE)
-  if (font->xfont->is_aa && font->is_proportional) {
+  if (font->xfont->is_aa && font->is_proportional && font->is_var_col_width) {
     u_char *glyph;
 
     if ((glyph = get_ft_bitmap(font->xfont, ch,
@@ -2175,7 +2217,7 @@ u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, in
                                0
 #endif
                                , NULL))) {
-      return glyph[font->xfont->glyph_size - 3];
+      return glyph[0];
     }
   }
 #endif

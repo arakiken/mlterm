@@ -101,6 +101,7 @@ static int copy_blended_pixel(Display *display, u_char *dst, u_char **bitmap, u_
     int r2;
     int g2;
     int b2;
+    u_long pixel;
 
     r1 = PIXEL_RED(fg, display->rgbinfo) & 0xff;
     g1 = PIXEL_GREEN(fg, display->rgbinfo) & 0xff;
@@ -109,26 +110,26 @@ static int copy_blended_pixel(Display *display, u_char *dst, u_char **bitmap, u_
     g2 = PIXEL_GREEN(bg, display->rgbinfo) & 0xff;
     b2 = PIXEL_BLUE(bg, display->rgbinfo) & 0xff;
 
-    copy_pixel(dst,
+    pixel =
 #ifdef USE_WAYLAND
-               /*
-                * f: fg color
-                * b: bg color
-                * w: other windows or desktop wall picture below mlterm window.
-                * 0.6, 0.4: a1, a2, a3
-                * 1.0, 0.0: alpha of fg_color
-                * 0.8, 0.2: alpha of bg color
-                *
-                * Correct: 0.6*(1.0*f + 0.0*w) + 0.4*(0.8*b + 0.2*w) = 0.6*f + 0.32*b + 0.08*w
-                * Lazy   : (0.6*f + 0.4*b)*(1.0*0.6+0.8*0.4) + w*(1.0-(1.0*0.6+0.8*0.4))
-                *                          ^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^^^^
-                *          = 0.552*f + 0.368*b + 0.08*w
-                */
-               BLEND((fg >> 24), (bg >> 24), (a1 + a2 + a3) / 3) << 24 |
+      /*
+       * f: fg color
+       * b: bg color
+       * w: other windows or desktop wall picture below mlterm window.
+       * 0.6, 0.4: a1, a2, a3
+       * 1.0, 0.0: alpha of fg_color
+       * 0.8, 0.2: alpha of bg color
+       *
+       * Correct: 0.6*(1.0*f + 0.0*w) + 0.4*(0.8*b + 0.2*w) = 0.6*f + 0.32*b + 0.08*w
+       * Lazy   : (0.6*f + 0.4*b)*(1.0*0.6+0.8*0.4) + w*(1.0-(1.0*0.6+0.8*0.4))
+       *                          ^^^^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^^^^^
+       *          = 0.552*f + 0.368*b + 0.08*w
+       */
+      BLEND((fg >> 24), (bg >> 24), (a1 + a2 + a3) / 3) << 24 |
 #endif
-               RGB_TO_PIXEL(BLEND(r1, r2, a1), BLEND(g1, g2, a2), BLEND(b1, b2, a3),
-                            display->rgbinfo),
-               bpp);
+      RGB_TO_PIXEL(BLEND(r1, r2, a1), BLEND(g1, g2, a2), BLEND(b1, b2, a3), display->rgbinfo);
+
+    copy_pixel(dst, pixel, bpp);
 
     return 1;
   } else {
@@ -137,9 +138,13 @@ static int copy_blended_pixel(Display *display, u_char *dst, u_char **bitmap, u_
 }
 #endif
 
+/*
+ * If the width and height of drawn characters is not over the window should be checked
+ * before calling ui_window_draw_*string().
+ */
 static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_height,
                                u_int font_ascent, u_int font_width, int font_x_off,
-                               int double_draw_gap, int is_proportional,
+                               int double_draw_gap, int is_proportional, int is_var_col_width,
                                u_int32_t fg_pixel, u_int32_t bg_pixel,
                                int x, /* win->x and win->hmargin are added. */
                                int y, int y_off, u_char **bitmaps, u_int len, u_char *picture,
@@ -155,17 +160,20 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
    * to the latter one. (Don't excess xfont->glyph_width_bytes)
    */
   u_int max_glyph_width = xfont->width_full;
+  u_char *bitmap_line;
+  u_long pixel;
 
   if (max_glyph_width + font_x_off > font_width) {
     max_glyph_width = font_width - font_x_off;
   }
 
+  /* (len + 1) is for decreasing the number of calling alloca() below. */
 #ifdef USE_FREETYPE
-  if (xfont->is_aa && is_proportional) {
-    u_int width;
-
+  if (xfont->is_aa && is_proportional && is_var_col_width) {
     /* width_full == glyph_width_bytes / 3 */
-    if (x + (width = len * xfont->width_full) > win->width + win->hmargin + win->x) {
+    u_int width = (len + 1) * (font_width > xfont->width_full ? font_width : xfont->width_full);
+
+    if (x + width > win->width + win->hmargin + win->x) {
       width = win->width + win->hmargin + win->x - x;
     }
 
@@ -173,7 +181,7 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
   } else
 #endif
   {
-    size = len * font_width * bpp;
+    size = (len + 1) * font_width * bpp;
   }
 
   if (!(src = alloca(size))) {
@@ -187,18 +195,18 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
       && !xfont->face
 #endif
       ) {
-    u_char *bitmap_line;
     int x_off;
     u_int end_gap = font_width - font_x_off - max_glyph_width;
+    u_int y_off_bytes = y_off * xfont->glyph_width_bytes;
 
     switch (bpp) {
       case 1:
-        for (; y_off < font_height; y_off++) {
+        for (; y_off < font_height; y_off++, y_off_bytes += xfont->glyph_width_bytes) {
           p = (picture ? memcpy(src, (picture += picture_line_len), size)
                        : memset(src, bg_pixel, size));
 
           for (count = 0; count < len; count++) {
-            if (!ui_get_bitmap_line(xfont, bitmaps[count], y_off, bitmap_line)) {
+            if (!ui_get_bitmap_line(xfont, bitmaps[count], y_off_bytes, bitmap_line)) {
               p += font_width;
             } else {
               p += font_x_off;
@@ -219,12 +227,12 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
         return;
 
       case 2:
-        for (; y_off < font_height; y_off++) {
+        for (; y_off < font_height; y_off++, y_off_bytes += xfont->glyph_width_bytes) {
           p = (picture ? memcpy(src, (picture += picture_line_len), size)
                        : memset16(src, bg_pixel, size / 2));
 
           for (count = 0; count < len; count++) {
-            if (!ui_get_bitmap_line(xfont, bitmaps[count], y_off, bitmap_line)) {
+            if (!ui_get_bitmap_line(xfont, bitmaps[count], y_off_bytes, bitmap_line)) {
               p += (font_width * 2);
             } else {
               p += (font_x_off * 2);
@@ -246,12 +254,12 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
 
       /* case  4: */
       default:
-        for (; y_off < font_height; y_off++) {
+        for (; y_off < font_height; y_off++, y_off_bytes += xfont->glyph_width_bytes) {
           p = (picture ? memcpy(src, (picture += picture_line_len), size)
                        : memset32(src, bg_pixel, size / 4));
 
           for (count = 0; count < len; count++) {
-            if (!ui_get_bitmap_line(xfont, bitmaps[count], y_off, bitmap_line)) {
+            if (!ui_get_bitmap_line(xfont, bitmaps[count], y_off_bytes, bitmap_line)) {
               p += (font_width * 4);
             } else {
               p += (font_x_off * 4);
@@ -305,156 +313,296 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
 
     p = src;
 
-    for (count = 0; count < len; count++, x += font_width) {
-      u_char *bitmap_line;
-      int x_off;
-
-      if (!ui_get_bitmap_line(xfont, bitmaps[count], y_off, bitmap_line)) {
-        if (src_bg_is_set) {
-          p += (font_width * bpp);
-        } else {
-          for (x_off = 0; x_off < font_width; x_off++, p += bpp) {
-            copy_pixel(p, ui_display_get_pixel(win->disp, x + x_off, y + y_off), bpp);
-          }
-        }
-      }
 #if defined(USE_FREETYPE)
-      else if (xfont->is_aa) {
-        if (is_proportional) {
+    if (xfont->is_aa) {
+      if (is_proportional) {
+        /*
+         * Bitmap format
+         * 1 byte    1 byte    1 byte        1 byte    1 byte    1 byte
+         * [advance] [retreat] [glyph width] [R alpha] [G alpha] [B alpha] ...
+         */
+        for (count = 0; count < len; count++) {
           /*
-           * src_bg_is_set is always false
+           * src_bg_is_set is always false if is_proportional is true.
+           * This is because the edge of a glyph which is forced out from a cell
+           * can be redrawn incorrectly even if is_var_col_width is false.
            * (see #ifdef USE_FRAMEBUFFER #ifdef USE_FREETYPE
            * #endif #endif in xcore_draw_str() in ui_draw_str.c)
            */
-          int retreat;
-          int advance;
-          int width;
+          int x_off;
 
-          if ((retreat = bitmaps[count][xfont->glyph_size - 2]) > 0) {
-            u_int filled;
+          if (!bitmaps[count]) {
+            for (x_off = 0; x_off < font_width; x_off++, p += bpp) {
+              pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
+              copy_pixel(p, pixel, bpp);
+            }
 
-            if ((filled = (p - src) / bpp) < retreat) {
-              if (x >= retreat) {
-                x_off = -retreat;
-                /* p is not changed. */
-                if (y_off == orig_y_off) {
-                  orig_x -= retreat;
-                } else {
-                  x += retreat;
+            x += font_width;
+          } else {
+            int retreat;
+            int width;
+
+            width = bitmaps[count][2];
+
+            bitmap_line = bitmaps[count] + 3 /* header */ + y_off * width * 3;
+
+            if ((retreat = bitmaps[count][1]) > 0) {
+              u_int filled;
+
+              if ((filled = (p - src) / bpp) < retreat) {
+                while (x >= retreat) {
+                  int x_off2;
+
+                  x_off = -retreat;
+
+                  if (y_off == orig_y_off) {
+                    u_char *new_src;
+                    size_t new_size = size + (retreat - filled) * bpp;
+
+                    if (retreat - filled > font_width) { /* See (len + 1) above */
+                      if (!(new_src = alloca(new_size))) {
+                        break;
+                      }
+
+                      memcpy(new_src, src, p - src);
+                      p = new_src + (p - src);
+                      src = new_src;
+                    }
+                    size = new_size;
+
+                    orig_x -= (retreat - filled);
+                  } else {
+                    x += (retreat - filled);
+                  }
+
+                  memmove(src + (retreat - filled) * bpp, src, p - src);
+
+                  for (x_off2 = 0, p = src; x_off2 < retreat - filled; x_off2++, p += bpp) {
+                    pixel = ui_display_get_pixel(win->disp, x + x_off + x_off2, y + y_off);
+                    copy_pixel(p, pixel, bpp);
+                  }
+
+                  p = src;
+                  goto end_of_retreat;
                 }
-              } else {
+
+                /* Give up retreating before 'filled'. */
                 bitmap_line += (retreat - filled);
                 x_off = -filled;
                 p = src;
+              } else {
+                x_off = -retreat;
+                p -= (retreat * bpp);
               }
             } else {
-              x_off = -retreat;
-              p -= (retreat * bpp);
+              x_off = 0;
+            }
+
+          end_of_retreat:
+            width -= retreat;
+
+            if (is_var_col_width) {
+              int advance;
+
+              for (; x_off < width; x_off++, p += bpp) {
+                u_long bg = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
+
+                if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg, bpp)) {
+                  /* do nothing */
+                } else if (x_off >= prev_crowded_out) {
+                  copy_pixel(p, bg, bpp);
+                }
+              }
+
+              advance = bitmaps[count][0];
+
+              for (; x_off < advance; x_off++, p += bpp) {
+                if (x_off >= prev_crowded_out) {
+                  pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
+                  copy_pixel(p, pixel, bpp);
+                }
+              }
+
+              if (count + 1 < len) {
+                if (prev_crowded_out > advance) {
+                  prev_crowded_out -= advance;
+                } else {
+                  prev_crowded_out = 0;
+                }
+
+                if (advance > 0 && x_off != advance) {
+                  p += ((advance - x_off) * bpp);
+
+                  if (x_off > advance && prev_crowded_out < x_off - advance) {
+                    prev_crowded_out = x_off - advance;
+                  }
+                }
+
+                x += advance;
+              } else {
+                prev_crowded_out = 0;
+              }
+            } else {
+              /* is_var_col_width is false */
+              int padding = font_x_off;
+
+              width += font_x_off;
+              if (width > (len - count) * font_width) {
+                width = (len - count) * font_width;
+              } else if (width + font_x_off < font_width) {
+                int add = (font_width - width - font_x_off) / 2;
+                width += add;
+                padding += add;
+              }
+
+              if (padding > 0) {
+                if (padding + x_off > 0) {
+                  int copy_and_skip = padding;
+                  if (x_off < 0) {
+                    /* x_off < 0 has been already copied from ui_display_get_pixel(). */
+                    copy_and_skip += (x_off);
+                    p += (-x_off * bpp);
+                    x_off = 0;
+                  }
+                  for (; copy_and_skip > 0; copy_and_skip--, x_off++, p += bpp) {
+                    if (x_off >= prev_crowded_out) {
+                      pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
+                      copy_pixel(p, pixel, bpp);
+                    }
+                  }
+                } else {
+                  /* x_off < 0 has been already copied from ui_display_get_pixel(). */
+                  p += (padding * bpp);
+                  x_off += padding;
+                }
+              }
+
+              for (; x_off < width; x_off++, p += bpp) {
+                u_long bg = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
+
+                if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg, bpp)) {
+                  /* do nothing */
+                } else if (x_off >= prev_crowded_out) {
+                  copy_pixel(p, bg, bpp);
+                }
+              }
+
+              for (; x_off < font_width; x_off++, p += bpp) {
+                pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
+                copy_pixel(p, pixel, bpp);
+              }
+
+              /* If count == len - 1, width <= font_width is always true. */
+              if (width <= font_width) {
+                prev_crowded_out = 0;
+              } else {
+                prev_crowded_out = width - font_width;
+                p -= (prev_crowded_out * bpp);
+              }
+
+              x += font_width;
+            }
+          }
+        }
+      } else {
+        u_int y_off_bytes = y_off * xfont->glyph_width_bytes;
+
+        /* is_proportional is false */
+        for (count = 0; count < len; count++, x += font_width) {
+          int x_off;
+
+          if (!bitmaps[count]) {
+            if (src_bg_is_set) {
+              p += (font_width * bpp);
+            } else {
+              for (x_off = 0; x_off < font_width; x_off++, p += bpp) {
+                pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
+                copy_pixel(p, pixel, bpp);
+              }
             }
           } else {
-            x_off = 0;
-          }
+            u_int glyph_end = font_x_off + max_glyph_width;
 
-          width = bitmaps[count][xfont->glyph_size - 1];
+            bitmap_line = bitmaps[count] + y_off_bytes;
 
-          /* width - retreat */
-          for (; x_off < width - retreat; x_off++, p += bpp) {
-            u_long bg;
-
-            bg = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
-
-            if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg, bpp)) {
-              continue;
-            } else if (count == 0 || x_off >= prev_crowded_out) {
-              copy_pixel(p, bg, bpp);
-            }
-          }
-
-          advance = bitmaps[count][xfont->glyph_size - 3];
-
-          for (; x_off < advance; x_off++, p += bpp) {
-            if (count == 0 || x_off >= prev_crowded_out) {
-              copy_pixel(p, ui_display_get_pixel(win->disp, x + x_off, y + y_off), bpp);
-            }
-          }
-
-          if (count + 1 < len) {
-            if (prev_crowded_out > advance) {
-              prev_crowded_out -= advance;
-            } else {
-              prev_crowded_out = 0;
-            }
-
-            if (advance > 0 && x_off != advance) {
-              p += ((advance - x_off) * bpp);
-
-              if (x_off > advance && prev_crowded_out < x_off - advance) {
-                prev_crowded_out = x_off - advance;
-              }
-            }
-
-            /* -font_width is for +font_width in for() */
-            x = x + advance - font_width;
-          }
-        } else {
-          u_int glyph_end = font_x_off + max_glyph_width;
-
-          for (x_off = 0; ; x_off++, p += bpp) {
-            if (font_x_off <= x_off && x_off < glyph_end) {
-              u_long bg;
-
-              if (src_bg_is_set) {
-                if (picture) {
-                  bg = (bpp == 2) ? *((u_int16_t *)p) : *((u_int32_t *)p);
-                } else {
-                  bg = bg_pixel;
+            if (src_bg_is_set) {
+              if (picture) {
+                for (x_off = 0; ; x_off++, p += bpp) {
+                  if (font_x_off <= x_off && x_off < glyph_end) {
+                    u_long bg = (bpp == 2) ? *((u_int16_t *)p) : *((u_int32_t *)p);
+                    copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg, bpp);
+                  } else if (font_width <= x_off) {
+                    break;
+                  }
                 }
               } else {
-                bg = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
+                for (x_off = 0; ; x_off++, p += bpp) {
+                  if (font_x_off <= x_off && x_off < glyph_end) {
+                    copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel,
+                                       bg_pixel, bpp);
+                  } else if (font_width <= x_off) {
+                    break;
+                  }
+                }
               }
+            } else {
+              for (x_off = 0; ; x_off++, p += bpp) {
+                if (font_x_off <= x_off && x_off < glyph_end) {
+                  u_long bg = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
+                  if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg, bpp)) {
+                    continue;
+                  }
+                } else if (font_width <= x_off) {
+                  break;
+                }
 
-              if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg, bpp)) {
-                continue;
+                pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
+                copy_pixel(p, pixel, bpp);
               }
-            } else if (font_width <= x_off) {
-              break;
             }
+          }
+        }
+      }
+    } else {
+#endif
+      u_int y_off_bytes = y_off * xfont->glyph_width_bytes;
 
-            if (!src_bg_is_set) {
-              u_long pixel;
+      for (count = 0; count < len; count++, x += font_width) {
+        int x_off;
 
+        if (!ui_get_bitmap_line(xfont, bitmaps[count], y_off_bytes, bitmap_line)) {
+          if (src_bg_is_set) {
+            p += (font_width * bpp);
+          } else {
+            for (x_off = 0; x_off < font_width; x_off++, p += bpp) {
               pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
               copy_pixel(p, pixel, bpp);
             }
           }
-        }
-      }
-#endif
-      else {
-        int force_fg = 0;
-        u_int glyph_end = font_x_off + max_glyph_width;
+        } else {
+          int force_fg = 0;
+          u_int glyph_end = font_x_off + max_glyph_width;
 
-        for (x_off = 0; ; x_off++, p += bpp) {
-          u_long pixel;
-
-          if (font_x_off <= x_off && x_off < glyph_end &&
-              ui_get_bitmap_cell(bitmap_line, x_off - font_x_off)) {
-            pixel = fg_pixel;
-            force_fg = double_draw_gap;
-          } else if (font_width <= x_off) {
-            break;
-          } else {
-            if (force_fg) {
+          for (x_off = 0; ; x_off++, p += bpp) {
+            if (font_x_off <= x_off && x_off < glyph_end &&
+                ui_get_bitmap_cell(bitmap_line, x_off - font_x_off)) {
               pixel = fg_pixel;
-              force_fg = 0;
-            } else if (src_bg_is_set) {
-              continue;
+              force_fg = double_draw_gap;
+            } else if (font_width <= x_off) {
+              break;
             } else {
-              pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
+              if (force_fg) {
+                pixel = fg_pixel;
+                force_fg = 0;
+              } else if (src_bg_is_set) {
+                continue;
+              } else {
+                pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
+              }
             }
-          }
 
-          copy_pixel(p, pixel, bpp);
+            copy_pixel(p, pixel, bpp);
+          }
         }
       }
     }
@@ -651,7 +799,7 @@ static void draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
 
         if (count > 0) {
           draw_string_intern(win, xfont, font_height, font_ascent, font->width, x_off,
-                             font->double_draw_gap, font->is_proportional,
+                             font->double_draw_gap, font->is_proportional, font->is_var_col_width,
                              fg_color->pixel, bg_color ? bg_color->pixel : 0, x, y, y_off,
                              bitmaps, count, picture, picture_line_len, src_bg_is_set, bpp);
           x += (font->width * count);
@@ -685,7 +833,7 @@ static void draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
   }
 
   draw_string_intern(win, xfont, font_height, font_ascent, font->width, x_off,
-                     font->double_draw_gap, font->is_proportional,
+                     font->double_draw_gap, font->is_proportional, font->is_var_col_width,
                      fg_color->pixel, bg_color ? bg_color->pixel : 0, x, y, y_off,
                      bitmaps, len, picture, picture_line_len, src_bg_is_set, bpp);
 }

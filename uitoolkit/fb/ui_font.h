@@ -8,9 +8,9 @@
 u_char *ui_get_bitmap(XFontStruct *xfont, u_char *ch, size_t len, int use_ot_layout,
                       XFontStruct **compl_xfont);
 
-#define ui_get_bitmap_line(xfont, bitmap, y, bitmap_line)                             \
-  ((bitmap) &&                                                                        \
-   memcmp(((bitmap_line) = (bitmap) + (y) * (xfont)->glyph_width_bytes), "\x0\x0\x0", \
+#define ui_get_bitmap_line(xfont, bitmap, offset_bytes, bitmap_line) \
+  ((bitmap) &&                                                       \
+   memcmp(((bitmap_line) = (bitmap) + (offset_bytes)), "\x0\x0\x0",  \
           (xfont)->glyph_width_bytes) != 0)
 
 /* x & 7 == x % 8 */
