@@ -563,8 +563,9 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
           }
         }
       }
-    } else {
+    } else
 #endif
+    {
       u_int y_off_bytes = y_off * xfont->glyph_width_bytes;
 
       for (count = 0; count < len; count++, x += font_width) {
@@ -609,8 +610,6 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
 
     ui_display_put_image(win->disp, (x = orig_x), y + y_off, src, p - src, !src_bg_is_set);
   }
-
-  return;
 }
 
 static void draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,

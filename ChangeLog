@@ -1,3 +1,12 @@
+2018-02-03  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_draw_str.c, ui_font_cache.[ch], ui_font_manager.c,
+	  ui_im_{candidate|status}_screen.c, ui_screen.c: xfont => uifont
+
+	* fb/ui_window.c: Compiling error is fixed.
+
+	* Android.mk: ui_emoji.c is added.
+
 2018-01-30  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_window.c: 'is_var_col_width' argument is added to draw_string()

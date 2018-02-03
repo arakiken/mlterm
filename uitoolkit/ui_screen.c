@@ -73,16 +73,16 @@ static char *im_cursor_color = NULL;
 
 #ifdef USE_OT_LAYOUT
 static void *ot_layout_get_ot_layout_font(vt_term_t *term, vt_font_t font) {
-  ui_font_t *xfont;
+  ui_font_t *uifont;
 
   if (!term->screen->screen_listener ||
-      !(xfont =
+      !(uifont =
             ui_get_font(((ui_screen_t *)term->screen->screen_listener->self)->font_man, font)) ||
-      !ui_font_has_ot_layout_table(xfont)) {
+      !ui_font_has_ot_layout_table(uifont)) {
     return NULL;
   }
 
-  return xfont;
+  return uifont;
 }
 #endif
 
@@ -510,13 +510,13 @@ static int draw_cursor(ui_screen_t *screen) {
               screen->hide_underline, screen->underline_offset);
 
   if (vt_term_get_cursor_style(screen->term) & CS_UNDERLINE) {
-    ui_font_t *xfont = ui_get_font(screen->font_man, vt_char_font(&ch));
+    ui_font_t *font = ui_get_font(screen->font_man, vt_char_font(&ch));
     ui_window_fill(&screen->window, x, y + ui_line_ascent(screen),
-                   ui_calculate_vtchar_width(xfont, &ch, NULL), 2);
+                   ui_calculate_vtchar_width(font, &ch, NULL), 2);
   } else if (vt_term_get_cursor_style(screen->term) & CS_BAR) {
     if (vt_term_cursor_is_rtl(screen->term)) {
-      ui_font_t *xfont = ui_get_font(screen->font_man, vt_char_font(&ch));
-      ui_window_fill(&screen->window, x + ui_calculate_vtchar_width(xfont, &ch, NULL) - 2,
+      ui_font_t *font = ui_get_font(screen->font_man, vt_char_font(&ch));
+      ui_window_fill(&screen->window, x + ui_calculate_vtchar_width(font, &ch, NULL) - 2,
                      y, 2, ui_line_height(screen));
     } else {
       ui_window_fill(&screen->window, x, y, 2, ui_line_height(screen));
@@ -534,13 +534,13 @@ static int draw_cursor(ui_screen_t *screen) {
 #endif
   } else {
     /* CS_BLOCK */
-    ui_font_t *xfont = ui_get_font(screen->font_man, vt_char_font(&ch));
+    ui_font_t *font = ui_get_font(screen->font_man, vt_char_font(&ch));
 
     ui_window_set_fg_color(&screen->window,
                            ui_get_xcolor(screen->color_man, vt_char_fg_color(&ch)));
 
     ui_window_draw_rect_frame(&screen->window, x, y,
-                              x + ui_calculate_vtchar_width(xfont, &ch, NULL) - 1,
+                              x + ui_calculate_vtchar_width(font, &ch, NULL) - 1,
                               y + ui_line_height(screen) - 1);
   }
 
@@ -4708,7 +4708,7 @@ static int is_vertical(void *p) {
 static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars, int cursor_offset) {
   ui_screen_t *screen;
   vt_line_t *line;
-  ui_font_t *xfont;
+  ui_font_t *font;
   int x;
   int y;
   u_int total_width;
@@ -4792,8 +4792,8 @@ static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars, int cur
     int _x;
     int _y;
 
-    xfont = ui_get_font(screen->font_man, vt_char_font(&chars[i]));
-    width = ui_calculate_vtchar_width(xfont, &chars[i], NULL);
+    font = ui_get_font(screen->font_man, vt_char_font(&chars[i]));
+    width = ui_calculate_vtchar_width(font, &chars[i], NULL);
 
     total_width += width;
 
@@ -5557,8 +5557,8 @@ static void xterm_hide_cursor(void *p, int hide) {
 }
 
 static int xterm_check_iscii_font(void *p, ef_charset_t cs) {
-  return ui_font_cache_get_xfont(((ui_screen_t *)p)->font_man->font_cache,
-                                 NORMAL_FONT_OF(cs)) != NULL;
+  return ui_font_cache_get_font(((ui_screen_t *)p)->font_man->font_cache,
+                                NORMAL_FONT_OF(cs)) != NULL;
 }
 
 /*

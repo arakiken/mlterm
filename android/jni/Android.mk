@@ -96,7 +96,7 @@ LOCAL_SRC_FILES := baselib/src/bl_map.c baselib/src/bl_args.c \
 		uitoolkit/ui_main_config.c uitoolkit/ui_selection.c \
 		uitoolkit/ui_layout.c uitoolkit/ui_simple_sb_view.c \
 		uitoolkit/ui_sb_view_factory.c uitoolkit/ui_scrollbar.c \
-		uitoolkit/fb/ui_selection_encoding.c \
+		uitoolkit/fb/ui_selection_encoding.c uitoolkit/ui_emoji.c \
 		main/daemon.c main/main_loop.c main/main.c
 LOCAL_CFLAGS := -DNO_DYNAMIC_LOAD_TABLE -DNO_DYNAMIC_LOAD_CTL -DSTATIC_LINK_INDIC_TABLES -DUSE_IND -Ilibind $(FRIBIDI_CFLAGS) $(FT_CFLAGS) $(OTL_CFLAGS) $(LIBSSH2_CFLAGS) -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER -DBUILTIN_IMAGELIB #-DBL_DEBUG -DDEBUG
 LOCAL_LDLIBS := -llog -landroid $(FT_LDLIBS) $(LIBSSH2_LDLIBS)
