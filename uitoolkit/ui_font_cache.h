@@ -28,10 +28,10 @@ typedef struct ui_font_cache {
   /*
    * Private
    */
-  BL_MAP(ui_font) xfont_table;
+  BL_MAP(ui_font) uifont_table;
   struct {
     vt_font_t font;
-    ui_font_t *xfont;
+    ui_font_t *uifont;
 
   } prev_cache;
 
@@ -51,7 +51,7 @@ void ui_font_cache_unload(ui_font_cache_t *font_cache);
 
 void ui_font_cache_unload_all(void);
 
-ui_font_t *ui_font_cache_get_xfont(ui_font_cache_t *font_cache, vt_font_t font);
+ui_font_t *ui_font_cache_get_font(ui_font_cache_t *font_cache, vt_font_t font);
 
 XFontSet ui_font_cache_get_fontset(ui_font_cache_t *font_cache);
 

@@ -373,7 +373,7 @@ static int get_state(ef_charset_t ch_cs, u_int32_t ch_code, vt_char_t *comb_char
                      u_int32_t *pic_glyph, char **drcs_glyph, int *draw_alone) {
 #ifndef NO_IMAGE
   if (comb_chars && vt_char_cs(comb_chars) == PICTURE_CHARSET) {
-    *draw_alone = 0; /* forcibly set 0 regardless of xfont. */
+    *draw_alone = 0; /* forcibly set 0 regardless of uifont. */
     *pic_glyph = vt_char_code(comb_chars) | (vt_char_picture_id(comb_chars) << PICTURE_POS_BITS);
     *drcs_glyph = NULL;
 
@@ -384,7 +384,7 @@ static int get_state(ef_charset_t ch_cs, u_int32_t ch_code, vt_char_t *comb_char
     *pic_glyph = 0;
 
     if ((*drcs_glyph = vt_drcs_get_glyph(ch_cs, ch_code))) {
-      *draw_alone = 0; /* forcibly set 0 regardless of xfont. */
+      *draw_alone = 0; /* forcibly set 0 regardless of uifont. */
 
       return 3;
     } else {
@@ -409,7 +409,7 @@ static void fc_draw_combining_chars(ui_window_t *window, ui_font_manager_t *font
   u_int count;
   u_int32_t ch_code;
   ef_charset_t ch_cs;
-  ui_font_t *xfont;
+  ui_font_t *uifont;
 
   for (count = 0; count < size; count++) {
     if (vt_char_cols(&chars[count]) == 0) {
@@ -418,28 +418,28 @@ static void fc_draw_combining_chars(ui_window_t *window, ui_font_manager_t *font
 
     ch_code = vt_char_code(&chars[count]);
     ch_cs = vt_char_cs(&chars[count]);
-    xfont = ui_get_font(font_man, vt_char_font(&chars[count]));
+    uifont = ui_get_font(font_man, vt_char_font(&chars[count]));
 
     if (ch_cs == DEC_SPECIAL) {
       u_char c;
 
       c = ch_code;
-      ui_window_draw_decsp_string(window, xfont, xcolor, x, y, &c, 1);
+      ui_window_draw_decsp_string(window, uifont, xcolor, x, y, &c, 1);
     }
     /* ISCII characters never have combined ones. */
     else if (ch_cs == US_ASCII || ch_cs == ISO8859_1_R /* || IS_ISCII(ch_cs) */) {
       u_char c;
 
       c = ch_code;
-      ui_window_ft_draw_string8(window, xfont, xcolor, x, y, &c, 1);
+      ui_window_ft_draw_string8(window, uifont, xcolor, x, y, &c, 1);
     } else {
       /* FcChar32 */ u_int32_t ucs4;
 
       if (ch_cs == ISO10646_UCS4_1_V) {
-        ui_window_ft_draw_string32(window, xfont, xcolor, x + vt_char_get_offset(&chars[count]), y,
+        ui_window_ft_draw_string32(window, uifont, xcolor, x + vt_char_get_offset(&chars[count]), y,
                                    &ch_code, 1);
       } else if ((ucs4 = ui_convert_to_xft_ucs4(ch_code, ch_cs))) {
-        ui_window_ft_draw_string32(window, xfont, xcolor, x, y, &ucs4, 1);
+        ui_window_ft_draw_string32(window, uifont, xcolor, x, y, &ucs4, 1);
       }
     }
   }
@@ -462,7 +462,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   ef_charset_t ch_cs;
 
   int state;
-  ui_font_t *xfont;
+  ui_font_t *uifont;
   vt_font_t font;
   vt_color_t fg_color;
   vt_color_t bg_color;
@@ -476,7 +476,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   char **drcs_glyphs;
 
   int next_state;
-  ui_font_t *next_xfont;
+  ui_font_t *next_uifont;
   vt_font_t next_font;
   vt_color_t next_fg_color;
   vt_color_t next_bg_color;
@@ -509,11 +509,11 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   }
 
   ch_code = vt_char_code(&chars[count]);
-  xfont = ui_get_font(font_man, (font = vt_char_font(&chars[count])));
+  uifont = ui_get_font(font_man, (font = vt_char_font(&chars[count])));
   ch_cs = FONT_CS(font);
   comb_chars = vt_get_combining_chars(&chars[count], &comb_size);
 
-  ch_width = calculate_char_width(xfont, ch_code, ch_cs, comb_chars, comb_size, &draw_alone);
+  ch_width = calculate_char_width(uifont, ch_code, ch_cs, comb_chars, comb_size, &draw_alone);
 
   if ((current_width = x + ch_width) > window->width || y + height > window->height) {
 #ifdef DEBUG
@@ -581,13 +581,13 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 
     if (!end_of_str) {
       ch_code = vt_char_code(&chars[count]);
-      next_xfont = ui_get_font(font_man, (next_font = vt_char_font(&chars[count])));
+      next_uifont = ui_get_font(font_man, (next_font = vt_char_font(&chars[count])));
       ch_cs = FONT_CS(next_font);
       next_fg_color = vt_char_fg_color(&chars[count]);
       next_bg_color = vt_char_bg_color(&chars[count]);
       next_line_style = vt_char_line_style(&chars[count]);
       next_comb_chars = vt_get_combining_chars(&chars[count], &next_comb_size);
-      next_ch_width = calculate_char_width(next_xfont, ch_code, ch_cs, next_comb_chars,
+      next_ch_width = calculate_char_width(next_uifont, ch_code, ch_cs, next_comb_chars,
                                            next_comb_size, &next_draw_alone);
 
       if ((next_state = get_state(ch_cs, ch_code, next_comb_chars, &pic_glyph, &drcs_glyph,
@@ -602,16 +602,16 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       }
       /*
        * !! Notice !!
-       * next_xfont != xfont doesn't necessarily detect change of 'state'
+       * next_uifont != uifont doesn't necessarily detect change of 'state'
        * (for example, same Unicode font is used for both US_ASCII and
        * other half-width unicode characters) and 'bold'(ui_get_font()
        * might substitute normal fonts for bold ones), 'next_state' and
        * 'font & FONT_BOLD' is necessary.
        */
-      else if (next_xfont != xfont || next_fg_color != fg_color || next_bg_color != bg_color ||
+      else if (next_uifont != uifont || next_fg_color != fg_color || next_bg_color != bg_color ||
                next_line_style != line_style ||
                /* If line_style > 0, line is drawn one by one in vertical mode. */
-               (line_style && xfont->is_vertical) || state != next_state ||
+               (line_style && uifont->is_vertical) || state != next_state ||
                draw_alone || next_draw_alone ||
                /* FONT_BOLD flag is not the same. */
                ((font ^ next_font) & FONT_BOLD)) {
@@ -661,11 +661,11 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       if (fg_color == bg_color) {
         /* don't draw it */
       } else if (state == 0) {
-        ui_window_ft_draw_string8(window, xfont, fg_xcolor, x, y + ascent, str8, str_len);
+        ui_window_ft_draw_string8(window, uifont, fg_xcolor, x, y + ascent, str8, str_len);
       } else if (state == 1) {
-        ui_window_draw_decsp_string(window, xfont, fg_xcolor, x, y + ascent, str8, str_len);
+        ui_window_draw_decsp_string(window, uifont, fg_xcolor, x, y + ascent, str8, str_len);
       } else if (state == 2) {
-        ui_window_ft_draw_string32(window, xfont, fg_xcolor, x, y + ascent, str32, str_len);
+        ui_window_ft_draw_string32(window, uifont, fg_xcolor, x, y + ascent, str32, str_len);
       } else /* if( state == 3) */
       {
         draw_drcs(window, drcs_glyphs, str_len, x, y, ch_width, height, fg_xcolor,
@@ -694,18 +694,18 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 
       if (line_style) {
         if ((line_style & LS_UNDERLINE) && !hide_underline) {
-          draw_line(window, fg_xcolor, xfont->is_vertical,
+          draw_line(window, fg_xcolor, uifont->is_vertical,
                     line_style & LS_UNDERLINE,
                     x, y, current_width - x, height, ascent + underline_offset, top_margin);
         }
 
         if (line_style & LS_CROSSED_OUT) {
-          draw_line(window, fg_xcolor, xfont->is_vertical,
+          draw_line(window, fg_xcolor, uifont->is_vertical,
                     LS_CROSSED_OUT, x, y, current_width - x, height, ascent, top_margin);
         }
 
         if (line_style & LS_OVERLINE) {
-          draw_line(window, fg_xcolor, xfont->is_vertical,
+          draw_line(window, fg_xcolor, uifont->is_vertical,
                     LS_OVERLINE, x, y, current_width - x, height, ascent, top_margin);
         }
       }
@@ -722,7 +722,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
     }
 
     line_style = next_line_style;
-    xfont = next_xfont;
+    uifont = next_uifont;
     font = next_font;
     fg_color = next_fg_color;
     bg_color = next_bg_color;
@@ -755,7 +755,7 @@ static int xcore_draw_combining_chars(ui_window_t *window, ui_font_manager_t *fo
   u_int count;
   u_int32_t ch_code;
   ef_charset_t ch_cs;
-  ui_font_t *xfont;
+  ui_font_t *uifont;
   int x_off;
 
   for (count = 0; count < size; count++) {
@@ -765,13 +765,13 @@ static int xcore_draw_combining_chars(ui_window_t *window, ui_font_manager_t *fo
 
     ch_code = vt_char_code(&chars[count]);
     ch_cs = vt_char_cs(&chars[count]);
-    xfont = ui_get_font(font_man, vt_char_font(&chars[count]));
+    uifont = ui_get_font(font_man, vt_char_font(&chars[count]));
 
     if (ch_cs == DEC_SPECIAL) {
       u_char c;
 
       c = ch_code;
-      ui_window_draw_decsp_string(window, xfont, xcolor, x, y, &c, 1);
+      ui_window_draw_decsp_string(window, uifont, xcolor, x, y, &c, 1);
     } else {
       if (ch_cs == ISO10646_UCS4_1_V) {
         x_off = vt_char_get_offset(&chars[count]);
@@ -783,7 +783,7 @@ static int xcore_draw_combining_chars(ui_window_t *window, ui_font_manager_t *fo
         u_char c;
 
         c = ch_code;
-        ui_window_draw_string(window, xfont, xcolor, x + x_off, y, &c, 1);
+        ui_window_draw_string(window, uifont, xcolor, x + x_off, y, &c, 1);
       } else {
         /* UCS4 */
 
@@ -801,7 +801,7 @@ static int xcore_draw_combining_chars(ui_window_t *window, ui_font_manager_t *fo
           len = 1;
         }
 
-        ui_window_draw_string16(window, xfont, xcolor, x, y, xch, len);
+        ui_window_draw_string16(window, uifont, xcolor, x, y, xch, len);
       }
     }
   }
@@ -828,7 +828,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   vt_char_t *comb_chars;
   u_int comb_size;
   u_int ch_width;
-  ui_font_t *xfont;
+  ui_font_t *uifont;
   vt_font_t font;
   vt_color_t fg_color;
   vt_color_t bg_color;
@@ -843,7 +843,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   vt_char_t *next_comb_chars;
   u_int next_comb_size;
   u_int next_ch_width;
-  ui_font_t *next_xfont;
+  ui_font_t *next_uifont;
   vt_font_t next_font;
   vt_color_t next_fg_color;
   vt_color_t next_bg_color;
@@ -872,11 +872,11 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   end_of_str = 0;
 
   ch_code = vt_char_code(&chars[count]);
-  xfont = ui_get_font(font_man, (font = vt_char_font(&chars[count])));
+  uifont = ui_get_font(font_man, (font = vt_char_font(&chars[count])));
   ch_cs = FONT_CS(font);
   comb_chars = vt_get_combining_chars(&chars[count], &comb_size);
 
-  ch_width = calculate_char_width(xfont, ch_code, ch_cs, comb_chars, comb_size, &draw_alone);
+  ch_width = calculate_char_width(uifont, ch_code, ch_cs, comb_chars, comb_size, &draw_alone);
 
   if ((current_width = x + ch_width) > window->width || y + height > window->height) {
 #ifdef DEBUG
@@ -941,13 +941,13 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 
     if (!end_of_str) {
       ch_code = vt_char_code(&chars[count]);
-      next_xfont = ui_get_font(font_man, (next_font = vt_char_font(&chars[count])));
+      next_uifont = ui_get_font(font_man, (next_font = vt_char_font(&chars[count])));
       ch_cs = FONT_CS(next_font);
       next_fg_color = vt_char_fg_color(&chars[count]);
       next_bg_color = vt_char_bg_color(&chars[count]);
       next_line_style = vt_char_line_style(&chars[count]);
       next_comb_chars = vt_get_combining_chars(&chars[count], &next_comb_size);
-      next_ch_width = calculate_char_width(next_xfont, ch_code, ch_cs, next_comb_chars,
+      next_ch_width = calculate_char_width(next_uifont, ch_code, ch_cs, next_comb_chars,
                                            next_comb_size, &next_draw_alone);
 
       if ((next_state = get_state(ch_cs, ch_code, next_comb_chars, &pic_glyph, &drcs_glyph,
@@ -962,16 +962,16 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       }
       /*
        * !! Notice !!
-       * next_xfont != xfont doesn't necessarily detect change of 'state'
+       * next_uifont != uifont doesn't necessarily detect change of 'state'
        * (for example, same Unicode font is used for both US_ASCII and
        * other half-width unicode characters) and 'bold'(ui_get_font()
        * might substitute normal fonts for bold ones), 'next_state' and
        * 'font & FONT_BOLD' is necessary.
        */
-      else if (next_xfont != xfont || next_fg_color != fg_color || next_bg_color != bg_color ||
+      else if (next_uifont != uifont || next_fg_color != fg_color || next_bg_color != bg_color ||
                next_line_style != line_style ||
                /* If line_style > 0, line is drawn one by one in vertical mode. */
-               (line_style && xfont->is_vertical) || next_state != state ||
+               (line_style && uifont->is_vertical) || next_state != state ||
                draw_alone || next_draw_alone ||
                /* FONT_BOLD flag is not the same */
                ((font ^ next_font) & FONT_BOLD)) {
@@ -1037,14 +1037,14 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
         /* XXX Wall picture is overwritten by bg_xcolor. */
 
         if (state == 2) {
-          ui_window_console_draw_string16(window, xfont, fg_xcolor, bg_xcolor, x, y + ascent, str2b,
+          ui_window_console_draw_string16(window, uifont, fg_xcolor, bg_xcolor, x, y + ascent, str2b,
                                           str_len, line_style);
         } else if (state == 1) {
-          ui_window_console_draw_decsp_string(window, xfont, fg_xcolor, bg_xcolor, x, y + ascent,
+          ui_window_console_draw_decsp_string(window, uifont, fg_xcolor, bg_xcolor, x, y + ascent,
                                               str, str_len, line_style);
         } else /* if( state == 0) */
         {
-          ui_window_console_draw_string(window, xfont, fg_xcolor, bg_xcolor, x, y + ascent, str,
+          ui_window_console_draw_string(window, uifont, fg_xcolor, bg_xcolor, x, y + ascent, str,
                                         str_len, line_style);
         }
       }
@@ -1057,7 +1057,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
            * ISCII or ISO10646_UCS4_1_V
            * (see #ifdef USE_FREETYPE #endif in draw_string() in ui_window.c)
            */
-          xfont->is_proportional ||
+          uifont->is_proportional ||
 #endif
           /* draw_alone || */       /* draw_alone is always false on framebuffer. */
 #else /* DRAW_SCREEN_IN_PIXELS */
@@ -1067,11 +1067,11 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
            * ui_calculate_char_width() can't tell it as ambigous if
            * use_ot_layout is true because ch_code is glyph index.
            */
-          (xfont->use_ot_layout /* && xfont->ot_font */) ||
+          (uifont->use_ot_layout /* && uifont->ot_font */) ||
 #endif
           (ui_window_has_wall_picture(window) && bg_color == VT_BG_COLOR) || draw_alone ||
 #endif /* DRAW_SCREEN_IN_PIXELS */
-          xfont->height != height || state == 3)
+          uifont->height != height || state == 3)
 #endif /* NO_DRAW_IMAGE_STRING */
       {
         if (bg_color == VT_BG_COLOR) {
@@ -1083,11 +1083,11 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
         if (fg_color == bg_color) {
           /* don't draw it */
         } else if (state == 2) {
-          ui_window_draw_string16(window, xfont, fg_xcolor, x, y + ascent, str2b, str_len);
+          ui_window_draw_string16(window, uifont, fg_xcolor, x, y + ascent, str2b, str_len);
         } else if (state == 1) {
-          ui_window_draw_decsp_string(window, xfont, fg_xcolor, x, y + ascent, str, str_len);
+          ui_window_draw_decsp_string(window, uifont, fg_xcolor, x, y + ascent, str, str_len);
         } else if (state == 0) {
-          ui_window_draw_string(window, xfont, fg_xcolor, x, y + ascent, str, str_len);
+          ui_window_draw_string(window, uifont, fg_xcolor, x, y + ascent, str, str_len);
         } else /* if( state == 3) */
         {
           draw_drcs(window, drcs_glyphs, str_len, x, y, ch_width, height, fg_xcolor,
@@ -1097,14 +1097,14 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 #ifndef NO_DRAW_IMAGE_STRING
       else {
         if (state == 2) {
-          ui_window_draw_image_string16(window, xfont, fg_xcolor, bg_xcolor, x, y + ascent, str2b,
+          ui_window_draw_image_string16(window, uifont, fg_xcolor, bg_xcolor, x, y + ascent, str2b,
                                         str_len);
         } else if (state == 1) {
-          ui_window_draw_decsp_image_string(window, xfont, fg_xcolor, bg_xcolor, x, y + ascent, str,
+          ui_window_draw_decsp_image_string(window, uifont, fg_xcolor, bg_xcolor, x, y + ascent, str,
                                             str_len);
         } else /* if( state == 0) */
         {
-          ui_window_draw_image_string(window, xfont, fg_xcolor, bg_xcolor, x, y + ascent, str,
+          ui_window_draw_image_string(window, uifont, fg_xcolor, bg_xcolor, x, y + ascent, str,
                                       str_len);
         }
       }
@@ -1131,18 +1131,18 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 
       if (line_style) {
         if ((line_style & LS_UNDERLINE) && !hide_underline) {
-          draw_line(window, fg_xcolor, xfont->is_vertical,
+          draw_line(window, fg_xcolor, uifont->is_vertical,
                     line_style & LS_UNDERLINE,
                     x, y, current_width - x, height, ascent + underline_offset, top_margin);
         }
 
         if (line_style & LS_CROSSED_OUT) {
-          draw_line(window, fg_xcolor, xfont->is_vertical,
+          draw_line(window, fg_xcolor, uifont->is_vertical,
                     LS_CROSSED_OUT, x, y, current_width - x, height, ascent, top_margin);
         }
 
         if (line_style & LS_OVERLINE) {
-          draw_line(window, fg_xcolor, xfont->is_vertical,
+          draw_line(window, fg_xcolor, uifont->is_vertical,
                     LS_OVERLINE, x, y, current_width - x, height, ascent, top_margin);
         }
       }
@@ -1159,7 +1159,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       break;
     }
 
-    xfont = next_xfont;
+    uifont = next_uifont;
     font = next_font;
     fg_color = next_fg_color;
     bg_color = next_bg_color;

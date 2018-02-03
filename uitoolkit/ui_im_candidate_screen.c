@@ -84,11 +84,11 @@ static u_int candidate_width(ui_font_manager_t *font_man, ui_im_candidate_t *can
   ui_font_manager_set_attr(font_man, 0, 0);
 
   for (i = 0; i < candidate->filled_len; i++) {
-    ui_font_t *xfont;
+    ui_font_t *font;
 
-    xfont = ui_get_font(font_man, vt_char_font(&candidate->chars[i]));
+    font = ui_get_font(font_man, vt_char_font(&candidate->chars[i]));
 
-    width += ui_calculate_char_width(xfont, vt_char_code(&candidate->chars[i]),
+    width += ui_calculate_char_width(font, vt_char_code(&candidate->chars[i]),
                                      vt_char_cs(&candidate->chars[i]), NULL);
   }
 
@@ -193,7 +193,7 @@ static void draw_str(ui_im_candidate_screen_t *cand_screen, vt_char_t *str, u_in
 
 static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int top, u_int last,
                                  u_int draw_index, int do_resize) {
-  ui_font_t *xfont;
+  ui_font_t *font;
   u_int i;
   u_int num_digits;
   u_int win_width;
@@ -230,27 +230,27 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
    *   +-------------------+
    */
 
-  xfont = ui_get_usascii_font(cand_screen->font_man);
+  font = ui_get_usascii_font(cand_screen->font_man);
 
   if (do_resize) {
     u_int width;
     u_int num;
 
     /* width of window */
-    win_width = xfont->width * (num_digits + 1);
+    win_width = font->width * (num_digits + 1);
     win_width +=
         max_candidate_width(cand_screen->font_man, &cand_screen->candidates[top], last - top + 1);
 
     NUM_OF_DIGITS(num, cand_screen->num_candidates);
-    if ((width = (num * 2 + 1) * xfont->width) > win_width) {
+    if ((width = (num * 2 + 1) * font->width) > win_width) {
       win_width = width;
     }
 
     /* height of window */
     if (cand_screen->num_candidates > cand_screen->num_per_window) {
-      win_height = (xfont->height + LINE_SPACE) * (cand_screen->num_per_window + 1);
+      win_height = (font->height + LINE_SPACE) * (cand_screen->num_per_window + 1);
     } else {
-      win_height = (xfont->height + LINE_SPACE) * cand_screen->num_candidates;
+      win_height = (font->height + LINE_SPACE) * cand_screen->num_candidates;
     }
 
     resize(cand_screen, win_width, win_height);
@@ -309,7 +309,7 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
       vt_char_set(p++, digit[j], US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
     }
 
-    draw_str(cand_screen, digit_str, num_digits + 1, 0, i - top, xfont->height, xfont->ascent,
+    draw_str(cand_screen, digit_str, num_digits + 1, 0, i - top, font->height, font->ascent,
              0);
 
     vt_str_final(digit_str, num_digits + 1);
@@ -321,7 +321,7 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
      *    ^^^^^
      */
     draw_str(cand_screen, cand_screen->candidates[i].chars, cand_screen->candidates[i].filled_len,
-             xfont->width * (num_digits + 1), i - top, xfont->height, xfont->ascent, 1);
+             font->width * (num_digits + 1), i - top, font->height, font->ascent, 1);
   }
 
   if (draw_index != INVALID_INDEX) {
@@ -340,7 +340,7 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
       last - top < cand_screen->num_per_window) {
     u_int y;
 
-    y = (xfont->height + LINE_SPACE) * (last - top + 1);
+    y = (font->height + LINE_SPACE) * (last - top + 1);
 
     ui_window_clear(&cand_screen->window, 0, y, win_width, win_height - y - 1);
   }
@@ -361,14 +361,14 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
 
 #ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
     ui_window_clear(&cand_screen->window, 0,
-                    (xfont->height + LINE_SPACE) * cand_screen->num_per_window + LINE_SPACE,
-                    win_width, xfont->height);
+                    (font->height + LINE_SPACE) * cand_screen->num_per_window + LINE_SPACE,
+                    win_width, font->height);
 #endif
 
     len = bl_snprintf(navi, MAX_NUM_OF_DIGITS * 2 + 2, "%d/%d", cand_screen->index + 1,
                       cand_screen->num_candidates);
 
-    width = len * xfont->width;
+    width = len * font->width;
 
     x = (win_width - width) / 2; /* centering */
 
@@ -378,8 +378,8 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
       vt_char_set(p++, navi[i], US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
     }
 
-    draw_str(cand_screen, navi_str, len, x, cand_screen->num_per_window, xfont->height,
-             xfont->ascent, 0);
+    draw_str(cand_screen, navi_str, len, x, cand_screen->num_per_window, font->height,
+             font->ascent, 0);
 
     vt_str_final(navi_str, len);
   }
@@ -387,7 +387,7 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
 
 static void draw_screen_horizontal(ui_im_candidate_screen_t *cand_screen, u_int top, u_int last,
                                    u_int draw_index, int do_resize) {
-  ui_font_t *xfont;
+  ui_font_t *font;
   u_int win_width;
   u_int win_height;
   u_int i;
@@ -407,7 +407,7 @@ static void draw_screen_horizontal(ui_im_candidate_screen_t *cand_screen, u_int 
    * +-------------------------------------+
    */
 
-  xfont = ui_get_usascii_font(cand_screen->font_man);
+  font = ui_get_usascii_font(cand_screen->font_man);
 
   if (do_resize) {
     /* width of window */
@@ -423,11 +423,11 @@ static void draw_screen_horizontal(ui_im_candidate_screen_t *cand_screen, u_int 
         NUM_OF_DIGITS(num_digits, i);
       }
 
-      win_width += xfont->width * (num_digits + 2);
+      win_width += font->width * (num_digits + 2);
     }
     win_width += total_candidate_width(cand_screen->font_man, cand_screen->candidates, top, last);
     /* height of window */
-    win_height = xfont->height + LINE_SPACE;
+    win_height = font->height + LINE_SPACE;
 
     resize(cand_screen, win_width, win_height);
   } else {
@@ -467,7 +467,7 @@ static void draw_screen_horizontal(ui_im_candidate_screen_t *cand_screen, u_int 
 
     if (draw_index != INVALID_INDEX) {
       if (i < draw_index) {
-        x += (xfont->width * (num_digits + 2) +
+        x += (font->width * (num_digits + 2) +
               candidate_width(cand_screen->font_man, &cand_screen->candidates[i]));
 
         continue;
@@ -477,8 +477,8 @@ static void draw_screen_horizontal(ui_im_candidate_screen_t *cand_screen, u_int 
       }
     }
 
-    draw_str(cand_screen, digit_str, num_digits + 1, x, 0, xfont->height, xfont->ascent, 0);
-    x += xfont->width * (num_digits + 1);
+    draw_str(cand_screen, digit_str, num_digits + 1, x, 0, font->height, font->ascent, 0);
+    x += font->width * (num_digits + 1);
 
     vt_str_final(digit_str, num_digits + 1);
 
@@ -489,7 +489,7 @@ static void draw_screen_horizontal(ui_im_candidate_screen_t *cand_screen, u_int 
      *    ^^^^^
      */
     draw_str(cand_screen, cand_screen->candidates[i].chars, cand_screen->candidates[i].filled_len,
-             x, 0, xfont->height, xfont->ascent, 0);
+             x, 0, font->height, font->ascent, 0);
     x += candidate_width(cand_screen->font_man, &cand_screen->candidates[i]);
 
     /*
@@ -497,8 +497,8 @@ static void draw_screen_horizontal(ui_im_candidate_screen_t *cand_screen, u_int 
      * |1:cand0 2:cand2
      *         ^
      */
-    ui_window_clear(&cand_screen->window, x, LINE_SPACE / 2, xfont->width, win_height - LINE_SPACE);
-    x += xfont->width;
+    ui_window_clear(&cand_screen->window, x, LINE_SPACE / 2, font->width, win_height - LINE_SPACE);
+    x += font->width;
   }
 }
 

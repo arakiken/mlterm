@@ -228,7 +228,7 @@ void ui_font_manager_set_attr(ui_font_manager_t *font_man, int size_attr, int us
 }
 
 ui_font_t *ui_get_font(ui_font_manager_t *font_man, vt_font_t font) {
-  ui_font_t *xfont;
+  ui_font_t *uifont;
 
   if (!font_man->use_bold_font) {
     font &= ~FONT_BOLD;
@@ -238,20 +238,20 @@ ui_font_t *ui_get_font(ui_font_manager_t *font_man, vt_font_t font) {
     font &= ~FONT_ITALIC;
   }
 
-  if (!(xfont = ui_font_cache_get_xfont(font_man->font_cache,
+  if (!(uifont = ui_font_cache_get_font(font_man->font_cache,
                                         SIZE_ATTR_FONT(font, font_man->size_attr)))) {
-    xfont = font_man->font_cache->usascii_font;
+    uifont = font_man->font_cache->usascii_font;
   }
 
 #ifdef USE_OT_LAYOUT
   if (FONT_CS(font) == ISO10646_UCS4_1_V) {
-    xfont->use_ot_layout = 1;
+    uifont->use_ot_layout = 1;
   } else {
-    xfont->use_ot_layout = font_man->use_ot_layout;
+    uifont->use_ot_layout = font_man->use_ot_layout;
   }
 #endif
 
-  return xfont;
+  return uifont;
 }
 
 int ui_font_manager_usascii_font_cs_changed(ui_font_manager_t *font_man,

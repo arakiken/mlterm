@@ -73,14 +73,14 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
                         int modified_beg /* for canna */
                         ) {
 #define MAX_ROWS ((sizeof(stat_screen->head_indexes) / sizeof(stat_screen->head_indexes[0])) - 1)
-  ui_font_t *xfont;
+  ui_font_t *font;
   u_int line_height;
   int *heads;
   u_int i;
 
   ui_font_manager_set_attr(stat_screen->font_man, 0, 0);
-  xfont = ui_get_usascii_font(stat_screen->font_man);
-  line_height = xfont->height + LINE_SPACE;
+  font = ui_get_usascii_font(stat_screen->font_man);
+  line_height = font->height + LINE_SPACE;
   heads = stat_screen->head_indexes;
 
   /*
@@ -178,7 +178,7 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
 
       ui_draw_str_to_eol(&stat_screen->window, stat_screen->font_man, stat_screen->color_man,
                          stat_screen->chars + heads[i], len, 0, line_height * i, line_height,
-                         xfont->ascent + LINE_SPACE / 2, LINE_SPACE / 2,
+                         font->ascent + LINE_SPACE / 2, LINE_SPACE / 2,
                          1 /* no need to draw underline */, 0);
     }
   }
