@@ -32,6 +32,12 @@ static Display _display;
 
 /* --- static functions --- */
 
+#ifdef USE_WIN32API
+static VOID CALLBACK timer_proc(HWND hwnd, UINT msg, UINT timerid, DWORD time) {
+  ui_display_idling(&_disp);
+}
+#endif
+
 static LRESULT CALLBACK window_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
   XEvent event;
   int count;
@@ -138,6 +144,11 @@ ui_display_t *ui_display_open(char *disp_name, /* Ignored */
   /* _disp is initialized successfully. */
   _display.fd = fd;
   _disp.display = &_display;
+
+#ifdef USE_WIN32API
+  /* ui_window_manager_idling() called in 0.1sec. */
+  SetTimer(NULL, 0, 100, timer_proc);
+#endif
 
   return &_disp;
 }
@@ -353,3 +364,13 @@ Cursor ui_display_get_cursor(ui_display_t *disp, u_int shape) {
 }
 
 XID ui_display_get_group_leader(ui_display_t *disp) { return None; }
+
+#ifdef USE_WIN32API
+DWORD main_tid; /* XXX set in main(). */
+
+void ui_display_trigger_pty_read(void) {
+
+  /* Exit GetMessage() in x_display_receive_next_event(). */
+  PostThreadMessage(main_tid, WM_APP, 0, 0);
+}
+#endif

@@ -114,7 +114,6 @@ static u_int num_sessions = 0;
 
 #ifdef USE_WIN32API
 static HANDLE rd_ev;
-DWORD main_tid; /* XXX set in main(). */
 #endif
 
 static const char *cipher_list;
@@ -132,6 +131,8 @@ static int auto_reconnect;
 /* --- static functions --- */
 
 #ifdef USE_WIN32API
+
+static void (*trigger_pty_read)(void);
 
 static u_int __stdcall wait_pty_read(LPVOID thr_param) {
   u_int count;
@@ -167,9 +168,7 @@ static u_int __stdcall wait_pty_read(LPVOID thr_param) {
     }
 
     if (select(maxfd + 1, &read_fds, NULL, NULL, &tval) > 0) {
-      /* Exit GetMessage() in x_display_receive_next_event(). */
-      PostThreadMessage(main_tid, WM_APP, 0, 0);
-
+      (*trigger_pty_read)();
       WaitForSingleObject(rd_ev, INFINITE);
     }
 
@@ -1174,7 +1173,7 @@ static void *
 
 #ifdef USE_WIN32API
       /* Exit GetMessage() in x_display_receive_next_event(). */
-      PostThreadMessage(main_tid, WM_APP, 0, 0);
+      (*trigger_pty_read)();
 #endif
     }
   }
@@ -1860,6 +1859,12 @@ static char *get_user_name(void) {
 }
 
 /* --- global functions --- */
+
+#ifdef USE_WIN32API
+void vt_pty_ssh_set_pty_read_trigger(void (*func)(void)) {
+  trigger_pty_read = func;
+}
+#endif
 
 /*
  * Thread-safe.

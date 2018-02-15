@@ -1626,7 +1626,7 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
     str = vt_str_alloca(0x5e);
     ch = ' ';
     for (count = 0; count < 0x5e; count++) {
-      vt_char_set(str + count, ch, US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0, 0);
+      vt_char_set(str + count, ch, US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
       ch++;
     }
 

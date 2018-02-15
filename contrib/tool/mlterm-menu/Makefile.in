@@ -28,6 +28,8 @@ LIBS2_xlib = $(LPOBL)
 
 LIBS2_wayland = $(LPOBL)
 
+LIBS2_sdl2 = $(LPOBL)
+
 # mlterm-menu is statically linked with libpobl.
 # Then it works if installed libpobl.dll is compiled with USE_WIN32API or not.
 LIBS2_win32 = -mwindows ${top_builddir}/pobl/src/.libs/libpobl.a

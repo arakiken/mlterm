@@ -36,6 +36,7 @@ LIBS2_xlib_gdiplus = $(LIBS2_win32_gdiplus)
 LIBS2_fb_gdk-pixbuf = $(LIBS2_xlib_gdk-pixbuf) @EMOJI_LIBS@
 LIBS2_console_gdk-pixbuf = $(LIBS2_xlib_gdk-pixbuf) @EMOJI_LIBS@
 LIBS2_wayland_gdk-pixbuf = $(LIBS2_xlib_gdk-pixbuf) @EMOJI_LIBS@
+LIBS2_sdl2_gdk-pixbuf = $(LIBS2_xlib_gdk-pixbuf) @EMOJI_LIBS@
 
 # Segfault in cygwin without them.
 LIBS2_win32_gdk-pixbuf = -mwindows @GDK_PIXBUF_LIBS@

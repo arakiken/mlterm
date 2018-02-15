@@ -3,14 +3,14 @@
 #ifndef ___UI_H__
 #define ___UI_H__
 
-#include <wayland-client.h>
-#include <wayland-client-protocol.h>
-#include <wayland-cursor.h>
-#include <wayland-egl.h>
-#include <xkbcommon/xkbcommon.h>
+#include <SDL.h>
 
 #ifdef USE_FREETYPE
 #include <pobl/bl_types.h> /* u_int32_t etc */
+#endif
+
+#if 0
+#define USE_BG_TEXTURE
 #endif
 
 typedef int KeyCode; /* Same as type of wparam */
@@ -62,66 +62,10 @@ typedef union {
 } XEvent;
 
 typedef struct {
-  struct wl_display *display;
-  struct wl_output *output;
-  struct wl_registry *registry;
-  struct wl_compositor *compositor;
-  struct wl_shm *shm;
-  struct wl_cursor_theme *cursor_theme;
-  struct wl_cursor *cursor[10];
-  struct wl_surface *cursor_surface;
-  struct wl_seat *seat;
-  struct wl_keyboard *keyboard;
-  struct wl_pointer *pointer;
-
-  struct wl_data_device_manager *data_device_manager;
-  struct wl_data_device *data_device;
-
-  struct ui_xkb {
-    struct xkb_context *ctx;
-    struct xkb_keymap *keymap;
-    struct xkb_state *state;
-    xkb_mod_index_t ctrl;
-    xkb_mod_index_t alt;
-    xkb_mod_index_t shift;
-    xkb_mod_index_t logo;
-    unsigned int mods;
-  } * xkb;
-
-  struct wl_surface *current_kbd_surface;
-  struct wl_surface *current_pointer_surface;
-
-  int pointer_x;
-  int pointer_y;
-  int pointer_button;
-
-  int current_cursor;
-
-  int kbd_repeat_wait;
-  XKeyEvent prev_kev;
-  u_int kbd_repeat_count;
-
-  struct wl_data_offer *dnd_offer;
-  struct wl_data_offer *sel_offer;
-  struct wl_data_source *sel_source;
-  int32_t sel_fd;
-  uint32_t serial;
-
-  int ref_count;
-
-#ifdef COMPAT_LIBVTE
-  struct wl_subcompositor *subcompositor;
-#else
-  struct wl_shell *shell;
-#endif
-
-} ui_wlserv_t;
-
-typedef struct {
-  ui_wlserv_t *wlserv;
+	SDL_Window *window;
+	SDL_Renderer *renderer;
+  SDL_Texture *texture;
   unsigned char *fb;
-  struct wl_buffer *buffer;
-  struct wl_surface *surface;
 
   unsigned int bytes_per_pixel;
   unsigned int line_length;
@@ -141,22 +85,12 @@ typedef struct {
   unsigned int width;
   unsigned int height;
 
-  int damage_x;
-  int damage_y;
-  unsigned int damage_width;
-  unsigned int damage_height;
-
-  int is_resizing;
+  int damaged;
 
   struct ui_display *parent;
 
-#ifdef COMPAT_LIBVTE
-  struct wl_surface *parent_surface;
-  struct wl_subsurface *subsurface;
-  int x;
-  int y;
-#else
-  struct wl_shell_surface *shell_surface;
+#ifdef USE_BG_TEXTURE
+  SDL_Texture *bg_texture;
 #endif
 
 } Display;
@@ -183,15 +117,13 @@ typedef int GC;
 typedef int Font;
 typedef int Cursor;
 
-typedef struct /* Same as definition in X11/X.h */
-    {
+typedef struct /* Same as definition in X11/X.h */ {
   int max_keypermod;
   KeyCode *modifiermap;
 
 } XModifierKeymap;
 
-typedef struct /* Same as definition in X11/X.h */
-    {
+typedef struct /* Same as definition in X11/X.h */ {
   unsigned char byte1;
   unsigned char byte2;
 
@@ -296,115 +228,115 @@ typedef int XFontSet; /* dummy */
 #define Button4 4
 #define Button5 5
 
-#define XK_Super_L XKB_KEY_Super_L
-#define XK_Super_R XKB_KEY_Super_R
-#define XK_Hyper_L XKB_KEY_Hyper_L
-#define XK_Hyper_R XKB_KEY_Hyper_R
-#define XK_BackSpace XKB_KEY_BackSpace
-#define XK_Tab XKB_KEY_Tab
-#define XK_Clear XKB_KEY_Clear
-#define XK_Linefeed XKB_KEY_Linefeed
-#define XK_Return XKB_KEY_Return
+#define XK_Super_L 0xfffe
+#define XK_Super_R 0xfffd
+#define XK_Hyper_L 0xfffc
+#define XK_Hyper_R 0xfffb
+#define XK_BackSpace SDLK_BACKSPACE
+#define XK_Tab SDLK_TAB
+#define XK_Clear 0xfffa
+#define XK_Linefeed 0xfff9
+#define XK_Return SDLK_RETURN
 
-#define XK_Shift_L XKB_KEY_Shift_L
-#define XK_Control_L XKB_KEY_Control_L
-#define XK_Alt_L XKB_KEY_Alt_L
-#define XK_Shift_R XKB_KEY_Shift_R
-#define XK_Control_R XKB_KEY_Control_R
-#define XK_Alt_R XKB_KEY_Alt_R
+#define XK_Shift_L SDLK_LSHIFT
+#define XK_Control_L SDLK_LCTRL
+#define XK_Alt_L SDLK_LALT
+#define XK_Shift_R SDLK_RSHIFT
+#define XK_Control_R SDLK_RCTRL
+#define XK_Alt_R SDLK_RALT
 
-#define XK_Meta_L XKB_KEY_Meta_L
-#define XK_Meta_R XKB_KEY_Meta_R
+#define XK_Meta_L 0xfff8
+#define XK_Meta_R 0xfff7
 
-#define XK_Pause XKB_KEY_Pause
-#define XK_Shift_Lock XKB_KEY_Shift_Lock
-#define XK_Caps_Lock XKB_KEY_Caps_Lock
-#define XK_Escape XKB_KEY_Escape
-#define XK_Prior XKB_KEY_Prior
-#define XK_Next XKB_KEY_Next
-#define XK_End XKB_KEY_End
-#define XK_Home XKB_KEY_Home
-#define XK_Left XKB_KEY_Left
-#define XK_Up XKB_KEY_Up
-#define XK_Right XKB_KEY_Right
-#define XK_Down XKB_KEY_Down
-#define XK_Select XKB_KEY_Select
-#define XK_Print XKB_KEY_Print
-#define XK_Execute XKB_KEY_Execute
-#define XK_Insert XKB_KEY_Insert
-#define XK_Delete XKB_KEY_Delete
-#define XK_Help XKB_KEY_Help
-#define XK_F1 XKB_KEY_F1
-#define XK_F2 XKB_KEY_F2
-#define XK_F3 XKB_KEY_F3
-#define XK_F4 XKB_KEY_F4
-#define XK_F5 XKB_KEY_F5
-#define XK_F6 XKB_KEY_F6
-#define XK_F7 XKB_KEY_F7
-#define XK_F8 XKB_KEY_F8
-#define XK_F9 XKB_KEY_F9
-#define XK_F10 XKB_KEY_F10
-#define XK_F11 XKB_KEY_F11
-#define XK_F12 XKB_KEY_F12
-#define XK_F13 XKB_KEY_F13
-#define XK_F14 XKB_KEY_F14
-#define XK_F15 XKB_KEY_F15
-#define XK_F16 XKB_KEY_F16
-#define XK_F17 XKB_KEY_F17
-#define XK_F18 XKB_KEY_F18
-#define XK_F19 XKB_KEY_F19
-#define XK_F20 XKB_KEY_F20
-#define XK_F21 XKB_KEY_F21
-#define XK_F22 XKB_KEY_F22
-#define XK_F23 XKB_KEY_F23
-#define XK_F24 XKB_KEY_F24
-#define XK_FMAX XKB_KEY_F24
-#define XK_Num_Lock XKB_KEY_Num_Lock
-#define XK_Scroll_Lock XKB_KEY_Scroll_Lock
-#define XK_Find XKB_KEY_Find
-#define XK_Menu XKB_KEY_Menu
-#define XK_Begin XKB_KEY_Begin
-#define XK_Muhenkan XKB_KEY_Muhenkan
-#define XK_Henkan_Mode XKB_KEY_Henkan_Mode
-#define XK_Zenkaku_Hankaku XKB_KEY_Zenkaku_Hankaku
-#define XK_Hiragana_Katakana 0xfffe /* dummy */
+#define XK_Pause SDLK_PAUSE
+#define XK_Shift_Lock 0xfff6
+#define XK_Caps_Lock SDLK_CAPSLOCK
+#define XK_Escape SDLK_ESCAPE
+#define XK_Prior SDLK_PAGEUP
+#define XK_Next SDLK_PAGEDOWN
+#define XK_End SDLK_END
+#define XK_Home SDLK_HOME
+#define XK_Left SDLK_LEFT
+#define XK_Up SDLK_UP
+#define XK_Right SDLK_RIGHT
+#define XK_Down SDLK_DOWN
+#define XK_Select SDLK_SELECT
+#define XK_Print SDLK_PRINTSCREEN
+#define XK_Execute SDLK_EXECUTE
+#define XK_Insert SDLK_INSERT
+#define XK_Delete SDLK_DELETE
+#define XK_Help SDLK_HELP
+#define XK_F1 SDLK_F1
+#define XK_F2 SDLK_F2
+#define XK_F3 SDLK_F3
+#define XK_F4 SDLK_F4
+#define XK_F5 SDLK_F5
+#define XK_F6 SDLK_F6
+#define XK_F7 SDLK_F7
+#define XK_F8 SDLK_F8
+#define XK_F9 SDLK_F9
+#define XK_F10 SDLK_F10
+#define XK_F11 SDLK_F11
+#define XK_F12 SDLK_F12
+#define XK_F13 0xfff5
+#define XK_F14 0xfff4
+#define XK_F15 0xfff3
+#define XK_F16 0xfff2
+#define XK_F17 0xfff1
+#define XK_F18 0xfff0
+#define XK_F19 0xffef
+#define XK_F20 0xffee
+#define XK_F21 0xffed
+#define XK_F22 0xffec
+#define XK_F23 0xffeb
+#define XK_F24 0xffea
+#define XK_FMAX SDLK_F12
+#define XK_Num_Lock SDLK_NUMLOCKCLEAR
+#define XK_Scroll_Lock SDLK_SCROLLLOCK
+#define XK_Find SDLK_FIND
+#define XK_Menu SDLK_MENU
+#define XK_Begin 0xffe9
+#define XK_Muhenkan 0xffe8
+#define XK_Henkan_Mode 0xffe7
+#define XK_Zenkaku_Hankaku 0xffe6
+#define XK_Hiragana_Katakana 0xffe5
 
-#define XK_KP_Prior XKB_KEY_KP_Prior
-#define XK_KP_Next XKB_KEY_KP_Next
-#define XK_KP_End XKB_KEY_KP_End
-#define XK_KP_Home XKB_KEY_KP_Home
-#define XK_KP_Left XKB_KEY_KP_Left
-#define XK_KP_Up XKB_KEY_KP_Up
-#define XK_KP_Right XKB_KEY_KP_Right
-#define XK_KP_Down XKB_KEY_KP_Down
-#define XK_KP_Insert XKB_KEY_KP_Insert
-#define XK_KP_Delete XKB_KEY_KP_Delete
-#define XK_KP_F1 XKB_KEY_KP_F1
-#define XK_KP_F2 XKB_KEY_KP_F2
-#define XK_KP_F3 XKB_KEY_KP_F3
-#define XK_KP_F4 XKB_KEY_KP_F4
-#define XK_KP_Begin XKB_KEY_KP_Begin
-#define XK_KP_Multiply XKB_KEY_KP_Multiply
-#define XK_KP_Add XKB_KEY_KP_Add
-#define XK_KP_Separator XKB_KEY_KP_Separator
-#define XK_KP_Subtract XKB_KEY_KP_Subtract
-#define XK_KP_Decimal XKB_KEY_KP_Decimal
-#define XK_KP_Divide XKB_KEY_KP_Divide
-#define XK_KP_0 XKB_KEY_KP_0
-#define XK_KP_1 XKB_KEY_KP_1
-#define XK_KP_2 XKB_KEY_KP_2
-#define XK_KP_3 XKB_KEY_KP_3
-#define XK_KP_4 XKB_KEY_KP_4
-#define XK_KP_5 XKB_KEY_KP_5
-#define XK_KP_6 XKB_KEY_KP_6
-#define XK_KP_7 XKB_KEY_KP_7
-#define XK_KP_8 XKB_KEY_KP_8
-#define XK_KP_9 XKB_KEY_KP_9
+#define XK_KP_Prior 0xffe4
+#define XK_KP_Next 0xffe3
+#define XK_KP_End 0xffe2
+#define XK_KP_Home 0xffe1
+#define XK_KP_Left 0xffe0
+#define XK_KP_Up 0xffdf
+#define XK_KP_Right 0xffde
+#define XK_KP_Down 0xffdd
+#define XK_KP_Insert 0xffdc
+#define XK_KP_Delete 0xffdb
+#define XK_KP_F1 0xffda
+#define XK_KP_F2 0xffd9
+#define XK_KP_F3 0xffd8
+#define XK_KP_F4 0xffd7
+#define XK_KP_Begin 0xffd6
+#define XK_KP_Multiply SDLK_KP_MULTIPLY
+#define XK_KP_Add SDLK_KP_PLUS
+#define XK_KP_Separator 0xffd5
+#define XK_KP_Subtract SDLK_KP_MINUS
+#define XK_KP_Decimal SDLK_KP_DECIMAL
+#define XK_KP_Divide SDLK_KP_DIVIDE
+#define XK_KP_0 SDLK_KP_0
+#define XK_KP_1 SDLK_KP_1
+#define XK_KP_2 SDLK_KP_2
+#define XK_KP_3 SDLK_KP_3
+#define XK_KP_4 SDLK_KP_4
+#define XK_KP_5 SDLK_KP_5
+#define XK_KP_6 SDLK_KP_6
+#define XK_KP_7 SDLK_KP_7
+#define XK_KP_8 SDLK_KP_8
+#define XK_KP_9 SDLK_KP_9
 
-#define IsKeypadKey(ksym) (XKB_KEY_KP_Space <= (ksym) && (ksym) < XKB_KEY_F1)
+#define IsKeypadKey(ksym) (0) /* XXX */
 #define IsModifierKey(ksym) (0)
 
-#define XK_ISO_Left_Tab XKB_KEY_ISO_Left_Tab
+#define XK_ISO_Left_Tab (0) /* XXX */
 
 typedef struct {
   short x;
@@ -455,14 +387,14 @@ KeySym XStringToKeysym(char *str);
 #undef XIM_SPOT_IS_LINE_TOP
 #undef USE_GC
 #undef CHANGEABLE_CURSOR
-#define PLUGIN_MODULE_SUFFIX "wl"
-#define KEY_REPEAT_BY_MYSELF
+#define PLUGIN_MODULE_SUFFIX "sdl2"
+#undef KEY_REPEAT_BY_MYSELF
 #define ROTATABLE_DISPLAY
 #undef PSEUDO_COLOR_DISPLAY
 #undef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
 #undef SUPPORT_URGENT_BELL
 #undef FORCE_UNICODE
-#define NEED_DISPLAY_SYNC_EVERY_TIME
+#undef NEED_DISPLAY_SYNC_EVERY_TIME
 #define DRAW_SCREEN_IN_PIXELS
 #undef NO_DRAW_IMAGE_STRING
 /* libpthread is not linked to mlterm explicitly for now. */
@@ -473,6 +405,6 @@ KeySym XStringToKeysym(char *str);
 #else
 #undef USE_REAL_VERTICAL_FONT
 #endif
-#undef NO_DISPLAY_FD
+#define NO_DISPLAY_FD
 
 #endif

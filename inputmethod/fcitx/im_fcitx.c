@@ -27,7 +27,7 @@
 #define USE_IM_CANDIDATE_SCREEN
 #endif
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_SDL2)
 #define NO_XKB
 #endif
 

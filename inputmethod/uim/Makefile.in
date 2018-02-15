@@ -30,6 +30,7 @@ TARGET_xlib = libim-uim.la
 TARGET_fb = libim-uim-fb.la
 TARGET_console = libim-uim-fb.la
 TARGET_wayland = libim-uim-wl.la
+TARGET_sdl2 = libim-uim-sdl2.la
 
 TARGET = $(TARGET_@GUI@)
 

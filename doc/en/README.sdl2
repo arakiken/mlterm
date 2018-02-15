@@ -1,0 +1,43 @@
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
+
+SDL2 support
+
+* Tested environment
+  Arch Linux
+
+* Build
+  ./configure --with-gui=sdl2 ...
+  make
+  sudo make install
+  (sdl2 version and X11 version can coexist in the same directory.)
+   So you can install main/mlterm-sdl2 and inputmethod/*/*-sdl2.so alone by
+   'make install-sdl2' to the directory where mlterm (X11 version) has been
+   already installed instead of installing all files by 'make install'.)
+
+* Configuration
+  Configuration of wayland version is the same as that of X11 version
+  except font settings as follows.
+  Be sure to configure fonts before starting mlterm.
+
+  o Font
+    If mlterm is built with freetype (./configure --enable-anti-alias)
+    and fontconfig (./configure --enable-fontconfig), mlterm reads
+    ~/.mlterm/*aafont files and searches fonts with the use of fontconfig.
+
+    If mlterm starts with --aafont=false option, mlterm reads
+    ~/.mlterm/*font-fb files without fontconfig.
+
+* Start
+  mlterm-sdl2
+
+* Note
+  o If mlterm is built with SDL2 on MinGW (CC=i686-w64-mingw32-gcc etc),
+    win32 GDI is used.
+  o Available scrollbars are "simple" alone.
+  o You can rotate display by --rotate=right or --rotate=left option.
+    ("rotate_display = right" or "rotate_display = left" in ~/.mlterm/main is
+     also available.)
+    Following command rotates display dynamically.
+    $ mlcc rotate_display right
+    or $ mlcc rotate_display left
+    (To fall back to the default, $ mlcc rotate_display none)

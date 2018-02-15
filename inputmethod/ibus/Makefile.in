@@ -30,6 +30,7 @@ TARGET_xlib = libim-ibus.la
 TARGET_fb = libim-ibus-fb.la
 TARGET_console = libim-ibus-fb.la
 TARGET_wayland = libim-ibus-wl.la
+TARGET_sdl2 = libim-ibus-sdl2.la
 
 TARGET = $(TARGET_@GUI@)
 

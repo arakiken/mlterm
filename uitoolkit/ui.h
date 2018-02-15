@@ -28,6 +28,11 @@
 #include "wayland/ui.h"
 #define GUI_TYPE "wayland"
 
+#elif defined(USE_SDL2)
+
+#include "sdl2/ui.h"
+#define GUI_TYPE "sdl2"
+
 #else
 
 #include "xlib/ui.h"

@@ -1048,7 +1048,31 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
                                         str_len, line_style);
         }
       }
-#else /* USE_CONSOLE */
+#else /* !USE_CONSOLE */
+#ifdef USE_SDL2
+      if (uifont->height != height || state == 3 ||
+          (uifont->is_proportional && ui_window_has_wall_picture(window))) {
+        if (bg_color == VT_BG_COLOR) {
+          ui_window_clear(window, x, y, current_width - x, height);
+        } else {
+          ui_window_fill_with(window, bg_xcolor, x, y, current_width - x, height);
+        }
+      }
+
+      if (state == 2) {
+        ui_window_draw_image_string16(window, uifont, fg_xcolor, bg_xcolor, x, y + ascent, str2b,
+                                      str_len);
+      } else if (state == 1) {
+        ui_window_draw_decsp_image_string(window, uifont, fg_xcolor, bg_xcolor, x, y + ascent, str,
+                                          str_len);
+      } else if( state == 0) {
+        ui_window_draw_image_string(window, uifont, fg_xcolor, bg_xcolor, x, y + ascent, str,
+                                    str_len);
+      } else /* if( state == 3) */ {
+        draw_drcs(window, drcs_glyphs, str_len, x, y, ch_width, height, fg_xcolor,
+                  font_man->size_attr);
+      }
+#else /* !USE_SDL2 */
 #ifndef NO_DRAW_IMAGE_STRING
       if (
 #ifdef DRAW_SCREEN_IN_PIXELS
@@ -1057,7 +1081,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
            * ISCII or ISO10646_UCS4_1_V
            * (see #ifdef USE_FREETYPE #endif in draw_string() in ui_window.c)
            */
-          uifont->is_proportional ||
+          (uifont->is_proportional && ui_window_has_wall_picture(window)) ||
 #endif
           /* draw_alone || */       /* draw_alone is always false on framebuffer. */
 #else /* DRAW_SCREEN_IN_PIXELS */
@@ -1109,6 +1133,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
         }
       }
 #endif
+#endif /* USE_SDL2 */
 
       if (comb_chars) {
         xcore_draw_combining_chars(window, font_man, fg_xcolor, comb_chars, comb_size,

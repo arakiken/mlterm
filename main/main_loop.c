@@ -114,7 +114,7 @@ int main_loop_init(int argc, char **argv) {
   u_int depth;
   char *invalid_msg = "%s %s is not valid.\n";
   char *orig_argv;
-#if defined(USE_FRAMEBUFFER) || defined(USE_WAYLAND)
+#if defined(USE_FRAMEBUFFER) || defined(USE_WAYLAND) || defined(USE_SDL2)
   int use_aafont = 0;
 #endif
 
@@ -227,7 +227,7 @@ int main_loop_init(int argc, char **argv) {
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
   bl_conf_add_opt(conf, '\0', "aafont", 1, "use_aafont",
                   "use [tv]aafont files with the use of fontconfig"
-#ifdef USE_WAYLAND
+#if defined(USE_WAYLAND) || defined(USE_SDL2)
                   " [true]"
 #else /* USE_FRAMEBUFFER */
                   " [false]"
@@ -392,7 +392,7 @@ int main_loop_init(int argc, char **argv) {
 #endif
 #endif
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
-#ifdef USE_WAYLAND
+#if defined(USE_WAYLAND) || defined(USE_SDL2)
   if (!(value = bl_conf_get_value(conf, "use_aafont")) || strcmp(value, "false") != 0) {
     ui_use_aafont();
     use_aafont = 1;
@@ -408,7 +408,7 @@ int main_loop_init(int argc, char **argv) {
   ui_main_config_init(&main_config, conf, argc, argv);
 
   if ((value = bl_conf_get_value(conf, "default_font"))) {
-#if defined(USE_WAYLAND) || defined(USE_FRAMEBUFFER)
+#if defined(USE_WAYLAND) || defined(USE_FRAMEBUFFER) || defined(USE_SDL2)
     ui_customize_font_file(use_aafont ? "aafont" : "font", "DEFAULT", value, 0);
     ui_customize_font_file(use_aafont ? "aafont" : "font", "ISO10646_UCS4_1", value, 0);
 #else

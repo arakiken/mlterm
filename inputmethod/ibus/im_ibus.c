@@ -27,6 +27,8 @@
 #if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 #define USE_IM_CANDIDATE_SCREEN
 #define NO_XKB
+#elif defined(USE_SDL2)
+#define NO_XKB
 #endif
 
 #ifdef USE_WAYLAND

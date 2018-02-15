@@ -127,18 +127,18 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
 
 * 対応プラットフォーム
-  o Linux, *BSD (X11, Framebuffer, Wayland or Console)
+  o Linux, *BSD (X11, Framebuffer, Wayland, Console or SDL2)
   o Solaris (X11 or Console)
   o MacOSX 10.6 (X11, Cocoa or Console)
   o Windows XP or later
-  o Cygwin (X11, Win32GDI or Console)
+  o Cygwin (X11, Win32GDI, Console or SDL2)
   o MSYS2 (Win32GDI or Console)
   o Android 3.x or later.
   o Java (SWT)
 
   詳細は、doc/ja 内の README.fb, README.win32, Usage.win32 又は doc/en 内の
-  README.android, README.cocoa, README.console, README.wayland を参照してくださ
-  い。
+  README.android, README.cocoa, README.console, README.wayland, README.sdl2 を参
+  照してください。
 
 * コンパイル方法
   $ ./configure
@@ -172,8 +172,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       この場合、結合文字等を扱えなくなります。
 
     --with-gui
-      GUI ライブラリとして xlib / win32 / fb / quartz / console / wayland のいず
-      れを使用するか指定します。
+      GUI ライブラリとして xlib / win32 / fb / quartz / console / wayland / sdl2
+      のいずれを使用するか指定します。
       (「対応プラットフォーム」の項目参照)
 
     --with-imagelib=(gdk-pixbuf)
@@ -195,11 +195,12 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       なお、xlib版で、--with-type-engines オプションを指定した場合、このオプショ
       ンは無視されます。
 
-      framebuffer 又は wayland 版では、freetype を利用した True Type フォントの
-      サポートを無効にします。
+      framebuffer、wayland 又は sdl2 版では、freetype を利用した True Type フォ
+      ントのサポートを無効にします。
 
     --enable-fontconfig
-      framebuffer 又は wayland 版で、フォントの検索に fontconfig を無効にします。
+      framebuffer、wayland 又は sdl2 版で、フォントの検索に fontconfig を無効に
+      します。
       (~/.mlterm/*aafont の設定を使用します。)
 
     --disable-dl-type
@@ -614,10 +615,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         Open Type フォントの置換グリフ等を使ってテキストを表示します。
         use_ctl オプションを有効にしておく必要があります。
         なお、use_ot_layout=true の場合、cairo on xlib 及び freetype+fontconfig on
-        framebuffer/wayland における代替グリフ検索による自動フォント補完機能は無効
-        となります。
-        また、今のところ、FiraCode フォント及びそれと同様の方法により等幅でリガチャ
-        するフォントについては、freetype on framebuffer/wayland では表示できません。
+        framebuffer/wayland/sdl2 における代替グリフ検索による自動フォント補完機
+        能は無効となります。
 
       o ot_script (latn) (#)
         グリフ置換を行う場合の script を指定します。

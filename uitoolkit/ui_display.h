@@ -75,7 +75,7 @@ void ui_display_idling(ui_display_t *disp);
 
 int ui_display_receive_next_event(ui_display_t *disp);
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_QUARTZ)
+#ifndef NEED_DISPLAY_SYNC_EVERY_TIME
 #define ui_display_sync(disp) (0)
 #elif defined(USE_WIN32GUI)
 #define ui_display_sync(disp) ui_display_receive_next_event(disp)
@@ -132,6 +132,10 @@ void ui_display_set_sixel_colors(ui_display_t *disp, const char *colors);
 #endif
 
 void ui_display_set_default_cell_size(u_int width, u_int height);
+#endif
+
+#ifdef USE_WIN32API
+void ui_display_trigger_pty_read(void);
 #endif
 
 #endif

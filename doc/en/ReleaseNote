@@ -1,6 +1,8 @@
 * Support libvterm (https://launchpad.net/libvterm) compatible library partially.
 * Support DRCS-Sixel.
   (See drcssixel/DRCS-SIXEL-v2 and https://qiita.com/arakiken/items/626b02cd857d20c12fbc)
+* Support SDL2.
+  (Build mlterm with --with-gui=sdl2 option.) (see doc/en/README.sdl2)
 * Support ligature of "Fira Code" font in -otl option.
 * Add --halfwidth / "unicode_half_width_areas" option.
 * Add --emoji / "emoji_path" option which makes mlterm to use a specified emoji font

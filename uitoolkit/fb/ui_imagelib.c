@@ -6,7 +6,9 @@
 
 #include <stdio.h>  /* sprintf */
 #include <unistd.h> /* write , STDIN_FILENO */
+#if !defined(USE_WIN32API) && !defined(__ANDROID__)
 #include <sys/wait.h> /* waitpid */
+#endif
 #ifdef DLOPEN_LIBM
 #include <pobl/bl_dlfcn.h> /* dynamically loading pow */
 #else
@@ -481,7 +483,9 @@ static int load_file(Display *display, char *path, u_int width, u_int height,
   }
 #endif /* BUILTIN_SIXEL */
 
-#ifdef __ANDROID__
+#if defined(USE_WIN32API)
+  return 0;
+#elif defined(__ANDROID__)
   if (!(*pixmap = calloc(1, sizeof(**pixmap)))) {
     return 0;
   }

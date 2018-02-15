@@ -294,7 +294,13 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
   }
 #endif
 
-  DialogBox(GetModuleHandle(NULL), "ConnectDialog", parent_window, (DLGPROC)dialog_proc);
+  DialogBox(GetModuleHandle(NULL), "ConnectDialog",
+#ifdef USE_SDL2
+            NULL,
+#else
+            parent_window,
+#endif
+            (DLGPROC)dialog_proc);
 
   ret = 0;
 

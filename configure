@@ -859,8 +859,6 @@ IIIMCF_CFLAGS
 UIM_LIBS
 UIM_CFLAGS
 DND_CFLAGS
-FONTCONFIG_LIBS
-FONTCONFIG_CFLAGS
 SDL_LIBS
 SDL_CFLAGS
 sdl2_config
@@ -900,6 +898,8 @@ CAIRO_CFLAGS
 xft_config
 XFT_LIBS
 XFT_CFLAGS
+FONTCONFIG_LIBS
+FONTCONFIG_CFLAGS
 TYPE_LOADER_OBJ
 CTL_LIBS_FOR_VTE
 CTL_CFLAGS
@@ -911,6 +911,9 @@ LMLTERM_CORE
 REGEX_CFLAGS
 GUI_CFLAGS
 GUI
+SDL2GUI
+SDL2_LIBS
+SDL2_CFLAGS
 SIXEL_LIBS
 SIXEL_CFLAGS
 XUTF8_CFLAGS
@@ -1105,8 +1108,12 @@ GIO_CFLAGS
 GIO_LIBS
 FT_CFLAGS
 FT_LIBS
+SDL2_CFLAGS
+SDL2_LIBS
 FRIBIDI_CFLAGS
 FRIBIDI_LIBS
+FONTCONFIG_CFLAGS
+FONTCONFIG_LIBS
 XFT_CFLAGS
 XFT_LIBS
 CAIRO_CFLAGS
@@ -1117,8 +1124,6 @@ VTE_CFLAGS
 VTE_LIBS
 SDLTTF_CFLAGS
 SDLTTF_LIBS
-FONTCONFIG_CFLAGS
-FONTCONFIG_LIBS
 UIM_CFLAGS
 UIM_LIBS
 IIIMCF_CFLAGS
@@ -1796,7 +1801,7 @@ Optional Packages:
                           both]
   --with-tags[=TAGS]      include additional configurations [automatic]
   --with-x                use the X Window System
-  --with-gui[=ARG]        gui library(xlib|win32|fb|quartz|console|wayland)
+  --with-gui[=ARG]        gui library(xlib|win32|fb|quartz|console|wayland|sdl2)
   --with-gtk[=ARG]        gtk+ version (2.0|3.0)
   --with-imagelib[=ARG]   image library (gdk-pixbuf) [default=no]
   --without-pthread       don't use pthread [default=with]
@@ -1836,10 +1841,16 @@ Some influential environment variables:
   GIO_LIBS    linker flags for GIO, overriding pkg-config
   FT_CFLAGS   C compiler flags for FT, overriding pkg-config
   FT_LIBS     linker flags for FT, overriding pkg-config
+  SDL2_CFLAGS C compiler flags for SDL2, overriding pkg-config
+  SDL2_LIBS   linker flags for SDL2, overriding pkg-config
   FRIBIDI_CFLAGS
               C compiler flags for FRIBIDI, overriding pkg-config
   FRIBIDI_LIBS
               linker flags for FRIBIDI, overriding pkg-config
+  FONTCONFIG_CFLAGS
+              C compiler flags for FONTCONFIG, overriding pkg-config
+  FONTCONFIG_LIBS
+              linker flags for FONTCONFIG, overriding pkg-config
   XFT_CFLAGS  C compiler flags for XFT, overriding pkg-config
   XFT_LIBS    linker flags for XFT, overriding pkg-config
   CAIRO_CFLAGS
@@ -1852,10 +1863,6 @@ Some influential environment variables:
   SDLTTF_CFLAGS
               C compiler flags for SDLTTF, overriding pkg-config
   SDLTTF_LIBS linker flags for SDLTTF, overriding pkg-config
-  FONTCONFIG_CFLAGS
-              C compiler flags for FONTCONFIG, overriding pkg-config
-  FONTCONFIG_LIBS
-              linker flags for FONTCONFIG, overriding pkg-config
   UIM_CFLAGS  C compiler flags for UIM, overriding pkg-config
   UIM_LIBS    linker flags for UIM, overriding pkg-config
   IIIMCF_CFLAGS
@@ -4716,7 +4723,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4719 "configure"' > conftest.$ac_ext
+  echo '#line 4726 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7284,11 +7291,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7287: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7294: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7291: \$? = $ac_status" >&5
+   echo "$as_me:7298: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7574,11 +7581,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7577: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7584: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7581: \$? = $ac_status" >&5
+   echo "$as_me:7588: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7678,11 +7685,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7681: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7688: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7685: \$? = $ac_status" >&5
+   echo "$as_me:7692: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9703,7 +9710,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9706 "configure"
+#line 9713 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9803,7 +9810,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9806 "configure"
+#line 9813 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12144,11 +12151,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12147: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12154: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12151: \$? = $ac_status" >&5
+   echo "$as_me:12158: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12248,11 +12255,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12251: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12258: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12255: \$? = $ac_status" >&5
+   echo "$as_me:12262: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13831,11 +13838,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13834: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13841: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13838: \$? = $ac_status" >&5
+   echo "$as_me:13845: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13935,11 +13942,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13938: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13945: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13942: \$? = $ac_status" >&5
+   echo "$as_me:13949: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16096,11 +16103,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16099: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16106: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16103: \$? = $ac_status" >&5
+   echo "$as_me:16110: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16386,11 +16393,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16389: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16396: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16393: \$? = $ac_status" >&5
+   echo "$as_me:16400: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16490,11 +16497,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16493: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16500: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16497: \$? = $ac_status" >&5
+   echo "$as_me:16504: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -19895,11 +19902,11 @@ mingw*)
 			;;
 		esac
 	fi
-
-	if test "$gui" != "win32" ; then
+	if test "$gui" != "sdl2" -a "$gui" != "win32" ; then
 		echo "$gui is not supported in ${host_os}. Use win32."
 		gui="win32"
 	fi
+
 	;;
 cygwin*)
 	# Extract the first word of "cygpath", so it can be a program name with args.
@@ -19953,12 +19960,12 @@ fi
 	if test "$have_x" = "yes" ; then
 		if test "$gui" = "" ; then
 			gui="xlib"
-		elif test "$gui" != "xlib" -a "$gui" != "win32" -a "$gui" != "console" ; then
+		elif test "$gui" != "xlib" -a "$gui" != "win32" -a "$gui" != "console" -a "$gui" != "sdl2"; then
 			echo "$gui is not supported in ${host_os}. Use win32."
 			gui="win32"
 		fi
 	else
-		if test "$gui" != "win32" -a "$gui" != "console" ; then
+		if test "$gui" != "win32" -a "$gui" != "console" -a "$gui" != "sdl2"; then
 			echo "$gui is not supported in ${host_os}. Use win32."
 			gui="win32"
 		fi
@@ -19966,7 +19973,7 @@ fi
 	;;
 *)
 	CYGPATHW=echo
-	if test "$gui" != "xlib" -a "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" -a "$gui" != "wayland" ; then
+	if test "$gui" != "xlib" -a "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" -a "$gui" != "wayland" -a "$gui" != "sdl2"; then
 		if test "$gui" != "" ; then
 			echo "$gui is not supported in ${host_os}. xlib is used instead."
 		fi
@@ -20783,6 +20790,10 @@ $as_echo "yes" >&6; }
 	have_ft=yes
 fi
 fi
+# "tr ..." is hack for cygwin.
+# (removing \r which is output by win32 native pkg-config.)
+FT_CFLAGS="`echo $FT_CFLAGS | tr -d '\r'`"
+FT_LIBS="`echo $FT_LIBS | tr -d '\r'`"
 # -DUSE_FREETYPE can be added to FT_CFLAGS later.
 FT_CFLAGS_ORIGINAL=$FT_CFLAGS
 
@@ -21007,6 +21018,91 @@ fi
 elif test "$gui" = "wayland" ; then
 	GUI="wayland"
 	GUI_CFLAGS="-DUSE_WAYLAND"
+elif test "$gui" = "sdl2" ; then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDL2" >&5
+$as_echo_n "checking for SDL2... " >&6; }
+
+if test -n "$SDL2_CFLAGS"; then
+    pkg_cv_SDL2_CFLAGS="$SDL2_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"sdl2\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "sdl2") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_SDL2_CFLAGS=`$PKG_CONFIG --cflags "sdl2" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$SDL2_LIBS"; then
+    pkg_cv_SDL2_LIBS="$SDL2_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"sdl2\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "sdl2") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_SDL2_LIBS=`$PKG_CONFIG --libs "sdl2" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        SDL2_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "sdl2" 2>&1`
+        else
+	        SDL2_PKG_ERRORS=`$PKG_CONFIG --print-errors "sdl2" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$SDL2_PKG_ERRORS" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+                have_sdl2=no
+elif test $pkg_failed = untried; then
+	have_sdl2=no
+else
+	SDL2_CFLAGS=$pkg_cv_SDL2_CFLAGS
+	SDL2_LIBS=$pkg_cv_SDL2_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_sdl2=yes
+fi
+ 	if test "$have_sdl2" != "yes" ; then
+		echo "sdl2 is not available."
+		exit 1
+	fi
+	# "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
+	SDL2_CFLAGS="`echo $SDL2_CFLAGS | tr -d '\r'`"
+	SDL2_LIBS="`echo $SDL2_LIBS | tr -d '\r'`"
+	if test "$ml_cv_is_posix" = "yes"; then
+		SDL2_LIBS="$SDL2_LIBS -lpthread"
+	else
+		SDL2GUI="win32"
+
+	fi
+	GUI="sdl2"
+	GUI_CFLAGS="-DUSE_SDL2"
+
+
 else
 	GUI="fb"
 	# for NetBSD/x68k
@@ -21230,6 +21326,80 @@ else
 fi
 
 
+if test "$ml_cv_is_posix" = "yes" -a "$gui" != "quartz"; then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for FONTCONFIG" >&5
+$as_echo_n "checking for FONTCONFIG... " >&6; }
+
+if test -n "$FONTCONFIG_CFLAGS"; then
+    pkg_cv_FONTCONFIG_CFLAGS="$FONTCONFIG_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"fontconfig\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "fontconfig") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_FONTCONFIG_CFLAGS=`$PKG_CONFIG --cflags "fontconfig" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$FONTCONFIG_LIBS"; then
+    pkg_cv_FONTCONFIG_LIBS="$FONTCONFIG_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"fontconfig\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "fontconfig") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_FONTCONFIG_LIBS=`$PKG_CONFIG --libs "fontconfig" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        FONTCONFIG_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "fontconfig" 2>&1`
+        else
+	        FONTCONFIG_PKG_ERRORS=`$PKG_CONFIG --print-errors "fontconfig" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$FONTCONFIG_PKG_ERRORS" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+                have_fc=no
+elif test $pkg_failed = untried; then
+	have_fc=no
+else
+	FONTCONFIG_CFLAGS=$pkg_cv_FONTCONFIG_CFLAGS
+	FONTCONFIG_LIBS=$pkg_cv_FONTCONFIG_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_fc=yes
+fi
+	FONTCONFIG_CFLAGS="`echo $FONTCONFIG_CFLAGS | tr -d '\r'` -DUSE_FONTCONFIG"
+	FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
+
+
+fi
+
 # Check whether --enable-anti_alias was given.
 if test "${enable_anti_alias+set}" = set; then :
   enableval=$enable_anti_alias; anti_alias=$enable_anti_alias
@@ -21239,12 +21409,9 @@ fi
 
 
 if test "$anti_alias" != "no"; then
-	if test "$gui" = "fb" -o "$gui" = "wayland"; then
+	if test "$gui" = "fb" -o "$gui" = "wayland" -o "$gui" = "sdl2"; then
 		if test "$have_ft" = "yes" ; then
-			# "tr ..." is hack for cygwin.
-			# (removing \r which is output by win32 native pkg-config.)
-			FT_CFLAGS="-DUSE_FREETYPE `echo $FT_CFLAGS | tr -d '\r'`"
-			FT_LIBS="`echo $FT_LIBS | tr -d '\r'`"
+			FT_CFLAGS="$FT_CFLAGS -DUSE_FREETYPE "
 
 			# Check whether --enable-fontconfig was given.
 if test "${enable_fontconfig+set}" = set; then :
@@ -21254,9 +21421,11 @@ else
 fi
 
 
-			if test "$fontconfig" != "no"; then
-				FT_CFLAGS="$FT_CFLAGS -DUSE_FONTCONFIG"
-				FT_LIBS="$FT_LIBS -lfontconfig"
+			if test "$fontconfig" != "no" -a "$have_fc" = "yes"; then
+				FT_CFLAGS="$FT_CFLAGS $FONTCONFIG_CFLAGS"
+				FT_LIBS="$FT_LIBS $FONTCONFIG_LIBS"
+			else
+				fontconfig="no"
   		fi
 
 
@@ -21451,8 +21620,8 @@ fi
 	if test "$have_xft" = "yes" ; then
 		# "tr ..." is hack for cygwin.
 		# (removing \r which is output by win32 native pkg-config.)
-	        XFT_CFLAGS="`echo $XFT_CFLAGS | tr -d '\r'`"
-	        XFT_LIBS="`echo $XFT_LIBS | tr -d '\r'`"
+		XFT_CFLAGS="`echo $XFT_CFLAGS | tr -d '\r'`"
+		XFT_LIBS="`echo $XFT_LIBS | tr -d '\r'`"
 		if test "$dl_type" = "yes" ; then
 			TYPE_LIBS="libtype_xft.la ${TYPE_LIBS}"
 		else
@@ -21629,6 +21798,10 @@ if test "$otl" != "yes" ; then
 elif test "$gui" = "xlib" -a "$dl_type" = "no" -a "$type_engines_result" = " xcore"; then
 	echo "libotf/libharfbuzz is not available."
 elif test "$gui" = "fb" -a "$have_ft" != "yes" ; then
+	echo "libotf/libharfbuzz is not available."
+elif test "$gui" = "wayland" -a "$have_ft" != "yes" ; then
+	echo "libotf/libharfbuzz is not available."
+elif test "$gui" = "sdl2" -a "$have_ft" != "yes" ; then
 	echo "libotf/libharfbuzz is not available."
 elif test "$gui" = "console" ; then
 	echo "libotf/libharfbuzz is not available."
@@ -22638,164 +22811,13 @@ fi
 
 
 
-	if test "$gui" != "win32" ; then
-		if test "$have_fc" = "" ; then
-
-pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for FONTCONFIG" >&5
-$as_echo_n "checking for FONTCONFIG... " >&6; }
-
-if test -n "$FONTCONFIG_CFLAGS"; then
-    pkg_cv_FONTCONFIG_CFLAGS="$FONTCONFIG_CFLAGS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"fontconfig\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "fontconfig") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_FONTCONFIG_CFLAGS=`$PKG_CONFIG --cflags "fontconfig" 2>/dev/null`
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-if test -n "$FONTCONFIG_LIBS"; then
-    pkg_cv_FONTCONFIG_LIBS="$FONTCONFIG_LIBS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"fontconfig\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "fontconfig") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_FONTCONFIG_LIBS=`$PKG_CONFIG --libs "fontconfig" 2>/dev/null`
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-
-
-
-if test $pkg_failed = yes; then
-
-if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
-        _pkg_short_errors_supported=yes
-else
-        _pkg_short_errors_supported=no
-fi
-        if test $_pkg_short_errors_supported = yes; then
-	        FONTCONFIG_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "fontconfig" 2>&1`
-        else
-	        FONTCONFIG_PKG_ERRORS=`$PKG_CONFIG --print-errors "fontconfig" 2>&1`
-        fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$FONTCONFIG_PKG_ERRORS" >&5
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-                have_fc=no
-elif test $pkg_failed = untried; then
-	have_fc=no
-else
-	FONTCONFIG_CFLAGS=$pkg_cv_FONTCONFIG_CFLAGS
-	FONTCONFIG_LIBS=$pkg_cv_FONTCONFIG_LIBS
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	have_fc=yes
-fi
-		fi
-		if test "$have_fc" = "yes" ; then
-			FONTCONFIG_CFLAGS="`echo $FONTCONFIG_CFLAGS | tr -d '\r'` -DUSE_FONTCONFIG"
-			FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
-
-
-		fi
-	fi
-
 	OUTPUT_FILES="tool/registobmp/Makefile ${OUTPUT_FILES}"
 	MAKE_DIRS="tool/registobmp ${MAKE_DIRS}"
 	tools_result="$tools_result $tool"
 	;;
 mlfc)
 	if test "$gui" != "win32" -a "$gui" != "quartz" ; then
-		if test "$have_fc" = "" ; then
-
-pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for FONTCONFIG" >&5
-$as_echo_n "checking for FONTCONFIG... " >&6; }
-
-if test -n "$FONTCONFIG_CFLAGS"; then
-    pkg_cv_FONTCONFIG_CFLAGS="$FONTCONFIG_CFLAGS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"fontconfig\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "fontconfig") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_FONTCONFIG_CFLAGS=`$PKG_CONFIG --cflags "fontconfig" 2>/dev/null`
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-if test -n "$FONTCONFIG_LIBS"; then
-    pkg_cv_FONTCONFIG_LIBS="$FONTCONFIG_LIBS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"fontconfig\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "fontconfig") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_FONTCONFIG_LIBS=`$PKG_CONFIG --libs "fontconfig" 2>/dev/null`
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-
-
-
-if test $pkg_failed = yes; then
-
-if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
-        _pkg_short_errors_supported=yes
-else
-        _pkg_short_errors_supported=no
-fi
-        if test $_pkg_short_errors_supported = yes; then
-	        FONTCONFIG_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "fontconfig" 2>&1`
-        else
-	        FONTCONFIG_PKG_ERRORS=`$PKG_CONFIG --print-errors "fontconfig" 2>&1`
-        fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$FONTCONFIG_PKG_ERRORS" >&5
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-                have_fc=no
-elif test $pkg_failed = untried; then
-	have_fc=no
-else
-	FONTCONFIG_CFLAGS=$pkg_cv_FONTCONFIG_CFLAGS
-	FONTCONFIG_LIBS=$pkg_cv_FONTCONFIG_LIBS
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	have_fc=yes
-fi
-		fi
 		if test "$have_fc" = "yes" ; then
-			FONTCONFIG_CFLAGS="`echo $FONTCONFIG_CFLAGS | tr -d '\r'` -DUSE_FONTCONFIG"
-			FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
-
-
 			OUTPUT_FILES="tool/mlfc/Makefile ${OUTPUT_FILES}"
 			MAKE_DIRS="tool/mlfc ${MAKE_DIRS}"
 			tools_result="$tools_result $tool"
@@ -24026,7 +24048,7 @@ fi
 for scrollbar in ${scrollbars} ; do
 case ${scrollbar} in
 sample)
-	if test "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" -a "$gui" != "wayland" ; then
+	if test "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" -a "$gui" != "wayland" -a "$gui" != "sdl2" ; then
 		MAKE_DIRS="scrollbar/sample ${MAKE_DIRS}"
 		OUTPUT_FILES="scrollbar/sample/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != "xno" ; then
@@ -28362,6 +28384,7 @@ echo
 echo "Installation path prefix          : $prefix"
 echo "Build shared libraries            : $enable_shared"
 echo "Build static libraries            : $enable_static"
+echo "GUI toolkit                       : $gui"
 echo "BiDi rendering (Fribidi)          : $have_fribidi"
 echo "Indic rendering                   : $ind"
 if test "$OT_LAYOUT_OBJ" = "hb.o"; then
@@ -28378,7 +28401,7 @@ echo "External tools                    :$tools_result"
 echo "Image processing                  : $image"
 echo "Built-in image library            : $with_imagelib"
 echo "utmp support                      : $utmp"
-if test "$gui" = "fb" -o "$gui" = "wayland"; then
+if test "$gui" = "fb" -o "$gui" = "wayland" -o "$gui" = "sdl2"; then
 	if test "$have_ft" = "yes"; then
 	  if test "$fontconfig" = "yes"; then
 				echo "Supported font formats            : pcf ttf(+fontconfig)"
@@ -28388,7 +28411,7 @@ if test "$gui" = "fb" -o "$gui" = "wayland"; then
 	else
 		echo "Supported font formats            : pcf"
 	fi
-elif test "$gui" != "win32"; then
+elif test "$gui" = "xlib"; then
 	echo "Type engines                      :$type_engines_result"
 fi
 echo "DnD                               : $dnd"

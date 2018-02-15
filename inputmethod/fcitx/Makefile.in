@@ -30,6 +30,7 @@ TARGET_xlib = libim-fcitx.la
 TARGET_fb = libim-fcitx-fb.la
 TARGET_console = libim-fcitx-fb.la
 TARGET_wayland = libim-fcitx-wl.la
+TARGET_sdl2 = libim-fcitx-sdl2.la
 
 TARGET = $(TARGET_@GUI@)
 
