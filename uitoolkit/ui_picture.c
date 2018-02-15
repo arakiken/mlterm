@@ -15,8 +15,17 @@
 #include <pobl/bl_util.h>    /* K_MIN */
 #include <pobl/bl_conf_io.h> /* bl_get_user_rc_path */
 
-#ifdef HAVE_PTHREAD
+#ifdef HAVE_WINDOWS_H
+#include <windows.h> /* for CreateEvent */
+#endif
+
+#if defined(USE_WIN32API)
+#include <process.h> /* _beginthreadex */
+#elif defined(HAVE_PTHREAD)
 #include <pthread.h>
+#endif
+
+#if defined(HAVE_PTHREAD) || defined(USE_WIN32API)
 #ifndef HAVE_WINDOWS_H
 #include <sys/select.h>
 #include <unistd.h>

@@ -100,4 +100,8 @@ int vt_pty_ssh_send_recv_x11(int idx, int bidirection);
 void vt_pty_ssh_set_use_auto_reconnect(int flag);
 #endif
 
+#ifdef USE_WIN32API
+void vt_pty_ssh_set_pty_read_trigger(void (*func)(void));
+#endif
+
 #endif

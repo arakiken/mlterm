@@ -421,5 +421,6 @@ KeySym XStringToKeysym(char *str);
 #endif
 #undef COMPOSE_DECSP_FONT
 #undef USE_REAL_VERTICAL_FONT
+#define NO_DISPLAY_FD
 
 #endif

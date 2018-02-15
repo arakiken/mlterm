@@ -30,6 +30,7 @@ TARGET_console = $(TARGET_fb)
 TARGET_win32 = $(TARGET_xlib)
 TARGET_quartz = $(TARGET_xlib)
 TARGET_wayland = libim-kbd-wl.la
+TARGET_sdl2 = libim-kbd-sdl2.la
 
 TARGET = $(TARGET_@GUI@)
 

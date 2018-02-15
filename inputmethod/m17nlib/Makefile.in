@@ -30,6 +30,7 @@ TARGET_xlib = libim-m17nlib.la
 TARGET_fb = libim-m17nlib-fb.la
 TARGET_console = libim-m17nlib-fb.la
 TARGET_wayland = libim-m17nlib-wl.la
+TARGET_sdl2 = libim-m17nlib-sdl2.la
 
 TARGET = $(TARGET_@GUI@)
 

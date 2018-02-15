@@ -24,6 +24,7 @@ OBJ_fb = main.o
 OBJ_quartz = main-cocoa.o
 OBJ_console = main.o
 OBJ_wayland = main.o
+OBJ_sdl2 = main.o
 OBJ = daemon.o main_loop.o $(OBJ_@GUI@)
 
 LPOBL = @LPOBL@
@@ -35,8 +36,8 @@ LMEF_DEB = -lmef_deb
 
 # XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
 CFLAGS = $(CFLAGS_LOCAL) @POBL_CFLAGS@ @MEF_CFLAGS@ @DEB_CFLAGS@ @BRLAPI_CFLAGS@ \
-	@X_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ @TYPE_CFLAGS@ @FT_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
-	-DSYSCONFDIR=\"$(sysconfdir)\" -I$(top_srcdir)/vtemu \
+	@X_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ @TYPE_CFLAGS@ @FT_CFLAGS@ @SDL2_CFLAGS@ \
+	@CFLAGS@ @CPPFLAGS@ -DSYSCONFDIR=\"$(sysconfdir)\" -I$(top_srcdir)/vtemu \
 	-I${top_srcdir}/uitoolkit -I${top_builddir}/main -I/usr/local/include
 
 CFLAGS_FOR_FEATURES = @OT_LAYOUT_CFLAGS@ @CTL_CFLAGS@ @IM_CFLAGS@ @IMAGELIB_CFLAGS@ @UTMP_CFLAGS@
@@ -58,7 +59,11 @@ LIBS2_quartz = -framework Foundation -framework Cocoa
 LIBS2_console = @SIXEL_LIBS@ @MATH_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ @SOCK_LIBS@
 
 LIBS2_wayland = @FT_LIBS@ @MATH_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ @SOCK_LIBS@ \
-							-lwayland-client -lwayland-cursor -lxkbcommon
+	-lwayland-client -lwayland-cursor -lxkbcommon
+
+LIBS2_sdl2_win32 = ../uitoolkit/winrs.o
+
+LIBS2_sdl2 = @SDL2_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ @FT_LIBS@ @SOCK_LIBS@ $(LIBS2_@GUI@_@SDL2GUI@)
 
 LIBS = $(LIBS1) $(LIBS2_@GUI@)
 
@@ -68,6 +73,7 @@ PROG_fb = mlterm-fb
 PROG_console = mlterm-con-server
 PROG_quartz = mlterm
 PROG_wayland = mlterm-wl
+PROG_sdl2 = mlterm-sdl2
 PROG2_console = mlterm-con
 
 INSTALL_OPT = @INSTALL_OPT@

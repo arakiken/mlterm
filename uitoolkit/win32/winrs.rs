@@ -1,6 +1,4 @@
-/*
- *	$Id$
- */
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 MLTERM_ICON ICON "mlterm-icon-win32.ico"
 
@@ -8,7 +6,13 @@ MLTERM_ICON ICON "mlterm-icon-win32.ico"
 
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 
+#ifdef USE_SDL2
+#define USE_WIN32GUI
+#undef USE_SDL2
+#include  "../win32/ui_connect_dialog.h"
+#else
 #include  "ui_connect_dialog.h"
+#endif
 
 ConnectDialog DIALOG 20, 20, 138, 139
 	STYLE WS_POPUP | WS_DLGFRAME | DS_CENTER

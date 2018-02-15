@@ -69,7 +69,7 @@ AC_SUBST(DEB_CFLAGS)
 AC_SUBST(OPT_CFLAGS)
 
 AC_ARG_WITH(gui,
-	[  --with-gui@<:@=ARG@:>@        gui library(xlib|win32|fb|quartz|console|wayland)],
+	[  --with-gui@<:@=ARG@:>@        gui library(xlib|win32|fb|quartz|console|wayland|sdl2)],
 	gui=$with_gui)
 if test "$gui" = "fb,xlib" -o "$gui" = "xlib,fb" ; then
 	gui=xlib
@@ -110,11 +110,11 @@ mingw*)
 			;;
 		esac
 	fi
-
-	if test "$gui" != "win32" ; then
+	if test "$gui" != "sdl2" -a "$gui" != "win32" ; then
 		echo "$gui is not supported in ${host_os}. Use win32."
 		gui="win32"
 	fi
+
 	;;
 cygwin*)
 	AC_CHECK_PROG(CYGPATHW,cygpath,cygpath -w,echo)
@@ -131,12 +131,12 @@ cygwin*)
 	if test "$have_x" = "yes" ; then
 		if test "$gui" = "" ; then
 			gui="xlib"
-		elif test "$gui" != "xlib" -a "$gui" != "win32" -a "$gui" != "console" ; then
+		elif test "$gui" != "xlib" -a "$gui" != "win32" -a "$gui" != "console" -a "$gui" != "sdl2"; then
 			echo "$gui is not supported in ${host_os}. Use win32."
 			gui="win32"
 		fi
 	else
-		if test "$gui" != "win32" -a "$gui" != "console" ; then
+		if test "$gui" != "win32" -a "$gui" != "console" -a "$gui" != "sdl2"; then
 			echo "$gui is not supported in ${host_os}. Use win32."
 			gui="win32"
 		fi
@@ -144,7 +144,7 @@ cygwin*)
 	;;
 *)
 	CYGPATHW=echo
-	if test "$gui" != "xlib" -a "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" -a "$gui" != "wayland" ; then
+	if test "$gui" != "xlib" -a "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" -a "$gui" != "wayland" -a "$gui" != "sdl2"; then
 		if test "$gui" != "" ; then
 			echo "$gui is not supported in ${host_os}. xlib is used instead."
 		fi
@@ -307,6 +307,10 @@ PKG_CHECK_MODULES(FT, freetype2, have_ft=yes, have_ft=no)
 if test "$have_ft" = "no" ; then
 	PKG_CHECK_MODULES(FT, freetype, have_ft=yes, have_ft=no)
 fi
+# "tr ..." is hack for cygwin.
+# (removing \r which is output by win32 native pkg-config.)
+FT_CFLAGS="`echo $FT_CFLAGS | tr -d '\r'`"
+FT_LIBS="`echo $FT_LIBS | tr -d '\r'`"
 # -DUSE_FREETYPE can be added to FT_CFLAGS later.
 FT_CFLAGS_ORIGINAL=$FT_CFLAGS
 
@@ -405,6 +409,25 @@ elif test "$gui" = "console" ; then
 elif test "$gui" = "wayland" ; then
 	GUI="wayland"
 	GUI_CFLAGS="-DUSE_WAYLAND"
+elif test "$gui" = "sdl2" ; then
+	PKG_CHECK_MODULES(SDL2, sdl2, have_sdl2=yes, have_sdl2=no)
+ 	if test "$have_sdl2" != "yes" ; then
+		echo "sdl2 is not available."
+		exit 1
+	fi
+	# "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
+	SDL2_CFLAGS="`echo $SDL2_CFLAGS | tr -d '\r'`"
+	SDL2_LIBS="`echo $SDL2_LIBS | tr -d '\r'`"
+	if test "$ml_cv_is_posix" = "yes"; then
+		SDL2_LIBS="$SDL2_LIBS -lpthread"
+	else
+		SDL2GUI="win32"
+		AC_SUBST(SDL2GUI)
+	fi
+	GUI="sdl2"
+	GUI_CFLAGS="-DUSE_SDL2"
+	AC_SUBST(SDL2_CFLAGS)
+	AC_SUBST(SDL2_LIBS)
 else
 	GUI="fb"
 	# for NetBSD/x68k
@@ -495,26 +518,33 @@ else
 fi
 AC_SUBST(TYPE_LOADER_OBJ)
 
+if test "$ml_cv_is_posix" = "yes" -a "$gui" != "quartz"; then
+	PKG_CHECK_MODULES(FONTCONFIG, fontconfig, have_fc=yes, have_fc=no)
+	FONTCONFIG_CFLAGS="`echo $FONTCONFIG_CFLAGS | tr -d '\r'` -DUSE_FONTCONFIG"
+	FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
+	AC_SUBST(FONTCONFIG_CFLAGS)
+	AC_SUBST(FONTCONFIG_LIBS)
+fi
+
 AC_ARG_ENABLE(anti_alias,
 	[  --disable-anti-alias    same as --with-type-engines=xcore on xlib @<:@default=enabled@:>@
                           do not use truetype fonts on framebuffer @<:@default=enabled@:>@ ],
 	anti_alias=$enable_anti_alias, anti_alias="auto")
 
 if test "$anti_alias" != "no"; then
-	if test "$gui" = "fb" -o "$gui" = "wayland"; then
+	if test "$gui" = "fb" -o "$gui" = "wayland" -o "$gui" = "sdl2"; then
 		if test "$have_ft" = "yes" ; then
-			# "tr ..." is hack for cygwin.
-			# (removing \r which is output by win32 native pkg-config.)
-			FT_CFLAGS="-DUSE_FREETYPE `echo $FT_CFLAGS | tr -d '\r'`"
-			FT_LIBS="`echo $FT_LIBS | tr -d '\r'`"
+			FT_CFLAGS="$FT_CFLAGS -DUSE_FREETYPE "
 
 			AC_ARG_ENABLE(fontconfig,
 				[  --disable-fontconfig    use fontconfig with freetype on framebuffer or wayland @<:@default=enabled@:>@ ],
 	  		fontconfig=$enable_fontconfig, fontconfig="yes")
 
-			if test "$fontconfig" != "no"; then
-				FT_CFLAGS="$FT_CFLAGS -DUSE_FONTCONFIG"
-				FT_LIBS="$FT_LIBS -lfontconfig"
+			if test "$fontconfig" != "no" -a "$have_fc" = "yes"; then
+				FT_CFLAGS="$FT_CFLAGS $FONTCONFIG_CFLAGS"
+				FT_LIBS="$FT_LIBS $FONTCONFIG_LIBS"
+			else
+				fontconfig="no"
   		fi
 
 			AC_SUBST(FT_CFLAGS)
@@ -566,8 +596,8 @@ xft)
 	if test "$have_xft" = "yes" ; then
 		# "tr ..." is hack for cygwin.
 		# (removing \r which is output by win32 native pkg-config.)
-	        XFT_CFLAGS="`echo $XFT_CFLAGS | tr -d '\r'`"
-	        XFT_LIBS="`echo $XFT_LIBS | tr -d '\r'`"
+		XFT_CFLAGS="`echo $XFT_CFLAGS | tr -d '\r'`"
+		XFT_LIBS="`echo $XFT_LIBS | tr -d '\r'`"
 		if test "$dl_type" = "yes" ; then
 			TYPE_LIBS="libtype_xft.la ${TYPE_LIBS}"
 		else
@@ -637,6 +667,10 @@ if test "$otl" != "yes" ; then
 elif test "$gui" = "xlib" -a "$dl_type" = "no" -a "$type_engines_result" = " xcore"; then
 	echo "libotf/libharfbuzz is not available."
 elif test "$gui" = "fb" -a "$have_ft" != "yes" ; then
+	echo "libotf/libharfbuzz is not available."
+elif test "$gui" = "wayland" -a "$have_ft" != "yes" ; then
+	echo "libotf/libharfbuzz is not available."
+elif test "$gui" = "sdl2" -a "$have_ft" != "yes" ; then
 	echo "libotf/libharfbuzz is not available."
 elif test "$gui" = "console" ; then
 	echo "libotf/libharfbuzz is not available."
@@ -1008,32 +1042,13 @@ registobmp)
 	AC_SUBST(SDL_CFLAGS)
 	AC_SUBST(SDL_LIBS)
 
-	if test "$gui" != "win32" ; then
-		if test "$have_fc" = "" ; then
-			PKG_CHECK_MODULES(FONTCONFIG, fontconfig, have_fc=yes, have_fc=no)
-		fi
-		if test "$have_fc" = "yes" ; then
-			FONTCONFIG_CFLAGS="`echo $FONTCONFIG_CFLAGS | tr -d '\r'` -DUSE_FONTCONFIG"
-			FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
-			AC_SUBST(FONTCONFIG_CFLAGS)
-			AC_SUBST(FONTCONFIG_LIBS)
-		fi
-	fi
-
 	OUTPUT_FILES="tool/registobmp/Makefile ${OUTPUT_FILES}"
 	MAKE_DIRS="tool/registobmp ${MAKE_DIRS}"
 	tools_result="$tools_result $tool"
 	;;
 mlfc)
 	if test "$gui" != "win32" -a "$gui" != "quartz" ; then
-		if test "$have_fc" = "" ; then
-			PKG_CHECK_MODULES(FONTCONFIG, fontconfig, have_fc=yes, have_fc=no)
-		fi
 		if test "$have_fc" = "yes" ; then
-			FONTCONFIG_CFLAGS="`echo $FONTCONFIG_CFLAGS | tr -d '\r'` -DUSE_FONTCONFIG"
-			FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
-			AC_SUBST(FONTCONFIG_CFLAGS)
-			AC_SUBST(FONTCONFIG_LIBS)
 			OUTPUT_FILES="tool/mlfc/Makefile ${OUTPUT_FILES}"
 			MAKE_DIRS="tool/mlfc ${MAKE_DIRS}"
 			tools_result="$tools_result $tool"
@@ -1405,7 +1420,7 @@ fi
 for scrollbar in ${scrollbars} ; do
 case ${scrollbar} in
 sample)
-	if test "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" -a "$gui" != "wayland" ; then
+	if test "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" -a "$gui" != "wayland" -a "$gui" != "sdl2" ; then
 		MAKE_DIRS="scrollbar/sample ${MAKE_DIRS}"
 		OUTPUT_FILES="scrollbar/sample/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != "xno" ; then
@@ -1601,6 +1616,7 @@ dnl echo "Character property table          : "
 echo "Build shared libraries            : $enable_shared"
 echo "Build static libraries            : $enable_static"
 dnl echo "Optimization for redrawing a line : $optimize_redrawing"
+echo "GUI toolkit                       : $gui"
 echo "BiDi rendering (Fribidi)          : $have_fribidi"
 echo "Indic rendering                   : $ind"
 if test "$OT_LAYOUT_OBJ" = "hb.o"; then
@@ -1617,7 +1633,7 @@ echo "External tools                    :$tools_result"
 echo "Image processing                  : $image"
 echo "Built-in image library            : $with_imagelib"
 echo "utmp support                      : $utmp"
-if test "$gui" = "fb" -o "$gui" = "wayland"; then
+if test "$gui" = "fb" -o "$gui" = "wayland" -o "$gui" = "sdl2"; then
 	if test "$have_ft" = "yes"; then
 	  if test "$fontconfig" = "yes"; then
 				echo "Supported font formats            : pcf ttf(+fontconfig)"
@@ -1627,7 +1643,7 @@ if test "$gui" = "fb" -o "$gui" = "wayland"; then
 	else
 		echo "Supported font formats            : pcf"
 	fi
-elif test "$gui" != "win32"; then
+elif test "$gui" = "xlib"; then
 	echo "Type engines                      :$type_engines_result"
 fi
 echo "DnD                               : $dnd"

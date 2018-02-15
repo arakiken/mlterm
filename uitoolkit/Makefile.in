@@ -37,7 +37,12 @@ OBJ2_console = ui.o ui_im_status_screen.o
 
 OBJ2_wayland = ui.o ui_decsp_font.o ui_im_status_screen.o
 
+OBJ2_sdl2 = ui.o ui_decsp_font.o ui_im_status_screen.o
+
 RSOBJ_win32 = winrs.o
+
+RSOBJ_sdl2_win32 = winrs.o
+RSOBJ_sdl2 = $(RSOBJ_@GUI@_@SDL2GUI@)
 
 OBJ = $(OBJ1) $(OBJ2_@GUI@)
 
@@ -50,7 +55,7 @@ CFLAGS = $(CFLAGS_LOCAL) @POBL_CFLAGS@ @MEF_CFLAGS@ @DEB_CFLAGS@ @MATH_CFLAGS@ \
 	@IMAGELIB_CFLAGS@ @X_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ @XUTF8_CFLAGS@ @DND_CFLAGS@ \
 	@IM_CFLAGS@ @SB_CFLAGS@ @REGEX_CFLAGS@ @CTL_CFLAGS@ @TYPE_CFLAGS@ @FT_CFLAGS@ \
 	@IMAGE_CFLAGS@ @TOOLS_CFLAGS@ @OT_LAYOUT_CFLAGS@ @SIXEL_CFLAGS@ @BRLAPI_CFLAGS@ \
-	@CFLAGS@ @CPPFLAGS@ \
+	@SDL2_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-DBINDIR=\"$(bindir)\" -DLIBDIR=\"$(libdir)\" -DLIBEXECDIR=\"$(libexecdir)\" \
 	-DXDATADIR=\"$(datadir)\" \
 	-I$(top_srcdir)/vtemu -I$(top_srcdir)/uitoolkit/libotl -I/usr/local/include
@@ -79,9 +84,9 @@ ui_display.o: ui_display.c $(XDISPLAY_DEPENDS_@GUI@)
 	$(LIBTOOL_CC) -c $<
 
 winrs.o: winrs.rs
-	cp $(top_srcdir)/contrib/icon/mlterm-icon-win32.ico .
+	cp $(top_srcdir)/contrib/icon/mlterm-icon-win32.ico . \
 	# windres-2.11.90(included in MSYS-DTK 1.0.1) doesn't accept '-I[DIR]' option.
-	windres `echo "@POBL_CFLAGS@ @MEF_CFLAGS@"|sed 's/-I/--include-dir /'` @GUI_CFLAGS@ @SSH2_CFLAGS@ $< winrs.o
+	windres `echo "@POBL_CFLAGS@ @MEF_CFLAGS@"|sed 's/-I/--include-dir /'` @GUI_CFLAGS@ @SSH2_CFLAGS@ $< winrs.o \
 
 install:
 

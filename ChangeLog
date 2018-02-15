@@ -1,3 +1,39 @@
+2018-02-16  Araki Ken  <arakiken@users.sf.net>
+
+	* README, README.ja: Updated.
+
+	* doc/en/README.sdl2: Added.
+
+	* */Makefile.in: Target, flags or library for SDL2 is added.
+
+	* configure.in: --with-gui=sdl2 is supported.
+
+	* uitoolkit/sdl2: Added.
+
+	* vt_pty.h, vt_pty_ssh.c: vt_pty_ssh_set_pty_read_trigger() is added.
+
+	* ui_display.h, win32/ui_display.c, sdl2/ui_display.c:
+	  ui_display_trigger_pty_read() is added if USE_WIN32API is defined.
+
+	* ui_draw_str.c: xcore_draw_str() supports SDL2.
+
+	* fb/ui_window.c:
+	  draw_string_intern() doesn't call ui_display_get_pixel() as possible
+	  even if -otl option is enabled.
+
+	* fb/ui_imagelib.c:
+	  mlimgloader is not executed if USE_WIN32API is defined.
+
+	* fb/ui_font.c:
+	  mmap and munmap are invalidated if USE_WIN32API is defined.
+
+	* ui_event_source.c, win32/ui_display.c:
+	  SetTimer() is called from ui_event_source.c to win32/ui_display.c.
+
+	* ui_event_source.c: USE_WIN32API => NO_DISPLAY_FD
+
+	* */ui.h: NO_DISPLAY_FD macro is defined (or undefined).
+
 2018-02-03  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_draw_str.c, ui_font_cache.[ch], ui_font_manager.c,

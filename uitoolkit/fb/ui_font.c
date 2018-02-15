@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <fcntl.h>    /* open */
 #include <unistd.h>   /* close */
-#include <sys/mman.h> /* mmap */
 #include <string.h>   /* memcmp */
 #include <sys/stat.h> /* fstat */
 #include <utime.h>    /* utime */
@@ -21,6 +20,13 @@
 #include <mef/ef_char.h>
 #ifdef __ANDROID__
 #include <dirent.h>
+#endif
+
+#ifdef USE_WIN32API
+#define mmap(a, b, c, d, e, f) (NULL)
+#define munmap(a, b) (0)
+#else
+#include <sys/mman.h> /* mmap */
 #endif
 
 #ifdef USE_OT_LAYOUT
@@ -1841,6 +1847,13 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     if (!(percent_str = bl_str_alloca_dup(fontname))) {
       return NULL;
     }
+
+#ifdef USE_WIN32API
+    if (percent_str[1] == ':') {
+      /* c:/Users/... */
+      percent_str += 2;
+    }
+#endif
 
     font_file = bl_str_sep(&percent_str, ":");
 

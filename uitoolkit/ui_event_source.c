@@ -25,7 +25,7 @@
 
 /* --- static variables --- */
 
-#ifndef USE_WIN32API
+#ifndef NO_DISPLAY_FD
 static struct {
   int fd;
   void (*handler)(void);
@@ -36,21 +36,7 @@ static u_int num_additional_fds;
 
 /* --- static functions --- */
 
-#ifdef USE_WIN32API
-
-static VOID CALLBACK timer_proc(HWND hwnd, UINT msg, UINT timerid, DWORD time) {
-  ui_display_t **displays;
-  u_int num_displays;
-  int count;
-
-  displays = ui_get_opened_displays(&num_displays);
-
-  for (count = 0; count < num_displays; count++) {
-    ui_display_idling(displays[count]);
-  }
-}
-
-#else /* USE_WIN32API */
+#ifndef NO_DISPLAY_FD
 
 static void receive_next_event(void) {
   u_int count;
@@ -262,28 +248,25 @@ static void receive_next_event(void) {
 
 void ui_event_source_init(void) {
 #ifdef USE_WIN32API
-  /* ui_window_manager_idling() called in 0.1sec. */
-  SetTimer(NULL, 0, 100, timer_proc);
+  vt_pty_ssh_set_pty_read_trigger(ui_display_trigger_pty_read);
 #endif
 }
 
 void ui_event_source_final(void) {
-#ifndef USE_WIN32API
+#ifndef NO_DISPLAY_FD
   free(additional_fds);
 #endif
 }
 
 int ui_event_source_process(void) {
-#ifdef USE_WIN32API
+#ifdef NO_DISPLAY_FD
   u_int num_displays;
   ui_display_t **displays;
   vt_term_t **terms;
   u_int num_terms;
   int *xssh_fds;
   u_int count;
-#endif
 
-#ifdef USE_WIN32API
   displays = ui_get_opened_displays(&num_displays);
   for (count = 0; count < num_displays; count++) {
     ui_display_receive_next_event(displays[count]);
@@ -294,7 +277,7 @@ int ui_event_source_process(void) {
 
   vt_close_dead_terms();
 
-#ifdef USE_WIN32API
+#ifdef NO_DISPLAY_FD
 /*
  * XXX
  * If pty is closed after vt_close_dead_terms() ...
@@ -327,7 +310,7 @@ int ui_event_source_process(void) {
  * fd < 0 -> Special ID. handler is invoked at interval of 0.1 sec.
  */
 int ui_event_source_add_fd(int fd, void (*handler)(void)) {
-#ifndef USE_WIN32API
+#ifndef NO_DISPLAY_FD
 
   void *p;
 
@@ -353,15 +336,15 @@ int ui_event_source_add_fd(int fd, void (*handler)(void)) {
 
   return 1;
 
-#else /* USE_WIN32API */
+#else /* NO_DISPLAY_FD */
 
   return 0;
 
-#endif /* USE_WIN32API */
+#endif /* NO_DISPLAY_FD */
 }
 
 void ui_event_source_remove_fd(int fd) {
-#ifndef USE_WIN32API
+#ifndef NO_DISPLAY_FD
   u_int count;
 
   for (count = 0; count < num_additional_fds; count++) {
@@ -375,5 +358,5 @@ void ui_event_source_remove_fd(int fd) {
       return;
     }
   }
-#endif /* USE_WIN32API */
+#endif /* NO_DISPLAY_FD */
 }

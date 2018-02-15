@@ -111,7 +111,7 @@ static int copy_blended_pixel(Display *display, u_char *dst, u_char **bitmap, u_
     b2 = PIXEL_BLUE(bg, display->rgbinfo) & 0xff;
 
     pixel =
-#ifdef USE_WAYLAND
+#if defined(USE_WAYLAND) || defined(USE_SDL2)
       /*
        * f: fg color
        * b: bg color
@@ -169,7 +169,7 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
 
   /* (len + 1) is for decreasing the number of calling alloca() below. */
 #ifdef USE_FREETYPE
-  if (xfont->is_aa && is_proportional && is_var_col_width) {
+  if (xfont->is_aa && is_proportional) {
     /* width_full == glyph_width_bytes / 3 */
     u_int width = (len + 1) * (font_width > xfont->width_full ? font_width : xfont->width_full);
 
@@ -178,11 +178,36 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
     }
 
     size = width * bpp;
+
+    /* This is true only if USE_SDL2 and USE_BG_TEXTURE. (see ui_draw_str.c) */
+    if (src_bg_is_set && picture) {
+      picture = NULL;
+      picture_line_len = 0;
+      src_bg_is_set = 0;
+    }
+
+#if defined(DEBUG) && defined(USE_SDL2) && !defined(USE_BG_TEXTURE)
+    {
+      static int output_msg;
+      if (!output_msg) {
+        bl_debug_printf("mlterm is built without USE_BG_TEXTURE, "
+                        "so screen is corrupt with -otl option.\n");
+        outupt_msg = 1;
+      }
+    }
+#endif
   } else
 #endif
   {
     size = (len + 1) * font_width * bpp;
   }
+
+#if defined(USE_SDL2) && defined(USE_BG_TEXTURE)
+  if (bg_pixel == win->bg_color.pixel || !src_bg_is_set) {
+    bg_pixel = 0x0;
+    src_bg_is_set = 1;
+  }
+#endif
 
   if (!(src = alloca(size))) {
     return;
@@ -332,9 +357,13 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
           int x_off;
 
           if (!bitmaps[count]) {
-            for (x_off = 0; x_off < font_width; x_off++, p += bpp) {
-              pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
-              copy_pixel(p, pixel, bpp);
+            if (src_bg_is_set /* && !picture */) {
+              p += (font_width * bpp);
+            } else {
+              for (x_off = 0; x_off < font_width; x_off++, p += bpp) {
+                pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
+                copy_pixel(p, pixel, bpp);
+              }
             }
 
             x += font_width;
@@ -377,6 +406,10 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
 
                   memmove(src + (retreat - filled) * bpp, src, p - src);
 
+                  /*
+                   * Don't use bg_pixel even if src_bg_is_set and !picture, because retreated
+                   * pixels can be uncleared by overwriting glyphs afterwards.
+                   */
                   for (x_off2 = 0, p = src; x_off2 < retreat - filled; x_off2++, p += bpp) {
                     pixel = ui_display_get_pixel(win->disp, x + x_off + x_off2, y + y_off);
                     copy_pixel(p, pixel, bpp);
@@ -402,24 +435,39 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
             width -= retreat;
 
             if (is_var_col_width) {
-              int advance;
+              int advance = bitmaps[count][0];
 
-              for (; x_off < width; x_off++, p += bpp) {
-                u_long bg = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
-
-                if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg, bpp)) {
-                  /* do nothing */
-                } else if (x_off >= prev_crowded_out) {
-                  copy_pixel(p, bg, bpp);
+              if (src_bg_is_set /* && !picture */) {
+                for (; x_off < width; x_off++, p += bpp) {
+                  if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg_pixel,
+                                         bpp)) {
+                    /* do nothing */
+                  } else if (x_off >= prev_crowded_out) {
+                    copy_pixel(p, bg_pixel, bpp);
+                  }
                 }
-              }
 
-              advance = bitmaps[count][0];
+                for (; x_off < advance; x_off++, p += bpp) {
+                  if (x_off >= prev_crowded_out) {
+                    copy_pixel(p, bg_pixel, bpp);
+                  }
+                }
+              } else {
+                for (; x_off < width; x_off++, p += bpp) {
+                  u_long bg = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
 
-              for (; x_off < advance; x_off++, p += bpp) {
-                if (x_off >= prev_crowded_out) {
-                  pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
-                  copy_pixel(p, pixel, bpp);
+                  if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg, bpp)) {
+                    /* do nothing */
+                  } else if (x_off >= prev_crowded_out) {
+                    copy_pixel(p, bg, bpp);
+                  }
+                }
+
+                for (; x_off < advance; x_off++, p += bpp) {
+                  if (x_off >= prev_crowded_out) {
+                    pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
+                    copy_pixel(p, pixel, bpp);
+                  }
                 }
               }
 
@@ -456,14 +504,16 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
               }
 
               if (padding > 0) {
-                if (padding + x_off > 0) {
+                if ((!src_bg_is_set /* || picture */) && padding + x_off > 0) {
                   int copy_and_skip = padding;
+
                   if (x_off < 0) {
                     /* x_off < 0 has been already copied from ui_display_get_pixel(). */
                     copy_and_skip += (x_off);
                     p += (-x_off * bpp);
                     x_off = 0;
                   }
+
                   for (; copy_and_skip > 0; copy_and_skip--, x_off++, p += bpp) {
                     if (x_off >= prev_crowded_out) {
                       pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
@@ -477,19 +527,34 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
                 }
               }
 
-              for (; x_off < width; x_off++, p += bpp) {
-                u_long bg = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
-
-                if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg, bpp)) {
-                  /* do nothing */
-                } else if (x_off >= prev_crowded_out) {
-                  copy_pixel(p, bg, bpp);
+              if (src_bg_is_set /* && !picture */) {
+                for (; x_off < width; x_off++, p += bpp) {
+                  if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg_pixel,
+                                       bpp)) {
+                    /* do nothing */
+                  } else if (x_off >= prev_crowded_out) {
+                    copy_pixel(p, bg_pixel, bpp);
+                  }
                 }
-              }
 
-              for (; x_off < font_width; x_off++, p += bpp) {
-                pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
-                copy_pixel(p, pixel, bpp);
+                for (; x_off < font_width; x_off++, p += bpp) {
+                  copy_pixel(p, bg_pixel, bpp);
+                }
+              } else {
+                for (; x_off < width; x_off++, p += bpp) {
+                  u_long bg = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
+
+                  if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg, bpp)) {
+                    /* do nothing */
+                  } else if (x_off >= prev_crowded_out) {
+                    copy_pixel(p, bg, bpp);
+                  }
+                }
+
+                for (; x_off < font_width; x_off++, p += bpp) {
+                  pixel = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
+                  copy_pixel(p, pixel, bpp);
+                }
               }
 
               /* If count == len - 1, width <= font_width is always true. */
@@ -978,7 +1043,7 @@ static int fix_rl_boundary(ui_window_t *win, int boundary_start, int *boundary_e
 static void reset_input_focus(ui_window_t *win) {
   u_int count;
 
-#ifdef USE_WAYLAND
+#if defined(USE_WAYLAND) || defined(USE_SDL2)
   /* 
    * Switching input method engines invokes unfocus and focus. In this case,
    * it is necessary to search a window which was focused most recently.
@@ -1129,6 +1194,11 @@ void ui_window_remove_event_mask(ui_window_t *win, long event_mask) {
 void ui_window_ungrab_pointer(ui_window_t *win) {}
 
 int ui_window_set_wall_picture(ui_window_t *win, Pixmap pic, int do_expose) {
+#if defined(USE_SDL2) && defined(USE_BG_TEXTURE)
+  ui_display_set_wall_picture(win->disp, pic->image, pic->width, pic->height);
+
+  return 0; /* to free pic memory */
+#else
   u_int count;
 #ifdef USE_GRF
   int ret;
@@ -1172,6 +1242,7 @@ int ui_window_set_wall_picture(ui_window_t *win, Pixmap pic, int do_expose) {
   }
 
   return 1;
+#endif
 }
 
 int ui_window_unset_wall_picture(ui_window_t *win, int do_expose) {
@@ -1179,6 +1250,10 @@ int ui_window_unset_wall_picture(ui_window_t *win, int do_expose) {
 
 #ifdef USE_GRF
   x68k_tvram_set_wall_picture(NULL, 0, 0);
+#endif
+
+#if defined(USE_SDL2) && defined(USE_BG_TEXTURE)
+  ui_display_set_wall_picture(win->disp, NULL, 0, 0);
 #endif
 
   win->wall_picture = None;
@@ -1231,6 +1306,10 @@ int ui_window_set_bg_color(ui_window_t *win, ui_color_t *bg_color) {
     return 0;
   }
 
+#if defined(USE_SDL2) && defined(USE_BG_TEXTURE)
+  ui_display_set_bg_color(win->disp, bg_color->pixel);
+#endif
+
   win->bg_color = *bg_color;
 
   clear_margin_area(win);
@@ -1260,7 +1339,7 @@ int ui_window_add_child(ui_window_t *win, ui_window_t *child, int x, int y, int 
   child->x = x + win->hmargin;
   child->y = y + win->vmargin;
 
-#ifdef USE_WAYLAND
+#if defined(USE_WAYLAND) || defined(USE_SDL2)
   /*
    * The default value of is_focused is 0 on wayland, while 1 on framebuffer.
    * (see ui_window_init())
@@ -1423,7 +1502,7 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
 
 #ifndef MANAGE_ROOT_WINDOWS_BY_MYSELF
   if (win->parent == NULL) {
-#ifdef USE_WAYLAND
+#if defined(USE_WAYLAND) || defined(USE_SDL2)
     ui_display_resize(win->disp, width + win->hmargin * 2, height + win->vmargin * 2);
 #endif
   } else if (flag & NOTIFY_TO_PARENT) {
@@ -1508,7 +1587,7 @@ int ui_window_move(ui_window_t *win, int x, int y) {
      * but it causes unexpected result because MANAGE_ROOT_WINDOWS_BY_MYSELF means that
      * win->x and win->y of root windows are always 0.
      */
-#ifdef USE_WAYLAND
+#if defined(USE_WAYLAND) || defined(USE_SDL2)
     return ui_display_move(win->disp, x, y);
 #else
     return 0;
@@ -1610,16 +1689,26 @@ void ui_window_fill_with(ui_window_t *win, ui_color_t *color, int x, int y, u_in
   size_t size;
   int y_off;
   u_int bpp;
+  u_long pixel;
 
   if (!win->is_mapped) {
     return;
+  }
+
+#if defined(USE_SDL2) && defined(USE_BG_TEXTURE)
+  if (color->pixel == win->bg_color.pixel) {
+    pixel = 0;
+  } else
+#endif
+  {
+    pixel = color->pixel;
   }
 
   x += (win->x + win->hmargin);
   y += (win->y + win->vmargin);
 
   if ((bpp = win->disp->display->bytes_per_pixel) == 1) {
-    ui_display_fill_with(x, y, width, height, (u_int8_t)color->pixel);
+    ui_display_fill_with(x, y, width, height, (u_int8_t)pixel);
   } else {
     if (!(src = alloca((size = width * bpp)))) {
       return;
@@ -1631,13 +1720,13 @@ void ui_window_fill_with(ui_window_t *win, ui_color_t *color, int x, int y, u_in
 
       if (bpp == 2) {
         for (x_off = 0; x_off < width; x_off++) {
-          *((u_int16_t *)p) = color->pixel;
+          *((u_int16_t *)p) = pixel;
           p += 2;
         }
       } else /* if (bpp == 4) */
       {
         for (x_off = 0; x_off < width; x_off++) {
-          *((u_int32_t *)p) = color->pixel;
+          *((u_int32_t *)p) = pixel;
           p += 4;
         }
       }
@@ -1795,7 +1884,7 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
       ui_window_set_input_focus(win);
     }
   }
-#ifdef USE_WAYLAND
+#if defined(USE_WAYLAND) || defined(USE_SDL2)
   else if (event->type == FocusOut) {
     reset_input_focus(win);
   }

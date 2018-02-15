@@ -32,6 +32,7 @@ TARGET_quartz = libim-canna.la
 TARGET_fb = libim-canna-fb.la
 TARGET_console = libim-canna-fb.la
 TARGET_wayland = libim-canna-wl.la
+TARGET_sdl2 = libim-canna-sdl2.la
 
 TARGET = $(TARGET_@GUI@)
 

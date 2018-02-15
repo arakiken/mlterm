@@ -48,5 +48,6 @@ typedef Pixmap PixmapMask;
 #undef HAVE_PTHREAD
 #define COMPOSE_DECSP_FONT
 #undef USE_REAL_VERTICAL_FONT
+#undef NO_DISPLAY_FD
 
 #endif
