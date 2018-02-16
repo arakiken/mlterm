@@ -1,5 +1,16 @@
 2018-02-16  Araki Ken  <arakiken@users.sf.net>
 
+	* libptyssh/vt_pty_ssh.c, vt_pty.h: vt_pty_ssh_set_pty_read_trigger()
+	  is renamed to vt_pty_set_pty_read_trigger().
+
+	* vt_pty_pipewin32.c: PostThreadMessage(main_tid, WM_APP, 0, 0) is replaced
+	  by (*trigger_pty_read)().
+
+	* main.c, win32/ui_display.c: main_tid = GetCurrentThreadID() is moved
+	  from main() to ui_display_open().
+
+2018-02-16  Araki Ken  <arakiken@users.sf.net>
+
 	* README, README.ja: Updated.
 
 	* doc/en/README.sdl2: Added.

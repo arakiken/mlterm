@@ -29,6 +29,9 @@
 
 static ui_display_t _disp; /* Singleton */
 static Display _display;
+#ifdef USE_WIN32API
+static DWORD main_tid; /* XXX set in main(). */
+#endif
 
 /* --- static functions --- */
 
@@ -93,6 +96,15 @@ ui_display_t *ui_display_open(char *disp_name, /* Ignored */
     /* Already opened. */
     return &_disp;
   }
+
+#ifdef USE_WIN32API
+  /*
+   * XXX
+   * vt_pty_ssh_new() isn't called from the main thread, so main_tid
+   * must be set here, not in vt_pty_ssh_new().
+   */
+  main_tid = GetCurrentThreadId();
+#endif
 
   /* Callback should be set before bl_dialog() is called. */
   bl_dialog_set_callback(dialog_cb);
@@ -366,10 +378,7 @@ Cursor ui_display_get_cursor(ui_display_t *disp, u_int shape) {
 XID ui_display_get_group_leader(ui_display_t *disp) { return None; }
 
 #ifdef USE_WIN32API
-DWORD main_tid; /* XXX set in main(). */
-
 void ui_display_trigger_pty_read(void) {
-
   /* Exit GetMessage() in x_display_receive_next_event(). */
   PostThreadMessage(main_tid, WM_APP, 0, 0);
 }

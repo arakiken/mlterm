@@ -1861,7 +1861,7 @@ static char *get_user_name(void) {
 /* --- global functions --- */
 
 #ifdef USE_WIN32API
-void vt_pty_ssh_set_pty_read_trigger(void (*func)(void)) {
+void vt_pty_set_pty_read_trigger(void (*func)(void)) {
   trigger_pty_read = func;
 }
 #endif
