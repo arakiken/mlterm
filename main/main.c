@@ -120,15 +120,6 @@ int main(int argc, char **argv)
 {
 #if defined(USE_WIN32API) && defined(USE_LIBSSH2)
   WSADATA wsadata;
-#ifndef USE_SDL2
-  extern DWORD main_tid; /* see win32/ui_display.c */
-  /*
-   * XXX
-   * vt_pty_ssh_new() isn't called from the main thread, so main_tid
-   * must be set here, not in vt_pty_ssh_new().
-   */
-  main_tid = GetCurrentThreadId();
-#endif
 
   WSAStartup(MAKEWORD(2, 0), &wsadata);
 #endif

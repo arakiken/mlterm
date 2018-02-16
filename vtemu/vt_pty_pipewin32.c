@@ -33,9 +33,10 @@ typedef struct vt_pty_pipe {
 
 } vt_pty_pipe_t;
 
-static DWORD main_tid;
 static HANDLE* child_procs; /* Notice: The first element is "ADDED_CHILD" event */
 static DWORD num_child_procs;
+
+static void (*trigger_pty_read)(void);
 
 /* --- static functions --- */
 
@@ -118,7 +119,7 @@ static DWORD WINAPI wait_pty_read(LPVOID thr_param) {
     }
 
     /* Exit GetMessage() in x_display_receive_next_event(). */
-    PostThreadMessage(main_tid, WM_APP, 0, 0);
+    (*trigger_pty_read)();
 
     WaitForSingleObject(pty->rd_ev, INFINITE);
 
@@ -490,8 +491,6 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
   int idx;
 
   if (num_child_procs == 0) {
-    main_tid = GetCurrentThreadId();
-
     /*
      * Initialize child_procs array.
      */
@@ -643,4 +642,8 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
 
     return &pty->pty;
   }
+}
+
+void vt_pty_set_pty_read_trigger(void (*func)(void)) {
+  trigger_pty_read = func;
 }

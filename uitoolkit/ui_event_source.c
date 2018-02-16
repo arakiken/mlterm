@@ -248,7 +248,7 @@ static void receive_next_event(void) {
 
 void ui_event_source_init(void) {
 #ifdef USE_WIN32API
-  vt_pty_ssh_set_pty_read_trigger(ui_display_trigger_pty_read);
+  vt_pty_set_pty_read_trigger(ui_display_trigger_pty_read);
 #endif
 }
 
