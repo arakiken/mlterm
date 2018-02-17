@@ -1,5 +1,14 @@
 2018-02-18  Araki Ken  <arakiken@users.sf.net>
 
+	* sdl2/ui_display.c: SDL_TEXTEDITING event is processed, and preediting
+	  text is shown.
+
+	* vt_term.h, vt_parser.c: vt_term_preedit() is always compiled.
+
+	* mlconfig/Makefile.in: Typo of LIBS2_win32 is fixed.
+
+2018-02-18  Araki Ken  <arakiken@users.sf.net>
+
 	* README, doc/{ja,en}/README.win32: Updated.
 
 	* sdl2/ui_display.c:

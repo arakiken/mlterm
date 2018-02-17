@@ -161,7 +161,7 @@ size_t vt_term_write(vt_term_t *term, u_char *buf, size_t len);
 /* Must be called in visual context. */
 #define vt_term_show_message(term, msg) vt_parser_show_message((term)->parser, msg)
 
-#if defined(__ANDROID__) || defined(__APPLE__)
+#if 1 /* defined(__ANDROID__) || defined(__APPLE__) || defined(USE_SDL2) */
 /* Must be called in visual context. */
 #define vt_term_preedit(term, buf, len) vt_parser_preedit((term)->parser, buf, len)
 #endif
