@@ -34,7 +34,7 @@ AC_SUBST(MEF_CFLAGS)
 AC_SUBST(LPOBL)
 AC_SUBST(POBL_CFLAGS)
 
-AC_PATH_TOOL(PKG_CONFIG, pkg-config)
+AC_CHECK_TOOL(PKG_CONFIG, pkg-config)
 
 AC_PROG_CC
 AC_PROG_INSTALL
@@ -201,17 +201,14 @@ if test "$have_gtk" != "yes"; then
 	PKG_CHECK_MODULES(GTK, gtk+-$gtk_version, have_gtk=yes, have_gtk=no)
 fi
 
-# "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
-GTK_CFLAGS="`echo $GTK_CFLAGS | tr -d '\r'`"
-GTK_LIBS="`echo $GTK_LIBS | tr -d '\r'`"
 AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_LIBS)
 
 PKG_CHECK_MODULES(GDK_PIXBUF, gdk-pixbuf-2.0, have_gdk_pixbuf2=yes, have_gdk_pixbuf2=no)
 # try to link libgio-2.0 explicitly. (SF topic #6234829)
 PKG_CHECK_EXISTS(gdk-pixbuf-2.0 >= 2.14, [ PKG_CHECK_MODULES(GIO, gio-2.0) ])
-GDK_PIXBUF_CFLAGS="`echo $GDK_PIXBUF_CFLAGS $GIO_CFLAGS | tr -d '\r'`"
-GDK_PIXBUF_LIBS="`echo $GDK_PIXBUF_LIBS $GIO_LIBS | tr -d '\r'`"
+GDK_PIXBUF_CFLAGS="$GDK_PIXBUF_CFLAGS $GIO_CFLAGS"
+GDK_PIXBUF_LIBS="$GDK_PIXBUF_LIBS $GIO_LIBS"
 
 AC_CHECK_PROG(have_gdk_pixbuf1,gdk-pixbuf-config,yes)
 
@@ -307,18 +304,14 @@ PKG_CHECK_MODULES(FT, freetype2, have_ft=yes, have_ft=no)
 if test "$have_ft" = "no" ; then
 	PKG_CHECK_MODULES(FT, freetype, have_ft=yes, have_ft=no)
 fi
-# "tr ..." is hack for cygwin.
-# (removing \r which is output by win32 native pkg-config.)
-FT_CFLAGS="`echo $FT_CFLAGS | tr -d '\r'`"
-FT_LIBS="`echo $FT_LIBS | tr -d '\r'`"
 # -DUSE_FREETYPE can be added to FT_CFLAGS later.
 FT_CFLAGS_ORIGINAL=$FT_CFLAGS
 
 if test "$gdk_pixbuf_version" != "" ; then
 	if test "$gdk_pixbuf_version" = "1" ; then
 		# Override GDK_PIXBUF_XXX variables.
-		GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags|tr -d '\r'`"
-		GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs|tr -d '\r'`"
+		GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags`"
+		GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs`"
 		echo ""
 		echo "** WARNING **"
 		echo " gdk-pixbuf1 is no longer supported."
@@ -333,8 +326,8 @@ if test "$gdk_pixbuf_version" != "" ; then
 		IMAGELIB_LIBS="$IMAGELIB_LIBS $FT_LIBS"
 	fi
 elif test "$have_gdk_pixbuf2" != "yes" -a "$have_gdk_pixbuf1" = "yes" ; then
-	GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags|tr -d '\r'`"
-	GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs|tr -d '\r'`"
+	GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags`"
+	GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs`"
 fi
 
 # Used by mlimgloader.
@@ -415,9 +408,6 @@ elif test "$gui" = "sdl2" ; then
 		echo "sdl2 is not available."
 		exit 1
 	fi
-	# "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
-	SDL2_CFLAGS="`echo $SDL2_CFLAGS | tr -d '\r'`"
-	SDL2_LIBS="`echo $SDL2_LIBS | tr -d '\r'`"
 	if test "$ml_cv_is_posix" = "yes"; then
 		SDL2_LIBS="$SDL2_LIBS -lpthread"
 	else
@@ -478,9 +468,6 @@ else
 	have_fribidi="no"
 fi
 if test "$have_fribidi" = "yes" ; then
-	# "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
-	FRIBIDI_CFLAGS="`echo $FRIBIDI_CFLAGS | tr -d '\r'`"
-	FRIBIDI_LIBS="`echo $FRIBIDI_LIBS | tr -d '\r'`"
 	if test "$dl_ctl" = "yes" ; then
 		CTL_LIBS="libctl_bidi.la ${CTL_LIBS}"
 	else
@@ -520,8 +507,7 @@ AC_SUBST(TYPE_LOADER_OBJ)
 
 if test "$ml_cv_is_posix" = "yes" -a "$gui" != "quartz"; then
 	PKG_CHECK_MODULES(FONTCONFIG, fontconfig, have_fc=yes, have_fc=no)
-	FONTCONFIG_CFLAGS="`echo $FONTCONFIG_CFLAGS | tr -d '\r'` -DUSE_FONTCONFIG"
-	FONTCONFIG_LIBS="`echo $FONTCONFIG_LIBS | tr -d '\r'`"
+	FONTCONFIG_CFLAGS="$FONTCONFIG_CFLAGS -DUSE_FONTCONFIG"
 	AC_SUBST(FONTCONFIG_CFLAGS)
 	AC_SUBST(FONTCONFIG_LIBS)
 fi
@@ -594,10 +580,6 @@ xft)
 	fi
 
 	if test "$have_xft" = "yes" ; then
-		# "tr ..." is hack for cygwin.
-		# (removing \r which is output by win32 native pkg-config.)
-		XFT_CFLAGS="`echo $XFT_CFLAGS | tr -d '\r'`"
-		XFT_LIBS="`echo $XFT_LIBS | tr -d '\r'`"
 		if test "$dl_type" = "yes" ; then
 			TYPE_LIBS="libtype_xft.la ${TYPE_LIBS}"
 		else
@@ -625,10 +607,6 @@ cairo)
 	fi
 
 	if test "$have_cairo" = "yes" ; then
-		# "tr ..." is hack for cygwin.
-		# (removing \r which is output by win32 native pkg-config.)
-	        CAIRO_CFLAGS="`echo $CAIRO_CFLAGS | tr -d '\r'`"
-	        CAIRO_LIBS="`echo $CAIRO_LIBS | tr -d '\r'`"
 		if test "$dl_type" = "yes" ; then
 			TYPE_LIBS="libtype_cairo.la ${TYPE_LIBS}"
 			if test "$with_pthread" != "no" ; then
@@ -995,7 +973,7 @@ mlimgloader)
 			#include  <windows.h>
 			#include  <gdiplus.h>],,
 			have_gdiplus=yes,have_gdiplus=no)
-		if test "$gui" = "win32" -a "$have_gdiplus" = "yes" ; then
+		if test "$have_gdiplus" = "yes" ; then
 			MLIMGLOADER_LIB=gdiplus
 		elif test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
 			MLIMGLOADER_LIB=gdk-pixbuf
@@ -1037,8 +1015,8 @@ registobmp)
 		fi
 	fi
 
-	SDL_CFLAGS="`echo $SDL_CFLAGS $SDLTTF_CFLAGS | tr -d '\r'`"
-	SDL_LIBS="`echo $SDL_LIBS $SDLTTF_LIBS | tr -d '\r'`"
+	SDL_CFLAGS="$SDL_CFLAGS $SDLTTF_CFLAGS"
+	SDL_LIBS="$SDL_LIBS $SDLTTF_LIBS"
 	AC_SUBST(SDL_CFLAGS)
 	AC_SUBST(SDL_LIBS)
 
@@ -1650,7 +1628,11 @@ echo "DnD                               : $dnd"
 echo "Input Methods                     : XIM$input_methods_result"
 echo "Scrollbars                        : simple${scrollbars_result}"
 echo "libssh2                           : $ssh2"
-echo "GTK+                              : $have_gtk ($gtk_version)"
+if test "$have_gtk" = "yes"; then
+	echo "GTK+                              : yes ($gtk_version)"
+else
+	echo "GTK+                              : no"
+fi
 if test "$VTE_ABI" = ""; then
 	vte_version=""
 else

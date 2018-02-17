@@ -1,3 +1,21 @@
+2018-02-17  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.win32: Updated.
+
+	* mlimgloader/Makefile.in: LIBS2_sdl2_gdiplus is added.
+
+	* mlconfig/Makefile.in: bindir=@bindir@ is added.
+
+	* mlterm-menu/Makefile.in: Typo is fixed.
+
+	* sdl2/ui.h: <SDL.h> => <SDL2/SDL.h> (for inputmethod/*)
+
+	* configure.in:
+	  - PKG_PATH_TOOL(pkg-config) => PKG_CHECK_TOOL(pkg-config)
+	    (This makes it unnecessary to specify an absolute path.)
+	  - "tr -d '\r'" is removed.
+	  - MLIMGLOADER_LIBS=gdiplus if $have_gdiplus = "yes" but $gui != "win32"
+
 2018-02-16  Araki Ken  <arakiken@users.sf.net>
 
 	* libptyssh/vt_pty_ssh.c, vt_pty.h: vt_pty_ssh_set_pty_read_trigger()

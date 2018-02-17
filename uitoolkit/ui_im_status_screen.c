@@ -4,7 +4,7 @@
 
 #ifdef USE_IM_PLUGIN
 
-#if 0
+#ifdef USE_SDL2
 #define USE_STATUS_LINE
 #endif
 

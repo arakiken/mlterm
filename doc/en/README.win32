@@ -9,13 +9,15 @@ Memo about WIN32 native GUI.
             + Fribidi 0.19.2(win32 native)
 
 * Build
-  (CC="i686-pc-mingw32-gcc") ./configure (--enable-ssh2) (--with-gui=win32) (--config-cache) \
+  (PKG_CONFIG=i686-w64-mingw32-pkg-config CC=i686-pc-mingw32-gcc) ./configure \
+      (--enable-ssh2) (--with-gui=win32) (--config-cache) (--prefix=) \
       (--with-libintl-prefix=[GTK+(win32) installed directory]) \
       (--with-libiconv-prefix=[GTK+(win32) installed directory])
   make
+  (DESTDIR=/foo/bar) make install
 
-* Install
-  Copy these files to a directory where you want to install mlterm.
+  If 'make install' fails, copy these files to a directory where you want to
+  install mlterm.
   baselib/src/.libs/*.dll
   encodefilter/src/.libs/*.dll
   encodefilter/module/.libs/*.dll
