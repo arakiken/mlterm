@@ -8,13 +8,14 @@
 
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>
-#include <pobl/bl_str.h>  /* strdup */
+#include <pobl/bl_str.h>  /* strdup/bl_compare_str */
 
 #include <mef/ef_utf8_parser.h>
 
 #include "../ui_window.h"
 #include "../ui_picture.h"
 #include "../ui_imagelib.h"
+#include "../ui_screen.h" /* update_ime_text */
 
 #ifndef USE_WIN32API
 #include <sys/select.h>
@@ -45,6 +46,7 @@ static int pty_event_queued;
 static Uint32 vsync_interval_msec;
 static Uint32 next_vsync_msec;
 static ef_parser_t *utf8_parser;
+static u_char *cur_preedit_text;
 
 /* --- static functions --- */
 
@@ -86,6 +88,46 @@ static ui_window_t *search_inputtable_window(ui_window_t *candidate, ui_window_t
   }
 
   return candidate;
+}
+
+static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text) {
+  vt_term_t *term;
+
+  if (!(uiwindow = search_focused_window(uiwindow)) || !uiwindow->inputtable) {
+    return;
+  }
+  term = ((ui_screen_t*)uiwindow)->term;
+
+  if (cur_preedit_text) {
+    vt_term_set_config(term, "use_local_echo", "false");
+  }
+
+  (*utf8_parser->init)(utf8_parser);
+
+  if (*preedit_text == '\0') {
+    free(cur_preedit_text);
+    cur_preedit_text = NULL;
+  } else {
+    u_char buf[128];
+    size_t len;
+
+    if (bl_compare_str(preedit_text, cur_preedit_text) == 0) {
+      return;
+    }
+
+    vt_term_set_config(term, "use_local_echo", "true");
+
+    (*utf8_parser->set_str)(utf8_parser, preedit_text, strlen(preedit_text));
+    while (!utf8_parser->is_eos &&
+           (len = vt_term_convert_to(term, buf, sizeof(buf), utf8_parser)) > 0) {
+      vt_term_preedit(term, buf, len);
+    }
+
+    free(cur_preedit_text);
+    cur_preedit_text = strdup(preedit_text);
+  }
+
+  ui_window_update(uiwindow, 3); /* UPDATE_SCREEN|UPDATE_CURSOR */
 }
 
 /*
@@ -499,7 +541,6 @@ static void poll_event(void) {
   SDL_Event ev;
   XEvent xev;
   ui_display_t *disp;
-  static int is_editing;
 
   if (!SDL_PollEvent(&ev)) {
     Uint32 spent_time = 0;
@@ -573,7 +614,7 @@ static void poll_event(void) {
     xev.xkey.parser = NULL;
     xev.xkey.state = get_mod_state(ev.key.keysym.mod);
 
-    if (!is_editing &&
+    if (!cur_preedit_text &&
         (xev.xkey.ksym < 0x20 || xev.xkey.ksym >= 0x7f || xev.xkey.state == ControlMask)) {
       ui_window_receive_event(get_display(ev.key.windowID)->roots[0], &xev);
     }
@@ -582,7 +623,10 @@ static void poll_event(void) {
 
   case SDL_TEXTINPUT:
     {
-      is_editing = 0;
+      ui_window_t *win = get_display(ev.text.windowID)->roots[0];
+
+      update_ime_text(win, "");
+
       xev.xkey.type = KeyPress;
       xev.xkey.time = ev.text.timestamp;
       if (strlen(ev.text.text) == 1) {
@@ -596,7 +640,7 @@ static void poll_event(void) {
       xev.xkey.parser = utf8_parser;
       xev.xkey.state = get_mod_state(SDL_GetModState());
 
-      ui_window_receive_event(get_display(ev.text.windowID)->roots[0], &xev);
+      ui_window_receive_event(win, &xev);
     }
 #ifdef DEBUG
     bl_debug_printf("SDL_TEXTINPUT event: %s(%x...)\n", ev.text.text, ev.text.text[0]);
@@ -606,7 +650,7 @@ static void poll_event(void) {
 
   case SDL_TEXTEDITING:
     if (strlen(ev.edit.text) > 0) {
-      is_editing = 1;
+      update_ime_text(get_display(ev.edit.windowID)->roots[0], ev.edit.text);
     }
 #ifdef DEBUG
     bl_debug_printf("SDL_TEXTEDITING event: %s(%x...)\n", ev.edit.text, ev.edit.text[0]);
@@ -709,8 +753,8 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
   void *p;
   struct rgb_info rgbinfo = {0, 0, 0, 16, 8, 0};
 
-  if (!utf8_parser) {
-    utf8_parser = ef_utf8_parser_new(); /* XXX leaked */
+  if (!utf8_parser && !(utf8_parser = ef_utf8_parser_new())) {
+    return NULL;
   }
 
   if (!(disp = calloc(1, sizeof(ui_display_t) + sizeof(Display)))) {
@@ -767,6 +811,13 @@ void ui_display_close(ui_display_t *disp) {
       if (--num_displays == 0) {
         free(displays);
         displays = NULL;
+
+        free(cur_preedit_text);
+        cur_preedit_text = NULL;
+
+        (*utf8_parser->delete)(utf8_parser);
+        utf8_parser = NULL;
+
         SDL_Quit();
       } else {
         displays[count] = displays[num_displays];

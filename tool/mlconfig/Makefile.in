@@ -41,7 +41,7 @@ LIBS2_sdl2 = $(LPOBL)
 
 # mlconfig is statically linked with libpobl.
 # Then it works if installed libpobl.dll is compiled with USE_WIN32API or not.
-LIBS2_win32 = -mwindows ${top_builddir}/kllib/src/.libs/libpobl.a
+LIBS2_win32 = -mwindows ${top_builddir}/baselib/src/.libs/libpobl.a
 
 LIBS2_quartz = $(LPOBL)
 

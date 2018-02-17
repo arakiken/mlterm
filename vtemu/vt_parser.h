@@ -369,7 +369,7 @@ int vt_parser_write_loopback(vt_parser_t *vt_parser, const u_char *buf, size_t l
 /* Must be called in visual context. */
 int vt_parser_show_message(vt_parser_t *vt_parser, char *msg);
 
-#if defined(__ANDROID__) || defined(__APPLE__)
+#if 1 /* defined(__ANDROID__) || defined(__APPLE__) || defined(USE_SDL2) */
 /* Must be called in visual context. */
 int vt_parser_preedit(vt_parser_t *vt_parser, const u_char *buf, size_t len);
 #endif
