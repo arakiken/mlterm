@@ -1003,12 +1003,14 @@ registobmp)
 	else
 		PKG_CHECK_MODULES(SDLTTF, SDL2_ttf, have_sdlttf=yes, have_sdlttf=no)
 		if test "$have_sdlttf" = "yes" ; then
-			AC_CHECK_PROG(sdl2_config,sdl2-config,yes)
-			if test "$sdl2_config" = "yes" ; then
-				SDL_CFLAGS=`sdl2-config --cflags`
-				SDL_LIBS=`sdl2-config --libs`
+			if test "$have_sdl2" = "yes"; then
+				SDL_CFLAGS=$SDL2_CFLAGS
+				SDL_LIBS=$SDL2_LIBS
 			else
-				continue
+				PKG_CHECK_MODULES(SDL, sdl2, have_sdl2=yes, have_sdl2=no)
+				if test "$have_sdl2" != "yes" ; then
+					continue
+				fi
 			fi
 		else
 			continue

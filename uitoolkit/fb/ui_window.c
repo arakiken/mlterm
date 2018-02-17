@@ -1909,6 +1909,19 @@ size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parse
     return 0;
   }
 #else
+#ifdef USE_SDL2
+  if (event->str) {
+    size_t len = strlen(event->str);
+    if (len <= seq_len) {
+      strncpy(seq, event->str, len);
+      *parser = event->parser;
+      *keysym = event->ksym;
+    }
+
+    return len;
+  }
+#endif
+
   ch = event->ksym;
 
 #ifdef __ANDROID__
@@ -2292,7 +2305,8 @@ void ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global
   *global_x = x + win->x;
   *global_y = y + win->y;
 
-#if defined(ROTATABLE_DISPLAY) && !defined(MANAGE_ROOT_WINDOWS_BY_MYSELF) /* == USE_WAYLAND */
+#if defined(ROTATABLE_DISPLAY) && !defined(MANAGE_ROOT_WINDOWS_BY_MYSELF)
+  /* USE_WAYLAND|USE_SDL2 */
   ui_display_logical_to_physical_coordinates(win->disp, global_x, global_y);
 #endif
 }

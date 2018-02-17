@@ -1,3 +1,19 @@
+2018-02-18  Araki Ken  <arakiken@users.sf.net>
+
+	* README, doc/{ja,en}/README.win32: Updated.
+
+	* sdl2/ui_display.c:
+	  - XKeyEvent::str and XKeyEvent::parser are set in poll_event().
+	  - ui_display_logical_to_physical_coordinates() applies the position
+	    of SDL_Window.
+
+	* sdl2/ui_window.c:
+	  ui_window_get_str() processes XKeyEvent::str and XKeyEvent::parser.
+
+	* sdl2/ui.h: str and parser are added to XKeyEvent.
+
+	* im_fcitx.c: ui_im_status_screen is used on sdl2.
+
 2018-02-17  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.win32: Updated.

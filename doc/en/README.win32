@@ -3,9 +3,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 Memo about WIN32 native GUI.
 
 * Tested environments.
-  Windows 7 + MinGW 5.1.4 or MSYS 1.0.10(MSYS-DTK 1.0.1) or MSYS2 or Cygwin 2.8.0
-            + libssh2 1.4.3(win32 native)
-            + GTK+ 2.12.9(win32 native)
+  Windows 8 + MSYS2 2.7.0 or Cygwin 2.10.0
+            + libssh2 1.8.0(win32 native)
             + Fribidi 0.19.2(win32 native)
 
 * Build

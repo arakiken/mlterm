@@ -10,6 +10,8 @@
 #include <pobl/bl_mem.h>
 #include <pobl/bl_str.h>  /* strdup */
 
+#include <mef/ef_utf8_parser.h>
+
 #include "../ui_window.h"
 #include "../ui_picture.h"
 #include "../ui_imagelib.h"
@@ -42,6 +44,7 @@ static Uint32 pty_event_type;
 static int pty_event_queued;
 static Uint32 vsync_interval_msec;
 static Uint32 next_vsync_msec;
+static ef_parser_t *utf8_parser;
 
 /* --- static functions --- */
 
@@ -476,10 +479,27 @@ static void receive_mouse_event(ui_display_t *disp, XButtonEvent *xev) {
   ui_window_receive_event(win, xev);
 }
 
+static u_int get_mod_state(SDL_Keymod mod) {
+  u_int state = 0;
+
+  if (mod & KMOD_CTRL) {
+    state |= ControlMask;
+  }
+  if (mod & KMOD_SHIFT) {
+    state |= ShiftMask;
+  }
+  if (mod & KMOD_ALT) {
+    state |= Mod1Mask;
+  }
+
+  return state;
+}
+
 static void poll_event(void) {
   SDL_Event ev;
   XEvent xev;
   ui_display_t *disp;
+  static int is_editing;
 
   if (!SDL_PollEvent(&ev)) {
     Uint32 spent_time = 0;
@@ -549,21 +569,12 @@ static void poll_event(void) {
     xev.xkey.time = ev.key.timestamp;
     xev.xkey.ksym = ev.key.keysym.sym;
     xev.xkey.keycode = ev.key.keysym.scancode;
+    xev.xkey.str = NULL;
+    xev.xkey.parser = NULL;
+    xev.xkey.state = get_mod_state(ev.key.keysym.mod);
 
-    xev.xkey.state = 0;
-    if (ev.key.keysym.mod) {
-      if (ev.key.keysym.mod & KMOD_CTRL) {
-        xev.xkey.state |= ControlMask;
-      }
-      if (ev.key.keysym.mod & KMOD_SHIFT) {
-        xev.xkey.state |= ShiftMask;
-      }
-      if (ev.key.keysym.mod & KMOD_ALT) {
-        xev.xkey.state |= Mod1Mask;
-      }
-    }
-
-    if (xev.xkey.ksym < 0x20 || xev.xkey.ksym >= 0x7f || xev.xkey.state == ControlMask) {
+    if (!is_editing &&
+        (xev.xkey.ksym < 0x20 || xev.xkey.ksym >= 0x7f || xev.xkey.state == ControlMask)) {
       ui_window_receive_event(get_display(ev.key.windowID)->roots[0], &xev);
     }
 
@@ -571,33 +582,34 @@ static void poll_event(void) {
 
   case SDL_TEXTINPUT:
     {
-      SDL_Keymod mod;
-
+      is_editing = 0;
       xev.xkey.type = KeyPress;
       xev.xkey.time = ev.text.timestamp;
-      xev.xkey.ksym = ev.text.text[0];
-      xev.xkey.keycode = ev.text.text[0];
-
-      if ((mod = SDL_GetModState())) {
-        if (mod & KMOD_CTRL) {
-          xev.xkey.state |= ControlMask;
-        }
-        if (mod & KMOD_SHIFT) {
-          xev.xkey.state |= ShiftMask;
-        }
-        if (mod & KMOD_ALT) {
-          xev.xkey.state |= Mod1Mask;
-        }
+      if (strlen(ev.text.text) == 1) {
+        xev.xkey.ksym = ev.text.text[0];
+        xev.xkey.keycode = ev.text.text[0];
+      } else {
+        xev.xkey.ksym = 0;
+        xev.xkey.keycode = 0;
       }
+      xev.xkey.str = ev.text.text;
+      xev.xkey.parser = utf8_parser;
+      xev.xkey.state = get_mod_state(SDL_GetModState());
 
       ui_window_receive_event(get_display(ev.text.windowID)->roots[0], &xev);
     }
+#ifdef DEBUG
+    bl_debug_printf("SDL_TEXTINPUT event: %s(%x...)\n", ev.text.text, ev.text.text[0]);
+#endif
 
     break;
 
   case SDL_TEXTEDITING:
+    if (strlen(ev.edit.text) > 0) {
+      is_editing = 1;
+    }
 #ifdef DEBUG
-    bl_debug_printf("SDL_TEXTEDITING event: %s\n", ev.edit.text);
+    bl_debug_printf("SDL_TEXTEDITING event: %s(%x...)\n", ev.edit.text, ev.edit.text[0]);
 #endif
     break;
 
@@ -618,7 +630,7 @@ static void poll_event(void) {
     } else if (ev.button.button == SDL_BUTTON_RIGHT) {
       xev.xbutton.button = 3;
     }
-    xev.xbutton.state = 0; /* XXX */
+    xev.xbutton.state = get_mod_state(SDL_GetModState());
 
     xev.xbutton.x = ev.button.x;
     xev.xbutton.y = ev.button.y;
@@ -697,6 +709,10 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
   void *p;
   struct rgb_info rgbinfo = {0, 0, 0, 16, 8, 0};
 
+  if (!utf8_parser) {
+    utf8_parser = ef_utf8_parser_new(); /* XXX leaked */
+  }
+
   if (!(disp = calloc(1, sizeof(ui_display_t) + sizeof(Display)))) {
     return NULL;
   }
@@ -716,6 +732,8 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
       return NULL;
     }
+
+    SDL_StartTextInput();
 
     pty_event_type = SDL_RegisterEvents(1);
 
@@ -1086,6 +1104,9 @@ void ui_display_send_text_selection(ui_display_t *disp, XSelectionRequestEvent *
 }
 
 void ui_display_logical_to_physical_coordinates(ui_display_t *disp, int *x, int *y) {
+  int global_x;
+  int global_y;
+
   if (rotate_display) {
     int tmp = *y;
     if (rotate_display > 0) {
@@ -1096,6 +1117,11 @@ void ui_display_logical_to_physical_coordinates(ui_display_t *disp, int *x, int 
       *x = tmp;
     }
   }
+
+  SDL_GetWindowPosition(disp->display->window, &global_x, &global_y);
+
+  *x += global_x;
+  *y += global_y;
 }
 
 #ifdef USE_WIN32API

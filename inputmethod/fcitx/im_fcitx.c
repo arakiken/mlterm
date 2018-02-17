@@ -22,7 +22,7 @@
  * fcitx doesn't support wayland, so the positioning of gtk-based candidate window of fcitx
  * doesn't work correctly on wayland.
  */
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND) || defined(USE_SDL2)
 #define KeyPress 2 /* see uitoolkit/fb/ui_display.h */
 #define USE_IM_CANDIDATE_SCREEN
 #endif
