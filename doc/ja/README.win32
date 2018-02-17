@@ -3,27 +3,19 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 WIN32 native GUI 対応に関するメモ
 
 * テスト環境
-  Windows 7 + MinGW 5.1.4 or MSYS 1.0.10(MSYS-DTK 1.0.1) or MSYS2 or Cygwin 2.8.0
-            + libssh2 1.4.3(win32 native)
-            + GTK+ 2.12.9(win32 native)
+  Windows 8 + MSYS2 2.7.0 or Cygwin 2.10.0
+            + libssh2 1.8.0(win32 native)
             + Fribidi 0.19.2(win32 native)
 
 * ビルド
-  (CC="i686-pc-mingw32-gcc") ./configure (--enable-ssh2) (--with-gui=win32) (--config-cache) \
+  (PKG_CONFIG=i686-w64-mingw32-pkg-config CC=i686-pc-mingw32-gcc) ./configure \
+      (--enable-ssh2) (--with-gui=win32) (--config-cache) (--prefix=) \
       (--with-libintl-prefix=[GTK+(win32) installed directory]) \
       (--with-libiconv-prefix=[GTK+(win32) installed directory])
   make
+  (DESTDIR=/foo/bar) make install
 
-* configure オプション
-  --with-gui=(xlib|win32)
-  GUI ライブラリとして xlib の API を使用するか win32 の API を使用
-  するかを指定します。
-  このオプションが指定されない場合、MSYS 環境では win32 と判断し、
-  CYGWIN 環境では X がインストールされていれば xlib と、X がインス
-  トールされていなければ win32 と判断します。
-
-* インストール
-  インストールしたいディレクトリに、
+  もし、make install が失敗する場合は、インストールしたいディレクトリに、
   baselib/src/.libs/*.dll
   encodefilter/src/.libs/*.dll
   encodefilter/module/.libs/*.dll
@@ -36,6 +28,15 @@ WIN32 native GUI 対応に関するメモ
   tool/mlimgloader/.libs/mlimgloader.exe
   をコピーしてください。
 
+* configure オプション
+  --with-gui=(xlib|win32)
+  GUI ライブラリとして xlib の API を使用するか win32 の API を使用
+  するかを指定します。
+  このオプションが指定されない場合、MSYS 環境では win32 と判断し、
+  CYGWIN 環境では X がインストールされていれば xlib と、X がインス
+  トールされていなければ win32 と判断します。
+
+* インストール
   o MinGW or Cygwin(gcc -mno-cygwin, i686-pc-mingw32-gcc など) で --enable-ssh2
     なしでビルドした場合は、win32/plink/plink.exe もコピーしてください。
     libssh2 を使用しない場合、リモートホストへの接続には plink.exe を使用します。

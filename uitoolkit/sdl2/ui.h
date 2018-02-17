@@ -28,6 +28,8 @@ typedef struct {
   unsigned int state;
   KeySym ksym;
   unsigned int keycode;
+  unsigned char *str;
+  void *parser;
 
 } XKeyEvent;
 
