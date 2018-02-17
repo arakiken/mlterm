@@ -3,6 +3,7 @@ top_srcdir = @top_srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 datadir = @datadir@
+bindir = @bindir@
 libdir = @libdir@
 libexecdir = @libexecdir@
 sysconfdir = @sysconfdir@
