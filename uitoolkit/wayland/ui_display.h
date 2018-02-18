@@ -51,6 +51,6 @@ u_char ui_display_get_char(KeySym ksym);
 
 void ui_display_set_title(ui_display_t *disp, const u_char *name);
 
-void ui_display_set_maximized(ui_display_t *disp);
+void ui_display_set_maximized(ui_display_t *disp, int flag);
 
 #endif

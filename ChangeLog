@@ -1,5 +1,20 @@
 2018-02-18  Araki Ken  <arakiken@users.sf.net>
 
+	* sdl2/ui_display.[ch]:
+	  - The timing of calling present_displays() is fixed.
+	  - SDL_WINDOWEVENT_FOCUS_{GAINED|LOST} events are processed.
+	  - ui_display_resize(), ui_display_move(), ui_display_set_maximized()
+	    and ui_display_set_title() are implemented.
+
+	* wayland/ui_display.[ch]:
+	  - 'int flag' is added to arguments of ui_display_set_maximized().
+
+	* sdl2/ui_window.c:
+	  #if defined(USE_WAYLAND) || defined(USE_SDL2)
+	  => #ifndef MANAGE_ROOT_WINDOWS_BY_MYSELF
+
+2018-02-18  Araki Ken  <arakiken@users.sf.net>
+
 	* sdl2/ui_display.c: SDL_TEXTEDITING event is processed, and preediting
 	  text is shown.
 
