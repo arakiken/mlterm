@@ -541,43 +541,33 @@ static void poll_event(void) {
   SDL_Event ev;
   XEvent xev;
   ui_display_t *disp;
+  Uint32 spent_time = 0;
+  Uint32 now = SDL_GetTicks();
+  Uint32 skipped_msec;
 
-  if (!SDL_PollEvent(&ev)) {
-    Uint32 spent_time = 0;
-    Uint32 now;
-    Uint32 orig_now;
-
-    do {
-      orig_now = now = SDL_GetTicks();
-      if (now > next_vsync_msec) {
-        while (now > (next_vsync_msec += vsync_interval_msec));
-      }
+  do {
+    if (now > next_vsync_msec) {
+      skipped_msec = now - next_vsync_msec;
+      while (now > (next_vsync_msec += vsync_interval_msec));
+    } else {
+      skipped_msec = 0;
 #if 0
-      else if (now + vsync_interval_msec < next_vsync_msec) {
+      if (now + vsync_interval_msec < next_vsync_msec) {
         /* SDL_GetTicks() is reset. */
         next_vsync_msec = now;
       }
 #endif
+    }
 
-      if (next_vsync_msec - now <= START_PRESENT_MSEC) {
-        present_displays();
-        now = SDL_GetTicks();
-        if (now + START_PRESENT_MSEC > next_vsync_msec) {
-          while (now + START_PRESENT_MSEC > (next_vsync_msec += vsync_interval_msec));
-        }
-#if 0
-        else if (now + vsync_interval_msec < next_vsync_msec) {
-          /* SDL_GetTicks() is reset. */
-          next_vsync_msec = now;
-        }
-#endif
-      }
-
+    if (next_vsync_msec - now > START_PRESENT_MSEC) {
       if (SDL_WaitEventTimeout(&ev, next_vsync_msec - now - START_PRESENT_MSEC)) {
+        if (skipped_msec >= vsync_interval_msec) {
+          present_displays();
+        }
         break;
       }
 
-      if ((spent_time += (next_vsync_msec - orig_now - START_PRESENT_MSEC)) >= 100) {
+      if ((spent_time += (skipped_msec + next_vsync_msec - now - START_PRESENT_MSEC)) >= 100) {
         u_int count;
 
         for (count = 0; count < num_displays; count++) {
@@ -586,8 +576,11 @@ static void poll_event(void) {
 
         spent_time = 0;
       }
-    } while (1);
-  }
+    }
+
+    now = SDL_GetTicks();
+    present_displays();
+  } while (1);
 
   switch(ev.type) {
   case SDL_QUIT:
@@ -733,6 +726,19 @@ static void poll_event(void) {
 
         init_display(disp->display, NULL);
         ui_window_resize_with_margin(disp->roots[0], disp->width, disp->height, NOTIFY_TO_MYSELF);
+      }
+    } else if (ev.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+      ui_window_t *win;
+
+      if ((win = search_inputtable_window(NULL, disp->roots[0]))) {
+        ui_window_set_input_focus(win);
+      }
+    } else if (ev.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+      ui_window_t *win;
+
+      if ((win = search_focused_window(disp->roots[0]))) {
+        xev.type = FocusOut;
+        ui_window_receive_event(win, &xev);
       }
     }
     break;
@@ -992,10 +998,16 @@ XID ui_display_get_group_leader(ui_display_t *disp) {
 void ui_display_rotate(int rotate) { rotate_display = rotate; }
 
 int ui_display_resize(ui_display_t *disp, u_int width, u_int height) {
-  return 0;
+  SDL_SetWindowSize(disp->display->window, width, height);
+
+  return 1;
 }
 
-int ui_display_move(ui_display_t *disp, int x, int y) { return 0; }
+int ui_display_move(ui_display_t *disp, int x, int y) {
+  SDL_SetWindowPosition(disp->display->window, x, y);
+
+  return 1;
+}
 
 u_long ui_display_get_pixel(ui_display_t *disp, int x, int y) {
   u_char *fb;
@@ -1173,6 +1185,18 @@ void ui_display_logical_to_physical_coordinates(ui_display_t *disp, int *x, int 
 
   *x += global_x;
   *y += global_y;
+}
+
+void ui_display_set_maximized(ui_display_t *disp, int flag) {
+  if (flag) {
+    SDL_MaximizeWindow(disp->display->window);
+  } else {
+    SDL_RestoreWindow(disp->display->window);
+  }
+}
+
+void ui_display_set_title(ui_display_t *disp, const u_char *name) {
+  SDL_SetWindowTitle(disp->display->window, name);
 }
 
 #ifdef USE_WIN32API

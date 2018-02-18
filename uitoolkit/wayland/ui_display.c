@@ -2318,9 +2318,11 @@ void ui_display_logical_to_physical_coordinates(ui_display_t *disp, int *x, int 
 #endif
 }
 
-void ui_display_set_maximized(ui_display_t *disp) {
+void ui_display_set_maximized(ui_display_t *disp, int flag) {
 #ifndef COMPAT_LIBVTE
-  wl_shell_surface_set_maximized(disp->display->shell_surface, disp->display->wlserv->output);
+  if (flag) {
+    wl_shell_surface_set_maximized(disp->display->shell_surface, disp->display->wlserv->output);
+  }
 #endif
 }
 

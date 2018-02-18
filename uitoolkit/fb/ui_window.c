@@ -111,7 +111,7 @@ static int copy_blended_pixel(Display *display, u_char *dst, u_char **bitmap, u_
     b2 = PIXEL_BLUE(bg, display->rgbinfo) & 0xff;
 
     pixel =
-#if defined(USE_WAYLAND) || defined(USE_SDL2)
+#ifndef MANAGE_ROOT_WINDOWS_BY_MYSELF
       /*
        * f: fg color
        * b: bg color
@@ -1043,7 +1043,7 @@ static int fix_rl_boundary(ui_window_t *win, int boundary_start, int *boundary_e
 static void reset_input_focus(ui_window_t *win) {
   u_int count;
 
-#if defined(USE_WAYLAND) || defined(USE_SDL2)
+#ifndef MANAGE_ROOT_WINDOWS_BY_MYSELF
   /* 
    * Switching input method engines invokes unfocus and focus. In this case,
    * it is necessary to search a window which was focused most recently.
@@ -1141,7 +1141,7 @@ int ui_window_init(ui_window_t *win, u_int width, u_int height, u_int min_width,
   /* If wall picture is set, scrollable will be 0. */
   win->is_scrollable = 1;
 
-#ifndef USE_WAYLAND
+#ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
   win->is_focused = 1;
 #endif
   win->inputtable = inputtable;
@@ -1339,7 +1339,7 @@ int ui_window_add_child(ui_window_t *win, ui_window_t *child, int x, int y, int 
   child->x = x + win->hmargin;
   child->y = y + win->vmargin;
 
-#if defined(USE_WAYLAND) || defined(USE_SDL2)
+#ifndef MANAGE_ROOT_WINDOWS_BY_MYSELF
   /*
    * The default value of is_focused is 0 on wayland, while 1 on framebuffer.
    * (see ui_window_init())
@@ -1502,9 +1502,7 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
 
 #ifndef MANAGE_ROOT_WINDOWS_BY_MYSELF
   if (win->parent == NULL) {
-#if defined(USE_WAYLAND) || defined(USE_SDL2)
     ui_display_resize(win->disp, width + win->hmargin * 2, height + win->vmargin * 2);
-#endif
   } else if (flag & NOTIFY_TO_PARENT) {
     return ui_window_resize(win->parent, win->parent->width + width - win->width ,
                             win->parent->height + height - win->height,
@@ -1555,9 +1553,11 @@ int ui_window_resize_with_margin(ui_window_t *win, u_int width, u_int height,
 }
 
 void ui_window_set_maximize_flag(ui_window_t *win, ui_maximize_flag_t flag) {
-#ifdef USE_WAYLAND
+#ifndef MANAGE_ROOT_WINDOWS_BY_MYSELF
   if (flag == MAXIMIZE_FULL) {
-    ui_display_set_maximized(win->disp);
+    ui_display_set_maximized(win->disp, 1);
+  } else if (flag == MAXIMIZE_RESTORE) {
+    ui_display_set_maximized(win->disp, 0);
   }
 #endif
 }
@@ -1587,11 +1587,7 @@ int ui_window_move(ui_window_t *win, int x, int y) {
      * but it causes unexpected result because MANAGE_ROOT_WINDOWS_BY_MYSELF means that
      * win->x and win->y of root windows are always 0.
      */
-#if defined(USE_WAYLAND) || defined(USE_SDL2)
     return ui_display_move(win->disp, x, y);
-#else
-    return 0;
-#endif
   }
 #endif
 
@@ -1884,7 +1880,7 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
       ui_window_set_input_focus(win);
     }
   }
-#if defined(USE_WAYLAND) || defined(USE_SDL2)
+#ifndef MANAGE_ROOT_WINDOWS_BY_MYSELF
   else if (event->type == FocusOut) {
     reset_input_focus(win);
   }
@@ -2262,7 +2258,7 @@ void ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req
 }
 
 void ui_set_window_name(ui_window_t *win, u_char *name) {
-#ifdef USE_WAYLAND
+#ifndef MANAGE_ROOT_WINDOWS_BY_MYSELF
   if (name == NULL) {
     name = win->app_name;
   }

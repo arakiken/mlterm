@@ -45,6 +45,10 @@ void ui_display_request_text_selection(ui_display_t *disp);
 void ui_display_send_text_selection(ui_display_t *disp, XSelectionRequestEvent *ev,
                                     u_char *sel_data, size_t sel_len);
 
+void ui_display_set_title(ui_display_t *disp, const u_char *name);
+
+void ui_display_set_maximized(ui_display_t *disp, int flag);
+
 #ifdef USE_BG_TEXTURE
 void ui_display_set_bg_color(ui_display_t *disp, u_long bg);
 

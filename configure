@@ -21853,7 +21853,7 @@ fi
 		OT_LAYOUT_LIBS="$HB_LIBS"
 		OT_LAYOUT_OBJ=hb.o
 		if test "$gui" = "win32" ; then
-			 OT_LAYOUT_LIBS="$OT_LAYOUT_LIBS -lfreetype"
+			OT_LAYOUT_LIBS="$OT_LAYOUT_LIBS -lfreetype"
 		fi
 	else
 		# XXX
