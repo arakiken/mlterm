@@ -21378,9 +21378,11 @@ else
 $as_echo "yes" >&6; }
 	have_fc=yes
 fi
-	FONTCONFIG_CFLAGS="$FONTCONFIG_CFLAGS -DUSE_FONTCONFIG"
+	if test "$have_fc" = "yes"; then
+		FONTCONFIG_CFLAGS="$FONTCONFIG_CFLAGS -DUSE_FONTCONFIG"
 
 
+	fi
 fi
 
 # Check whether --enable-anti_alias was given.

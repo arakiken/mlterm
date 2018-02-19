@@ -963,6 +963,8 @@ int ui_display_own_selection(ui_display_t *disp, ui_window_t *win) {
     displays[count]->selection_owner = win;
   }
 
+  (*win->utf_selection_requested)(win, NULL, 0);
+
   return 1;
 }
 
@@ -1148,6 +1150,16 @@ void ui_display_copy_lines(ui_display_t *disp, int src_x, int src_y, int dst_x, 
 }
 
 void ui_display_request_text_selection(ui_display_t *disp) {
+  if (SDL_HasClipboardText() && disp->roots[0]->utf_selection_notified) {
+    char *text;
+    if ((text = SDL_GetClipboardText())) {
+      (*disp->roots[0]->utf_selection_notified)(disp->roots[0], text, strlen(text));
+      SDL_free(text);
+
+      return;
+    }
+  }
+
   if (disp->selection_owner) {
     XSelectionRequestEvent ev;
     ev.type = 0;
@@ -1163,6 +1175,14 @@ void ui_display_send_text_selection(ui_display_t *disp, XSelectionRequestEvent *
                                     u_char *sel_data, size_t sel_len) {
   if (ev && ev->target->utf_selection_notified) {
     (*ev->target->utf_selection_notified)(ev->target, sel_data, sel_len);
+  } else {
+    char *text;
+
+    if ((text = alloca(sel_len + 1))) {
+      memcpy(text, sel_data, sel_len);
+      text[sel_len] = '\0';
+      SDL_SetClipboardText(text);
+    }
   }
 }
 

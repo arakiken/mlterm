@@ -1,3 +1,10 @@
+2018-02-19  Araki Ken  <arakiken@users.sf.net>
+
+	* sdl2/ui_window.c, sdl2/ui_display.c: Copy&paste with the use of
+	  SDL_{Get|Set|Has}ClipboardText() is supported.
+
+	* configure.in: Minor fixes.
+
 2018-02-18  Araki Ken  <arakiken@users.sf.net>
 
 	* sdl2/ui_display.[ch]:
