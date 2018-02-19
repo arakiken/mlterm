@@ -2187,9 +2187,12 @@ void ui_set_use_clipboard_selection(int use_it) {}
 int ui_is_using_clipboard_selection(void) { return 0; }
 
 int ui_window_set_selection_owner(ui_window_t *win, Time time) {
+#ifndef USE_SDL2
   if (ui_window_is_selection_owner(win)) {
     /* Already owner */
-  } else {
+  } else
+#endif
+  {
     ui_display_own_selection(win->disp, win);
   }
 
@@ -2220,7 +2223,7 @@ int ui_window_xct_selection_request(ui_window_t *win, Time time) {
 int ui_window_utf_selection_request(ui_window_t *win, Time time) {
 #if defined(__ANDROID__)
   ui_display_request_text_selection();
-#elif defined(USE_WAYLAND)
+#elif defined(USE_WAYLAND) || defined(USE_SDL2)
   ui_display_request_text_selection(win->disp);
 #else
   if (win->disp->selection_owner && win->disp->selection_owner->utf_selection_requested) {
@@ -2240,7 +2243,7 @@ void ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req
                                    u_char *sel_data, size_t sel_len, Atom sel_type) {
 #if defined(__ANDROID__)
   ui_display_send_text_selection(sel_data, sel_len);
-#elif defined(USE_WAYLAND)
+#elif defined(USE_WAYLAND) || defined(USE_SDL2)
   ui_display_send_text_selection(win->disp, req_ev, sel_data, sel_len);
 #else
   if (req_ev) {
