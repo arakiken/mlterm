@@ -725,6 +725,7 @@ static void poll_event(void) {
         }
 
         init_display(disp->display, NULL);
+        disp->display->resizing = 0;
         ui_window_resize_with_margin(disp->roots[0], disp->width, disp->height, NOTIFY_TO_MYSELF);
       }
     } else if (ev.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
@@ -997,12 +998,31 @@ XID ui_display_get_group_leader(ui_display_t *disp) {
   }
 }
 
-void ui_display_rotate(int rotate) { rotate_display = rotate; }
+void ui_display_rotate(int rotate) {
+  if (num_displays > 0) {
+    bl_msg_printf("rotate_display option is not changeable.\n");
+
+    return;
+  }
+
+  rotate_display = rotate;
+}
 
 int ui_display_resize(ui_display_t *disp, u_int width, u_int height) {
-  SDL_SetWindowSize(disp->display->window, width, height);
+  if (width != disp->width || height != disp->height) {
+    if (rotate_display) {
+      u_int tmp = width;
+      width = height;
+      height = tmp;
+    }
 
-  return 1;
+    disp->display->resizing = 1;
+    SDL_SetWindowSize(disp->display->window, width, height);
+
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 int ui_display_move(ui_display_t *disp, int x, int y) {

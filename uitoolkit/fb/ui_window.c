@@ -1503,6 +1503,11 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
 #ifndef MANAGE_ROOT_WINDOWS_BY_MYSELF
   if (win->parent == NULL) {
     ui_display_resize(win->disp, width + win->hmargin * 2, height + win->vmargin * 2);
+#ifdef USE_SDL2
+    if (win->disp->display->resizing) {
+      return 1;
+    }
+#endif
   } else if (flag & NOTIFY_TO_PARENT) {
     return ui_window_resize(win->parent, win->parent->width + width - win->width ,
                             win->parent->height + height - win->height,

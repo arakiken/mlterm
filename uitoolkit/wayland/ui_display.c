@@ -2059,7 +2059,15 @@ XID ui_display_get_group_leader(ui_display_t *disp) {
   }
 }
 
-void ui_display_rotate(int rotate) { rotate_display = rotate; }
+void ui_display_rotate(int rotate) {
+  if (num_displays > 0) {
+    bl_msg_printf("rotate_display option is not changeable.\n");
+
+    return;
+  }
+
+  rotate_display = rotate;
+}
 
 /* Don't call this internally from ui_display.c. Call resize_display(..., 0) instead. */
 int ui_display_resize(ui_display_t *disp, u_int width, u_int height) {

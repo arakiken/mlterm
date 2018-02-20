@@ -1,3 +1,18 @@
+2018-02-20  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_display.c:
+	  ui_display_rotate() does nothing after a display is opened.
+
+	* sdl2/ui_display.c:
+	  - disp->display->resizing = 1 in ui_display_resize(), and
+	    disp->display->resizing = 0 in SDL_WINDOWEVENT_SIZE_CHANGED.
+	  - ui_display_rotate() does nothing after a display is opened.
+
+	* sdl2/ui_window.c: If win->disp->display->resizing is 1, ui_window_resize()
+	  does nothing.
+
+	* sdl2/ui.h: 'resizing' is added to Display.
+
 2018-02-19  Araki Ken  <arakiken@users.sf.net>
 
 	* sdl2/ui_window.c, sdl2/ui_display.c: Copy&paste with the use of
