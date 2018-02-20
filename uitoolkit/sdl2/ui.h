@@ -92,6 +92,7 @@ typedef struct {
   unsigned int height;
 
   int damaged;
+  int resizing;
 
   struct ui_display *parent;
 
