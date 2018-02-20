@@ -362,7 +362,7 @@ static void response_area_table(vt_pty_ptr_t pty, u_char *key, area_t *area_tabl
 }
 
 static inline int hit_area(area_t *areas, u_int num, u_int code) {
-  if (areas[0].min <= code && code <= areas[num - 1].max) {
+  if (num > 0 && areas[0].min <= code && code <= areas[num - 1].max) {
     u_int count;
 
     if (num == 1) {
