@@ -383,7 +383,9 @@ static int init_display(Display *display, char *app_name) {
   display->texture = SDL_CreateTexture(display->renderer, SDL_PIXELFORMAT_ARGB8888,
                                        SDL_TEXTUREACCESS_STREAMING,
                                        display->width, display->height);
+#ifdef USE_BG_TEXTURE
   SDL_SetTextureBlendMode(display->texture, SDL_BLENDMODE_BLEND);
+#endif
 
   SDL_LockTexture(display->texture, NULL, &display->fb,
                   &display->line_length);
@@ -474,7 +476,12 @@ static void present_displays(void) {
         SDL_RenderClear(display->renderer);
       }
 #endif
+
+#if 1
       SDL_RenderCopy(display->renderer, display->texture, NULL, NULL);
+#else
+      SDL_RenderCopyEx(display->renderer, display->texture, NULL, NULL, 20.0, NULL, SDL_FLIP_NONE);
+#endif
 
 #ifdef MEASURE_TIME
       msec[2] = SDL_GetTicks();
