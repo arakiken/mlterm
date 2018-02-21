@@ -555,7 +555,8 @@ static void poll_event(void) {
   do {
     if (now > next_vsync_msec) {
       skipped_msec = now - next_vsync_msec;
-      while (now > (next_vsync_msec += vsync_interval_msec));
+      next_vsync_msec += (((skipped_msec + vsync_interval_msec - 1) / vsync_interval_msec) *
+                          vsync_interval_msec);
     } else {
       skipped_msec = 0;
 #if 0
@@ -586,6 +587,10 @@ static void poll_event(void) {
     }
 
     now = SDL_GetTicks();
+
+    /* avoid to fall into busy loop in case present_displays does nothing. */
+    next_vsync_msec += vsync_interval_msec;
+
     present_displays();
   } while (1);
 
