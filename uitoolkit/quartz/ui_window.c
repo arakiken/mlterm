@@ -6,7 +6,6 @@
 #include <string.h> /* memset/memcpy */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>  /* realloc/free */
-#include <pobl/bl_util.h> /* K_MIN/K_MAX */
 
 #include "../ui_xic.h"
 #include "../ui_picture.h"

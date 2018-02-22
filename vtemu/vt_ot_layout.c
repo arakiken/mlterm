@@ -8,7 +8,7 @@
 #include <pobl/bl_dlfcn.h>
 #include <pobl/bl_mem.h>
 #include <pobl/bl_debug.h>
-#include <pobl/bl_util.h> /* K_MAX */
+#include <pobl/bl_util.h> /* BL_MAX */
 
 #include "vt_ctl_loader.h"
 
@@ -266,7 +266,7 @@ int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len) {
     void *p;
 
     if (!(p = realloc(state->num_chars_array,
-                      K_MAX(dst_pos + 1, src_len) * sizeof(*num_chars_array)))) {
+                      BL_MAX(dst_pos + 1, src_len) * sizeof(*num_chars_array)))) {
       return 0;
     }
 

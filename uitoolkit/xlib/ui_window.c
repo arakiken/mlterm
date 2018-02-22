@@ -15,7 +15,7 @@
 #include <X11/Xatom.h>
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>    /* realloc/free */
-#include <pobl/bl_util.h>   /* K_MAX */
+#include <pobl/bl_util.h>   /* BL_MAX */
 #include <pobl/bl_unistd.h> /* bl_usleep */
 #include <pobl/bl_locale.h> /* bl_get_codeset() */
 
@@ -2066,8 +2066,8 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
 
       /* Minimum character size is regarded as w5 ui.h10. */
       if ((ev.xexpose.width * ev.xexpose.height) / 4 >=
-          (K_MAX(event->xexpose.width, 5) * K_MAX(event->xexpose.height, 10) +
-           K_MAX(next_ev.xexpose.width, 5) * K_MAX(next_ev.xexpose.height, 10)) /
+          (BL_MAX(event->xexpose.width, 5) * BL_MAX(event->xexpose.height, 10) +
+           BL_MAX(next_ev.xexpose.width, 5) * BL_MAX(next_ev.xexpose.height, 10)) /
               3) {
 /* Redrawing area is increased over 33.3% by this combination. */
 

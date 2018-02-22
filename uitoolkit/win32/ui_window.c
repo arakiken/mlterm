@@ -6,7 +6,7 @@
 #include <string.h> /* memset/memcpy */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>  /* realloc/free */
-#include <pobl/bl_util.h> /* K_MIN/K_MAX */
+#include <pobl/bl_util.h> /* BL_MIN/BL_MAX */
 #include <pobl/bl_dialog.h>
 #include <mef/ef_codepoint_parser.h>
 #include <vt_char.h> /* UTF_MAX_SIZE */
@@ -2105,8 +2105,8 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
         min_height = total_min_height(win);
 
         if (width < min_width + win->hmargin * 2 || height < min_height + win->vmargin * 2) {
-          ui_window_resize(win, K_MAX(min_width + win->hmargin * 2, width) - win->hmargin * 2,
-                           K_MAX(min_height + win->vmargin * 2, height) - win->vmargin * 2,
+          ui_window_resize(win, BL_MAX(min_width + win->hmargin * 2, width) - win->hmargin * 2,
+                           BL_MAX(min_height + win->vmargin * 2, height) - win->vmargin * 2,
                            NOTIFY_TO_MYSELF);
         } else if (width != ACTUAL_WIDTH(win) || height != ACTUAL_HEIGHT(win)) {
           u_int width_surplus;

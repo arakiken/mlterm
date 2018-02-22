@@ -9,6 +9,8 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>
 #include <pobl/bl_str.h>  /* strdup/bl_compare_str */
+#include <pobl/bl_util.h> /* BL_SWAP */
+#include <pobl/bl_dialog.h>
 
 #include <mef/ef_utf8_parser.h>
 
@@ -49,6 +51,50 @@ static ef_parser_t *utf8_parser;
 static u_char *cur_preedit_text;
 
 /* --- static functions --- */
+
+static int dialog_cb(bl_dialog_style_t style, const char *msg) {
+  if (style == BL_DIALOG_OKCANCEL) {
+    const SDL_MessageBoxButtonData buttons[] = {
+      { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "OK" },
+      { SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "Cancel" }
+    };
+    const SDL_MessageBoxColorScheme color_scheme = {
+      {
+        /* [SDL_MESSAGEBOX_COLOR_BACKGROUND] */
+        { 255,   0,   0 },
+        /* [SDL_MESSAGEBOX_COLOR_TEXT] */
+        {   0, 255,   0 },
+        /* [SDL_MESSAGEBOX_COLOR_BUTTON_BORDER] */
+        { 255, 255,   0 },
+        /* [SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND] */
+        {   0,   0, 255 },
+        /* [SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED] */
+        { 255,   0, 255 }
+      }
+    };
+    SDL_MessageBoxData data = {
+      SDL_MESSAGEBOX_INFORMATION,
+      NULL, "Dialog", NULL, SDL_arraysize(buttons), buttons, &color_scheme,
+    };
+    int buttonid;
+
+    data.message = msg;
+
+    if (SDL_ShowMessageBox(&data, &buttonid) == 0) {
+      if (buttonid == 0) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }
+  } else if (style == BL_DIALOG_ALERT) {
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Alert", msg, NULL);
+
+    return 1;
+  }
+
+  return -1;
+}
 
 static ui_window_t *search_focused_window(ui_window_t *win) {
   u_int count;
@@ -237,6 +283,11 @@ static int check_resize(u_int old_width, u_int old_height, int32_t *new_width, i
                         u_int min_width, u_int min_height, u_int width_inc, u_int height_inc,
                         int check_inc) {
   u_int diff;
+
+  if (rotate_display) {
+    BL_SWAP(unsigned int, min_width, min_height);
+    BL_SWAP(unsigned int, width_inc, height_inc);
+  }
 
   if (old_width < *new_width) {
     diff = ((*new_width - old_width) / width_inc) * width_inc;
@@ -792,6 +843,9 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
   displays[num_displays] = disp;
 
   if (num_displays == 0) {
+    /* Callback should be set before bl_dialog() is called. */
+    bl_dialog_set_callback(dialog_cb);
+
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
       return NULL;
     }
@@ -1023,9 +1077,7 @@ void ui_display_rotate(int rotate) {
 int ui_display_resize(ui_display_t *disp, u_int width, u_int height) {
   if (width != disp->width || height != disp->height) {
     if (rotate_display) {
-      u_int tmp = width;
-      width = height;
-      height = tmp;
+      BL_SWAP(unsigned int, width, height);
     }
 
     disp->display->resizing = 1;

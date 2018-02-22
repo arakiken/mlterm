@@ -6,7 +6,7 @@
 #include <pobl/bl_str.h>    /* bl_snprintf */
 #include <pobl/bl_mem.h>    /* alloca */
 #include <pobl/bl_str.h>    /* bl_str_sep/bl_str_to_int/memset/strncasecmp */
-#include <pobl/bl_util.h>   /* DIGIT_STR_LEN/K_MIN */
+#include <pobl/bl_util.h>   /* DIGIT_STR_LEN */
 #include <pobl/bl_locale.h> /* bl_get_lang() */
 #include <mef/ef_ucs4_map.h>
 #include <mef/ef_ucs_property.h>

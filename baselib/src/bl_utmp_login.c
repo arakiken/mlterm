@@ -17,7 +17,7 @@
 #include <util.h> /* login/logout(*BSD) you have to link libutil. */
 #endif
 
-#include "bl_util.h" /* K_MIN */
+#include "bl_util.h" /* BL_MIN */
 #include "bl_mem.h"  /* malloc/free */
 #include "bl_def.h"  /* HAVE_SETUTENT */
 #include "bl_privilege.h"
@@ -58,7 +58,7 @@ bl_utmp_t bl_utmp_new(const char *tty, const char *host, int pty_fd) {
    * but glibc2 also defines ut_name as an alias of ut_user for backward
    * compatibility.
    */
-  strncpy(ut.ut_name, pw_name, K_MIN(sizeof(ut.ut_name) - 2, strlen(pw_name)));
+  strncpy(ut.ut_name, pw_name, BL_MIN(sizeof(ut.ut_name) - 2, strlen(pw_name)));
   ut.ut_name[sizeof(ut.ut_name) - 1] = 0;
 
   if (strncmp(tty, "/dev/", 5) == 0) {
@@ -74,11 +74,11 @@ bl_utmp_t bl_utmp_new(const char *tty, const char *host, int pty_fd) {
 
 #ifndef HAVE_SETUTENT
   /* ut.ut_line must be filled before login() on bsd. */
-  memcpy(ut.ut_line, tty, K_MIN(sizeof(ut.ut_line), strlen(tty)));
+  memcpy(ut.ut_line, tty, BL_MIN(sizeof(ut.ut_line), strlen(tty)));
 #endif
 
   ut.ut_time = time(NULL);
-  memcpy(ut.ut_host, host, K_MIN(sizeof(ut.ut_host), strlen(host)));
+  memcpy(ut.ut_host, host, BL_MIN(sizeof(ut.ut_host), strlen(host)));
   bl_priv_restore_euid(); /* useless? */
   bl_priv_restore_egid();
 

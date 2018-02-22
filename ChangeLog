@@ -1,3 +1,13 @@
+2018-02-22  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_term.c: "Failed to open pty" message is shown if vt_pty_new() fails.
+
+	* sdl2/ui_display.c: bl_dialog_set_callback(dialog_cb) is added.
+
+	* bl_util.h:
+	  - K_{MAX|MIN} => BL_{MAX|MIN}
+	  - BL_SWAP() is added.
+
 2018-02-21  Araki Ken  <arakiken@users.sf.net>
 
 	* sdl2/ui_display.c: Minor fixes.

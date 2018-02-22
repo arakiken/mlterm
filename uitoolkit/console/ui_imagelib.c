@@ -177,7 +177,7 @@ static int resize_sixel(Pixmap pixmap, u_int width, u_int height, u_int bytes_pe
 
   /* Tiling */
 
-  min_height = K_MIN(height, pixmap->height);
+  min_height = BL_MIN(height, pixmap->height);
 
   if (width > pixmap->width) {
     size_t surplus;

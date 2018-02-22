@@ -4,7 +4,6 @@
 
 #include <string.h> /* memset/memcpy */
 #include <pobl/bl_debug.h>
-#include <pobl/bl_util.h> /* K_MIN */
 #include <pobl/bl_mem.h>  /* malloc */
 
 #define LINE_STYLE(attr) (((attr) >> 19) & 0xf)

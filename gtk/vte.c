@@ -1173,8 +1173,8 @@ static void init_screen(VteTerminal *terminal, ui_font_manager_t *font_man,
 
   gtk_style_context_get_padding(gtk_widget_get_style_context(GTK_WIDGET(terminal)),
                                 gtk_widget_get_state_flags(GTK_WIDGET(terminal)), &padding);
-  hmargin = K_MIN(padding.left, padding.right);
-  vmargin = K_MIN(padding.top, padding.bottom);
+  hmargin = BL_MIN(padding.left, padding.right);
+  vmargin = BL_MIN(padding.top, padding.bottom);
 #else
   hmargin = WINDOW_MARGIN;
   vmargin = WINDOW_MARGIN;
