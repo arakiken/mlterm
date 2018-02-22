@@ -13,6 +13,7 @@
 #include <pobl/bl_mem.h>
 #include <pobl/bl_str.h>  /* strdup */
 #include <pobl/bl_file.h> /* bl_file_set_cloexec */
+#include <pobl/bl_util.h> /* BL_SWAP */
 
 #include "../ui_window.h"
 #include "../ui_picture.h"
@@ -1114,6 +1115,11 @@ static int check_resize(u_int old_width, u_int old_height, int32_t *new_width, i
                         u_int min_width, u_int min_height, u_int width_inc, u_int height_inc,
                         int check_inc) {
   u_int diff;
+
+  if (rotate_display) {
+    BL_SWAP(unsigned int, min_width, min_height);
+    BL_SWAP(unsigned int, width_inc, height_inc);
+  }
 
   if (old_width < *new_width) {
     diff = ((*new_width - old_width) / width_inc) * width_inc;

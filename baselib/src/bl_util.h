@@ -38,9 +38,9 @@
 #define TOINT16(p) LE16DEC(p)
 #endif
 
-#define K_MAX(n1, n2) ((n1) > (n2) ? (n1) : (n2))
+#define BL_MAX(n1, n2) ((n1) > (n2) ? (n1) : (n2))
 
-#define K_MIN(n1, n2) ((n1) > (n2) ? (n2) : (n1))
+#define BL_MIN(n1, n2) ((n1) > (n2) ? (n2) : (n1))
 
 /* TYPE: MIN(signed) -- MAX(unsigned) (number of bytes needed)
  * char  : -128 -- 256 (4)
@@ -58,5 +58,7 @@
 
 #define BL_INT_TO_STR(i) _BL_INT_TO_STR(i)
 #define _BL_INT_TO_STR(i) #i
+
+#define BL_SWAP(t, a, b) { t tmp; tmp = (a); (a) = (b); (b) = tmp; }
 
 #endif

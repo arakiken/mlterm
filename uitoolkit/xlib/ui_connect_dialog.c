@@ -163,7 +163,7 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
 
         XDrawString(display, window, gc, BEGENDSPACE / 2 + font->max_bounds.width / 2,
                     font->ascent * 2 + font->descent + LINESPACE * 3 / 2, input,
-                    K_MIN(pass_len - 1, ncolumns - 1));
+                    BL_MIN(pass_len - 1, ncolumns - 1));
       }
     }
   }

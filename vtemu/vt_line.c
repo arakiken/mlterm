@@ -4,7 +4,7 @@
 
 #include <string.h> /* memset */
 #include <pobl/bl_debug.h>
-#include <pobl/bl_util.h> /* K_MIN */
+#include <pobl/bl_util.h> /* BL_MIN */
 #include <pobl/bl_mem.h>  /* alloca */
 
 #include "vt_ctl_loader.h"
@@ -540,13 +540,13 @@ static int vt_line_ot_layout_render(vt_line_t *line, /* is always modified */
 static void copy_line(vt_line_t *dst, vt_line_t *src, int optimize_ctl_info) {
   u_int copy_len;
 
-  copy_len = K_MIN(src->num_filled_chars, dst->num_chars);
+  copy_len = BL_MIN(src->num_filled_chars, dst->num_chars);
 
   vt_str_copy(dst->chars, src->chars, copy_len);
   dst->num_filled_chars = copy_len;
 
-  dst->change_beg_col = K_MIN(src->change_beg_col, dst->num_chars);
-  dst->change_end_col = K_MIN(src->change_end_col, dst->num_chars);
+  dst->change_beg_col = BL_MIN(src->change_beg_col, dst->num_chars);
+  dst->change_end_col = BL_MIN(src->change_end_col, dst->num_chars);
 
   dst->is_modified = src->is_modified;
   dst->is_continued_to_next = src->is_continued_to_next;
@@ -1013,7 +1013,7 @@ int vt_line_fill(vt_line_t *line, vt_char_t *ch, int beg, /* >= line->num_filled
   }
 #endif
 
-  num = K_MIN(num, line->num_chars - beg);
+  num = BL_MIN(num, line->num_chars - beg);
 
   char_index = beg;
   left_cols = num * vt_char_cols(ch);
@@ -1250,7 +1250,9 @@ int vt_convert_char_index_to_col(vt_line_t *line, int char_index, int flag /* BR
     /*
      * excluding the width of the last char.
      */
-    for (count = 0; count < K_MIN(char_index, END_CHAR_INDEX(line)); count++) {
+    int end = BL_MIN(char_index, END_CHAR_INDEX(line));
+
+    for (count = 0; count < end; count++) {
       col += vt_char_cols(line->chars + count);
     }
   }

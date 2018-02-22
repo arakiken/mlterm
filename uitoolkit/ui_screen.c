@@ -10,7 +10,7 @@
 #include <pobl/bl_mem.h> /* alloca */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_str.h>     /* strdup, bl_snprintf */
-#include <pobl/bl_util.h>    /* K_MIN */
+#include <pobl/bl_util.h>    /* DIGIT_STR_LEN */
 #include <pobl/bl_def.h>     /* PATH_MAX */
 #include <pobl/bl_args.h>    /* bl_arg_str_to_array */
 #include <pobl/bl_conf_io.h> /* bl_get_user_rc_path */

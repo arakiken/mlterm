@@ -2,7 +2,7 @@
 
 #include <string.h>       /* memcpy */
 #include <sys/stat.h>     /* fstat */
-#include <pobl/bl_util.h> /* K_MIN */
+#include <pobl/bl_util.h> /* BL_MIN */
 #include <pobl/bl_mem.h>  /* alloca */
 
 #ifdef SIXEL_1BPP
@@ -649,9 +649,9 @@ body:
           u_int32_t l;
           u_int32_t s;
 
-          h = K_MIN(params[2], 360);
-          l = K_MIN(params[3], 100);
-          s = K_MIN(params[4], 100);
+          h = BL_MIN(params[2], 360);
+          l = BL_MIN(params[3], 100);
+          s = BL_MIN(params[4], 100);
 
           if (s == 0) {
             rgb[0] = rgb[1] = rgb[2] = l * 255 / 100;

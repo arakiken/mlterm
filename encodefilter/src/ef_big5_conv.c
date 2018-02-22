@@ -6,7 +6,6 @@
 #include <pobl/bl_mem.h>
 #include <pobl/bl_debug.h>
 #include <pobl/bl_locale.h>
-#include <pobl/bl_util.h> /* K_MIN */
 
 #include "ef_zh_tw_map.h"
 #include "ef_zh_hk_map.h"

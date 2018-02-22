@@ -20,7 +20,7 @@
 #include <sys/time.h> /* timeval */
 #include <unistd.h>   /* getuid */
 
-#include "bl_util.h" /* K_MIN */
+#include "bl_util.h" /* BL_MIN */
 #include "bl_mem.h"  /* malloc/free */
 #include "bl_privilege.h"
 #include "bl_debug.h"
@@ -97,9 +97,9 @@ bl_utmp_t bl_utmp_new(const char *tty, const char *host, int pty_fd) {
   }
 
   pw_name = get_pw_name();
-  strncpy(ut.ut_user, pw_name, K_MIN(sizeof(ut.ut_user), strlen(pw_name)));
-  memcpy(ut.ut_id, tty_num, K_MIN(sizeof(ut.ut_id), strlen(tty_num)));
-  memcpy(ut.ut_line, tty, K_MIN(sizeof(ut.ut_line), strlen(tty)));
+  strncpy(ut.ut_user, pw_name, BL_MIN(sizeof(ut.ut_user), strlen(pw_name)));
+  memcpy(ut.ut_id, tty_num, BL_MIN(sizeof(ut.ut_id), strlen(tty_num)));
+  memcpy(ut.ut_line, tty, BL_MIN(sizeof(ut.ut_line), strlen(tty)));
 
   ut.ut_pid = getpid();
   ut.ut_type = USER_PROCESS;
@@ -112,14 +112,14 @@ bl_utmp_t bl_utmp_new(const char *tty, const char *host, int pty_fd) {
 #endif
 
 #ifdef USE_UTMPX
-  memcpy(ut.ut_host, host, K_MIN(sizeof(ut.ut_host), strlen(host)));
+  memcpy(ut.ut_host, host, BL_MIN(sizeof(ut.ut_host), strlen(host)));
 #if !defined(__FreeBSD__) && !defined(__APPLE__)
   ut.ut_session = getsid(0);
 #endif
 #endif
 
-  memcpy(utmp->ut_line, tty, K_MIN(sizeof(utmp->ut_line), strlen(tty)));
-  memcpy(utmp->ut_pos, tty_num, K_MIN(sizeof(utmp->ut_pos), strlen(tty_num)));
+  memcpy(utmp->ut_line, tty, BL_MIN(sizeof(utmp->ut_line), strlen(tty)));
+  memcpy(utmp->ut_pos, tty_num, BL_MIN(sizeof(utmp->ut_pos), strlen(tty_num)));
 
   bl_priv_restore_euid(); /* useless? */
   bl_priv_restore_egid();
@@ -179,9 +179,9 @@ int bl_utmp_delete(bl_utmp_t utmp) {
   memset(&ut, 0, sizeof(ut));
 
   pw_name = get_pw_name();
-  strncpy(ut.ut_user, pw_name, K_MIN(sizeof(ut.ut_user), strlen(pw_name)));
-  memcpy(ut.ut_id, utmp->ut_pos, K_MIN(sizeof(ut.ut_id), sizeof(utmp->ut_pos)));
-  memcpy(ut.ut_line, utmp->ut_line, K_MIN(sizeof(ut.ut_line), sizeof(utmp->ut_line)));
+  strncpy(ut.ut_user, pw_name, BL_MIN(sizeof(ut.ut_user), strlen(pw_name)));
+  memcpy(ut.ut_id, utmp->ut_pos, BL_MIN(sizeof(ut.ut_id), sizeof(utmp->ut_pos)));
+  memcpy(ut.ut_line, utmp->ut_line, BL_MIN(sizeof(ut.ut_line), sizeof(utmp->ut_line)));
 
   ut.ut_pid = getpid();
   ut.ut_type = DEAD_PROCESS;

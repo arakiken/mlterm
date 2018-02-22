@@ -114,7 +114,7 @@ static int dialog_cb(bl_dialog_style_t style, const char *msg) {
 
   XSetFont(display, gc, font->fid);
 
-  width = font->max_bounds.width * K_MAX(len, sizeof(title) - 1) + BEGENDSPACE;
+  width = font->max_bounds.width * BL_MAX(len, sizeof(title) - 1) + BEGENDSPACE;
   height = (font->ascent + font->descent) * 2 + LINESPACE;
 
   if (!(window = XCreateSimpleWindow(display, DefaultRootWindow(display),

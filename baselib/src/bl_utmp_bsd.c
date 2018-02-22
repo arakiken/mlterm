@@ -13,7 +13,7 @@
 #include <utmp.h>
 
 #include "bl_types.h" /* off_t */
-#include "bl_util.h"  /* K_MIN */
+#include "bl_util.h"  /* BL_MIN */
 #include "bl_mem.h"   /* malloc/free */
 #include "bl_privilege.h"
 
@@ -155,8 +155,8 @@ bl_utmp_t bl_utmp_new(const char *tty, const char *host, int pty_fd /* not used 
 
   ll.ll_time = ut.ut_time = time(NULL);
 
-  memcpy(ut.ut_host, host, K_MIN(sizeof(ut.ut_host), strlen(host)));
-  memcpy(ll.ll_host, host, K_MIN(sizeof(ll.ll_host), strlen(host)));
+  memcpy(ut.ut_host, host, BL_MIN(sizeof(ut.ut_host), strlen(host)));
+  memcpy(ll.ll_host, host, BL_MIN(sizeof(ll.ll_host), strlen(host)));
 
   if ((pwent = getpwuid(getuid())) == NULL || pwent->pw_name == NULL) {
     pw_name = "?";
@@ -164,7 +164,7 @@ bl_utmp_t bl_utmp_new(const char *tty, const char *host, int pty_fd /* not used 
     pw_name = pwent->pw_name;
   }
 
-  strncpy(ut.ut_name, pw_name, K_MIN(sizeof(ut.ut_name), strlen(pw_name)));
+  strncpy(ut.ut_name, pw_name, BL_MIN(sizeof(ut.ut_name), strlen(pw_name)));
 
   if (strncmp(tty, "/dev/", 5) == 0) {
     /* skip /dev/ prefix */
@@ -175,8 +175,8 @@ bl_utmp_t bl_utmp_new(const char *tty, const char *host, int pty_fd /* not used 
     goto error;
   }
 
-  memcpy(ut.ut_line, tty, K_MIN(sizeof(ut.ut_line), strlen(tty)));
-  memcpy(ll.ll_line, tty, K_MIN(sizeof(ll.ll_line), strlen(tty)));
+  memcpy(ut.ut_line, tty, BL_MIN(sizeof(ut.ut_line), strlen(tty)));
+  memcpy(ll.ll_line, tty, BL_MIN(sizeof(ll.ll_line), strlen(tty)));
 
   memcpy(utmp->ut_line, ut.ut_line, sizeof(ut.ut_line));
 

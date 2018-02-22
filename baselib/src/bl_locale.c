@@ -14,7 +14,7 @@
 #include "bl_debug.h"
 #include "bl_mem.h" /* alloca */
 #include "bl_str.h"
-#include "bl_util.h" /* K_MIN */
+#include "bl_util.h" /* BL_MIN */
 
 #if 0
 #define __DEBUG
@@ -315,7 +315,7 @@ char *bl_get_codeset(void) {
     for (count = 0; count < sizeof(lang_codeset_table) / sizeof(lang_codeset_table[0]); count++) {
       if (strncmp(lang, lang_codeset_table[count].lang,
                   /* lang_len *- 1* is excluing NULL */
-                  K_MIN(lang_len - 1, strlen(lang_codeset_table[count].lang))) == 0) {
+                  BL_MIN(lang_len - 1, strlen(lang_codeset_table[count].lang))) == 0) {
         return lang_codeset_table[count].codeset;
       }
     }

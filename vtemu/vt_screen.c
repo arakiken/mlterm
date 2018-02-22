@@ -8,7 +8,7 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>  /* malloc/free */
 #include <pobl/bl_str.h>  /* strdup */
-#include <pobl/bl_util.h> /* K_MIN */
+#include <pobl/bl_util.h> /* BL_MIN */
 
 #include "vt_char_encoding.h"
 #include "vt_str_parser.h"
@@ -306,7 +306,7 @@ static int reverse_or_restore_color(vt_screen_t *screen, /* visual */
 
     if (vt_line_is_rtl(line)) {
       if (row > beg_row || beg_char_index >= size_except_sp) {
-        beg_char_index = K_MAX(size_except_sp, 1) - 1;
+        beg_char_index = BL_MAX(size_except_sp, 1) - 1;
       } else if (beg_char_index < beg_regarding_rtl) {
         goto next_line;
       }
@@ -358,7 +358,7 @@ static int reverse_or_restore_color(vt_screen_t *screen, /* visual */
     beg_regarding_rtl = vt_line_beg_char_index_regarding_rtl(line);
 
     if (vt_line_is_rtl(line)) {
-      beg_char_index = K_MAX(size_except_sp, 1) - 1;
+      beg_char_index = BL_MAX(size_except_sp, 1) - 1;
     } else {
       beg_char_index = beg_regarding_rtl;
     }
@@ -368,14 +368,14 @@ static int reverse_or_restore_color(vt_screen_t *screen, /* visual */
 
   if (vt_line_is_rtl(line)) {
     if (end_char_index < size_except_sp) {
-      for (char_index = K_MAX(end_char_index, beg_regarding_rtl); char_index <= beg_char_index;
+      for (char_index = BL_MAX(end_char_index, beg_regarding_rtl); char_index <= beg_char_index;
            char_index++) {
         (*func)(line, char_index);
       }
     }
   } else {
     if (end_char_index >= beg_regarding_rtl) {
-      for (char_index = beg_char_index; char_index < K_MIN(end_char_index + 1, size_except_sp);
+      for (char_index = beg_char_index; char_index < BL_MIN(end_char_index + 1, size_except_sp);
            char_index++) {
         (*func)(line, char_index);
       }
@@ -476,7 +476,7 @@ static u_int check_or_copy_region(
 
     if (vt_line_is_rtl(line)) {
       if (row > beg_row || beg_char_index >= size_except_sp) {
-        beg_char_index = K_MAX(size_except_sp, 1) - 1;
+        beg_char_index = BL_MAX(size_except_sp, 1) - 1;
       } else if (beg_char_index < beg_regarding_rtl) {
         goto next_line;
       }
@@ -550,7 +550,7 @@ static u_int check_or_copy_region(
     beg_regarding_rtl = vt_line_beg_char_index_regarding_rtl(line);
 
     if (vt_line_is_rtl(line)) {
-      beg_char_index = K_MAX(size_except_sp, 1) - 1;
+      beg_char_index = BL_MAX(size_except_sp, 1) - 1;
     } else {
       beg_char_index = beg_regarding_rtl;
     }
@@ -1499,7 +1499,7 @@ int vt_screen_search_find(vt_screen_t *screen,
     if (backward) {
       vt_str_parser_set_str(parser, line_str, (*beg_row != screen->search->row)
                                                   ? line_len
-                                                  : K_MIN(*beg_char_index + 1, line_len));
+                                                  : BL_MIN(*beg_char_index + 1, line_len));
       *beg_char_index = 0;
     } else {
       if (*beg_row != screen->search->row) {

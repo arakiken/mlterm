@@ -7,6 +7,7 @@
 #include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_sig_child.h>
 #include <pobl/bl_path.h> /* bl_parse_uri */
+#include <pobl/bl_dialog.h>
 
 #include "vt_pty.h"
 #include "vt_parser.h"
@@ -190,6 +191,8 @@ static void *
 
     vt_term_plug_pty(args->term, pty);
   } else {
+    bl_dialog(BL_DIALOG_ALERT, "Failed to open pty");
+
     args->term->return_special_pid = 1;
     bl_trigger_sig_child(-10);
     args->term->return_special_pid = 0;

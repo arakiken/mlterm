@@ -4,7 +4,6 @@
 
 #include <stdio.h> /* NULL */
 #include <pobl/bl_debug.h>
-#include <pobl/bl_util.h> /* K_MIN */
 
 #include "vt_iscii.h"
 
