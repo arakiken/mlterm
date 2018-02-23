@@ -74,7 +74,7 @@ static int dialog_callback(bl_dialog_style_t style, const char *msg) {
   jclass class;
   static jmethodID mid;
 
-  if (style != BL_DIALOG_OKCANCEL || !env_for_dialog) {
+  if (!env_for_dialog) {
     return -1;
   }
 
@@ -83,12 +83,13 @@ static int dialog_callback(bl_dialog_style_t style, const char *msg) {
 
   if (!mid) {
     mid = (*env_for_dialog)
-              ->GetStaticMethodID(env_for_dialog, class, "show", "(Ljava/lang/String;)Z");
+              ->GetStaticMethodID(env_for_dialog, class, "show", "(Ljava/lang/String;Z)Z");
   }
 
   if ((*env_for_dialog)
           ->CallStaticObjectMethod(env_for_dialog, class, mid,
-                                   (*env_for_dialog)->NewStringUTF(env_for_dialog, msg))) {
+                                   (*env_for_dialog)->NewStringUTF(env_for_dialog, msg),
+                                   style == BL_DIALOG_OKCANCEL ? JNI_TRUE : JNI_FALSE)) {
     return 1;
   } else {
     return 0;

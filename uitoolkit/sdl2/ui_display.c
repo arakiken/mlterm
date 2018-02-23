@@ -18,11 +18,10 @@
 #include "../ui_picture.h"
 #include "../ui_imagelib.h"
 #include "../ui_screen.h" /* update_ime_text */
+#include "syswminfo.h"
 
 #ifndef USE_WIN32API
 #include <sys/select.h>
-#include <pthread.h>
-#include <sched.h>
 #include "../vtemu/vt_term_manager.h"
 #endif
 
@@ -44,32 +43,34 @@ static u_int num_displays;
 static ui_display_t **displays;
 static int rotate_display;
 static Uint32 pty_event_type;
-static int pty_event_queued;
 static Uint32 vsync_interval_msec;
 static Uint32 next_vsync_msec;
 static ef_parser_t *utf8_parser;
 static u_char *cur_preedit_text;
+static SDL_threadID main_tid;
+static SDL_mutex *mutex;
+static SDL_cond *cond;
 
 /* --- static functions --- */
 
 static int dialog_cb(bl_dialog_style_t style, const char *msg) {
-  if (style == BL_DIALOG_OKCANCEL) {
+  if (syswminfo_is_thread_safe() || main_tid == SDL_GetThreadID(NULL)) {
     const SDL_MessageBoxButtonData buttons[] = {
       { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "OK" },
       { SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "Cancel" }
     };
     const SDL_MessageBoxColorScheme color_scheme = {
       {
-        /* [SDL_MESSAGEBOX_COLOR_BACKGROUND] */
-        { 255,   0,   0 },
-        /* [SDL_MESSAGEBOX_COLOR_TEXT] */
-        {   0, 255,   0 },
-        /* [SDL_MESSAGEBOX_COLOR_BUTTON_BORDER] */
-        { 255, 255,   0 },
-        /* [SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND] */
-        {   0,   0, 255 },
-        /* [SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED] */
-        { 255,   0, 255 }
+        /* SDL_MESSAGEBOX_COLOR_BACKGROUND */
+        { 255, 255, 255 },
+        /* SDL_MESSAGEBOX_COLOR_TEXT */
+        {   0,   0,   0 },
+        /* SDL_MESSAGEBOX_COLOR_BUTTON_BORDER */
+        {   0,   0,   0 },
+        /* SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND */
+        { 255, 255, 255 },
+        /* SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED */
+        {   0,   0,   0 }
       }
     };
     SDL_MessageBoxData data = {
@@ -80,6 +81,12 @@ static int dialog_cb(bl_dialog_style_t style, const char *msg) {
 
     data.message = msg;
 
+    if (style == BL_DIALOG_ALERT) {
+      data.numbuttons = 1;
+    } else if (style != BL_DIALOG_OKCANCEL) {
+      return -1;
+    }
+
     if (SDL_ShowMessageBox(&data, &buttonid) == 0) {
       if (buttonid == 0) {
         return 1;
@@ -87,10 +94,6 @@ static int dialog_cb(bl_dialog_style_t style, const char *msg) {
         return 0;
       }
     }
-  } else if (style == BL_DIALOG_ALERT) {
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Alert", msg, NULL);
-
-    return 1;
   }
 
   return -1;
@@ -401,6 +404,8 @@ static int init_display(Display *display, char *app_name) {
 
       next_vsync_msec = SDL_GetTicks() + vsync_interval_msec;
 
+      syswminfo_init(display->window);
+
       SDL_GetRendererInfo(display->renderer, &info);
       bl_msg_printf("SDL2 with %s\n", info.name);
 
@@ -445,7 +450,7 @@ static int init_display(Display *display, char *app_name) {
 }
 
 #ifndef USE_WIN32API
-static void *monitor_ptys(void *p) {
+static int monitor_ptys(void *p) {
   vt_term_t **terms;
   u_int num_terms;
   int ptyfd;
@@ -455,12 +460,11 @@ static void *monitor_ptys(void *p) {
   SDL_Event ev;
 
   while (1) {
-    while (pty_event_queued || (num_terms = vt_get_all_terms(&terms)) == 0) {
+    while ((num_terms = vt_get_all_terms(&terms)) == 0) {
       if (num_displays == 0) {
         return 0;
       }
-
-      sched_yield();
+      sleep(1);
     }
 
     FD_ZERO(&read_fds);
@@ -479,7 +483,8 @@ static void *monitor_ptys(void *p) {
     SDL_zero(ev);
     ev.type = pty_event_type;
     SDL_PushEvent(&ev);
-    pty_event_queued = 1;
+
+    SDL_CondWait(cond, mutex);
   }
 
 #ifdef DEBUG
@@ -809,7 +814,7 @@ static void poll_event(void) {
 
   default:
     if (ev.type == pty_event_type) {
-      pty_event_queued = 0;
+      SDL_CondSignal(cond);
     }
 
     break;
@@ -854,11 +859,17 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
 
     pty_event_type = SDL_RegisterEvents(1);
 
+    main_tid = SDL_GetThreadID(NULL);
+
 #ifndef USE_WIN32API
     {
-      pthread_t thrd;
+      SDL_Thread *thrd;
 
-      pthread_create(&thrd, NULL, monitor_ptys, NULL);
+      thrd = SDL_CreateThread(monitor_ptys, "pty_thread", NULL);
+      SDL_DetachThread(thrd);
+
+      mutex = SDL_CreateMutex();
+      SDL_LockMutex(mutex);
     }
 #endif
   }
@@ -891,6 +902,8 @@ void ui_display_close(ui_display_t *disp) {
         (*utf8_parser->delete)(utf8_parser);
         utf8_parser = NULL;
 
+        SDL_DestroyMutex(mutex);
+        SDL_DestroyCond(cond);
         SDL_Quit();
       } else {
         displays[count] = displays[num_displays];

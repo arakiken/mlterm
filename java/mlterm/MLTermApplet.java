@@ -66,10 +66,6 @@ public class MLTermApplet extends Applet {
         final MLTerm mlterm =
             new MLTerm(shell, SWT.BORDER | SWT.V_SCROLL, host, pass, 80, 24, encoding, argv);
         if (!mlterm.isActive()) {
-          MessageBox box = new MessageBox(shell, SWT.OK);
-          box.setMessage("Failed to open pty.");
-          box.open();
-
           return;
         }
 

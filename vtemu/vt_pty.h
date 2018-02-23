@@ -12,10 +12,14 @@
 
 /*
  * defined(__CYGWIN__) is not to link libpthread to mlterm for now.
+ *
  * OPEN_PTY_SYNC is defined in java/Makefile.in
+ *
+ * Note that bl_dialog() in open_pty() in vt_term.c might cause segfault if
+ * OPEN_PTY_ASYNC is defined on platforms other than WIN32GUI,
  */
 #if (defined(USE_WIN32API) && !defined(OPEN_PTY_SYNC)) || \
-    (defined(HAVE_PTHREAD) && defined(__CYGWIN__))
+    (defined(HAVE_PTHREAD) && (defined(__CYGWIN__) || defined(__MSYS__)))
 #define OPEN_PTY_ASYNC
 #endif
 

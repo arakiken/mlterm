@@ -408,9 +408,7 @@ elif test "$gui" = "sdl2" ; then
 		echo "sdl2 is not available."
 		exit 1
 	fi
-	if test "$ml_cv_is_posix" = "yes"; then
-		SDL2_LIBS="$SDL2_LIBS -lpthread"
-	else
+	if test "$ml_cv_is_posix" != "yes"; then
 		SDL2GUI="win32"
 		AC_SUBST(SDL2GUI)
 	fi

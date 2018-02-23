@@ -403,9 +403,7 @@ int vt_term_open_pty(vt_term_t *term, const char *cmd_path, char **argv, char **
       if (!(pty = vt_pty_new(cmd_path, argv, env, host, work_dir, pass, pubkey, privkey,
                              vt_screen_get_logical_cols(term->screen),
                              vt_screen_get_logical_rows(term->screen), width_pix, height_pix))) {
-#ifdef DEBUG
-        bl_warn_printf(BL_DEBUG_TAG " vt_pty_new failed.\n");
-#endif
+        bl_dialog(BL_DIALOG_ALERT, "Failed to open pty");
 
         return 0;
       }

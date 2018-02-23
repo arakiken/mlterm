@@ -997,10 +997,6 @@ public class MLTerm extends StyledText {
     final MLTerm mlterm =
         new MLTerm(shell, SWT.BORDER | SWT.V_SCROLL, host, pass, cols, rows, encoding, argv);
     if (!mlterm.isActive()) {
-      MessageBox box = new MessageBox(shell, SWT.OK);
-      box.setMessage("Failed to open pty.");
-      box.open();
-
       return;
     }
 

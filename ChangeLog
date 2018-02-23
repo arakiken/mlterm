@@ -1,3 +1,20 @@
+2018-02-24  Araki Ken  <arakiken@users.sf.net>
+
+	* sdl2/ui_display.c: pthread is replaced by SDL_thread.
+
+	* fb/ui_connect_dialog.c: ui_get_opened_displays() is called instead of
+	  ui_display_receive_next_event() on SDL2.
+
+	* syswminfo.[ch]: Added.
+
+	* MLTerm.java: MessageBox is removed from startMLTerm().
+
+	* MLTermApplet.java: MessageBox is removed from run().
+
+	* ConfirmDialog.java: 'boolean okcancel' is added to show().
+
+	* MLTermPty.c: dialog_callback() supports BL_DIALOG_ALERT.
+
 2018-02-22  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_term.c: "Failed to open pty" message is shown if vt_pty_new() fails.
