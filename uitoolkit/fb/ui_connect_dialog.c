@@ -105,7 +105,14 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
                                   ui_get_xcolor(screen->color_man, VT_BG_COLOR), 0,
                                   ui_line_ascent(screen), prompt, prompt_len, 0);
 #endif
+#ifdef USE_SDL2
+    {
+      u_int num;
+      ui_get_opened_displays(&num);
+    }
+#else
     ui_display_receive_next_event(screen->window.disp);
+#endif
   } while (!end_input);
 
   end_input = 0;
