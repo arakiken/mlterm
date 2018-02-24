@@ -32,12 +32,8 @@ SDL2 support
 
 * Note
   o If mlterm is built with SDL2 on MinGW (CC=i686-w64-mingw32-gcc etc),
-    win32 GDI is used.
+    it uses win32 GDI.
   o Available scrollbars are "simple" alone.
   o You can rotate display by --rotate=right or --rotate=left option.
     ("rotate_display = right" or "rotate_display = left" in ~/.mlterm/main is
      also available.)
-    Following command rotates display dynamically.
-    $ mlcc rotate_display right
-    or $ mlcc rotate_display left
-    (To fall back to the default, $ mlcc rotate_display none)

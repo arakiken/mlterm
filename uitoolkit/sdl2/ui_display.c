@@ -366,12 +366,13 @@ static void close_display(ui_display_t *disp) {
   free(disp);
 }
 
-static int init_display(Display *display, char *app_name) {
+static int init_display(Display *display, char *app_name, int x, int y, int hint) {
   SDL_Rect rect;
 
   if (!display->window) {
-    if (!(display->window = SDL_CreateWindow(app_name, SDL_WINDOWPOS_CENTERED,
-                                             SDL_WINDOWPOS_CENTERED,
+    if (!(display->window = SDL_CreateWindow(app_name,
+                                             (hint & XValue) ? x : SDL_WINDOWPOS_CENTERED,
+                                             (hint & YValue) ? y : SDL_WINDOWPOS_CENTERED,
                                              display->width, display->height,
                                              SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE |
                                              SDL_WINDOW_INPUT_FOCUS))) {
@@ -792,7 +793,7 @@ static void poll_event(void) {
           disp->height = height;
         }
 
-        init_display(disp->display, NULL);
+        init_display(disp->display, NULL, 0, 0, 0);
         disp->display->resizing = 0;
         ui_window_resize_with_margin(disp->roots[0], disp->width, disp->height, NOTIFY_TO_MYSELF);
       }
@@ -962,8 +963,8 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
   root->parent = NULL;
 
   root->gc = disp->gc;
-  root->x = 0;
-  root->y = 0;
+  root->x = 0; /* XXX */
+  root->y = 0; /* XXX */
 
   if (app_name) {
     root->app_name = app_name;
@@ -984,7 +985,7 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
     disp->display->width = disp->width;
     disp->display->height = disp->height;
   }
-  init_display(disp->display, root->app_name);
+  init_display(disp->display, root->app_name, x, y, hint);
 
   ui_window_show(root, hint);
 

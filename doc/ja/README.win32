@@ -47,10 +47,6 @@ WIN32 native GUI 対応に関するメモ
     tool/mlconfig/.libs/mlconfig.exe
     contrib/tool/mlterm-menu/.libs/mlterm-menu.exe
     もコピーしてください。
-  o MSYS-DTK or MSYS2 or Cygwin でビルドした場合は、make install でインストール
-    しても構いませんが、libmef の relink に失敗することがあるため、make install
-    の前に libmef.la の relink_command 行を削除してから make install してくださ
-    い。
 
 * 環境設定
   (MSYS-DTK or MSYS2 or Cygwin でビルドした場合)
