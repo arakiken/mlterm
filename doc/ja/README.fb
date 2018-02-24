@@ -155,5 +155,3 @@ Framebuffer 対応に関するメモ
   o mlclient (mlclientxは使えます。)
   o ~/.mlterm/key の OPEN_SCREEN
   o geometry オプション
-  o use_ot_layout オプションは、FiraCode フォント及びそれと同様の方法により等幅
-    でリガチャするフォントを正しく表示できません。

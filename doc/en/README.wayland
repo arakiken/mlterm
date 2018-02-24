@@ -50,10 +50,6 @@ Wayland support
   o You can rotate display by --rotate=right or --rotate=left option.
     ("rotate_display = right" or "rotate_display = left" in ~/.mlterm/main is
      also available.)
-    Following command rotates display dynamically.
-    $ mlcc rotate_display right
-    or $ mlcc rotate_display left
-    (To fall back to the default, $ mlcc rotate_display none)
   o The default value of "input_method" option is "ibus".
 
 * Unsupported features
