@@ -147,7 +147,7 @@ void ui_shortcut_init(ui_shortcut_t *shortcut) {
        0, 0, 0,
       },
 
-#ifdef USE_QUARTZ
+#if defined(USE_QUARTZ) || (defined(USE_SDL2) && defined(__APPLE__))
       /* OPEN_SCREEN */
       {
        XK_F1, CommandMask, 1,
