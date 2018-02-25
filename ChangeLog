@@ -1,5 +1,18 @@
 2018-02-25  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_screen_manager.c: "No fonts" error message is shown by bl_dialog()
+	  instead of bl_msg_printf().
+
+	* sdl2/ui_display.c: Falling into infinite sleep in select() is fixed.
+
+	* syswminfo.c: syswminfo_is_thread_safe() returns 0 on cocoa.
+
+	* cocoa.m: create_dialog() checks if the current thread is main thread or not.
+
+	* configure.in: It is possible to use fontconfig on SDL2/win32.
+
+2018-02-25  Araki Ken  <arakiken@users.sf.net>
+
 	* ui_shortcut.c: Control+F* shortcut keys => Command+F* on SDL2 / MacOSX.
 
 	* sdl2/ui_display.c: SDL_DisplayMode::refresh_rate > 0 is checked before

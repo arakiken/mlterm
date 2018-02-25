@@ -15,6 +15,5 @@ void syswminfo_init(void *window) {
 }
 
 int syswminfo_is_thread_safe(void) {
-  return (subsystem == SDL_SYSWM_WINDOWS || subsystem == SDL_SYSWM_X11 ||
-          subsystem == SDL_SYSWM_DIRECTFB || subsystem == SDL_SYSWM_COCOA);
+  return (subsystem == SDL_SYSWM_WINDOWS || subsystem == SDL_SYSWM_X11 || subsystem == SDL_SYSWM_DIRECTFB);
 }

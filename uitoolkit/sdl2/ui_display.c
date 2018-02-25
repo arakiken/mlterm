@@ -458,7 +458,7 @@ static int monitor_ptys(void *p) {
   vt_term_t **terms;
   u_int num_terms;
   int ptyfd;
-  int maxfd = 0;
+  int maxfd;
   fd_set read_fds;
   u_int count;
   SDL_Event ev;
@@ -471,9 +471,10 @@ static int monitor_ptys(void *p) {
       if (num_displays == 0) {
         goto end;
       }
-      sleep(1);
+      SDL_Delay(100);
     }
 
+    maxfd = -1;
     FD_ZERO(&read_fds);
     for (count = 0; count < num_terms; count++) {
       if ((ptyfd = vt_term_get_master_fd(terms[count])) >= 0) {
@@ -485,13 +486,17 @@ static int monitor_ptys(void *p) {
       }
     }
 
-    select(maxfd + 1, &read_fds, NULL, NULL, NULL);
+    if (maxfd >= 0) {
+      select(maxfd + 1, &read_fds, NULL, NULL, NULL);
 
-    SDL_zero(ev);
-    ev.type = pty_event_type;
-    SDL_PushEvent(&ev);
+      SDL_zero(ev);
+      ev.type = pty_event_type;
+      SDL_PushEvent(&ev);
 
-    SDL_CondWait(pty_cond, mutex);
+      SDL_CondWait(pty_cond, mutex);
+    } else {
+      SDL_Delay(100);
+    }
   }
 
 #ifdef DEBUG
@@ -881,6 +886,8 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
 
     main_tid = SDL_GetThreadID(NULL);
 
+    num_displays = 1;
+
 #ifdef MONITOR_PTY
     {
       pty_cond = SDL_CreateCond();
@@ -889,14 +896,14 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
       SDL_DetachThread(thrd);
     }
 #endif
+  } else {
+    num_displays ++;
   }
 
   disp->name = strdup(disp_name);
   disp->display->rgbinfo = rgbinfo;
   disp->display->bytes_per_pixel = 4;
   disp->depth = 32;
-
-  num_displays++;
 
   ui_picture_display_opened(disp->display);
 

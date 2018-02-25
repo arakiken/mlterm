@@ -350,6 +350,10 @@ static void remove_all_observers(ui_window_t *uiwindow) {
 }
 
 static NSAlert *create_dialog(const char *msg, int has_cancel) {
+  if (!NSThread.isMainThread()) {
+    return nil;
+  }
+
   NSAlert *alert = [[NSAlert alloc] init];
   [alert autorelease];
 
@@ -1705,6 +1709,9 @@ const char *cocoa_get_bundle_path(void) {
 
 char *cocoa_dialog_password(const char *msg) {
   NSAlert *alert = create_dialog(msg, 1);
+  if (alert == nil) {
+    return NULL;
+  }
 
   NSTextField *text = [[MLSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 200, 20)];
   [text autorelease];
@@ -1719,6 +1726,9 @@ char *cocoa_dialog_password(const char *msg) {
 
 int cocoa_dialog_okcancel(const char *msg) {
   NSAlert *alert = create_dialog(msg, 1);
+  if (alert == nil) {
+    return NULL;
+  }
 
   if ([alert runModal] == NSAlertFirstButtonReturn) {
     return 1;
