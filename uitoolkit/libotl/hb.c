@@ -1,17 +1,11 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
-#ifdef HB_HACK_FOR_QUARTZ
-#include <harfbuzz/hb.h>
-#include <harfbuzz/hb-coretext.h>
-#include <harfbuzz/hb-ot.h>
-#else
 #include <hb.h>
 #ifdef USE_QUARTZ
 #include <hb-coretext.h>
 #include <hb-ot.h>
 #else
 #include <hb-ft.h>
-#endif
 #endif
 #include <ctype.h> /* isalpha */
 #include <pobl/bl_debug.h>

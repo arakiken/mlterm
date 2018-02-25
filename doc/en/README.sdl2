@@ -4,6 +4,7 @@ SDL2 support
 
 * Tested environment
   Arch Linux
+  MacOSX 10.6
 
 * Build
   ./configure --with-gui=sdl2 ...

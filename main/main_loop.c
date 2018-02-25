@@ -237,7 +237,7 @@ int main_loop_init(int argc, char **argv) {
 
   orig_argv = argv;
   if (!bl_conf_parse_args(conf, &argc, &argv,
-#ifdef USE_QUARTZ
+#if defined(USE_QUARTZ) || (defined(USE_SDL2) && defined(__APPLE__))
                           1
 #else
                           0
