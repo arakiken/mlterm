@@ -3,11 +3,7 @@
 #ifndef ___UI_H__
 #define ___UI_H__
 
-#if 0
 #include <SDL.h>
-#else
-#include <SDL2/SDL.h> /* for inputmethod */
-#endif
 
 #ifdef USE_FREETYPE
 #include <pobl/bl_types.h> /* u_int32_t etc */

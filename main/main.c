@@ -130,9 +130,12 @@ int main(int argc, char **argv)
 
   check_console();
 
+  /* Don't call before NSApplicationMain() */
+#if !defined(USE_SDL2) || !defined(__APPLE__)
   /* normal user */
   bl_priv_change_euid(bl_getuid());
   bl_priv_change_egid(bl_getgid());
+#endif
 
   bl_set_sys_conf_dir(CONFIG_PATH);
 

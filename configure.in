@@ -661,47 +661,56 @@ elif test "$gui" = "console" ; then
 else
 	PKG_CHECK_MODULES(HB, harfbuzz, have_hb=yes, have_hb=no)
 	if test "$have_hb" = "yes" ; then
-		OT_LAYOUT_CFLAGS="$HB_CFLAGS -DUSE_HARFBUZZ -DUSE_OT_LAYOUT"
-		OT_LAYOUT_LIBS="$HB_LIBS"
-		OT_LAYOUT_OBJ=hb.o
-		if test "$gui" = "win32" ; then
-			OT_LAYOUT_LIBS="$OT_LAYOUT_LIBS -lfreetype"
-		fi
-	else
-		# XXX
 		if test "$gui" = "quartz" ; then
-			AC_CHECK_HEADER(harfbuzz/hb.h, have_hb=yes, have_hb=no)
-			if test "$have_hb" = "yes"; then
-				OT_LAYOUT_CFLAGS="-DHB_HACK_FOR_QUARTZ -DUSE_HARFBUZZ -DUSE_OT_LAYOUT"
-				OT_LAYOUT_LIBS="-lharfbuzz"
-				OT_LAYOUT_OBJ=hb.o
-			fi
-		fi
-
-		if test "$have_hb" != "yes"; then
-			AC_CHECK_PROG(libotf_config,libotf-config,yes)
-			if test "$libotf_config" = "yes" ; then
-				OT_LAYOUT_CFLAGS="`libotf-config --cflags` -DUSE_OT_LAYOUT"
-				OT_LAYOUT_LIBS="`libotf-config --libs`"
-				OT_LAYOUT_OBJ=otf.o
-			fi
-		fi
-	fi
-
-	if test "$have_hb" = "yes" ; then
-		if test "$gui" = "quartz" ; then
-			AC_CHECK_HEADER(harfbuzz/hb.h, have_hb_h=yes, have_hb_h=no)
-			AC_CHECK_HEADER(harfbuzz/hb-coretext.h, have_hb_coretext_h=yes,
-					have_hb_coretext_h=no)
-			if test "$have_hb_h" = "yes" -a "$have_hb_coretext_h" != "yes" ; then
+			CFLAGS_orig=$CFLAGS
+			CPPFLAGS_orig=$CPPFLAGS
+			CFLAGS="$CFLAGS $HB_CFLAGS"
+			CPPFLAGS="$CPPFLAGS $HB_CFLAGS"
+			AC_CHECK_HEADER(hb-coretext.h, have_hb_coretext_h=yes, have_hb_coretext_h=no)
+			CFLAGS=$CFLAGS_orig
+			CPPFLAGS=$CPPFLAGS_orig
+			if test "$have_hb_coretext_h" != "yes" ; then
 				echo ""
 				echo "** ERROR **"
 				echo "harfbuzz/hb-coretext.h is not found."
 				echo "Install harfbuzz with --with-coretext=yes in advance."
 				echo ""
+				have_hb=no
 			fi
 		elif test "$have_ft" = "yes" ; then
+			CFLAGS_orig=$CFLAGS
+			CPPFLAGS_orig=$CPPFLAGS
+			CFLAGS="$CFLAGS $HB_CFLAGS"
+			CPPFLAGS="$CPPFLAGS $HB_CFLAGS"
+			AC_CHECK_HEADER(hb-ft.h, have_hb_ft_h=yes, have_hb_ft_h=no)
+			CFLAGS=$CFLAGS_orig
+			CPPFLAGS=$CPPFLAGS_orig
+			if test "$have_hb_ft_h" != "yes" ; then
+				echo ""
+				echo "** ERROR **"
+				echo "harfbuzz/hb-ft.h is not found."
+				echo "Install harfbuzz with --with-freetype=yes in advance."
+				echo ""
+				have_hb=no
+			fi
+		fi
+	fi
+
+	if test "$have_hb" = "yes"; then
+		OT_LAYOUT_CFLAGS="$HB_CFLAGS -DUSE_HARFBUZZ -DUSE_OT_LAYOUT"
+		OT_LAYOUT_LIBS="$HB_LIBS"
+		OT_LAYOUT_OBJ=hb.o
+		if test "$gui" = "win32"; then
+			OT_LAYOUT_LIBS="$OT_LAYOUT_LIBS -lfreetype"
+		elif test "$gui" != "quartz" -a "$have_ft" = "yes"; then
 			OT_LAYOUT_CFLAGS="$OT_LAYOUT_CFLAGS $FT_CFLAGS_ORIGINAL"
+		fi
+	else
+		AC_CHECK_PROG(libotf_config,libotf-config,yes)
+		if test "$libotf_config" = "yes" ; then
+			OT_LAYOUT_CFLAGS="`libotf-config --cflags` -DUSE_OT_LAYOUT"
+			OT_LAYOUT_LIBS="`libotf-config --libs`"
+			OT_LAYOUT_OBJ=otf.o
 		fi
 	fi
 
@@ -1607,9 +1616,6 @@ echo "BiDi rendering (Fribidi)          : $have_fribidi"
 echo "Indic rendering                   : $ind"
 if test "$OT_LAYOUT_OBJ" = "hb.o"; then
 	echo "OpenType Layout                   : yes (harfbuzz)"
-	if test "$have_hb_h" = "yes" -a "$have_hb_coretext_h" != "yes" ; then
-		echo "                                    (Error: hb-coretext.h is missing)"
-	fi
 elif test "$OT_LAYOUT_OBJ" = "otf.o"; then
 	echo "OpenType Layout                   : yes (libotf)"
 else

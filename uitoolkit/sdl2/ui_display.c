@@ -399,7 +399,7 @@ static int init_display(Display *display, char *app_name, int x, int y, int hint
       Uint32 count;
 
       idx = SDL_GetWindowDisplayIndex(display->window);
-      if (SDL_GetCurrentDisplayMode(idx, &mode) == 0) {
+      if (SDL_GetCurrentDisplayMode(idx, &mode) == 0 && mode.refresh_rate > 0) {
         vsync_interval_msec = 1000 / mode.refresh_rate;
       } else {
         vsync_interval_msec = 16;
@@ -621,8 +621,8 @@ static void poll_event(void) {
   static int processing_pty_event;
 
   if (processing_pty_event) {
-    SDL_CondSignal(pty_cond);
     processing_pty_event = 0;
+    SDL_CondSignal(pty_cond);
   }
 #endif
 

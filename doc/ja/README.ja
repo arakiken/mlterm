@@ -129,7 +129,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 * 対応プラットフォーム
   o Linux, *BSD (X11, Framebuffer, Wayland, Console or SDL2)
   o Solaris (X11 or Console)
-  o MacOSX 10.6 (X11, Cocoa or Console)
+  o MacOSX 10.6 (X11, Cocoa, Console or SDL2)
   o Windows XP or later
   o Cygwin (X11, Win32GDI, Console or SDL2)
   o MSYS2 (Win32GDI or Console)

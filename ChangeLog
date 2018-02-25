@@ -1,3 +1,16 @@
+2018-02-25  Araki Ken  <arakiken@users.sf.net>
+
+	* sdl2/ui_display.c: SDL_DisplayMode::refresh_rate > 0 is checked before
+	  calculating vsync_interval_msec.
+
+	* inputmethod/*/Makefile.in: @SDL2_CFLAGS@ is added to include <SDL.h> from
+	  ui.h correctly.
+
+	* configure.in: Either AC_CHECK_HEADER(hb-ft.h) or AC_CHECK_HEADER(hb-coretext.h"
+	  is executed if harfbuzz is enabled.
+
+	* cocoa/install-sdl2.sh: Added.
+
 2018-02-24  Araki Ken  <arakiken@users.sf.net>
 
 	* sdl2/ui_display.c: SDL_CondSignal() is called after processing pty events.
