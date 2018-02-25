@@ -509,7 +509,7 @@ else
 fi
 AC_SUBST(TYPE_LOADER_OBJ)
 
-if test "$ml_cv_is_posix" = "yes" -a "$gui" != "quartz"; then
+if test "$gui" != "win32" -a "$gui" != "quartz"; then
 	PKG_CHECK_MODULES(FONTCONFIG, fontconfig, have_fc=yes, have_fc=no)
 	if test "$have_fc" = "yes"; then
 		FONTCONFIG_CFLAGS="$FONTCONFIG_CFLAGS -DUSE_FONTCONFIG"
@@ -680,8 +680,8 @@ else
 		elif test "$have_ft" = "yes" ; then
 			CFLAGS_orig=$CFLAGS
 			CPPFLAGS_orig=$CPPFLAGS
-			CFLAGS="$CFLAGS $HB_CFLAGS"
-			CPPFLAGS="$CPPFLAGS $HB_CFLAGS"
+			CFLAGS="$CFLAGS $HB_CFLAGS $FT_CFLAGS_ORIGINAL"
+			CPPFLAGS="$CPPFLAGS $HB_CFLAGS $FT_CFLAGS_ORIGINAL"
 			AC_CHECK_HEADER(hb-ft.h, have_hb_ft_h=yes, have_hb_ft_h=no)
 			CFLAGS=$CFLAGS_orig
 			CPPFLAGS=$CPPFLAGS_orig

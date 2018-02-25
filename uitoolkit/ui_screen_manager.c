@@ -22,6 +22,7 @@
 #include <pobl/bl_types.h> /* u_int */
 #include <pobl/bl_args.h>  /* bl_arg_str_to_array */
 #include <pobl/bl_sig_child.h>
+#include <pobl/bl_dialog.h>
 #include <vt_term_manager.h>
 #include <vt_char_encoding.h>
 
@@ -532,18 +533,18 @@ static ui_screen_t *open_screen_intern(char *disp_name, vt_term_t *term, ui_layo
                                       usascii_font_cs, main_config.step_in_changing_font_size,
                                       main_config.letter_space, main_config.use_bold_font,
                                       main_config.use_italic_font)) == NULL) {
+    const char *msg_fmt = "No fonts for %s";
+    char *msg;
     char *name;
 
-    name = ui_get_charset_name(usascii_font_cs);
+    if (!(name = ui_get_charset_name(usascii_font_cs))) {
+      name = "US-ASCII";
+    }
 
-    bl_msg_printf(
-        "No fonts found for %s. Please install fonts "
-        "and edit the font config file in ~/.mlterm.\n",
-        name ? name : "US-ASCII");
-
-#ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " ui_font_manager_new() failed.\n");
-#endif
+    if ((msg = alloca(13 + strlen(name) + 1))) {
+      sprintf(msg, msg_fmt, name);
+      bl_dialog(BL_DIALOG_ALERT, msg);
+    }
 
     goto error;
   }

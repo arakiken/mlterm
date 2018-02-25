@@ -21351,7 +21351,7 @@ else
 fi
 
 
-if test "$ml_cv_is_posix" = "yes" -a "$gui" != "quartz"; then
+if test "$gui" != "win32" -a "$gui" != "quartz"; then
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for FONTCONFIG" >&5
@@ -21918,8 +21918,8 @@ fi
 		elif test "$have_ft" = "yes" ; then
 			CFLAGS_orig=$CFLAGS
 			CPPFLAGS_orig=$CPPFLAGS
-			CFLAGS="$CFLAGS $HB_CFLAGS"
-			CPPFLAGS="$CPPFLAGS $HB_CFLAGS"
+			CFLAGS="$CFLAGS $HB_CFLAGS $FT_CFLAGS_ORIGINAL"
+			CPPFLAGS="$CPPFLAGS $HB_CFLAGS $FT_CFLAGS_ORIGINAL"
 			ac_fn_c_check_header_mongrel "$LINENO" "hb-ft.h" "ac_cv_header_hb_ft_h" "$ac_includes_default"
 if test "x$ac_cv_header_hb_ft_h" = xyes; then :
   have_hb_ft_h=yes
