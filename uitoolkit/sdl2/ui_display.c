@@ -21,6 +21,7 @@
 #include "syswminfo.h"
 
 #ifndef USE_WIN32API
+#define MONITOR_PTY
 #include <sys/select.h>
 #include "../vtemu/vt_term_manager.h"
 #endif
@@ -48,8 +49,9 @@ static Uint32 next_vsync_msec;
 static ef_parser_t *utf8_parser;
 static u_char *cur_preedit_text;
 static SDL_threadID main_tid;
-static SDL_mutex *mutex;
-static SDL_cond *cond;
+#ifdef MONITOR_PTY
+static SDL_cond *pty_cond;
+#endif
 
 /* --- static functions --- */
 
@@ -450,8 +452,9 @@ static int init_display(Display *display, char *app_name, int x, int y, int hint
   return 1;
 }
 
-#ifndef USE_WIN32API
+#ifdef MONITOR_PTY
 static int monitor_ptys(void *p) {
+  SDL_mutex *mutex;
   vt_term_t **terms;
   u_int num_terms;
   int ptyfd;
@@ -460,10 +463,13 @@ static int monitor_ptys(void *p) {
   u_int count;
   SDL_Event ev;
 
+  mutex = SDL_CreateMutex();
+  SDL_LockMutex(mutex);
+
   while (1) {
     while ((num_terms = vt_get_all_terms(&terms)) == 0) {
       if (num_displays == 0) {
-        return 0;
+        goto end;
       }
       sleep(1);
     }
@@ -485,12 +491,15 @@ static int monitor_ptys(void *p) {
     ev.type = pty_event_type;
     SDL_PushEvent(&ev);
 
-    SDL_CondWait(cond, mutex);
+    SDL_CondWait(pty_cond, mutex);
   }
 
 #ifdef DEBUG
   bl_debug_printf("Finish monitoring pty.\n");
 #endif
+
+end:
+  SDL_DestroyMutex(mutex);
 
   return 0;
 }
@@ -608,8 +617,16 @@ static void poll_event(void) {
   Uint32 spent_time = 0;
   Uint32 now = SDL_GetTicks();
   Uint32 skipped_msec;
+#ifdef MONITOR_PTY
+  static int processing_pty_event;
 
-  do {
+  if (processing_pty_event) {
+    SDL_CondSignal(pty_cond);
+    processing_pty_event = 0;
+  }
+#endif
+
+  while (1) {
     if (now > next_vsync_msec) {
       skipped_msec = now - next_vsync_msec;
       next_vsync_msec += (((skipped_msec + vsync_interval_msec - 1) / vsync_interval_msec) *
@@ -649,7 +666,7 @@ static void poll_event(void) {
     next_vsync_msec += vsync_interval_msec;
 
     present_displays();
-  } while (1);
+  }
 
   switch(ev.type) {
   case SDL_QUIT:
@@ -815,7 +832,9 @@ static void poll_event(void) {
 
   default:
     if (ev.type == pty_event_type) {
-      SDL_CondSignal(cond);
+#ifdef MONITOR_PTY
+      processing_pty_event = 1;
+#endif
     }
 
     break;
@@ -862,15 +881,12 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
 
     main_tid = SDL_GetThreadID(NULL);
 
-#ifndef USE_WIN32API
+#ifdef MONITOR_PTY
     {
-      SDL_Thread *thrd;
+      pty_cond = SDL_CreateCond();
 
-      thrd = SDL_CreateThread(monitor_ptys, "pty_thread", NULL);
+      SDL_Thread *thrd = SDL_CreateThread(monitor_ptys, "pty_thread", NULL);
       SDL_DetachThread(thrd);
-
-      mutex = SDL_CreateMutex();
-      SDL_LockMutex(mutex);
     }
 #endif
   }
@@ -903,8 +919,9 @@ void ui_display_close(ui_display_t *disp) {
         (*utf8_parser->delete)(utf8_parser);
         utf8_parser = NULL;
 
-        SDL_DestroyMutex(mutex);
-        SDL_DestroyCond(cond);
+#ifdef MONITOR_PTY
+        SDL_DestroyCond(pty_cond);
+#endif
         SDL_Quit();
       } else {
         displays[count] = displays[num_displays];

@@ -405,8 +405,14 @@ elif test "$gui" = "wayland" ; then
 elif test "$gui" = "sdl2" ; then
 	PKG_CHECK_MODULES(SDL2, sdl2, have_sdl2=yes, have_sdl2=no)
  	if test "$have_sdl2" != "yes" ; then
-		echo "sdl2 is not available."
-		exit 1
+		AC_CHECK_PROG(sdl2_config, sdl2-config, yes)
+		if test "$sdl2_config" = "yes"; then
+			SDL2_CFLAGS="`sdl2-config --cflags`"
+			SDL2_LIBS="`sdl2-config --libs`"
+		else
+			echo "sdl2 is not available."
+			exit 1
+		fi
 	fi
 	if test "$ml_cv_is_posix" != "yes"; then
 		SDL2GUI="win32"

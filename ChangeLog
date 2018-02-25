@@ -1,5 +1,9 @@
 2018-02-24  Araki Ken  <arakiken@users.sf.net>
 
+	* sdl2/ui_display.c: SDL_CondSignal() is called after processing pty events.
+
+2018-02-24  Araki Ken  <arakiken@users.sf.net>
+
 	* README.fb, README.sdl2, README.wayland, README.win32: Updated.
 
 	* sdl2/ui_display.c: init_display() specifies x and y position of SDL_Window.
