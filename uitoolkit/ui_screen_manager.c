@@ -297,7 +297,7 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
    * cmd_path is not changed.
    */
   if (!uri && !cmd_path) {
-#ifdef USE_QUARTZ
+#ifdef __APPLE__
     char *user;
 
     if ((user = getenv("USER")) && (cmd_argv = alloca(sizeof(char *) * 4))) {

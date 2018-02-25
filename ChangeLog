@@ -1,5 +1,7 @@
 2018-02-25  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_shortcut.c: Control+F* shortcut keys => Command+F* on SDL2 / MacOSX.
+
 	* sdl2/ui_display.c: SDL_DisplayMode::refresh_rate > 0 is checked before
 	  calculating vsync_interval_msec.
 
