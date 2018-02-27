@@ -381,6 +381,7 @@ int main_loop_init(int argc, char **argv) {
     bl_str_to_int(&kbd_repeat_N, value);
   }
 #endif
+
 #ifdef USE_FRAMEBUFFER
 #if defined(__OpenBSD__) || defined(__NetBSD__)
   if ((value = bl_conf_get_value(conf, "fb_resolution"))) {
@@ -392,6 +393,7 @@ int main_loop_init(int argc, char **argv) {
   }
 #endif
 #endif
+
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
 #if defined(USE_WAYLAND) || defined(USE_SDL2)
   if (!(value = bl_conf_get_value(conf, "use_aafont")) || strcmp(value, "false") != 0) {

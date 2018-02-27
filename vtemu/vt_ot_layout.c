@@ -122,6 +122,9 @@ int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len) {
   vt_font_t font;
   vt_font_t prev_font;
   void *xfont;
+  u_int32_t code;
+  u_int32_t prev_code;
+  u_int usascii_repeat_count;
 
   if ((ucs_buf = alloca((src_len * MAX_COMB_SIZE + 1) * sizeof(*ucs_buf))) == NULL) {
     return 0;
@@ -143,11 +146,40 @@ int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len) {
   prev_font = font = UNKNOWN_CS;
   xfont = NULL;
   prev_shaped = 0;
+  prev_code = -1;
+  usascii_repeat_count = 0;
   for (src_pos = 0; src_pos < src_len; src_pos++) {
     font = vt_char_font(src + src_pos);
-    if (FONT_CS(font) == US_ASCII && vt_char_code(src + src_pos) != ' ') {
-      font &= ~US_ASCII;
-      font |= ISO10646_UCS4_1;
+    code = vt_char_code(src + src_pos);
+
+    if (FONT_CS(font) == US_ASCII && code != ' ') {
+      if (code == prev_code) {
+        if (++usascii_repeat_count == 5 &&
+            (num_chars_array[dst_pos] != 1 ||
+             num_chars_array[dst_pos - 1] != 1 ||
+             num_chars_array[dst_pos - 2] != 1 ||
+             num_chars_array[dst_pos - 3] != 1 ||
+             num_chars_array[dst_pos - 4] != 1)) {
+          usascii_repeat_count = 1;
+        }
+      } else {
+        usascii_repeat_count = 1;
+      }
+      prev_code = code;
+
+      if (usascii_repeat_count >= 5) {
+        /*
+         * If 5 or more same US-ASCII characters are repeated, regard them as
+         * characters which doesn't need complex shape to improve performance.
+         * (e.g. repeating '-' for separator or decoration (emacs))
+         */
+      } else {
+        font &= ~US_ASCII;
+        font |= ISO10646_UCS4_1;
+      }
+    } else {
+      prev_code = -1;
+      usascii_repeat_count = 0;
     }
 
     if (prev_font != font) {
@@ -178,7 +210,7 @@ int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len) {
       vt_char_t *comb;
       u_int num;
 
-      ucs_buf[ucs_filled] = vt_char_code(src + src_pos);
+      ucs_buf[ucs_filled] = code;
       if (vt_is_rtl_char(ucs_buf[ucs_filled])) {
         return -1;
       } else if (IS_VAR_WIDTH_CHAR(ucs_buf[ucs_filled])) {
