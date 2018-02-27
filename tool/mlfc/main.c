@@ -11,6 +11,9 @@
 
 #define MAX_AREAS 256
 #define HEADER "# Permit mlfc to ovewrite this file.\n"
+#ifndef u_int
+#define u_int unsigned int
+#endif
 
 static struct unicode_block {
   u_int beg;

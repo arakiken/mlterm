@@ -1066,7 +1066,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       } else if (state == 1) {
         ui_window_draw_decsp_image_string(window, uifont, fg_xcolor, bg_xcolor, x, y + ascent, str,
                                           str_len);
-      } else if( state == 0) {
+      } else if(state == 0) {
         ui_window_draw_image_string(window, uifont, fg_xcolor, bg_xcolor, x, y + ascent, str,
                                     str_len);
       } else /* if( state == 3) */ {

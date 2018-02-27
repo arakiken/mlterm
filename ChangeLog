@@ -1,3 +1,13 @@
+2018-02-28  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_ot_layout.c: If 5 or more same usascii characters are repeated,
+	  vt_ot_layout() doesn't call vt_ot_layout_shape().
+
+	* ui_font.c: init_fontconfig() initializes FONTCONFIG_PATH environmental
+	  variable if USE_WIN32API is defined.
+
+	* mlfc/main.c: Compiling error is fixed.
+
 2018-02-25  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen_manager.c: "No fonts" error message is shown by bl_dialog()

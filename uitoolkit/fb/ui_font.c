@@ -1450,14 +1450,14 @@ static FcPattern *parse_font_name(const char *fontname, int *is_bold, int *is_it
   if ((pattern = fc_pattern_create(family))) {
     match = FcFontMatch(NULL, pattern, &result);
 
-    if (IS_ISCII(cs) && !check_iscii_font(match)) {
+    if (IS_ISCII(cs) && match && !check_iscii_font(match)) {
       FcPatternDestroy(match);
       FcPatternDestroy(pattern);
 
       return NULL;
     }
 
-    if (compl_pattern == NULL) {
+    if (compl_pattern == NULL && match) {
       num_fc_files = strip_pattern((compl_pattern = pattern), match);
     } else {
       FcPatternDestroy(pattern);
@@ -1468,6 +1468,27 @@ static FcPattern *parse_font_name(const char *fontname, int *is_bold, int *is_it
 
   return match;
 }
+
+#ifdef USE_WIN32API
+static void init_fontconfig(void) {
+  if (!getenv("FONTCONFIG_PATH") && !getenv("FONTCONFIG_FILE")) {
+    /*
+     * See fontconfig-x.x.x/src/fccfg.c
+     * (DllMain(), FcConfigFileExists(), FcConfigGetPath() and FcConfigFilename())
+     *
+     * [commant in DllMain]
+     * If the fontconfig DLL is in a "bin" or "lib" subfolder, assume it's a Unix-style
+     * installation tree, and use "etc/fonts" in there as FONTCONFIG_PATH.
+     * Otherwise use the folder where the DLL is as FONTCONFIG_PATH.
+     *
+     * [comment in FcConfigFileExists]
+     * make sure there's a single separator
+     * (=> If FONTCONFIG_PATH="", FONTCONFIG_FILE="/...")
+     */
+    putenv("FONTCONFIG_PATH=.");
+  }
+}
+#endif
 
 #endif /* USE_FONTCONFIG */
 
@@ -1722,6 +1743,10 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     int is_bold;
     int is_italic;
 
+#ifdef USE_WIN32API
+    init_fontconfig();
+#endif
+
     if (!(pattern = parse_font_name(fontname, &is_bold, &is_italic, &percent, cs))) {
       return NULL;
     }
@@ -1849,13 +1874,16 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     }
 
 #ifdef USE_WIN32API
-    if (percent_str[1] == ':') {
+    if (percent_str[0] != '\0' && percent_str[1] == ':') {
       /* c:/Users/... */
+      font_file = percent_str;
       percent_str += 2;
-    }
+      bl_str_sep(&percent_str, ":");
+    } else
 #endif
-
-    font_file = bl_str_sep(&percent_str, ":");
+    {
+      font_file = bl_str_sep(&percent_str, ":");
+    }
 
     if (!percent_str || !bl_str_to_uint(&percent, percent_str)) {
       percent = 0;
