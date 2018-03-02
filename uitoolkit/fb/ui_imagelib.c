@@ -390,112 +390,161 @@ static int load_sixel_with_mask_from_data_1bpp(char *file_data, u_int width, u_i
 #include "../../common/c_sixel.c"
 #undef SIXEL_SHAREPALETTE
 
-static int load_file(Display *display, char *path, u_int width, u_int height,
-                     ui_picture_modifier_t *pic_mod, u_int depth, Pixmap *pixmap,
-                     PixmapMask *mask) {
-  pid_t pid;
-  int fds1[2];
-  int fds2[2];
+#if defined(USE_WIN32API)
+#include <windows.h>
+
+static int exec_mlimgloader(char *path, u_int width, u_int height, Pixmap *pixmap) {
+  HANDLE input_write;
+  HANDLE input_read_tmp;
+  HANDLE input_read;
+  SECURITY_ATTRIBUTES sa;
+  PROCESS_INFORMATION pi;
+  STARTUPINFO si;
+  char *cmd_line;
+  DWORD len;
   ssize_t size;
   u_int32_t tmp;
 
-  if (!path || !*path) {
+  sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+  sa.lpSecurityDescriptor = NULL;
+  sa.bInheritHandle = TRUE;
+
+  if (!CreatePipe(&input_read_tmp, &input_write, &sa, 0)) {
+#ifdef DEBUG
+    bl_warn_printf(BL_DEBUG_TAG " CreatePipe() failed.\n");
+#endif
+
     return 0;
   }
 
-#ifdef BUILTIN_SIXEL
-  if (strcasecmp(path + strlen(path) - 4, ".six") == 0) {
-    char *file_data;
-
-    if (!(file_data = read_sixel_file(path))) {
-      return 0;
-    }
-
-    /* For old machines */
-#if (defined(__NetBSD__) || defined(__OpenBSD__)) && !defined(USE_GRF)
-    if (depth == 1) {
-      /* pic_mod is ignored. */
-      if (load_sixel_with_mask_from_data_1bpp(file_data, width, height, pixmap, mask)) {
-        free(file_data);
-        return 1;
-      }
-    } else
-#endif
-    if (
-/* For old machines and Android (not to use mlimgloader) */
-#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(__ANDROID__)
-        width == 0 && height == 0 &&
-#endif
-        (*pixmap = calloc(1, sizeof(**pixmap)))) {
-#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
-      u_int32_t *sixel_cmap;
+  if (!DuplicateHandle(GetCurrentProcess(), input_read_tmp, GetCurrentProcess(),
+                       &input_read /* Address of new handle. */,
+                       0, FALSE /* Make it uninheritable. */,
+                       DUPLICATE_SAME_ACCESS)) {
+#ifdef DEBUG
+    bl_warn_printf(BL_DEBUG_TAG " DuplicateHandle() failed.\n");
 #endif
 
-      if (depth <= 8) {
-        if (ui_picture_modifier_is_normal(pic_mod) /* see modify_pixmap() */) {
-          if (((*pixmap)->image = load_sixel_from_data_sharepalette(file_data, &(*pixmap)->width,
-                                                                    &(*pixmap)->height)) &&
-              resize_sixel(*pixmap, width, height,
-#ifdef USE_GRF
-                           2
-#else
-                           1
-#endif
-                           )) {
-            if (mask) {
-              *mask = NULL;
-            }
-            free(file_data);
+    CloseHandle(input_read_tmp);
 
-            goto loaded_nomodify;
-          }
-        }
-
-        bl_msg_printf("Use closest colors for %s.\n", path);
-      }
-
-#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
-      if (!(sixel_cmap = custom_palette) && (sixel_cmap = alloca(sizeof(*sixel_cmap) * 257))) {
-        sixel_cmap[256] = 0; /* No active palette */
-        custom_palette = sixel_cmap;
-      }
-#endif
-
-      if (((*pixmap)->image = load_sixel_from_data(file_data, &(*pixmap)->width,
-                                                   &(*pixmap)->height)) &&
-          /* resize_sixel() frees pixmap->image in failure. */
-          resize_sixel(*pixmap, width, height, 4)) {
-#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
-        if (sixel_cmap) {
-          /* see set_wall_picture() in ui_screen.c */
-          ui_display_set_cmap(sixel_cmap, sixel_cmap[256]);
-        }
-#endif
-        free(file_data);
-
-        goto loaded;
-      } else {
-        free(*pixmap);
-      }
-    }
-
-    free(file_data);
+    goto error1;
   }
-#endif /* BUILTIN_SIXEL */
 
-#if defined(USE_WIN32API)
+  CloseHandle(input_read_tmp);
+
+  ZeroMemory(&si, sizeof(STARTUPINFO));
+  si.cb = sizeof(STARTUPINFO);
+  si.dwFlags = STARTF_USESTDHANDLES | STARTF_FORCEOFFFEEDBACK;
+  si.hStdOutput = input_write;
+  si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+  si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+  /*
+   * Use this if you want to hide the child:
+   *  si.wShowWindow = SW_HIDE;
+   * Note that dwFlags must include STARTF_USESHOWWINDOW if you want to
+   * use the wShowWindow flags.
+   */
+
+  if ((cmd_line = alloca(23 + DIGIT_STR_LEN(u_int) * 2 + strlen(path) + 1)) == NULL) {
+#ifdef DEBUG
+    bl_warn_printf(BL_DEBUG_TAG " alloca failed.\n");
+#endif
+
+    goto error1;
+  }
+
+  sprintf(cmd_line, "%s 0 %d %d %s -c", "mlimgloader.exe", width, height, path);
+
+  if (!CreateProcess("mlimgloader.exe", cmd_line, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL,
+                     &si, &pi)) {
+#ifdef DEBUG
+    bl_warn_printf(BL_DEBUG_TAG " CreateProcess() failed.\n");
+#endif
+
+    goto error1;
+  }
+
+  CloseHandle(pi.hProcess);
+  CloseHandle(pi.hThread);
+
+  CloseHandle(input_write);
+
+  if (!(*pixmap = calloc(1, sizeof(**pixmap)))) {
+    goto error2;
+  }
+
+  if (!ReadFile(input_read, &tmp, sizeof(u_int32_t), &len, NULL) || len != sizeof(u_int32_t)) {
+    goto error2;
+  }
+
+  size = ((*pixmap)->width = tmp) * sizeof(u_int32_t);
+
+  if (!ReadFile(input_read, &tmp, sizeof(u_int32_t), &len, NULL) || len != sizeof(u_int32_t)) {
+    goto error2;
+  }
+
+  size *= ((*pixmap)->height = tmp);
+
+  if (!((*pixmap)->image = malloc(size))) {
+    goto error2;
+  } else {
+    u_char *p;
+
+    p = (*pixmap)->image;
+    do {
+      if (!ReadFile(input_read, p, size, &len, NULL)) {
+        free((*pixmap)->image);
+        goto error2;
+      }
+      p += len;
+    } while ((size -= len) > 0);
+  }
+
+  CloseHandle(input_read);
+
+  return 1;
+
+error1:
+  CloseHandle(input_write);
+  CloseHandle(input_read);
+
   return 0;
+
+error2:
+  free(*pixmap);
+  CloseHandle(input_read);
+
+  return 0;
+}
+
 #elif defined(__ANDROID__)
+
+static int exec_mlimgloader(char *path, u_int width, u_int height, Pixmap *pixmap) {
   if (!(*pixmap = calloc(1, sizeof(**pixmap)))) {
     return 0;
   }
 
   (*pixmap)->width = width;
   (*pixmap)->height = height;
+
   if (!((*pixmap)->image = ui_display_get_bitmap(path, &(*pixmap)->width, &(*pixmap)->height))) {
-    goto error;
+    free(*pixmap);
+
+    return 0;
   }
+
+  return 1;
+}
+
 #else
+
+static int exec_mlimgloader(char *path, u_int width, u_int height, Pixmap *pixmap) {
+  pid_t pid;
+  int fds1[2];
+  int fds2[2];
+  ssize_t size;
+  u_int32_t tmp;
+
   if (pipe(fds1) == -1) {
     return 0;
   }
@@ -587,7 +636,117 @@ static int load_file(Display *display, char *path, u_int width, u_int height,
 #if 1
   waitpid(pid, NULL, 0);
 #endif
+
+  return 1;
+
+error:
+#ifdef DEBUG
+  bl_debug_printf(BL_DEBUG_TAG " Failed to load %s\n", path);
 #endif
+
+  if (*pixmap) {
+    free((*pixmap)->image);
+    free(*pixmap);
+  }
+
+  close(fds2[0]);
+  close(fds1[1]);
+
+  return 0;
+}
+
+#endif
+
+static int load_file(Display *display, char *path, u_int width, u_int height,
+                     ui_picture_modifier_t *pic_mod, u_int depth, Pixmap *pixmap,
+                     PixmapMask *mask) {
+  if (!path || !*path) {
+    return 0;
+  }
+
+#ifdef BUILTIN_SIXEL
+  if (strcasecmp(path + strlen(path) - 4, ".six") == 0) {
+    char *file_data;
+
+    if (!(file_data = read_sixel_file(path))) {
+      return 0;
+    }
+
+    /* For old machines */
+#if (defined(__NetBSD__) || defined(__OpenBSD__)) && !defined(USE_GRF)
+    if (depth == 1) {
+      /* pic_mod is ignored. */
+      if (load_sixel_with_mask_from_data_1bpp(file_data, width, height, pixmap, mask)) {
+        free(file_data);
+        return 1;
+      }
+    } else
+#endif
+    if (
+/* For old machines and Android (not to use mlimgloader) */
+#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(__ANDROID__)
+        width == 0 && height == 0 &&
+#endif
+        (*pixmap = calloc(1, sizeof(**pixmap)))) {
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
+      u_int32_t *sixel_cmap;
+#endif
+
+      if (depth <= 8) {
+        if (ui_picture_modifier_is_normal(pic_mod) /* see modify_pixmap() */) {
+          if (((*pixmap)->image = load_sixel_from_data_sharepalette(file_data, &(*pixmap)->width,
+                                                                    &(*pixmap)->height)) &&
+              resize_sixel(*pixmap, width, height,
+#ifdef USE_GRF
+                           2
+#else
+                           1
+#endif
+                           )) {
+            if (mask) {
+              *mask = NULL;
+            }
+            free(file_data);
+
+            goto loaded_nomodify;
+          }
+        }
+
+        bl_msg_printf("Use closest colors for %s.\n", path);
+      }
+
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
+      if (!(sixel_cmap = custom_palette) && (sixel_cmap = alloca(sizeof(*sixel_cmap) * 257))) {
+        sixel_cmap[256] = 0; /* No active palette */
+        custom_palette = sixel_cmap;
+      }
+#endif
+
+      if (((*pixmap)->image = load_sixel_from_data(file_data, &(*pixmap)->width,
+                                                   &(*pixmap)->height)) &&
+          /* resize_sixel() frees pixmap->image in failure. */
+          resize_sixel(*pixmap, width, height, 4)) {
+#ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
+        if (sixel_cmap) {
+          /* see set_wall_picture() in ui_screen.c */
+          ui_display_set_cmap(sixel_cmap, sixel_cmap[256]);
+        }
+#endif
+        free(file_data);
+
+        goto loaded;
+      } else {
+        free(*pixmap);
+      }
+    }
+
+    free(file_data);
+  }
+#endif /* BUILTIN_SIXEL */
+
+  if (!exec_mlimgloader(path, width, height, pixmap)) {
+    return 0;
+  }
 
 loaded:
   if (mask) {
@@ -630,21 +789,6 @@ loaded_nomodify:
 #endif
 
   return 1;
-
-error:
-#ifdef DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " Failed to load %s\n", path);
-#endif
-
-  if (*pixmap) {
-    free((*pixmap)->image);
-    free(*pixmap);
-  }
-
-  close(fds2[0]);
-  close(fds1[1]);
-
-  return 0;
 }
 
 /* --- global functions --- */

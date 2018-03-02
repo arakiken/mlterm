@@ -927,6 +927,7 @@ void ui_display_close(ui_display_t *disp) {
         utf8_parser = NULL;
 
 #ifdef MONITOR_PTY
+        SDL_CondSignal(pty_cond);
         SDL_DestroyCond(pty_cond);
 #endif
         SDL_Quit();

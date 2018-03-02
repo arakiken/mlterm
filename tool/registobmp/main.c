@@ -6,7 +6,9 @@
 #include <stdint.h>
 #include <math.h>
 #include <SDL.h>
+#ifdef USE_SDLTTF
 #include <SDL_ttf.h>
+#endif
 #ifdef USE_FONTCONFIG
 #include <fontconfig/fontconfig.h>
 #endif
@@ -330,13 +332,15 @@ static char *parse_quoted_text(char *text, char quote) {
 
 static char *command_text(char *cmd) {
   static int no_font;
-  static TTF_Font *font;
   char quote;
   char *text;
+#ifdef USE_SDLTTF
+  static TTF_Font *font;
   SDL_Surface *image;
   SDL_Color color;
   SDL_Rect image_rect;
   SDL_Rect rect;
+#endif
 
   if (*cmd == '(') {
     char *options[10];
@@ -367,10 +371,12 @@ static char *command_text(char *cmd) {
             if (size != fontsize) {
               fontsize = size;
 
+#ifdef USE_SDLTTF
               if (font) {
                 TTF_CloseFont(font);
                 font = NULL;
               }
+#endif
             }
           }
         } else {
@@ -388,10 +394,12 @@ static char *command_text(char *cmd) {
             if (size != fontsize) {
               fontsize = size;
 
+#ifdef USE_SDLTTF
               if (font) {
                 TTF_CloseFont(font);
                 font = NULL;
               }
+#endif
             }
           }
         }
@@ -410,6 +418,7 @@ static char *command_text(char *cmd) {
     return cmd;
   }
 
+#ifdef USE_SDLTTF
   if (!font) {
     static char *font_file;
 
@@ -422,7 +431,11 @@ static char *command_text(char *cmd) {
 
         FcInit();
 
+#ifdef USE_WIN32API
+        pat = FcNameParse("Courier");
+#else
         pat = FcNameParse("monospace");
+#endif
         FcConfigSubstitute(0, pat, FcMatchPattern);
         FcDefaultSubstitute(pat);
         mat = FcFontMatch(0, pat, &result);
@@ -478,6 +491,7 @@ static char *command_text(char *cmd) {
 
     pen_x += image->w;
   }
+#endif
 
   return cmd;
 }
@@ -783,6 +797,25 @@ int main(int argc, char **argv) {
   FILE *fp;
   char line[256];
   char *cmd;
+
+#if defined(_WIN32) && defined(USE_FONTCONFIG)
+  if (!getenv("FONTCONFIG_PATH") && !getenv("FONTCONFIG_FILE")) {
+    /*
+     * See fontconfig-x.x.x/src/fccfg.c
+     * (DllMain(), FcConfigFileExists(), FcConfigGetPath() and FcConfigFilename())
+     *
+     * [commant in DllMain]
+     * If the fontconfig DLL is in a "bin" or "lib" subfolder, assume it's a Unix-style
+     * installation tree, and use "etc/fonts" in there as FONTCONFIG_PATH.
+     * Otherwise use the folder where the DLL is as FONTCONFIG_PATH.
+     *
+     * [comment in FcConfigFileExists]
+     * make sure there's a single separator
+     * (=> If FONTCONFIG_PATH="", FONTCONFIG_FILE="/...")
+     */
+    putenv("FONTCONFIG_PATH=.");
+  }
+#endif
 
 #ifdef __TEST
   test_parse_options();

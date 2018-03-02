@@ -285,6 +285,15 @@ static char *get_user_rc_path(char *rcfile) {
   char *homedir;
   char *path;
 
+#ifdef _WIN32
+  if ((homedir = getenv("HOMEPATH")) &&
+      /* Enough for "%s/%s" */
+      (path = malloc(strlen(homedir) + 1 + strlen(rcfile) + 1))) {
+    sprintf(path, "%s/%s", homedir, rcfile);
+
+    return path;
+  }
+#else
   if ((homedir = getenv("HOME")) &&
       /* Enough for "%s/.config/%s" */
       (path = malloc(strlen(homedir) + 9 + strlen(rcfile) + 1))) {
@@ -302,6 +311,7 @@ static char *get_user_rc_path(char *rcfile) {
 
     return path;
   }
+#endif
 
   return NULL;
 }
@@ -561,7 +571,32 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  if (!check_font_config(argc == 1 ? "" : argv[1])) {
+#ifdef _WIN32
+  if (!getenv("FONTCONFIG_PATH") && !getenv("FONTCONFIG_FILE")) {
+    /*
+     * See fontconfig-x.x.x/src/fccfg.c
+     * (DllMain(), FcConfigFileExists(), FcConfigGetPath() and FcConfigFilename())
+     *
+     * [commant in DllMain]
+     * If the fontconfig DLL is in a "bin" or "lib" subfolder, assume it's a Unix-style
+     * installation tree, and use "etc/fonts" in there as FONTCONFIG_PATH.
+     * Otherwise use the folder where the DLL is as FONTCONFIG_PATH.
+     *
+     * [comment in FcConfigFileExists]
+     * make sure there's a single separator
+     * (=> If FONTCONFIG_PATH="", FONTCONFIG_FILE="/...")
+     */
+    putenv("FONTCONFIG_PATH=.");
+  }
+#endif
+
+  if (!check_font_config(argc == 1 ?
+#ifdef _WIN32
+                         "Courier"
+#else
+                         ""
+#endif
+                         : argv[1])) {
     fprintf(stderr, "Failed.\n");
 
     return -1;
