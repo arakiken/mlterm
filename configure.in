@@ -1006,30 +1006,26 @@ mlimgloader)
 	fi
 	;;
 registobmp)
-	PKG_CHECK_MODULES(SDLTTF, SDL_ttf, have_sdlttf=yes, have_sdlttf=no)
-	if test "$have_sdlttf" = "yes" ; then
-		AC_CHECK_PROG(sdl_config,sdl-config,yes)
-		if test "$sdl_config" = "yes" ; then
-			SDL_CFLAGS=`sdl-config --cflags`
-			SDL_LIBS=`sdl-config --libs`
-		else
-			continue
-		fi
+	if test "$have_sdl2" = "yes"; then
+		SDL_CFLAGS=$SDL2_CFLAGS
+		SDL_LIBS=$SDL2_LIBS
 	else
-		PKG_CHECK_MODULES(SDLTTF, SDL2_ttf, have_sdlttf=yes, have_sdlttf=no)
-		if test "$have_sdlttf" = "yes" ; then
-			if test "$have_sdl2" = "yes"; then
-				SDL_CFLAGS=$SDL2_CFLAGS
-				SDL_LIBS=$SDL2_LIBS
-			else
-				PKG_CHECK_MODULES(SDL, sdl2, have_sdl2=yes, have_sdl2=no)
-				if test "$have_sdl2" != "yes" ; then
-					continue
-				fi
-			fi
-		else
-			continue
+		PKG_CHECK_MODULES(SDL, sdl2, have_sdl2=yes, have_sdl2=no)
+		if test "$have_sdl2" != "yes" ; then
+			PKG_CHECK_MODULES(SDL, sdl, have_sdl=yes, have_sdl=no)
 		fi
+	fi
+
+	if test "$have_sdl2" = "yes"; then
+		PKG_CHECK_MODULES(SDLTTF, SDL2_ttf, have_sdlttf=yes, have_sdlttf=no)
+	elif test "$have_sdl" = "yes"; then
+		PKG_CHECK_MODULES(SDLTTF, SDL_ttf, have_sdlttf=yes, have_sdlttf=no)
+	else
+		continue
+	fi
+
+	if test "$have_sdlttf" = "yes"; then
+		SDLTTF_CFLAGS="$SDLTTF_CFLAGS -DUSE_SDLTTF"
 	fi
 
 	SDL_CFLAGS="$SDL_CFLAGS $SDLTTF_CFLAGS"

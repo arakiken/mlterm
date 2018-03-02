@@ -130,8 +130,9 @@ u_int vt_shape_ot_layout(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int sr
   for (src_pos = 0; src_pos < src_len; src_pos++) {
     ch = &src[src_pos];
     cur_font = vt_char_font(ch);
+    comb = vt_get_combining_chars(ch, &comb_size);
 
-    if (FONT_CS(cur_font) == US_ASCII /* && vt_char_code(ch) == ' ' */) {
+    if (FONT_CS(cur_font) == US_ASCII && (!comb || vt_char_cs(comb) != PICTURE_CHARSET)) {
       cur_font &= ~US_ASCII;
       cur_font |= ISO10646_UCS4_1;
     }
@@ -201,7 +202,6 @@ u_int vt_shape_ot_layout(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int sr
       if (!vt_char_is_null(ch)) {
         ucs_buf[ucs_filled++] = vt_char_code(ch);
 
-        comb = vt_get_combining_chars(ch, &comb_size);
         for (; comb_size > 0; comb_size--) {
           ucs_buf[ucs_filled++] = vt_char_code(comb++);
         }

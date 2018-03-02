@@ -1,3 +1,20 @@
+2018-03-03  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_shape.c: vt_shape_ot_layout() does nothing for a character whose
+	  charset is PICTURE_CHARSET.
+
+	* sdl2/ui_display.c: Not only SDL_DestroyCond but also SDL_CondSignal()
+	  is called in ui_display_close().
+
+	* fb/ui_window.c: Fix illegal memory access in draw_string_intern().
+
+	* sdl2/ui_imagelib.c: exec_mlimgloader() is added, and it works on win32api.
+
+	* mlfc/main.c: FONTCONFIG_PATH environmental variable is set.
+
+	* configure.in, registobmp/main.c: If SDL_ttf is not found, registobmp is
+	  compiled without it.
+
 2018-02-28  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_ot_layout.c: If 5 or more same usascii characters are repeated,

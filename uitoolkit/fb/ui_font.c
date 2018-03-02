@@ -1459,6 +1459,34 @@ static FcPattern *parse_font_name(const char *fontname, int *is_bold, int *is_it
 
     if (compl_pattern == NULL && match) {
       num_fc_files = strip_pattern((compl_pattern = pattern), match);
+
+      /*
+       * XXX
+       * FcFontList() is not used.
+       * If you want to match complementary fonts, add <match target="pattern">...</match>
+       * to ~/.fonts.conf
+       */
+#if 0
+      {
+        FcPattern *pat = FcPatternCreate();
+        FcObjectSet *objset = FcObjectSetBuild(FC_FAMILY, NULL);
+        FcFontSet *fontset = FcFontList(NULL, pat, objset);
+        FcValue val;
+        int count;
+
+        for (count = 0; count < fontset->nfont; count++) {
+          FcPatternGet(fontset->fonts[count], FC_FAMILY, 0, &val);
+
+          if (!is_same_family(compl_pattern, val.u.s)) {
+            FcPatternAdd(compl_pattern, FC_FAMILY, val, FcTrue /* append */);
+            num_fc_files++;
+#if 0
+            bl_debug_printf("Add Font List %s [%]\n", val.u.s);
+#endif
+          }
+        }
+      }
+#endif
     } else {
       FcPatternDestroy(pattern);
     }

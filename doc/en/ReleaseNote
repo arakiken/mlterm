@@ -9,6 +9,8 @@
   (NotoColorEmoji.ttf etc) instead of image files in ~/.mlterm/emoji.
 * Treat not only U+1F1000-1F6FF but also U+1F900-1F9FF characters as emoji.
 * Drop "show_picture" and "add_frame" from OSC 5379.
+* Bug fixes:
+  Fix corrupt screen in showing inline pictures if "use_ot_layout" option is true.
 
 ver 3.8.4
 * Support DECSLPP, DECSCPP, DECBBSM, DECRQTSR, DECCTR, DECRQPSR, DECSNLS, DECSTGLT, DECRSPS,

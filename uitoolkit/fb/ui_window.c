@@ -386,9 +386,10 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
 
                   if (y_off == orig_y_off) {
                     u_char *new_src;
-                    size_t new_size = size + (retreat - filled) * bpp;
 
                     if (retreat - filled > font_width) { /* See (len + 1) above */
+                      size_t new_size = size + (retreat - filled - font_width) * bpp;
+
                       if (!(new_src = alloca(new_size))) {
                         break;
                       }
@@ -396,8 +397,8 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
                       memcpy(new_src, src, p - src);
                       p = new_src + (p - src);
                       src = new_src;
+                      size = new_size;
                     }
-                    size = new_size;
 
                     orig_x -= (retreat - filled);
                   } else {
