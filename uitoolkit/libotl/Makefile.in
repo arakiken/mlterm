@@ -27,16 +27,26 @@ CFLAGS = $(CFLAGS_LOCAL) @POBL_CFLAGS@ @DEB_CFLAGS@ @GUI_CFLAGS@ @CFLAGS@ @CPPFL
 
 LIBS = $(LIBS_LOCAL) @OT_LAYOUT_LIBS@ $(LPOBL) -L/usr/local/lib -R/usr/local/lib
 
+TARGET_win32 = libotl-win32.la
+TARGET_xlib = libotl.la
+TARGET_quartz = libotl-quartz.la
+TARGET_fb = libotl.la
+TARGET_console = libotl.la
+TARGET_wayland = libotl.la
+TARGET_sdl2 = libotl.la
+
+TARGET = $(TARGET_@GUI@)
+
 INSTALL_OPT = -m 755
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
-all: libotl.la
+all: $(TARGET)
 
-libotl.la: $(OBJ)
-	$(LIBTOOL_LINK) -o libotl.la $(OBJ:.o=.lo) -rpath $(libdir)/mlterm \
+$(TARGET): $(OBJ)
+	$(LIBTOOL_LINK) -o $(TARGET) $(OBJ:.o=.lo) -rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
 
 .SUFFIXES: .c .o
@@ -45,7 +55,7 @@ libotl.la: $(OBJ)
 	$(LIBTOOL_CC) -c $<
 
 install : $(LIBDIR)
-	$(LIBTOOL_INSTALL) $(INSTALL_OPT) libotl.la $(LIBDIR)
+	$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(TARGET) $(LIBDIR)
 
 uninstall :
 	rm -f $(LIBDIR)/*otl*
@@ -57,7 +67,7 @@ wc :
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
 
 clean:
-	rm -rf libotl.la $(OBJ) $(OBJ:.o=.lo) .libs
+	rm -rf $(TARGET) $(OBJ) $(OBJ:.o=.lo) .libs
 
 distclean: clean
 	rm -f Makefile

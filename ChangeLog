@@ -1,5 +1,13 @@
 2018-03-03  Araki Ken  <arakiken@users.sf.net>
 
+	* libotl/Makefile.in, otl.h: Library name is changed from libotl to
+	  libotl-win32 on win32api and to libotl-quartz on MacOSX/Cocoa in order
+	  to coexist with libotl for sdl2.
+
+	* fb/ui_font.c: get_cached_xfont() checks xfont->is_aa
+
+2018-03-03  Araki Ken  <arakiken@users.sf.net>
+
 	* vt_shape.c: vt_shape_ot_layout() does nothing for a character whose
 	  charset is PICTURE_CHARSET.
 
