@@ -70,7 +70,7 @@
 static XFontStruct **xfonts;
 static u_int num_xfonts;
 
-static XFontStruct *get_cached_xfont(const char *file, int32_t format);
+static XFontStruct *get_cached_xfont(const char *file, int32_t format, int is_aa);
 static int add_xfont_to_cache(XFontStruct *xfont);
 static void xfont_unref(XFontStruct *xfont);
 
@@ -1163,9 +1163,9 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
 }
 
 static int load_xfont(XFontStruct *xfont, const char *file_path, int32_t format,
-                      u_int bytes_per_pixel, ef_charset_t cs, int noaa) {
+                      ef_charset_t cs, int is_aa) {
   if (!is_pcf(file_path)) {
-    return load_ft(xfont, file_path, format, (bytes_per_pixel > 1) && !noaa, 0);
+    return load_ft(xfont, file_path, format, is_aa, 0);
   } else {
     return load_pcf(xfont, file_path);
   }
@@ -1602,7 +1602,7 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
       XFontStruct *compl;
 
       if (!xfont->compl_xfonts[count]) {
-        if (!(compl = get_cached_xfont(fc_files[count], xfont->format))) {
+        if (!(compl = get_cached_xfont(fc_files[count], xfont->format, xfont->is_aa))) {
           if (!(compl = calloc(1, sizeof(XFontStruct)))) {
             continue;
           }
@@ -1655,18 +1655,19 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
 
 #else /* USE_FREETYPE */
 
-#define load_xfont(xfont, file_path, format, bytes_per_pixel, cs, noaa) load_pcf(xfont, file_path)
+#define load_xfont(xfont, file_path, format, cs, is_aa) load_pcf(xfont, file_path)
 #define unload_xfont(xfont) unload_pcf(xfont)
 
 #endif /* USE_FREETYPE */
 
-static XFontStruct *get_cached_xfont(const char *file, int32_t format) {
+static XFontStruct *get_cached_xfont(const char *file, int32_t format, int is_aa) {
   u_int count;
 
   for (count = 0; count < num_xfonts; count++) {
     if (strcmp(xfonts[count]->file, file) == 0
 #ifdef USE_FREETYPE
         && (xfonts[count]->face == NULL || xfonts[count]->format == format)
+        && xfonts[count]->is_aa == is_aa
 #endif
         ) {
 #ifdef DEBUG
@@ -1761,6 +1762,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   u_int format;
 #endif
   u_int cols;
+  int is_aa;
 
   cs = FONT_CS(id);
 
@@ -1951,13 +1953,19 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     sprintf(decsp_id, "decsp-%dx%d", col_width, fontsize);
   }
 
+  if (!(font_present & FONT_NOAA) && display->bytes_per_pixel > 1) {
+    is_aa = 1;
+  } else {
+    is_aa = 0;
+  }
+
   if ((font->xfont = get_cached_xfont(decsp_id ? decsp_id : font_file,
 #ifdef USE_FREETYPE
-                                      format
+                                      format,
 #else
-                                      0
+                                      0,
 #endif
-       ))) {
+                                      is_aa))) {
     goto xfont_loaded;
   }
 
@@ -1985,8 +1993,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
                          font_file, fontsize, col_width,
                          use_medium_for_bold, letter_space);
     }
-  } else if (!load_xfont(font->xfont, font_file, format, display->bytes_per_pixel, cs,
-                         font_present & FONT_NOAA)) {
+  } else if (!load_xfont(font->xfont, font_file, format, cs, is_aa)) {
     bl_msg_printf("Failed to load %s.\n", font_file);
 
     free(font->xfont);

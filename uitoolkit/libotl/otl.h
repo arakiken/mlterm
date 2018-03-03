@@ -25,6 +25,14 @@
 #define OTL_DIR LIBDIR "/mlterm/"
 #endif
 
+#if defined(USE_WIN32GUI)
+#define OTL_LIB "otl-win32"
+#elif defined(USE_QUARTZ)
+#define OTL_LIB "otl-quartz"
+#else
+#define OTL_LIB "otl"
+#endif
+
 /* --- static variables --- */
 
 static void *(*open_sym)(void *, u_int);
@@ -42,7 +50,7 @@ static void *otl_open(void *obj, u_int size) {
 
     is_tried = 1;
 
-    if ((!(handle = bl_dl_open(OTL_DIR, "otl")) && !(handle = bl_dl_open("", "otl"))) ||
+    if ((!(handle = bl_dl_open(OTL_DIR, OTL_LIB)) && !(handle = bl_dl_open("", OTL_LIB))) ||
         !(open_sym = bl_dl_func_symbol(handle, "otl_open")) ||
         !(close_sym = bl_dl_func_symbol(handle, "otl_close")) ||
         !(convert_sym = bl_dl_func_symbol(handle, "otl_convert_text_to_glyphs"))) {
