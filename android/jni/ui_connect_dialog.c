@@ -102,7 +102,9 @@ void Java_mlterm_native_1activity_MLActivity_dialogOkClicked(JNIEnv *env, jobjec
   (*env)->ReleaseStringUTFChars(env, pass, p);
   (*env)->ReleaseStringUTFChars(env, exec_cmd, e);
 
+#if 0
   bl_debug_printf( "%s %s %s\n", d_uri, d_pass, d_exec_cmd);
+#endif
 }
 
 #else

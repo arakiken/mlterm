@@ -350,7 +350,7 @@ static void remove_all_observers(ui_window_t *uiwindow) {
 }
 
 static NSAlert *create_dialog(const char *msg, int has_cancel) {
-  if (!NSThread.isMainThread()) {
+  if (![NSThread isMainThread]) {
     return nil;
   }
 

@@ -1,3 +1,15 @@
+2018-03-04  Araki Ken  <arakiken@users.sf.net>
+
+	* cocoa/install.sh: libotl.so -> libotl-quartz.so
+
+	* cocoa.m: Compiling error is fixed.
+
+	* MLActivity.java:
+	  - showDialog() => showConnectDialog()
+	  - showMessage() is added.
+
+	* android/jni/ui_display.c: bl_dialog_set_callback(dialog_cb) is added.
+
 2018-03-03  Araki Ken  <arakiken@users.sf.net>
 
 	* libotl/Makefile.in, otl.h: Library name is changed from libotl to
