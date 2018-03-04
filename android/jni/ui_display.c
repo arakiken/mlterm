@@ -12,6 +12,7 @@
 #include <pobl/bl_mem.h>
 #include <pobl/bl_str.h> /* bl_str_alloca_dup */
 #include <pobl/bl_path.h>
+#include <pobl/bl_dialog.h>
 
 #include "../ui_window.h"
 #include "../../common/c_animgif.c"
@@ -252,6 +253,20 @@ static JNIEnv *get_jni_env(JavaVM *vm) {
     return env;
   } else {
     return NULL;
+  }
+}
+
+static int dialog_cb(bl_dialog_style_t style, const char *msg) {
+  JNIEnv *env;
+
+  if (style == BL_DIALOG_ALERT &&
+      (env = get_jni_env(_display.app->activity->vm))) {
+    jobject this = _display.app->activity->clazz;
+    (*env)->CallVoidMethod(env, this,
+                           (*env)->GetMethodID(env, (*env)->GetObjectClass(env, this),
+                                               "showMessage",
+                                               "(Ljava/lang/String;)V"),
+                           (*env)->NewStringUTF(env, msg));
   }
 }
 
@@ -565,8 +580,11 @@ static void on_app_cmd(struct android_app *app, int32_t cmd) {
 /* --- global functions --- */
 
 ui_display_t *ui_display_open(char *disp_name, u_int depth) {
-  if (!(_disp.name = getenv("DISPLAY"))) {
+  if (!_disp.name && !(_disp.name = getenv("DISPLAY"))) {
     _disp.name = ":0.0";
+
+    /* Callback should be set before bl_dialog() is called. */
+    bl_dialog_set_callback(dialog_cb);
   }
   _disp.display = &_display;
 
@@ -997,7 +1015,7 @@ void ui_display_show_dialog(char *server) {
   this = _display.app->activity->clazz;
   (*env)->CallVoidMethod(env, this,
                          (*env)->GetMethodID(env, (*env)->GetObjectClass(env, this),
-                                             "showDialog",
+                                             "showConnectDialog",
                                              "(Ljava/lang/String;Ljava/lang/String;"
                                              "Ljava/lang/String;Ljava/lang/String;)V"),
                          user ? (*env)->NewStringUTF(env, user) : NULL,

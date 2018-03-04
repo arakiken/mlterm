@@ -33,6 +33,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.LinearLayout;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.Toast;
 import android.content.DialogInterface;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -459,38 +460,42 @@ public class MLActivity extends NativeActivity {
   private LinearLayout dialogLayout;
 
   @Override protected Dialog onCreateDialog(int id) {
-    Dialog dialog = new AlertDialog.Builder(this)
-      .setIcon(android.R.drawable.ic_dialog_info)
-      .setTitle("Connect to SSH Server")
-      .setView(dialogLayout)
-      .setPositiveButton("Connect", new DialogInterface.OnClickListener() {
-          public void onClick(DialogInterface dialog, int whichButton) {
-            dialogOkClicked(user_edit.getText().toString(),
-                            serv_edit.getText().toString(),
-                            port_edit.getText().toString(),
-                            encoding_edit.getText().toString(),
-                            pass_edit.getText().toString(),
-                            cmd_edit.getText().toString());
-          }
-        })
-      .setNegativeButton("Local", new DialogInterface.OnClickListener() {
-          public void onClick(DialogInterface dialog, int whichButton) {} })
-      .create();
+    if (id == 1) {
+      Dialog dialog = new AlertDialog.Builder(this)
+        .setIcon(android.R.drawable.ic_dialog_info)
+        .setTitle("Connect to SSH Server")
+        .setView(dialogLayout)
+        .setPositiveButton("Connect", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+              dialogOkClicked(user_edit.getText().toString(),
+                              serv_edit.getText().toString(),
+                              port_edit.getText().toString(),
+                              encoding_edit.getText().toString(),
+                              pass_edit.getText().toString(),
+                              cmd_edit.getText().toString());
+            }
+          })
+        .setNegativeButton("Local", null)
+        .create();
 
-    dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-        public void onDismiss(DialogInterface dialog) {
-          if (nativeThread != null) {
-            synchronized(nativeThread) {
-              nativeThread.notifyAll();
+      dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+          public void onDismiss(DialogInterface dialog) {
+            if (nativeThread != null) {
+              synchronized(nativeThread) {
+                nativeThread.notifyAll();
+              }
             }
           }
-        }
-      });
+        });
 
-    return dialog;
+      return dialog;
+    } else {
+      return null;
+    }
   }
 
-  private void showDialog(String user, String serv, String port, String encoding) {
+  /* Called from native activity thread */
+  private void showConnectDialog(String user, String serv, String port, String encoding) {
     nativeThread = Thread.currentThread();
 
     dialogLayout = new LinearLayout(this);
@@ -542,24 +547,33 @@ public class MLActivity extends NativeActivity {
       encoding_edit.setText(encoding, TextView.BufferType.NORMAL);
     }
 
-    if (nativeThread != null) {
-      synchronized(nativeThread) {
-        runOnUiThread(new Runnable() {
-            @Override public void run() {
-              showDialog(1);
-            }
-          });
+    synchronized(nativeThread) {
+      runOnUiThread(new Runnable() {
+          @Override public void run() {
+            showDialog(1);
+          }
+        });
 
-        try {
-          nativeThread.wait();
-        } catch (InterruptedException e) {}
-      }
-
-      nativeThread = null;
+      try {
+        nativeThread.wait();
+      } catch (InterruptedException e) {}
     }
 
-    serv_edit = port_edit = user_edit = pass_edit = encoding_edit = null;
-
+    nativeThread = null;
     removeDialog(1);
+
+    serv_edit = port_edit = user_edit = pass_edit = encoding_edit = null;
+  }
+
+  /* Called from native activity thread or UI thread (from context menu) */
+  private void showMessage(String message) {
+    final Context ctx = this;
+    final String msg = message;
+
+    runOnUiThread(new Runnable() {
+        @Override public void run() {
+          Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show();
+        }
+      });
   }
 }

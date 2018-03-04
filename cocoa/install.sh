@@ -21,7 +21,7 @@ rm mlterm/[tv]font
 
 cd $HOME/mlterm.app/Contents/MacOS
 
-libs="lib/libpobl.[0-9]*.dylib lib/libmef.[0-9]*.dylib lib/libmlterm_core.dylib lib/libmlterm_coreotl.dylib lib/mlterm/libctl_bidi.so lib/mlterm/libctl_iscii.so lib/mlterm/libind_bengali.so lib/mlterm/libind_hindi.so lib/mlterm/libotl.so lib/mlterm/libim-skk.so lib/mlterm/libim-kbd.so"
+libs="lib/libpobl.[0-9]*.dylib lib/libmef.[0-9]*.dylib lib/libmlterm_core.dylib lib/libmlterm_coreotl.dylib lib/mlterm/libctl_bidi.so lib/mlterm/libctl_iscii.so lib/mlterm/libind_bengali.so lib/mlterm/libind_hindi.so lib/mlterm/libotl-quartz.so lib/mlterm/libim-skk.so lib/mlterm/libim-kbd.so"
 
 mkdir -p lib/mef
 mkdir -p lib/mlterm
@@ -42,16 +42,16 @@ for file in $libs mlterm mlconfig ; do
 	fi
 done
 
-if [ -f lib/mlterm/libotl.so ]; then
-	libhb=`otool -L lib/mlterm/libotl.so |sed -n 's/[^/]*\(.*harfbuzz.*dylib\).*/\1/p'`
+if [ -f lib/mlterm/libotl-quartz.so ]; then
+	libhb=`otool -L lib/mlterm/libotl-quartz.so |sed -n 's/[^/]*\(.*harfbuzz.*dylib\).*/\1/p'`
 	if [ "$libhb" != "" ]; then
 		install_name_tool -change $libhb \
-			@executable_path/lib/gtk/libharfbuzz.0.dylib lib/mlterm/libotl.so
+			@executable_path/lib/gtk/libharfbuzz.0.dylib lib/mlterm/libotl-quartz.so
 	fi
 
-	libotf=`otool -L lib/mlterm/libotl.so |sed -n 's/[^/]*\(.*otf.*dylib\).*/\1/p'`
+	libotf=`otool -L lib/mlterm/libotl-quartz.so |sed -n 's/[^/]*\(.*otf.*dylib\).*/\1/p'`
 	if [ "$libotf" != "" ]; then
 		install_name_tool -change $libotf \
-			@executable_path/lib/gtk/libotf.0.dylib lib/mlterm/libotl.so
+			@executable_path/lib/gtk/libotf.0.dylib lib/mlterm/libotl-quartz.so
 	fi
 fi
