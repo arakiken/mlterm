@@ -851,6 +851,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o logsize (*128*) (#)
         ログの行数
         unlimited を指定するとログの行数は無制限になります。
+        65535行を超える数値を指定した場合、unlimited と見なします。
 
       o word_separators ( ,.:;/|@()[]{}) (#)
         単語の区切り文字を指定('\x'から始まる16進数の使用も可)
