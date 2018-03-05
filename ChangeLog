@@ -1,5 +1,7 @@
 2018-03-06  Araki Ken  <arakiken@users.sf.net>
 
+	* gtk/vte.c: vte_terminal_copy_clipboard_format() is added.
+
 	* README.ja, mlterm.1: Updated.
 
 	* vt_logs.[ch]:

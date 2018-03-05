@@ -7,6 +7,7 @@
 * Add --halfwidth / "unicode_half_width_areas" option.
 * Add --emoji / "emoji_path" option which makes mlterm to use a specified emoji font
   (NotoColorEmoji.ttf etc) instead of image files in ~/.mlterm/emoji.
+* Add vte 0.50.0 API symbols to libvte compatible library.
 * Treat not only U+1F1000-1F6FF but also U+1F900-1F9FF characters as emoji.
 * Drop "show_picture" and "add_frame" from OSC 5379.
 * Bug fixes:

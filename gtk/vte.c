@@ -2960,6 +2960,16 @@ void vte_terminal_copy_clipboard(VteTerminal *terminal) {
   (*parser->delete)(parser);
 }
 
+#if VTE_CHECK_VERSION(0, 50, 0)
+void vte_terminal_copy_clipboard_format(VteTerminal *terminal, VteFormat format) {
+  if (format == VTE_FORMAT_TEXT) {
+    vte_terminal_copy_clipboard(terminal);
+  } else if (format == VTE_FORMAT_HTML) {
+    /* XXX do nothing */
+  }
+}
+#endif
+
 void vte_terminal_paste_clipboard(VteTerminal *terminal) {
   if (GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
     ui_screen_exec_cmd(PVT(terminal)->screen, "paste");
