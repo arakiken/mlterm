@@ -7,6 +7,7 @@
 #include <pobl/bl_str.h>    /* bl_str_to_uint */
 #include <pobl/bl_locale.h> /* bl_get_lang */
 #include <pobl/bl_args.h>
+#include <pobl/bl_util.h>   /* BL_INT_TO_STR */
 
 #include <vt_term_manager.h>
 #include "ui_selection_encoding.h"
@@ -161,7 +162,8 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, 'k', "meta", 0, "mod_meta_mode",
                   "mode in pressing meta key (none/esc/8bit) [8bit]");
   bl_conf_add_opt(conf, 'l', "sl", 0, "logsize",
-                  "number of backlog (scrolled lines to save) [128]");
+                  "number of backlog (scrolled lines to save) ["
+                  BL_INT_TO_STR(VT_LOG_SIZE_UNIT) "]");
   bl_conf_add_opt(conf, 'm', "comb", 1, "use_combining", "use combining characters [true]");
   bl_conf_add_opt(conf, 'n', "noucsfont", 1, "not_use_unicode_font",
                   "use non-Unicode fonts even in UTF-8 mode [false]");
@@ -630,7 +632,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     }
   }
 
-  main_config->num_log_lines = 128;
+  main_config->num_log_lines = VT_LOG_SIZE_UNIT;
   main_config->unlimit_log_size = 0;
 
   if ((value = bl_conf_get_value(conf, "logsize"))) {

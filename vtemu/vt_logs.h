@@ -8,6 +8,8 @@
 #include "vt_char.h"
 #include "vt_edit.h"
 
+#define VT_LOG_SIZE_UNIT 128
+
 typedef struct vt_logs {
   vt_line_t *lines;
   bl_cycle_index_t *index;

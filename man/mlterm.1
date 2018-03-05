@@ -429,7 +429,9 @@ The default is \fB8bit\fR which sets the most significant bit.
 See \fB\-K\fR option also.
 .TP
 \fB\-l\fR, \fB\-\-sl\fR=\fIvalue\fR
-Specify number of lines of backlog or "unlimited". The default is \fB128\fR.
+Specify number of lines of backlog or "unlimited".
+Over 65535(0xffff) is regarded as "unlimited".
+The default is \fB128\fR.
 .TP
 \fB\-m\fR, \fB\-\-comb\fR(=\fIbool\fR)
 Enable combining characters by overstriking glyphs (recommended

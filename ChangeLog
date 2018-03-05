@@ -1,3 +1,12 @@
+2018-03-06  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja, mlterm.1: Updated.
+
+	* vt_logs.[ch]:
+	  - The value of 'logsize' option is automatically changed to 'unlimited'
+	    if it is over 65535.
+	  - VT_LOG_SIZE_UNIT is defined.
+
 2018-03-04  Araki Ken  <arakiken@users.sf.net>
 
 	* cocoa/install.sh: libotl.so -> libotl-quartz.so

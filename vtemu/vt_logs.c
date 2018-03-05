@@ -18,7 +18,11 @@ int vt_log_init(vt_logs_t *logs, u_int num_rows) {
   logs->index = NULL;
   logs->num_rows = 0;
 
-  if (num_rows == 0) {
+  /* Over 65535 is regarded as unlimited. */
+  if (num_rows > 0xffff) {
+    vt_unlimit_log_size(logs);
+    num_rows = VT_LOG_SIZE_UNIT;
+  } else if (num_rows == 0) {
     return 1;
   }
 
@@ -63,6 +67,13 @@ void vt_log_final(vt_logs_t *logs) {
 
 int vt_change_log_size(vt_logs_t *logs, u_int new_num_rows) {
   u_int num_filled_rows;
+
+  /* Over 65535 is regarded as unlimited. */
+  if (new_num_rows > 0xffff) {
+    vt_unlimit_log_size(logs);
+
+    return 1;
+  }
 
   logs->unlimited = 0;
 
@@ -177,8 +188,8 @@ int vt_log_add(vt_logs_t *logs, vt_line_t *line) {
 
   if (logs->unlimited &&
       bl_get_filled_cycle_index(logs->index) == bl_get_cycle_index_size(logs->index)) {
-    if (logs->num_rows + 128 > logs->num_rows) {
-      vt_change_log_size(logs, logs->num_rows + 128);
+    if (logs->num_rows + VT_LOG_SIZE_UNIT > logs->num_rows) {
+      vt_change_log_size(logs, logs->num_rows + VT_LOG_SIZE_UNIT);
       logs->unlimited = 1;
     }
   }
