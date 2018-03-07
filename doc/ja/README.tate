@@ -6,7 +6,7 @@ mlterm で縦表示
   設定ファイル main に、vertical_mode = cjk とかくか、-G cjk , --vertical cjk
   オプションを指定して、mlterm を起動してください。
   または、設定画面から変更することも可能です。
-  
+
   縦表示用のフォントは tfont にて設定することができます。
   ここで指定したフォントは、縦表示の場合のみ使用されます。
 
@@ -20,9 +20,9 @@ mlterm で縦表示
   の JISX0208 フォントへのパッチが、vertfonts-half-20020209.tar.gz には、同
   ISO8859-1 フォントへのパッチが含まれています。
 
-  mlterm-fb (framebuffer), mlterm-wl (wayland) 又は android 版 mlterm で、
-  freetype を有効にしてビルドした場合、TrueType フォントから自動的に縦書き用のグ
-  リフを生成し表示します。 (3.8.4〜)
+  mlterm-fb (framebuffer), mlterm-wl (wayland), mlterm-sdl2 (sdl2) 又は android
+  版 mlterm で、freetype を有効にしてビルドした場合、TrueType フォントから自動的
+  に縦書き用のグリフを生成し表示します。 (3.8.4〜)
 
 * 半角、全角の扱いについて
   縦表示の場合、半角文字は、全角文字と同じ幅で表示されます。しかし、通常、半角文

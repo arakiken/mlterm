@@ -9,7 +9,7 @@ Wayland support
   ./configure --with-gui=wayland ...
   make
   sudo make install
-  (Wayland version and X11 version can coexist in the same directory.)
+  (Wayland version and X11 version can coexist in the same directory.
    So you can install main/mlterm-wl and inputmethod/*/*-wl.so alone by
    'make install-wl' to the directory where mlterm (X11 version) has been
    already installed instead of installing all files by 'make install'.)

@@ -24,6 +24,10 @@ install-wl: BUILD_SUCCESS
 	for dir in main vtemu `find inputmethod -name Makefile|sed 's/\/Makefile//'` ; \
 		do (cd $${dir} ; $(MAKE) install) || exit $? ; done
 
+install-sdl2: BUILD_SUCCESS
+	for dir in main vtemu uitoolkit/libotl `find inputmethod -name Makefile|sed 's/\/Makefile//'` ; \
+		do (cd $${dir} ; $(MAKE) install) || exit $? ; done
+
 vte:
 	(cd gtk; $(MAKE))
 

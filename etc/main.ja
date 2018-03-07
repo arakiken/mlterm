@@ -176,6 +176,8 @@
 # Open Type フォントの置換グリフ等を使う場合の feature を指定
 # ot_features = liga,clig,dlig,hlig,rlig
 
+# 絵文字表示に使用する画像のあるディレクトリ又は絵文字フォント(NotoColorEmoji.ttfなど)のパスを指定
+# emoji_path =
 
 # -- Appearance 関連 --
 # 背景透過する
