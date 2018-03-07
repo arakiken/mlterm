@@ -625,8 +625,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         グリフ置換を行う場合の feature を指定します。
 
       o emoji_path (~/.mlterm/emoji)
-        絵文字表示に使用する画像又は絵文字フォント(NotoColorEmoji.ttfなど)を指定
-        します。
+        絵文字表示に使用する画像のあるディレクトリ又は絵文字フォント
+        (NotoColorEmoji.ttfなど)のパスを指定します。
 
       -- Appearance 関連 --
       o use_transbg (true/*false*) (#)

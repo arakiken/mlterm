@@ -122,6 +122,8 @@
 
 # ot_features = liga,clig,dlig,hlig,rlig
 
+# emoji_path =
+
 # -- Appearance --
 # use_transbg = false
 

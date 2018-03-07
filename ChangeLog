@@ -1,3 +1,16 @@
+2018-03-07  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.8.5 released.
+	  (tag "rel-3_8_5")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h:
+	  updated for 3.8.5.
+
+	* README, README.sdl2, README.wayland, README.ja,
+	  README.tate, PROTOCOL, man/mlterm.1:
+	  Updated.
+
 2018-03-06  Araki Ken  <arakiken@users.sf.net>
 
 	* gtk/vte.c: vte_terminal_copy_clipboard_format() is added.

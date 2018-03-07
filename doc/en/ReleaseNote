@@ -1,3 +1,4 @@
+ver 3.8.5
 * Support libvterm (https://launchpad.net/libvterm) compatible library partially.
 * Support DRCS-Sixel.
   (See drcssixel/DRCS-SIXEL-v2 and https://qiita.com/arakiken/items/626b02cd857d20c12fbc)
