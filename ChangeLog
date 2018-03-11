@@ -1,3 +1,28 @@
+2018-03-11  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_window_cairo.c: Memory leak of surface is fixed.
+
+	* ui_font_ft.c: Double free when XftFontOpenPattern() succeeds is fixed.
+
+	* ui_picture.[ch]: 'int keep_aspect' is added to arguments of ui_load_inline_picture().
+
+	* ui_imagelib.h, */ui_imagelib.c:
+	  'int keep_aspect' is added to arguments of ui_imagelib_load_file().
+
+	* gdiplus.c, gdk-pixbuf.c, none.c:
+	  mlimgloader [window id] [width] [height] [src file] ([dst file]|-c)
+	  => mlimgloader [window id] [width] [height] [src file] (pixmap|stdout|[dst file]) -a
+
+	* vt_parser.[ch], ui_screen.c: 'int keep_aspect' is added to arguments of
+	  vt_xterm_event_listener_t::get_picture_data.
+
+	* mlcc/main.c: The value type of "use_anti_alias" option is changed from
+	  bool to string.
+
+	* configure.in: 'libvterm' directory is copied to fb/ if --with-gui=fb,xlib
+
+	* version.h: 3.8.5 -> 3.8.5post
+
 2018-03-07  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.8.5 released.

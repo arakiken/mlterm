@@ -19871,7 +19871,7 @@ if test "$gui" = "fb,xlib" -o "$gui" = "xlib,fb" ; then
 	fi
 	mkdir -p ${top_srcdir-$srcdir}/fb
 	for file in ChangeLog Makefile.in common configure etc gtk inputmethod java \
-		main man vtemu script scrollbar uitoolkit doc ; do
+		main man vtemu script scrollbar uitoolkit doc libvterm; do
 		cp -R ${top_srcdir-$srcdir}/$file ${top_srcdir-$srcdir}/fb/
 	done
 fi

@@ -1380,8 +1380,12 @@ int ui_window_show(ui_window_t *win, int hint) {
     bl_debug_printf(BL_DEBUG_TAG " Group leader -> %x\n", wm_hints.window_group);
 #endif
 
-/* notify to window manager */
-#if 1
+    /*
+     * Notify to window manager.
+     *
+     * XXX If class_hint is set, lxde (0.99.2) doesn't show title bar for mlterm.
+     */
+#if 0
     XmbSetWMProperties(win->disp->display, win->my_window, win->app_name, win->app_name, argv, argc,
                        &size_hints, &wm_hints, &class_hint);
 #else

@@ -393,7 +393,8 @@ static int load_sixel_with_mask_from_data_1bpp(char *file_data, u_int width, u_i
 #if defined(USE_WIN32API)
 #include <windows.h>
 
-static int exec_mlimgloader(char *path, u_int width, u_int height, Pixmap *pixmap) {
+static int exec_mlimgloader(char *path, u_int width, u_int height, int keep_aspect,
+                            Pixmap *pixmap) {
   HANDLE input_write;
   HANDLE input_read_tmp;
   HANDLE input_read;
@@ -453,7 +454,8 @@ static int exec_mlimgloader(char *path, u_int width, u_int height, Pixmap *pixma
     goto error1;
   }
 
-  sprintf(cmd_line, "%s 0 %d %d %s -c", "mlimgloader.exe", width, height, path);
+  sprintf(cmd_line, "%s 0 %d %d %s stdout%s", "mlimgloader.exe", width, height, path,
+          keep_aspect ? " -a" : "");
 
   if (!CreateProcess("mlimgloader.exe", cmd_line, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL,
                      &si, &pi)) {
@@ -519,7 +521,8 @@ error2:
 
 #elif defined(__ANDROID__)
 
-static int exec_mlimgloader(char *path, u_int width, u_int height, Pixmap *pixmap) {
+static int exec_mlimgloader(char *path, u_int width, u_int height, int keep_aspect,
+                            Pixmap *pixmap) {
   if (!(*pixmap = calloc(1, sizeof(**pixmap)))) {
     return 0;
   }
@@ -538,7 +541,8 @@ static int exec_mlimgloader(char *path, u_int width, u_int height, Pixmap *pixma
 
 #else
 
-static int exec_mlimgloader(char *path, u_int width, u_int height, Pixmap *pixmap) {
+static int exec_mlimgloader(char *path, u_int width, u_int height, int keep_aspect,
+                            Pixmap *pixmap) {
   pid_t pid;
   int fds1[2];
   int fds2[2];
@@ -568,7 +572,7 @@ static int exec_mlimgloader(char *path, u_int width, u_int height, Pixmap *pixma
   if (pid == 0) {
     /* child process */
 
-    char *args[7];
+    char *args[8];
     char width_str[DIGIT_STR_LEN(u_int) + 1];
     char height_str[DIGIT_STR_LEN(u_int) + 1];
 
@@ -579,8 +583,13 @@ static int exec_mlimgloader(char *path, u_int width, u_int height, Pixmap *pixma
     sprintf(height_str, "%u", height);
     args[3] = height_str;
     args[4] = path;
-    args[5] = "-c";
-    args[6] = NULL;
+    args[5] = "stdout";
+    if (keep_aspect) {
+      args[6] = "-a";
+      args[7] = NULL;
+    } else {
+      args[6] = NULL;
+    }
 
     close(fds1[1]);
     close(fds2[0]);
@@ -657,7 +666,7 @@ error:
 
 #endif
 
-static int load_file(Display *display, char *path, u_int width, u_int height,
+static int load_file(Display *display, char *path, u_int width, u_int height, int keep_aspect,
                      ui_picture_modifier_t *pic_mod, u_int depth, Pixmap *pixmap,
                      PixmapMask *mask) {
   if (!path || !*path) {
@@ -744,7 +753,7 @@ static int load_file(Display *display, char *path, u_int width, u_int height,
   }
 #endif /* BUILTIN_SIXEL */
 
-  if (!exec_mlimgloader(path, width, height, pixmap)) {
+  if (!exec_mlimgloader(path, width, height, keep_aspect, pixmap)) {
     return 0;
   }
 
@@ -805,7 +814,7 @@ Pixmap ui_imagelib_load_file_for_background(ui_window_t *win, char *path,
   ui_display_enable_to_change_cmap(1);
 #endif
 
-  if (!load_file(win->disp->display, path, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win), pic_mod,
+  if (!load_file(win->disp->display, path, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win), 0, pic_mod,
                  win->disp->depth, &pixmap, NULL)) {
     pixmap = None;
   }
@@ -824,12 +833,13 @@ Pixmap ui_imagelib_get_transparent_background(ui_window_t *win, ui_picture_modif
 }
 
 int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, Pixmap *pixmap,
-                          PixmapMask *mask, u_int *width, u_int *height) {
+                          PixmapMask *mask, u_int *width, u_int *height, int keep_aspect) {
   if (cardinal) {
     return 0;
   }
 
-  if (!load_file(disp->display, path, *width, *height, NULL, disp->depth, pixmap, mask)) {
+  if (!load_file(disp->display, path, *width, *height, keep_aspect, NULL, disp->depth,
+                 pixmap, mask)) {
     return 0;
   }
 

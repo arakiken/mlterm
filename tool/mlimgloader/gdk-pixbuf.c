@@ -49,19 +49,17 @@
 
 static void help(void) {
   /* Don't output to stdout where mlterm waits for image data. */
-  fprintf(stderr,
-          "mlimgloader [window id] [width] [height] [src file] ([dst file]) "
-          "(-c)\n");
-  fprintf(stderr, "  [dst file]: convert [src file] to [dst file].\n");
-  fprintf(stderr, "  -c        : output XA_CARDINAL format data to stdout.\n");
+  fprintf(stderr, "mlimgloader [window id] [width] [height] [src file] [dst] (-a)\n");
+  fprintf(stderr, "  dst: \"pixmap\", \"stdout\" or regular file path.\n");
+  fprintf(stderr, "  -a : keep aspect ratio.\n");
 }
 
 /*
  * Create GdkPixbuf from the specified file path.
  * The returned pixbuf shouled be unrefed by the caller.
  */
-static GdkPixbuf *load_file(char *path, u_int width, /* 0 == image width */
-                            u_int height,            /* 0 == image height */
+static GdkPixbuf *load_file(char *path, u_int width /* 0 == image width */,
+                            u_int height /* 0 == image height */, int keep_aspect,
                             GdkInterpType scale_type) {
   GdkPixbuf *pixbuf_tmp;
   GdkPixbuf *pixbuf;
@@ -77,9 +75,22 @@ static GdkPixbuf *load_file(char *path, u_int width, /* 0 == image width */
   } else {
     if (width == 0) {
       width = gdk_pixbuf_get_width(pixbuf_tmp);
-    }
-    if (height == 0) {
+    } else if (height == 0) {
       height = gdk_pixbuf_get_height(pixbuf_tmp);
+    }
+
+    if (keep_aspect) {
+      u_int w = height * gdk_pixbuf_get_width(pixbuf_tmp) / gdk_pixbuf_get_height(pixbuf_tmp);
+
+      if (w < width) {
+        width = w;
+      } else {
+        u_int h = width * gdk_pixbuf_get_height(pixbuf_tmp) / gdk_pixbuf_get_width(pixbuf_tmp);
+
+        if (h < height) {
+          height = h;
+        }
+      }
     }
 
     pixbuf = gdk_pixbuf_scale_simple(pixbuf_tmp, width, height, scale_type);
@@ -437,17 +448,6 @@ static int pixbuf_to_pixmap_and_mask(Display *display, Window win, Visual *visua
 /* --- global functions --- */
 
 int main(int argc, char **argv) {
-#ifdef USE_XLIB
-  Display *display;
-  Visual *visual;
-  Colormap colormap;
-  u_int depth;
-  GC gc;
-  Pixmap pixmap;
-  Pixmap mask;
-  Window win;
-  XWindowAttributes attr;
-#endif
   GdkPixbuf *pixbuf;
   u_int width;
   u_int height;
@@ -456,30 +456,7 @@ int main(int argc, char **argv) {
   bl_set_msg_log_file_name("mlterm/msg.log");
 #endif
 
-#ifdef USE_XLIB
-  if (argc == 5) {
-    if (!(display = XOpenDisplay(NULL))) {
-      goto error;
-    }
-
-    if ((win = atoi(argv[1])) == 0) {
-      win = DefaultRootWindow(display);
-      visual = DefaultVisual(display, DefaultScreen(display));
-      colormap = DefaultColormap(display, DefaultScreen(display));
-      depth = DefaultDepth(display, DefaultScreen(display));
-      gc = DefaultGC(display, DefaultScreen(display));
-    } else {
-      XGCValues gc_value;
-
-      XGetWindowAttributes(display, win, &attr);
-      visual = attr.visual;
-      colormap = attr.colormap;
-      depth = attr.depth;
-      gc = XCreateGC(display, win, 0, &gc_value);
-    }
-  } else
-#endif
-      if (argc != 6) {
+  if (argc != 7 && argc != 6) {
     help();
 
     return -1;
@@ -497,7 +474,8 @@ int main(int argc, char **argv) {
    * called before window is actually resized.
    */
 
-  if (!(pixbuf = load_file(argv[4], width, height, GDK_INTERP_BILINEAR))) {
+  if (!(pixbuf = load_file(argv[4], width, height, (argc == 7 && strcmp(argv[6], "-a") == 0),
+                           GDK_INTERP_BILINEAR))) {
 #if defined(__CYGWIN__) || defined(__MSYS__)
 #define MAX_PATH 260 /* 3+255+1+1 */
     char winpath[MAX_PATH];
@@ -512,30 +490,9 @@ int main(int argc, char **argv) {
     }
   }
 
-  if (argc == 6) {
+  if (strcmp(argv[5], "stdout") == 0) {
     u_char *cardinal;
     ssize_t size;
-
-#if GDK_PIXBUF_MAJOR >= 2
-    if (strcmp(argv[5], "-c") != 0) {
-      char *type;
-      GError *error = NULL;
-
-      if (!(type = strrchr(argv[5], '.'))) {
-        goto error;
-      }
-
-      type++;
-
-      if (strcmp(type, "jpg") == 0) {
-        type = "jpeg";
-      }
-
-      gdk_pixbuf_save(pixbuf, argv[5], type, &error, NULL);
-
-      return 0;
-    }
-#endif
 
     if (!(cardinal = (u_char *)create_cardinals_from_pixbuf(pixbuf))) {
       goto error;
@@ -561,8 +518,37 @@ int main(int argc, char **argv) {
     }
   }
 #ifdef USE_XLIB
-  else {
+  else if (strcmp(argv[5], "pixmap") == 0) {
+    Display *display;
+    Visual *visual;
+    Colormap colormap;
+    u_int depth;
+    GC gc;
+    Pixmap pixmap;
+    Pixmap mask;
+    Window win;
+    XWindowAttributes attr;
     char buf[10];
+
+    if (!(display = XOpenDisplay(NULL))) {
+      goto error;
+    }
+
+    if ((win = atoi(argv[1])) == 0) {
+      win = DefaultRootWindow(display);
+      visual = DefaultVisual(display, DefaultScreen(display));
+      colormap = DefaultColormap(display, DefaultScreen(display));
+      depth = DefaultDepth(display, DefaultScreen(display));
+      gc = DefaultGC(display, DefaultScreen(display));
+    } else {
+      XGCValues gc_value;
+
+      XGetWindowAttributes(display, win, &attr);
+      visual = attr.visual;
+      colormap = attr.colormap;
+      depth = attr.depth;
+      gc = XCreateGC(display, win, 0, &gc_value);
+    }
 
     if (!pixbuf_to_pixmap_and_mask(display, win, visual, colormap, gc, depth, pixbuf, &pixmap,
                                    &mask)) {
@@ -584,6 +570,24 @@ int main(int argc, char **argv) {
     read(STDIN_FILENO, buf, sizeof(buf));
   }
 #endif /* USE_XLIB */
+#if GDK_PIXBUF_MAJOR >= 2
+  else {
+    char *type;
+    GError *error = NULL;
+
+    if (!(type = strrchr(argv[5], '.'))) {
+      goto error;
+    }
+
+    type++;
+
+    if (strcmp(type, "jpg") == 0) {
+      type = "jpeg";
+    }
+
+    gdk_pixbuf_save(pixbuf, argv[5], type, &error, NULL);
+  }
+#endif
 
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " Exit image loader\n");

@@ -1024,15 +1024,15 @@ static int xft_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
                         u_int col_width, /* if usascii font wants to be set , 0 will be set. */
                         u_int letter_space,
                         int aa_opt, /* 0 = default , 1 = enable , -1 = disable */
-                        int use_point_size_for_fc, double dpi_for_fc) {
+                        int use_point_size, double dpi) {
   int (*func)(ui_font_t *, const char *, u_int, u_int, u_int, int, int, double);
 
   if (!(func = ui_load_type_xft_func(UI_SET_FONT))) {
     return 0;
   }
 
-  return (*func)(font, fontname, fontsize, col_width, letter_space, aa_opt, use_point_size_for_fc,
-                 dpi_for_fc);
+  return (*func)(font, fontname, fontsize, col_width, letter_space, aa_opt, use_point_size,
+                 dpi);
 }
 
 static int xft_set_ot_font(ui_font_t *font) {
@@ -1063,7 +1063,7 @@ static u_int xft_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, u_in
 #elif defined(USE_TYPE_XFT)
 u_int xft_calculate_char_width(ui_font_t *font, u_int32_t ch);
 int xft_set_font(ui_font_t *font, const char *fontname, u_int fontsize, u_int col_width,
-                 u_int letter_space, int aa_opt, int use_point_size_for_fc, double dpi_for_fc);
+                 u_int letter_space, int aa_opt, int use_point_size, double dpi);
 int xft_set_ot_font(ui_font_t *font);
 #define xft_convert_text_to_glyphs(font, shaped, shaped_len, offsets, widths, cmapped, src,   \
                                    src_len, script, features)                                 \
@@ -1091,15 +1091,14 @@ static int cairo_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
                           u_int col_width, /* if usascii font wants to be set , 0 will be set. */
                           u_int letter_space,
                           int aa_opt, /* 0 = default , 1 = enable , -1 = disable */
-                          int use_point_size_for_fc, double dpi_for_fc) {
+                          int use_point_size, double dpi) {
   int (*func)(ui_font_t *, const char *, u_int, u_int, u_int, int, int, double);
 
   if (!(func = ui_load_type_cairo_func(UI_SET_FONT))) {
     return 0;
   }
 
-  return (*func)(font, fontname, fontsize, col_width, letter_space, aa_opt, use_point_size_for_fc,
-                 dpi_for_fc);
+  return (*func)(font, fontname, fontsize, col_width, letter_space, aa_opt, use_point_size, dpi);
 }
 
 static int cairo_set_ot_font(ui_font_t *font) {
@@ -1130,7 +1129,7 @@ static u_int cairo_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, u_
 #elif defined(USE_TYPE_CAIRO)
 u_int cairo_calculate_char_width(ui_font_t *font, u_int32_t ch);
 int cairo_set_font(ui_font_t *font, const char *fontname, u_int fontsize, u_int col_width,
-                   u_int letter_space, int aa_opt, int use_point_size_for_fc, double dpi_for_fc);
+                   u_int letter_space, int aa_opt, int use_point_size, double dpi);
 int cairo_set_ot_font(ui_font_t *font);
 #define cairo_convert_text_to_glyphs(font, shaped, shaped_len, offsets, widths, cmapped, src, \
                                      src_len, script, features)                               \

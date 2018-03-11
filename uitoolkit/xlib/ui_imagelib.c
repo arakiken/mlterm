@@ -455,6 +455,7 @@ static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
 static GdkPixbuf *load_file(char *path,   /* If NULL is specified, cache is cleared. */
                             u_int width,  /* 0 == image width */
                             u_int height, /* 0 == image height */
+                            int keep_aspect,
                             GdkInterpType scale_type) {
   static char *name = NULL;
   static GdkPixbuf *orig_cache = NULL;
@@ -518,6 +519,20 @@ static GdkPixbuf *load_file(char *path,   /* If NULL is specified, cache is clea
   }
   if (height == 0) {
     height = gdk_pixbuf_get_height(pixbuf);
+  }
+
+  if (keep_aspect) {
+    u_int w = height * gdk_pixbuf_get_width(pixbuf) / gdk_pixbuf_get_height(pixbuf);
+
+    if (w < width) {
+      width = w;
+    } else {
+      u_int h = width * gdk_pixbuf_get_height(pixbuf) / gdk_pixbuf_get_width(pixbuf);
+
+      if (h < height) {
+        height = h;
+      }
+    }
   }
 
   /* It is necessary to scale orig_cache if width/height don't correspond. */
@@ -1081,13 +1096,13 @@ static int modify_image(GdkPixbuf *pixbuf, ui_picture_modifier_t *pic_mod /* Mus
 
 #ifdef NO_TOOLS
 
-#define load_file(disp, width, height, path, pic_mod, pixmap, mask) (0)
+#define load_file(disp, path, width, height, keep_aspect, pic_mod, pixmap, mask) (0)
 #define create_cardinals_from_file(path, width, height) (NULL)
 
 #else /* NO_TOOLS */
 
-static pid_t exec_mlimgloader(int *read_fd, int *write_fd, Window window, u_int width, u_int height,
-                              char *path, char *cardinal_opt) {
+static pid_t exec_mlimgloader(int *read_fd, int *write_fd, Window window,
+                              u_int width, u_int height, char *path, char *dst, char *opt) {
   int fds1[2];
   int fds2[2];
   pid_t pid;
@@ -1107,7 +1122,7 @@ static pid_t exec_mlimgloader(int *read_fd, int *write_fd, Window window, u_int 
   if (pid == 0) {
     /* child process */
 
-    char *args[7];
+    char *args[8];
     char win_str[DIGIT_STR_LEN(Window) + 1];
     char width_str[DIGIT_STR_LEN(u_int) + 1];
     char height_str[DIGIT_STR_LEN(u_int) + 1];
@@ -1120,8 +1135,9 @@ static pid_t exec_mlimgloader(int *read_fd, int *write_fd, Window window, u_int 
     sprintf(height_str, "%u", height);
     args[3] = height_str;
     args[4] = path;
-    args[5] = cardinal_opt;
-    args[6] = NULL;
+    args[5] = dst;
+    args[6] = opt;
+    args[7] = NULL;
 
     close(fds1[1]);
     close(fds2[0]);
@@ -1153,7 +1169,7 @@ error1:
   return -1;
 }
 
-static int load_file(ui_display_t *disp, u_int width, u_int height, char *path,
+static int load_file(ui_display_t *disp, char *path, u_int width, u_int height, int keep_aspect,
                      ui_picture_modifier_t *pic_mod, Pixmap *pixmap, Pixmap *mask /* Can be NULL */
                      ) {
   int read_fd;
@@ -1163,8 +1179,8 @@ static int load_file(ui_display_t *disp, u_int width, u_int height, char *path,
   Pixmap mask_tmp;
   ssize_t size;
 
-  if (exec_mlimgloader(&read_fd, &write_fd, ui_display_get_group_leader(disp), width, height, path,
-                       NULL) == -1) {
+  if (exec_mlimgloader(&read_fd, &write_fd, ui_display_get_group_leader(disp), width, height,
+                       path, "pixmap", keep_aspect ? "-a" : NULL) == -1) {
     return 0;
   }
 
@@ -1231,7 +1247,7 @@ static u_int32_t *create_cardinals_from_file(char *path, u_int32_t width, u_int3
   u_int32_t *cardinal;
   ssize_t size;
 
-  if (exec_mlimgloader(&read_fd, &write_fd, None, width, height, path, "-c") == -1) {
+  if (exec_mlimgloader(&read_fd, &write_fd, None, width, height, path, "stdout", NULL) == -1) {
     return 0;
   }
 
@@ -1293,7 +1309,7 @@ void ui_imagelib_display_closed(Display *display) {
   if (display_count == 0) {
 #ifdef BUILTIN_IMAGELIB
     /* drop pixbuf cache */
-    load_file(NULL, 0, 0, 0);
+    load_file(NULL, 0, 0, 0, 0);
 #endif
   }
 }
@@ -1326,7 +1342,7 @@ Pixmap ui_imagelib_load_file_for_background(ui_window_t *win, char *path,
 
 #ifdef BUILTIN_IMAGELIB
 
-  if (!(pixbuf = load_file(path, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win), GDK_INTERP_BILINEAR))) {
+  if (!(pixbuf = load_file(path, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win), 0, GDK_INTERP_BILINEAR))) {
     return None;
   }
 
@@ -1374,7 +1390,8 @@ error:
 
 #else /* BUILTIN_IMAGELIB */
 
-  if (load_file(win->disp, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win), path, pic_mod, &pixmap, NULL)) {
+  if (load_file(win->disp, path, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win), 0,
+                pic_mod, &pixmap, NULL)) {
     return pixmap;
   } else {
     return None;
@@ -1534,7 +1551,7 @@ Pixmap ui_imagelib_get_transparent_background(ui_window_t *win, ui_picture_modif
  *\return  Success => 1, Failure => 0
  */
 int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, Pixmap *pixmap,
-                          PixmapMask *mask, u_int *width, u_int *height) {
+                          PixmapMask *mask, u_int *width, u_int *height, int keep_aspect) {
   u_int dst_height, dst_width;
 #ifdef BUILTIN_IMAGELIB
   GdkPixbuf *pixbuf;
@@ -1562,7 +1579,7 @@ int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, 
 
   if (path) {
     /* create a pixbuf from the file and create a cardinal array */
-    if (!(pixbuf = load_file(path, dst_width, dst_height, GDK_INTERP_BILINEAR))) {
+    if (!(pixbuf = load_file(path, dst_width, dst_height, keep_aspect, GDK_INTERP_BILINEAR))) {
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG "couldn't load pixbuf\n");
 #endif
@@ -1631,7 +1648,7 @@ int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, 
     return 0;
   }
 
-  if (!load_file(disp, dst_width, dst_height, path, NULL, pixmap, mask)) {
+  if (!load_file(disp, path, dst_width, dst_height, keep_aspect, NULL, pixmap, mask)) {
     return 0;
   }
 

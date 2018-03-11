@@ -5395,7 +5395,8 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
                                          int *num_rows /* can be 0 */,
                                          int *num_cols_small /* set only if drcs_sixel is 1. */,
                                          int *num_rows_small /* set only if drcs_sixel is 1. */,
-                                         u_int32_t **sixel_palette, int drcs_sixel) {
+                                         u_int32_t **sixel_palette, int keep_aspect,
+                                         int drcs_sixel) {
   ui_screen_t *screen;
   u_int width;
   u_int height;
@@ -5417,7 +5418,7 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
   }
 
   if ((idx = ui_load_inline_picture(screen->window.disp, file_path, &width, &height, col_width,
-                                    line_height, screen->term)) != -1) {
+                                    line_height, keep_aspect, screen->term)) != -1) {
     vt_char_t *buf;
 
     screen->prev_inline_pic = idx;
@@ -5472,7 +5473,7 @@ static int xterm_get_emoji_data(void *p, vt_char_t *ch1, vt_char_t *ch2) {
 
   if ((file_path = ui_emoji_get_path(vt_char_code(ch1), ch2 ? vt_char_code(ch2) : 0))) {
     idx = ui_load_inline_picture(screen->window.disp, file_path, &width, &height,
-                                 width / vt_char_cols(ch1), height, screen->term);
+                                 width / vt_char_cols(ch1), height, 0, screen->term);
     free(file_path);
 
     if (idx != -1) {
@@ -5530,7 +5531,7 @@ static void xterm_add_frame_to_animation(void *p, char *file_path, int *num_cols
   height = (*num_rows) *(line_height = ui_line_height(screen));
 
   if ((idx = ui_load_inline_picture(screen->window.disp, file_path, &width, &height, col_width,
-                                    line_height, screen->term)) != -1 &&
+                                    line_height, 0, screen->term)) != -1 &&
       screen->prev_inline_pic != idx) {
     ui_add_frame_to_animation(screen->prev_inline_pic, idx);
     screen->prev_inline_pic = idx;

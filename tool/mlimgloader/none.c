@@ -28,9 +28,8 @@
 
 static void help(void) {
   /* Don't output to stdout where mlterm waits for image data. */
-  fprintf(stderr, "mlimgloader [window id] [width] [height] [file path] (-c)\n");
-  fprintf(stderr, " window id: ignored.\n");
-  fprintf(stderr, " -c       : output XA_CARDINAL format data to stdout.\n");
+  fprintf(stderr, "mlimgloader 0 0 0 [file path] stdout (-a)\n");
+  fprintf(stderr, "  -a: ignored.\n");
 }
 
 /* --- global functions --- */
@@ -45,7 +44,7 @@ int main(int argc, char **argv) {
   bl_set_msg_log_file_name("mlterm/msg.log");
 #endif
 
-  if (argc != 6 || strcmp(argv[5], "-c") != 0) {
+  if ((argc != 6 && argc != 7) || strcmp(argv[5], "stdout") != 0) {
     help();
 
     return -1;

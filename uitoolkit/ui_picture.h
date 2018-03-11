@@ -75,7 +75,8 @@ typedef struct ui_inline_picture {
 #define ui_release_picture(pic) (0)
 #define ui_acquire_icon_picture(disp, file_path) (NULL)
 #define ui_release_icon_picture(pic) (0)
-#define ui_load_inline_picture(disp, file_path, width, height, col_width, line_height, term) (-1)
+#define ui_load_inline_picture(disp, file_path, width, height, col_width, line_height, \
+                               keep_aspect, term) (-1)
 #define ui_get_inline_picture(idx) (NULL)
 
 #else
@@ -98,7 +99,7 @@ ui_icon_picture_t *ui_acquire_icon_picture(ui_display_t *disp, char *file_path);
 void ui_release_icon_picture(ui_icon_picture_t *pic);
 
 int ui_load_inline_picture(ui_display_t *disp, char *file_path, u_int *width, u_int *height,
-                           u_int col_width, u_int line_height, vt_term_t *term);
+                           u_int col_width, u_int line_height, int keep_aspect, vt_term_t *term);
 
 ui_inline_picture_t *ui_get_inline_picture(int idx);
 

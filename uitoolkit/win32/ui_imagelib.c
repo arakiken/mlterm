@@ -84,8 +84,8 @@ static void adjust_pixmap(u_char *image, u_int width, u_int height,
 }
 
 static int load_file(char *path, /* must be UTF-8 */
-                     u_int *width, u_int *height, ui_picture_modifier_t *pic_mod, HBITMAP *hbmp,
-                     HBITMAP *hbmp_mask) {
+                     u_int *width, u_int *height, int keep_aspect, ui_picture_modifier_t *pic_mod,
+                     HBITMAP *hbmp, HBITMAP *hbmp_mask) {
   char *suffix;
   char *cmd_line;
   WCHAR *w_cmd_line;
@@ -116,13 +116,14 @@ static int load_file(char *path, /* must be UTF-8 */
     convert_regis_to_bmp(path);
   }
 
-#define CMD_LINE_FMT "mlimgloader.exe 0 %u %u \"%s\" -c"
+#define CMD_LINE_FMT "mlimgloader.exe 0 %u %u \"%s\" stdout%s"
 
-  if (!(cmd_line = alloca(sizeof(CMD_LINE_FMT) + DIGIT_STR_LEN(int)*2 + strlen(path)))) {
+  if (!(cmd_line = alloca(sizeof(CMD_LINE_FMT) + DIGIT_STR_LEN(int)*2 +
+                          strlen(path) + 3 /* " -a" */))) {
     return 0;
   }
 
-  sprintf(cmd_line, CMD_LINE_FMT, *width, *height, path);
+  sprintf(cmd_line, CMD_LINE_FMT, *width, *height, path, keep_aspect ? " -a" : "");
 
   /* Assume that path is UTF-8 */
   if ((num = MultiByteToWideChar(CP_UTF8, 0, cmd_line, strlen(cmd_line) + 1, NULL, 0)) == 0 ||
@@ -311,7 +312,7 @@ Pixmap ui_imagelib_load_file_for_background(ui_window_t *win, char *path,
   HDC hmdc;
 
   width = height = 0;
-  if (!load_file(path, &width, &height, pic_mod, &hbmp, NULL)) {
+  if (!load_file(path, &width, &height, 0, pic_mod, &hbmp, NULL)) {
     BITMAP bmp;
 #if defined(__CYGWIN__) || defined(__MSYS__)
     /* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
@@ -359,7 +360,7 @@ Pixmap ui_imagelib_get_transparent_background(ui_window_t *win, ui_picture_modif
 }
 
 int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, Pixmap *pixmap,
-                          PixmapMask *mask, u_int *width, u_int *height) {
+                          PixmapMask *mask, u_int *width, u_int *height, int keep_aspect) {
   HBITMAP hbmp;
   HDC hdc;
   HDC hmdc;
@@ -368,7 +369,7 @@ int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, 
     return 0;
   }
 
-  if (!load_file(path, width, height, NULL, &hbmp, mask)) {
+  if (!load_file(path, width, height, keep_aspect, NULL, &hbmp, mask)) {
     BITMAP bmp;
 #if defined(__CYGWIN__) || defined(__MSYS__)
     /* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */

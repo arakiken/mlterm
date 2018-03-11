@@ -61,13 +61,13 @@ static const IID __uuid_inst = {
 
 static void help(void) {
   /* Don't output to stdout where mlterm waits for image data. */
-  fprintf(stderr, "mlimgloader [window id] [width] [height] [file path] (-c)\n");
-  fprintf(stderr, "  window id: ignored.\n");
-  fprintf(stderr, "  -c       : output XA_CARDINAL format data to stdout.\n");
+  fprintf(stderr, "mlimgloader 0 [width] [height] [file path] stdout (-a)\n");
+  fprintf(stderr, "  -a: keep aspect ratio.\n");
 }
 
 /* path: cygwin style path on cygwin/msys. win32 style path on win32. */
-static u_int32_t *create_cardinals_from_file(const char *path, u_int width, u_int height) {
+static u_int32_t *create_cardinals_from_file(const char *path, u_int width, u_int height,
+                                             int keep_aspect) {
   /* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
   wchar_t wpath[MAX_PATH];
 #if defined(__CYGWIN__) || defined(__MSYS__)
@@ -221,18 +221,43 @@ static u_int32_t *create_cardinals_from_file(const char *path, u_int width, u_in
 
     cardinal = NULL;
 
-    if (width == 0 || height == 0) {
+    if (width == 0 && height == 0) {
       if (stream ? !(bitmap = Gdiplus::Bitmap::FromStream(stream))
           : !(bitmap = Gdiplus::Bitmap::FromFile(wpath))) {
         goto end2;
       }
     } else {
       Image *image;
+      u_int img_width;
+      u_int img_height;
       Graphics *graphics;
 
       if ((stream ? !(image = Image::FromStream(stream)) : !(image = Image::FromFile(wpath))) ||
           image->GetLastStatus() != Gdiplus::Ok) {
         goto end2;
+      }
+
+      img_width = image->GetWidth();
+      img_height = image->GetHeight();
+
+      if (width == 0) {
+        width = img_width;;
+      } else if (height == 0) {
+        height = img_height;
+      }
+
+      if (keep_aspect) {
+        u_int w = height * img_width / img_height;
+
+        if (w < width) {
+          width = w;
+        } else {
+          u_int h = width * img_height / img_width;
+
+          if (h < height) {
+            height = h;
+          }
+        }
       }
 
       if (!(bitmap = new Bitmap(width, height, PixelFormat32bppARGB))) {
@@ -249,7 +274,7 @@ static u_int32_t *create_cardinals_from_file(const char *path, u_int width, u_in
 
       Gdiplus::Rect rect(0, 0, width, height);
 
-      graphics->DrawImage(image, rect, 0, 0, image->GetWidth(), image->GetHeight(), UnitPixel);
+      graphics->DrawImage(image, rect, 0, 0, img_width, img_height, UnitPixel);
 
       delete image;
       delete graphics;
@@ -334,7 +359,7 @@ int PASCAL WinMain(HINSTANCE hinst, HINSTANCE hprev, char *cmdline, int cmdshow)
 
   GlobalFree(w_argv);
 
-  if (argc != 6 || strcmp(argv[5], "-c") != 0) {
+  if ((argc != 6 && argc != 7) || strcmp(argv[5], "stdout") != 0) {
     help();
 
     return -1;
@@ -358,7 +383,9 @@ int PASCAL WinMain(HINSTANCE hinst, HINSTANCE hprev, char *cmdline, int cmdshow)
    * called before window is actually resized.
    */
 
-  if (!(cardinal = (u_char*)create_cardinals_from_file(argv[4], width, height))) {
+  if (!(cardinal = (u_char*)create_cardinals_from_file(argv[4], width, height,
+                                                       (argc == 7 &&
+                                                        strcmp(argv[6], "-a") == 0)))) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " Failed to load %s\n", argv[4]);
 #endif
