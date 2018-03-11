@@ -363,10 +363,10 @@ static XftFont *xft_font_open(ui_font_t *font, char *family, /* can be NULL */
   FcPatternPrint(match);
 #endif
 
-  xfont = XftFontOpenPattern(font->display, match);
-  FcPatternDestroy(match);
+  /* If XftFontOpenPattern() succeeds, don't call FcPatternDestroy(match) */
+  if (!(xfont = XftFontOpenPattern(font->display, match))) {
+    FcPatternDestroy(match);
 
-  if (!xfont) {
     return NULL;
   }
 

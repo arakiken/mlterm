@@ -1,3 +1,4 @@
+
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #include "../ui_window.h"
@@ -225,10 +226,16 @@ static int draw_string32(ui_window_t *win, cairo_scaled_font_t *xfont, ui_font_t
 
 int ui_window_set_use_cairo(ui_window_t *win, int use_cairo) {
   if (use_cairo) {
-    if ((win->cairo_draw = cairo_create(
-             cairo_xlib_surface_create(win->disp->display, win->my_window, win->disp->visual,
-                                       ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win))))) {
-      return 1;
+    cairo_surface_t *surface = cairo_xlib_surface_create(win->disp->display,
+                                                         win->my_window, win->disp->visual,
+                                                         ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
+    if (surface) {
+      win->cairo_draw = cairo_create(surface);
+      cairo_surface_destroy(surface);
+
+      if (win->cairo_draw) {
+        return 1;
+      }
     }
   } else {
     cairo_destroy(win->cairo_draw);

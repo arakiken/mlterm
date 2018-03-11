@@ -251,7 +251,7 @@ error:
 
 #endif /* BUILTIN_SIXEL */
 
-static int load_file(Display *display, char *path, u_int width, u_int height,
+static int load_file(Display *display, char *path, u_int width, u_int height, int keep_aspect,
                      ui_picture_modifier_t *pic_mod, u_int depth, Pixmap *pixmap,
                      PixmapMask *mask) {
   pid_t pid;
@@ -315,7 +315,7 @@ static int load_file(Display *display, char *path, u_int width, u_int height,
   if (pid == 0) {
     /* child process */
 
-    char *args[7];
+    char *args[8];
     char width_str[DIGIT_STR_LEN(u_int) + 1];
     char height_str[DIGIT_STR_LEN(u_int) + 1];
 
@@ -326,8 +326,13 @@ static int load_file(Display *display, char *path, u_int width, u_int height,
     sprintf(height_str, "%u", height);
     args[3] = height_str;
     args[4] = path;
-    args[5] = "-c";
-    args[6] = NULL;
+    args[5] = "stdout";
+    if (keep_aspect) {
+      args[6] = "-a";
+      args[7] = NULL;
+    } else {
+      args[6] = NULL;
+    }
 
     close(fds1[1]);
     close(fds2[0]);
@@ -420,7 +425,7 @@ Pixmap ui_imagelib_load_file_for_background(ui_window_t *win, char *path,
                                             ui_picture_modifier_t *pic_mod) {
   Pixmap pixmap;
 
-  if (!load_file(win->disp->display, path, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win), pic_mod,
+  if (!load_file(win->disp->display, path, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win), 0, pic_mod,
                  win->disp->depth, &pixmap, NULL)) {
     pixmap = None;
   }
@@ -435,12 +440,13 @@ Pixmap ui_imagelib_get_transparent_background(ui_window_t *win, ui_picture_modif
 }
 
 int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, Pixmap *pixmap,
-                          PixmapMask *mask, u_int *width, u_int *height) {
+                          PixmapMask *mask, u_int *width, u_int *height, int keep_aspect) {
   if (cardinal) {
     return 0;
   }
 
-  if (!load_file(disp->display, path, *width, *height, NULL, disp->depth, pixmap, mask)) {
+  if (!load_file(disp->display, path, *width, *height, keep_aspect, NULL,
+                 disp->depth, pixmap, mask)) {
     return 0;
   }
 

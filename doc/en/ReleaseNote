@@ -1,3 +1,9 @@
+ver 3.8.6
+* Support preserveAspectRatio option of OSC 1337.
+* Bug fixes:
+  Fix compiling error if ./configure is executed with --with-gui=fb,xlib option.
+  Fix disappearing title bar on 'lxde' window manager.
+
 ver 3.8.5
 * Support libvterm (https://launchpad.net/libvterm) compatible library partially.
 * Support DRCS-Sixel.

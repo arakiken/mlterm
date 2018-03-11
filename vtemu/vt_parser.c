@@ -1820,7 +1820,8 @@ static int check_sixel_anim(vt_screen_t *screen, u_char *str, size_t left) {
 }
 
 static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_col,
-                         int clip_beg_row, int clip_cols, int clip_rows, int img_cols, int img_rows,
+                         int clip_beg_row, int clip_cols, int clip_rows,
+                         int img_cols, int img_rows, int keep_aspect,
                          int is_sixel /* 0: not sixel, 1: sixel, 2: sixel anim, 3: macro */
                          ) {
 #ifndef DONT_OPTIMIZE_DRAWING_PICTURE
@@ -1843,7 +1844,7 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
 
     if ((data = (*vt_parser->xterm_listener->get_picture_data)(
                     vt_parser->xterm_listener->self, file_path, &img_cols, &img_rows, NULL, NULL,
-                    is_sixel ? &vt_parser->sixel_palette : NULL, 0)) &&
+                    is_sixel ? &vt_parser->sixel_palette : NULL, keep_aspect, 0)) &&
         clip_beg_row < img_rows && clip_beg_col < img_cols) {
       vt_char_t *p;
       int row;
@@ -1964,7 +1965,7 @@ static void define_drcs_picture(vt_parser_t *vt_parser, char *path, ef_charset_t
     if (idx <= 0x5f &&
         (data = (*vt_parser->xterm_listener->get_picture_data)(vt_parser->xterm_listener->self,
                                                                path, &cols, &rows, &cols_small,
-                                                               &rows_small, NULL, 1))) {
+                                                               &rows_small, NULL, 0, 1))) {
       u_int pages;
       u_int offset = 0;
       vt_drcs_font_t *font;
@@ -2467,9 +2468,11 @@ static void iterm2_proprietary_set(vt_parser_t *vt_parser, char *pt) {
     u_int width;
     u_int height;
     char *path;
+    int keep_aspect;
 
     args = pt + 5;
     width = height = 0;
+    keep_aspect = 1; /* default value is 1. */
 
     if ((encoded = strchr(args, ':'))) {
       char *beg;
@@ -2518,6 +2521,10 @@ static void iterm2_proprietary_set(vt_parser_t *vt_parser, char *pt) {
           /* XXX Npx and N% are not supported */
         }
       }
+
+      if ((beg = strstr(args, "preserveAspectRatio=")) && beg[20] == '0') {
+        keep_aspect = 0;
+      }
     } else {
       path = get_home_file_path("", vt_pty_get_slave_name(vt_parser->pty) + 5, "img");
     }
@@ -2539,7 +2546,7 @@ static void iterm2_proprietary_set(vt_parser_t *vt_parser, char *pt) {
         fwrite(decoded, 1, d_len, fp);
         fclose(fp);
 
-        show_picture(vt_parser, path, 0, 0, 0, 0, width, height, 0);
+        show_picture(vt_parser, path, 0, 0, 0, 0, width, height, keep_aspect, 0);
 
         remove(path);
       }
@@ -3029,7 +3036,7 @@ static void invoke_macro(vt_parser_t *vt_parser, int id) {
   if (id < vt_parser->num_macros && vt_parser->macros[id].str) {
 #ifndef NO_IMAGE
     if (vt_parser->macros[id].is_sixel) {
-      show_picture(vt_parser, vt_parser->macros[id].str, 0, 0, 0, 0, 0, 0, 3);
+      show_picture(vt_parser, vt_parser->macros[id].str, 0, 0, 0, 0, 0, 0, 0, 3);
     } else
 #endif
     {
@@ -5628,7 +5635,7 @@ inline static int parse_vt100_escape_sequence(
         }
 
         if (strcmp(path + strlen(path) - 4, ".six") == 0) {
-          show_picture(vt_parser, path, 0, 0, 0, 0, 0, 0,
+          show_picture(vt_parser, path, 0, 0, 0, 0, 0, 0, 0,
                        (!vt_parser->sixel_scrolling &&
                         check_sixel_anim(vt_parser->screen, str_p, left)) ? 2 : 1);
         } else {
@@ -5637,7 +5644,8 @@ inline static int parse_vt100_escape_sequence(
 
           orig_flag = vt_parser->sixel_scrolling;
           vt_parser->sixel_scrolling = 0;
-          show_picture(vt_parser, path, 0, 0, 0, 0, 0, 0, 1);
+          show_picture(vt_parser, path, 0, 0, 0, 0, 0, 0, 0,
+                       1 /* is_sixel (vt_parser->sixel_scrolling is applied) */);
           vt_parser->sixel_scrolling = orig_flag;
         }
 

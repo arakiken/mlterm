@@ -53,6 +53,7 @@ typedef struct inline_pic_args {
 #else
   int ev;
 #endif
+  int keep_aspect;
 
 } inline_pic_args_t;
 
@@ -175,7 +176,7 @@ static ui_icon_picture_t *create_icon_picture(ui_display_t *disp,
   }
 
   if (!ui_imagelib_load_file(disp, file_path, &(pic->cardinal), &(pic->pixmap), &(pic->mask),
-                             &icon_size, &icon_size)) {
+                             &icon_size, &icon_size, 0)) {
     free(pic->file_path);
     free(pic);
 
@@ -506,7 +507,7 @@ static int load_file(void *p) {
   height = inline_pics[idx].height;
 
   if (ui_imagelib_load_file(inline_pics[idx].disp, inline_pics[idx].file_path, NULL, &pixmap, &mask,
-                            &width, &height)) {
+                            &width, &height, ((inline_pic_args_t*)p)->keep_aspect)) {
     if (strstr(inline_pics[idx].file_path, "mlterm/anim")) {
       /* GIF Animation frame */
       unlink(inline_pics[idx].file_path);
@@ -834,9 +835,9 @@ void ui_release_icon_picture(ui_icon_picture_t *pic) {
  * The caller must check if file_path exists or not to avoid to call mlimgloader unnecessarily.
  * 'file_path' can be /foo/bar.ttf/1f400 for emoji.
  */
-int ui_load_inline_picture(ui_display_t *disp, char *file_path, u_int *width, /* can be 0 */
-                           u_int *height,                                     /* can be 0 */
-                           u_int col_width, u_int line_height, vt_term_t *term) {
+int ui_load_inline_picture(ui_display_t *disp, char *file_path, u_int *width /* can be 0 */,
+                           u_int *height /* can be 0 */, u_int col_width, u_int line_height,
+                           int keep_aspect, vt_term_t *term) {
   int idx;
   inline_pic_args_t *args;
 
@@ -872,6 +873,7 @@ int ui_load_inline_picture(ui_display_t *disp, char *file_path, u_int *width, /*
   }
 
   args->idx = idx;
+  args->keep_aspect = keep_aspect;
 
 #if defined(HAVE_PTHREAD) || defined(USE_WIN32API)
   if (strstr(file_path, "://")) {
@@ -1105,7 +1107,7 @@ int ui_load_tmp_picture(ui_display_t *disp, char *file_path, Pixmap *pixmap, Pix
                         u_int *width, u_int *height) {
   *width = *height = 0;
 
-  if (ui_imagelib_load_file(disp, file_path, NULL, pixmap, mask, width, height)) {
+  if (ui_imagelib_load_file(disp, file_path, NULL, pixmap, mask, width, height, 0)) {
     return 1;
   } else {
     return 0;

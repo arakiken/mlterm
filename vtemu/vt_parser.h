@@ -126,7 +126,7 @@ typedef struct vt_xterm_event_listener {
   int (*get_rgb)(void *, u_int8_t *, u_int8_t *, u_int8_t *,
                  vt_color_t); /* called in logical context. */
   vt_char_t *(*get_picture_data)(void *, char *, int *, int *, int *, int *,
-                                 u_int32_t **, int);            /* called in logical context. */
+                                 u_int32_t **, int, int);       /* called in logical context. */
   int (*get_emoji_data)(void *, vt_char_t *, vt_char_t *);      /* called in logical context. */
   void (*show_tmp_picture)(void *, char *);                     /* called in logical context. */
 #ifdef ENABLE_OSC5379PICTURE
