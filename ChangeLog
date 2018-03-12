@@ -1,3 +1,15 @@
+2018-03-12  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c: xterm_get_picture_data() places image at the center of the
+	  specified width and height if keep_aspect is true.
+
+	* xlib/ui_imagelib.c:
+	  - ui_imagelib_load_file() modifies *width and *height if keep_aspect is true.
+	  - width and height of ui_imagelib_loada_file() are never NULL.
+
+	* fb/ui_imagelib.c, console/ui_imagelib.c:
+	  ui_imagelib_load_file() modifies *width and *height if keep_aspect is true.
+
 2018-03-11  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_window_cairo.c: Memory leak of surface is fixed.

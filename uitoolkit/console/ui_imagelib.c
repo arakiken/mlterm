@@ -450,7 +450,7 @@ int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, 
     return 0;
   }
 
-  if (*width == 0 || *height == 0) {
+  if (*width == 0 || *height == 0 || keep_aspect) {
     *width = (*pixmap)->width;
     *height = (*pixmap)->height;
   }

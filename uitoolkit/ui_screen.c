@@ -5400,6 +5400,8 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
   ui_screen_t *screen;
   u_int width;
   u_int height;
+  u_int width_orig;
+  u_int height_orig;
   u_int col_width;
   u_int line_height;
   int idx;
@@ -5410,8 +5412,8 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
     return NULL;
   }
 
-  width = (*num_cols) * (col_width = ui_col_width(screen));
-  height = (*num_rows) * (line_height = ui_line_height(screen));
+  width_orig = width = (*num_cols) * (col_width = ui_col_width(screen));
+  height_orig = height = (*num_rows) * (line_height = ui_line_height(screen));
 
   if (sixel_palette) {
     *sixel_palette = ui_set_custom_sixel_palette(*sixel_palette);
@@ -5420,11 +5422,45 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
   if ((idx = ui_load_inline_picture(screen->window.disp, file_path, &width, &height, col_width,
                                     line_height, keep_aspect, screen->term)) != -1) {
     vt_char_t *buf;
+    u_int cols_padding[2];
+    u_int rows_padding[2];
 
     screen->prev_inline_pic = idx;
 
     *num_cols = (width + col_width - 1) / col_width;
     *num_rows = (height + line_height - 1) / line_height;
+
+    if (width_orig > 0 && width < width_orig) {
+      u_int cols = (width_orig - width) / col_width;
+      if (cols + *num_cols > vt_term_get_cols(screen->term)) {
+        if (*num_cols >= vt_term_get_cols(screen->term)) {
+          cols = 0;
+        } else {
+          cols = vt_term_get_cols(screen->term) - *num_cols;
+        }
+      }
+
+      cols_padding[0] = cols / 2;
+      cols_padding[1] = (cols + 1) / 2;
+    } else {
+      cols_padding[0] = cols_padding[1] = 0;
+    }
+
+    if (height_orig > 0 && height < height_orig) {
+      u_int rows = (height_orig - height) / line_height;
+      if (rows + *num_rows > vt_term_get_rows(screen->term)) {
+        if (*num_rows >= vt_term_get_rows(screen->term)) {
+          rows = 0;
+        } else {
+          rows = vt_term_get_rows(screen->term) - *num_rows;
+        }
+      }
+
+      rows_padding[0] = rows / 2;
+      rows_padding[1] = (rows + 1) / 2;
+    } else {
+      rows_padding[0] = rows_padding[1] = 0;
+    }
 
     if (drcs_sixel) {
       /* compatible with rlogin */
@@ -5438,19 +5474,43 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
       }
     }
 
-    if ((buf = vt_str_new((*num_cols) * (*num_rows)))) {
+    if ((buf = vt_str_new((*num_cols + cols_padding[0] + cols_padding[1]) *
+                          (*num_rows + rows_padding[0] + rows_padding[1])))) {
       vt_char_t *buf_p;
       int col;
       int row;
 
       buf_p = buf;
-      for (row = 0; row < *num_rows; row++) {
-        for (col = 0; col < *num_cols; col++) {
-          vt_char_copy(buf_p, vt_sp_ch());
 
-          vt_char_combine_picture(buf_p++, idx, MAKE_INLINEPIC_POS(col, row, *num_rows));
+      for (row = 0; row < rows_padding[0]; row++) {
+        for (col = 0; col < *num_cols; col++) {
+          vt_char_copy(buf_p++, vt_sp_ch());
         }
       }
+
+      for (row = 0; row < *num_rows; row++) {
+        for (col = 0; col < cols_padding[0]; col++) {
+          vt_char_copy(buf_p++, vt_sp_ch());
+        }
+
+        for (col = 0; col < *num_cols; col++) {
+          vt_char_copy(buf_p, vt_sp_ch());
+          vt_char_combine_picture(buf_p++, idx, MAKE_INLINEPIC_POS(col, row, *num_rows));
+        }
+
+        for (col = 0; col < cols_padding[1]; col++) {
+          vt_char_copy(buf_p++, vt_sp_ch());
+        }
+      }
+
+      for (row = 0; row < rows_padding[1]; row++) {
+        for (col = 0; col < *num_cols; col++) {
+          vt_char_copy(buf_p++, vt_sp_ch());
+        }
+      }
+
+      *num_cols += (cols_padding[0] + cols_padding[1]);
+      *num_rows += (rows_padding[0] + rows_padding[1]);
 
       return buf;
     }

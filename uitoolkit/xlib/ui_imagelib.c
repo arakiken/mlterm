@@ -245,17 +245,16 @@ static void value_table_refresh(u_char *value_table, /* 256 bytes */
 }
 
 static int modify_pixmap(ui_display_t *disp, Pixmap src_pixmap,
-                         Pixmap dst_pixmap,             /* Can be same as src_pixmap */
+                         Pixmap dst_pixmap /* Can be same as src_pixmap */,
+                         u_int width, u_int height,
                          ui_picture_modifier_t *pic_mod /* Mustn't be normal */
                          ) {
   u_char value_table[256];
   u_int x, y;
-  u_int width, height;
   XImage *image;
   u_char r, g, b;
   u_long pixel;
 
-  get_drawable_size(disp->display, src_pixmap, &width, &height);
   if ((image = XGetImage(disp->display, src_pixmap, 0, 0, width, height, AllPlanes, ZPixmap)) ==
       NULL) {
     return 0;
@@ -1169,7 +1168,7 @@ error1:
   return -1;
 }
 
-static int load_file(ui_display_t *disp, char *path, u_int width, u_int height, int keep_aspect,
+static int load_file(ui_display_t *disp, char *path, u_int *width, u_int *height, int keep_aspect,
                      ui_picture_modifier_t *pic_mod, Pixmap *pixmap, Pixmap *mask /* Can be NULL */
                      ) {
   int read_fd;
@@ -1179,7 +1178,7 @@ static int load_file(ui_display_t *disp, char *path, u_int width, u_int height, 
   Pixmap mask_tmp;
   ssize_t size;
 
-  if (exec_mlimgloader(&read_fd, &write_fd, ui_display_get_group_leader(disp), width, height,
+  if (exec_mlimgloader(&read_fd, &write_fd, ui_display_get_group_leader(disp), *width, *height,
                        path, "pixmap", keep_aspect ? "-a" : NULL) == -1) {
     return 0;
   }
@@ -1198,17 +1197,17 @@ static int load_file(ui_display_t *disp, char *path, u_int width, u_int height, 
   bl_debug_printf(BL_DEBUG_TAG " Receiving pixmap %lu %lu\n", pixmap_tmp, mask_tmp);
 #endif
 
-  if (width == 0 || height == 0) {
-    get_drawable_size(disp->display, pixmap_tmp, &width, &height);
+  if (*width == 0 || *height == 0 || keep_aspect) {
+    get_drawable_size(disp->display, pixmap_tmp, width, height);
   }
 
   *pixmap =
-      XCreatePixmap(disp->display, ui_display_get_group_leader(disp), width, height, disp->depth);
+      XCreatePixmap(disp->display, ui_display_get_group_leader(disp), *width, *height, disp->depth);
 
   if (!ui_picture_modifier_is_normal(pic_mod)) {
-    modify_pixmap(disp, pixmap_tmp, *pixmap, pic_mod);
+    modify_pixmap(disp, pixmap_tmp, *pixmap, *width, *height, pic_mod);
   } else {
-    XCopyArea(disp->display, pixmap_tmp, *pixmap, disp->gc->gc, 0, 0, width, height, 0, 0);
+    XCopyArea(disp->display, pixmap_tmp, *pixmap, disp->gc->gc, 0, 0, *width, *height, 0, 0);
   }
 
   if (mask) {
@@ -1216,9 +1215,9 @@ static int load_file(ui_display_t *disp, char *path, u_int width, u_int height, 
       GC mask_gc;
       XGCValues gcv;
 
-      *mask = XCreatePixmap(disp->display, ui_display_get_group_leader(disp), width, height, 1);
+      *mask = XCreatePixmap(disp->display, ui_display_get_group_leader(disp), *width, *height, 1);
       mask_gc = XCreateGC(disp->display, *mask, 0, &gcv);
-      XCopyArea(disp->display, mask_tmp, *mask, mask_gc, 0, 0, width, height, 0, 0);
+      XCopyArea(disp->display, mask_tmp, *mask, mask_gc, 0, 0, *width, *height, 0, 0);
 
       XFreeGC(disp->display, mask_gc);
     } else {
@@ -1325,6 +1324,9 @@ Pixmap ui_imagelib_load_file_for_background(ui_window_t *win, char *path,
                                             ui_picture_modifier_t *pic_mod) {
 #ifdef BUILTIN_IMAGELIB
   GdkPixbuf *pixbuf;
+#else
+  u_int width;
+  u_int height;
 #endif
   Pixmap pixmap;
 
@@ -1390,8 +1392,9 @@ error:
 
 #else /* BUILTIN_IMAGELIB */
 
-  if (load_file(win->disp, path, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win), 0,
-                pic_mod, &pixmap, NULL)) {
+  width = ACTUAL_WIDTH(win);
+  height = ACTUAL_HEIGHT(win);
+  if (load_file(win->disp, path, &width, &height, 0, pic_mod, &pixmap, NULL)) {
     return pixmap;
   } else {
     return None;
@@ -1523,7 +1526,7 @@ Pixmap ui_imagelib_get_transparent_background(ui_window_t *win, ui_picture_modif
   }
 
   if (!ui_picture_modifier_is_normal(pic_mod)) {
-    if (!modify_pixmap(win->disp, pixmap, pixmap, pic_mod)) {
+    if (!modify_pixmap(win->disp, pixmap, pixmap, width, height, pic_mod)) {
       XFreePixmap(win->disp->display, pixmap);
 
       return None;
@@ -1542,11 +1545,9 @@ Pixmap ui_imagelib_get_transparent_background(ui_window_t *win, ui_picture_modif
  *\param pixmap Returns an image pixmap for the old WM hint.
  *\param mask Returns a mask bitmap for the old WM hint.
  *\param width Pointer to the desired width. If *width is 0, the returned image
- *would not be scaled and *width would be overwritten by its width. "width" can
- *be NULL and the image would not be scaled and nothing would be returned in
- *this case.
- *\param height Pointer to the desired height. *height can be 0 and height can
- *be NULL(see "width" 's description)
+ *would not be scaled and *width would be overwritten by its width.
+ *\param height Pointer to the desired height. *height can be 0.
+ *(see "width" 's description)
  *
  *\return  Success => 1, Failure => 0
  */
@@ -1557,16 +1558,8 @@ int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, 
   GdkPixbuf *pixbuf;
 #endif
 
-  if (!width) {
-    dst_width = 0;
-  } else {
-    dst_width = *width;
-  }
-  if (!height) {
-    dst_height = 0;
-  } else {
-    dst_height = *height;
-  }
+  dst_width = *width;
+  dst_height = *height;
 
 #if defined(BUILTIN_IMAGELIB) || defined(BUILTIN_SIXEL)
   if (!cardinal && strcasecmp(path + strlen(path) - 4, ".six") == 0 && dst_width == 0 &&
@@ -1648,13 +1641,8 @@ int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, 
     return 0;
   }
 
-  if (!load_file(disp, path, dst_width, dst_height, keep_aspect, NULL, pixmap, mask)) {
+  if (!load_file(disp, path, &dst_width, &dst_height, keep_aspect, NULL, pixmap, mask)) {
     return 0;
-  }
-
-  /* XXX Duplicated in load_file */
-  if (dst_width == 0 || dst_height == 0) {
-    get_drawable_size(disp->display, *pixmap, &dst_width, &dst_height);
   }
 
   if (cardinal) {
@@ -1665,11 +1653,8 @@ int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, 
 
 #endif /* BUILTIN_IMAGELIB */
 
-  if (width && *width == 0) {
+  if (*width == 0 || *height == 0 || keep_aspect) {
     *width = dst_width;
-  }
-
-  if (height && *height == 0) {
     *height = dst_height;
   }
 
