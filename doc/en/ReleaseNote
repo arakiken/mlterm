@@ -1,4 +1,3 @@
-ver 3.8.6
 * Support preserveAspectRatio option of OSC 1337.
 * Bug fixes:
   Fix compiling error if ./configure is executed with --with-gui=fb,xlib option.
