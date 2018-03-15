@@ -1,3 +1,12 @@
+2018-03-15  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_virtual_kbd.c: Compiling error is fixed.
+
+	* vt_parser.c: "N%" is supported in OSC 1337.
+
+	* configure.in: It is possible to specify multiple values for --with-gui option.
+	  (e.g. --with-gui=xlib,sdl2,wayland,fb,console)
+
 2018-03-12  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.c: xterm_get_picture_data() places image at the center of the
