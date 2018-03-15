@@ -2505,10 +2505,13 @@ static void iterm2_proprietary_set(vt_parser_t *vt_parser, char *pt) {
         *(end--) = '\0';
         if ('0' <= *end && *end <= '9') {
           width = atoi(beg);
-          *(end + 1) = ';'; /* For next strstr() */
+        } else if (*end == '%') {
+          /* XXX vertical mode is not considered */
+          width = atoi(beg) * vt_screen_get_logical_cols(vt_parser->screen) / 100;
         } else {
-          /* XXX Npx and N% are not supported */
+          /* XXX Npx is not supported */
         }
+        *(end + 1) = ';'; /* For next strstr() */
       }
 
       if ((beg = strstr(args, "height=")) &&
@@ -2516,10 +2519,13 @@ static void iterm2_proprietary_set(vt_parser_t *vt_parser, char *pt) {
         *(end--) = '\0';
         if ('0' <= *end && *end <= '9') {
           height = atoi(beg);
-          /* *(end + 1) = ';' ; */
+        } else if (*end == '%') {
+          /* XXX vertical mode is not considered */
+          height = atoi(beg) * vt_screen_get_logical_rows(vt_parser->screen) / 100;
         } else {
-          /* XXX Npx and N% are not supported */
+          /* XXX Npx is not supported */
         }
+        /* *(end + 1) = ';'; */
       }
 
       if ((beg = strstr(args, "preserveAspectRatio=")) && beg[20] == '0') {

@@ -2980,13 +2980,13 @@ if test -d ${top_srcdir-$srcdir}/encodefilter -a -d ${top_srcdir-$srcdir}/baseli
 
 	LMEF='${top_builddir}/encodefilter/src/libmef.la'
 	LPOBL='${top_builddir}/baselib/src/libpobl.la'
-elif test -d ${top_srcdir-$srcdir}/../encodefilter -a -d ${top_srcdir-$srcdir}/../baselib ; then
+elif test -d ${top_srcdir-$srcdir}/../../encodefilter -a -d ${top_srcdir-$srcdir}/../../baselib ; then
 	# --with-gui=xlib,fb => cd fb ; --with-gui=fb
-	MEF_CFLAGS='-I${top_builddir}/../encodefilter/include'
-	POBL_CFLAGS='-I${top_builddir}/../baselib/include'
+	MEF_CFLAGS='-I${top_builddir}/../../encodefilter/include'
+	POBL_CFLAGS='-I${top_builddir}/../../baselib/include'
 
-	LMEF='${top_builddir}/../encodefilter/src/libmef.la'
-	LPOBL='${top_builddir}/../baselib/src/libpobl.la'
+	LMEF='${top_builddir}/../../encodefilter/src/libmef.la'
+	LPOBL='${top_builddir}/../../baselib/src/libpobl.la'
 else
 	LMEF="-lmef"
 	LPOBL="-lpobl"
@@ -19860,20 +19860,35 @@ if test "${with_gui+set}" = set; then :
   withval=$with_gui; gui=$with_gui
 fi
 
-if test "$gui" = "fb,xlib" -o "$gui" = "xlib,fb" ; then
-	gui=xlib
-	SUBDIRS="${SUBDIRS} fb"
-	MAKE_DIRS="${MAKE_DIRS} fb"
-
-	# clone source tree to build both mlterm-xlib and mlterm-fb.
-	if test -d ${top_srcdir-$srcdir}/fb ; then
-		rm -rf ${top_srcdir-$srcdir}/fb
-	fi
-	mkdir -p ${top_srcdir-$srcdir}/fb
-	for file in ChangeLog Makefile.in common configure etc gtk inputmethod java \
-		main man vtemu script scrollbar uitoolkit doc libvterm; do
-		cp -R ${top_srcdir-$srcdir}/$file ${top_srcdir-$srcdir}/fb/
+if test `echo $gui | grep ,`; then
+	gui_list=`echo $gui | sed 's/,/ /g'`
+	is_first=t
+	mkdir -p ${top_srcdir-$srcdir}/gui
+	for g in $gui_list; do
+		if test $is_first; then
+			gui=$g
+			is_first=
+		else
+			SUBDIRS="${SUBDIRS} gui/$g"
+			MAKE_DIRS="${MAKE_DIRS} gui/$g"
+			if test -d ${top_srcdir-$srcdir}/gui/$g ; then
+				echo ""
+				echo "** WARNING **
+				echo "${top_srcdir-$srcdir}/gui/$g exists, so copy no files for $g."
+				echo "If there are files which should be copied, copy them manually."
+				echo ""
+			else
+				mkdir -p ${top_srcdir-$srcdir}/gui/$g
+				# clone source tree to build both mlterm, mlterm-wl, mlterm-fb, mlterm-con and mlterm-sdl2.
+				for file in ChangeLog Makefile.in common configure etc gtk inputmethod java \
+					main man vtemu script scrollbar uitoolkit doc libvterm; do
+					cp -R ${top_srcdir-$srcdir}/$file ${top_srcdir-$srcdir}/gui/$g/
+				done
+			fi
+		fi
 	done
+elif test "$gui" = "subdir"; then
+	gui=`basename $PWD`
 fi
 
 if test "$gui" = "fb" ; then
@@ -26658,17 +26673,18 @@ CHANGE_DATE=`head -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^\([0-9]*-[0-
 OUTPUT_FILES="main/version.h ${OUTPUT_FILES}"
 
 if test "${SUBDIRS}" != "" ; then
+  # for baselib and encodefilter
 	ac_configure_args="${ac_configure_args} --without-funcs-mlterm-unuse"
-	# for mlterm-x.x.x/fb
-	ac_configure_args="${ac_configure_args} --with-gui=fb --with-type-engines=xcore --without-tools"
 	if test "$enable_shared" = "no" ; then
 		ac_configure_args="${ac_configure_args} --disable-dl-table"
 	fi
 
-	ac_configure_args="${ac_configure_args} --disable-ind --disable-fribidi"
-	if test "$dl_ctl" = "no" -a "`echo $SUBDIRS |grep fb`" != "" ; then
-		echo "libind and fribidi are disabled."
+  # for gui
+	ac_configure_args=`echo ${ac_configure_args} | sed 's/--with-gui=[A-Za-z0-9,]*/--with-gui=subdir/g'`
+	if test "$dl_ctl" != "no"; then
+		ac_configure_args="${ac_configure_args} --disable-ind --disable-fribidi"
 	fi
+	ac_configure_args="${ac_configure_args} --without-tools"
 
 
 
