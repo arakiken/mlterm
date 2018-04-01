@@ -599,7 +599,13 @@ static void x68k_set_use_tvram_colors(int use) {
 static fb_cmap_t *cmap_new(int num_colors);
 
 static int x68k_set_tvram_cmap(u_int32_t *pixels, u_int cmap_size) {
-  if (use_tvram_cmap && cmap_size <= 16) {
+  if (use_tvram_cmap) {
+    if (cmap_size > 16) {
+      bl_warn_printf("Colormap size for text vram should be 16 or less.\n");
+
+      return 0;
+    }
+
     if ((tcmap = cmap_new(cmap_size))) {
       u_int count;
 

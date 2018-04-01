@@ -1,16 +1,6 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
-/*
- * _GNU_SOURCE must be defined before including <features.h> to take effect.
- * since standard headers, bl_types.h and bl_def.h include features.h
- * indirectly,
- * ecplicitly evaluate only the autoconf's result here.
- * (for ptsname)
- */
 #include <pobl/bl_config.h>
-#ifdef HAVE_GNU_SOURCE
-#define _GNU_SOURCE
-#endif
 
 #include "vt_pty_intern.h"
 
@@ -22,10 +12,11 @@
 #include <string.h>
 #include <unistd.h> /* ttyname/pipe */
 #include <stdio.h>  /* sscanf */
-#include <stdlib.h> /* ptsname */
 #include <fcntl.h>  /* fcntl/O_BINARY */
 #ifdef USE_WIN32API
 #include <windows.h>
+#else
+#include <sys/stat.h>
 #endif
 
 #if 0
@@ -74,7 +65,13 @@ vt_pty_ptr_t vt_pty_new_with(int master, int slave, pid_t child_pid, u_int cols,
   vt_pty_t *pty;
 
 #ifndef USE_WIN32API
-  if (ptsname(master)) {
+#if 1
+  struct stat st;
+  if (fstat(master, &st) == 0 && (st.st_mode & S_IFCHR))
+#else
+  if (ptsname(master))
+#endif
+  {
     pty = vt_pty_unix_new_with(master, slave, child_pid, ":0.0", cols, rows, width_pix, height_pix);
   } else
 #endif

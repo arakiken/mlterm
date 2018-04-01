@@ -84,7 +84,7 @@ if test `echo $gui | grep ,`; then
 			MAKE_DIRS="${MAKE_DIRS} gui/$g"
 			if test -d ${top_srcdir-$srcdir}/gui/$g ; then
 				echo ""
-				echo "** WARNING **
+				echo "** WARNING **"
 				echo "${top_srcdir-$srcdir}/gui/$g exists, so copy no files for $g."
 				echo "If there are files which should be copied, copy them manually."
 				echo ""
@@ -442,7 +442,15 @@ else
 	# for NetBSD/x68k
 	# <machine/vuid_event.h> is also checked not to enable USE_GRF on NetBSD/macppc.
 	AC_CHECK_HEADER(machine/grfioctl.h,
-		AC_CHECK_HEADER(machine/vuid_event.h, GUI_CFLAGS="-DUSE_GRF"))
+		AC_CHECK_HEADER(machine/vuid_event.h,
+			[
+			fbtype="(x68kgrf)"
+			GUI_CFLAGS="-DUSE_GRF"
+			]))
+	if test "`sysctl machdep.ispc98`" = "machdep.ispc98: 1"; then
+		GUI_CFLAGS="${GUI_CFLAGS} -DPC98"
+		fbtype="(pc98)"
+	fi
 	GUI_CFLAGS="${GUI_CFLAGS} -DUSE_FRAMEBUFFER"
 fi
 AC_SUBST(GUI)
@@ -1623,7 +1631,8 @@ dnl echo "Character property table          : "
 echo "Build shared libraries            : $enable_shared"
 echo "Build static libraries            : $enable_static"
 dnl echo "Optimization for redrawing a line : $optimize_redrawing"
-echo "GUI toolkit                       : $gui"
+echo -n "GUI toolkit                       : $gui"
+echo "$fbtype"
 echo "BiDi rendering (Fribidi)          : $have_fribidi"
 echo "Indic rendering                   : $ind"
 if test "$OT_LAYOUT_OBJ" = "hb.o"; then

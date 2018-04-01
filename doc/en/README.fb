@@ -67,6 +67,7 @@ Framebuffer support
     in advance.
   o Start moused in advance as follows if you want to use mouse (/dev/sysmouse).
     $ /etc/rc.d/moused onestart
+  o mlterm-fb works with 4 bpp alone on FreeBSD(98).
 
   (for NetBSD)
   o See https://gist.github.com/tsutsui/5689730

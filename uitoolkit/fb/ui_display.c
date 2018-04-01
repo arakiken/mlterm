@@ -1055,6 +1055,95 @@ static fb_cmap_t *cmap_new(int num_colors) {
   return cmap;
 }
 
+#if defined(__FreeBSD__) && defined(PC98)
+#include <unistd.h>
+#include <machine/cpufunc.h>
+
+/*
+ * rgb_4bpp is
+ * https://github.com/freebsd/freebsd/blob/release/6.4.0/sys/pc98/cbus/gdc.c#L858
+ * https://github.com/freebsd/freebsd/blob/release/4.1.1/sys/pc98/pc98/pc98gdc.c#L679
+ *
+ * FBIOPUTCMAP always fails on FreeBSD/PC98.
+ * https://github.com/freebsd/freebsd/blob/release/6.4.0/sys/pc98/cbus/gdc.c#L1439
+ * https://github.com/freebsd/freebsd/blob/release/4.1.1/sys/pc98/pc98/pc98gdc.c#L1224
+ */
+static u_char rgb_4bpp[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x7f,
+                             0x7f, 0x00, 0x00, 0x7f, 0x00, 0x7f,
+                             0x00, 0x7f, 0x00, 0x00, 0x7f, 0x7f,
+                             0x7f, 0x7f, 0x00, 0x7f, 0x7f, 0x7f,
+                             0x40, 0x40, 0x40, 0x00, 0x00, 0xff,
+                             0xff, 0x00, 0x00, 0xff, 0x00, 0xff,
+                             0x00, 0xff, 0x00, 0x00, 0xff, 0xff,
+                             0xff, 0xff, 0x00, 0xff, 0xff, 0xff };
+
+static void cmap_fallback(void) {
+  if (_disp.depth == 4) {
+#if 1
+    int fd;
+    vt_color_t color;
+
+    bl_priv_restore_euid();
+    bl_priv_restore_egid();
+
+    if ((fd = open("/dev/io", 000)) >= 0) {
+      for (color = 0; color < 16; color++) {
+        outb(0xa8, color);
+        outb(0xac, _display.cmap->red[color] >> 4);
+        outb(0xaa, _display.cmap->green[color] >> 4);
+        outb(0xae, _display.cmap->blue[color] >> 4);
+      }
+
+      close(fd);
+    }
+
+    bl_priv_change_euid(bl_getuid());
+    bl_priv_change_egid(bl_getgid());
+
+    if (fd < 0)
+#endif
+    {
+      for (color = 0; color < 16; color++) {
+        _display.cmap->red[color] = rgb_4bpp[color * 3];
+        _display.cmap->green[color] = rgb_4bpp[color * 3 + 1];
+        _display.cmap->blue[color] = rgb_4bpp[color * 3 + 2];
+      }
+    }
+  }
+}
+
+static void cmap_reset(void) {
+  if (_disp.depth == 4) {
+#if 1
+    int fd;
+
+    bl_priv_restore_euid();
+    bl_priv_restore_egid();
+
+    if ((fd = open("/dev/io", 000)) >= 0) {
+      vt_color_t color;
+
+      for (color = 0; color < 16; color++) {
+        outb(0xa8, color);
+        outb(0xac, rgb_4bpp[color * 3] >> 4);
+        outb(0xaa, rgb_4bpp[color * 3 + 1] >> 4);
+        outb(0xae, rgb_4bpp[color * 3 + 1] >> 4);
+      }
+
+      close(fd);
+    }
+
+    bl_priv_change_euid(bl_getuid());
+    bl_priv_change_egid(bl_getgid());
+#endif
+  }
+}
+
+#else
+#define cmap_fallback() (0)
+#define cmap_reset() (0)
+#endif
+
 /*
  * Note that ui_display_wscons.c has its own cmap_init() because vinfo.depth !=
  * _disp.depth
@@ -1069,7 +1158,6 @@ static int cmap_init(void) {
   static u_char rgb_1bpp[] = {0x00, 0x00, 0x00, 0xff, 0xff, 0xff};
   static u_char rgb_2bpp[] = {0x00, 0x00, 0x00, 0x55, 0x55, 0x55,
                               0xaa, 0xaa, 0xaa, 0xff, 0xff, 0xff};
-  u_char *rgb_tbl;
 
   num_colors = (2 << (_disp.depth - 1));
 
@@ -1108,30 +1196,37 @@ static int cmap_init(void) {
   }
 
   if (num_colors == 2) {
-    rgb_tbl = rgb_1bpp;
-  } else if (num_colors == 4) {
-    rgb_tbl = rgb_2bpp;
-  } else {
-    rgb_tbl = NULL;
-  }
-
-  for (color = 0; color < num_colors; color++) {
-    if (rgb_tbl) {
-      r = rgb_tbl[color * 3];
-      g = rgb_tbl[color * 3 + 1];
-      b = rgb_tbl[color * 3 + 2];
-    } else {
-      vt_get_color_rgba(color, &r, &g, &b, NULL);
+    for (color = 0; color < 2; color++) {
+      r = rgb_1bpp[color * 3];
+      g = rgb_1bpp[color * 3 + 1];
+      b = rgb_1bpp[color * 3 + 2];
+      _display.cmap->red[color] = BYTE_COLOR_TO_WORD(r);
+      _display.cmap->green[color] = BYTE_COLOR_TO_WORD(g);
+      _display.cmap->blue[color] = BYTE_COLOR_TO_WORD(b);
     }
-
-    _display.cmap->red[color] = BYTE_COLOR_TO_WORD(r);
-    _display.cmap->green[color] = BYTE_COLOR_TO_WORD(g);
-    _display.cmap->blue[color] = BYTE_COLOR_TO_WORD(b);
+  } else if (num_colors == 4) {
+    for (color = 0; color < 4; color++) {
+      r = rgb_2bpp[color * 3];
+      g = rgb_2bpp[color * 3 + 1];
+      b = rgb_2bpp[color * 3 + 2];
+      _display.cmap->red[color] = BYTE_COLOR_TO_WORD(r);
+      _display.cmap->green[color] = BYTE_COLOR_TO_WORD(g);
+      _display.cmap->blue[color] = BYTE_COLOR_TO_WORD(b);
+    }
+  } else {
+    for (color = 0; color < num_colors; color++) {
+      vt_get_color_rgba(color, &r, &g, &b, NULL);
+      _display.cmap->red[color] = BYTE_COLOR_TO_WORD(r);
+      _display.cmap->green[color] = BYTE_COLOR_TO_WORD(g);
+      _display.cmap->blue[color] = BYTE_COLOR_TO_WORD(b);
+    }
   }
 
 /* Same processing as ui_display_set_cmap(). */
 #ifndef USE_GRF
-  ioctl(_display.fb_fd, FBIOPUTCMAP, _display.cmap);
+  if (ioctl(_display.fb_fd, FBIOPUTCMAP, _display.cmap) < 0) {
+    cmap_fallback();
+  }
 #else
   {
     u_int count;
@@ -1150,7 +1245,9 @@ static int cmap_init(void) {
 static void cmap_final(void) {
   if (_display.cmap_orig) {
 #ifndef USE_GRF
-    ioctl(_display.fb_fd, FBIOPUTCMAP, _display.cmap_orig);
+    if (ioctl(_display.fb_fd, FBIOPUTCMAP, _display.cmap_orig) < 0) {
+      cmap_reset();
+    }
 #else
     memcpy(((fb_reg_t*)_display.fb)->gpal, _display.cmap_orig,
            sizeof(((fb_reg_t*)_display.fb)->gpal));
@@ -1233,6 +1330,11 @@ void ui_display_close_all(void) {
 
 #if defined(__FreeBSD__)
     ioctl(STDIN_FILENO, KDSKBMODE, K_XLATE);
+#ifdef PC98
+    if (_disp.depth == 4 || _disp.depth == 8) {
+      ioctl(_display.fb_fd, SW_PC98_80x25, NULL);
+    }
+#endif
 #elif defined(__NetBSD__)
 #ifdef USE_GRF
     close_grf0();
@@ -1441,6 +1543,14 @@ void ui_display_enable_to_change_cmap(int flag) {
   }
 }
 
+int ui_display_is_changeable_cmap(void) {
+  return
+#ifdef USE_GRF
+    use_tvram_cmap ||
+#endif
+    (_disp.depth == 4 && use_ansi_colors == -1);
+}
+
 void ui_display_set_cmap(u_int32_t *pixels, u_int cmap_size) {
   if (
 #ifdef USE_GRF
@@ -1461,14 +1571,16 @@ void ui_display_set_cmap(u_int32_t *pixels, u_int cmap_size) {
         color++;
       }
 
-      _display.cmap->red[color] = (pixels[count] >> 16) & 0xff;
-      _display.cmap->green[color] = (pixels[count] >> 8) & 0xff;
-      _display.cmap->blue[color] = pixels[count] & 0xff;
+      _display.cmap->red[color] = BYTE_COLOR_TO_WORD((pixels[count] >> 16) & 0xff);
+      _display.cmap->green[color] = BYTE_COLOR_TO_WORD((pixels[count] >> 8) & 0xff);
+      _display.cmap->blue[color] = BYTE_COLOR_TO_WORD(pixels[count] & 0xff);
     }
 
 /* Same processing as cmap_init(). */
 #ifndef USE_GRF
-    ioctl(_display.fb_fd, FBIOPUTCMAP, _display.cmap);
+    if (ioctl(_display.fb_fd, FBIOPUTCMAP, _display.cmap) < 0) {
+      cmap_fallback();
+    }
 #else
     for (count = 0; count < CMAP_SIZE(_display.cmap); count++) {
       ((fb_reg_t*)_display.fb)->gpal[count] = (_display.cmap->red[count] >> 3) << 6 |
