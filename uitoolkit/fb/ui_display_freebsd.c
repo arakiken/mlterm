@@ -1,7 +1,9 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #include <sys/consio.h>
+#if __FreeBSD__ >= 5
 #include <sys/mouse.h>
+#endif
 #include <sys/time.h>
 
 #define SYSMOUSE_PACKET_SIZE 8
@@ -36,6 +38,18 @@ static int open_display(u_int depth) {
 
   bl_file_set_cloexec(_display.fb_fd);
 
+#ifdef PC98
+  /* XXX 256 colors is not supported for now. */
+#if 0
+  if (depth == 8) {
+    ioctl(_display.fb_fd, SW_PC98_PEGC640x400, NULL);
+  } else
+#endif
+  {
+    ioctl(_display.fb_fd, SW_PC98_EGC640x400, NULL);
+  }
+#endif
+
   ioctl(_display.fb_fd, FBIO_GETMODE, &vmode);
 
   vinfo.vi_mode = vmode;
@@ -57,6 +71,7 @@ static int open_display(u_int depth) {
   }
 
   if (_disp.depth < 15) {
+#ifdef M_PC98_EGC640x400
     if (vainfo.va_mode == M_PC98_EGC640x400) {
       _display.pixels_per_byte = 8;
       _disp.depth = 4;
@@ -66,7 +81,9 @@ static int open_display(u_int depth) {
       _display.plane_offset[1] = 0x8000;  /* 0xB0000 */
       _display.plane_offset[2] = 0x10000; /* 0xB8000 */
       _display.plane_offset[3] = 0x38000; /* 0xE0000 */
-    } else if (_disp.depth < 8) {
+    } else
+#endif
+    if (_disp.depth < 8) {
 #ifdef ENABLE_2_4_PPB
       _display.pixels_per_byte = 8 / _disp.depth;
 #else
@@ -128,6 +145,7 @@ static int open_display(u_int depth) {
 
   _disp.display = &_display;
 
+#if __FreeBSD__ >= 5
   bl_priv_restore_euid();
   bl_priv_restore_egid();
   _mouse.fd = open("/dev/sysmouse", O_RDWR | O_NONBLOCK);
@@ -176,6 +194,9 @@ static int open_display(u_int depth) {
   else {
     bl_debug_printf(BL_DEBUG_TAG " Failed to open /dev/sysmouse.\n");
   }
+#endif
+#else
+  _mouse.fd = -1;
 #endif
 
   return 1;

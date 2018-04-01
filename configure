@@ -19873,7 +19873,7 @@ if test `echo $gui | grep ,`; then
 			MAKE_DIRS="${MAKE_DIRS} gui/$g"
 			if test -d ${top_srcdir-$srcdir}/gui/$g ; then
 				echo ""
-				echo "** WARNING **
+				echo "** WARNING **"
 				echo "${top_srcdir-$srcdir}/gui/$g exists, so copy no files for $g."
 				echo "If there are files which should be copied, copy them manually."
 				echo ""
@@ -21153,13 +21153,20 @@ else
 if test "x$ac_cv_header_machine_grfioctl_h" = xyes; then :
   ac_fn_c_check_header_mongrel "$LINENO" "machine/vuid_event.h" "ac_cv_header_machine_vuid_event_h" "$ac_includes_default"
 if test "x$ac_cv_header_machine_vuid_event_h" = xyes; then :
-  GUI_CFLAGS="-DUSE_GRF"
+
+			fbtype="(x68kgrf)"
+			GUI_CFLAGS="-DUSE_GRF"
+
 fi
 
 
 fi
 
 
+	if test "`sysctl machdep.ispc98`" = "machdep.ispc98: 1"; then
+		GUI_CFLAGS="${GUI_CFLAGS} -DPC98"
+		fbtype="(pc98)"
+	fi
 	GUI_CFLAGS="${GUI_CFLAGS} -DUSE_FRAMEBUFFER"
 fi
 
@@ -28478,7 +28485,8 @@ echo
 echo "Installation path prefix          : $prefix"
 echo "Build shared libraries            : $enable_shared"
 echo "Build static libraries            : $enable_static"
-echo "GUI toolkit                       : $gui"
+echo -n "GUI toolkit                       : $gui"
+echo "$fbtype"
 echo "BiDi rendering (Fribidi)          : $have_fribidi"
 echo "Indic rendering                   : $ind"
 if test "$OT_LAYOUT_OBJ" = "hb.o"; then

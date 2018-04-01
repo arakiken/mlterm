@@ -8,6 +8,7 @@ Framebuffer 対応に関するメモ
   (Linux kernel 2.6 以降対応)
 
   FreeBSD 9.0
+  FreeBSD(98) 4.11
 
   NetBSD teokure 6.1.4
 
@@ -77,6 +78,7 @@ Framebuffer 対応に関するメモ
   o マウス(/dev/sysmouse)を使用する場合、あらかじめ、次のように moused を起動し
     ておいてください。
     $ /etc/rc.d/moused onestart
+  o FreeBSD(98)では、4 bpp のみサポートしています。
 
   (for NetBSD)
   o See https://gist.github.com/tsutsui/5689730

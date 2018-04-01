@@ -642,7 +642,7 @@ KeySym XStringToKeysym(char *str);
 #endif
 #define ROTATABLE_DISPLAY
 #define PSEUDO_COLOR_DISPLAY
-#if defined(__NetBSD__) || defined(__OpenBSD__)
+#if defined(__NetBSD__) || defined(__OpenBSD__) || (defined(__FreeBSD__) && defined(PC98))
 /* for old machines */
 #define WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
 #else

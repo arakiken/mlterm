@@ -1782,13 +1782,11 @@ static void start_menu(ui_screen_t *screen, char *str, int x, int y) {
   }
 #endif
 
-  vt_term_start_config_menu(screen->term, str, global_x, global_y,
 #ifdef USE_WAYLAND
-                            NULL
+  vt_term_start_config_menu(screen->term, str, global_x, global_y, NULL);
 #else
-                            screen->window.disp->name
+  vt_term_start_config_menu(screen->term, str, global_x, global_y, screen->window.disp->name);
 #endif
-                            );
 }
 
 static int shortcut_str(ui_screen_t *screen, KeySym ksym, u_int state, int x, int y) {

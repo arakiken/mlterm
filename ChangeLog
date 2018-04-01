@@ -1,3 +1,19 @@
+2018-04-01  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja: Updated.
+
+	* vt_pty.c: S_IFCHR of fstat() is used instead of ptsname().
+
+	* ui_imagelib.c: If ui_display_is_changeable_cmap() returns true,
+	  load_sixel_from_data_sharepalette() is not called.
+
+	* fb/ui.h, fb/ui_display.c, ui_display_freebsd.c:
+	  M_PC98_EGC640x400 on FreeBSD(98) is supported.
+
+	* configure.in:
+	  - Missing " is added.
+	  - -DPC98 is added to GUI_CFLAGS if sysctl machdep.ispc98 returns 1.
+
 2018-03-15  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_virtual_kbd.c: Compiling error is fixed.

@@ -54,6 +54,8 @@ int ui_cmap_get_pixel_rgb(u_int8_t *red, u_int8_t *green, u_int8_t *blue, u_long
 #ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
 void ui_display_enable_to_change_cmap(int flag);
 
+int ui_display_is_changeable_cmap(void);
+
 void ui_display_set_cmap(u_int32_t *cmap, u_int cmap_size);
 #endif
 

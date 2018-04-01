@@ -693,12 +693,17 @@ static int load_file(Display *display, char *path, u_int width, u_int height, in
 #endif
     if (
 /* For old machines and Android (not to use mlimgloader) */
-#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(__ANDROID__)
+#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(__ANDROID__) && \
+    (!defined(__FreeBSD__) || !defined(PC98))
         width == 0 && height == 0 &&
 #endif
         (*pixmap = calloc(1, sizeof(**pixmap)))) {
 #ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
       u_int32_t *sixel_cmap;
+
+      if (ui_display_is_changeable_cmap()) {
+        goto skip_sharepalette;
+      }
 #endif
 
       if (depth <= 8) {
@@ -725,6 +730,7 @@ static int load_file(Display *display, char *path, u_int width, u_int height, in
       }
 
 #ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
+    skip_sharepalette:
       if (!(sixel_cmap = custom_palette) && (sixel_cmap = alloca(sizeof(*sixel_cmap) * 257))) {
         sixel_cmap[256] = 0; /* No active palette */
         custom_palette = sixel_cmap;
