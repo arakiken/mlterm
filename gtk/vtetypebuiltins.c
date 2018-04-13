@@ -142,6 +142,30 @@ vte_write_flags_get_type (void)
   return g_define_type_id__volatile;
 }
 
+#if VTE_CHECK_VERSION(0, 52, 0)
+GType
+vte_text_blink_mode_get_type (void)
+{
+  static volatile gsize g_define_type_id__volatile = 0;
+
+  if (g_once_init_enter (&g_define_type_id__volatile)) {
+    static const GEnumValue values[] = {
+      { VTE_TEXT_BLINK_NEVER, "VTE_TEXT_BLINK_NEVER", "never" },
+      { VTE_TEXT_BLINK_FOCUSED, "VTE_TEXT_BLINK_FOCUSED", "focused" },
+      { VTE_TEXT_BLINK_UNFOCUSED, "VTE_TEXT_BLINK_UNFOCUSED", "unfocused" },
+      { VTE_TEXT_BLINK_ALWAYS, "VTE_TEXT_BLINK_ALWAYS", "always" },
+      { 0, NULL, NULL }
+    };
+    GType g_define_type_id = \
+       g_enum_register_static (g_intern_static_string ("VteTextBlinkMode"), values);
+
+    g_once_init_leave (&g_define_type_id__volatile, g_define_type_id);
+  }
+
+  return g_define_type_id__volatile;
+}
+#endif
+
 #else	/* VTE_CHECK_VERSION(0,38,0) */
 
 /*

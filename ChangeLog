@@ -1,3 +1,16 @@
+2018-04-13  Araki Ken  <arakiken@users.sf.net>
+
+	* vtetypebuiltins.c: vte_text_blink_mode_get_type() is added.
+
+	* vte.c: vte_terminal_unselect_all(), vte_terminal_set_bold_is_bright(),
+	  vte_terminal_get_bold_is_bright(), vte_terminal_set_cell_width_scale(),
+	  vte_terminal_get_cell_width_scale(), vte_terminal_set_cell_height_scale(),
+	  vte_terminal_get_cell_height_scale(), vte_terminal_set_text_blink_mode()
+	  and vte_terminal_get_text_blink_mode() are added.
+
+	* xlib/ui_color.c: ui_load_rgb_xcolor() considers alpha if depth == 32
+	  and alpha < 0xff.
+
 2018-04-01  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja: Updated.
