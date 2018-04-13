@@ -131,7 +131,7 @@ int ui_load_named_xcolor(ui_display_t *disp, ui_color_t *xcolor, char *name) {
 
 int ui_load_rgb_xcolor(ui_display_t *disp, ui_color_t *xcolor, u_int8_t red, u_int8_t green,
                        u_int8_t blue, u_int8_t alpha) {
-  if (disp->depth == 32 && alpha < 0xff) {
+  if (disp->depth == 32) {
     xcolor->red = red;
     xcolor->green = green;
     xcolor->blue = blue;

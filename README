@@ -216,8 +216,9 @@ Supported platforms
   * Android 4.0 (x86)
   * Java 1.8.0 / SWT (x86)
 
-  See README.fb, README.win32, README.android, README.cocoa, README.console and
-  README.wayland in http://bitbucket.org/arakiken/mlterm/src/tip/doc/en in detail.
+  See README.fb, README.win32, README.android, README.cocoa, README.console,
+  README.wayland and README.sdl2 in
+  http://bitbucket.org/arakiken/mlterm/src/tip/doc/en in detail.
 
   Following platforms are not actually tested by developers, but were supported
   in the past and are probably supported now.

@@ -3002,6 +3002,15 @@ void vte_terminal_select_all(VteTerminal *terminal) {
   ui_window_update(&PVT(terminal)->screen->window, 1 /* UPDATE_SCREEN */);
 }
 
+#if VTE_CHECK_VERSION(0, 52, 0)
+void vte_terminal_unselect_all(VteTerminal *terminal) {
+  /* see restore_selected_region_color_instantly() in ui_screen.c */
+  if (ui_restore_selected_region_color(&PVT(terminal)->screen->sel)) {
+    ui_window_update(&PVT(terminal)->screen->window, 0x3/*UPDATE_SCREEN|UPDATE_CURSOR*/);
+  }
+}
+#endif
+
 void
 #if VTE_CHECK_VERSION(0, 38, 0)
 vte_terminal_select_none(
@@ -4457,4 +4466,29 @@ gboolean vte_terminal_get_allow_hyperlink(VteTerminal *terminal) {
 void vte_terminal_set_allow_hyperlink(VteTerminal *terminal, gboolean allow_hyperlink) {}
 
 char *vte_terminal_hyperlink_check_event(VteTerminal *terminal, GdkEvent *event) { return NULL; }
+#endif
+
+#if VTE_CHECK_VERSION(0, 52, 0)
+void vte_terminal_set_bold_is_bright(VteTerminal *terminal, gboolean bold_is_bright) {};
+
+gboolean vte_terminal_get_bold_is_bright(VteTerminal *terminal) { return TRUE; };
+
+void vte_terminal_set_cell_width_scale(VteTerminal *terminal, double scale) {};
+
+double vte_terminal_get_cell_width_scale(VteTerminal *terminal) {
+  return ui_col_width(PVT(terminal)->screen);
+}
+
+void vte_terminal_set_cell_height_scale(VteTerminal *terminal, double scale) {};
+
+double vte_terminal_get_cell_height_scale(VteTerminal *terminal) {
+  return ui_line_height(PVT(terminal)->screen);
+}
+
+void vte_terminal_set_text_blink_mode(VteTerminal *terminal,
+                                      VteTextBlinkMode text_blink_mode) {}
+
+VteTextBlinkMode vte_terminal_get_text_blink_mode(VteTerminal *terminal) {
+  return VTE_TEXT_BLINK_FOCUSED;
+}
 #endif

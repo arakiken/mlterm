@@ -674,23 +674,22 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       }
 
       if (comb_chars) {
-        fc_draw_combining_chars(window, font_man, fg_xcolor, comb_chars, comb_size,
-/*
- * 'current_width' is for some thai fonts which
- * automatically draw combining chars.
- * e.g.)
- *  -thai-fixed-medium-r-normal--14-100-100-100-m-70-tis620.2529-1
- *  (distributed by ZzzThai
- *   http://zzzthai.fedu.uec.ac.jp/ZzzThai/)
- *  win32 unicode font.
- */
+        /*
+         * 'current_width' is for some thai fonts which
+         * automatically draw combining chars.
+         * e.g.)
+         *  -thai-fixed-medium-r-normal--14-100-100-100-m-70-tis620.2529-1
+         *  (distributed by ZzzThai
+         *   http://zzzthai.fedu.uec.ac.jp/ZzzThai/)
+         *  win32 unicode font.
+         */
 #if 0
-                                current_width
+        fc_draw_combining_chars(window, font_man, fg_xcolor, comb_chars, comb_size,
+                                current_width, y + ascent);
 #else
-                                current_width - ch_width
+        fc_draw_combining_chars(window, font_man, fg_xcolor, comb_chars, comb_size,
+                                current_width - ch_width, y + ascent);
 #endif
-                                ,
-                                y + ascent);
       }
 
       if (line_style) {
