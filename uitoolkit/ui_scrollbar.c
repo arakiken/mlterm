@@ -351,11 +351,11 @@ static void window_exposed(ui_window_t *win, int x, int y, u_int width, u_int he
 static void update_window(ui_window_t *win, int flag) {
   ui_scrollbar_t *sb;
 
-  sb = (ui_scrollbar_t*)win;
-
-  if (flag == 0) {
+  if (flag == 0 || !win->is_mapped /* ui_scrollbar_line_is_added() is called if is_mapped = 0 */) {
     return;
   }
+
+  sb = (ui_scrollbar_t*)win;
 
   if (flag & (FGCOLOR_CHANGED | BGCOLOR_CHANGED)) {
     if (sb->view->color_changed) {

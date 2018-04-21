@@ -3392,6 +3392,13 @@ void ui_window_set_input_focus(ui_window_t *win) {
   XSetInputFocus(win->disp->display, win->my_window, RevertToParent, CurrentTime);
 }
 
+void ui_window_flush(ui_window_t *win) {
+  if (win->cairo_draw) {
+    /* calls cairo_flush() */
+    ui_window_cairo_draw_string32(win, NULL, NULL, 0, 0, NULL, 0);
+  }
+}
+
 #ifdef DEBUG
 void ui_window_dump_children(ui_window_t *win) {
   int count;

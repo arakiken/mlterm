@@ -525,7 +525,7 @@ static void draw_screen(ui_im_candidate_screen_t *cand_screen, u_int old_index, 
         draw_screen_horizontal(cand_screen, top, last, cand_screen->index, 0);
       }
 
-      return;
+      goto end;
     }
   }
 
@@ -534,6 +534,9 @@ static void draw_screen(ui_im_candidate_screen_t *cand_screen, u_int old_index, 
   } else {
     draw_screen_horizontal(cand_screen, top, last, INVALID_INDEX, do_resize);
   }
+
+end:
+  ui_window_flush(&cand_screen->window);
 }
 
 static void adjust_window_x_position(ui_im_candidate_screen_t *cand_screen, int *x) {

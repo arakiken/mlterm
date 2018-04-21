@@ -440,6 +440,12 @@ void ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global
 
 void ui_window_set_input_focus(ui_window_t *win);
 
+#ifdef USE_XLIB
+void ui_window_flush(ui_window_t *win);
+#else
+#define ui_window_flush(win) (0)
+#endif
+
 #ifdef DEBUG
 void ui_window_dump_children(ui_window_t *win);
 #endif
