@@ -1248,6 +1248,8 @@ static void window_exposed(ui_window_t *win, int x, int y, u_int width, u_int he
       vt_term_cursor_row_in_screen(screen->term) <= end_row) {
     highlight_cursor(screen);
   }
+
+  ui_window_flush(&screen->window);
 }
 
 static void update_window(ui_window_t *win, int flag) {
@@ -1268,6 +1270,8 @@ static void update_window(ui_window_t *win, int flag) {
   if (flag & UPDATE_CURSOR) {
     highlight_cursor(screen);
   }
+
+  ui_window_flush(&screen->window);
 }
 
 static void window_resized(ui_window_t *win) {
@@ -1641,6 +1645,7 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
         ui_draw_str(&screen->window, screen->font_man, screen->color_man, str, 0x5e, 0, y, height,
                     ascent, top_margin, 0, 0);
       }
+      ui_window_flush(&screen->window);
 
       ui_window_clear_all(&screen->window);
     }
@@ -1657,6 +1662,7 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
 
       count++;
     }
+    ui_window_flush(&screen->window);
 
     gettimeofday(&tv, NULL);
 
@@ -4875,6 +4881,8 @@ static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars, int cur
       }
     }
   }
+
+  ui_window_flush(&screen->window);
 
   if (cursor_offset == num_chars) {
     if (!vt_term_get_vertical_mode(screen->term)) {

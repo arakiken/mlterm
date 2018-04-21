@@ -182,6 +182,8 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
                          1 /* no need to draw underline */, 0);
     }
   }
+
+  ui_window_flush(&stat_screen->window);
 }
 
 /*

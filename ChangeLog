@@ -1,3 +1,17 @@
+2018-04-21  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_scrollbar.c: If win->is_mapped is false, window_exposed() does nothing.
+
+	* ui_im_{candidate|status}_screen.c, ui_screen.c: ui_window_flush() is called.
+
+	* ui_window.[ch]: ui_window_flush() which works for cairo is added.
+
+	* ui_window_cairo.c:
+	  - Drawn glyphs are cached until cairo_flush() is called.
+	  - ui_window_draw_string32() calls cairo_flush() if str argument is NULL.
+
+	* mc_opentype.c: Compiling error is fixed if gtk+ version is less than 2.14.0.
+
 2018-04-13  Araki Ken  <arakiken@users.sf.net>
 
 	* vtetypebuiltins.c: vte_text_blink_mode_get_type() is added.
