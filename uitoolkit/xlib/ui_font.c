@@ -1397,7 +1397,13 @@ int ui_font_has_ot_layout_table(ui_font_t *font) {
   if (font->cairo_font) {
 #ifdef USE_OT_LAYOUT
     if (!font->ot_font) {
-      if (font->ot_font_not_found || !cairo_set_ot_font(font)) {
+      if (font->ot_font_not_found) {
+        return 0;
+      }
+
+      if (!cairo_set_ot_font(font)) {
+        font->ot_font_not_found = 1;
+
         return 0;
       }
     }
@@ -1410,7 +1416,13 @@ int ui_font_has_ot_layout_table(ui_font_t *font) {
   if (font->xft_font) {
 #ifdef USE_OT_LAYOUT
     if (!font->ot_font) {
-      if (font->ot_font_not_found || !xft_set_ot_font(font)) {
+      if (font->ot_font_not_found) {
+        return 0;
+      }
+
+      if (!xft_set_ot_font(font)) {
+        font->ot_font_not_found = 1;
+
         return 0;
       }
     }

@@ -3,10 +3,10 @@
 #include <hb.h>
 #ifdef USE_QUARTZ
 #include <hb-coretext.h>
-#include <hb-ot.h>
 #else
 #include <hb-ft.h>
 #endif
+#include <hb-ot.h> /* hb_ot_layout_has_substitution */
 #include <ctype.h> /* isalpha */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>
@@ -190,7 +190,6 @@ void *otl_open(void *obj, u_int size) {
 #if defined(USE_WIN32GUI)
 
   FT_Face face;
-  hb_font_t *hbfont;
 
   if (!ftlib) {
     if (FT_Init_FreeType(&ftlib) != 0) {
@@ -201,11 +200,20 @@ void *otl_open(void *obj, u_int size) {
   }
 
   if (FT_New_Memory_Face(ftlib, obj, size, 0, &face) == 0) {
-    if ((hbfont = hb_ft_font_create(face, done_ft_face))) {
-      face->generic.data = obj;
-      ref_count++;
+    hb_font_t *hbfont;
 
-      return hbfont;
+    if ((hbfont = hb_ft_font_create(face, done_ft_face))) {
+#if 1
+      if (hb_ot_layout_has_substitution(hb_font_get_face(hbfont)))
+#endif
+      {
+        face->generic.data = obj;
+        ref_count++;
+
+        return hbfont;
+      }
+
+      hb_font_destroy(hbfont);
     }
 
     FT_Done_Face(face);
@@ -226,18 +234,37 @@ void *otl_open(void *obj, u_int size) {
 
   if ((face = hb_coretext_face_create(obj /* CGFont */))) {
     hb_font_t *font;
-    if ((font = hb_font_create(face))) {
+
+    /* XXX hb_ot_layout_has_substitution() of harfbuzz 1.1.3 always returns 0 */
+    if (/* hb_ot_layout_has_substitution(face) && */ (font = hb_font_create(face))) {
       hb_ot_font_set_funcs(font);
       hb_face_destroy(face);
 
       return font;
     }
+
+    hb_face_destroy(face);
   }
 
   return NULL;
 
 #else
-  return hb_ft_font_create(obj, NULL);
+
+  hb_font_t *font;
+
+  if ((font = hb_ft_font_create(obj, NULL))) {
+#if 1
+    if (hb_ot_layout_has_substitution(hb_font_get_face(font)))
+#endif
+    {
+      return font;
+    }
+
+    hb_font_destroy(font);
+  }
+
+  return NULL;
+
 #endif
 }
 

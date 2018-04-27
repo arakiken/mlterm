@@ -43,7 +43,8 @@ O DECBKM (Backarrow Key Mode)                               CSI ? 67 [hl]
 O DECCARA (Change Attributes in Rectangular Area)           CSI Pt;Pl;Pb;Pr;Ps1;...;Psn $ r
 - DECCKD (Copy Key Default)                                 DCS " z D...D ST
 O DECCKM (Cursor Keys Mode)                                 CSI ? 1 [hl]
-- DECCKSR (Memory Checksum Report)                          CSI ? 63;Pid n
+O DECCKSR (Memory Checksum Report)                          CSI ? 63;Pid n
+                                                            DCS Pid ! ~ D...D ST
 O DECCOLM (Select 80 or 132 Columns per Page)               CSI ? 3 [hl]
 O DECCRA (Copy Rectangular Area)                            CSI Pts;Pls;Pbs;Prs;Pps;Ptd;Pld;Ppd $ v
 - DECCRTSM (Set/Reset CRT Save Mode)                        CSI ? 97 [hl]
@@ -105,7 +106,7 @@ O DECRARA (Reverse Attributes in Rectangular Area)          CSI Pt;Pl;Pb;Pr;Ps1;
 O DECRC (Restore Cursor)                                    ESC 8
 - DECRLCM (Right-to-Left Copy)                              CSI ? 96 [hl]
 - DECRLM (Cursor Right to Left Mode)                        CSI ? 34 [hl]
-- DECRQCRA (Request Checksum of Rectangular Area)           CSI Pid;Pp;Pt;Pl;Pb;Pr * y
+O DECRQCRA (Request Checksum of Rectangular Area)           CSI Pid;Pp;Pt;Pl;Pb;Pr * y
 O DECRQDE (Request Displayed Extent)                        CSI " v
 - DECRQKD (Request Key Definition)                          CSI Ps1;Ps2 , w
 - DECRQKT (Key Type Inquiry)                                CSI Ps , u
@@ -178,6 +179,7 @@ O DSR (Locator)                                             CSI ? 53 n  or  CSI 
 O DSR (Locator Exist)                                       CSI ? 56 n
 O DSR (Macro Space Report)                                  CSI ? 62 n
 O DSR (Memory Checksum (DECCKSR))                           CSI ? 63;Pid n
+                                                            DCS Pid ! ~ D...D ST
 O DSR (Multiple Session)                                    CSI ? 83 n
 O DSR (Operating Status)                                    CSI 5 n
 O DSR (Printer Port)                                        CSI ? 15 n

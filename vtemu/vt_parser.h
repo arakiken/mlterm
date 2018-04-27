@@ -170,8 +170,11 @@ typedef struct vt_storable_states {
   int is_reversed : 1;
   int is_blinking : 1;
   int is_invisible : 1;
+  int is_protected : 1;
+  int is_relative_origin : 1;
+  int is_auto_wrap : 1;
 
-  /* vt_line_style_t */ int8_t line_style;
+  /* vt_line_style_t */ int line_style : 7;
   vt_color_t fg_color;
   vt_color_t bg_color;
   ef_charset_t cs;

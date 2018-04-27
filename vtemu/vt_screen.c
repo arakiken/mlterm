@@ -15,9 +15,6 @@
 
 #define ROW_IN_LOGS(screen, row) (vt_get_num_logged_lines(&(screen)->logs) + row)
 
-/* Not contains the first page. */
-#define MAX_PAGE_ID 8
-
 #if 1
 #define EXIT_BS_AT_BOTTOM
 #endif
@@ -1963,6 +1960,21 @@ void vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int nu
     vt_edit_copy_area(src_edit, src_col, src_row, num_copy_cols, num_copy_rows,
                       dst_edit, dst_col, dst_row);
   }
+}
+
+u_int16_t vt_screen_get_checksum(vt_screen_t *screen, int col, int row,
+                             u_int num_cols, u_int num_rows, int page) {
+  vt_edit_t *edit;
+
+  if (page > MAX_PAGE_ID) {
+    page = MAX_PAGE_ID;
+  }
+
+  if ((edit = get_edit(screen, page))) {
+    return vt_edit_get_checksum(edit, col, row, num_cols, num_rows);
+  }
+
+  return 0;
 }
 
 void vt_screen_enable_blinking(vt_screen_t *screen) { screen->has_blinking_char = 1; }

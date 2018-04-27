@@ -1,4 +1,5 @@
 * Support preserveAspectRatio option of OSC 1337.
+* Support DECRQCRA.
 * Support framebuffer on FreeBSD(98).
 * Add vte 0.52.0 API symbols to libvte compatible library.
 * Improve performance of redrawing screen when type_engine=cairo.
