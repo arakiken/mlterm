@@ -461,6 +461,18 @@ static int apply_relative_origin(vt_edit_t *edit, int *col, int *row, u_int *num
     if ((*col) + (*num_cols) > edit->hmargin_end + 1) {
       (*num_cols) = edit->hmargin_end + 1 - (*col);
     }
+  } else {
+    if ((*row) >= edit->model.num_rows || (*col) >= edit->model.num_cols) {
+      return 0;
+    }
+
+    if ((*row) + (*num_rows) > edit->model.num_rows) {
+      (*num_rows) = edit->model.num_rows - (*row);
+    }
+
+    if ((*col) + (*num_cols) > edit->model.num_cols) {
+      (*num_cols) = edit->model.num_cols - (*col);
+    }
   }
 
   return 1;
@@ -833,6 +845,7 @@ int vt_edit_delete_cols(vt_edit_t *edit, u_int del_cols) {
   u_int buf_len;
   u_int filled_len;
   vt_line_t *cursor_line;
+  u_int num_filled_cols;
 
 #ifdef CURSOR_DEBUG
   vt_cursor_dump(&edit->cursor);
@@ -842,10 +855,10 @@ int vt_edit_delete_cols(vt_edit_t *edit, u_int del_cols) {
 
   cursor_line = CURSOR_LINE(edit);
 
-  /* XXX del_cols should be converted to del_chars */
-  if (edit->cursor.char_index + del_cols >= cursor_line->num_filled_chars) {
-    /* no need to overwrite */
+  num_filled_cols = vt_line_get_num_filled_cols(cursor_line);
 
+  if (!MARGIN_IS_ENABLED(edit) && edit->cursor.col + del_cols >= num_filled_cols) {
+    /* no need to overwrite */
     vt_edit_clear_line_to_right(edit); /* Considering BCE */
 
     return 1;
@@ -855,7 +868,7 @@ int vt_edit_delete_cols(vt_edit_t *edit, u_int del_cols) {
    * collecting chars after cursor line.
    */
 
-  buf_len = cursor_line->num_filled_chars;
+  buf_len = cursor_line->num_chars - edit->cursor.col;
 
   if ((buffer = vt_str_alloca(buf_len)) == NULL) {
 #ifdef DEBUG
@@ -914,41 +927,45 @@ int vt_edit_delete_cols(vt_edit_t *edit, u_int del_cols) {
     cols = vt_char_cols(vt_char_at(cursor_line, char_index++));
 
     if (MARGIN_IS_ENABLED(edit)) {
-      u_int count;
-      u_int copy_len;
-
       if (!CURSOR_IS_INSIDE_HMARGIN(edit)) {
         return 0;
       }
 
-      while (cols < del_cols && edit->cursor.col + cols < edit->hmargin_end + 1 &&
-             char_index < cursor_line->num_filled_chars) {
-        cols += vt_char_cols(vt_char_at(cursor_line, char_index++));
-      }
+      if (num_filled_cols > edit->hmargin_end + 1) {
+        u_int count;
+        u_int copy_len;
 
-      copy_len = 0;
-      while (edit->cursor.col + cols < edit->hmargin_end + 1 &&
-             char_index + copy_len < cursor_line->num_filled_chars) {
-        cols += vt_char_cols(vt_char_at(cursor_line, char_index + (copy_len++)));
-      }
+        while (cols < del_cols && edit->cursor.col + cols <= edit->hmargin_end) {
+          cols += vt_char_cols(vt_char_at(cursor_line, char_index++));
+        }
+        del_cols = cols;
 
-      vt_str_copy(buffer + filled_len, vt_char_at(cursor_line, char_index), copy_len);
-      filled_len += copy_len;
-      char_index += copy_len;
+        while (edit->cursor.col + (cols++) <= edit->hmargin_end) {
+          vt_char_copy(buffer + filled_len++, vt_char_at(cursor_line, char_index++));
+        }
 
-      for (count = 0; count < del_cols; count++) {
-        vt_char_copy(buffer + (filled_len++), edit->use_bce ? &edit->bce_ch : vt_sp_ch());
+        for (count = 0; count < del_cols; count++) {
+          vt_char_copy(buffer + (filled_len++), edit->use_bce ? &edit->bce_ch : vt_sp_ch());
+        }
+
+        copy_len = 0;
+        while (char_index + copy_len < cursor_line->num_filled_chars) {
+          vt_char_cols(vt_char_at(cursor_line, char_index + (copy_len++)));
+        }
+
+        vt_str_copy(buffer + filled_len, vt_char_at(cursor_line, char_index), copy_len);
+        filled_len += copy_len;
       }
     } else {
       while (cols < del_cols && char_index < cursor_line->num_filled_chars) {
         cols += vt_char_cols(vt_char_at(cursor_line, char_index++));
       }
+
+      vt_str_copy(buffer + filled_len, vt_char_at(cursor_line, char_index),
+                  cursor_line->num_filled_chars - char_index);
+      filled_len += (cursor_line->num_filled_chars - char_index);
     }
   }
-
-  vt_str_copy(buffer + filled_len, vt_char_at(cursor_line, char_index),
-              cursor_line->num_filled_chars - char_index);
-  filled_len += (cursor_line->num_filled_chars - char_index);
 
   if (filled_len > 0) {
     /*
@@ -1249,7 +1266,7 @@ void vt_edit_scroll_leftward(vt_edit_t *edit, u_int size) {
             edit->hmargin_end - edit->hmargin_beg + 1 - size,
             edit->vmargin_end - edit->vmargin_beg + 1,
             edit, edit->hmargin_beg, edit->vmargin_beg);
-  erase_area(edit, edit->hmargin_end - edit->hmargin_beg + 1 - size, edit->vmargin_beg,
+  erase_area(edit, edit->hmargin_end + 1 - size, edit->vmargin_beg,
              size, edit->vmargin_end - edit->vmargin_beg + 1);
 }
 
@@ -1343,7 +1360,7 @@ int vt_edit_scroll_downward(vt_edit_t *edit, u_int size) {
 }
 
 void vt_edit_set_use_hmargin(vt_edit_t *edit, int use) {
-  if (use <= 0) {
+  if (!use) {
     edit->use_margin = 0;
     edit->hmargin_beg = 0;
     edit->hmargin_end = edit->model.num_cols - 1;
@@ -1367,7 +1384,22 @@ int vt_edit_set_hmargin(vt_edit_t *edit, int beg, int end) {
 
 int vt_edit_forward_tabs(vt_edit_t *edit, u_int num) { return horizontal_tabs(edit, num, 1); }
 
-int vt_edit_backward_tabs(vt_edit_t *edit, u_int num) { return horizontal_tabs(edit, num, 0); }
+int vt_edit_backward_tabs(vt_edit_t *edit, u_int num) {
+#if 0
+  /* compat with xterm 332 CBT behavior (esctest: CHATests.test_CHA_IgnoresScrollRegion) */
+  int orig_hmargin_beg = edit->hmargin_beg;
+  int ret;
+
+  edit->hmargin_beg = 0;
+  ret = horizontal_tabs(edit, num, 0);
+  edit->hmargin_beg = orig_hmargin_beg;
+
+  return ret;
+#else
+  /* compat with RLogin 2.23.1 / Teraterm 4.95 */
+  return horizontal_tabs(edit, num, 0);
+#endif
+}
 
 void vt_edit_set_tab_size(vt_edit_t *edit, u_int tab_size) {
   int col;
@@ -1715,6 +1747,29 @@ void vt_edit_copy_area(vt_edit_t *src_edit, int src_col, int src_row, u_int num_
     if (dst_col + num_copy_cols > dst_edit->hmargin_end + 1) {
       num_copy_cols = dst_edit->hmargin_end + 1 - dst_col;
     }
+  } else {
+    if (src_row >= src_edit->model.num_rows ||
+        dst_row >= dst_edit->model.num_rows ||
+        src_col >= src_edit->model.num_cols ||
+        dst_col >= dst_edit->model.num_cols) {
+      return;
+    }
+
+    if (src_row + num_copy_rows > src_edit->model.num_rows) {
+      num_copy_rows = src_edit->model.num_rows - src_row;
+    }
+
+    if (dst_row + num_copy_rows > dst_edit->model.num_rows) {
+      num_copy_rows = dst_edit->model.num_rows - dst_row;
+    }
+
+    if (src_col + num_copy_cols > src_edit->model.num_cols) {
+      num_copy_cols = src_edit->model.num_cols - src_col;
+    }
+
+    if (dst_col + num_copy_cols > dst_edit->model.num_cols) {
+      num_copy_cols = dst_edit->model.num_cols - dst_col;
+    }
   }
 
   copy_area(src_edit, src_col, src_row, num_copy_cols, num_copy_rows,
@@ -1785,6 +1840,11 @@ void vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_cols,
     }
   }
 
+  /*
+   * XXX
+   * apply_relative_origin() adjusts arguments regarding edit->use_rect_attr_select as true
+   * all the time.
+   */
   if (!apply_relative_origin(edit, &col, &row, &num_cols, &num_rows)) {
     return;
   }
@@ -1829,6 +1889,66 @@ void vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_cols,
               crossed_out, overlined);
     }
   }
+}
+
+u_int16_t vt_edit_get_checksum(vt_edit_t *edit, int col, int row, u_int num_cols, u_int num_rows) {
+  int count;
+  u_int16_t checksum;
+  vt_line_t *line;
+  int char_index;
+  u_int cols_rest;
+
+  if (!apply_relative_origin(edit, &col, &row, &num_cols, &num_rows)) {
+    return 0;
+  }
+
+  checksum = 0;
+  for (count = 0; count < num_rows; count++) {
+    if ((line = vt_edit_get_line(edit, row + count))) {
+      int end_char_index;
+      vt_char_t *ch;
+
+      if ((char_index = vt_convert_col_to_char_index(line, &cols_rest, col, BREAK_BOUNDARY)) >=
+          line->num_filled_chars) {
+        continue;
+      }
+
+      if (cols_rest > 0) {
+        char_index ++;
+        checksum --; /* 2nd column of full width character is 0xFFFF (compat with xterm) */
+      }
+
+      if ((end_char_index = vt_convert_col_to_char_index(line, &cols_rest,
+                                                         col + num_cols, BREAK_BOUNDARY)) >
+#if 0
+          line->num_filled_chars
+#else
+          vt_line_get_num_filled_chars_except_sp(line) /* compat with xterm */
+#endif
+          ) {
+#if 0
+        end_char_index = line->num_filled_chars;
+#else
+        end_char_index = vt_line_get_num_filled_chars_except_sp(line); /* compat with xterm */
+#endif
+      }
+
+      if (cols_rest > 0) {
+        end_char_index++;
+        checksum ++; /* col + num_cols - 1 is 1st column of full width character */
+      }
+
+      for(; char_index < end_char_index; char_index++) {
+        ch = vt_char_at(line, char_index);
+        checksum += vt_char_code(ch);
+        if (vt_char_cols(ch) == 2) {
+          checksum --; /* 2nd column of full width character is 0xFFFF (compat with xterm) */
+        }
+      }
+    }
+  }
+
+  return checksum;
 }
 
 void vt_edit_clear_size_attr(vt_edit_t *edit) {

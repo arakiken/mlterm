@@ -2248,7 +2248,11 @@ int ui_font_has_ot_layout_table(ui_font_t *font) {
 #ifdef USE_FREETYPE
   if (font->xfont->face) {
     if (!font->ot_font) {
-      if (font->ot_font_not_found || !(font->ot_font = otl_open(font->xfont->face, 0))) {
+      if (font->ot_font_not_found) {
+        return 0;
+      }
+
+      if (!(font->ot_font = otl_open(font->xfont->face, 0))) {
         font->ot_font_not_found = 1;
 
         return 0;

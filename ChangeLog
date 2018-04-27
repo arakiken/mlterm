@@ -1,3 +1,26 @@
+2018-04-27  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_screen.[ch]: vt_screen_get_checksum() is added.
+
+	* vt_parser.[ch]:
+	  - save_cursor() stores is_protected, is_relative_origin and is_auto_wrap, then
+	    restore_cursor() restores them.
+	  - OSC 4 returns "OSC ... ST" instead of "OSC ... BEL".
+	  - The default values are set if 5, 6 and 7th parameters of DECCRA are omitted.
+	  - The default value of Pch of DECFRA is '%'. (compat with xterm)
+
+	* vt_edit.[ch]:
+	  - apply_relative_origin() checks whether col/row/num_cols/num_rows
+	    are within screen or not if edit->is_relative_origin is false.
+	  - Corruption of vt_edit_delete_cols() if DECLRMM is fixed.
+	  - vt_edit_scroll_leftward() is fixed.
+	  - vt_edit_set_use_hmargin() ignores -1 value of 'use' argument.
+	  - vt_edit_get_checksum() is added.
+
+	* xlib/ui_font.c: If cairo_set_ot_font() fails, font->ot_font_not_found = 1.
+
+	* hb.c: hb_ot_layout_has_substitution() is checked.
+
 2018-04-21  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_scrollbar.c: If win->is_mapped is false, window_exposed() does nothing.

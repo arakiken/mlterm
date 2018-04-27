@@ -181,6 +181,8 @@ void vt_edit_change_attr_area(vt_edit_t *edit, int col, int row, u_int num_cols,
                               void (*func)(vt_char_t *, int, int, int, int, int, int, int),
                               int attr);
 
+u_int16_t vt_edit_get_checksum(vt_edit_t *edit, int col, int row, u_int num_cols, u_int num_rows);
+
 void vt_edit_clear_size_attr(vt_edit_t *edit);
 
 #define vt_edit_set_use_rect_attr_select(edit, use) ((edit)->use_rect_attr_select = (use))

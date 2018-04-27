@@ -11,6 +11,8 @@
 #include "vt_logs.h"
 #include "vt_logical_visual.h"
 
+#define MAX_PAGE_ID 8
+
 typedef struct vt_screen_event_listener {
   void *self;
 
@@ -381,6 +383,9 @@ void vt_screen_copy_area(vt_screen_t *screen, int src_col, int src_row, u_int nu
 #define vt_screen_reverse_attr_area(screen, col, row, num_cols, num_rows, attr) \
   vt_edit_change_attr_area((screen)->edit, col, row, num_cols, num_rows,        \
                            vt_char_reverse_attr, attr)
+
+u_int16_t vt_screen_get_checksum(vt_screen_t *screen, int col, int row,
+                             u_int num_cols, u_int num_rows, int page);
 
 #define vt_screen_set_use_rect_attr_select(screen, use) \
   vt_edit_set_use_rect_attr_select((screen)->edit, use)

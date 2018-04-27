@@ -1189,6 +1189,9 @@ static void save_cursor(vt_parser_t *vt_parser) {
   dest->is_reversed = vt_parser->is_reversed;
   dest->is_blinking = vt_parser->is_blinking;
   dest->is_invisible = vt_parser->is_invisible;
+  dest->is_protected = vt_parser->is_protected;
+  dest->is_relative_origin = vt_screen_is_relative_origin(vt_parser->screen);
+  dest->is_auto_wrap = vt_screen_is_auto_wrap(vt_parser->screen);
   dest->cs = vt_parser->cs;
 
   vt_screen_save_cursor(vt_parser->screen);
@@ -1210,6 +1213,9 @@ static void restore_cursor(vt_parser_t *vt_parser) {
     vt_parser->is_reversed = src->is_reversed;
     vt_parser->is_blinking = src->is_blinking;
     vt_parser->is_invisible = src->is_invisible;
+    vt_parser->is_protected = src->is_protected;
+    vt_screen_set_relative_origin(vt_parser->screen, src->is_relative_origin ? 1 : 0);
+    vt_screen_set_auto_wrap(vt_parser->screen, src->is_auto_wrap ? 1 : 0);
     if (IS_ENCODING_BASED_ON_ISO2022(vt_parser->encoding)) {
       if ((src->cs == DEC_SPECIAL) && (src->cs != vt_parser->cs)) {
         /* force grapchics mode by sending \E(0 to current parser*/
@@ -2705,7 +2711,7 @@ static void get_rgb(vt_parser_t *vt_parser, int ps, vt_color_t color) {
   u_int8_t green;
   u_int8_t blue;
   char rgb[] = "rgb:xxxx/xxxx/xxxx";
-  char seq[2 + (DIGIT_STR_LEN(int)+1) * 2 + sizeof(rgb) + 1];
+  char seq[2 + (DIGIT_STR_LEN(int)+1) * 2 + sizeof(rgb) + 2];
 
   if (ps >= 10) /* IS_FG_BG_COLOR(color) */
   {
@@ -2722,10 +2728,10 @@ static void get_rgb(vt_parser_t *vt_parser, int ps, vt_color_t color) {
 
   if (ps >= 10) {
     /* ps: 10 = fg , 11 = bg , 12 = cursor bg */
-    sprintf(seq, "\x1b]%d;%s\x07", ps, rgb);
+    sprintf(seq, "\x1b]%d;%s\x1b\\", ps, rgb);
   } else {
     /* ps: 4 , 5 */
-    sprintf(seq, "\x1b]%d;%d;%s\x07", ps, color, rgb);
+    sprintf(seq, "\x1b]%d;%d;%s\x1b\\", ps, color, rgb);
   }
 
   vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
@@ -3846,12 +3852,7 @@ static void soft_reset(vt_parser_t *vt_parser) {
 #endif
 
   /* DECLRMM (XXX Not described in vt510 manual.) */
-#if 0
   set_vtmode(vt_parser, 69, 0);
-#else
-  vt_screen_set_use_hmargin(vt_parser->screen, -1 /* Don't move cursor. */);
-  vt_parser->vtmode_flags &= ~(SHIFT_FLAG64(DECMODE_69));
-#endif
 
   /* "CSI r" (DECSTBM) */
   vt_screen_set_vmargin(vt_parser->screen, -1, -1);
@@ -4743,17 +4744,24 @@ inline static int parse_vt100_escape_sequence(
               vt_screen_erase_area(vt_parser->screen, ps[1] - 1, ps[0] - 1, ps[3] - ps[1] + 1,
                                    ps[2] - ps[0] + 1);
               vt_screen_restore_protected_chars(vt_parser->screen, save);
-            } else if (*str_p == 'v' && num >= 8) {
+            } else if (*str_p == 'v' && (num == 5 || num >= 8)) {
               /* "CSI ... $ v" DECCRA */
-              for (count = 4; count < 8; count++) {
-                if (ps[count] <= 0) {
-                  ps[count] = 1;
+              if (num == 5) {
+                ps[5] = ps[6] = ps[7] = 1; /* default values of xterm */
+              } else {
+                for (count = 4; count < 8; count++) {
+                  if (ps[count] <= 0) {
+                    ps[count] = 1;
+                  }
                 }
               }
               vt_screen_copy_area(vt_parser->screen, ps[1] - 1, ps[0] - 1, ps[3] - ps[1] + 1,
                                   ps[2] - ps[0] + 1, ps[4] - 1, ps[6] - 1, ps[5] - 1, ps[7] - 1);
-            } else if (*str_p == 'x' && num >= 1) {
+            } else if (*str_p == 'x') {
               /* "CSI ... $ x" DECFRA */
+              if (num < 5) {
+                ps[4] = '%'; /* default value */
+              }
               vt_screen_fill_area(vt_parser->screen, ps[4], vt_parser->is_protected,
                                   ps[1] - 1, ps[0] - 1, ps[3] - ps[1] + 1, ps[2] - ps[0] + 1);
             } else if (*str_p == 'r') {
@@ -4832,6 +4840,54 @@ inline static int parse_vt100_escape_sequence(
         } else if (*str_p == '|') {
           /* "CSI Pn * |" DECSNLS */
           resize(vt_parser, 0, ps[0], 1);
+        } else if (*str_p == 'y') {
+          /* "CSI Pn * y" DECRQCRA */
+          if (num >= 1) {
+            u_int16_t checksum;
+            char seq[6+DIGIT_STR_LEN(ps[0])+4+1];
+
+            if (ps[1] == 0) {
+#if 0
+              /* Ignore following parameters (https://vt100.net/docs/vt510-rm/DECRQCRA.html) */
+              num = 1;
+#else
+              /* Compatible with xterm */
+              ps[1] = 1;
+#endif
+            }
+
+            switch(num) {
+            case 1:
+            case 2:
+              ps[2] = 1;
+
+            case 3:
+              ps[3] = 1;
+
+            case 4:
+              ps[4] = vt_screen_get_rows(vt_parser->screen);
+
+            case 5:
+              ps[5] = vt_screen_get_cols(vt_parser->screen);
+            }
+
+            if (num == 1) {
+              int page;
+
+              checksum = 0;
+              for (page = 0; page <= MAX_PAGE_ID; page++) {
+                int i = vt_screen_get_checksum(vt_parser->screen, ps[3] - 1, ps[2] - 1,
+                                                  ps[5] - ps[3] + 1, ps[4] - ps[2] + 1, page);
+                checksum += i;
+              }
+            } else {
+              checksum = vt_screen_get_checksum(vt_parser->screen, ps[3] - 1, ps[2] - 1,
+                                                ps[5] - ps[3] + 1, ps[4] - ps[2] + 1, ps[1] - 1);
+            }
+
+            sprintf(seq, "\x1bP%d!~%.4x\x1b\\", ps[0], checksum);
+            vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
+          }
         }
       } else if (intmed_ch == '\'') {
         if (*str_p == '|') {
@@ -6037,10 +6093,9 @@ inline static int parse_vt100_escape_sequence(
           } else if (*str_p == '8') {
             /* "ESC # 8" DEC screen alignment test (DECALN) */
 
-#if 0
             vt_screen_set_vmargin(vt_parser->screen, -1, -1);
-            vt_screen_set_use_hmargin(vt_parser->screen, -1 /* Don't move cursor. */);
-#endif
+            vt_screen_set_use_hmargin(vt_parser->screen, 0);
+
             vt_screen_fill_area(vt_parser->screen, 'E', vt_parser->is_protected, 0, 0,
                                 vt_screen_get_logical_cols(vt_parser->screen),
                                 vt_screen_get_logical_rows(vt_parser->screen));
