@@ -12,13 +12,14 @@ enum {
   _FG_COLOR = 0x0,
   _BG_COLOR = 0x1,
   _BOLD_COLOR = 0x2,
-  _ITALIC_COLOR = 0x3,
-  _UNDERLINE_COLOR = 0x4,
-  _BLINKING_COLOR = 0x5,
-  _CROSSED_OUT_COLOR = 0x6,
-  _CUR_FG_COLOR = 0x7,
-  _CUR_BG_COLOR = 0x8,
-  MAX_SYS_COLORS = 0x9,
+  _UNDERLINE_COLOR = 0x3,
+  _BLINKING_COLOR = 0x4,
+  _REVERSE_COLOR = 0x5,
+  _ITALIC_COLOR = 0x6,
+  _CROSSED_OUT_COLOR = 0x7,
+  _CUR_FG_COLOR = 0x8,
+  _CUR_BG_COLOR = 0x9,
+  MAX_SYS_COLORS = 0xa,
 };
 
 /* --- static functions --- */
@@ -80,19 +81,17 @@ static int sys_color_set(ui_color_manager_t *color_man, char *name, int color) {
 
 /* --- global functions --- */
 
-ui_color_manager_t *ui_color_manager_new(
-    ui_display_t *disp, char *fg_color, /* can be NULL(If NULL, use "black".) */
-    char *bg_color,                     /* can be NULL(If NULL, use "white".) */
-    char *cursor_fg_color,              /* can be NULL(If NULL, use reversed one of the char
-                                           color.) */
-    char *cursor_bg_color,              /* can be NULL(If NULL, use reversed one of the char
-                                           color.) */
-    char *bd_color,                     /* can be NULL */
-    char *it_color,                     /* can be NULL */
-    char *ul_color,                     /* can be NULL */
-    char *bl_color,                     /* can be NULL */
-    char *co_color                      /* can be NULL */
-    ) {
+ui_color_manager_t *ui_color_manager_new(ui_display_t *disp,
+                                         char *fg_color, /* can be NULL(=> "black".) */
+                                         char *bg_color, /* can be NULL(=> "white".) */
+                                         char *cursor_fg_color, /* can be NULL(=> reversed color) */
+                                         char *cursor_bg_color, /* can be NULL(=> reversed color) */
+                                         char *bd_color, /* can be NULL */
+                                         char *ul_color, /* can be NULL */
+                                         char *bl_color, /* can be NULL */
+                                         char *rv_color, /* can be NULL */
+                                         char *it_color, /* can be NULL */
+                                         char *co_color  /* can be NULL */) {
   ui_color_manager_t *color_man;
 
   if ((color_man = calloc(1, sizeof(ui_color_manager_t))) == NULL) {
@@ -116,9 +115,10 @@ ui_color_manager_t *ui_color_manager_new(
   sys_color_set(color_man, cursor_fg_color, _CUR_FG_COLOR);
   sys_color_set(color_man, cursor_bg_color, _CUR_BG_COLOR);
   sys_color_set(color_man, bd_color, _BOLD_COLOR);
-  sys_color_set(color_man, it_color, _ITALIC_COLOR);
   sys_color_set(color_man, ul_color, _UNDERLINE_COLOR);
   sys_color_set(color_man, bl_color, _BLINKING_COLOR);
+  sys_color_set(color_man, rv_color, _REVERSE_COLOR);
+  sys_color_set(color_man, it_color, _ITALIC_COLOR);
   sys_color_set(color_man, co_color, _CROSSED_OUT_COLOR);
 
   return color_man;

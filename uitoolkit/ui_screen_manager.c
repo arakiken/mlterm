@@ -551,8 +551,9 @@ static ui_screen_t *open_screen_intern(char *disp_name, vt_term_t *term, ui_layo
 
   if ((color_man = ui_color_manager_new(
            disp, main_config.fg_color, main_config.bg_color, main_config.cursor_fg_color,
-           main_config.cursor_bg_color, main_config.bd_color, main_config.it_color,
-           main_config.ul_color, main_config.bl_color, main_config.co_color)) == NULL) {
+           main_config.cursor_bg_color, main_config.bd_color, main_config.ul_color,
+           main_config.bl_color, main_config.rv_color, main_config.it_color,
+           main_config.co_color)) == NULL) {
     goto error;
   }
 

@@ -4047,16 +4047,20 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
     if ((value = ui_color_manager_get_alt_color(screen->color_man, VT_BOLD_COLOR)) == NULL) {
       value = "";
     }
-  } else if (strcmp(key, "it_color") == 0) {
-    if ((value = ui_color_manager_get_alt_color(screen->color_man, VT_ITALIC_COLOR)) == NULL) {
-      value = "";
-    }
   } else if (strcmp(key, "ul_color") == 0) {
     if ((value = ui_color_manager_get_alt_color(screen->color_man, VT_UNDERLINE_COLOR)) == NULL) {
       value = "";
     }
   } else if (strcmp(key, "bl_color") == 0) {
     if ((value = ui_color_manager_get_alt_color(screen->color_man, VT_BLINKING_COLOR)) == NULL) {
+      value = "";
+    }
+  } else if (strcmp(key, "rv_color") == 0) {
+    if ((value = ui_color_manager_get_alt_color(screen->color_man, VT_REVERSE_COLOR)) == NULL) {
+      value = "";
+    }
+  } else if (strcmp(key, "it_color") == 0) {
+    if ((value = ui_color_manager_get_alt_color(screen->color_man, VT_ITALIC_COLOR)) == NULL) {
       value = "";
     }
   } else if (strcmp(key, "co_color") == 0) {
@@ -5381,7 +5385,7 @@ static int xterm_get_rgb(void *p, u_int8_t *red, u_int8_t *green, u_int8_t *blue
   return 1;
 }
 
-static int xterm_get_window_size(void *p, u_int *width, u_int *height) {
+static void xterm_get_window_size(void *p, u_int *width, u_int *height) {
   ui_screen_t *screen;
 
   screen = p;
@@ -5392,8 +5396,15 @@ static int xterm_get_window_size(void *p, u_int *width, u_int *height) {
   if (vt_term_has_status_line(screen->term)) {
     *height -= ui_line_height(screen);
   }
+}
 
-  return 1;
+static void xterm_get_display_size(void *p, u_int *width, u_int *height) {
+  ui_screen_t *screen;
+
+  screen = p;
+
+  *width = screen->window.disp->width;
+  *height = screen->window.disp->height;
 }
 
 #ifndef NO_IMAGE
@@ -5628,6 +5639,18 @@ static int xterm_check_iscii_font(void *p, ef_charset_t cs) {
                                 NORMAL_FONT_OF(cs)) != NULL;
 }
 
+static void xterm_lock_keyboard(void *p, int lock) {
+  ui_screen_t *screen;
+
+  screen = p;
+
+  if (lock) {
+    screen->window.key_pressed = NULL;
+  } else {
+    screen->window.key_pressed = key_pressed;
+  }
+}
+
 /*
  * callbacks of vt_pty_event_listener_t
  */
@@ -5805,6 +5828,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->xterm_listener.set_selection = (allow_osc52 ? xterm_set_selection : NULL);
   screen->xterm_listener.get_rgb = xterm_get_rgb;
   screen->xterm_listener.get_window_size = xterm_get_window_size;
+  screen->xterm_listener.get_display_size = xterm_get_display_size;
   screen->xterm_listener.get_picture_data = xterm_get_picture_data;
   screen->xterm_listener.get_emoji_data = xterm_get_emoji_data;
   screen->xterm_listener.show_tmp_picture = xterm_show_tmp_picture;
@@ -5813,6 +5837,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
 #endif
   screen->xterm_listener.hide_cursor = xterm_hide_cursor;
   screen->xterm_listener.check_iscii_font = xterm_check_iscii_font;
+  screen->xterm_listener.lock_keyboard = xterm_lock_keyboard;
 
   screen->config_listener.self = screen;
   screen->config_listener.exec = ui_screen_exec_cmd;
@@ -6365,12 +6390,14 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
     ui_color_manager_set_cursor_bg_color(screen->color_man, *value == '\0' ? NULL : value);
   } else if (strcmp(key, "bd_color") == 0) {
     change_alt_color(screen, VT_BOLD_COLOR, value);
-  } else if (strcmp(key, "it_color") == 0) {
-    change_alt_color(screen, VT_ITALIC_COLOR, value);
   } else if (strcmp(key, "ul_color") == 0) {
     change_alt_color(screen, VT_UNDERLINE_COLOR, value);
   } else if (strcmp(key, "bl_color") == 0) {
     change_alt_color(screen, VT_BLINKING_COLOR, value);
+  } else if (strcmp(key, "rv_color") == 0) {
+    change_alt_color(screen, VT_REVERSE_COLOR, value);
+  } else if (strcmp(key, "it_color") == 0) {
+    change_alt_color(screen, VT_ITALIC_COLOR, value);
   } else if (strcmp(key, "co_color") == 0) {
     change_alt_color(screen, VT_CROSSED_OUT_COLOR, value);
   } else if (strcmp(key, "sb_fg_color") == 0) {

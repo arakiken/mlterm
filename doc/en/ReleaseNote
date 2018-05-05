@@ -1,13 +1,15 @@
 * Support preserveAspectRatio option of OSC 1337.
-* Support DECRQCRA.
+* Support DECRQCRA, CSI 15 t, CSI 16 t, CSI 19 t and OSC 5;Ps;? ST.
 * Support framebuffer on FreeBSD(98).
 * Add vte 0.52.0 API symbols to libvte compatible library.
+* Add --rv / "rv_color" option.
 * Improve performance of redrawing screen when type_engine=cairo.
 * Bug fixes:
   Fix compiling error if ./configure is executed with --with-gui=fb,xlib option.
   Fix disappearing title bar on 'lxde' window manager.
   Fix a bug which disabled to replace system palettes by colors of a wall picture
   (if "use_ansi_colors" option is disabled and visual depth is 4) since 3.8.4.
+  Fix the response strings of OSC 20 and OSC 21.
 
 ver 3.8.5
 * Support libvterm (https://launchpad.net/libvterm) compatible library partially.

@@ -199,11 +199,13 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, '\0', "parent", 0, "parent_window", "parent window");
   bl_conf_add_opt(conf, '\0', "bd", 0, "bd_color",
                   "Color to use to display bold characters (equivalent to colorBD)");
-  bl_conf_add_opt(conf, '\0', "it", 0, "it_color", "Color to use to display italic characters");
   bl_conf_add_opt(conf, '\0', "ul", 0, "ul_color",
                   "Color to use to display underlined characters (equivalent to colorUL)");
   bl_conf_add_opt(conf, '\0', "bl", 0, "bl_color",
                   "Color to use to display blinking characters (equivalent to colorBL)");
+  bl_conf_add_opt(conf, '\0', "rv", 0, "rv_color",
+                  "Color to use to display reverse characters (equivalent to colorRV)");
+  bl_conf_add_opt(conf, '\0', "it", 0, "it_color", "Color to use to display italic characters");
   bl_conf_add_opt(conf, '\0', "co", 0, "co_color",
                   "Color to use to display crossed-out characters");
   bl_conf_add_opt(conf, '\0', "noul", 1, "hide_underline", "Don't draw underline [false]");
@@ -518,11 +520,6 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     main_config->alt_color_mode |= ALT_COLOR_BOLD;
   }
 
-  if ((value = bl_conf_get_value(conf, "it_color"))) {
-    main_config->it_color = strdup(value);
-    main_config->alt_color_mode |= ALT_COLOR_ITALIC;
-  }
-
   if ((value = bl_conf_get_value(conf, "ul_color"))) {
     main_config->ul_color = strdup(value);
     main_config->alt_color_mode |= ALT_COLOR_UNDERLINE;
@@ -531,6 +528,16 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   if ((value = bl_conf_get_value(conf, "bl_color"))) {
     main_config->ul_color = strdup(value);
     main_config->alt_color_mode |= ALT_COLOR_BLINKING;
+  }
+
+  if ((value = bl_conf_get_value(conf, "rv_color"))) {
+    main_config->rv_color = strdup(value);
+    main_config->alt_color_mode |= ALT_COLOR_REVERSE;
+  }
+
+  if ((value = bl_conf_get_value(conf, "it_color"))) {
+    main_config->it_color = strdup(value);
+    main_config->alt_color_mode |= ALT_COLOR_ITALIC;
   }
 
   if ((value = bl_conf_get_value(conf, "co_color"))) {

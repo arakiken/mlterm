@@ -71,10 +71,11 @@ typedef enum vt_locator_report_mode {
 
 typedef enum vt_alt_color_mode {
   ALT_COLOR_BOLD = 0x1,
-  ALT_COLOR_ITALIC = 0x2,
-  ALT_COLOR_UNDERLINE = 0x4,
-  ALT_COLOR_BLINKING = 0x8,
-  ALT_COLOR_CROSSED_OUT = 0x10,
+  ALT_COLOR_UNDERLINE = 0x2,
+  ALT_COLOR_BLINKING = 0x4,
+  ALT_COLOR_REVERSE = 0x8,
+  ALT_COLOR_ITALIC = 0x10,
+  ALT_COLOR_CROSSED_OUT = 0x20,
 
 } vt_alt_color_mode_t;
 
@@ -108,9 +109,9 @@ typedef struct vt_read_buffer {
 typedef struct vt_xterm_event_listener {
   void *self;
 
-  void (*start)(void *);     /* called in *visual* context. (Note that not logical) */
-  void (*stop)(void *);      /* called in visual context. */
-  void (*interrupt)(void *); /* called in visual context. */
+  void (*start)(void *);             /* called in *visual* context. (Note that not logical) */
+  void (*stop)(void *);                                        /* called in visual context. */
+  void (*interrupt)(void *);                                   /* called in visual context. */
 
   void (*resize)(void *, u_int, u_int, int);                   /* called in visual context. */
   void (*reverse_video)(void *, int);                          /* called in visual context. */
@@ -122,18 +123,20 @@ typedef struct vt_xterm_event_listener {
   int (*im_is_active)(void *);                                 /* called in logical context. */
   void (*switch_im_mode)(void *);                              /* called in logical context. */
   void (*set_selection)(void *, vt_char_t *, u_int, u_char *); /* called in logical context. */
-  int (*get_window_size)(void *, u_int *, u_int *);            /* called in logical context. */
+  void (*get_display_size)(void *, u_int *, u_int *);          /* called in logical context. */
+  void (*get_window_size)(void *, u_int *, u_int *);           /* called in logical context. */
   int (*get_rgb)(void *, u_int8_t *, u_int8_t *, u_int8_t *,
-                 vt_color_t); /* called in logical context. */
+                 vt_color_t);                                  /* called in logical context. */
   vt_char_t *(*get_picture_data)(void *, char *, int *, int *, int *, int *,
-                                 u_int32_t **, int, int);       /* called in logical context. */
-  int (*get_emoji_data)(void *, vt_char_t *, vt_char_t *);      /* called in logical context. */
-  void (*show_tmp_picture)(void *, char *);                     /* called in logical context. */
+                                 u_int32_t **, int, int);      /* called in logical context. */
+  int (*get_emoji_data)(void *, vt_char_t *, vt_char_t *);     /* called in logical context. */
+  void (*show_tmp_picture)(void *, char *);                    /* called in logical context. */
 #ifdef ENABLE_OSC5379PICTURE
-  void (*add_frame_to_animation)(void *, char *, int *, int *); /* called in logical context. */
+  void (*add_frame_to_animation)(void *, char *, int *, int *);/* called in logical context. */
 #endif
-  void (*hide_cursor)(void *, int);                             /* called in logical context. */
-  int (*check_iscii_font)(void *, ef_charset_t);
+  void (*hide_cursor)(void *, int);                            /* called in logical context. */
+  int (*check_iscii_font)(void *, ef_charset_t);               /* called in logical context. */
+  void (*lock_keyboard)(void *, int);                          /* called in logical context. */
 
 } vt_xterm_event_listener_t;
 

@@ -338,6 +338,8 @@ int vt_screen_go_downward(vt_screen_t *screen, u_int size);
 
 #define vt_screen_save_cursor(screen) vt_edit_save_cursor((screen)->edit)
 
+#define vt_screen_saved_cursor_to_home(screen) vt_edit_saved_cursor_to_home((screen)->edit)
+
 #define vt_screen_restore_cursor(screen) vt_edit_restore_cursor((screen)->edit)
 
 int vt_screen_cursor_visible(vt_screen_t *screen);
