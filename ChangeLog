@@ -1,3 +1,62 @@
+2018-05-05  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, doc/ja/README.ja, etc/main, etc/main.ja: Updated.
+
+	* ui_layout.c: key_pressed() calls ui_screen_t::key_pressed only if it is not NULL.
+
+	* ui_main_config.[ch]: --rv / rv_color option is added.
+
+	* ui_screen.c:
+	  - "rv_color" is added to OSC 5379 and 5380.
+	  - xterm_get_display_size() and xterm_lock_keyboard() are added.
+
+	* ui_color_manager.[ch]: _REVERSE_COLOR is added to ui_color_manager_t::sys_colors.
+
+	* vt_color.[ch]:
+	  - VT_REVERSE_COLOR is added.
+	  - prase_conf() calls vt_get_color_rgba() instead of vt_color_parse_rgb_name()
+	    to get rgb of a specified value if color_name is not "rgb:...".
+
+	* vt_parser.[ch]:
+	  - ALT_COLOR_REVERSE is added to vt_alt_color_mode_t.
+	  - put_char() considers ALT_COLOR_REVERSE.
+	  - flush_buffer() doesn't clear buffer->last_ch if buffer->filled_len == 0.
+	  - get_cell_size(), report_cell_size() and report_display_size() are added.
+	  - resize() resizes a screen to the width or height of the display if width
+	    or height argument is 0.
+	  - width or height argument of resize() not to resize a screen is changed
+	    from 0 to -1.
+	  - get_fgbg_rgb(), get_special_color_name(), change_fgbg_color() and
+	    reset_color_rgb() are added.
+	  - get_rgb() returns RGB of alt colors.
+	  - change_color_rgb() and change_special_color() support multiple parameters
+	    separated by ';'.
+	  - change_special_color() supports '?' which queries current setting.
+	  - report_status() reports DECSCA status.
+	  - get_vtmode() returns 4 (permanently reset) for GATM, SRTM, VEM, HEM,
+	    PUM, FEAM, FETM, MATM, TTM, SATM, TSM and EBM.
+	  - lock_keyboard is added to vt_xterm_event_listener_t, and KAM uses it
+	    instead of vt_parser->pty_hook.pre_write = NULL.
+	  - soft_reset() resets DECSC and DECSASD.
+	  - full_reset() resets DECCOLM, tab stops, CSI>T and CSI>t.
+	  - CSI 15 t, CSI 16 t and CSI 19 t are supported.
+	  - The response strings of OSC 20 and OSC 21 are fixed.
+
+	* vt_screen.[ch]:
+	  - vt_screen_saved_cursor_to_home() is added.
+	  - vt_screen_use_{normal|alternative}_edit() keeps the cursor position.
+	  - vt_screen_set_status_line(screen, 1) moves the cursor position to home.
+
+	* vt_edit.[ch]:
+	  - vt_edit_set_{hv}margin() don't call vt_edit_goto(edit, 0, 0).
+	  - vt_edit_set_hmargin() behaves same as vt_edit_set_vmargin() if beg or end
+	    argument is -1.
+	  - vt_edit_saved_cursor_to_home() is added.
+
+	* vt_pty.c: pty->hook->pre_write is always non-NULL value if pty->hook is non-NULL.
+
+	* vt_cursor.h: vt_saved_cursor_to_home() is added.
+
 2018-04-27  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_screen.[ch]: vt_screen_get_checksum() is added.

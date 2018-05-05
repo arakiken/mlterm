@@ -217,11 +217,19 @@ static int horizontal_tabs(vt_edit_t *edit, u_int num, int is_forward) {
     vt_edit_goto_beg_of_line(edit);
   }
 
+  /*
+   * Compatible with rlogin 2.23.1.
+   *
+   * To be compatible with xterm-332, enclose by #if 0 ... #endif.
+   * (esctest: DECSETTests.test_DECSET_DECAWM_NoLineWrapOnTabWithLeftRightMargin)
+   */
+#if 1
   if (edit->cursor.col < edit->hmargin_beg) {
     vt_cursor_goto_by_col(&edit->cursor, edit->hmargin_beg, edit->cursor.row);
   } else if (edit->cursor.col > edit->hmargin_end) {
     vt_cursor_goto_by_col(&edit->cursor, edit->hmargin_end, edit->cursor.row);
   }
+#endif
 
   col = edit->cursor.col;
 
@@ -645,6 +653,13 @@ int vt_edit_resize(vt_edit_t *edit, u_int num_cols, u_int num_rows) {
 }
 
 int vt_edit_insert_chars(vt_edit_t *edit, vt_char_t *ins_chars, u_int num_ins_chars) {
+  /*
+   * edit->wraparound_ready_line is ignored.
+   *
+   * XXX
+   * xterm-332, TeraTerm-4.95: Wraparound works if IRM is set.
+   * rlogin-2.23.1: Wraparound is disabled if IRM is set.
+   */
   reset_wraparound_checker(edit);
 
 #ifdef COMPAT_XTERM
@@ -765,6 +780,16 @@ int vt_edit_overwrite_chars(vt_edit_t *edit, vt_char_t *ow_chars, u_int num_ow_c
       vt_line_overwrite(line, edit->cursor.char_index, &buffer[beg], count - beg, cols);
 
       if (!edit->is_auto_wrap) {
+        /*
+         * ---+      ---+
+         *    |         |
+         * abcde  => abe|
+         * (esctest: DECSET_DECAWM_OffRespectsLeftRightMargin)
+         */
+        if (count > 0) {
+          vt_char_copy(&buffer[count - 1], &buffer[filled_len - 1]);
+        }
+
         break;
       }
 
@@ -1215,38 +1240,37 @@ void vt_edit_restore_protected_chars(vt_edit_t *edit, vt_protect_store_t *save) 
 
 int vt_edit_set_vmargin(vt_edit_t *edit, int beg, int end) {
   /*
-   * for compatibility with xterm:
+   * If beg and end is -1, use default(full size of window).
+   * (see vt_parser.c)
    *
-   *   1. if beg and end is -1, use default.
-   *   2. if beg and end are smaller than 0, ignore the sequence.
-   *   3. if end is not larger than beg, ignore the sequence.
-   *   4. if beg and end are out of window, ignore the sequence.
-   *
-   *   (default = full size of window)
+   * For compatibility with xterm:
+   * 1. if beg and end are smaller than 0, ignore the sequence.
+   * 2. if end is not larger than beg, ignore the sequence.
+   * 3. if beg and end are out of window, ignore the sequence.
    */
 
-  if (beg == -1) {
-    beg = 0;
+  if (beg < 0) {
+    if (beg == -1) {
+      beg = 0;
+    } else {
+      return 0;
+    }
   }
 
-  if (end == -1) {
-    end = vt_model_end_row(&edit->model);
-  }
-
-  if (beg < 0 || end < 0) {
-    return 0;
+  if (end < 0) {
+    if (end == -1) {
+      end = vt_model_end_row(&edit->model);
+    } else {
+      return 0;
+    }
   }
 
   if (beg >= end) {
     return 0;
   }
 
-  if (beg >= edit->model.num_rows && end >= edit->model.num_rows) {
-    return 0;
-  }
-
   if (beg >= edit->model.num_rows) {
-    beg = vt_model_end_row(&edit->model);
+    return 0;
   }
 
   if (end >= edit->model.num_rows) {
@@ -1255,8 +1279,6 @@ int vt_edit_set_vmargin(vt_edit_t *edit, int beg, int end) {
 
   edit->vmargin_beg = beg;
   edit->vmargin_end = end;
-
-  vt_edit_goto(edit, 0, 0);
 
   return 1;
 }
@@ -1370,16 +1392,56 @@ void vt_edit_set_use_hmargin(vt_edit_t *edit, int use) {
 }
 
 int vt_edit_set_hmargin(vt_edit_t *edit, int beg, int end) {
-  if (edit->use_margin && 0 <= beg && beg < end && end < edit->model.num_cols) {
-    edit->hmargin_beg = beg;
-    edit->hmargin_end = end;
-
-    vt_edit_goto(edit, 0, 0);
-
-    return 1;
-  } else {
+  if (!edit->use_margin) {
+    /*
+     * The terminal only recognizes DECSLRM if vertical split screen mode (DECLRMM) is set.
+     * (see https://www.vt100.net/docs/vt510-rm/DECSLRM.html)
+     */
     return 0;
   }
+
+  /*
+   * If beg and end is -1, use default(full size of window).
+   * (see vt_parser.c)
+   *
+   * For compatibility with xterm:
+   * 1. if beg and end are smaller than 0, ignore the sequence.
+   * 2. if end is not larger than beg, ignore the sequence.
+   * 3. if beg and end are out of window, ignore the sequence.
+   */
+
+  if (beg < 0) {
+    if (beg == -1) {
+      beg = 0;
+    } else {
+      return 0;
+    }
+  }
+
+  if (end < 0) {
+    if (end == -1) {
+      end = edit->model.num_cols - 1;
+    } else {
+      return 0;
+    }
+  }
+
+  if (beg >= end) {
+    return 0;
+  }
+
+  if (beg >= edit->model.num_cols) {
+    return 0;
+  }
+
+  if (end >= edit->model.num_cols) {
+    end = edit->model.num_cols - 1;
+  }
+
+  edit->hmargin_beg = beg;
+  edit->hmargin_end = end;
+
+  return 1;
 }
 
 int vt_edit_forward_tabs(vt_edit_t *edit, u_int num) { return horizontal_tabs(edit, num, 1); }
@@ -1703,6 +1765,14 @@ void vt_edit_fill_area(vt_edit_t *edit, int code /* Unicode */, int is_protected
   vt_char_set(&ch, code,
               code <= 0x7f ? US_ASCII : ISO10646_UCS4_1, /* XXX biwidth is not supported. */
               0, 0,
+              /*
+               * xterm-332 and Tera Term 4.95 don't use BCE for DECALN(ESC#8), but use for DECFRA.
+               * rlogin-2.23.1 use BCE for both of them.
+               *
+               * (Test)
+               * echo -e "\x1b[0;33;44m\x1b[60;1;1;10;10\$x"
+               * echo -e "\x1b[0;33;44m\x1b#8"
+               */
               edit->use_bce ? vt_char_fg_color(&edit->bce_ch) : VT_FG_COLOR,
               edit->use_bce ? vt_char_bg_color(&edit->bce_ch) : VT_BG_COLOR,
               0, 0, 0, 0, is_protected);

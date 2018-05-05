@@ -18,7 +18,7 @@ typedef struct ui_color_manager {
     ui_color_t xcolor;
     char *name;
 
-  } sys_colors[9];
+  } sys_colors[10];
 
   u_int8_t alpha;
   int8_t is_reversed;
@@ -27,8 +27,8 @@ typedef struct ui_color_manager {
 
 ui_color_manager_t *ui_color_manager_new(ui_display_t *disp, char *fg_color, char *bg_color,
                                          char *cursor_fg_color, char *cursor_bg_color,
-                                         char *bd_color, char *it_color, char *ul_color,
-                                         char *bl_color, char *co_color);
+                                         char *bd_color, char *ul_color, char *bl_color,
+                                         char *rv_color, char *it_color, char *co_color);
 
 void ui_color_manager_delete(ui_color_manager_t *color_man);
 

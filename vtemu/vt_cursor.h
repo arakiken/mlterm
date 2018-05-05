@@ -62,6 +62,9 @@ void vt_cursor_left_chars_in_line_are_cleared(vt_cursor_t *cursor);
 
 void vt_cursor_save(vt_cursor_t *cursor);
 
+#define vt_saved_cursor_to_home(cursor) \
+  ((cursor)->saved_col = (cursor)->saved_char_index = (cursor)->saved_row = 0)
+
 int vt_cursor_restore(vt_cursor_t *cursor);
 
 #ifdef DEBUG

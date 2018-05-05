@@ -42,8 +42,8 @@ version 20180307
                      screen_width_ratio | vertical_mode | scrollbar_mode |
                      static_backscroll_mode | use_multi_column_char | col_size_of_width_a |
                      scrollbar_view_name | sb_fg_color | sb_bg_color | use_dynamic_comb |
-                     cursor_fg_color | cursor_bg_color | bd_color | it_color | ul_color |
-                     bl_color | co_color | use_bold_font | use_italic_font | hide_underline |
+                     cursor_fg_color | cursor_bg_color | bd_color | ul_color | bl_color | rv_color |
+                     it_color | co_color | use_bold_font | use_italic_font | hide_underline |
                      icon_path | logging_vt_seq | vt_seq_format | logging_msg | word_separators |
                      use_clipboard | auto_restart | use_alt_buffer | use_ansi_colors |
                      exit_backscroll_by_pty | only_use_unicode_font | not_use_unicode_font |
@@ -60,11 +60,11 @@ version 20180307
                      use_combining | use_transbg | use_ctl | bidi_mode | bidi_separators |
                      receive_string_via_ucs | input_method | locale | wall_picture |
                      pwd | brightness | gamma | contrast | line_space | letter_space |
-                     screen_width_ratio | screen_height_ratio | vertical_mode |
-                     scrollbar_mode | static_backscroll_mode | use_multi_column_char |
-                     col_size_of_width_a | scrollbar_view_name | sb_fg_color | sb_bg_color |
-                     use_dynamic_comb | rows | cols | cursor_fg_color | cursor_bg_color |
-                     bd_color | it_color | ul_color | bl_color | co_color | use_bold_font |
+                     screen_width_ratio | screen_height_ratio | vertical_mode | scrollbar_mode |
+                     static_backscroll_mode | use_multi_column_char | col_size_of_width_a |
+                     scrollbar_view_name | sb_fg_color | sb_bg_color | use_dynamic_comb | rows |
+                     cols | cursor_fg_color | cursor_bg_color | bd_color | ul_color | bl_color |
+                     rv_color | it_color | co_color | use_bold_font |
                      use_italic_font | hide_underline | pty_list | pty_name | use_clipboard |
                      use_alt_buffer | use_ansi_colors | icon_path | logging_vt_seq |
                      vt_seq_format | word_separators | gui | allow_osc52 | allow_scp |
@@ -135,6 +135,7 @@ version 20180307
   receive_string_via_ucs = true | false | switch
   regard_uri_as_word = true | false | switch
   rows = <any ASCII decimal digit>
+  rv_color = <color name> | <color rgb>
   sb_bg_color = <color name> | <color rgb>
   sb_fg_color = <color name> | <color rgb>
   screen_height_ratio = <any ASCII decimal digit>

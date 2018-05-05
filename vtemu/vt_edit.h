@@ -167,6 +167,8 @@ void vt_edit_set_auto_wrap(vt_edit_t *edit, int flag);
 
 #define vt_edit_save_cursor(edit) vt_cursor_save(&(edit)->cursor)
 
+#define vt_edit_saved_cursor_to_home(edit) vt_saved_cursor_to_home(&(edit)->cursor)
+
 int vt_edit_restore_cursor(vt_edit_t *edit);
 
 void vt_edit_fill_area(vt_edit_t *edit, int code, int is_protected,

@@ -194,18 +194,11 @@ size_t vt_write_to_pty(vt_pty_t *pty, u_char *buf, size_t len /* if 0, flushing 
 #endif
 
   if (pty->hook) {
-    if (!pty->hook->pre_write) {
-      written_size = w_buf_size;
-
-      goto written;
-    } else {
-      written_size = (*pty->hook->pre_write)(pty->hook->self, w_buf, w_buf_size);
-    }
+    written_size = (*pty->hook->pre_write)(pty->hook->self, w_buf, w_buf_size);
   }
 
   written_size = (*pty->write)(pty, w_buf, w_buf_size);
 
-written:
   if (written_size < 0) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " write() failed.\n");

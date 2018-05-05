@@ -487,12 +487,19 @@ static int parse_conf(char *color_name, char *rgb) {
 
       return 1;
     }
-  } else if (!vt_color_parse_rgb_name(&red, &green, &blue, &alpha, rgb)) {
+  } else {
+    /* XXX "red", "green", "blue" and so on are available for rgb */
+    vt_color_t rgb_color = vt_get_color(rgb);
+
+    if ((rgb_color != VT_UNKNOWN_COLOR) ?
+        !vt_get_color_rgba(color, &red, &green, &blue, &alpha) :
+        !vt_color_parse_rgb_name(&red, &green, &blue, &alpha, rgb)) {
 #ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " illegal rgblist format (%s,%s)\n", color_name, rgb);
+      bl_warn_printf(BL_DEBUG_TAG " illegal rgblist format (%s,%s)\n", color_name, rgb);
 #endif
 
-    return 0;
+      return 0;
+    }
   }
 
 #ifdef __DEBUG
@@ -679,19 +686,6 @@ int vt_color_parse_rgb_name(u_int8_t *red, u_int8_t *green, u_int8_t *blue, u_in
   int has_alpha;
   int long_color;
 
-#if 1
-  /* Backward compatibility with mlterm-3.1.5 or before. */
-  if (color_config) {
-    /* If name is defined in ~/.mlterm/color, the defined rgb is returned. */
-    vt_color_t color;
-
-    if ((color = vt_get_color(name)) != VT_UNKNOWN_COLOR &&
-        color_config_get_rgb(color, red, green, blue, alpha)) {
-      return 1;
-    }
-  }
-#endif
-
   a = 0xffff;
   has_alpha = 0;
   long_color = 0;
@@ -723,7 +717,7 @@ int vt_color_parse_rgb_name(u_int8_t *red, u_int8_t *green, u_int8_t *blue, u_in
       long_color = 1;
       has_alpha = 1;
     } else {
-      return 0;
+      goto fail;
     }
   } else {
     if (name_len == 7) {
@@ -737,12 +731,12 @@ int vt_color_parse_rgb_name(u_int8_t *red, u_int8_t *green, u_int8_t *blue, u_in
       format = "#%4x%4x%4x";
       long_color = 1;
     } else {
-      return 0;
+      goto fail;
     }
   }
 
   if (sscanf(name, format, &r, &g, &b, &a) != (3 + has_alpha)) {
-    return 0;
+    goto fail;
   }
 
 end:
@@ -763,6 +757,25 @@ end:
 #endif
 
   return 1;
+
+fail:
+#if 1
+  /* Backward compatibility with mlterm-3.1.5 or before. */
+  if (color_config) {
+    /*
+     * If 'name' is a color name defined in ~/.mlterm/color, its rgb is returned.
+     * (for ui_load_named_xcolor())
+     */
+    vt_color_t color;
+
+    if ((color = vt_get_color(name)) != VT_UNKNOWN_COLOR &&
+        color_config_get_rgb(color, red, green, blue, alpha)) {
+      return 1;
+    }
+  }
+#endif
+
+  return 0;
 }
 
 void vt_color_force_linear_search(int flag) {

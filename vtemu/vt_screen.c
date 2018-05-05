@@ -1833,7 +1833,11 @@ int vt_screen_go_downward(vt_screen_t *screen, u_int size) {
 
 int vt_screen_use_normal_edit(vt_screen_t *screen) {
   if (screen->edit != &screen->normal_edit) {
+    int col = screen->edit->cursor.col;
+    int row = screen->edit->cursor.row;
+
     change_edit(screen, &screen->normal_edit);
+    vt_edit_goto(screen->edit, col, row);
 
     return 1;
   } else {
@@ -1843,10 +1847,11 @@ int vt_screen_use_normal_edit(vt_screen_t *screen) {
 
 int vt_screen_use_alternative_edit(vt_screen_t *screen) {
   if (screen->edit != &screen->alt_edit) {
-    change_edit(screen, &screen->alt_edit);
+    int col = screen->edit->cursor.col;
+    int row = screen->edit->cursor.row;
 
-    vt_screen_goto_home(screen);
-    vt_screen_clear_below(screen);
+    change_edit(screen, &screen->alt_edit);
+    vt_edit_goto(screen->edit, col, row);
 
     return 1;
   } else {
@@ -2116,6 +2121,15 @@ void vt_screen_set_use_status_line(vt_screen_t *screen, int use) {
       screen->main_edit = screen->edit;
       screen->has_status_line = 1;
       vt_edit_set_modified_all(screen->status_edit);
+      /*
+       * XXX
+       * I don't know whether the cursor goes to home position or not,
+       * but vttest 11.2.6.2.1 seems to assume it.
+       * (https://vt100.net/docs/vt510-rm/DECSSDT.html doesn't describe it.)
+       */
+#if 1
+      vt_edit_goto(screen->status_edit, 0, 0);
+#endif
 
       vt_screen_resize(screen, vt_edit_get_cols(screen->main_edit),
                        vt_edit_get_rows(screen->main_edit));

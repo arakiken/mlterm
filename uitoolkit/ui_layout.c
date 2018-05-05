@@ -498,8 +498,11 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
   layout = (ui_layout_t *)win;
   child = get_current_window(layout);
 
-  /* dispatch to screen */
-  (*child->key_pressed)(child, event);
+  /* key_pressed of ui_screen_t can be NULL. (see xterm_lock_keyboard in ui_screen.c) */
+  if (child->key_pressed) {
+    /* dispatch to screen */
+    (*child->key_pressed)(child, event);
+  }
 }
 
 static void utf_selection_notified(ui_window_t *win, u_char *buf, size_t len) {

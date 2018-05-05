@@ -740,6 +740,9 @@ Whether to restart mlterm with all opened ptys except ssh if SIGSEGV, SIGBUS, SI
 or SIGILL is received.
 The default is \fBtrue\fR.
 .TP
+\fB\-\-rv\fR=\fIvalue\fR
+Specify the color to use to display reverse characters.
+.TP
 \fB\-\-seqfmt\fR=\fIvalue\fR
 Specify the format of logging vt100 sequence. \fBraw\fR for logging as it is
 and \fBttyrec\fR for logging by ttyrec format.
@@ -1612,6 +1615,9 @@ See \fBSELECTION\fR section below for detail.
 .TP
 \fBregard_uri_as_word=\fIbool\fR (\fB\-\-uriword\fR)
 Select URI by double clicking it regardless of \-\-W option.
+.TP
+\fBrv_color=\fIvalue\fR (\fB\-\-rv\fR)
+Specify the color to use to display reverse characters.
 .TP
 \fBsb_bg_color=\fIcolor\fR (\fB\-B\fR, \fB\-\-sbbg\fR)
 Background color for scrollbar.

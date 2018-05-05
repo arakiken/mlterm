@@ -553,7 +553,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         xcore, xft 又は cairoのいずれによりフォントを描画するかを指定する。
         なお、use_anti_alias = true にした場合は、自動的に type_engine = cairo と
         なります。
-      
+
       o use_anti_alias (true/false/*default*) (#)
         アンチエイリアスフォントを強制的に使用する。
         なお、このオプションを指定しなかった場合又は use_anti_alias = default
@@ -674,14 +674,17 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o bd_color (#)
         ボールドの代わりに文字に色を付けるのに使用する色
 
-      o it_color (#)
-        イタリックの代わりに文字に色を付けるのに使用する色
-
       o ul_color (#)
         アンダーラインの代わりに文字に色を付けるのに使用する色
 
       o bl_color (#)
         点滅の代わりに文字に色を付けるのに使用する色
+
+      o rv_color (#)
+        反転の代わりに文字に色を付けるのに使用する色
+
+      o it_color (#)
+        イタリックの代わりに文字に色を付けるのに使用する色
 
       o co_color (#)
         打ち消し線の代わりに文字に色を付けるのに使用する色
@@ -1413,9 +1416,10 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
        --bisep=value   : bidi_separators
        --parent=value  : parent_window
        --bd=value      : bd_color
-       --it=value      : it_color
        --ul=value      : ul_color
        --bl=value      : bl_color
+       --rv=value      : rv_color
+       --it=value      : it_color
        --co=value      : co_color
        --noul(=bool)   : hide_underline
        --ulpos(=bool)  : underline_offset
