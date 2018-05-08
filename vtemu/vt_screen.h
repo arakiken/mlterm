@@ -336,6 +336,11 @@ int vt_screen_go_downward(vt_screen_t *screen, u_int size);
 
 #define vt_screen_is_auto_wrap(screen) vt_edit_is_auto_wrap((screen)->edit)
 
+#define vt_screen_set_last_column_flag(screen, flag) \
+  vt_edit_set_last_column_flag((screen)->edit, flag)
+
+#define vt_screen_get_last_column_flag(screen) vt_edit_get_last_column_flag((screen)->edit)
+
 #define vt_screen_save_cursor(screen) vt_edit_save_cursor((screen)->edit)
 
 #define vt_screen_saved_cursor_to_home(screen) vt_edit_saved_cursor_to_home((screen)->edit)

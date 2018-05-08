@@ -1196,11 +1196,14 @@ static void save_cursor(vt_parser_t *vt_parser) {
   dest->is_invisible = vt_parser->is_invisible;
   dest->is_protected = vt_parser->is_protected;
   dest->is_relative_origin = vt_screen_is_relative_origin(vt_parser->screen);
-  dest->is_auto_wrap = vt_screen_is_auto_wrap(vt_parser->screen);
+  dest->last_column_flag = vt_screen_get_last_column_flag(vt_parser->screen);
   dest->cs = vt_parser->cs;
 
   vt_screen_save_cursor(vt_parser->screen);
 }
+
+static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag);
+static void change_char_attr(vt_parser_t *vt_parser, int flag);
 
 static void restore_cursor(vt_parser_t *vt_parser) {
   vt_storable_states_t *src;
@@ -1220,7 +1223,8 @@ static void restore_cursor(vt_parser_t *vt_parser) {
     vt_parser->is_invisible = src->is_invisible;
     vt_parser->is_protected = src->is_protected;
     vt_screen_set_relative_origin(vt_parser->screen, src->is_relative_origin ? 1 : 0);
-    vt_screen_set_auto_wrap(vt_parser->screen, src->is_auto_wrap ? 1 : 0);
+    /* See "Last Column Flag specifics" at https://github.com/mattiase/wraptest */
+    vt_screen_set_last_column_flag(vt_parser->screen, src->last_column_flag ? 1 : 0);
     if (IS_ENCODING_BASED_ON_ISO2022(vt_parser->encoding)) {
       if ((src->cs == DEC_SPECIAL) && (src->cs != vt_parser->cs)) {
         /* force grapchics mode by sending \E(0 to current parser*/
@@ -1241,8 +1245,19 @@ static void restore_cursor(vt_parser_t *vt_parser) {
         vt_parser->gl = US_ASCII;
       }
     }
+
+    vt_screen_restore_cursor(vt_parser->screen);
+  } else {
+    /*
+     * Moves the cursor to the home position (upper left of screen).
+     * Resets origin mode (DECOM).
+     * Turns all character attributes off (normal setting).
+     * Maps the ASCII character set into GL, and the DEC Supplemental Graphic set into GR.
+     * (see https://www.vt100.net/docs/vt510-rm/DECRC.html)
+     */
+    change_char_attr(vt_parser, 0);
+    set_vtmode(vt_parser, 6, 0); /* goto(0, 0) internally */
   }
-  vt_screen_restore_cursor(vt_parser->screen);
 }
 
 static void set_maximize(vt_parser_t *vt_parser, int flag) {
@@ -1994,7 +2009,7 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
       row = 0;
 
       if (is_sixel && !vt_parser->sixel_scrolling) {
-        vt_screen_save_cursor(vt_parser->screen);
+        vt_screen_save_cursor(vt_parser->screen); /* XXX */
         vt_parser->is_visible_cursor = 0;
         vt_screen_goto_home(vt_parser->screen);
         vt_screen_goto_beg_of_line(vt_parser->screen);
@@ -2039,7 +2054,7 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
             vt_screen_go_horizontally(vt_parser->screen, cursor_col);
           }
         } else {
-          vt_screen_restore_cursor(vt_parser->screen);
+          vt_screen_restore_cursor(vt_parser->screen); /* XXX */
           vt_parser->is_visible_cursor = 1;
         }
       }
@@ -5611,8 +5626,44 @@ inline static int parse_vt100_escape_sequence(
           }
         } else if (ps[0] == 10) {
           /* XXX full screen is not supported for now. */
+        } else if (ps[0] == 7) {
+          char cmd[] = "update_all";
+          config_protocol_set(vt_parser, cmd, 0);
+        } else if (ps[0] == 11) {
+          vt_write_to_pty(vt_parser->pty, "\x1b[1t", 4); /* XXX always non-iconified */
+        } else if (ps[0] == 13) {
+          vt_write_to_pty(vt_parser->pty, "\x1b[3;0;0t", 8);
+        } else if (ps[0] == 14) {
+          report_window_size(vt_parser, 0);
+        } else if (ps[0] == 15) {
+          report_display_size(vt_parser, 0);
+        } else if (ps[0] == 16) {
+          report_cell_size(vt_parser);
+        } else if (ps[0] == 18) {
+          report_window_size(vt_parser, 1);
+        } else if (ps[0] == 19) {
+          report_display_size(vt_parser, 1);
+        } else if (ps[0] == 20) {
+          report_window_or_icon_name(vt_parser, 0);
+        } else if (ps[0] == 21) {
+          report_window_or_icon_name(vt_parser, 1);
+        } else if (ps[0] >= 24) {
+          /*
+           * "CSI Pn t" DECSLPP
+           * This changes not only the number of lines but also
+           * the number of pages, but mlterm doesn't change the latter.
+           */
+          resize(vt_parser, -1, ps[0], 1);
         } else if (num == 2) {
           if (ps[0] == 22) {
+            /*
+             * XXX
+             * If Icon and window title are pushed by ps[1] = 0 and either of them is poped,
+             * the other should be poped.
+             * But it is not supported for now.
+             * esctest: XtermWinopsTests.test_XtermWinops_PushIconAndWindow_PopIcon and
+             * XtermWinopsTests.test_XtermWinops_PushIconAndWindow_PopWindow fails by this.
+             */
             if (ps[1] == 0 || ps[1] == 1) {
               push_to_saved_names(&vt_parser->saved_icon_names, vt_parser->icon_name);
             }
@@ -5628,36 +5679,6 @@ inline static int parse_vt100_escape_sequence(
             if ((ps[1] == 0 || ps[1] == 2) && vt_parser->saved_win_names.num > 0) {
               set_window_name(vt_parser, pop_from_saved_names(&vt_parser->saved_win_names));
             }
-          }
-        } else {
-          if (ps[0] == 7) {
-            char cmd[] = "update_all";
-            config_protocol_set(vt_parser, cmd, 0);
-          } else if (ps[0] == 11) {
-            vt_write_to_pty(vt_parser->pty, "\x1b[1t", 4); /* XXX always non-iconified */
-          } else if (ps[0] == 13) {
-            vt_write_to_pty(vt_parser->pty, "\x1b[3;0;0t", 8);
-          } else if (ps[0] == 14) {
-            report_window_size(vt_parser, 0);
-          } else if (ps[0] == 15) {
-            report_display_size(vt_parser, 0);
-          } else if (ps[0] == 16) {
-            report_cell_size(vt_parser);
-          } else if (ps[0] == 18) {
-            report_window_size(vt_parser, 1);
-          } else if (ps[0] == 19) {
-            report_display_size(vt_parser, 1);
-          } else if (ps[0] == 20) {
-            report_window_or_icon_name(vt_parser, 0);
-          } else if (ps[0] == 21) {
-            report_window_or_icon_name(vt_parser, 1);
-          } else if (ps[0] >= 24) {
-            /*
-             * "CSI Pn t" DECSLPP
-             * This changes not only the number of lines but also
-             * the number of pages, but mlterm doesn't change the latter.
-             */
-            resize(vt_parser, -1, ps[0], 1);
           }
         }
       } else if (*str_p == 'u') {

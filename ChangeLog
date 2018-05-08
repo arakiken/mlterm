@@ -1,3 +1,19 @@
+2018-05-07  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_screen.h: vt_screen_{set|get}_last_column_flag() are added.
+
+	* vt_parser.[ch]:
+	  - is_auto_wrap is removed from vt_storage_states_t, and last_column_flag is added.
+	  - If restore_cursor() is called before save_cursor(), the cursor is moved
+	    to the home position and all character attributes are turned off.
+	  - CSI Ps1;Ps2;... t (Ps1 = 7, 11, 13, 14, 15, 16, 18, 19, 20, 21, 24) is accepted.
+
+	* vt_edit.[ch]:
+	  - vt_edit_{set|get}_last_column_flag() is added.
+	  - scroll_upwrad_region() checks CURSOR_IS_INSIDE_HMARGIN().
+
+	* vt_cursor.[ch]: is_saved flag is removed from vt_cursor_t.
+
 2018-05-05  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, doc/ja/README.ja, etc/main, etc/main.ja: Updated.

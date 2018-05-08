@@ -151,19 +151,6 @@ void vt_cursor_save(vt_cursor_t *cursor) {
   cursor->saved_col = cursor->col;
   cursor->saved_char_index = cursor->char_index;
   cursor->saved_row = cursor->row;
-  cursor->is_saved = 1;
-}
-
-int vt_cursor_restore(vt_cursor_t *cursor) {
-  if (!cursor->is_saved) {
-    return 0;
-  }
-
-  if (!vt_cursor_goto_by_col(cursor, cursor->saved_col, cursor->saved_row)) {
-    return 0;
-  }
-
-  return 1;
 }
 
 #ifdef DEBUG
