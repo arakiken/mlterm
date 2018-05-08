@@ -149,13 +149,17 @@ void vt_edit_goto_home(vt_edit_t *edit);
 
 int vt_edit_goto(vt_edit_t *edit, int col, int row);
 
-void vt_edit_set_relative_origin(vt_edit_t *edit, int flag);
+#define vt_edit_set_relative_origin(edit, flag) ((edit)->is_relative_origin = (flag))
 
 #define vt_edit_is_relative_origin(edit) ((edit)->is_relative_origin)
 
-void vt_edit_set_auto_wrap(vt_edit_t *edit, int flag);
+#define vt_edit_set_auto_wrap(edit, flag) ((edit)->is_auto_wrap = (flag))
 
 #define vt_edit_is_auto_wrap(edit) ((edit)->is_auto_wrap)
+
+void vt_edit_set_last_column_flag(vt_edit_t *edit, int flag);
+
+#define vt_edit_get_last_column_flag(edit) ((edit)->wraparound_ready_line ? 1 : 0)
 
 #define vt_edit_set_use_bce(edit, use) ((edit)->use_bce = (use))
 

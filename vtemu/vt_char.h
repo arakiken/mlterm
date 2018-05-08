@@ -31,6 +31,10 @@
 
 #define LS_UNDERLINE (LS_UNDERLINE_SINGLE|LS_UNDERLINE_DOUBLE)
 
+/*
+ * If a new entry is added, check if the size of vt_storable_states_t::line_style
+ * is sufficient or not.
+ */
 typedef enum {
   LS_NOLINE = 0x0,
   LS_UNDERLINE_SINGLE = 0x1,

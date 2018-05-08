@@ -26,7 +26,6 @@ typedef struct vt_cursor {
   int saved_row;
   int saved_char_index;
   int saved_col;
-  int8_t is_saved;
 
   vt_model_t *model;
 
@@ -65,7 +64,9 @@ void vt_cursor_save(vt_cursor_t *cursor);
 #define vt_saved_cursor_to_home(cursor) \
   ((cursor)->saved_col = (cursor)->saved_char_index = (cursor)->saved_row = 0)
 
-int vt_cursor_restore(vt_cursor_t *cursor);
+/* If vt_cursor_restore() is called before vt_cursor_save(), the cursor goes to col=0 row=0. */
+#define vt_cursor_restore(cursor) \
+  vt_cursor_goto_by_col(cursor, (cursor)->saved_col, (cursor)->saved_row)
 
 #ifdef DEBUG
 

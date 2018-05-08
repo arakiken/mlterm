@@ -131,6 +131,15 @@ static int insert_chars(vt_edit_t *edit, vt_char_t *ins_chars, u_int num_ins_cha
   for (count = 0; count < num_ins_chars; count++) {
     cols = vt_char_cols(&ins_chars[count]);
     if (cursor_col + filled_cols + cols > num_cols) {
+      /*
+       * ---+      ---+
+       *    |         |
+       * abcde  => abe|
+       */
+      if (filled_len > 0) {
+        vt_char_copy(&buffer[filled_len - 1], &ins_chars[num_ins_chars - 1]);
+      }
+
       break;
     }
 
@@ -428,13 +437,8 @@ static int scroll_upward_region(vt_edit_t *edit, u_int size, int is_cursor_beg,
     vmargin_beg = edit->vmargin_beg;
   }
 
-  /*
-   * XXX
-   * CURSOR_IS_INSIDE_HMARGIN(edit) disables vim to scroll the right side of
-   * vertical splitted window.
-   */
   if (ignore_cursor_pos ||
-      (/* CURSOR_IS_INSIDE_HMARGIN(edit) && */
+      (CURSOR_IS_INSIDE_HMARGIN(edit) &&
        edit->cursor.row >= vmargin_beg && edit->cursor.row <= edit->vmargin_end)) {
     if (size > edit->vmargin_end - vmargin_beg + 1) {
       size = edit->vmargin_end - vmargin_beg + 1;
@@ -655,6 +659,7 @@ int vt_edit_resize(vt_edit_t *edit, u_int num_cols, u_int num_rows) {
 int vt_edit_insert_chars(vt_edit_t *edit, vt_char_t *ins_chars, u_int num_ins_chars) {
   /*
    * edit->wraparound_ready_line is ignored.
+   * esctest: SMTests.test_SM_IRM_DoesNotWrapUnlessCursorAtMargin fails by this.
    *
    * XXX
    * xterm-332, TeraTerm-4.95: Wraparound works if IRM is set.
@@ -1732,12 +1737,12 @@ int vt_edit_goto(vt_edit_t *edit, int col, int row) {
   return vt_cursor_goto_by_col(&edit->cursor, col, row);
 }
 
-void vt_edit_set_relative_origin(vt_edit_t *edit, int flag) {
-  edit->is_relative_origin = flag;
-}
-
-void vt_edit_set_auto_wrap(vt_edit_t *edit, int flag) {
-  edit->is_auto_wrap = flag;
+void vt_edit_set_last_column_flag(vt_edit_t *edit, int flag) {
+  if (flag) {
+    edit->wraparound_ready_line = CURSOR_LINE(edit);
+  } else {
+    reset_wraparound_checker(edit);
+  }
 }
 
 int vt_edit_restore_cursor(vt_edit_t *edit) {
