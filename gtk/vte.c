@@ -2358,8 +2358,9 @@ static void vte_terminal_init(VteTerminal *terminal) {
                             main_config.use_bold_font, main_config.use_italic_font),
               ui_color_manager_new(&disp, main_config.fg_color, main_config.bg_color,
                                    main_config.cursor_fg_color, main_config.cursor_bg_color,
-                                   main_config.bd_color, main_config.it_color, main_config.ul_color,
-                                   main_config.bl_color, main_config.co_color));
+                                   main_config.bd_color, main_config.ul_color,
+                                   main_config.bl_color, main_config.rv_color,
+                                   main_config.it_color, main_config.co_color));
 
   PVT(terminal)->io = NULL;
   PVT(terminal)->src_id = 0;
