@@ -1,3 +1,7 @@
+2018-05-10  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: Compiling error is fixed.
+
 2018-05-07  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_screen.h: vt_screen_{set|get}_last_column_flag() are added.
