@@ -267,6 +267,10 @@ static int dialog_cb(bl_dialog_style_t style, const char *msg) {
                                                "showMessage",
                                                "(Ljava/lang/String;)V"),
                            (*env)->NewStringUTF(env, msg));
+
+    return 1;
+  } else {
+    return -1;
   }
 }
 

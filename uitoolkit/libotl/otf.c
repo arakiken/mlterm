@@ -82,7 +82,7 @@ static
     return 0;
   }
 #ifdef BL_DEBUG
-#define realloc(ptr, size) bl_mem_realloc(ptr, size, __FILE__, __LINE__, __FUNCTION)
+#define realloc(ptr, size) bl_mem_realloc(ptr, size, __FILE__, __LINE__, __FUNCTION__)
 #endif
 
   glyphs = otfstr.glyphs;
