@@ -1,3 +1,9 @@
+2018-05-12  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_display.c: dialog_cb() returns 1 or -1.
+
+	* otf.c: Compiling error (when BL_DEBUG is defined) is fixed.
+
 2018-05-10  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: Compiling error is fixed.
