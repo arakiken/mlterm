@@ -151,7 +151,7 @@ unsigned int* drcs_sixel_from_data(const char *sixel, /* DCS P1;P2;P3;q...ST */ 
           col_width, line_height, *is_96cs, *charset);
   write_to_stdout(seq, strlen(seq));
   write_to_stdout(sixel_p, sixel_len);
-  if (strncmp(sixel_p + sixel_len - 1, "\x1b\\", 2) != 0) {
+  if (strncmp(sixel_p + sixel_len - 2, "\x1b\\", 2) != 0) {
     write_to_stdout("\x1b\\", 2);
   }
 
