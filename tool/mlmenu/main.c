@@ -15,7 +15,7 @@
 
 #define MENU_FILE SYSCONFDIR "/mlterm/menu-simple"
 
-#define FONT_NAME "-*-fixed-*-*-*--12-*-*-*-*-*-iso8859-1"
+#define FONT_NAME "-*-fixed-*-*-*-*-12-*-*-*-*-*-iso8859-1"
 
 typedef struct entry {
   char *name;

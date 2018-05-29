@@ -96,13 +96,9 @@ WIN32 native GUI 対応に関するメモ
        ダイアログの既定値として表示するユーザ名、プロトコル及びサーバを
        指定します(ユーザ名又はプロトコルを省略した場合は、ユーザ名は環境変数
        USERNAME の値、プロトコルは SSH となります。)。
-       このオプションが指定されていない場合、起動時のダイアログに入力した
-       内容が、その後 pty を開く場合のダイアログの既定値となります。
-     o server_list(--servlist) =
-       (<protocol>://)(<user>@)<server>(:<port>)(:<encoding>),(<protocol>://)(<user>@)<server>(:<port>)(:<encoding>),...
-       ダイアログの "List" 欄に、接続するサーバの候補を表示します。
-       default_server で指定したサーバが server_list にない場合、自動的に
-       default_server が server_list に追加されます。
+     o MinGW でビルドした場合は --serv オプションを指定せずに起動することで、
+       Cygwin 又は MSYS でビルドした場合は --serv=? オプションを指定することで、
+       接続先サーバの一覧の管理画面 (tool/servman) が開きます。
      o always_show_dialog(--dialog) = true/false
        既に確立された SSH セッションがあり、そのセッション上に新しいチャンネルを
        開くことができる場合でも、必ず接続先のサーバを指定するためのダイアログを

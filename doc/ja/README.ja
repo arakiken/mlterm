@@ -1426,7 +1426,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
        --otl(=bool)    : use_ot_layout
        --ost=value     : ot_script
        --oft=value     : ot_features
-       --servlist=value : server_list
        --serv=value    : default_server
        --pubkey=value  : ssh_public_key
        --privkey=value : ssh_private_key

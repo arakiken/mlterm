@@ -218,7 +218,6 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "Features of glyph subsutitution [liga,clig,dlig,hlig,rlig]");
 #endif
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-  bl_conf_add_opt(conf, '\0', "servlist", 0, "server_list", "list of servers to connect");
   bl_conf_add_opt(conf, '\0', "serv", 0, "default_server", "connecting server by default");
   bl_conf_add_opt(conf, '\0', "dialog", 1, "always_show_dialog",
                   "always show dialog to input server address, password and so on [false]");
@@ -1051,32 +1050,8 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   }
 
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-  if ((value = bl_conf_get_value(conf, "server_list"))) {
-    if ((main_config->server_list = malloc(sizeof(char *) *
-                                           /* A,B => A B NULL */
-                                           (bl_count_char_in_str(value, ',') + 2)))) {
-      if ((value = strdup(value))) {
-        int count;
-
-        count = 0;
-        do {
-          main_config->server_list[count++] = bl_str_sep(&value, ",");
-        } while (value);
-
-        main_config->server_list[count] = NULL;
-      } else {
-        free(main_config->server_list);
-        main_config->server_list = NULL;
-      }
-    }
-  }
-
-  if ((value = bl_conf_get_value(conf, "default_server"))) {
-    if (*value && (main_config->default_server = strdup(value))) {
-#ifdef USE_WIN32API
-      ui_main_config_add_to_server_list(main_config, main_config->default_server);
-#endif
-    }
+  if ((value = bl_conf_get_value(conf, "default_server")) && *value) {
+    main_config->default_server = strdup(value);
   }
 
   if ((value = bl_conf_get_value(conf, "always_show_dialog"))) {
@@ -1415,11 +1390,6 @@ void ui_main_config_final(ui_main_config_t *main_config) {
   free(main_config->bidi_separators);
 
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-  if (main_config->server_list) {
-    free(main_config->server_list[0]);
-    free(main_config->server_list);
-  }
-
   free(main_config->default_server);
 #endif
 
@@ -1431,53 +1401,3 @@ void ui_main_config_final(ui_main_config_t *main_config) {
   free(main_config->work_dir);
   free(main_config->cmd_argv);
 }
-
-#if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-int ui_main_config_add_to_server_list(ui_main_config_t *main_config, char *server) {
-  u_int nlist;
-  size_t len;
-  size_t add_len;
-  char *p;
-  char **pp;
-
-  nlist = 0;
-  len = 0;
-  if (main_config->server_list) {
-    while (main_config->server_list[nlist]) {
-      len += (strlen(main_config->server_list[nlist]) + 1);
-
-      if (strcmp(main_config->server_list[nlist++], server) == 0) {
-        return 1;
-      }
-    }
-  }
-
-  add_len = strlen(server) + 1;
-  p = NULL;
-  if (main_config->server_list) {
-    if ((p = realloc(main_config->server_list[0], len + add_len))) {
-      memcpy(p + len, server, add_len);
-    }
-  } else {
-    p = strdup(server);
-  }
-
-  if (p && (pp = realloc(main_config->server_list, sizeof(char *) * (nlist + 2)))) {
-    u_int count;
-
-    main_config->server_list = pp;
-
-    for (count = 0; count < nlist + 1; count++) {
-      main_config->server_list[count] = p;
-      p += (strlen(p) + 1);
-    }
-    main_config->server_list[count] = NULL;
-
-    return 1;
-  } else {
-    free(p);
-
-    return 0;
-  }
-}
-#endif

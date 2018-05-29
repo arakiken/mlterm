@@ -31,7 +31,3 @@ comment $Id$
 によりの複数ディスプレイと XIM の問題は直っている筈です。ただし、XIM を使いつ
 つ Xsun と XFree86 など異なる X サーバの Display に接続すると落ちます。全ての
 Display が XFree86 であれば問題なさそうです。(2004-10-20 佐藤精一)
-
-* Win32 版で user,project@shell.sourceforge.net のように ',' を含むユーザ名を
-  server_list オプションに指定すると、',' で区切られ、user と
-  project@shell.sourceforge.net を別々のサーバと認識してしまう。

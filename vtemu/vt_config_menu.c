@@ -224,8 +224,7 @@ int vt_config_menu_start(vt_config_menu_t *config_menu, char *cmd_path, int x, i
 
   sprintf(cmd_line, "%s %s +%d+%d", cmd_path, geometry, x, y);
 
-  if (!CreateProcess(cmd_path, cmd_line, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si,
-                     &pi)) {
+  if (!CreateProcess(cmd_path, cmd_line, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " CreateProcess() failed.\n");
 #endif

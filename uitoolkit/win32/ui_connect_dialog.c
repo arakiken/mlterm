@@ -17,7 +17,6 @@
 
 static int selected_proto = -1;
 
-static char **server_list;
 static char *default_server;
 
 /* These variables are set in IDOK. If empty string is input, nothing is set
@@ -82,45 +81,29 @@ static char *get_window_text(HWND win) {
 LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam) {
   switch (msg) {
     case WM_INITDIALOG: {
-      HWND win;
-      HWND focus_win;
       char *user_env;
+      int item;
 
-      focus_win = None;
-      win = GetDlgItem(dlgwin, IDD_LIST);
-
-      if (server_list) {
-        int count;
-
-        for (count = 0; server_list[count]; count++) {
-          SendMessage(win, CB_ADDSTRING, 0, (LPARAM)server_list[count]);
-        }
-
-        if (count > 1) {
-          focus_win = win;
-        }
-      } else {
-        EnableWindow(win, FALSE);
-      }
-
-      selected_proto = IDD_SSH;
+      item = selected_proto = IDD_SSH;
       user_env = getenv("USERNAME");
 
       if (default_server) {
-        LRESULT res;
         char *user;
         int proto;
         char *server;
         char *port;
         char *encoding;
 
-        res = SendMessage(win, CB_FINDSTRINGEXACT, 0, (LPARAM)default_server);
-        if (res != CB_ERR) {
-          SendMessage(win, CB_SETCURSEL, res, 0);
+#if 1
+        if (selected_exec_cmd) {
+          SetWindowText(GetDlgItem(dlgwin, IDD_EXEC_CMD), selected_exec_cmd);
+          selected_exec_cmd = NULL;
         }
+#endif
 
         if (parse(&proto, &user, &server, &port, &encoding, bl_str_alloca_dup(default_server))) {
           SetWindowText(GetDlgItem(dlgwin, IDD_SERVER), server);
+          item = IDD_USER;
 
           if (port) {
             SetWindowText(GetDlgItem(dlgwin, IDD_PORT), port);
@@ -128,6 +111,7 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
 
           if (user || (user = user_env)) {
             SetWindowText(GetDlgItem(dlgwin, IDD_USER), user);
+            item = IDD_PASS;
           }
 
 #ifndef USE_LIBSSH2
@@ -160,11 +144,11 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
       EnableWindow(GetDlgItem(dlgwin, IDD_X11), FALSE);
 #endif
 
-      if (focus_win) {
-        SetFocus(focus_win);
-      } else {
-        SetFocus(GetDlgItem(dlgwin, selected_proto));
+      if (item == IDD_SSH) {
+        item = selected_proto;
       }
+
+      SetFocus(GetDlgItem(dlgwin, item));
 
       return FALSE;
     }
@@ -186,54 +170,6 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
         case IDCANCEL:
           selected_proto = -1;
           EndDialog(dlgwin, IDCANCEL);
-
-          break;
-
-        case IDD_LIST:
-          if (HIWORD(wparam) == CBN_SELCHANGE) {
-            Window win;
-            LRESULT idx;
-            LRESULT len;
-            char *seq;
-            char *user;
-            int proto;
-            char *server;
-            char *port;
-            char *encoding;
-
-            win = GetDlgItem(dlgwin, IDD_LIST);
-
-            if ((idx = SendMessage(win, CB_GETCURSEL, 0, 0)) == CB_ERR ||
-                (len = SendMessage(win, CB_GETLBTEXTLEN, idx, 0)) == CB_ERR ||
-                (seq = alloca(len + 1)) == NULL ||
-                (SendMessage(win, CB_GETLBTEXT, idx, seq)) == CB_ERR) {
-              seq = NULL;
-            }
-
-            if (seq && parse(&proto, &user, &server, &port, &encoding, seq)) {
-              SetWindowText(GetDlgItem(dlgwin, IDD_SERVER), server);
-
-              if (port) {
-                SetWindowText(GetDlgItem(dlgwin, IDD_PORT), port);
-              }
-
-              if (user || (user = getenv("USERNAME")) || (user = "")) {
-                SetWindowText(GetDlgItem(dlgwin, IDD_USER), user);
-              }
-
-              if (proto == -1) {
-                selected_proto = IDD_SSH;
-              } else {
-                selected_proto = proto;
-              }
-
-              if (encoding) {
-                SetWindowText(GetDlgItem(dlgwin, IDD_ENCODING), encoding);
-              }
-
-              CheckRadioButton(dlgwin, IDD_SSH, IDD_RLOGIN, selected_proto);
-            }
-          }
 
           break;
 
@@ -261,37 +197,124 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
   return TRUE;
 }
 
+static char *exec_servman(char *server, DWORD server_len) {
+  HANDLE input_write;
+  HANDLE input_read_tmp;
+  HANDLE input_read;
+  SECURITY_ATTRIBUTES sa;
+  PROCESS_INFORMATION pi;
+  STARTUPINFO si;
+  DWORD len;
+
+  sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+  sa.lpSecurityDescriptor = NULL;
+  sa.bInheritHandle = TRUE;
+
+  if (!CreatePipe(&input_read_tmp, &input_write, &sa, 0)) {
+#ifdef DEBUG
+    bl_warn_printf(BL_DEBUG_TAG " CreatePipe() failed.\n");
+#endif
+
+    return NULL;
+  }
+
+  if (!DuplicateHandle(GetCurrentProcess(), input_read_tmp, GetCurrentProcess(),
+                       &input_read /* Address of new handle. */,
+                       0, FALSE /* Make it uninheritable. */,
+                       DUPLICATE_SAME_ACCESS)) {
+#ifdef DEBUG
+    bl_warn_printf(BL_DEBUG_TAG " DuplicateHandle() failed.\n");
+#endif
+
+    CloseHandle(input_read_tmp);
+
+    goto error;
+  }
+
+  CloseHandle(input_read_tmp);
+
+  ZeroMemory(&si, sizeof(STARTUPINFO));
+  si.cb = sizeof(STARTUPINFO);
+  si.dwFlags = STARTF_USESTDHANDLES | STARTF_FORCEOFFFEEDBACK;
+  si.hStdOutput = input_write;
+  si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+  si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+  /*
+   * Use this if you want to hide the child:
+   *  si.wShowWindow = SW_HIDE;
+   * Note that dwFlags must include STARTF_USESHOWWINDOW if you want to
+   * use the wShowWindow flags.
+   */
+
+  if (!CreateProcess("servman.exe", "servman.exe", NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
+#ifdef DEBUG
+    bl_warn_printf(BL_DEBUG_TAG " CreateProcess() failed.\n");
+#endif
+
+    goto error;
+  }
+
+  CloseHandle(pi.hProcess);
+  CloseHandle(pi.hThread);
+
+  CloseHandle(input_write);
+
+  if (!ReadFile(input_read, server, server_len - 1, &len, NULL)) {
+    CloseHandle(input_read);
+
+    return NULL;
+  }
+  server[len] = '\0';
+
+  CloseHandle(input_read);
+
+  return server;
+
+error:
+  CloseHandle(input_write);
+  CloseHandle(input_read);
+
+  return NULL;
+}
+
 /* --- global functions --- */
 
 int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call this. */
                       char **pass,     /* Same as uri. If pass is not input, "" is set. */
                       char **exec_cmd, /* Same as uri. If exec_cmd is not input, NULL is set. */
                       int *x11_fwd,    /* in/out */
-                      char *display_name, Window parent_window, char **sv_list,
+                      char *display_name, Window parent_window,
                       char *def_server /* (<user>@)(<proto>:)<server address>(:<encoding>). */
                       ) {
   int ret;
   char *proto;
 
-  server_list = sv_list;
-  default_server = def_server;
-
   use_x11_forwarding = *x11_fwd;
 
-#ifdef DEBUG
-  {
-    char **p;
-    bl_debug_printf("DEFAULT server %s\n", default_server);
-    if (server_list) {
-      bl_debug_printf("SERVER LIST ");
-      p = server_list;
-      while (*p) {
-        bl_msg_printf("%s ", *p);
-        p++;
+  if ((!def_server || *def_server == '\0' || strcmp(def_server, "?") == 0) &&
+      (default_server = alloca(1024))) {
+    if ((default_server = exec_servman(default_server, 1024))) {
+      size_t len = strlen(default_server);
+      char *p;
+
+      if (len > 4 && strcmp(default_server + len - 4, " x11") == 0) {
+        default_server[(len -= 4)] = '\0';
+        use_x11_forwarding = 1;
       }
-      bl_msg_printf("\n");
+
+#if 1
+      if ((p = strchr(default_server, ' '))) {
+        *p = '\0';
+        selected_exec_cmd = p + 1;
+      }
+#endif
     }
+  } else {
+    default_server = def_server;
   }
+
+#ifdef DEBUG
+  bl_debug_printf("DEFAULT server %s\n", default_server);
 #endif
 
   DialogBox(GetModuleHandle(NULL), "ConnectDialog",
@@ -356,7 +379,6 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
 end:
   selected_proto = -1;
 
-  server_list = NULL;
   default_server = NULL;
 
   free(selected_server);

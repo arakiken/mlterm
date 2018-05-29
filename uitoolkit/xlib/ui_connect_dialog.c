@@ -27,7 +27,7 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
                       char **pass,     /* Same as uri. If pass is not input, "" is set. */
                       char **exec_cmd, /* Same as uri. If exec_cmd is not input, NULL is set. */
                       int *x11_fwd,    /* in/out */
-                      char *display_name, Window parent_window, char **sv_list,
+                      char *display_name, Window parent_window,
                       char *def_server /* (<user>@)(<proto>:)<server address>(:<encoding>). */
                       ) {
   Display *display;
@@ -54,7 +54,7 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
   screen = DefaultScreen(display);
   gc = DefaultGC(display, screen);
 
-  if (!(font = XLoadQueryFont(display, "-*-r-normal--*-*-*-*-c-*-iso8859-1"))) {
+  if (!(font = XLoadQueryFont(display, "-*-r-normal-*-*-*-*-*-c-*-iso8859-1"))) {
     XCloseDisplay(display);
 
     return 0;

@@ -225,7 +225,7 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
     } else
 #endif
     if (!ui_connect_dialog(&uri, &pass, &exec_cmd, &x11_fwd, display, window,
-                           main_config.server_list, main_config.default_server)) {
+                           main_config.default_server)) {
       bl_msg_printf("Connect dialog is canceled.\n");
       if (vt_get_all_terms(NULL) > 1) {
         return 0;
@@ -363,7 +363,6 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
   if (uri) {
     if (ret && bl_compare_str(uri, main_config.default_server) != 0) {
-      ui_main_config_add_to_server_list(&main_config, uri);
       free(main_config.default_server);
       main_config.default_server = uri;
     } else {
@@ -1075,9 +1074,6 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
     char *pty;
     int horizontal;
     char *sep;
-#if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-    char **server_list;
-#endif
 
     if (argc >= 2 && *(argv[1]) != '-') {
       /*
@@ -1126,10 +1122,6 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
     orig_conf = main_config;
 
     ui_main_config_init(&main_config, conf, argc, argv);
-#if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-    server_list = main_config.server_list;
-    main_config.server_list = orig_conf.server_list;
-#endif
 
     bl_conf_delete(conf);
 
@@ -1177,10 +1169,6 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
       }
     }
 
-#if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-    orig_conf.server_list = main_config.server_list;
-    main_config.server_list = server_list;
-#endif
     ui_main_config_final(&main_config);
 
     main_config = orig_conf;

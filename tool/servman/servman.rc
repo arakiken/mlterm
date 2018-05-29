@@ -1,0 +1,69 @@
+/* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
+
+#include <windows.h>
+
+#define IDM_CONNECT    1
+#define IDM_EXIT       2
+#define IDM_EDIT       3
+#define IDM_DEL        4
+#define IDM_ADD        5
+#define IDM_NEW_FOLDER 6
+#define IDM_SORT       7
+#define IDD_FOLDER    10
+#define IDD_SSH       20
+#define IDD_TELNET    21
+#define IDD_RLOGIN    22
+#define IDD_SERVER    23
+#define IDD_PORT      24
+#define IDD_USER      25
+#define IDD_ENCODING  26
+#define IDD_EXEC_CMD  27
+#define IDD_X11       28
+
+SM_MENU MENU DISCARDABLE
+BEGIN
+  POPUP "File(&F)"
+  BEGIN
+    MENUITEM "Connect(&C)", IDM_CONNECT
+    MENUITEM "Exit(&X)", IDM_EXIT
+  END
+  POPUP "Edit(&E)"
+  BEGIN
+    MENUITEM "New Folder(&F)", IDM_NEW_FOLDER
+    MENUITEM "Add(&A)", IDM_ADD
+    MENUITEM "Edit(&E)", IDM_EDIT
+    MENUITEM "Delete(&D)", IDM_DEL
+    MENUITEM "Sort(&S)", IDM_SORT
+  END
+END
+
+SM_FOLDER_DIALOG DIALOG DISCARDABLE 0, 0, 119, 40
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "The name of the folder"
+BEGIN
+  DEFPUSHBUTTON "OK", IDOK, 7, 20, 50, 14
+  PUSHBUTTON "Cancel",IDCANCEL, 59, 20, 50, 14
+  EDITTEXT IDD_FOLDER, 7, 7, 105, 10, ES_AUTOHSCROLL
+END
+
+SM_EDIT_DIALOG DIALOG 20, 20, 138, 116
+  STYLE WS_POPUP | WS_DLGFRAME | DS_CENTER
+  {
+    GROUPBOX "Protocol", -1, 4, 4, 126, 24
+    RADIOBUTTON "&SSH", IDD_SSH, 8, 14, 40, 12
+    RADIOBUTTON "&TELNET", IDD_TELNET, 48, 14, 40, 12
+    RADIOBUTTON "&RLOGIN", IDD_RLOGIN, 88, 14, 40, 12
+    LTEXT "Server", -1, 4, 34, 30, 8
+    EDITTEXT IDD_SERVER, 38, 34, 96, 10, ES_AUTOHSCROLL
+    LTEXT "Port", -1, 4, 45, 30, 8
+    EDITTEXT IDD_PORT, 38, 45, 96, 10, ES_AUTOHSCROLL
+    LTEXT "User", -1, 4, 56, 30, 8
+    EDITTEXT IDD_USER, 38, 56, 96, 10, ES_AUTOHSCROLL
+    LTEXT "Encoding", -1, 4, 67, 30, 8
+    EDITTEXT IDD_ENCODING, 38, 67, 96, 10, ES_AUTOHSCROLL
+    LTEXT "ExecCmd", -1, 4, 78, 30, 8
+    EDITTEXT IDD_EXEC_CMD, 38, 78, 96, 10, ES_AUTOHSCROLL
+    CONTROL "X11 forwarding", IDD_X11, "Button", BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP, 4, 89, 126, 8
+    DEFPUSHBUTTON "OK", IDOK, 20, 101, 40, 12
+    PUSHBUTTON "Cancel", IDCANCEL, 80, 101, 40, 12
+  }
