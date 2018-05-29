@@ -342,9 +342,6 @@ scrollbar_view_name = sample
 # mlterm が出力するメッセージを ~/.mlterm/msg[pid].log に出力する。
 # logging_msg = true
 
-# ssh 等により直接ログインするサーバのリストを指定する。
-# server_list =
-
 # ssh 等により直接ログインするサーバを指定する。
 # default_server =
 

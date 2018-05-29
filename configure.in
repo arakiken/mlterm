@@ -1075,6 +1075,12 @@ mlfc)
 esac
 done
 
+if test "$gui" = "win32"; then
+	OUTPUT_FILES="tool/servman/Makefile ${OUTPUT_FILES}"
+  MAKE_DIRS="tool/servman ${MAKE_DIRS}"
+	tools_result="$tools_result servman"
+fi
+
 #
 # --- libltdl ---
 #

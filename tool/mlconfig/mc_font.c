@@ -984,7 +984,7 @@ static void select_xlfd_font(GtkWidget *widget, gpointer label) {
   if (!set_current_font_name(dialog)) {
     char *encoding;
     char *font_name;
-    char format[] = "-misc-fixed-medium-*-normal--%s-*-*-*-*-*-%s";
+    char format[] = "-misc-fixed-medium-*-normal-*-%s-*-*-*-*-*-%s";
 
     if ((encoding = cs_info_table[selected_cs].encoding_names[0]) == NULL) {
       encoding = "*-*";

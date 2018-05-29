@@ -594,6 +594,20 @@ static int parse_xfont_name(char **font_xlfd, char **percent, /* NULL can be ret
   return 1;
 }
 
+static XFontStruct *load_xfont_intern(Display *display, char *fontname, size_t max_len,
+                                      const char *family, const char *weight,
+                                      const char *slant, const char *width, const char *additional,
+                                      u_int fontsize, const char *spacing, const char *encoding) {
+  bl_snprintf(fontname, max_len, "-*-%s-%s-%s-%s-%s-%d-*-*-*-%s-*-%s", family, weight, slant,
+              width, additional, fontsize, spacing, encoding);
+
+#ifdef DEBUG
+  bl_debug_printf(BL_DEBUG_TAG " loading %s.\n", fontname);
+#endif
+
+  return XLoadQueryFont(display, fontname);
+}
+
 static XFontStruct *load_xfont(Display *display, const char *family, const char *weight,
                                const char *slant, const char *width, u_int fontsize,
                                const char *spacing, const char *encoding) {
@@ -601,66 +615,41 @@ static XFontStruct *load_xfont(Display *display, const char *family, const char 
   char *fontname;
   size_t max_len;
 
-  /* "+ 20" means the num of '-' , '*'(19byte) and null chars. */
-  max_len = 3 /* gnu */ + strlen(family) + 7 /* unifont */ + strlen(weight) + strlen(slant) +
+  /* "+ 19" means the num of '-' , '*'(18byte) and null chars. */
+  max_len = strlen(family) + 7 /* unifont */ + strlen(weight) + strlen(slant) +
             strlen(width) + 2 /* lang */ + DIGIT_STR_LEN(fontsize) + strlen(spacing) +
-            strlen(encoding) + 20;
+            strlen(encoding) + 19;
 
   if ((fontname = alloca(max_len)) == NULL) {
     return NULL;
   }
 
-  bl_snprintf(fontname, max_len, "-*-%s-%s-%s-%s--%d-*-*-*-%s-*-%s", family, weight, slant, width,
-              fontsize, spacing, encoding);
-
-#ifdef DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " loading %s.\n", fontname);
-#endif
-
-  if ((xfont = XLoadQueryFont(display, fontname))) {
+  if ((xfont = load_xfont_intern(display, fontname, max_len, family, weight, slant, width, "*",
+                                 fontsize, spacing, encoding))) {
     return xfont;
   }
 
   if (strcmp(encoding, "iso10646-1") == 0 && strcmp(family, "biwidth") == 0) {
     /* XFree86 Unicode font */
 
-    bl_snprintf(fontname, max_len, "-*-*-%s-%s-%s-%s-%d-*-*-*-%s-*-%s", weight, slant, width,
-                bl_get_lang(), fontsize, spacing, encoding);
-
-#ifdef DEBUG
-    bl_debug_printf(BL_DEBUG_TAG " loading %s.\n", fontname);
-#endif
-
-    if ((xfont = XLoadQueryFont(display, fontname))) {
+    if ((xfont = load_xfont_intern(display, fontname, max_len, "*", weight, slant, width,
+                                   bl_get_lang(), fontsize, spacing, encoding))) {
       return xfont;
     }
 
-    if (strcmp(bl_get_lang(), "ja") != 0) {
-      bl_snprintf(fontname, max_len, "-*-*-%s-%s-%s-ja-%d-*-*-*-%s-*-%s", weight, slant, width,
-                  fontsize, spacing, encoding);
-
-#ifdef DEBUG
-      bl_debug_printf(BL_DEBUG_TAG " loading %s.\n", fontname);
-#endif
-
-      if ((xfont = XLoadQueryFont(display, fontname))) {
-        return xfont;
-      }
+    if (strcmp(bl_get_lang(), "ja") != 0 &&
+        (xfont = load_xfont_intern(display, fontname, max_len, "*", weight, slant, width,
+                                   "ja", fontsize, spacing, encoding))) {
+      return xfont;
     }
 
-    /* GNU Unifont */
+    /* GNU Unifont (-gnu-unifont) */
 
-    bl_snprintf(fontname, max_len, "-gnu-unifont-%s-%s-%s--%d-*-*-*-%s-*-%s", weight, slant, width,
-                fontsize, spacing, encoding);
-
-#ifdef DEBUG
-    bl_debug_printf(BL_DEBUG_TAG " loading %s.\n", fontname);
-#endif
-
-    return XLoadQueryFont(display, fontname);
-  } else {
-    return NULL;
+    return load_xfont_intern(display, fontname, max_len, "unifont", weight, slant,
+                             width, "*", fontsize, spacing, encoding);
   }
+
+  return NULL;
 }
 
 static int xcore_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
@@ -769,7 +758,7 @@ static int xcore_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
     num_spacings = 1;
   }
 
-  for (count = 0;; count++) {
+  for (count = 0; ; count++) {
     FOREACH_FONT_ENCODINGS(csinfo, font_encoding_p) {
       int idx;
 

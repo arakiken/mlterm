@@ -417,8 +417,23 @@ int main_loop_init(int argc, char **argv) {
 #else
     ui_customize_font_file(main_config.type_engine == TYPE_XCORE ? "font" : "aafont", "DEFAULT",
                            value, 0);
+#if defined(USE_XLIB)
+    if (main_config.type_engine == TYPE_XCORE) {
+      char *ucs_font;
+
+      if (*(value + strlen(value) - 1) == '-' && ((ucs_font = alloca(strlen(value) + 11)))) {
+        sprintf(ucs_font, "%siso10646-1", value);
+        ui_customize_font_file("font", "ISO10646_UCS4_1", ucs_font, 0);
+      } else {
+        ui_customize_font_file("font", "ISO10646_UCS4_1", value, 0);
+      }
+    } else {
+      ui_customize_font_file("aafont", "ISO10646_UCS4_1", value, 0);
+    }
+#else
     ui_customize_font_file(main_config.type_engine == TYPE_XCORE ? "font" : "aafont",
                            "ISO10646_UCS4_1", value, 0);
+#endif
 #endif
   }
 

@@ -1,3 +1,44 @@
+2018-05-29  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja, en/README.win32, ja/README.win32,
+	  etc/main, etc/main.ja: Updated.
+
+	* configure.in: tool/servman is added to OUTPUT_FILES and MAKE_DIRS
+	  if $gui is "win32".
+
+	* ui_main_config.[ch], ui_screen_manager.c:
+	  - "server_list" option is removed.
+	  - ui_main_config_add_to_server_list() is removed.
+
+	* */ui_connect_dialog.[ch]:
+	  - sv_list is removed from arguments of ui_connect_dialog().
+	  - IDD_LIST is removed.
+
+	* win32/ui_connect_dialog.[ch]:
+	  - ui_connect_dialog() executes "servman.exe" if 'default_server'
+	    argument is NULL or "?".
+	  - IDD_LIST is removed.
+
+	* winrs.rs: "List" combo box is removed.
+
+	* tool/servman/*: Added.
+
+	* ui_screen.c: Underline style cursor is shown on pictures.
+
+	* main_loop.c:
+	  -foo-*- as the value of "default_font" option is renamed to
+	  -foo-*-iso10646-1 in applying it to "ISO10646_UCS4_1" font.
+
+	* ui_font.c:
+	  - XLoadQueryFont() and related code are collected to load_xfont_intern().
+	  - AddStyleName in XLFD is always specified.
+
+	* vt_config_menu.c: CREATE_NO_WINDOW => 0 in CreateProcess().
+
+2018-05-23  Araki Ken  <arakiken@users.sf.net>
+
+	* drcssixel.c: Fix http://twitter.com/ttdoda/status/998852239505604608
+
 2018-05-12  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_display.c: dialog_cb() returns 1 or -1.

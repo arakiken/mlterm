@@ -1,0 +1,63 @@
+top_builddir = ../..
+top_srcdir = @top_srcdir@
+exec_prefix = @exec_prefix@
+prefix = @prefix@
+bindir = @bindir@
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+BINDIR = $(DESTDIR)$(bindir)
+
+VPATH = $(top_srcdir)/tool/servman
+
+OBJ = main.o servman.o
+
+# XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
+CFLAGS = $(CFLAGS_LOCAL) @CFLAGS@ @CPPFLAGS@ -I/usr/local/include
+
+LIBS = $(LIBS_LOCAL) -L/usr/local/lib -R/usr/local/lib -mwindows -lcomctl32
+
+PROG = servman
+
+INSTALL_OPT = @INSTALL_OPT@
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(CFLAGS_FOR_FEATURES)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+all: $(PROG)
+
+$(PROG): $(OBJ)
+	$(LIBTOOL_LINK) -o $(PROG) $(OBJ) $(LIBS)
+
+.SUFFIXES: .c .o
+
+.c.o:
+	$(LIBTOOL_CC) -c $<
+
+.m.o:
+	$(LIBTOOL_CC) -c $<
+
+servman.o: servman.rc
+	# windres-2.11.90(included in MSYS-DTK 1.0.1) doesn't accept '-I[DIR]' option.
+	windres $< servman.o
+
+$(BINDIR):
+	mkdir -p $(BINDIR)
+
+install: $(BINDIR)
+	$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(PROG) $(BINDIR)
+
+uninstall :
+	rm -f $(BINDIR)/$(PROG)
+
+wc :
+	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
+
+clean:
+	rm -rf $(PROG)* *core $(OBJ) $(OBJ:.o=.lo) .libs
+
+distclean: clean
+	rm -f Makefile

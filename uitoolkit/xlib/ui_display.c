@@ -106,7 +106,7 @@ static int dialog_cb(bl_dialog_style_t style, const char *msg) {
   screen = DefaultScreen(display);
   gc = DefaultGC(display, screen);
 
-  if (!(font = XLoadQueryFont(display, "-*-r-normal--*-*-*-*-c-*-iso8859-1"))) {
+  if (!(font = XLoadQueryFont(display, "-*-r-normal-*-*-*-*-*-c-*-iso8859-1"))) {
     XCloseDisplay(display);
 
     return -1;
