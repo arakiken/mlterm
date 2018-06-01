@@ -1,3 +1,14 @@
+2018-06-01  Araki Ken  <arakiken@users.sf.net>
+
+	* servman/main.c, servman.rc:
+	  - IDM_XXX and IDD_XXX are changed from 1-28 to 101-128.
+	  - Message dialog to confirm whether to save to a configration file is shown
+	    if window is closed.
+	  - Message dialog to confirm whether to really delete an entry is shown.
+	  - Whether the edited name of a directory or an entry is valid or not is checked.
+
+	* drcssixel/test.c: 2 sixel graphics are output.
+
 2018-05-29  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, README.ja, en/README.win32, ja/README.win32,
