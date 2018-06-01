@@ -425,6 +425,7 @@ static int draw_cursor(ui_screen_t *screen) {
   vt_line_t *orig;
   vt_char_t ch;
   vt_cursor_style_t cursor_style;
+  int is_picture;
 #ifdef USE_IM_CURSOR_COLOR
   char *orig_cursor_bg;
   int cursor_bg_is_replaced = 0;
@@ -476,10 +477,13 @@ static int draw_cursor(ui_screen_t *screen) {
   vt_char_init(&ch);
   vt_char_copy(&ch, vt_char_at(line, vt_term_cursor_char_index(screen->term)));
   if (vt_get_picture_char(&ch)) {
-    cursor_style = CS_UNDERLINE;
+    cursor_style = CS_BOX;
+    is_picture = 1;
+  } else {
+    is_picture = 0;
   }
 
-  if (cursor_style & (CS_UNDERLINE|CS_BAR)) {
+  if (cursor_style & (CS_UNDERLINE|CS_BAR|CS_BOX)) {
     /* do nothing */
   } else if (screen->window.is_focused) {
 #ifdef USE_IM_CURSOR_COLOR
@@ -505,6 +509,9 @@ static int draw_cursor(ui_screen_t *screen) {
     }
 
     vt_char_reverse_color(&ch);
+  } else {
+    /* unfocused */
+    cursor_style = CS_BOX;
   }
 
   ui_font_manager_set_attr(screen->font_man, line->size_attr,
@@ -523,11 +530,22 @@ static int draw_cursor(ui_screen_t *screen) {
       ui_window_fill(&screen->window, x, y, 2, ui_line_height(screen));
     }
   } else {
-    ui_draw_str(&screen->window, screen->font_man, screen->color_man, &ch, 1, x, y,
-                ui_line_height(screen), ui_line_ascent(screen), line_top_margin(screen),
-                screen->hide_underline, screen->underline_offset);
+    if (!is_picture) {
+      ui_draw_str(&screen->window, screen->font_man, screen->color_man, &ch, 1, x, y,
+                  ui_line_height(screen), ui_line_ascent(screen), line_top_margin(screen),
+                  screen->hide_underline, screen->underline_offset);
+    }
 
-    if (screen->window.is_focused) {
+    if (cursor_style & CS_BOX) {
+      /* is picture or unfocused */
+      ui_font_t *font = ui_get_font(screen->font_man, vt_char_font(&ch));
+
+      ui_window_set_fg_color(&screen->window,
+                             ui_get_xcolor(screen->color_man, vt_char_fg_color(&ch)));
+      ui_window_draw_rect_frame(&screen->window, x, y,
+                                x + ui_calculate_vtchar_width(font, &ch, NULL) - 1,
+                                y + ui_line_height(screen) - 1);
+    } else {
       /* CS_BLOCK */
       ui_color_manager_adjust_cursor_fg_color(screen->color_man);
       ui_color_manager_adjust_cursor_bg_color(screen->color_man);
@@ -538,16 +556,6 @@ static int draw_cursor(ui_screen_t *screen) {
         free(orig_cursor_bg);
       }
 #endif
-    } else {
-      /* CS_BLOCK */
-      ui_font_t *font = ui_get_font(screen->font_man, vt_char_font(&ch));
-
-      ui_window_set_fg_color(&screen->window,
-                             ui_get_xcolor(screen->color_man, vt_char_fg_color(&ch)));
-
-      ui_window_draw_rect_frame(&screen->window, x, y,
-                                x + ui_calculate_vtchar_width(font, &ch, NULL) - 1,
-                                y + ui_line_height(screen) - 1);
     }
   }
 

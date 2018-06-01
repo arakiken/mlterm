@@ -84,6 +84,7 @@ typedef enum vt_cursor_style {
   CS_UNDERLINE = 0x1,
   CS_BAR = 0x2,
   CS_BLINK = 0x4,
+  CS_BOX = 0x8,
 } vt_cursor_style_t;
 
 typedef struct vt_write_buffer {

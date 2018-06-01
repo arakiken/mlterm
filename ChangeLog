@@ -1,3 +1,8 @@
+2018-06-02  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c, vt_parser.h: CS_BOX is added to vt_cursor_style_t, and is
+	  used to draw an unfocused cursor or a cursor on a picture.
+
 2018-06-01  Araki Ken  <arakiken@users.sf.net>
 
 	* servman/main.c, servman.rc:
