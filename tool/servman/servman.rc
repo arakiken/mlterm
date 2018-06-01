@@ -2,23 +2,23 @@
 
 #include <windows.h>
 
-#define IDM_CONNECT    1
-#define IDM_EXIT       2
-#define IDM_EDIT       3
-#define IDM_DEL        4
-#define IDM_ADD        5
-#define IDM_NEW_FOLDER 6
-#define IDM_SORT       7
-#define IDD_FOLDER    10
-#define IDD_SSH       20
-#define IDD_TELNET    21
-#define IDD_RLOGIN    22
-#define IDD_SERVER    23
-#define IDD_PORT      24
-#define IDD_USER      25
-#define IDD_ENCODING  26
-#define IDD_EXEC_CMD  27
-#define IDD_X11       28
+#define IDM_CONNECT    101
+#define IDM_EXIT       102
+#define IDM_EDIT       103
+#define IDM_DEL        104
+#define IDM_NEW_SERVER 105
+#define IDM_NEW_FOLDER 106
+#define IDM_SORT       107
+#define IDD_FOLDER     110
+#define IDD_SSH        120
+#define IDD_TELNET     121
+#define IDD_RLOGIN     122
+#define IDD_SERVER     123
+#define IDD_PORT       124
+#define IDD_USER       125
+#define IDD_ENCODING   126
+#define IDD_EXEC_CMD   127
+#define IDD_X11        128
 
 SM_MENU MENU DISCARDABLE
 BEGIN
@@ -30,7 +30,7 @@ BEGIN
   POPUP "Edit(&E)"
   BEGIN
     MENUITEM "New Folder(&F)", IDM_NEW_FOLDER
-    MENUITEM "Add(&A)", IDM_ADD
+    MENUITEM "New Server(&S)", IDM_NEW_SERVER
     MENUITEM "Edit(&E)", IDM_EDIT
     MENUITEM "Delete(&D)", IDM_DEL
     MENUITEM "Sort(&S)", IDM_SORT

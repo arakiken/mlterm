@@ -9,23 +9,23 @@
 
 #define ID_SERVMAN 100
 
-#define IDM_CONNECT    1
-#define IDM_EXIT       2
-#define IDM_EDIT       3
-#define IDM_DEL        4
-#define IDM_ADD        5
-#define IDM_NEW_FOLDER 6
-#define IDM_SORT       7
-#define IDD_FOLDER    10
-#define IDD_SSH       20
-#define IDD_TELNET    21
-#define IDD_RLOGIN    22
-#define IDD_SERVER    23
-#define IDD_PORT      24
-#define IDD_USER      25
-#define IDD_ENCODING  26
-#define IDD_EXEC_CMD  27
-#define IDD_X11       28
+#define IDM_CONNECT    101
+#define IDM_EXIT       102
+#define IDM_EDIT       103
+#define IDM_DEL        104
+#define IDM_NEW_SERVER 105
+#define IDM_NEW_FOLDER 106
+#define IDM_SORT       107
+#define IDD_FOLDER     110
+#define IDD_SSH        120
+#define IDD_TELNET     121
+#define IDD_RLOGIN     122
+#define IDD_SERVER     123
+#define IDD_PORT       124
+#define IDD_USER       125
+#define IDD_ENCODING   126
+#define IDD_EXEC_CMD   127
+#define IDD_X11        128
 
 #define WM_TREEVIEW_LBUTTONUP (WM_USER + 1)
 #define WM_TREEVIEW_MOUSEMOVE (WM_USER + 2)
@@ -511,7 +511,7 @@ static char *get_conf_path(int ensure_dir) {
       }
 
       if (ensure_dir) {
-        MessageBox(main_window, "Failed to save", "Failure", MB_OK);
+        MessageBox(main_window, "Failed to save.", "Error", MB_OK);
       }
 
       free(path);
@@ -633,6 +633,7 @@ static LRESULT CALLBACK tree_proc(HWND window, UINT msg, WPARAM wp, LPARAM lp) {
 
 static LRESULT CALLBACK window_proc(HWND window, UINT msg, WPARAM wp, LPARAM lp) {
   static HWND tree;
+  static int modified;
   TV_DISPINFO *ptv_disp;
   HTREEITEM item;
   TV_HITTESTINFO tvhtst;
@@ -669,24 +670,40 @@ static LRESULT CALLBACK window_proc(HWND window, UINT msg, WPARAM wp, LPARAM lp)
   case WM_NOTIFY:
     if (wp == ID_SERVMAN) {
       ptv_disp = (TV_DISPINFO *)lp;
-      if (ptv_disp->hdr.code == NM_DBLCLK || ptv_disp->hdr.code == NM_RETURN) {
-        output_server(tree);
-      } else if (ptv_disp->hdr.code == TVN_ENDLABELEDIT) {
+      if (ptv_disp->hdr.code == TVN_ENDLABELEDIT) {
+        if (ptv_disp->item.mask & TVIF_TEXT) {
+          char *p = strchr(ptv_disp->item.pszText, '/');
+
+          if (ptv_disp->item.lParam ? /* dir */ (p == NULL || *(p + 1) != '\0') :
+              /* file */ p != NULL) {
+            MessageBox(window, "Illegal name.", "Error", MB_OK);
+            break;
+          }
+        }
+
         TreeView_SetItem(tree, &ptv_disp->item);
+        modified = 1;
+      } else if (ptv_disp->hdr.code == NM_DBLCLK || ptv_disp->hdr.code == NM_RETURN) {
+        output_server(tree);
+        modified = 0;
       } else if (ptv_disp->hdr.code == TVN_KEYDOWN) {
         if (((NMTVKEYDOWN*)lp)->wVKey == VK_F2) {
           if ((item = TreeView_GetSelection(tree))) {
             TreeView_EditLabel(tree, item);
           }
         } else if (((NMTVKEYDOWN*)lp)->wVKey == VK_DELETE) {
-          if ((item = TreeView_GetSelection(tree))) {
+          if ((item = TreeView_GetSelection(tree)) &&
+              MessageBox(window, "Are you sure you want to delete ?", "Confirmation",
+                         MB_YESNO) == IDYES) {
             TreeView_DeleteItem(tree, item);
+            modified = 1;
           }
         }
       } else if (ptv_disp->hdr.code == TVN_BEGINDRAG) {
         drag_src = ((NMTREEVIEW*)lp)->itemNew.hItem;
       } else if (ptv_disp->hdr.code == NM_CLICK) {
         TreeView_SelectItem(tree, NULL);
+        SendMessage(tree, TVM_SELECTITEM, TVGN_DROPHILITE, 0L);
       }
     }
     break;
@@ -699,16 +716,24 @@ static LRESULT CALLBACK window_proc(HWND window, UINT msg, WPARAM wp, LPARAM lp)
       }
 
       if(TreeView_SortChildren(tree, item, 0) == FALSE) {
-        MessageBox(window, "Failed to sort", "Failure", MB_OK);
+        MessageBox(window, "Failed to sort.", "Error", MB_OK);
+      } else {
+        modified = 1;
       }
       break;
 
     case IDM_CONNECT:
       output_server(tree);
+      modified = 0;
       break;
 
     case IDM_EXIT:
-      save_tree(tree);
+      if (modified &&
+          MessageBox(window, "Do you want to save changes ?", "Confirmation",
+                     MB_YESNO) == IDYES) {
+        save_tree(tree);
+        modified = 0;
+      }
       DestroyWindow(window);
       break;
 
@@ -727,29 +752,36 @@ static LRESULT CALLBACK window_proc(HWND window, UINT msg, WPARAM wp, LPARAM lp)
             if (DialogBox(GetModuleHandle(NULL), "SM_EDIT_DIALOG", window,
                           (DLGPROC)edit_dialog_proc) == IDOK) {
               change_item_text(tree, item, return_text);
+              modified = 1;
             }
           }
         }
       } else {
-        MessageBox(window, "No item is selected", "Unselected", MB_OK);
+        MessageBox(window, "No item is selected.", "Error", MB_OK);
       }
       break;
 
     case IDM_DEL:
       item = TreeView_GetSelection(tree);
       if (item) {
-        TreeView_DeleteItem(tree, item);
+        if (MessageBox(window, "Are you sure you want to delete ?", "Confirmation",
+                       MB_YESNO) == IDYES) {
+          TreeView_DeleteItem(tree, item);
+          modified = 1;
+        }
       } else {
-        MessageBox(window, "No item is selected", "Unselected", MB_OK);
+        MessageBox(window, "No item is selected.", "Error", MB_OK);
       }
       break;
 
-    case IDM_ADD:
+    case IDM_NEW_SERVER:
       if (!(item = TreeView_GetSelection(tree))) {
         item = TVI_ROOT;
       } else if (!is_dir_item(tree, item)) {
-        MessageBox(window, "Selected item is not a directory", "Failure", MB_OK);
-        break;
+        if (!(item = TreeView_GetParent(tree, item))) {
+          MessageBox(window, "Failed to create an entry.", "Error", MB_OK);
+          break;
+        }
       }
 
       default_server = NULL;
@@ -757,6 +789,7 @@ static LRESULT CALLBACK window_proc(HWND window, UINT msg, WPARAM wp, LPARAM lp)
                     (DLGPROC)edit_dialog_proc) == IDOK) {
         item = add_item(tree, item, return_text, 0);
         TreeView_EnsureVisible(tree, item);
+        modified = 1;
       }
       break;
 
@@ -764,7 +797,7 @@ static LRESULT CALLBACK window_proc(HWND window, UINT msg, WPARAM wp, LPARAM lp)
       if (!(item = TreeView_GetSelection(tree))) {
         item = TVI_ROOT;
       } else if (!is_dir_item(tree, item)) {
-        MessageBox(window, "Selected item is not a directory", "Failure", MB_OK);
+        MessageBox(window, "Failed to create a directory.", "Error", MB_OK);
         break;
       }
 
@@ -775,6 +808,7 @@ static LRESULT CALLBACK window_proc(HWND window, UINT msg, WPARAM wp, LPARAM lp)
           strcat(p, "/");
           item = add_item(tree, item, p, 1);
           TreeView_EnsureVisible(tree, item);
+          modified = 1;
         }
       }
       break;
@@ -817,7 +851,10 @@ static LRESULT CALLBACK window_proc(HWND window, UINT msg, WPARAM wp, LPARAM lp)
       TreeView_DeleteItem(tree, drag_src);
 
       TreeView_SelectItem(tree, NULL);
+      SendMessage(tree, TVM_SELECTITEM, TVGN_DROPHILITE, 0L);
       drag_src = NULL;
+
+      modified = 1;
     }
     break;
 
@@ -826,7 +863,11 @@ static LRESULT CALLBACK window_proc(HWND window, UINT msg, WPARAM wp, LPARAM lp)
     break;
 
   case WM_CLOSE:
-    save_tree(tree);
+    if (modified &&
+        MessageBox(window, "Do you want to save changes ?",
+                   "Confirmation", MB_YESNO) == IDYES) {
+      save_tree(tree);
+    }
     DestroyWindow(window);
     break;
 
