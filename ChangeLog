@@ -1,5 +1,18 @@
 2018-06-02  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_draw_str.c: bg_xcolor is added to arguments of draw_picture(), and
+	  if bg_xcolor is not NULL, ui_window_fill_with() is used instead of
+	  ui_window_clear().
+
+	* ui_screen.c: xterm_get_picture_data() uses vt_term_get_bce_ch() instead
+	  of vt_sp_ch().
+
+	* vt_parser.c: put_char() uses vt_term_get_bce_ch() instead of vt_sp_ch()
+	  in dealing with DRCS-SIXEL.
+
+	* vt_edit.h, vt_screen.h, vt_term.h:
+	  vt_{edit|screen|term}_get_bce_ch() is added.
+
 	* ui_screen.c, vt_parser.h: CS_BOX is added to vt_cursor_style_t, and is
 	  used to draw an unfocused cursor or a cursor on a picture.
 

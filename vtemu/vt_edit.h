@@ -169,6 +169,8 @@ void vt_edit_set_last_column_flag(vt_edit_t *edit, int flag);
 
 #define vt_edit_set_bce_bg_color(edit, bg_color) vt_char_set_bg_color(&(edit)->bce_ch, bg_color)
 
+#define vt_edit_get_bce_ch(edit) (&(edit)->bce_ch)
+
 #define vt_edit_save_cursor(edit) vt_cursor_save(&(edit)->cursor)
 
 #define vt_edit_saved_cursor_to_home(edit) vt_saved_cursor_to_home(&(edit)->cursor)

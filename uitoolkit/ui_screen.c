@@ -5516,28 +5516,28 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
 
       for (row = 0; row < rows_padding[0]; row++) {
         for (col = 0; col < *num_cols; col++) {
-          vt_char_copy(buf_p++, vt_sp_ch());
+          vt_char_copy(buf_p++, vt_term_get_bce_ch(screen->term));
         }
       }
 
       for (row = 0; row < *num_rows; row++) {
         for (col = 0; col < cols_padding[0]; col++) {
-          vt_char_copy(buf_p++, vt_sp_ch());
+          vt_char_copy(buf_p++, vt_term_get_bce_ch(screen->term));
         }
 
         for (col = 0; col < *num_cols; col++) {
-          vt_char_copy(buf_p, vt_sp_ch());
+          vt_char_copy(buf_p, vt_term_get_bce_ch(screen->term));
           vt_char_combine_picture(buf_p++, idx, MAKE_INLINEPIC_POS(col, row, *num_rows));
         }
 
         for (col = 0; col < cols_padding[1]; col++) {
-          vt_char_copy(buf_p++, vt_sp_ch());
+          vt_char_copy(buf_p++, vt_term_get_bce_ch(screen->term));
         }
       }
 
       for (row = 0; row < rows_padding[1]; row++) {
         for (col = 0; col < *num_cols; col++) {
-          vt_char_copy(buf_p++, vt_sp_ch());
+          vt_char_copy(buf_p++, vt_term_get_bce_ch(screen->term));
         }
       }
 
