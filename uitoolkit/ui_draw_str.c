@@ -108,7 +108,7 @@ static void draw_line(ui_window_t *window, ui_color_t *color, int is_vertical, i
 
 #ifndef NO_IMAGE
 static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs, int dst_x,
-                        int dst_y, u_int ch_width, u_int line_height) {
+                        int dst_y, u_int ch_width, u_int line_height, ui_color_t *bg_xcolor) {
   u_int count;
   ui_inline_picture_t *cur_pic;
   u_int num_rows;
@@ -156,7 +156,11 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
       goto new_picture;
     } else if (w > 0 && pic == cur_pic && src_x + src_width == x) {
       if (!need_clear && w < ch_width) {
-        ui_window_clear(window, dst_x + dst_width, dst_y, ch_width, line_height);
+        if (!bg_xcolor) {
+          ui_window_clear(window, dst_x + dst_width, dst_y, ch_width, line_height);
+        } else {
+          ui_window_fill_with(window, bg_xcolor, dst_x + dst_width, dst_y, ch_width, line_height);
+        }
       }
 
       src_width += w;
@@ -170,7 +174,11 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
     }
 
     if (need_clear > 0) {
-      ui_window_clear(window, dst_x, dst_y, dst_width, line_height);
+      if (!bg_xcolor) {
+        ui_window_clear(window, dst_x, dst_y, dst_width, line_height);
+      } else {
+        ui_window_fill_with(window, bg_xcolor, dst_x, dst_y, dst_width, line_height);
+      }
     }
 
     if (src_width > 0 && src_height > 0
@@ -217,12 +225,20 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
     }
 
     if ((src_width = w) < ch_width && !need_clear) {
-      ui_window_clear(window, dst_x, dst_y, ch_width, line_height);
+      if (!bg_xcolor) {
+        ui_window_clear(window, dst_x, dst_y, ch_width, line_height);
+      } else {
+        ui_window_fill_with(window, bg_xcolor, dst_x, dst_y, ch_width, line_height);
+      }
     }
   }
 
   if (need_clear > 0) {
-    ui_window_clear(window, dst_x, dst_y, dst_width, line_height);
+    if (!bg_xcolor) {
+      ui_window_clear(window, dst_x, dst_y, dst_width, line_height);
+    } else {
+      ui_window_fill_with(window, bg_xcolor, dst_x, dst_y, dst_width, line_height);
+    }
   }
 
 #ifdef __DEBUG
@@ -634,16 +650,18 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       draw_count++;
 #endif
 
+      bg_xcolor = ui_get_xcolor(color_man, bg_color);
+
 #ifndef NO_IMAGE
       if (state == 4) {
-        draw_picture(window, pic_glyphs, str_len, x, y, ch_width, height);
+        draw_picture(window, pic_glyphs, str_len, x, y, ch_width, height,
+                     bg_color == VT_BG_COLOR ? NULL : bg_xcolor);
 
         goto end_draw;
       }
 #endif
 
       fg_xcolor = ui_get_xcolor(color_man, fg_color);
-      bg_xcolor = ui_get_xcolor(color_man, bg_color);
 
       /*
        * clearing background
@@ -912,8 +930,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
     } else if (state >= 3) {
       if (pic_glyph) {
         pic_glyphs[str_len++] = pic_glyph;
-      } else /* if( drcs_glyph) */
-      {
+      } else /* if (drcs_glyph) */ {
         drcs_glyphs[str_len++] = drcs_glyph;
       }
     } else if (!IS_ISO10646_UCS4(ch_cs)) {
@@ -993,16 +1010,6 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       draw_count++;
 #endif
 
-#ifndef NO_IMAGE
-      if (state == 4) {
-        draw_picture(window, pic_glyphs, str_len, x, y, ch_width, height);
-
-        goto end_draw;
-      }
-#endif
-
-      fg_xcolor = ui_get_xcolor(color_man, fg_color);
-
 #ifdef DRAW_SCREEN_IN_PIXELS
       if (ui_window_has_wall_picture(window) && bg_color == VT_BG_COLOR) {
         bg_xcolor = NULL;
@@ -1011,6 +1018,17 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       {
         bg_xcolor = ui_get_xcolor(color_man, bg_color);
       }
+
+#ifndef NO_IMAGE
+      if (state == 4) {
+        draw_picture(window, pic_glyphs, str_len, x, y, ch_width, height,
+                     bg_color == VT_BG_COLOR ? NULL : bg_xcolor);
+
+        goto end_draw;
+      }
+#endif
+
+      fg_xcolor = ui_get_xcolor(color_man, fg_color);
 
 #ifdef USE_CONSOLE
       /* XXX DRCS (state == 3) is ignored */

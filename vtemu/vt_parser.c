@@ -1031,7 +1031,8 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
                                  cs == CS_REVISION_1(US_ASCII) ? US_ASCII : cs, 0)) &&
         /* XXX The width of pua is always regarded as 1. (is_fullwidth is ignored) */
         vt_drcs_get_picture(font, &pic_id, &pic_pos, ch)) {
-      vt_char_copy(&vt_parser->w_buf.chars[vt_parser->w_buf.filled_len], vt_sp_ch());
+      vt_char_copy(&vt_parser->w_buf.chars[vt_parser->w_buf.filled_len],
+                   vt_screen_get_bce_ch(vt_parser->screen));
       vt_char_combine_picture(&vt_parser->w_buf.chars[vt_parser->w_buf.filled_len++],
                               pic_id, pic_pos);
 
