@@ -1,3 +1,22 @@
+2018-06-05  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen_manager.c:
+	  ui_connect_dialog() can modify the value of main_config.private_key.
+
+	* vt_pty_ssh.c: ssh_connect() passes NULL to libssh2_userauth_publickey_fromfile()
+	  as 'publickey' argument.
+
+	* winrs.rs: "PrivKey" entry is added.
+
+	* win32/ui_connect_dialog.c:
+	  - get_window_text() returns UTF-8 or MB text.
+	  - set_window_text() which converts UTF-8 string to WCHAR* and calls
+	    SetWindowTextW() is added.
+
+	* ui_connect_dialog.h, */ui_connect_dialog.c:
+	  - 'char **privkey' is added to arguments of ui_connect_dialog().
+	  - IDD_SSH_PRIVKEY is added.
+
 2018-06-02  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_draw_str.c: bg_xcolor is added to arguments of draw_picture(), and

@@ -27,6 +27,7 @@ static char *selected_user;
 static char *selected_pass;
 static char *selected_encoding;
 static char *selected_exec_cmd;
+static char *selected_ssh_privkey;
 static int use_x11_forwarding;
 
 /* --- static functions --- */
@@ -63,19 +64,51 @@ static int parse(int *protoid, /* If seq doesn't have proto, -1 is set. */
   return 1;
 }
 
+/* Return UTF-8 or MB text */
 static char *get_window_text(HWND win) {
-  char *p;
-  int len;
+  WCHAR *wstr;
+  int wlen;
 
-  if ((len = GetWindowTextLength(win)) > 0 && (p = malloc(len + 1))) {
-    if (GetWindowText(win, p, len + 1) > 0) {
-      return p;
+  if ((wlen = GetWindowTextLengthW(win)) > 0 && (wstr = alloca((wlen + 1) * sizeof(WCHAR)))) {
+    if (GetWindowTextW(win, wstr, wlen + 1) > 0) {
+      int nbytes;
+      char *str;
+      UINT cp;
+
+#ifdef USE_WIN32API
+      cp = CP_THREAD_ACP;
+#else
+      cp = CP_UTF8;
+#endif
+
+      nbytes = WideCharToMultiByte(cp, 0, wstr, wlen, NULL, 0, NULL, NULL);
+      if (nbytes > 0 && (str = malloc(nbytes + 1))) {
+        if ((nbytes = WideCharToMultiByte(cp, 0, wstr, wlen, str, nbytes, NULL, NULL)) > 0) {
+          str[nbytes] = '\0';
+
+          return str;
+        }
+
+        free(str);
+      }
     }
-
-    free(p);
   }
 
   return NULL;
+}
+
+static void set_window_text(HWND win, char *str /* utf8 */) {
+  WCHAR *wstr;
+  int wlen;
+  size_t len = strlen(str);
+
+  wlen = MultiByteToWideChar(CP_UTF8, 0, str, len, NULL, 0);
+  if (wlen > 0 && (wstr = alloca((wlen + 1) * sizeof(WCHAR)))) {
+    if ((wlen = MultiByteToWideChar(CP_UTF8, 0, str, len, wstr, wlen)) > 0) {
+      wstr[wlen] = 0;
+      SetWindowTextW(win, wstr);
+    }
+  }
 }
 
 LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam) {
@@ -98,6 +131,11 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
         if (selected_exec_cmd) {
           SetWindowText(GetDlgItem(dlgwin, IDD_EXEC_CMD), selected_exec_cmd);
           selected_exec_cmd = NULL;
+        }
+
+        if (selected_ssh_privkey) {
+          set_window_text(GetDlgItem(dlgwin, IDD_SSH_PRIVKEY), selected_ssh_privkey);
+          selected_ssh_privkey = NULL;
         }
 #endif
 
@@ -162,6 +200,7 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
           selected_pass = get_window_text(GetDlgItem(dlgwin, IDD_PASS));
           selected_encoding = get_window_text(GetDlgItem(dlgwin, IDD_ENCODING));
           selected_exec_cmd = get_window_text(GetDlgItem(dlgwin, IDD_EXEC_CMD));
+          selected_ssh_privkey = get_window_text(GetDlgItem(dlgwin, IDD_SSH_PRIVKEY));
 
           EndDialog(dlgwin, IDOK);
 
@@ -282,6 +321,7 @@ error:
 int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call this. */
                       char **pass,     /* Same as uri. If pass is not input, "" is set. */
                       char **exec_cmd, /* Same as uri. If exec_cmd is not input, NULL is set. */
+                      char **privkey,  /* in/out */
                       int *x11_fwd,    /* in/out */
                       char *display_name, Window parent_window,
                       char *def_server /* (<user>@)(<proto>:)<server address>(:<encoding>). */
@@ -311,6 +351,21 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
     }
   } else {
     default_server = def_server;
+  }
+
+  if (!(selected_ssh_privkey = *privkey)) {
+    char *home;
+    char *p;
+
+    if ((home = bl_get_home_dir()) && (p = alloca(strlen(home) + 14 + 1))) {
+#ifdef USE_WIN32API
+      sprintf(p, "%s\\mlterm\\id_rsa", home);
+#else
+      sprintf(p, "%s/.ssh/id_rsa", home);
+#endif
+
+      selected_ssh_privkey = p;
+    }
   }
 
 #ifdef DEBUG
@@ -368,9 +423,8 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
   }
 
   *pass = selected_pass ? selected_pass : strdup("");
-
   *exec_cmd = selected_exec_cmd;
-
+  *privkey = selected_ssh_privkey;
   *x11_fwd = use_x11_forwarding;
 
   /* Successfully */
@@ -393,10 +447,12 @@ end:
   if (ret == 0) {
     free(selected_pass);
     free(selected_exec_cmd);
+    free(selected_ssh_privkey);
   }
 
   selected_pass = NULL;
   selected_exec_cmd = NULL;
+  selected_ssh_privkey = NULL;
 
   return ret;
 }

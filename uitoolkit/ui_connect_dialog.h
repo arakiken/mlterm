@@ -5,7 +5,7 @@
 
 #include "ui.h"
 
-int ui_connect_dialog(char **uri, char **pass, char **exec_cmd, int *x11_fwd, char *display_name,
-                      Window parent_window, char *default_server);
+int ui_connect_dialog(char **uri, char **pass, char **exec_cmd, char **privkey, int *x11_fwd,
+                      char *display_name, Window parent_window, char *default_server);
 
 #endif
