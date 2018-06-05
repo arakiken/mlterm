@@ -6,7 +6,7 @@
 * Add servman.exe which manages the list of servers on win32.
 * Drop --servlist / "server_list" option.
 * Improve performance of redrawing screen when type_engine=cairo.
-* Show underline style cursor when the cursor is on a picture or an emoji.
+* Show box style cursor when the cursor is on a picture or an emoji.
 * Modify DECRC to save/restore last-column flag used to control wrapping behavior
   rather than manipulating DECAWM (See https://github.com/mattiase/wraptest and
   https://invisible-island.net/xterm/xterm.log.html#xterm_328)
@@ -16,6 +16,8 @@
   Fix a bug which disabled to replace system palettes by colors of a wall picture
   (if "use_ansi_colors" option is disabled and visual depth is 4) since 3.8.4.
   Fix the response strings of OSC 20 and OSC 21.
+  Use the background color specified by SGR instead of the default one to draw
+  pictures and emojis.
 
 ver 3.8.5
 * Support libvterm (https://launchpad.net/libvterm) compatible library partially.

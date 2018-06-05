@@ -149,6 +149,7 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
   char *term_env;
   char *uri;
   char *pass;
+  char *privkey = main_config.private_key;
   int ret;
 
   display = win->disp->name;
@@ -224,7 +225,7 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
       }
     } else
 #endif
-    if (!ui_connect_dialog(&uri, &pass, &exec_cmd, &x11_fwd, display, window,
+    if (!ui_connect_dialog(&uri, &pass, &exec_cmd, &privkey, &x11_fwd, display, window,
                            main_config.default_server)) {
       bl_msg_printf("Connect dialog is canceled.\n");
       if (vt_get_all_terms(NULL) > 1) {
@@ -354,7 +355,7 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
   ret = vt_term_open_pty(term, cmd_path, cmd_argv, env, uri ? uri : display, main_config.work_dir,
                          pass,
 #ifdef USE_LIBSSH2
-                         main_config.public_key, main_config.private_key,
+                         main_config.public_key, privkey,
 #else
                          NULL, NULL,
 #endif

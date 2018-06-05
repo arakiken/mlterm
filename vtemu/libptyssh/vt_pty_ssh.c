@@ -562,6 +562,13 @@ static ssh_session_t *ssh_connect(const char *host, const char *port, const char
 #endif
 
     if ((home = bl_get_home_dir()) && ((p = alloca(strlen(home) * 2 + 38)))) {
+      /*
+       * man of libssh2_userauth_publickey_fromfile_ex()
+       * publickey - Path name of the public key file. (e.g. /etc/ssh/hostkey.pub)
+       * If libssh2 is built against OpenSSL, this option can be set to NULL.
+       *                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+       */
+#if 0
       if (!pubkey) {
 #ifdef USE_WIN32API
         sprintf(p, "%s\\mlterm\\id_rsa.pub", home);
@@ -572,6 +579,7 @@ static ssh_session_t *ssh_connect(const char *host, const char *port, const char
         pubkey = p;
         p += (strlen(pubkey) + 1);
       }
+#endif
 
       if (!privkey) {
 #ifdef USE_WIN32API
@@ -583,6 +591,7 @@ static ssh_session_t *ssh_connect(const char *host, const char *port, const char
         privkey = p;
       }
     } else {
+#if 0
       if (!pubkey) {
 #ifdef USE_WIN32API
         pubkey = "mlterm\\ssh_host_rsa_key.pub";
@@ -590,6 +599,7 @@ static ssh_session_t *ssh_connect(const char *host, const char *port, const char
         pubkey = "/etc/ssh/ssh_host_rsa_key.pub";
 #endif
       }
+#endif
 
       if (!privkey) {
 #ifdef USE_WIN32API

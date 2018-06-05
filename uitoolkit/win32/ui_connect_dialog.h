@@ -15,6 +15,7 @@
 #define IDD_PASS 16
 #define IDD_ENCODING 17
 #define IDD_EXEC_CMD 18
-#define IDD_X11 19
+#define IDD_SSH_PRIVKEY 19
+#define IDD_X11 20
 
 #endif
