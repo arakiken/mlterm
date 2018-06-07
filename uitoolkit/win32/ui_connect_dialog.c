@@ -13,6 +13,10 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_path.h> /* bl_parse_uri */
 
+#ifdef USE_WIN32API
+#define USE_DRAGDROP
+#endif
+
 /* --- static variables --- */
 
 static int selected_proto = -1;
@@ -29,6 +33,10 @@ static char *selected_encoding;
 static char *selected_exec_cmd;
 static char *selected_ssh_privkey;
 static int use_x11_forwarding;
+
+#ifdef USE_DRAGDROP
+static WNDPROC default_edit_text_proc;
+#endif
 
 /* --- static functions --- */
 
@@ -111,9 +119,37 @@ static void set_window_text(HWND win, char *str /* utf8 */) {
   }
 }
 
+#ifdef USE_DRAGDROP
+LRESULT CALLBACK edit_text_proc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam) {
+  switch(msg) {
+  case WM_DROPFILES:
+    {
+      HDROP drop = (HDROP)wparam;
+      if (DragQueryFile(drop, 0xffffffff, NULL, 0) > 0) {
+        WCHAR *wpath;
+        UINT len;
+
+        if ((len = DragQueryFileW(drop, 0, NULL, 0)) > 0 &&
+            (wpath = alloca(sizeof(WCHAR) * (len + 1)))) {
+          DragQueryFileW(drop, 0, wpath, len + 1);
+          wpath[len] = 0;
+          SetWindowTextW(window, wpath);
+        }
+      }
+      DragFinish(drop);
+
+      break;
+    }
+  }
+
+  return CallWindowProc((WNDPROC)default_edit_text_proc, window, msg, wparam, lparam);
+}
+#endif
+
 LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam) {
   switch (msg) {
-    case WM_INITDIALOG: {
+  case WM_INITDIALOG:
+    {
       char *user_env;
       int item;
 
@@ -182,6 +218,13 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
       EnableWindow(GetDlgItem(dlgwin, IDD_X11), FALSE);
 #endif
 
+#ifdef USE_DRAGDROP
+      DragAcceptFiles(GetDlgItem(dlgwin, IDD_SSH_PRIVKEY), TRUE);
+      default_edit_text_proc = (WNDPROC)GetWindowLongPtr(GetDlgItem(dlgwin, IDD_SSH_PRIVKEY),
+                                                         GWLP_WNDPROC);
+      SetWindowLongPtr(GetDlgItem(dlgwin, IDD_SSH_PRIVKEY), GWLP_WNDPROC, edit_text_proc);
+#endif
+
       if (item == IDD_SSH) {
         item = selected_proto;
       }
@@ -191,46 +234,54 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
       return FALSE;
     }
 
-    case WM_COMMAND:
-      switch (LOWORD(wparam)) {
-        case IDOK:
-          selected_server = get_window_text(GetDlgItem(dlgwin, IDD_SERVER));
-          selected_port = get_window_text(GetDlgItem(dlgwin, IDD_PORT));
-          selected_user = get_window_text(GetDlgItem(dlgwin, IDD_USER));
-          selected_pass = get_window_text(GetDlgItem(dlgwin, IDD_PASS));
-          selected_encoding = get_window_text(GetDlgItem(dlgwin, IDD_ENCODING));
-          selected_exec_cmd = get_window_text(GetDlgItem(dlgwin, IDD_EXEC_CMD));
-          selected_ssh_privkey = get_window_text(GetDlgItem(dlgwin, IDD_SSH_PRIVKEY));
+  case WM_COMMAND:
+    switch (LOWORD(wparam)) {
+    case IDOK:
+      selected_server = get_window_text(GetDlgItem(dlgwin, IDD_SERVER));
+      selected_port = get_window_text(GetDlgItem(dlgwin, IDD_PORT));
+      selected_user = get_window_text(GetDlgItem(dlgwin, IDD_USER));
+      selected_pass = get_window_text(GetDlgItem(dlgwin, IDD_PASS));
+      selected_encoding = get_window_text(GetDlgItem(dlgwin, IDD_ENCODING));
+      selected_exec_cmd = get_window_text(GetDlgItem(dlgwin, IDD_EXEC_CMD));
+      selected_ssh_privkey = get_window_text(GetDlgItem(dlgwin, IDD_SSH_PRIVKEY));
 
-          EndDialog(dlgwin, IDOK);
+      EndDialog(dlgwin, IDOK);
 
-          break;
+      break;
 
-        case IDCANCEL:
-          selected_proto = -1;
-          EndDialog(dlgwin, IDCANCEL);
+    case IDCANCEL:
+      selected_proto = -1;
+      EndDialog(dlgwin, IDCANCEL);
 
-          break;
+      break;
 
-        case IDD_SSH:
-        case IDD_TELNET:
-        case IDD_RLOGIN:
-          selected_proto = LOWORD(wparam);
-          CheckRadioButton(dlgwin, IDD_SSH, IDD_RLOGIN, selected_proto);
+    case IDD_SSH:
+    case IDD_TELNET:
+    case IDD_RLOGIN:
+      selected_proto = LOWORD(wparam);
+      CheckRadioButton(dlgwin, IDD_SSH, IDD_RLOGIN, selected_proto);
 
-          break;
+      break;
 
-        case IDD_X11:
-          use_x11_forwarding =
-              (SendMessage(GetDlgItem(dlgwin, IDD_X11), BM_GETCHECK, 0, 0) == BST_CHECKED);
-          break;
-
-        default:
-          return FALSE;
-      }
+    case IDD_X11:
+      use_x11_forwarding =
+        (SendMessage(GetDlgItem(dlgwin, IDD_X11), BM_GETCHECK, 0, 0) == BST_CHECKED);
+      break;
 
     default:
       return FALSE;
+    }
+
+    return TRUE;
+
+#ifdef USE_DRAGDROP
+  case WM_CLOSE:
+    DragAcceptFiles(GetDlgItem(dlgwin, IDD_SSH_PRIVKEY), FALSE);
+    /* Fall through */
+#endif
+
+  default:
+    return FALSE;
   }
 
   return TRUE;
