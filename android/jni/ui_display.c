@@ -999,7 +999,7 @@ void ui_display_send_text_selection(u_char *sel_data, size_t sel_len) {
                          (*env)->NewStringUTF(env, sel_data));
 }
 
-void ui_display_show_dialog(char *server) {
+void ui_display_show_dialog(char *server, char *privkey) {
   char *user;
   char *host;
   char *port;
@@ -1016,16 +1016,26 @@ void ui_display_show_dialog(char *server) {
     user = host = port = encoding = NULL;
   }
 
+  if (!privkey) {
+    char *home;
+
+    if ((home = bl_get_home_dir()) && (privkey = alloca(strlen(home) + 15 + 1))) {
+      sprintf(privkey, "%s/.mlterm/id_rsa", home);
+    }
+  }
+
   this = _display.app->activity->clazz;
   (*env)->CallVoidMethod(env, this,
                          (*env)->GetMethodID(env, (*env)->GetObjectClass(env, this),
                                              "showConnectDialog",
                                              "(Ljava/lang/String;Ljava/lang/String;"
-                                             "Ljava/lang/String;Ljava/lang/String;)V"),
+                                             "Ljava/lang/String;Ljava/lang/String;"
+                                             "Ljava/lang/String;)V"),
                          user ? (*env)->NewStringUTF(env, user) : NULL,
                          host ? (*env)->NewStringUTF(env, host) : NULL,
                          port ? (*env)->NewStringUTF(env, port) : NULL,
-                         encoding ? (*env)->NewStringUTF(env, encoding) : NULL);
+                         encoding ? (*env)->NewStringUTF(env, encoding) : NULL,
+                         privkey ? (*env)->NewStringUTF(env, privkey) : NULL);
 }
 
 /* Called in the main thread (not in the native activity thread) */

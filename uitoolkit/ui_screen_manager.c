@@ -149,7 +149,9 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
   char *term_env;
   char *uri;
   char *pass;
-  char *privkey = main_config.private_key;
+#ifdef USE_LIBSSH2
+  char *privkey;
+#endif
   int ret;
 
   display = win->disp->name;
@@ -198,6 +200,7 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
 
   uri = NULL;
   pass = NULL;
+  privkey = main_config.private_key;
 
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
   if (show_dialog || main_config.default_server) {
@@ -369,8 +372,12 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
     } else {
       free(uri);
     }
+  }
 
-    free(pass);
+  free(pass);
+
+  if (privkey != main_config.private_key) {
+    free(privkey);
   }
 #endif
 

@@ -1,3 +1,19 @@
+2018-06-09  Araki Ken  <arakiken@users.sf.net>
+
+	* MLActivity.java: "Priv Key" entry is added to the connection dialog.
+
+	* android/jni/ui_display.[ch]:
+	  'char *privkey' is added to ui_display_show_dialog().
+
+	* android/jni/ui_connect_dialog.c:
+	  - 'char **privkey' is added to arguments of ui_connect_dialog().
+	  - 'jstring privkey' is added to arguments of
+	    Java_mlterm_native_1activity_MLActivity_dialogOkClicked().
+
+	* vt_pty_ssh.c:
+	  The default value of privkey and pubkey is changed from
+	  /sdcard/.ssh/id_rsa(.pub) to /sdcard/.mlterm/id_rsa(.pub).
+
 2018-06-07  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/ui_connect_dialog.c: DnD to "PrivKey" entry is supported.
