@@ -472,6 +472,8 @@ static ssh_session_t *ssh_connect(const char *host, const char *port, const char
 
 #ifdef USE_WIN32API
       sprintf(path, "%s\\mlterm\\known_hosts", home);
+#elif defined(__ANDROID__)
+      sprintf(path, "%s/.mlterm/known_hosts", home);
 #else
       sprintf(path, "%s/.ssh/known_hosts", home);
 #endif
@@ -561,7 +563,7 @@ static ssh_session_t *ssh_connect(const char *host, const char *port, const char
     bl_debug_printf(BL_DEBUG_TAG " Unable to use ssh-agent.\n");
 #endif
 
-    if ((home = bl_get_home_dir()) && ((p = alloca(strlen(home) * 2 + 38)))) {
+    if ((home = bl_get_home_dir()) && ((p = alloca(strlen(home) * 2 + 36 /* __ANDROID__ */)))) {
       /*
        * man of libssh2_userauth_publickey_fromfile_ex()
        * publickey - Path name of the public key file. (e.g. /etc/ssh/hostkey.pub)
@@ -572,6 +574,8 @@ static ssh_session_t *ssh_connect(const char *host, const char *port, const char
       if (!pubkey) {
 #ifdef USE_WIN32API
         sprintf(p, "%s\\mlterm\\id_rsa.pub", home);
+#elif defined(__ANDROID__)
+        sprintf(p, "%s/.mlterm/id_rsa.pub", home);
 #else
         sprintf(p, "%s/.ssh/id_rsa.pub", home);
 #endif
@@ -584,6 +588,8 @@ static ssh_session_t *ssh_connect(const char *host, const char *port, const char
       if (!privkey) {
 #ifdef USE_WIN32API
         sprintf(p, "%s\\mlterm\\id_rsa", home);
+#elif defined(__ANDROID__)
+        sprintf(p, "%s/.mlterm/id_rsa", home);
 #else
         sprintf(p, "%s/.ssh/id_rsa", home);
 #endif

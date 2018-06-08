@@ -51,7 +51,7 @@ public class MLActivity extends NativeActivity {
   private native String convertToTmpPath(String path);
   private native void splitAnimationGif(String path);
   private native void dialogOkClicked(String user, String serv, String port, String encoding,
-                                      String pass, String cmd);
+                                      String pass, String cmd, String privkey);
   private native void updateScreen();
   private native void execCommand(int cmd);
   private native void resumeNative();
@@ -457,6 +457,7 @@ public class MLActivity extends NativeActivity {
   private EditText pass_edit;
   private EditText encoding_edit;
   private EditText cmd_edit;
+  private EditText privkey_edit;
   private LinearLayout dialogLayout;
 
   @Override protected Dialog onCreateDialog(int id) {
@@ -472,7 +473,8 @@ public class MLActivity extends NativeActivity {
                               port_edit.getText().toString(),
                               encoding_edit.getText().toString(),
                               pass_edit.getText().toString(),
-                              cmd_edit.getText().toString());
+                              cmd_edit.getText().toString(),
+                              privkey_edit.getText().toString());
             }
           })
         .setNegativeButton("Local", null)
@@ -495,7 +497,8 @@ public class MLActivity extends NativeActivity {
   }
 
   /* Called from native activity thread */
-  private void showConnectDialog(String user, String serv, String port, String encoding) {
+  private void showConnectDialog(String user, String serv, String port, String encoding,
+                                 String privkey) {
     nativeThread = Thread.currentThread();
 
     dialogLayout = new LinearLayout(this);
@@ -531,6 +534,10 @@ public class MLActivity extends NativeActivity {
     cmd_edit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
     dialogLayout.addView(makeTextEntry("Exec Cmd ", cmd_edit), params);
 
+    privkey_edit = new EditText(this);
+    privkey_edit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+    dialogLayout.addView(makeTextEntry("Priv key ", privkey_edit), params);
+
     if (serv != null) {
       serv_edit.setText(serv, TextView.BufferType.NORMAL);
     }
@@ -545,6 +552,10 @@ public class MLActivity extends NativeActivity {
 
     if (encoding != null) {
       encoding_edit.setText(encoding, TextView.BufferType.NORMAL);
+    }
+
+    if (privkey != null) {
+      privkey_edit.setText(privkey, TextView.BufferType.NORMAL);
     }
 
     synchronized(nativeThread) {
@@ -562,7 +573,7 @@ public class MLActivity extends NativeActivity {
     nativeThread = null;
     removeDialog(1);
 
-    serv_edit = port_edit = user_edit = pass_edit = encoding_edit = null;
+    serv_edit = port_edit = user_edit = pass_edit = encoding_edit = privkey_edit = null;
   }
 
   /* Called from native activity thread or UI thread (from context menu) */
