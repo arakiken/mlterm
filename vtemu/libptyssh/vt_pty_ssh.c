@@ -2028,6 +2028,13 @@ int vt_pty_ssh_scp_intern(vt_pty_t *pty, int src_is_remote, char *dst_path, char
 
     fstat(scp->local, &st);
 
+#if 1
+    if ((st.st_mode & 0700) == 0) {
+      /* XXX Avoid failure of libssh2_scp_send() */
+      st.st_mode |= 0400;
+    }
+#endif
+
     while (!(scp->remote = libssh2_scp_send(scp->pty_ssh->session->obj, dst_path, st.st_mode & 0777,
                                             (u_long)st.st_size)) &&
            libssh2_session_last_errno(scp->pty_ssh->session->obj) == LIBSSH2_ERROR_EAGAIN)

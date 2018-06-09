@@ -262,14 +262,15 @@ int vt_pty_ssh_scp(vt_pty_ptr_t pty, vt_char_encoding_t pty_encoding, /* Not VT_
       return 0;
     }
 
-    /* mkdir ~/.mlterm/scp in advance. */
     if (!dst_is_remote) {
 #ifdef USE_WIN32API
       sprintf(p, "%s\\mlterm\\scp\\%s", prefix, dst_path);
 #else
       sprintf(p, "%s/.mlterm/scp/%s", prefix, dst_path);
 #endif
+      bl_mkdir_for_file(p, 0700);
     } else {
+      /* mkdir ~/.mlterm/scp in advance. */
       sprintf(p, ".mlterm/scp/%s", dst_path);
     }
 

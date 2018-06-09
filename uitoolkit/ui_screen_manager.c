@@ -200,7 +200,9 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
 
   uri = NULL;
   pass = NULL;
+#ifdef USE_LIBSSH2
   privkey = main_config.private_key;
+#endif
 
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
   if (show_dialog || main_config.default_server) {

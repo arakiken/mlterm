@@ -53,9 +53,10 @@ public class MLActivity extends NativeActivity {
   private native void dialogOkClicked(String user, String serv, String port, String encoding,
                                       String pass, String cmd, String privkey);
   private native void updateScreen();
-  private native void execCommand(int cmd);
+  private native void execCommand(String cmd);
   private native void resumeNative();
   private native void pauseNative();
+  private native boolean isSSH();
 
   private String keyString;
   private View contentView;
@@ -285,18 +286,22 @@ public class MLActivity extends NativeActivity {
   private final int MENU_PREVPTY_ID = 7;
   private final int MENU_UPDATESCREEN_ID = 8;
   private final int MENU_CLOSESCREEN_ID = 9;
-  private final int MENU_CONFIG_ID = 10;
-  private final int MENU_CANCEL_ID = 11;
+  private final int MENU_SCP_ID = 10;
+  private final int MENU_CONFIG_ID = 11;
+  private final int MENU_CANCEL_ID = 12;
 
   @Override
   public void onCreateContextMenu(ContextMenu menu, View view,
-                                     ContextMenu.ContextMenuInfo info) {
+                                  ContextMenu.ContextMenuInfo info) {
     super.onCreateContextMenu(menu, view, info);
     /* menu.setHeaderTitle("Menu"); */
     menu.add(0, MENU_PASTE_ID, 0, "Paste from clipboard");
     menu.add(0, MENU_NEWSCREEN_ID, 0, "Open new screen");
     menu.add(0, MENU_LOCALPTY_ID, 0, "Open local pty");
     menu.add(0, MENU_SSH_ID, 0, "Connect to SSH server");
+    if (isSSH()) {
+      menu.add(0, MENU_SCP_ID, 0, "SCP");
+    }
     menu.add(0, MENU_VSPLIT_ID, 0, "Split screen vertically");
     menu.add(0, MENU_HSPLIT_ID, 0, "Split screen horizontally");
     menu.add(0, MENU_NEXTPTY_ID, 0, "Next pty");
@@ -314,31 +319,34 @@ public class MLActivity extends NativeActivity {
         getTextFromClipboard();
         return true;
       case MENU_NEWSCREEN_ID:
-        execCommand(0);
+        execCommand("open_pty");
         return true;
       case MENU_LOCALPTY_ID:
-        execCommand(3);
+        execCommand("mlclientx --serv=");
         return true;
       case MENU_SSH_ID:
-        execCommand(7);
+        execCommand("ssh");
         return true;
       case MENU_VSPLIT_ID:
-        execCommand(1);
+        execCommand("vsplit_screen");
         return true;
       case MENU_HSPLIT_ID:
-        execCommand(2);
+        execCommand("hsplit_screen");
         return true;
       case MENU_NEXTPTY_ID:
-        execCommand(4);
+        execCommand("next_pty");
         return true;
       case MENU_PREVPTY_ID:
-        execCommand(5);
+        execCommand("prev_pty");
         return true;
       case MENU_UPDATESCREEN_ID:
         updateScreen();
         return true;
       case MENU_CLOSESCREEN_ID:
-        execCommand(6);
+        execCommand("close_screen");
+        return true;
+      case MENU_SCP_ID:
+        showDialog(2); /* SCP dialog */
         return true;
       case MENU_CONFIG_ID:
         Intent intent = new Intent(this, MLPreferenceActivity.class);
@@ -489,6 +497,45 @@ public class MLActivity extends NativeActivity {
             }
           }
         });
+
+      return dialog;
+    } else if (id == 2) {
+      final EditText remote_edit;
+      final EditText local_edit;
+
+      LinearLayout layout = new LinearLayout(this);
+      layout.setOrientation(LinearLayout.VERTICAL);
+
+      LinearLayout.LayoutParams params =
+        new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT,
+                                      LinearLayout.LayoutParams.FILL_PARENT);
+
+      remote_edit = new EditText(this);
+      remote_edit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+      layout.addView(makeTextEntry("Remote", remote_edit), params);
+
+      local_edit = new EditText(this);
+      local_edit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+      layout.addView(makeTextEntry("Local ", local_edit), params);
+
+      Dialog dialog = new AlertDialog.Builder(this)
+        .setIcon(android.R.drawable.ic_dialog_info)
+        .setTitle("Source file path / Dest dir path")
+        .setView(layout)
+        .setPositiveButton("Send", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+              execCommand("scp \"local:" + local_edit.getText().toString() + "\" \"remote:" +
+                          remote_edit.getText().toString() + "\"");
+            }
+          })
+        .setNeutralButton("Receive", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+              execCommand("scp \"remote:" + remote_edit.getText().toString() + "\" \"local:" +
+                          local_edit.getText().toString() + "\"");
+            }
+          })
+        .setNegativeButton("Cancel", null)
+        .create();
 
       return dialog;
     } else {
