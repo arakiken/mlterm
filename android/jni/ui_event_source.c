@@ -335,21 +335,28 @@ void Java_mlterm_native_1activity_MLActivity_updateScreen(JNIEnv *env, jobject t
   pthread_mutex_unlock(&mutex);
 }
 
-void Java_mlterm_native_1activity_MLActivity_execCommand(JNIEnv *env, jobject this, jint cmd) {
+void Java_mlterm_native_1activity_MLActivity_execCommand(JNIEnv *env, jobject this,
+                                                         jstring jcmd) {
   vt_term_t *term;
 
   if ((term = get_current_term()) && term->parser->config_listener) {
-    if (cmd == 7) {
+    char *cmd = (*env)->GetStringUTFChars(env, jcmd, NULL);
+    char *p;
+
+    if (strcmp(cmd, "ssh") == 0) {
       connect_to_ssh_server = 1;
-    } else if (((u_int)cmd) <= 6) {
-      char cmd_str4[] = "mlclientx --serv=";
-      char *cmd_str[7] = { "open_pty", "vsplit_screen", "hsplit_screen", cmd_str4,
-                           "next_pty", "prev_pty", "close_screen" };
+    } else if ((p = alloca(strlen(cmd) + 1))) {
+      /*
+       * pthread_mutex_lock() shoule be called here because native activity thread
+       * (which reads pty) works.
+       */
       pthread_mutex_lock(&mutex);
-      /* config_listener->exec doesn't modify cmd string unless it contains space character. */
-      (*term->parser->config_listener->exec)(term->parser->config_listener->self, cmd_str[cmd]);
+      (*term->parser->config_listener->exec)(term->parser->config_listener->self,
+                                             strcpy(p, cmd));
       pthread_mutex_unlock(&mutex);
     }
+
+    (*env)->ReleaseStringUTFChars(env, jcmd, cmd);
   }
 }
 
@@ -365,6 +372,19 @@ void Java_mlterm_native_1activity_MLActivity_pauseNative(JNIEnv *env, jobject th
   if ((term = get_current_term())) {
     ui_window_set_mapped_flag(ui_get_root_window(UIWINDOW_OF(term)), 0);
   }
+}
+
+jboolean Java_mlterm_native_1activity_MLActivity_isSSH(JNIEnv *env, jobject this) {
+#ifdef USE_LIBSSH2
+  vt_term_t *term;
+  if ((term = get_current_term())) {
+    if (vt_term_get_slave_fd(term) == -1) { /* connecting to remote host. */
+      return JNI_TRUE;
+    }
+  }
+#endif
+
+  return JNI_FALSE;
 }
 
 void Java_mlterm_native_1activity_MLPreferenceActivity_setConfig(JNIEnv *env, jobject this,

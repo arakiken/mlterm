@@ -1,5 +1,20 @@
 2018-06-09  Araki Ken  <arakiken@users.sf.net>
 
+	* MLActivity.java:
+	  - "SCP" is added to the context menu.
+	  - onCreateDialog(2) creates SCP dialog.
+
+	* android/jni/ui_event_source.c:
+	  - Type of 'cmd' argument of Java_mlterm_native_1activity_MLActivity_execCommand()
+	    is changed from jint to jstring.
+	  - Java_mlterm_native_1activity_MLActivity_isSSH() is added.
+
+	* libptyssh/vt_pty_ssh.c: Hack for libssh2_scp_send().
+
+	* vt_pty_ssh.c: ~/.mlterm/scp directory is automatically created.
+
+2018-06-09  Araki Ken  <arakiken@users.sf.net>
+
 	* MLActivity.java: "Priv Key" entry is added to the connection dialog.
 
 	* android/jni/ui_display.[ch]:
