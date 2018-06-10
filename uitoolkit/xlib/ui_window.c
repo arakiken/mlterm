@@ -3393,10 +3393,12 @@ void ui_window_set_input_focus(ui_window_t *win) {
 }
 
 void ui_window_flush(ui_window_t *win) {
+#if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
   if (win->cairo_draw) {
     /* calls cairo_flush() */
     ui_window_cairo_draw_string32(win, NULL, NULL, 0, 0, NULL, 0);
   }
+#endif
 }
 
 #ifdef DEBUG
