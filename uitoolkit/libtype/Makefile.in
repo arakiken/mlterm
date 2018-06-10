@@ -20,7 +20,7 @@ XFT_OBJ = ui_window_xft.o ui_font_xft.o ui_functbl_xft.o
 CAIRO_OBJ = ui_window_cairo.o ui_font_cairo.o ui_functbl_cairo.o
 NODL_OBJ = @NODL_OBJ@ ui_font_ft.o
 
-LPOBL = ${top_builddir}/baselib/src/libpobl.la
+LPOBL = @LPOBL@
 LPOBL_DEB = -lpobl_deb
 
 # XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.

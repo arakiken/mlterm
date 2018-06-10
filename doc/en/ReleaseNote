@@ -5,6 +5,7 @@
 * Add --rv / "rv_color" option.
 * Add servman.exe which manages the list of servers on win32.
 * Add "PrivKey" entry to the ssh connection dialog on win32 and Android.
+* Add "SCP" entry to the context menu on Android.
 * Drop --servlist / "server_list" option.
 * Improve performance of redrawing screen when type_engine=cairo.
 * Show box style cursor when the cursor is on a picture or an emoji.
