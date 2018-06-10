@@ -1,5 +1,7 @@
 2018-06-10  Araki Ken  <arakiken@users.sf.net>
 
+	* xlib/ui_window.c: Compiling error is fixed.
+
 	* gtk/Makefile.in: @LPOBL@ and @LMEF@ are used.
 
 	* configure.in: contrib/scrollbar is copied to gui/ if multiple values separated
