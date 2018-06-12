@@ -1,3 +1,4 @@
+ver 3.8.6
 * Support preserveAspectRatio option of OSC 1337.
 * Support DECRQCRA, CSI 15 t, CSI 16 t, CSI 19 t and OSC 5;Ps;? ST.
 * Support framebuffer on FreeBSD(98).
