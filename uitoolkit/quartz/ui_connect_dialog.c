@@ -18,8 +18,7 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
                       char **privkey,  /* in/out */
                       int *x11_fwd,    /* in/out */
                       char *display_name, Window parent_window,
-                      char *def_server /* (<user>@)(<proto>:)<server address>(:<encoding>). */
-                      ) {
+                      char *def_server /* (<user>@)(<proto>:)<server address>(:<encoding>). */) {
   char *msg;
 
   if (!(*uri = strdup(def_server))) {
@@ -27,9 +26,12 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
   }
 
   if ((msg = alloca(19 + strlen(*uri) + 1))) {
+    char *p;
+
     sprintf(msg, "Enter password for %s", *uri);
 
-    if ((*pass = cocoa_dialog_password(msg))) {
+    if ((p = cocoa_dialog_password(msg))) {
+      *pass = p;
       *exec_cmd = NULL;
 
       return 1;
@@ -37,6 +39,7 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
   }
 
   free(*uri);
+  *uri = NULL;
 
   return 0;
 }

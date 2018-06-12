@@ -1,5 +1,16 @@
 2018-06-12  Araki Ken  <arakiken@users.sf.net>
 
+	* 3.8.6 released.
+	  (tag "rel-3_8_6")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  MLTermPty.c, android/jni/version.h:
+	  updated for 3.8.6.
+
+	* man/mlterm.1: Updated.
+
+2018-06-12  Araki Ken  <arakiken@users.sf.net>
+
 	* ui_screen_manager.c:
 	  open_pty_intern() assumes that ui_connect_dialog() doesn't change
 	  arguments except uri.
