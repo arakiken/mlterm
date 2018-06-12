@@ -209,8 +209,8 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
     char *user;
     char *host;
     char *port;
-    char *encoding;
-    char *exec_cmd;
+    char *encoding = NULL;
+    char *exec_cmd = NULL;
     int x11_fwd;
     void *session;
 
@@ -223,7 +223,6 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
         (session = vt_search_ssh_session(host, port, user))) {
       uri = strdup(main_config.default_server);
       pass = strdup("");
-      exec_cmd = NULL;
 
       if (x11_fwd) {
         vt_pty_ssh_set_use_x11_forwarding(session, x11_fwd);
@@ -236,11 +235,8 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
       if (vt_get_all_terms(NULL) > 1) {
         return 0;
       }
-      encoding = exec_cmd = NULL;
     } else {
-      if (!bl_parse_uri(NULL, &user, &host, &port, NULL, &encoding, bl_str_alloca_dup(uri))) {
-        encoding = NULL;
-      }
+      bl_parse_uri(NULL, &user, &host, &port, NULL, &encoding, bl_str_alloca_dup(uri));
 
 #ifdef USE_LIBSSH2
       vt_pty_ssh_set_use_x11_forwarding(vt_search_ssh_session(host, port, user), x11_fwd);
@@ -374,12 +370,12 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
     } else {
       free(uri);
     }
-  }
 
-  free(pass);
+    free(pass);
 
-  if (privkey != main_config.private_key) {
-    free(privkey);
+    if (privkey != main_config.private_key) {
+      free(privkey);
+    }
   }
 #endif
 

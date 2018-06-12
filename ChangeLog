@@ -1,3 +1,19 @@
+2018-06-12  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen_manager.c:
+	  open_pty_intern() assumes that ui_connect_dialog() doesn't change
+	  arguments except uri.
+
+	* win32/ui_connect_dialog.c:
+	  dialog_proc() checks selected_ssh_privkey before 'if (default_server)'.
+
+	* xlib/ui_connect_dialog.c:
+	  ui_connect_dialog() doesn't change 'pass' arguments if it fails.
+
+	* android/jni/ui_connect_dialog.c:
+	  ui_connect_dialog() doesn't set values to arguments except uri
+	  if ui_display_show_dialog() fails.
+
 2018-06-10  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/ui_window.c: Compiling error is fixed.
