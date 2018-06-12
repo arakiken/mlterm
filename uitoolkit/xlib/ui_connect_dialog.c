@@ -40,6 +40,7 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
   u_int height;
   u_int ncolumns;
   char *title;
+  char *password;
   size_t pass_len;
   int ret;
 
@@ -82,7 +83,7 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
   XMapWindow(display, window);
 
   ret = 0;
-  *pass = strdup("");
+  password = strdup("");
   pass_len = 1;
 
   while (1) {
@@ -100,18 +101,18 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
         if (buf[0] == 0x08) /* Backspace */
         {
           if (pass_len > 1) {
-            (*pass)[--pass_len] = '\0';
+            password[--pass_len] = '\0';
             redraw = CLEAR_DRAW;
           }
         } else if (buf[0] == 0x1b) {
           break;
         } else if (isprint((int)buf[0])) {
-          if (!(p = realloc(*pass, (pass_len += len)))) {
+          if (!(p = realloc(password, (pass_len += len)))) {
             break;
           }
 
-          memcpy((*pass = p) + pass_len - len - 1, buf, len);
-          (*pass)[pass_len - 1] = '\0';
+          memcpy((password = p) + pass_len - len - 1, buf, len);
+          password[pass_len - 1] = '\0';
 
           redraw = DRAW;
         } else {
@@ -150,7 +151,7 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
                    points[2].y - points[0].y - 1, False);
       }
 
-      if (*pass) {
+      if (password) {
         char *input;
         size_t count;
 
@@ -173,15 +174,15 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
   XFreeFont(display, font);
   XCloseDisplay(display);
 
-  if (ret) {
-    *uri = strdup(def_server);
+  if (ret && (*uri = strdup(def_server))) {
+    *pass = password;
     *exec_cmd = NULL;
 
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " Connecting to %s %s\n", *uri, *pass);
 #endif
   } else {
-    free(*pass);
+    free(password);
   }
 
   return ret;

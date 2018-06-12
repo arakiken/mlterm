@@ -156,6 +156,13 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
       item = selected_proto = IDD_SSH;
       user_env = getenv("USERNAME");
 
+#if 1
+      if (selected_ssh_privkey) {
+        set_window_text(GetDlgItem(dlgwin, IDD_SSH_PRIVKEY), selected_ssh_privkey);
+        selected_ssh_privkey = NULL;
+      }
+#endif
+
       if (default_server) {
         char *user;
         int proto;
@@ -167,11 +174,6 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
         if (selected_exec_cmd) {
           SetWindowText(GetDlgItem(dlgwin, IDD_EXEC_CMD), selected_exec_cmd);
           selected_exec_cmd = NULL;
-        }
-
-        if (selected_ssh_privkey) {
-          set_window_text(GetDlgItem(dlgwin, IDD_SSH_PRIVKEY), selected_ssh_privkey);
-          selected_ssh_privkey = NULL;
         }
 #endif
 

@@ -25,23 +25,29 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
                       char **privkey,  /* in/out */
                       int *x11_fwd,    /* in/out */
                       char *display_name, Window parent_window,
-                      char *def_server /* (<user>@)(<proto>:)<server address>(:<encoding>). */
-                      ) {
+                      char *def_server /* (<user>@)(<proto>:)<server address>(:<encoding>). */) {
+  int ret;
+
   ui_display_show_dialog(def_server, *privkey);
 
-  *uri = d_uri;
-  *pass = d_pass;
-  *exec_cmd = d_exec_cmd;
-  *privkey = d_privkey;
-  *x11_fwd = 0;
+  if ((*uri = d_uri)) {
+    *pass = d_pass;
+    *exec_cmd = d_exec_cmd;
+    *privkey = d_privkey;
+    *x11_fwd = 0;
+
+    ret = 1;
+  } else {
+    free(d_pass);
+    free(d_exec_cmd);
+    free(d_privkey);
+
+    ret = 0;
+  }
 
   d_uri = d_pass = d_exec_cmd = NULL;
 
-  if (*uri) {
-    return 1;
-  } else {
-    return 0;
-  }
+  return ret;
 }
 
 void Java_mlterm_native_1activity_MLActivity_dialogOkClicked(JNIEnv *env, jobject this,
