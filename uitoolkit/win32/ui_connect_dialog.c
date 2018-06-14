@@ -338,6 +338,14 @@ static char *exec_servman(char *server, DWORD server_len) {
    * use the wShowWindow flags.
    */
 
+  /*
+   * Win32 environmental variables are cleared in a cygwin program.
+   * servman.exe (which works without cygwin APIs) needs HOMEPATH environmental variable.
+   */
+#ifndef USE_WIN32API
+  SetEnvironmentVariable("HOMEPATH", getenv("HOMEPATH"));
+#endif
+
   if (!CreateProcess("servman.exe", "servman.exe", NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " CreateProcess() failed.\n");

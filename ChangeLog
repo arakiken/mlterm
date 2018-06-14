@@ -1,3 +1,10 @@
+2018-06-14  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/ui_connect_dialog.c: HOMEPATH environmental variable is ensured
+	  before executing servman.exe.
+
+	* version.h: 3.8.6 -> 3.8.6post
+
 2018-06-12  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.8.6 released.
