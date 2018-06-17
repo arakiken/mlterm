@@ -1,5 +1,9 @@
 2018-06-17  Araki Ken  <arakiken@users.sf.net>
 
+	* configure.in: m17nlib is checked by PKG_CHECK_MODULES().
+
+	* mc_im.c: libim-*-sdl2.so is supported if gui is "sdl2".
+
 	* ef_ucs_property.table: Updated to Unicode 11.0.0 (UnicodeData.txt and
 	  EastAsianWidth.txt)
 

@@ -189,7 +189,13 @@ static int get_im_info(char *locale, char *encoding) {
     if (!(p = strstr(d->d_name, "im-"))) continue;
 
     end = p + strlen(p);
-    if (strcmp(gui, "fb") == 0 || strcmp(gui, "console") == 0 || strcmp(gui, "wayland") == 0) {
+    if (strcmp(gui, "sdl2") == 0) {
+      end -= 5;
+      if (strcmp(end, "-sdl2") != 0) {
+        continue;
+      }
+    } else if (strcmp(gui, "fb") == 0 || strcmp(gui, "console") == 0 ||
+               strcmp(gui, "wayland") == 0) {
       end -= 3;
       if (strcmp(end, *gui == 'w' ? "-wl" : "-fb") != 0) {
         continue;

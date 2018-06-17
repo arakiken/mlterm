@@ -1212,21 +1212,29 @@ if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 fi
 
 if test "x$m17nlib" != xno ; then
-	AC_CHECK_PROG(m17nlib, m17n-config, yes, no)
-	m17n_saved_libs="$LIBS"
-	M17NLIB_LIBS=`m17n-config --libs`
-	LIBS="$LIBS $M17NLIB_LIBS"
-	AC_CHECK_LIB(m17n, minput_open_im,
-		[
-		M17NLIB_CFLAGS="`m17n-config --cflags`"
-		MAKE_DIRS="inputmethod/m17nlib ${MAKE_DIRS}"
-		OUTPUT_FILES="inputmethod/m17nlib/Makefile ${OUTPUT_FILES}"
-		if test "x$with_libltdl" != xno ; then
-			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/m17nlib/libim-m17nlib.la ${DL_LIBS_IM}"
-		fi
-		input_methods_result="$input_methods_result m17nlib"
-		])
-	LIBS="$m17n_saved_libs"
+	AC_CHECK_PROG(m17n_config, m17n-config, yes, no)
+	if test "$m17n_config" = "yes"; then
+		M17NLIB_LIBS=`m17n-config --libs`
+		M18NLIB_CFLAGS=`m17n-config --cflags`
+		m17nlib=yes
+	else
+	  PKG_CHECK_MODULES(M17NLIB, m17n-shell, m17nlib=yes, m17nlib=no)
+	fi
+
+  if test "$m17nlib" = "yes"; then
+		m17n_saved_libs="$LIBS"
+		LIBS="$LIBS $M17NLIB_LIBS"
+		AC_CHECK_LIB(m17n, minput_open_im,
+			[
+			MAKE_DIRS="inputmethod/m17nlib ${MAKE_DIRS}"
+			OUTPUT_FILES="inputmethod/m17nlib/Makefile ${OUTPUT_FILES}"
+			if test "x$with_libltdl" != xno ; then
+				DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/m17nlib/libim-m17nlib.la ${DL_LIBS_IM}"
+			fi
+			input_methods_result="$input_methods_result m17nlib"
+			])
+		LIBS="$m17n_saved_libs"
+	fi
 fi
 AC_SUBST(M17NLIB_CFLAGS)
 AC_SUBST(M17NLIB_LIBS)
