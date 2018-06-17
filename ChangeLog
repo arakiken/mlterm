@@ -1,3 +1,9 @@
+2018-06-17  Araki Ken  <arakiken@users.sf.net>
+
+	* mlconfig/main.c: mc_im_init() is called in main() first of all.
+
+	* mc_im.[ch]: mc_im_init() which calls get_im_info() is added.
+
 2018-06-14  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/ui_connect_dialog.c: HOMEPATH environmental variable is ensured
