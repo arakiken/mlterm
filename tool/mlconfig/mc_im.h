@@ -5,6 +5,8 @@
 
 #include <gtk/gtk.h>
 
+void mc_im_init(void);
+
 GtkWidget *mc_im_config_widget_new(void);
 
 void mc_update_im(void);

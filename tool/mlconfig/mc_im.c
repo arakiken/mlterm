@@ -55,6 +55,8 @@ typedef im_info_t *(*im_get_info_func_t)(char *, char *);
 
 /* --- static variables --- */
 
+static char *cur_locale;
+
 static im_type_t im_type;
 static im_type_t cur_im_type;
 
@@ -643,9 +645,17 @@ static gint button_im_checked(GtkWidget *widget, gpointer data) {
 
 /* --- global functions --- */
 
+void mc_im_init(void) {
+  char *encoding = mc_get_str_value("encoding");
+
+  cur_locale = mc_get_str_value("locale"); /* XXX leaked */
+
+  get_im_info(cur_locale, encoding);
+
+  free(encoding);
+}
+
 GtkWidget *mc_im_config_widget_new(void) {
-  char *cur_locale = NULL;
-  char *encoding = NULL;
   char *xim_name = NULL;
   char *xim_locale = NULL;
   char *value;
@@ -658,11 +668,6 @@ GtkWidget *mc_im_config_widget_new(void) {
   GtkWidget *hbox;
   GtkWidget *radio;
   GSList *group;
-
-  cur_locale = mc_get_str_value("locale");
-  encoding = mc_get_str_value("encoding");
-
-  get_im_info(cur_locale, encoding);
 
   value = mc_get_str_value("input_method");
 
@@ -703,8 +708,6 @@ GtkWidget *mc_im_config_widget_new(void) {
       im_opt_widget[i] = im_widget_new(i, index == i ? value : NULL, cur_locale);
   }
 
-  free(cur_locale);
-  free(encoding);
   free(im_name);
 
   frame = gtk_frame_new(_("Input Method"));

@@ -799,6 +799,12 @@ int main(int argc, char **argv) {
   atexit(check_mem_leak);
 #endif
 
+  /*
+   * Loading libim-*.so after gtk im module is loaded might break internal states
+   * in gtk or input method library.
+   */
+  mc_im_init();
+
 #if !GTK_CHECK_VERSION(2, 90, 0)
   gtk_set_locale();
 #endif
