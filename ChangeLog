@@ -1,5 +1,8 @@
 2018-06-17  Araki Ken  <arakiken@users.sf.net>
 
+	* ef_ucs_property.table: Updated to Unicode 11.0.0 (UnicodeData.txt and
+	  EastAsianWidth.txt)
+
 	* mlconfig/main.c: mc_im_init() is called in main() first of all.
 
 	* mc_im.[ch]: mc_im_init() which calls get_im_info() is added.
