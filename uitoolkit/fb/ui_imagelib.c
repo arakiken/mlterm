@@ -29,6 +29,12 @@
 #define BUILTIN_SIXEL
 #endif
 
+#ifdef USE_GRF
+#define BPP_PSEUDO 2
+#else
+#define BPP_PSEUDO 1
+#endif
+
 /* --- static functions --- */
 
 static void value_table_refresh(u_char *value_table, /* 256 bytes */
@@ -710,13 +716,7 @@ static int load_file(Display *display, char *path, u_int width, u_int height, in
         if (ui_picture_modifier_is_normal(pic_mod) /* see modify_pixmap() */) {
           if (((*pixmap)->image = load_sixel_from_data_sharepalette(file_data, &(*pixmap)->width,
                                                                     &(*pixmap)->height)) &&
-              resize_sixel(*pixmap, width, height,
-#ifdef USE_GRF
-                           2
-#else
-                           1
-#endif
-                           )) {
+              resize_sixel(*pixmap, width, height, BPP_PSEUDO)) {
             if (mask) {
               *mask = NULL;
             }
@@ -731,8 +731,9 @@ static int load_file(Display *display, char *path, u_int width, u_int height, in
 
 #ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
     skip_sharepalette:
-      if (!(sixel_cmap = custom_palette) && (sixel_cmap = alloca(sizeof(*sixel_cmap) * 257))) {
-        sixel_cmap[256] = 0; /* No active palette */
+      if (!(sixel_cmap = custom_palette) &&
+          (sixel_cmap = alloca(sizeof(*sixel_cmap) * (SIXEL_PALETTE_SIZE + 1)))) {
+        sixel_cmap[SIXEL_PALETTE_SIZE] = 0; /* No active palette */
         custom_palette = sixel_cmap;
       }
 #endif
@@ -744,7 +745,7 @@ static int load_file(Display *display, char *path, u_int width, u_int height, in
 #ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
         if (sixel_cmap) {
           /* see set_wall_picture() in ui_screen.c */
-          ui_display_set_cmap(sixel_cmap, sixel_cmap[256]);
+          ui_display_set_cmap(sixel_cmap, sixel_cmap[SIXEL_PALETTE_SIZE]);
         }
 #endif
         free(file_data);
