@@ -1,3 +1,11 @@
+2018-06-30  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/ui_imagelib.c: SIXEL_PALETTES_SIZE is used.
+
+	* c_sixel.c:
+	  - load_sixel_from_data() supports a maximum of up to 65536 palettes.
+	  - SIXEL_PALETTES_SIZE macro is defined.
+
 2018-06-17  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in: m17nlib is checked by PKG_CHECK_MODULES().

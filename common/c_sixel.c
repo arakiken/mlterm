@@ -5,6 +5,15 @@
 #include <pobl/bl_util.h> /* BL_MIN */
 #include <pobl/bl_mem.h>  /* alloca */
 
+/*
+ * The size of the base palettes.
+ * SIXEL_PALETTE_SIZE should be less than 1024.
+ * (See the block of if ((color = params[0]) >= SIXEL_PALETTE_SIZE))
+ */
+#ifndef SIXEL_PALETTE_SIZE
+#define SIXEL_PALETTE_SIZE 256
+#endif
+
 #ifdef SIXEL_1BPP
 
 #define correct_height correct_height_1bpp
@@ -315,6 +324,8 @@ static u_char *load_sixel_from_data(const char *file_data, u_int *width_ret, u_i
       SIXEL_RGB(80, 80, 80)  /* GRAY 75% */
   };
   pixel_t *palette;
+  pixel_t *base_palette;
+  pixel_t **ext_palettes = NULL;
 #endif
 
   pixels = NULL;
@@ -324,18 +335,17 @@ static u_char *load_sixel_from_data(const char *file_data, u_int *width_ret, u_i
 #ifndef SIXEL_SHAREPALETTE
 #ifndef SIXEL_1BPP
   if (custom_palette) {
-    palette = custom_palette;
-    if (palette[256] == 0) /* No active palette */
-    {
+    base_palette = palette = custom_palette;
+    if (palette[SIXEL_PALETTE_SIZE] == 0) /* No active palette */ {
       memcpy(palette, default_palette, sizeof(default_palette));
-      memset(palette + 16, 0, sizeof(pixel_t) * 256 - sizeof(default_palette));
+      memset(palette + 16, 0, sizeof(pixel_t) * SIXEL_PALETTE_SIZE - sizeof(default_palette));
     }
   } else
 #endif
   {
-    palette = (pixel_t*)alloca(sizeof(pixel_t) * 256);
+    base_palette = palette = (pixel_t*)alloca(sizeof(pixel_t) * SIXEL_PALETTE_SIZE);
     memcpy(palette, default_palette, sizeof(default_palette));
-    memset(palette + 16, 0, sizeof(pixel_t) * 256 - sizeof(default_palette));
+    memset(palette + 16, 0, sizeof(pixel_t) * SIXEL_PALETTE_SIZE - sizeof(default_palette));
   }
 #endif
 
@@ -633,10 +643,57 @@ body:
       n = get_params(params, 5, &p);
 
       if (n > 0) {
-        if ((color = params[0]) < 0) {
-          color = 0;
-        } else if (color > 255) {
-          color = 255;
+        if ((color = params[0]) >= SIXEL_PALETTE_SIZE) {
+#ifdef SIXEL_SHAREPALETTE
+          color = SIXEL_PALETTE_SIZE - 1;
+#else
+          u_int idx;
+          size_t size;
+
+          /* 64 * 1024 = 65536 */
+          if (color > 65535) {
+            color = 65535;
+          }
+
+          color -= SIXEL_PALETTE_SIZE;
+
+          if (!ext_palettes) {
+            if (!(ext_palettes = (pixel_t**)alloca(sizeof(pixel_t*) * 64))) {
+              color = 0;
+              goto use_base_palette;
+            }
+            memset(ext_palettes, 0, sizeof(pixel_t*) * 64);
+          }
+
+          if (color < 1024 - SIXEL_PALETTE_SIZE) {
+            idx = 0;
+            size = (1024 - SIXEL_PALETTE_SIZE) * sizeof(pixel_t);
+          } else {
+            color -= (1024 - SIXEL_PALETTE_SIZE);
+            idx = 1 + (color >> 10); /* color / 1024 */
+            color &= 1023;
+            size = 1024 * sizeof(pixel_t);
+          }
+
+          if (!ext_palettes[idx]) {
+            if (!(ext_palettes[idx] = (pixel_t*)alloca(size))) {
+              color = 0;
+              goto use_base_palette;
+            }
+            memset(ext_palettes[idx], 0, size);
+          }
+
+          palette = ext_palettes[idx];
+#endif
+        } else {
+          if (color < 0) {
+            color = 0;
+          }
+
+#ifndef SIXEL_SHAREPALETTE
+        use_base_palette:
+          palette = base_palette;
+#endif
         }
       }
 
@@ -724,12 +781,12 @@ body:
 #endif
 
 #if !defined(SIXEL_1BPP) && !defined(SIXEL_SHAREPALETTE)
-        if (palette == custom_palette && palette[256] <= color) {
+        if (palette == custom_palette && palette[SIXEL_PALETTE_SIZE] <= color) {
           /*
            * Set max active palette number for NetBSD/OpenBSD.
            * (See load_file() in fb/ui_imagelib.c)
            */
-          palette[256] = color + 1;
+          palette[SIXEL_PALETTE_SIZE] = color + 1;
         }
 #endif
 
@@ -871,7 +928,7 @@ static u_char *load_sixel_from_file(const char *path, u_int *width_ret, u_int *h
 pixel_t *ui_set_custom_sixel_palette(pixel_t *palette /* NULL -> Create new palette */
                                      ) {
   if (!palette) {
-    palette = (pixel_t*)calloc(sizeof(pixel_t), 257);
+    palette = (pixel_t*)calloc(sizeof(pixel_t), SIXEL_PALETTE_SIZE + 1);
   }
 
   return (custom_palette = palette);
