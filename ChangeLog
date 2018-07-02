@@ -1,3 +1,9 @@
+2018-07-02  Araki Ken  <arakiken@users.sf.net>
+
+	* c_sixel.c:
+	  - The number of palettes which load_sixel_from_data() supports is up to 1024.
+	  - The palette number #1024 or greater is regarded as 15 bit RGB.
+
 2018-06-30  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/ui_imagelib.c: SIXEL_PALETTES_SIZE is used.

@@ -1,6 +1,6 @@
 * Update unicode property table (generated from UnicodeData.txt and
   EastAsianWidth.txt) to version 11.0.0.
-* Change the maximum number of sixel graphics palette colors from 256 to 65536.
+* Change the maximum number of sixel graphics palette colors from 256 to 1024.
 * Bug fixes:
   Fix segfault of mlconfig when GTK_IM_MODULE=uim.
 
