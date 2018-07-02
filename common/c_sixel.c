@@ -325,7 +325,10 @@ static u_char *load_sixel_from_data(const char *file_data, u_int *width_ret, u_i
   };
   pixel_t *palette;
   pixel_t *base_palette;
-  pixel_t **ext_palettes = NULL;
+  pixel_t *ext_palette = NULL;
+#ifndef SIXEL_1BPP
+  pixel_t rgb[1];
+#endif
 #endif
 
   pixels = NULL;
@@ -647,43 +650,37 @@ body:
 #ifdef SIXEL_SHAREPALETTE
           color = SIXEL_PALETTE_SIZE - 1;
 #else
-          u_int idx;
-          size_t size;
+          if (color >= 1024) {
+#ifdef SIXEL_1BPP
+            color = 0;
+            goto use_base_palette;
+#else
+            palette = rgb;
+            color -= 1024;
 
-          /* 64 * 1024 = 65536 */
-          if (color > 65535) {
-            color = 65535;
-          }
+#define RGB_555
+#ifdef RGB_555
+            rgb[0] = ((color & 0x7c00) << 9) | ((color & 0x3e0) << 6) | ((color & 0x1f) << 3);
+#else
+            rgb[0] = ((color & 0x1fc000) << 3) | ((color & 0x3f80) << 2) | ((color & 0x7f) << 1);
+#endif
+#undef RGB_555
 
-          color -= SIXEL_PALETTE_SIZE;
-
-          if (!ext_palettes) {
-            if (!(ext_palettes = (pixel_t**)alloca(sizeof(pixel_t*) * 64))) {
-              color = 0;
-              goto use_base_palette;
-            }
-            memset(ext_palettes, 0, sizeof(pixel_t*) * 64);
-          }
-
-          if (color < 1024 - SIXEL_PALETTE_SIZE) {
-            idx = 0;
-            size = (1024 - SIXEL_PALETTE_SIZE) * sizeof(pixel_t);
+            color = 0;
+#endif
           } else {
-            color -= (1024 - SIXEL_PALETTE_SIZE);
-            idx = 1 + (color >> 10); /* color / 1024 */
-            color &= 1023;
-            size = 1024 * sizeof(pixel_t);
-          }
+            color -= SIXEL_PALETTE_SIZE;
 
-          if (!ext_palettes[idx]) {
-            if (!(ext_palettes[idx] = (pixel_t*)alloca(size))) {
-              color = 0;
-              goto use_base_palette;
+            if (!ext_palette) {
+              if (!(ext_palette = (pixel_t*)alloca(1024 - SIXEL_PALETTE_SIZE))) {
+                color = 0;
+                goto use_base_palette;
+              }
+              memset(ext_palette, 0, 1024 - SIXEL_PALETTE_SIZE);
             }
-            memset(ext_palettes[idx], 0, size);
-          }
 
-          palette = ext_palettes[idx];
+            palette = ext_palette;
+          }
 #endif
         } else {
           if (color < 0) {
