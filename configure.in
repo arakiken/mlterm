@@ -37,6 +37,8 @@ AC_SUBST(POBL_CFLAGS)
 AC_CHECK_TOOL(PKG_CONFIG, pkg-config)
 
 AC_PROG_CC
+# mlimgloader (gdiplus.cpp) and SCIM
+AC_PROG_CXX
 AC_PROG_INSTALL
 
 AC_C_INLINE
@@ -131,8 +133,29 @@ mingw*)
 		echo "$gui is not supported in ${host_os}. Use win32."
 		gui="win32"
 	fi
-
 	;;
+
+msys*)
+  # msys2
+	AC_CHECK_PROG(CYGPATHW,cygpath,cygpath -w,echo)
+	WIN32TAG=_win32
+
+	# $have_x is defined in AC_PATH_XTRA.
+	if test "$have_x" = "yes" ; then
+		if test "$gui" = "" ; then
+			gui="xlib"
+		elif test "$gui" != "xlib" -a "$gui" != "win32" -a "$gui" != "console" -a "$gui" != "sdl2"; then
+			echo "$gui is not supported in ${host_os}. Use win32."
+			gui="win32"
+		fi
+	else
+		if test "$gui" != "win32" -a "$gui" != "console" -a "$gui" != "sdl2"; then
+			echo "$gui is not supported in ${host_os}. Use win32."
+			gui="win32"
+		fi
+	fi
+	;;
+
 cygwin*)
 	AC_CHECK_PROG(CYGPATHW,cygpath,cygpath -w,echo)
 	WIN32TAG=_win32
@@ -159,6 +182,7 @@ cygwin*)
 		fi
 	fi
 	;;
+
 *)
 	CYGPATHW=echo
 	if test "$gui" != "xlib" -a "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" -a "$gui" != "wayland" -a "$gui" != "sdl2"; then
@@ -783,14 +807,12 @@ AC_ARG_ENABLE(ssh2,
 	[  --disable-ssh2          libssh2 @<:@default=enabled@:>@],
 	ssh2=$enable_ssh2, ssh2="yes")
 if test "$ssh2" = "yes" ; then
-	AC_CHECK_LIB(ssh2,libssh2_init,
+	PKG_CHECK_MODULES(SSH2, libssh2,
 		[
-		SSH2_CFLAGS="-DUSE_LIBSSH2"
+		SSH2_CFLAGS="$SSH2_CFLAGS -DUSE_LIBSSH2"
 		if test "x$allow_undefined_flag" = "xunsupported" ; then
 			# vt_pty_ssh.c uses CRYPTO_xxx functions.
-			SSH2_LIBS="-lcrypto -lssh2"
-		else
-			SSH2_LIBS="-lssh2"
+			SSH2_LIBS="-lcrypto $SSH2_LIBS"
 		fi
 		], ssh2="no")
 fi
@@ -851,6 +873,9 @@ AC_ARG_ENABLE(utmp,
 		utmp="no"
 		;;
 	mingw*)
+		utmp="no"
+		;;
+	msys*)
 		utmp="no"
 		;;
 	cygwin*)
@@ -932,10 +957,13 @@ if test "$enable_use_tools" = "no" ; then
 fi
 AC_SUBST(TOOLS_CFLAGS)
 
+AM_INIT_AUTOMAKE(mlterm,3.8.6)
+
 for tool in ${tools} ; do
 case ${tool} in
 mlconfig)
 	if test "${have_gtk}" = "yes" -a "$gui" != "fb" -a "$gui" != "console" ; then
+		AM_GLIB_GNU_GETTEXT
 		MAKE_DIRS="tool/mlconfig ${MAKE_DIRS}"
 		OUTPUT_FILES="tool/mlconfig/Makefile tool/mlconfig/po/Makefile.in ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
@@ -1316,7 +1344,6 @@ if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 fi
 
 if test "x$scim" != "xno" -a "$gui" != "fb" -a "$gui" != "console" ; then
-	AC_PROG_CXX
 	PKG_CHECK_MODULES(SCIM, scim >= 1.4.0, has_scim=yes , has_scim=no)
 	if test "x$has_scim" = xyes ; then
 		MAKE_DIRS="inputmethod/scim ${MAKE_DIRS}"
@@ -1541,10 +1568,6 @@ AC_ARG_ENABLE(optimize_redrawing,
 if test "$optimize_redrawing" = "yes" ; then
 	CFLAGS="$CFLAGS -DOPTIMIZE_REDRAWING"
 fi
-
-# gettext
-AM_INIT_AUTOMAKE(mlterm,3.8.6)
-AM_GNU_GETTEXT([external])
 
 # XXX(maybe not portable)
 if test "${USE_NLS}" = "yes" ; then

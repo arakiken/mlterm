@@ -97,6 +97,39 @@ ui_display_t *ui_display_open(char *disp_name, /* Ignored */
     return &_disp;
   }
 
+#if 0
+  SetDllDirectory("");
+
+  {
+    HMODULE module;
+
+#if 1
+    if ((module = LoadLibrary("Shcore"))) {
+      typedef HRESULT (*func)(int);
+      func set_process_dpi_awareness;
+
+      if ((set_process_dpi_awareness = (func)GetProcAddress(module, "SetProcessDpiAwareness"))) {
+        (*set_process_dpi_awareness)(1 /*PROCESS_SYSTEM_DPI_AWARE*/);
+      }
+
+      FreeLibrary(module);
+    }
+#else
+    if ((module = LoadLibrary("User32"))) {
+      typedef HRESULT (*func)(int);
+      func set_process_dpi_awareness;
+
+      if ((set_process_dpi_awareness = (func)GetProcAddress(module,
+                                                            "SetProcessDpiAwarenessContext"))) {
+        (*set_process_dpi_awareness)(-2 /*DPI_AWARENESS_CONTEXT_SYSTEM_AWARE*/);
+      }
+
+      FreeLibrary(module);
+    }
+#endif
+  }
+#endif
+
 #ifdef USE_WIN32API
   /*
    * XXX

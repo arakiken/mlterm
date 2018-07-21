@@ -1836,7 +1836,13 @@ static int shortcut_str(ui_screen_t *screen, KeySym ksym, u_int state, int x, in
     key = alloca(key_len);
 
     strcpy(key, str);
-    key[str_len - 1] = ' ';
+
+    /* XXX */
+    if (strcmp(str + strlen(str) - 15, "microsoft-edge:") == 0) {
+      str_len--;
+    } else {
+      key[str_len - 1] = ' ';
+    }
 
     (*vt_str_parser->init)(vt_str_parser);
     vt_str_parser_set_str(vt_str_parser, screen->sel.sel_str, screen->sel.sel_len);
@@ -5694,6 +5700,44 @@ static void pty_closed(void *p) {
 
 static void show_config(void *p, char *msg) { vt_term_show_message(((ui_screen_t *)p)->term, msg); }
 
+static int permit_exec_cmd(char *cmd) {
+  bl_file_t *file;
+  char *path;
+
+  while (*cmd == ' ') {
+    cmd++;
+  }
+  if (*cmd == '\"') {
+    cmd++;
+  }
+
+  if (!(path = bl_get_user_rc_path("mlterm/execlist"))) {
+    return 0;
+  }
+
+  file = bl_file_open(path, "r");
+  free(path);
+
+  if (file) {
+    char *line;
+    size_t len;
+
+    while ((line = bl_file_get_line(file, &len))) {
+      if (line[len - 1] == '\n') {
+        len--;
+      }
+
+      if (strncmp(cmd, line, len) == 0 && (cmd[len] == ' ' || cmd[len] == '\"')) {
+        bl_file_close(file);
+
+        return 1;
+      }
+    }
+  }
+
+  return 0;
+}
+
 /* --- global functions --- */
 
 void ui_exit_backscroll_by_pty(int flag) { exit_backscroll_by_pty = flag; }
@@ -6180,30 +6224,27 @@ int ui_screen_exec_cmd(ui_screen_t *screen, char *cmd) {
         for (count = 0; count < sizeof(ign_opts) / sizeof(ign_opts[0]); count++) {
           if ((p = strstr(cmd, ign_opts[count])) &&
               (count > 0 || /* not -e option, or */
-               (p[2] < 'A'  /* not match --extkey, --exitbs */
-#if 1
+               (p[2] < 'A'  /* not match --extkey, --exitbs */ &&
                 /*
-                 * XXX for mltracelog.sh which executes
-                 * mlclient -e cat.
-                 * 3.1.9 or later : mlclient "-e" "cat"
-                 * 3.1.8 or before: mlclient "-e"  "cat"
+                 * XXX
+                 * mlclient -e cat (which mltracelog.sh executes)
+                 * => 3.1.9 or later : mlclient "-e" "cat"
+                 *                               ^  ^
+                 *                               p p+3
+                 *    3.1.8 or before: mlclient "-e"  "cat"
+                 *                               ^  ^
+                 *                               p p+3
+                 *
+                 * echo -e "\x1b]5379;mlclient -e cat"
+                 * => mlclient -e cat
+                 *             ^  ^
+                 *             p p+3        
                  */
-                &&
-                strcmp(p + 4, "\"cat\"") != 0 && strcmp(p + 5, "\"cat\"") != 0
-                /* for w3m */
-                &&
-                strncmp(p + 4, "\"w3m\"", 5) != 0
-#endif
-                ))) {
-            if (p[-1] == '-') {
+                !permit_exec_cmd(p + 3)))) {
+            if (p[-1] == '-') { /* for --xxx style option */
               p--;
             }
-
-            bl_msg_printf(
-                "Remove %s "
-                "from mlclient args.\n",
-                p - 1);
-
+            bl_msg_printf("Remove %s from mlclient args.\n", p - 1);
             p[-1] = '\0'; /* Replace ' ', '\"' or '\''. */
           }
         }

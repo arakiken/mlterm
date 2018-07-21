@@ -94,7 +94,7 @@ public class MLTermPty {
       errorHappened = false;
 
       for (int count = 0; count < files.length; count++) {
-        if (!results[count] && files[count].indexOf('_') == -1 && /* libmef_xxx is not loaded. */
+        if (!results[count] && files[count].indexOf("mef_") == -1 && /* libmef_xxx is not loaded. */
             files[count].indexOf(".exe") == -1) /* plink.exe is not loaded. */
         {
           try {

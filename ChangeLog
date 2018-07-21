@@ -1,3 +1,40 @@
+2018-07-22  Araki Ken  <arakiken@users.sf.net>
+
+	* c_sixel.c: Sixel graphics extension and option1 of
+	  https://github.com/kmiya-culti/RLogin/issues/22#issue-341758598
+	  are supported.
+
+	* vt_parser.c: Return value of CSI?1;Pa;PvS is changed from CSI?1;0;256S to
+	  CSI?1;0;1024S.
+
+	* MLTermPty.c: It is possible to load libgcc_s_sjlj-1.dll.
+
+	* bl_pty_streams.c: #define __XSI_VISIBLE 600 forcibly for cygwin.
+	  (see /usr/include/cygwin/stdlib.h)
+
+	* uitoolkit/Makefile.in, servman/Makefile.in:
+	  i686-w64-mingw32-windres.exe is used instead of windres.exe if $CC is
+	  i686-w64-mingw32-gcc.exe.
+
+	* aclocal.m4, ltmain.sh: Updated for Cygwin/x86_64.
+
+	* configure.in:
+	  - $host="msys" is supported.
+	  - PKG_CHECK_MODULES(libssh2) is used instead of AC_CHECK_LIB(libssh2_init).
+	  - AM_GLIB_GNU_GETTEXT is used instead of AM_GNU_GETTEXT.
+
+	* mlconfig/po/Makefile.in.in: Simplified.
+
+	* mlconfig/po/ChangeLog, LINGUAS, Makevars, Rules-quot, en@boldquot.header,
+	  en@quot.header, insert-header.sin, quot.sed: Removed.
+
+	* win32/mlterm.manifest: Added.
+
+	* ui_screen.c:
+	  - Hack for "microsoft-edge:" is added to shortcut_str().
+	  - permit_exec_cmd() which checks ~/.mlterm/execlist to determine whether
+	    "mlclient -e cmd" is permitted is added.
+
 2018-07-02  Araki Ken  <arakiken@users.sf.net>
 
 	* c_sixel.c:

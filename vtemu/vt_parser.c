@@ -4753,8 +4753,10 @@ inline static int parse_vt100_escape_sequence(
           char *seq;
 
           if (num == 3 && ps[0] == 1 &&
-              (ps[1] == 1 || ps[1] == 2 || (ps[1] == 3 && ps[2] == 256))) {
-            seq = "\x1b[?1;0;256S";
+              (ps[1] == 1 /* read */ || ps[1] == 2 /* reset to default */ ||
+               ps[1] == 3 /* set (ps[2] is ignored) */ ||
+               ps[1] == 4 /* read the max allowd value */)) {
+            seq = "\x1b[?1;0;1024S";
           } else {
             seq = "\x1b[?1;3;0S";
           }

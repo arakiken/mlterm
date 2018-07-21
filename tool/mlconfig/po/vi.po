@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mlterm\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-10-21 01:39+0900\n"
+"POT-Creation-Date: 2018-07-17 23:51+0900\n"
 "PO-Revision-Date: 2006-04-17 21:11+0700\n"
 "Last-Translator: Pham Thanh Long <ptlong@gmail.com>\n"
 "Language-Team: Vietnam <gnome-vi-list@gnome.org>\n"
@@ -83,7 +83,7 @@ msgstr ""
 msgid "Actual Value"
 msgstr ""
 
-#: tool/mlconfig/gtkxlfdsel.c:504 tool/mlconfig/main.c:540
+#: tool/mlconfig/gtkxlfdsel.c:504 tool/mlconfig/main.c:551
 msgid "Font"
 msgstr "Phông"
 
@@ -244,11 +244,11 @@ msgstr ""
 msgid "OK"
 msgstr ""
 
-#: tool/mlconfig/gtkxlfdsel.c:3484 tool/mlconfig/main.c:362
+#: tool/mlconfig/gtkxlfdsel.c:3484 tool/mlconfig/main.c:372
 msgid "Apply"
 msgstr "Áp dụng"
 
-#: tool/mlconfig/gtkxlfdsel.c:3490 tool/mlconfig/main.c:363
+#: tool/mlconfig/gtkxlfdsel.c:3490 tool/mlconfig/main.c:373
 msgid "Cancel"
 msgstr "Thôi"
 
@@ -257,106 +257,106 @@ msgstr "Thôi"
 msgid "Font Selection"
 msgstr " Chọn "
 
-#: tool/mlconfig/main.c:204
+#: tool/mlconfig/main.c:216
 msgid "Send"
 msgstr ""
 
-#: tool/mlconfig/main.c:205
+#: tool/mlconfig/main.c:217
 msgid "Recv"
 msgstr ""
 
-#: tool/mlconfig/main.c:206
+#: tool/mlconfig/main.c:218
 msgid "Return"
 msgstr ""
 
-#: tool/mlconfig/main.c:207
+#: tool/mlconfig/main.c:219
 #, fuzzy
 msgid "Exit"
 msgstr "Lưu & Thoát"
 
-#: tool/mlconfig/main.c:218
+#: tool/mlconfig/main.c:230
 msgid "Local"
 msgstr ""
 
-#: tool/mlconfig/main.c:235
+#: tool/mlconfig/main.c:247
 msgid "Remote"
 msgstr ""
 
-#: tool/mlconfig/main.c:360
+#: tool/mlconfig/main.c:370
 msgid "Save&Exit"
 msgstr "Lưu & Thoát"
 
-#: tool/mlconfig/main.c:361
+#: tool/mlconfig/main.c:371
 msgid "Apply&Exit"
 msgstr "Áp dụng & Thoát"
 
-#: tool/mlconfig/main.c:372
+#: tool/mlconfig/main.c:382
 msgid "Font size (temporary)"
 msgstr "Cỡ phông (tạm thời)"
 
-#: tool/mlconfig/main.c:380
+#: tool/mlconfig/main.c:390
 msgid "Larger"
 msgstr "Lớn hơn"
 
-#: tool/mlconfig/main.c:381
+#: tool/mlconfig/main.c:391
 msgid "Smaller"
 msgstr "Nhỏ hơn"
 
-#: tool/mlconfig/main.c:396
+#: tool/mlconfig/main.c:406
 msgid "Command"
 msgstr ""
 
-#: tool/mlconfig/main.c:404
+#: tool/mlconfig/main.c:414
 msgid "Full reset"
 msgstr "Lập lại toàn bộ"
 
-#: tool/mlconfig/main.c:405
+#: tool/mlconfig/main.c:415
 msgid "Snapshot"
 msgstr ""
 
-#: tool/mlconfig/main.c:407
+#: tool/mlconfig/main.c:417
 msgid "SCP"
 msgstr ""
 
-#: tool/mlconfig/main.c:423
+#: tool/mlconfig/main.c:433
 msgid "PTY List"
 msgstr "Danh sách PTY"
 
-#: tool/mlconfig/main.c:431
+#: tool/mlconfig/main.c:441
 msgid " New "
 msgstr " Mới "
 
-#: tool/mlconfig/main.c:432 tool/mlconfig/mc_font.c:1266
+#: tool/mlconfig/main.c:442 tool/mlconfig/mc_font.c:1266
 #: tool/mlconfig/mc_wall_pic.c:62
 #, fuzzy
 msgid "Select"
 msgstr " Chọn "
 
-#: tool/mlconfig/main.c:456
+#: tool/mlconfig/main.c:467
 msgid "mlterm configuration"
 msgstr "Cấu hình mlterm"
 
-#: tool/mlconfig/main.c:491 tool/mlconfig/mc_char_encoding.c:157
+#: tool/mlconfig/main.c:502 tool/mlconfig/mc_char_encoding.c:157
 msgid "Encoding"
 msgstr "Mã hoá"
 
-#: tool/mlconfig/main.c:577
+#: tool/mlconfig/main.c:588
 msgid "Background"
 msgstr "Nền"
 
-#: tool/mlconfig/main.c:588
+#: tool/mlconfig/main.c:599
 msgid "Picture/Transparent"
 msgstr "Ảnh/Trong suốt"
 
-#: tool/mlconfig/main.c:626 tool/mlconfig/mc_bgtype.c:105
+#: tool/mlconfig/main.c:637 tool/mlconfig/mc_bgtype.c:105
 msgid "Color"
 msgstr "Màu sắc"
 
-#: tool/mlconfig/main.c:647
+#: tool/mlconfig/main.c:658
 msgid "Scrollbar"
 msgstr "Thanh cuộn"
 
-#: tool/mlconfig/main.c:678
+#: tool/mlconfig/main.c:689
 msgid "Others"
 msgstr "Khác"
 
@@ -417,12 +417,20 @@ msgstr "--- Hán phồn thể ---"
 msgid "--- simplified Chinese ---"
 msgstr "--- Hán giản thể ---"
 
-#: tool/mlconfig/mc_char_encoding.c:151 tool/mlconfig/mc_im.c:297
-#: tool/mlconfig/mc_im.c:346 tool/mlconfig/mc_im.c:418
-#: tool/mlconfig/mc_im.c:421
+#: tool/mlconfig/mc_char_encoding.c:151 tool/mlconfig/mc_im.c:309
+#: tool/mlconfig/mc_im.c:358 tool/mlconfig/mc_im.c:430
+#: tool/mlconfig/mc_im.c:433
 #, c-format
 msgid "auto (currently %s)"
 msgstr "tự động (hiện tại %s)"
+
+#: tool/mlconfig/mc_char_width.c:85
+msgid "Add full width areas"
+msgstr ""
+
+#: tool/mlconfig/mc_char_width.c:90
+msgid "Add half width areas"
+msgstr ""
 
 #: tool/mlconfig/mc_click.c:49
 msgid "Double click interval (msec)"
@@ -590,23 +598,36 @@ msgstr ""
 msgid "Rows"
 msgstr ""
 
-#: tool/mlconfig/mc_im.c:352
+#: tool/mlconfig/mc_im.c:364
 msgid "XIM Server"
 msgstr "Máy chủ XIM"
 
-#: tool/mlconfig/mc_im.c:355
+#: tool/mlconfig/mc_im.c:367
 msgid "XIM locale"
 msgstr "XIM bản địa"
 
-#: tool/mlconfig/mc_im.c:430
+#: tool/mlconfig/mc_im.c:442
 msgid "Option"
 msgstr "Tuỳ chọn"
 
-#: tool/mlconfig/mc_im.c:542
+#: tool/mlconfig/mc_im.c:534
+msgid "Dictionary"
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:535
+msgid "Sticky shift key"
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:584
+#, fuzzy
+msgid "Server"
+msgstr "Máy chủ XIM"
+
+#: tool/mlconfig/mc_im.c:719
 msgid "Input Method"
 msgstr "Phương thức nhập"
 
-#: tool/mlconfig/mc_im.c:566 tool/mlconfig/mc_radio.c:55
+#: tool/mlconfig/mc_im.c:743 tool/mlconfig/mc_radio.c:55
 #: tool/mlconfig/mc_radio.c:58 tool/mlconfig/mc_radio.c:61
 #: tool/mlconfig/mc_radio.c:64
 msgid "None"
@@ -616,19 +637,19 @@ msgstr "Không"
 msgid "Backlog size (lines)"
 msgstr "Số dòng cuộn"
 
-#: tool/mlconfig/mc_opentype.c:68
+#: tool/mlconfig/mc_opentype.c:92
 msgid "Select opentype features"
 msgstr ""
 
-#: tool/mlconfig/mc_opentype.c:154
+#: tool/mlconfig/mc_opentype.c:178
 msgid "Select opentype scripts"
 msgstr ""
 
-#: tool/mlconfig/mc_opentype.c:230
+#: tool/mlconfig/mc_opentype.c:254
 msgid "Features"
 msgstr ""
 
-#: tool/mlconfig/mc_opentype.c:235
+#: tool/mlconfig/mc_opentype.c:259
 msgid "Script"
 msgstr ""
 
@@ -757,7 +778,7 @@ msgstr "Tỉ lệ mờ dần khi rời bỏ tiêu điểm"
 msgid "Screen size ratio against font size"
 msgstr "Tỉ lệ màn hình với cỡ phông"
 
-#: tool/mlconfig/mc_sb_view.c:116
+#: tool/mlconfig/mc_sb_view.c:119
 msgid "View"
 msgstr "Xem"
 
@@ -790,7 +811,7 @@ msgid ""
 "Format: U+XXXX-XXXX or U+XXXX (U+ is optional)"
 msgstr ""
 
-#: tool/mlconfig/mc_wordsep.c:93
+#: tool/mlconfig/mc_wordsep.c:111
 msgid "Word separators"
 msgstr ""
 

@@ -11,47 +11,45 @@
 PACKAGE = mlconfig
 VERSION = @VERSION@
 
+DOMAIN = $(PACKAGE)
+
+COPYRIGHT_HOLDER = Free Software Foundation, Inc.
+
 SHELL = /bin/sh
 @SET_MAKE@
 
+top_builddir = @top_builddir@
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
+subdir = tool/mlconfig/po
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 datadir = @datadir@
 localedir = $(datadir)/locale
-gettextsrcdir = $(datadir)/gettext/po
 
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
-MKINSTALLDIRS = @MKINSTALLDIRS@
+MKINSTALLDIRS = $(top_srcdir)/script/mkinstalldirs
 
 GMSGFMT = @GMSGFMT@
 MSGFMT = @MSGFMT@
 XGETTEXT = @XGETTEXT@
 MSGMERGE = msgmerge
-MSGMERGE_UPDATE = @MSGMERGE@ --update
-MSGINIT = msginit
-MSGCONV = msgconv
-MSGFILTER = msgfilter
+MSGMERGE_UPDATE = msgmerge --update
 
-POFILES = @POFILES@
-GMOFILES = @GMOFILES@
-UPDATEPOFILES = @UPDATEPOFILES@
-DUMMYPOFILES = @DUMMYPOFILES@
-DISTFILES.common = Makefile.in.in Makevars remove-potcdate.sin \
-$(DISTFILES.common.extra1) $(DISTFILES.common.extra2) $(DISTFILES.common.extra3)
-DISTFILES = $(DISTFILES.common) POTFILES.in $(DOMAIN).pot \
-$(POFILES) $(GMOFILES) \
-$(DISTFILES.extra1) $(DISTFILES.extra2) $(DISTFILES.extra3)
+# These options get passed to xgettext.
+XGETTEXT_OPTIONS = --keyword=_ --keyword=N_
+
+POFILES = $(srcdir)/ar.po $(srcdir)/de.po $(srcdir)/ja.po $(srcdir)/vi.po $(srcdir)/zh_TW.po
+GMOFILES = $(POFILES:.po=.gmo)
+UPDATEPOFILES = ar.po-update de.po-update ja.po-update vi.po-update zh_TW.po-update
+DUMMYPOFILES = $(UPDATEPOFILES:.po-update=.nop)
 
 POTFILES = \
 
-CATALOGS = @CATALOGS@
-
-# Makevars gets inserted here. (Don't remove this line!)
+CATALOGS =  ar.gmo de.gmo ja.gmo vi.gmo zh_TW.gmo
 
 .SUFFIXES:
 .SUFFIXES: .po .gmo .mo .sed .sin .nop .po-update
@@ -69,7 +67,6 @@ CATALOGS = @CATALOGS@
 .sin.sed:
 	sed -e '/^#/d' $< > t-$@
 	mv t-$@ $@
-
 
 all: all-@USE_NLS@
 
@@ -110,20 +107,10 @@ $(POFILES): $(srcdir)/$(DOMAIN).pot
 	cd $(srcdir) && $(MSGMERGE_UPDATE) $${lang}.po $(DOMAIN).pot
 
 
-install: install-exec install-data
-install-exec:
-install-data: install-data-@USE_NLS@
-	if test "$(PACKAGE)" = "gettext"; then \
-	  $(MKINSTALLDIRS) $(DESTDIR)$(gettextsrcdir); \
-	  for file in $(DISTFILES.common); do \
-	    $(INSTALL_DATA) $(srcdir)/$$file \
-			    $(DESTDIR)$(gettextsrcdir)/$$file; \
-	  done; \
-	else \
-	  : ; \
-	fi
-install-data-no: all
-install-data-yes: all
+install: install-@USE_NLS@
+
+install-no:
+install-yes: all
 	$(MKINSTALLDIRS) $(DESTDIR)$(datadir)
 	@catalogs='$(CATALOGS)'; \
 	for cat in $$catalogs; do \
@@ -164,65 +151,7 @@ install-data-yes: all
 	  done; \
 	done
 
-install-strip: install
-
-installdirs: installdirs-exec installdirs-data
-installdirs-exec:
-installdirs-data: installdirs-data-@USE_NLS@
-	if test "$(PACKAGE)" = "gettext"; then \
-	  $(MKINSTALLDIRS) $(DESTDIR)$(gettextsrcdir); \
-	else \
-	  : ; \
-	fi
-installdirs-data-no:
-installdirs-data-yes:
-	$(MKINSTALLDIRS) $(DESTDIR)$(datadir)
-	@catalogs='$(CATALOGS)'; \
-	for cat in $$catalogs; do \
-	  cat=`basename $$cat`; \
-	  lang=`echo $$cat | sed -e 's/\.gmo$$//'`; \
-	  dir=$(localedir)/$$lang/LC_MESSAGES; \
-	  $(MKINSTALLDIRS) $(DESTDIR)$$dir; \
-	  for lc in '' $(EXTRA_LOCALE_CATEGORIES); do \
-	    if test -n "$$lc"; then \
-	      if (cd $(DESTDIR)$(localedir)/$$lang && LC_ALL=C ls -l -d $$lc 2>/dev/null) | grep ' -> ' >/dev/null; then \
-	        link=`cd $(DESTDIR)$(localedir)/$$lang && LC_ALL=C ls -l -d $$lc | sed -e 's/^.* -> //'`; \
-	        mv $(DESTDIR)$(localedir)/$$lang/$$lc $(DESTDIR)$(localedir)/$$lang/$$lc.old; \
-	        mkdir $(DESTDIR)$(localedir)/$$lang/$$lc; \
-	        (cd $(DESTDIR)$(localedir)/$$lang/$$lc.old && \
-	         for file in *; do \
-	           if test -f $$file; then \
-	             ln -s ../$$link/$$file $(DESTDIR)$(localedir)/$$lang/$$lc/$$file; \
-	           fi; \
-	         done); \
-	        rm -f $(DESTDIR)$(localedir)/$$lang/$$lc.old; \
-	      else \
-	        if test -d $(DESTDIR)$(localedir)/$$lang/$$lc; then \
-	          :; \
-	        else \
-	          rm -f $(DESTDIR)$(localedir)/$$lang/$$lc; \
-	          mkdir $(DESTDIR)$(localedir)/$$lang/$$lc; \
-	        fi; \
-	      fi; \
-	    fi; \
-	  done; \
-	done
-
-# Define this as empty until I found a useful application.
-installcheck:
-
-uninstall: uninstall-exec uninstall-data
-uninstall-exec:
-uninstall-data: uninstall-data-@USE_NLS@
-	if test "$(PACKAGE)" = "gettext"; then \
-	  for file in $(DISTFILES.common); do \
-	    rm -f $(DESTDIR)$(gettextsrcdir)/$$file; \
-	  done; \
-	else \
-	  : ; \
-	fi
-uninstall-data-no:
-uninstall-data-yes:
+uninstall:
 	catalogs='$(CATALOGS)'; \
 	for cat in $$catalogs; do \
 	  cat=`basename $$cat`; \
@@ -232,41 +161,14 @@ uninstall-data-yes:
 	  done; \
 	done
 
-check: all
-
-dvi info tags TAGS ID:
-
-mostlyclean:
+clean:
 	rm -f remove-potcdate.sed
-	rm -f core core.* $(DOMAIN).po $(DOMAIN).1po $(DOMAIN).2po *.new.po
-	rm -fr *.o
-
-clean: mostlyclean
+	rm -f core core.* $(DOMAIN).po $(DOMAIN).1po $(DOMAIN).2po *.new.po \
+		$(POFILES:.po=.po~)
 
 distclean: clean
 	rm -f Makefile Makefile.in POTFILES *.mo
-
-maintainer-clean: distclean
-	@echo "This command is intended for maintainers to use;"
-	@echo "it deletes files that may require special tools to rebuild."
 	rm -f $(GMOFILES)
-
-distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-dist distdir:
-	$(MAKE) update-po
-	@$(MAKE) dist2
-# This is a separate target because 'update-po' must be executed before.
-dist2: $(DISTFILES)
-	dists="$(DISTFILES)"; \
-	if test -f $(srcdir)/ChangeLog; then dists="$$dists ChangeLog"; fi; \
-	if test -f $(srcdir)/LINGUAS; then dists="$$dists LINGUAS"; fi; \
-	for file in $$dists; do \
-	  if test -f $$file; then \
-	    cp -p $$file $(distdir); \
-	  else \
-	    cp -p $(srcdir)/$$file $(distdir); \
-	  fi; \
-	done
 
 update-po: Makefile
 	$(MAKE) $(DOMAIN).pot-update
@@ -308,8 +210,6 @@ Makefile: Makefile.in.in $(top_builddir)/config.status POTFILES.in
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@.in CONFIG_HEADERS= \
 	       $(SHELL) ./config.status
-
-force:
 
 # Tell versions [3.59,3.63) of GNU make not to export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

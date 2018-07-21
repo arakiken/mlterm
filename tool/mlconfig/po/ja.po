@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-10-21 01:39+0900\n"
+"POT-Creation-Date: 2018-07-17 23:51+0900\n"
 "PO-Revision-Date: 2002-11-25 19:24+0100\n"
 "Last-Translator: Tomohiro KUBOTA <kubota@debian.org>\n"
 "Language-Team: Japanese <mlterm-dev-ja@lists.sourceforge.net>\n"
@@ -78,7 +78,7 @@ msgstr ""
 msgid "Actual Value"
 msgstr ""
 
-#: tool/mlconfig/gtkxlfdsel.c:504 tool/mlconfig/main.c:540
+#: tool/mlconfig/gtkxlfdsel.c:504 tool/mlconfig/main.c:551
 msgid "Font"
 msgstr "フォント"
 
@@ -243,11 +243,11 @@ msgstr ""
 msgid "OK"
 msgstr ""
 
-#: tool/mlconfig/gtkxlfdsel.c:3484 tool/mlconfig/main.c:362
+#: tool/mlconfig/gtkxlfdsel.c:3484 tool/mlconfig/main.c:372
 msgid "Apply"
 msgstr "適用"
 
-#: tool/mlconfig/gtkxlfdsel.c:3490 tool/mlconfig/main.c:363
+#: tool/mlconfig/gtkxlfdsel.c:3490 tool/mlconfig/main.c:373
 msgid "Cancel"
 msgstr "キャンセル"
 
@@ -256,107 +256,107 @@ msgstr "キャンセル"
 msgid "Font Selection"
 msgstr "選択"
 
-#: tool/mlconfig/main.c:204
+#: tool/mlconfig/main.c:216
 msgid "Send"
 msgstr ""
 
-#: tool/mlconfig/main.c:205
+#: tool/mlconfig/main.c:217
 msgid "Recv"
 msgstr ""
 
-#: tool/mlconfig/main.c:206
+#: tool/mlconfig/main.c:218
 msgid "Return"
 msgstr ""
 
-#: tool/mlconfig/main.c:207
+#: tool/mlconfig/main.c:219
 #, fuzzy
 msgid "Exit"
 msgstr "保存&終了"
 
-#: tool/mlconfig/main.c:218
+#: tool/mlconfig/main.c:230
 #, fuzzy
 msgid "Local"
 msgstr "ローカルエコー"
 
-#: tool/mlconfig/main.c:235
+#: tool/mlconfig/main.c:247
 msgid "Remote"
 msgstr ""
 
-#: tool/mlconfig/main.c:360
+#: tool/mlconfig/main.c:370
 msgid "Save&Exit"
 msgstr "保存&終了"
 
-#: tool/mlconfig/main.c:361
+#: tool/mlconfig/main.c:371
 msgid "Apply&Exit"
 msgstr "適用&終了"
 
-#: tool/mlconfig/main.c:372
+#: tool/mlconfig/main.c:382
 msgid "Font size (temporary)"
 msgstr "フォントサイズ (一時設定)"
 
-#: tool/mlconfig/main.c:380
+#: tool/mlconfig/main.c:390
 msgid "Larger"
 msgstr "大きく"
 
-#: tool/mlconfig/main.c:381
+#: tool/mlconfig/main.c:391
 msgid "Smaller"
 msgstr "小さく"
 
-#: tool/mlconfig/main.c:396
+#: tool/mlconfig/main.c:406
 msgid "Command"
 msgstr ""
 
-#: tool/mlconfig/main.c:404
+#: tool/mlconfig/main.c:414
 msgid "Full reset"
 msgstr "全リセット"
 
-#: tool/mlconfig/main.c:405
+#: tool/mlconfig/main.c:415
 msgid "Snapshot"
 msgstr ""
 
-#: tool/mlconfig/main.c:407
+#: tool/mlconfig/main.c:417
 msgid "SCP"
 msgstr ""
 
-#: tool/mlconfig/main.c:423
+#: tool/mlconfig/main.c:433
 msgid "PTY List"
 msgstr "仮想端末一覧"
 
-#: tool/mlconfig/main.c:431
+#: tool/mlconfig/main.c:441
 msgid " New "
 msgstr "新規"
 
-#: tool/mlconfig/main.c:432 tool/mlconfig/mc_font.c:1266
+#: tool/mlconfig/main.c:442 tool/mlconfig/mc_font.c:1266
 #: tool/mlconfig/mc_wall_pic.c:62
 #, fuzzy
 msgid "Select"
 msgstr "選択"
 
-#: tool/mlconfig/main.c:456
+#: tool/mlconfig/main.c:467
 msgid "mlterm configuration"
 msgstr "mltermの設定"
 
-#: tool/mlconfig/main.c:491 tool/mlconfig/mc_char_encoding.c:157
+#: tool/mlconfig/main.c:502 tool/mlconfig/mc_char_encoding.c:157
 msgid "Encoding"
 msgstr "エンコーディング"
 
-#: tool/mlconfig/main.c:577
+#: tool/mlconfig/main.c:588
 msgid "Background"
 msgstr "背景"
 
-#: tool/mlconfig/main.c:588
+#: tool/mlconfig/main.c:599
 msgid "Picture/Transparent"
 msgstr "壁紙/透明"
 
-#: tool/mlconfig/main.c:626 tool/mlconfig/mc_bgtype.c:105
+#: tool/mlconfig/main.c:637 tool/mlconfig/mc_bgtype.c:105
 msgid "Color"
 msgstr "色"
 
-#: tool/mlconfig/main.c:647
+#: tool/mlconfig/main.c:658
 msgid "Scrollbar"
 msgstr "スクロールバー"
 
-#: tool/mlconfig/main.c:678
+#: tool/mlconfig/main.c:689
 msgid "Others"
 msgstr "その他"
 
@@ -416,17 +416,18 @@ msgstr "--- 中国語(繁体字) ---"
 msgid "--- simplified Chinese ---"
 msgstr "--- 中国語(簡体字) ---"
 
-#: tool/mlconfig/mc_char_encoding.c:151 tool/mlconfig/mc_im.c:297
-#: tool/mlconfig/mc_im.c:346 tool/mlconfig/mc_im.c:418
-#: tool/mlconfig/mc_im.c:421
+#: tool/mlconfig/mc_char_encoding.c:151 tool/mlconfig/mc_im.c:309
+#: tool/mlconfig/mc_im.c:358 tool/mlconfig/mc_im.c:430
+#: tool/mlconfig/mc_im.c:433
 #, c-format
 msgid "auto (currently %s)"
 msgstr "自動 (現在 %s)"
 
-#: tool/mlconfig/mc_char_width.c:65
+#: tool/mlconfig/mc_char_width.c:85
 msgid "Add full width areas"
 msgstr "全角幅文字の範囲を追加"
 
+#: tool/mlconfig/mc_char_width.c:90
 msgid "Add half width areas"
 msgstr "半角幅文字の範囲を追加"
 
@@ -596,23 +597,36 @@ msgstr "桁数"
 msgid "Rows"
 msgstr "行数"
 
-#: tool/mlconfig/mc_im.c:352
+#: tool/mlconfig/mc_im.c:364
 msgid "XIM Server"
 msgstr "XIMサーバ"
 
-#: tool/mlconfig/mc_im.c:355
+#: tool/mlconfig/mc_im.c:367
 msgid "XIM locale"
 msgstr "入力ロケール"
 
-#: tool/mlconfig/mc_im.c:430
+#: tool/mlconfig/mc_im.c:442
 msgid "Option"
 msgstr "オプション"
 
-#: tool/mlconfig/mc_im.c:542
+#: tool/mlconfig/mc_im.c:534
+msgid "Dictionary"
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:535
+msgid "Sticky shift key"
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:584
+#, fuzzy
+msgid "Server"
+msgstr "XIMサーバ"
+
+#: tool/mlconfig/mc_im.c:719
 msgid "Input Method"
 msgstr "入力メソッド"
 
-#: tool/mlconfig/mc_im.c:566 tool/mlconfig/mc_radio.c:55
+#: tool/mlconfig/mc_im.c:743 tool/mlconfig/mc_radio.c:55
 #: tool/mlconfig/mc_radio.c:58 tool/mlconfig/mc_radio.c:61
 #: tool/mlconfig/mc_radio.c:64
 msgid "None"
@@ -622,19 +636,19 @@ msgstr "なし"
 msgid "Backlog size (lines)"
 msgstr "ログサイズ(行)"
 
-#: tool/mlconfig/mc_opentype.c:68
+#: tool/mlconfig/mc_opentype.c:92
 msgid "Select opentype features"
 msgstr ""
 
-#: tool/mlconfig/mc_opentype.c:154
+#: tool/mlconfig/mc_opentype.c:178
 msgid "Select opentype scripts"
 msgstr ""
 
-#: tool/mlconfig/mc_opentype.c:230
+#: tool/mlconfig/mc_opentype.c:254
 msgid "Features"
 msgstr ""
 
-#: tool/mlconfig/mc_opentype.c:235
+#: tool/mlconfig/mc_opentype.c:259
 msgid "Script"
 msgstr ""
 
@@ -758,7 +772,7 @@ msgstr "Focusがないときの輝度"
 msgid "Screen size ratio against font size"
 msgstr "スクリーンサイズとフォントサイズの割合"
 
-#: tool/mlconfig/mc_sb_view.c:116
+#: tool/mlconfig/mc_sb_view.c:119
 msgid "View"
 msgstr "見かけ"
 
@@ -790,7 +804,7 @@ msgstr ""
 "次の形式でUnicodeの範囲を指定してください\n"
 " U+XXXX-XXXX又はU+XXXX (U+はなくても構いません)"
 
-#: tool/mlconfig/mc_wordsep.c:93
+#: tool/mlconfig/mc_wordsep.c:111
 msgid "Word separators"
 msgstr "単語区切り文字"
 
