@@ -36,5 +36,6 @@
 # Button3="exesel:mlclient -e w3m"
 # Button3="exesel:\"/cygdrive/c/Program Files/Internet Explorer/iexplore.exe\""
 # Button3="exesel:/cygdrive/c/Program\\ Files/Internet\\ Explorer/iexplore.exe"
+# Button3="exesel:explorer.exe microsoft-edge:"
 # Button4="\x1bOA\x1bOA"
 # Button5="\x1bOB\x1bOB"

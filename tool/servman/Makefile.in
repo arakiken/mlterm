@@ -42,7 +42,7 @@ $(PROG): $(OBJ)
 
 servman.o: servman.rc
 	# windres-2.11.90(included in MSYS-DTK 1.0.1) doesn't accept '-I[DIR]' option.
-	windres $< servman.o
+	`echo $(CC)|sed -n 's/\([^-]*-[^-]*-[^-]*-\).*/\1/p'`windres $< servman.o
 
 $(BINDIR):
 	mkdir -p $(BINDIR)

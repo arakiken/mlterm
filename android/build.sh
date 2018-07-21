@@ -7,7 +7,7 @@ if test "$ANDROID_NDK_PATH" = ""; then
 	ANDROID_NDK_PATH=/cygdrive/c/Users/${USER}/workspace/android-ndk-r8e
 fi
 if test "$JAVA_HOME" = ""; then
-	export JAVA_HOME=c:\\Program\ Files\\Java\\jdk1.8.0_51
+	export JAVA_HOME=c:\\Program\ Files\ \(x86\)\\Java\\jdk1.8.0_172
 fi
 
 # Requires android-11 or later.

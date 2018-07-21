@@ -113,7 +113,7 @@ bl_utmp_t bl_utmp_new(const char *tty, const char *host, int pty_fd) {
 
 #ifdef USE_UTMPX
   memcpy(ut.ut_host, host, BL_MIN(sizeof(ut.ut_host), strlen(host)));
-#if !defined(__FreeBSD__) && !defined(__APPLE__)
+#if !defined(__FreeBSD__) && !defined(__APPLE__) && !defined(__CYGWIN__) && !defined(__MSYS__)
   ut.ut_session = getsid(0);
 #endif
 #endif

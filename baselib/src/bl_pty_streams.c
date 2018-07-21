@@ -17,8 +17,6 @@
 #include <grp.h>
 #include <stdio.h>
 
-#include <stdlib.h>
-
 #include <string.h>
 #include <errno.h>
 #include <sys/param.h>
@@ -36,6 +34,12 @@
 #ifdef HAVE_SYS_STROPTS_H
 #include <sys/stropts.h>
 #endif
+
+/* for cygwin */
+#undef __XSI_VISIBLE
+#define __XSI_VISIBLE 600
+#include <stdlib.h>
+#undef __XSI_VISIBLE
 
 #include "bl_str.h" /* strdup */
 #include "bl_file.h"

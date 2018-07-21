@@ -18,7 +18,10 @@
 
 #define correct_height correct_height_1bpp
 #define load_sixel_from_data load_sixel_from_data_1bpp
-#define SIXEL_RGB(r, g, b) ((9 * (r) + 30 * (g) + (b)) * 51 >= 5120 * 20 ? 1 : 0)
+#define SIXEL_RGB100(r, g, b) ((9 * (r) * (r) + 30 * (g) * (g) + (b) * (b) > \
+                                9 * 50 * 50 + 30 * 50 * 50 + 50 * 50) ? 1 : 0)
+#define SIXEL_RGB255(r, g, b) ((9 * (r) * (r) + 30 * (g) * (g) + (b) * (b) > \
+                                9 * 127 * 127 + 30 * 127 * 127 + 127 * 127) ? 1 : 0)
 #define CARD_HEAD_SIZE 0
 #define pixel_t u_int8_t
 
@@ -35,7 +38,7 @@
 
 #else
 
-#define SIXEL_RGB(r, g, b) ((((r)*255 / 100) << 16) | (((g)*255 / 100) << 8) | ((b)*255 / 100))
+#define SIXEL_RGB100(r, g, b) ((((r)*255 / 100) << 16) | (((g)*255 / 100) << 8) | ((b)*255 / 100))
 #ifndef CARD_HEAD_SIZE
 #ifdef GDK_PIXBUF_VERSION
 #define CARD_HEAD_SIZE 0
@@ -59,8 +62,8 @@ static pixel_t *custom_palette;
 
 #ifndef __GET_PARAMS__
 #define __GET_PARAMS__
-static size_t get_params(int *params, size_t max_params, const char **p) {
-  size_t count;
+static u_int get_params(int *params, u_int max_params, const char **p) {
+  u_int count;
   const char *start;
 
   memset(params, 0, sizeof(int) * max_params);
@@ -272,8 +275,8 @@ static void correct_height(pixel_t *pixels, int width, int *height /* multiple o
 static u_char *load_sixel_from_data(const char *file_data, u_int *width_ret, u_int *height_ret) {
   const char *p = file_data;
   u_char *pixels;
-  int params[5];
-  size_t n; /* number of params */
+  int params[6];
+  u_int n; /* number of params */
   int init_width;
   int pix_x;
   int pix_y;
@@ -306,29 +309,26 @@ static u_char *load_sixel_from_data(const char *file_data, u_int *width_ret, u_i
 #else
   /* VT340 Default Color Map */
   static pixel_t default_palette[] = {
-      SIXEL_RGB(0, 0, 0),    /* BLACK */
-      SIXEL_RGB(20, 20, 80), /* BLUE */
-      SIXEL_RGB(80, 13, 13), /* RED */
-      SIXEL_RGB(20, 80, 20), /* GREEN */
-      SIXEL_RGB(80, 20, 80), /* MAGENTA */
-      SIXEL_RGB(20, 80, 80), /* CYAN */
-      SIXEL_RGB(80, 80, 20), /* YELLOW */
-      SIXEL_RGB(53, 53, 53), /* GRAY 50% */
-      SIXEL_RGB(26, 26, 26), /* GRAY 25% */
-      SIXEL_RGB(33, 33, 60), /* BLUE* */
-      SIXEL_RGB(60, 26, 26), /* RED* */
-      SIXEL_RGB(33, 60, 33), /* GREEN* */
-      SIXEL_RGB(60, 33, 60), /* MAGENTA* */
-      SIXEL_RGB(33, 60, 60), /* CYAN* */
-      SIXEL_RGB(60, 60, 33), /* YELLOW* */
-      SIXEL_RGB(80, 80, 80)  /* GRAY 75% */
+      SIXEL_RGB100(0, 0, 0),    /* BLACK */
+      SIXEL_RGB100(20, 20, 80), /* BLUE */
+      SIXEL_RGB100(80, 13, 13), /* RED */
+      SIXEL_RGB100(20, 80, 20), /* GREEN */
+      SIXEL_RGB100(80, 20, 80), /* MAGENTA */
+      SIXEL_RGB100(20, 80, 80), /* CYAN */
+      SIXEL_RGB100(80, 80, 20), /* YELLOW */
+      SIXEL_RGB100(53, 53, 53), /* GRAY 50% */
+      SIXEL_RGB100(26, 26, 26), /* GRAY 25% */
+      SIXEL_RGB100(33, 33, 60), /* BLUE* */
+      SIXEL_RGB100(60, 26, 26), /* RED* */
+      SIXEL_RGB100(33, 60, 33), /* GREEN* */
+      SIXEL_RGB100(60, 33, 60), /* MAGENTA* */
+      SIXEL_RGB100(33, 60, 60), /* CYAN* */
+      SIXEL_RGB100(60, 60, 33), /* YELLOW* */
+      SIXEL_RGB100(80, 80, 80)  /* GRAY 75% */
   };
   pixel_t *palette;
   pixel_t *base_palette;
   pixel_t *ext_palette = NULL;
-#ifndef SIXEL_1BPP
-  pixel_t rgb[1];
-#endif
 #endif
 
   pixels = NULL;
@@ -560,18 +560,11 @@ body:
           int x;
 
           for (x = 0; x < rep; x++) {
-#if defined(GDK_PIXBUF_VERSION) || defined(USE_QUARTZ)
-            /* RGBA */
-            line[x * PIXEL_SIZE] = (palette[color] >> 16) & 0xff;
-            line[x * PIXEL_SIZE + 1] = (palette[color] >> 8) & 0xff;
-            line[x * PIXEL_SIZE + 2] = (palette[color]) & 0xff;
-            line[x * PIXEL_SIZE + 3] = 0xff;
-#elif defined(SIXEL_1BPP)
+#ifdef SIXEL_1BPP
             /* 0x80 is opaque mark */
             ((pixel_t*)line)[x] = 0x80 | palette[color];
 #else
-            /* ARGB (cardinal) */
-            ((pixel_t*)line)[x] = 0xff000000 | palette[color];
+            ((pixel_t*)line)[x] = palette[color];
 #endif
           }
         }
@@ -643,7 +636,7 @@ body:
         break;
       }
 
-      n = get_params(params, 5, &p);
+      n = get_params(params, sizeof(params) / sizeof(params[0]), &p);
 
       if (n > 0) {
         if ((color = params[0]) >= SIXEL_PALETTE_SIZE) {
@@ -651,23 +644,8 @@ body:
           color = SIXEL_PALETTE_SIZE - 1;
 #else
           if (color >= 1024) {
-#ifdef SIXEL_1BPP
             color = 0;
             goto use_base_palette;
-#else
-            palette = rgb;
-            color -= 1024;
-
-#define RGB_555
-#ifdef RGB_555
-            rgb[0] = ((color & 0x7c00) << 9) | ((color & 0x3e0) << 6) | ((color & 0x1f) << 3);
-#else
-            rgb[0] = ((color & 0x1fc000) << 3) | ((color & 0x3f80) << 2) | ((color & 0x7f) << 1);
-#endif
-#undef RGB_555
-
-            color = 0;
-#endif
           } else {
             color -= SIXEL_PALETTE_SIZE;
 
@@ -695,7 +673,9 @@ body:
       }
 
       if (n > 4) {
-        u_int8_t rgb[3];
+        u_int8_t rgba[4];
+
+        rgba[3] = 255;
 
         if (params[1] == 1) {
           /* HLS */
@@ -708,7 +688,7 @@ body:
           s = BL_MIN(params[4], 100);
 
           if (s == 0) {
-            rgb[0] = rgb[1] = rgb[2] = l * 255 / 100;
+            rgba[0] = rgba[1] = rgba[2] = l * 255 / 100;
           } else {
             u_int32_t m1;
             u_int32_t m2;
@@ -733,12 +713,16 @@ body:
               } else {
                 pc = m1;
               }
-              rgb[count] = pc * 255 / 10000;
+              rgba[count] = pc * 255 / 10000;
 
               if ((h -= 120) < 0) {
                 h += 360;
               }
             }
+          }
+
+          if (n > 5 && params[5] < 100) {
+            rgba[3] = params[5] * 255 / 100;
           }
         } else if (params[1] == 2
 #ifndef SIXEL_SHAREPALETTE
@@ -746,27 +730,42 @@ body:
 #endif
                    ) {
           /* RGB */
-          rgb[0] = params[2] >= 100 ? 255 : params[2] * 255 / 100;
-          rgb[1] = params[3] >= 100 ? 255 : params[3] * 255 / 100;
-          rgb[2] = params[4] >= 100 ? 255 : params[4] * 255 / 100;
+          rgba[0] = params[2] >= 100 ? 255 : params[2] * 255 / 100;
+          rgba[1] = params[3] >= 100 ? 255 : params[3] * 255 / 100;
+          rgba[2] = params[4] >= 100 ? 255 : params[4] * 255 / 100;
+
+          if (n > 5 && params[5] < 100) {
+            rgba[3] = params[5] * 255 / 100;
+          }
+        } else if (params[1] == 3) {
+          /* R8G8B8 */
+          rgba[0] = params[2] >= 255 ? 255 : params[2];
+          rgba[1] = params[3] >= 255 ? 255 : params[3];
+          rgba[2] = params[4] >= 255 ? 255 : params[4];
+
+          if (n > 5 && params[5] < 255) {
+            rgba[3] = params[5];
+          }
         } else {
           continue;
         }
 
-#ifdef SIXEL_SHAREPALETTE
+#if defined(SIXEL_1BPP)
+        palette[color] = SIXEL_RGB255(rgba[0], rgba[1], rgba[2]);
+#elif defined(SIXEL_SHAREPALETTE)
         {
           u_int8_t r, g, b;
 
           /* fb/ui_display.h which defines ui_cmap_get_pixel_rgb() is included from ui_imagelib.c */
           if (!ui_cmap_get_pixel_rgb(&r, &g, &b, color) ||
-              abs(r - rgb[0]) >= 0x10 || abs(g - rgb[1]) >= 0x10 || abs(b - rgb[2]) >= 0x10) {
+              abs(r - rgba[0]) >= 0x10 || abs(g - rgba[1]) >= 0x10 || abs(b - rgba[2]) >= 0x10) {
             u_long closest;
 
             /*
              * fb/ui_display.h which defines ui_cmap_get_closest_color() is included
              * from ui_imagelib.c
              */
-            if (ui_cmap_get_closest_color(&closest, rgb[0], rgb[1], rgb[2])) {
+            if (ui_cmap_get_closest_color(&closest, rgba[0], rgba[1], rgba[2])) {
               color_indexes[color] = closest;
             } else {
               goto error;
@@ -774,10 +773,17 @@ body:
           }
         }
 #else
-        palette[color] = (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+#if defined(GDK_PIXBUF_VERSION) || defined(USE_QUARTZ)
+        /* RGBA */
+        ((u_char*)(palette + color))[0] = rgba[0];
+        ((u_char*)(palette + color))[1] = rgba[1];
+        ((u_char*)(palette + color))[2] = rgba[2];
+        ((u_char*)(palette + color))[3] = rgba[3];
+#else
+        /* ARGB */
+        palette[color] = (rgba[3] << 24) | (rgba[0] << 16) | (rgba[1] << 8) | rgba[2];
 #endif
 
-#if !defined(SIXEL_1BPP) && !defined(SIXEL_SHAREPALETTE)
         if (palette == custom_palette && palette[SIXEL_PALETTE_SIZE] <= color) {
           /*
            * Set max active palette number for NetBSD/OpenBSD.
@@ -936,7 +942,8 @@ pixel_t *ui_set_custom_sixel_palette(pixel_t *palette /* NULL -> Create new pale
 #undef realloc_pixels
 #undef correct_height
 #undef load_sixel_from_data
-#undef SIXEL_RGB
+#undef SIXEL_RGB100
+#undef SIXEL_RGB255
 #undef CARD_HEAD_SIZE
 #undef pixel_t
 #undef PIXEL_SIZE
