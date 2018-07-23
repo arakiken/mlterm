@@ -14,6 +14,15 @@
 #define SIXEL_PALETTE_SIZE 256
 #endif
 
+/*
+ * Support sixel graphics extension which "sayaka --ormode on" outputs.
+ * (See https://github.com/isaki68k/sayaka/,
+ *  https://github.com/isaki68k/sayaka/blob/master/vala/sixel.native.c#L113)
+ */
+#if 0
+#define SIXEL_ORMODE
+#endif
+
 #ifdef SIXEL_1BPP
 
 #define correct_height correct_height_1bpp
@@ -288,6 +297,9 @@ static u_char *load_sixel_from_data(const char *file_data, u_int *width_ret, u_i
   int rep;
   int color;
   int asp_x;
+#ifdef SIXEL_ORMODE
+  int ormode = 0;
+#endif
 #ifdef SIXEL_SHAREPALETTE
   u_int8_t color_indexes[] =
     { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
@@ -374,55 +386,55 @@ restart:
   if (*(++p) != ';') {
     /* P1 */
     switch (*p) {
-      case 'q':
-        /* The default value. (2:1 is documented though) */
-        asp_x = 1;
+    case 'q':
+      /* The default value. (2:1 is documented though) */
+      asp_x = 1;
 #if 0
-        asp_y = 1;
+      asp_y = 1;
 #endif
-        goto body;
+      goto body;
 
 #if 0
-      case '0':
-      case '1':
-      case '5':
-      case '6':
-        asp_x = 1;
-        asp_y = 2;
-        break;
+    case '0':
+    case '1':
+    case '5':
+    case '6':
+      asp_x = 1;
+      asp_y = 2;
+      break;
 
-      case '2':
-        asp_x = 1;
-        asp_y = 5;
-        break;
+    case '2':
+      asp_x = 1;
+      asp_y = 5;
+      break;
 
-      case '3':
-      case '4':
-        asp_x = 1;
-        asp_y = 3;
-        break;
+    case '3':
+    case '4':
+      asp_x = 1;
+      asp_y = 3;
+      break;
 
-      case '7':
-      case '8':
-      case '9':
-        asp_x = 1;
-        asp_y = 1;
-        break;
+    case '7':
+    case '8':
+    case '9':
+      asp_x = 1;
+      asp_y = 1;
+      break;
 
-      default:
+    default:
 #ifdef DEBUG
-        bl_debug_printf(BL_DEBUG_TAG " Illegal format.\n.");
+      bl_debug_printf(BL_DEBUG_TAG " Illegal format.\n.");
 #endif
-        goto end;
+      goto end;
 #else
-      case '\0':
+    case '\0':
 #ifdef DEBUG
-        bl_debug_printf(BL_DEBUG_TAG " Illegal format.\n.");
+      bl_debug_printf(BL_DEBUG_TAG " Illegal format.\n.");
 #endif
-        goto end;
+      goto end;
 
-      default:
-        asp_x = 1; /* XXX */
+    default:
+      asp_x = 1; /* XXX */
 #endif
     }
 
@@ -440,21 +452,27 @@ restart:
   if (*(++p) != ';') {
     /* P2 */
     switch (*p) {
-      case 'q':
-        goto body;
+    case 'q':
+      goto body;
+#ifdef SIXEL_ORMODE
+    case '5':
+      ormode = 1;
+      break;
+#endif
 #if 0
-      case '0':
-      case '2':
-        ... break;
+    case '0':
+    case '2':
+      ...
+      break;
 
-      default:
+    default:
 #else
-      case '\0':
+    case '\0':
 #endif
 #ifdef DEBUG
-        bl_debug_printf(BL_DEBUG_TAG " Illegal format.\n.");
+      bl_debug_printf(BL_DEBUG_TAG " Illegal format.\n.");
 #endif
-        goto end;
+      goto end;
     }
 
     if (p[1] == ';') {
@@ -539,40 +557,59 @@ body:
       a = 0x01;
       line = pixels + pix_y * stride + pix_x * PIXEL_SIZE;
 
+#ifdef SIXEL_ORMODE
+      if (ormode) {
+        for (y = 0; y < 6; y++) {
+          if ((b & a) != 0) {
+            int x;
+
+            for (x = 0; x < rep; x++) {
+              ((pixel_t*)line)[x] |= color;
+            }
+          }
+
+          a <<= 1;
+          line += stride;
+        }
+      } else
+#endif
+      {
 #ifdef SIXEL_SHAREPALETTE
-      for (y = 0; y < 6; y++) {
-        if ((b & a) != 0) {
+        for (y = 0; y < 6; y++) {
+          if ((b & a) != 0) {
 #ifdef USE_GRF
-          int x;
-          for (x = 0; x < rep; x++) {
-            ((u_int16_t*)line)[x] = color_indexes[color];
-          }
-#else
-          memset(line, color_indexes[color], rep);
-#endif
-        }
-        a <<= 1;
-        line += stride;
-      }
-#else
-      for (y = 0; y < 6; y++) {
-        if ((b & a) != 0) {
-          int x;
+            int x;
 
-          for (x = 0; x < rep; x++) {
+            for (x = 0; x < rep; x++) {
+              ((u_int16_t*)line)[x] = color_indexes[color];
+            }
+#else
+            memset(line, color_indexes[color], rep);
+#endif
+          }
+          a <<= 1;
+          line += stride;
+        }
+#else
+        for (y = 0; y < 6; y++) {
+          if ((b & a) != 0) {
+            int x;
+
+            for (x = 0; x < rep; x++) {
 #ifdef SIXEL_1BPP
-            /* 0x80 is opaque mark */
-            ((pixel_t*)line)[x] = 0x80 | palette[color];
+              /* 0x80 is opaque mark */
+              ((pixel_t*)line)[x] = 0x80 | palette[color];
 #else
-            ((pixel_t*)line)[x] = palette[color];
+              ((pixel_t*)line)[x] = palette[color];
 #endif
+            }
           }
-        }
 
-        a <<= 1;
-        line += stride;
-      }
+          a <<= 1;
+          line += stride;
+        }
 #endif /* SIXEL_SHAREPALETTE */
+      }
 
       pix_x += rep;
 
@@ -892,6 +929,24 @@ end:
 
 #ifdef DEBUG
     bl_debug_printf("Shrink size w %d h %d -> w %d h %d\n", width, height, cur_width, cur_height);
+#endif
+
+#ifdef SIXEL_ORMODE
+    if (ormode) {
+      int x, y;
+      pixel_t *p = pixels;
+
+      for (y = 0; y < cur_height; y++) {
+        for (x = 0; x < cur_width; x++) {
+#ifdef SIXEL_SHAREPALETTE
+          *p = color_indexes[*p];
+#else
+          *p = palette[*p];
+          p++;
+#endif
+        }
+      }
+    }
 #endif
 
     *width_ret = cur_width;
