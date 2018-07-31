@@ -1837,11 +1837,15 @@ static int shortcut_str(ui_screen_t *screen, KeySym ksym, u_int state, int x, in
 
     strcpy(key, str);
 
-    /* XXX */
-    if (strcmp(str + strlen(str) - 15, "microsoft-edge:") == 0) {
+    switch(str[strlen(str) - 1]) {
+    case ' ':
+    case ':': /* XXX microsoft-edge: => microsoft-edge:<URL> */
       str_len--;
-    } else {
+      break;
+
+    default:
       key[str_len - 1] = ' ';
+      break;
     }
 
     (*vt_str_parser->init)(vt_str_parser);
