@@ -79,7 +79,13 @@
    (MOD_PPB(x, (display)->pixels_per_byte) > 0 ? 1 : 0) +              \
    (MOD_PPB((x) + (width), (display)->pixels_per_byte) > 0 ? 1 : 0))
 
-#define BG_MAGIC 0xff /* for 1,2,4 bpp */
+/*
+ * for 1, 2 or 4 bpp
+ *
+ * XXX
+ * 0xfe (254) indexed color is regarded as BG_MAGIC on 8bpp/8planes (Luna88k).
+ */
+#define BG_MAGIC 0xfe
 
 /* Enable doube buffering on 1, 2 or 4 bpp */
 #if 1
@@ -243,6 +249,8 @@ static void put_image_124bpp(int x, int y, u_char *image, size_t size, int write
   plane = 0;
   while (1) {
     new_image_p = new_image;
+    shift = FB_SHIFT(ppb, bpp, x);
+    count = 0;
 
     if (need_fb_pixel && memchr(image, BG_MAGIC, size)) {
 #ifdef ENABLE_DOUBLE_BUFFER
@@ -258,176 +266,213 @@ static void put_image_124bpp(int x, int y, u_char *image, size_t size, int write
                size / ppb + 2);
       }
 
-      shift = FB_SHIFT(ppb, bpp, x);
-
-#ifndef ENABLE_2_4_PPB
-      if (_disp.depth > 1) {
-        for (count = 0; count < size; count++) {
-          if (image[count] != BG_MAGIC) {
-            (*new_image_p) =
-                ((*new_image_p) & ~(_display.mask << shift)) | (PLANE(image[count]) << shift);
-          }
-
-#ifdef VRAMBIT_MSBRIGHT
-          if (FB_SHIFT_NEXT(shift, bpp) >= 8)
-#else
-          if (FB_SHIFT_NEXT(shift, bpp) < 0)
-#endif
-          {
-            new_image_p++;
-            shift = _display.shift_0;
-          }
-        }
-      } else
-#endif
-      {
-        for (count = 0; count < size; count++) {
-          if (image[count] != BG_MAGIC) {
-            (*new_image_p) = ((*new_image_p) & ~(_display.mask << shift)) | (image[count] << shift);
-          }
-
-#ifdef VRAMBIT_MSBRIGHT
-          if (FB_SHIFT_NEXT(shift, bpp) >= 8)
-#else
-          if (FB_SHIFT_NEXT(shift, bpp) < 0)
-#endif
-          {
-            new_image_p++;
-            shift = _display.shift_0;
-          }
-        }
-      }
-
-      if (shift != _display.shift_0) {
-        new_image_p++;
-      }
-    } else {
-      int surplus;
-      u_char pixel;
-
-      shift = _display.shift_0;
-      count = 0;
-      pixel = 0;
-
-      if ((surplus = MOD_PPB(x, ppb)) > 0) {
-        u_char fb_pixel;
-
-#ifdef ENABLE_DOUBLE_BUFFER
-        fb_pixel = _display.back_fb[fb - _display.fb];
-#else
-        fb_pixel = fb[0];
-#endif
-
-        for (; surplus > 0; surplus--) {
-          pixel |= (fb_pixel & (_display.mask << shift));
-
-          FB_SHIFT_NEXT(shift, bpp);
-        }
-      } else {
+      if (shift == _display.shift_0) {
+      aligned_0:
 #ifndef ENABLE_2_4_PPB
         if (_disp.depth > 1) {
-          goto round_number_1;
-        } else
+          /* _disp.depth == 2, 4, 8 / ppb == 8 */
+          for (; count + 7 < size; count += 8, new_image_p++) {
+            *new_image_p =
+#ifdef VRAMBIT_MSBRIGHT
+              (image[count] == BG_MAGIC ? (*new_image_p) & 0x01 : PLANE(image[count]) << 0) |
+              (image[count+1] == BG_MAGIC ? (*new_image_p) & 0x02 : PLANE(image[count+1]) << 1) |
+              (image[count+2] == BG_MAGIC ? (*new_image_p) & 0x04 : PLANE(image[count+2]) << 2) |
+              (image[count+3] == BG_MAGIC ? (*new_image_p) & 0x08 : PLANE(image[count+3]) << 3) |
+              (image[count+4] == BG_MAGIC ? (*new_image_p) & 0x10 : PLANE(image[count+4]) << 4) |
+              (image[count+5] == BG_MAGIC ? (*new_image_p) & 0x20 : PLANE(image[count+5]) << 5) |
+              (image[count+6] == BG_MAGIC ? (*new_image_p) & 0x40 : PLANE(image[count+6]) << 6) |
+              (image[count+7] == BG_MAGIC ? (*new_image_p) & 0x80 : PLANE(image[count+7]) << 7);
+#else
+              (image[count] == BG_MAGIC ? (*new_image_p) & 0x80 : PLANE(image[count]) << 7) |
+              (image[count+1] == BG_MAGIC ? (*new_image_p) & 0x40 : PLANE(image[count+1]) << 6) |
+              (image[count+2] == BG_MAGIC ? (*new_image_p) & 0x20 : PLANE(image[count+2]) << 5) |
+              (image[count+3] == BG_MAGIC ? (*new_image_p) & 0x10 : PLANE(image[count+3]) << 4) |
+              (image[count+4] == BG_MAGIC ? (*new_image_p) & 0x08 : PLANE(image[count+4]) << 3) |
+              (image[count+5] == BG_MAGIC ? (*new_image_p) & 0x04 : PLANE(image[count+5]) << 2) |
+              (image[count+6] == BG_MAGIC ? (*new_image_p) & 0x02 : PLANE(image[count+6]) << 1) |
+              (image[count+7] == BG_MAGIC ? (*new_image_p) & 0x01 : PLANE(image[count+7]) << 0);
 #endif
-        {
-          goto round_number_2;
+          }
+        }
+#else /* ENABLE_2_4_PPB */
+        if (ppb == 4) {
+          /* _disp.depth == 2 / ppb == 4 */
+          for (; count + 3 < size; count += 4, new_image_p++) {
+            *new_image_p =
+#ifdef VRAMBIT_MSBRIGHT
+              (image[count] == BG_MAGIC ? (*new_image_p) & 0x03 : image[count] << 0) |
+              (image[count+1] == BG_MAGIC ? (*new_image_p) & 0x0c : image[count+1] << 2) |
+              (image[count+2] == BG_MAGIC ? (*new_image_p) & 0x30 : image[count+2] << 4) |
+              (image[count+3] == BG_MAGIC ? (*new_image_p) & 0xc0 : image[count+3] << 6);
+#else
+              (image[count] == BG_MAGIC ? (*new_image_p) & 0xc0 : image[count] << 6) |
+              (image[count+1] == BG_MAGIC ? (*new_image_p) & 0x30 : image[count+1] << 4) |
+              (image[count+2] == BG_MAGIC ? (*new_image_p) & 0x0c : image[count+2] << 2) |
+              (image[count+3] == BG_MAGIC ? (*new_image_p) & 0x03 : image[count+3] << 0);
+#endif
+          }
+        } else if (ppb == 2) {
+          /* _disp.depth == 4 / ppb == 8 */
+          for (; count + 1 < size; count += 2, new_image_p++) {
+            *new_image_p =
+#ifdef VRAMBIT_MSBRIGHT
+              (image[count] == BG_MAGIC ? (*new_image_p) & 0x0f : image[count] << 0) |
+              (image[count+1] == BG_MAGIC ? (*new_image_p) & 0xf0 : image[count+1] << 4) |
+#else
+              (image[count] == BG_MAGIC ? (*new_image_p) & 0xf0 : image[count] << 4) |
+              (image[count+1] == BG_MAGIC ? (*new_image_p) & 0x0f : image[count+1] << 0);
+#endif
+          }
+        }
+#endif /* ENABLE_2_4_PPB */
+        else {
+          /* _disp.depth == 1 / ppb == 8 */
+          for (; count + 7 < size; count += 8, new_image_p++) {
+            *new_image_p =
+#ifdef VRAMBIT_MSBRIGHT
+              (image[count] == BG_MAGIC ? (*new_image_p) & 0x01 : image[count] << 0) |
+              (image[count+1] == BG_MAGIC ? (*new_image_p) & 0x02 : image[count+1] << 1) |
+              (image[count+2] == BG_MAGIC ? (*new_image_p) & 0x04 : image[count+2] << 2) |
+              (image[count+3] == BG_MAGIC ? (*new_image_p) & 0x08 : image[count+3] << 3) |
+              (image[count+4] == BG_MAGIC ? (*new_image_p) & 0x10 : image[count+4] << 4) |
+              (image[count+5] == BG_MAGIC ? (*new_image_p) & 0x20 : image[count+5] << 5) |
+              (image[count+6] == BG_MAGIC ? (*new_image_p) & 0x40 : image[count+6] << 6) |
+              (image[count+7] == BG_MAGIC ? (*new_image_p) & 0x80 : image[count+7] << 7);
+#else
+              (image[count] == BG_MAGIC ? (*new_image_p) & 0x80 : image[count] << 7) |
+              (image[count+1] == BG_MAGIC ? (*new_image_p) & 0x40 : image[count+1] << 6) |
+              (image[count+2] == BG_MAGIC ? (*new_image_p) & 0x20 : image[count+2] << 5) |
+              (image[count+3] == BG_MAGIC ? (*new_image_p) & 0x10 : image[count+3] << 4) |
+              (image[count+4] == BG_MAGIC ? (*new_image_p) & 0x08 : image[count+4] << 3) |
+              (image[count+5] == BG_MAGIC ? (*new_image_p) & 0x04 : image[count+5] << 2) |
+              (image[count+6] == BG_MAGIC ? (*new_image_p) & 0x02 : image[count+6] << 1) |
+              (image[count+7] == BG_MAGIC ? (*new_image_p) & 0x01 : image[count+7] << 0);
+#endif
+          }
         }
       }
 
+      if (count < size) {
+        while (1) {
+          if (image[count] != BG_MAGIC) {
+            (*new_image_p) =
+              ((*new_image_p) & ~(_display.mask << shift)) | (PLANE(image[count]) << shift);
+          }
+
+          if (++count == size) {
+            new_image_p++;
+            break;
+          }
+
+#ifdef VRAMBIT_MSBRIGHT
+          if (FB_SHIFT_NEXT(shift, bpp) >= 8)
+#else
+          if (FB_SHIFT_NEXT(shift, bpp) < 0)
+#endif
+          {
+            new_image_p++;
+            shift = _display.shift_0;
+            goto aligned_0;
+          }
+        }
+      }
+    } else {
+      if (shift == _display.shift_0) {
+      aligned_1:
 #ifndef ENABLE_2_4_PPB
-      if (_disp.depth > 1) {
-        do {
-          pixel |= (PLANE(image[count++]) << shift);
-
+        if (_disp.depth > 1) {
+          /* _disp.depth == 2, 4, 8 / ppb == 8 */
+          for (; count + 7 < size; count += 8) {
+            *(new_image_p++) =
 #ifdef VRAMBIT_MSBRIGHT
-          if (FB_SHIFT_NEXT(shift, bpp) >= 8)
+              PLANE(image[count]) | (PLANE(image[count + 1]) << 1) |
+              (PLANE(image[count + 2]) << 2) | (PLANE(image[count + 3]) << 3) |
+              (PLANE(image[count + 4]) << 4) | (PLANE(image[count + 5]) << 5) |
+              (PLANE(image[count + 6]) << 6) | (PLANE(image[count + 7]) << 7);
 #else
-          if (FB_SHIFT_NEXT(shift, bpp) < 0)
+              (PLANE(image[count]) << 7) | (PLANE(image[count + 1]) << 6) |
+              (PLANE(image[count + 2]) << 5) | (PLANE(image[count + 3]) << 4) |
+              (PLANE(image[count + 4]) << 3) | (PLANE(image[count + 5]) << 2) |
+              (PLANE(image[count + 6]) << 1) | PLANE(image[count + 7]);
 #endif
-          {
-            *(new_image_p++) = pixel;
-            pixel = 0;
-            shift = _display.shift_0;
-
-          round_number_1:
-            if (ppb == 8) {
-              for (; count + 7 < size; count += 8) {
-                *(new_image_p++) =
-#ifdef VRAMBIT_MSBRIGHT
-                    PLANE(image[count]) | (PLANE(image[count + 1]) << 1) |
-                    (PLANE(image[count + 2]) << 2) | (PLANE(image[count + 3]) << 3) |
-                    (PLANE(image[count + 4]) << 4) | (PLANE(image[count + 5]) << 5) |
-                    (PLANE(image[count + 6]) << 6) | (PLANE(image[count + 7]) << 7);
-#else
-                    (PLANE(image[count]) << 7) | (PLANE(image[count + 1]) << 6) |
-                    (PLANE(image[count + 2]) << 5) | (PLANE(image[count + 3]) << 4) |
-                    (PLANE(image[count + 4]) << 3) | (PLANE(image[count + 5]) << 2) |
-                    (PLANE(image[count + 6]) << 1) | PLANE(image[count + 7]);
-#endif
-              }
-            }
           }
-        } while (count < size);
-      } else
-#endif
-      {
-        do {
-          pixel |= (image[count++] << shift);
-
+        }
+#else /* ENABLE_2_4_PPB */
+        if (ppb == 4) {
+          /* _disp.depth == 2 / ppb = 4 */
+          for (; count + 3 < size; count += 4) {
+            *(new_image_p++) =
 #ifdef VRAMBIT_MSBRIGHT
-          if (FB_SHIFT_NEXT(shift, bpp) >= 8)
+              image[count] | (image[count + 1] << 2) | (image[count + 2] << 4) |
+              (image[count + 3] << 6);
 #else
-          if (FB_SHIFT_NEXT(shift, bpp) < 0)
+              (image[count] << 6) | (image[count + 1] << 4) | (image[count + 2] << 2) |
+              image[count + 3];
 #endif
-          {
-            *(new_image_p++) = pixel;
-            pixel = 0;
-            shift = _display.shift_0;
-
-          round_number_2:
-            if (ppb == 8) {
-              for (; count + 7 < size; count += 8) {
-                *(new_image_p++) =
-#ifdef VRAMBIT_MSBRIGHT
-                    image[count] | (image[count + 1] << 1) | (image[count + 2] << 2) |
-                    (image[count + 3] << 3) | (image[count + 4] << 4) | (image[count + 5] << 5) |
-                    (image[count + 6] << 6) | (image[count + 7] << 7);
-#else
-                    (image[count] << 7) | (image[count + 1] << 6) | (image[count + 2] << 5) |
-                    (image[count + 3] << 4) | (image[count + 4] << 3) | (image[count + 5] << 2) |
-                    (image[count + 6] << 1) | image[count + 7];
-#endif
-              }
-            }
           }
-        } while (count < size);
+        } else if (ppb == 2) {
+          /* _disp.depth == 4 / ppb == 2 */
+          for (; count + 1 < size; count += 2) {
+            *(new_image_p++) =
+#ifdef VRAMBIT_MSBRIGHT
+              image[count] | (image[count + 1] << 4);
+#else
+              (image[count] << 4) | image[count + 1];
+#endif
+          }
+        }
+#endif /* ENABLE_2_4_PPB */
+        else {
+          /* _disp.depth == 1 / ppb == 8 */
+          for (; count + 7 < size; count += 8) {
+            *(new_image_p++) =
+#ifdef VRAMBIT_MSBRIGHT
+              image[count] | (image[count + 1] << 1) | (image[count + 2] << 2) |
+              (image[count + 3] << 3) | (image[count + 4] << 4) | (image[count + 5] << 5) |
+              (image[count + 6] << 6) | (image[count + 7] << 7);
+#else
+              (image[count] << 7) | (image[count + 1] << 6) | (image[count + 2] << 5) |
+              (image[count + 3] << 4) | (image[count + 4] << 3) | (image[count + 5] << 2) |
+              (image[count + 6] << 1) | image[count + 7];
+#endif
+          }
+        }
       }
 
-      if (shift != _display.shift_0) {
-        u_char fb_pixel;
-
+      if (count < size) {
+        *new_image_p =
 #ifdef ENABLE_DOUBLE_BUFFER
-        fb_pixel =
-            _display.back_fb[get_fb(x + size, y) - _display.fb + _display.plane_offset[plane]];
+          _display.back_fb[fb - _display.fb + new_image_p - new_image];
 #else
-        fb_pixel = get_fb(x + size, y)[_display.plane_offset[plane]];
+          fb[new_image_p - new_image];
 #endif
 
-        do {
-          pixel |= (fb_pixel & (_display.mask << shift));
-        }
+        while (1) {
+          *new_image_p =
+            ((*new_image_p) & ~(_display.mask << shift)) | (PLANE(image[count]) << shift);
+
+          if (++count == size) {
+            new_image_p++;
+            break;
+          }
+
 #ifdef VRAMBIT_MSBRIGHT
-        while (FB_SHIFT_NEXT(shift, bpp) < 8);
+          if (FB_SHIFT_NEXT(shift, bpp) >= 8)
 #else
-        while (FB_SHIFT_NEXT(shift, bpp) >= 0);
+          if (FB_SHIFT_NEXT(shift, bpp) < 0)
 #endif
-
-        *(new_image_p++) = pixel;
+          {
+            new_image_p++;
+            shift = _display.shift_0;
+            goto aligned_1;
+          }
+        }
       }
     }
 
     memcpy(fb, new_image, new_image_p - new_image);
 
+#ifndef ENABLE_2_4_PPB
     if (++plane < _disp.depth) {
       size_t offset;
 
@@ -438,7 +483,9 @@ static void put_image_124bpp(int x, int y, u_char *image, size_t size, int write
         new_image += offset;
       }
 #endif
-    } else {
+    } else
+#endif
+    {
       break;
     }
   }

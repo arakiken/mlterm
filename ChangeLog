@@ -1,3 +1,12 @@
+2018-07-31  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* fb/ui_display_freebsd.c: PS2 mouse (/dev/psm0) and PC98 bus mouse
+	  (/dev/mse0) are supported.
+
+	* fb/ui_display.c: put_image_124bpp() is tuned up.
+
 2018-07-23  Araki Ken  <arakiken@users.sf.net>
 
 	* c_sixel.c: Sixel graphics extension which "sayaka --ormode on" outputs

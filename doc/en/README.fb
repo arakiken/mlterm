@@ -65,7 +65,8 @@ Framebuffer support
     kbdcontrol -r [delay.repeat] or
     memcontrol set -b 0x.... -l 0x.... write-combine
     in advance.
-  o Start moused in advance as follows if you want to use mouse (/dev/sysmouse).
+  o Start moused in advance as follows if you want to use mouse (/dev/sysmouse)
+    on FreeBSD 5.0 or later.
     $ /etc/rc.d/moused onestart
   o mlterm-fb works with 4 bpp alone on FreeBSD(98).
 
@@ -95,9 +96,9 @@ Framebuffer support
     ~/.mlterm/main on NetBSD/x68k. Supported resolutions are 512x512x15
     512x512x8 768x512x4 768x512x1 1024x768x4 1024x768x1.
     fb_resolution=512x512x15
-  o If you specify --multivram or separate_wall_picture=true option, the wall
-    picture is drawn on Text VRAM instead of Graphic VRAM and scrolling
-    performance will be improved.
+  o If you specify --multivram or separate_wall_picture=true option in
+    fb_resolution=768x512x4, the wall picture is drawn on Text VRAM instead of
+    Graphic VRAM and scrolling performance will be improved.
 
   (for OpenBSD)
   o Enable following options and rebuild kernel.

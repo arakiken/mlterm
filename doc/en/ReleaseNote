@@ -3,6 +3,7 @@
 * Support sixel graphics extension and option1 of
   https://github.com/kmiya-culti/RLogin/issues/22#issue-341758598
 * Support Cygwin/x86_64.
+* Support PS2 mouse and PC98 bus mouse on FreeBSD 4.x or before.
 * Change the maximum number of sixel graphics palette colors from 256 to 1024.
 * Bug fixes:
   Fix segfault of mlconfig when GTK_IM_MODULE=uim.

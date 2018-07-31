@@ -1,12 +1,19 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #include <sys/consio.h>
-#if __FreeBSD__ >= 5
-#include <sys/mouse.h>
-#endif
 #include <sys/time.h>
 
-#define SYSMOUSE_PACKET_SIZE 8
+#if __FreeBSD__ >= 5
+#include <sys/mouse.h>
+#define MOUSE_DEV "/dev/sysmouse"
+#define PACKET_SIZE 8
+#elif defined(PC98)
+#define MOUSE_DEV "/dev/mse0"
+#define PACKET_SIZE 5
+#else
+#define MOUSE_DEV "/dev/psm0"
+#define PACKET_SIZE 3
+#endif
 
 /* --- static variables --- */
 
@@ -145,30 +152,31 @@ static int open_display(u_int depth) {
 
   _disp.display = &_display;
 
-#if __FreeBSD__ >= 5
   bl_priv_restore_euid();
   bl_priv_restore_egid();
-  _mouse.fd = open("/dev/sysmouse", O_RDWR | O_NONBLOCK);
+  _mouse.fd = open(MOUSE_DEV, O_RDWR | O_NONBLOCK);
   bl_priv_change_euid(bl_getuid());
   bl_priv_change_egid(bl_getgid());
 
   if (_mouse.fd != -1) {
+    struct mouse_info info;
+#ifdef MOUSE_SETLEVEL
     int level;
     mousemode_t mode;
-    struct mouse_info info;
 
     level = 1;
     ioctl(_mouse.fd, MOUSE_SETLEVEL, &level);
     ioctl(_mouse.fd, MOUSE_GETMODE, &mode);
 
-    if (mode.packetsize != SYSMOUSE_PACKET_SIZE) {
+    if (mode.packetsize != PACKET_SIZE) {
 #ifdef DEBUG
-      bl_debug_printf(BL_DEBUG_TAG " Failed to open /dev/sysmouse.\n");
+      bl_debug_printf(BL_DEBUG_TAG " Failed to open " MOUSE_DEV ".\n");
 #endif
-
       close(_mouse.fd);
       _mouse.fd = -1;
-    } else {
+    } else
+#endif
+    {
       bl_file_set_cloexec(_mouse.fd);
 
       _mouse.x = _display.width / 2;
@@ -192,11 +200,8 @@ static int open_display(u_int depth) {
   }
 #ifdef DEBUG
   else {
-    bl_debug_printf(BL_DEBUG_TAG " Failed to open /dev/sysmouse.\n");
+    bl_debug_printf(BL_DEBUG_TAG " Failed to open " MOUSE_DEV ".\n");
   }
-#endif
-#else
-  _mouse.fd = -1;
 #endif
 
   return 1;
@@ -213,22 +218,24 @@ error:
 }
 
 static int receive_mouse_event(void) {
-  u_char buf[64];
+  u_char buf[PACKET_SIZE * 8];
   ssize_t len;
 
   while ((len = read(_mouse.fd, buf, sizeof(buf))) > 0) {
-    static u_char packet[SYSMOUSE_PACKET_SIZE];
+    static u_char packet[PACKET_SIZE];
     static ssize_t packet_len;
     ssize_t count;
 
     for (count = 0; count < len; count++) {
       int x;
       int y;
-      int z;
       int move;
       struct timeval tv;
       XButtonEvent xev;
       ui_window_t *win;
+
+#if __FreeBSD__ >= 5
+      int z;
 
       if (packet_len == 0) {
         if ((buf[count] & 0xf8) != 0x80) {
@@ -236,10 +243,11 @@ static int receive_mouse_event(void) {
           continue;
         }
       }
+#endif
 
       packet[packet_len++] = buf[count];
 
-      if (packet_len < SYSMOUSE_PACKET_SIZE) {
+      if (packet_len < PACKET_SIZE) {
         continue;
       }
 
@@ -249,9 +257,36 @@ static int receive_mouse_event(void) {
       gettimeofday(&tv, NULL);
       xev.time = tv.tv_sec * 1000 + tv.tv_usec / 1000;
 
+#if __FreeBSD__ >= 5
+      x = (char)packet[1] + (char)packet[3];
+      y = (char)packet[2] + (char)packet[4];
+      z = ((char)(packet[5] << 1) + (char)(packet[6] << 1)) >> 1;
+#else
+      x = (char)packet[1];
+      y = (char)packet[2];
+#ifndef PC98
+      /* XXX */
+      if (packet[0] & 0x40) {
+        if (packet[0] & 0x10) {
+          x -= 128;
+        } else {
+          x += 128;
+        }
+      }
+
+      if (packet[0] & 0x80) {
+        if (packet[0] & 0x20) {
+          y -= 128;
+        } else {
+          y += 128;
+        }
+      }
+#endif
+#endif
+
       move = 0;
 
-      if ((x = (char)packet[1] + (char)packet[3]) != 0) {
+      if (x != 0) {
         restore_hidden_region();
 
         _mouse.x += x;
@@ -265,7 +300,7 @@ static int receive_mouse_event(void) {
         move = 1;
       }
 
-      if ((y = (char)packet[2] + (char)packet[4]) != 0) {
+      if (y != 0) {
         restore_hidden_region();
 
         _mouse.y -= y;
@@ -279,12 +314,11 @@ static int receive_mouse_event(void) {
         move = 1;
       }
 
-      z = ((char)(packet[5] << 1) + (char)(packet[6] << 1)) >> 1;
-
       if (move) {
         update_mouse_cursor_state();
       }
 
+#if __FreeBSD__ >= 5
       if (~packet[0] & 0x04) {
         xev.button = Button1;
         _mouse.button_state = Button1Mask;
@@ -300,7 +334,31 @@ static int receive_mouse_event(void) {
       } else if (z > 0) {
         xev.button = Button5;
         _mouse.button_state = Button5Mask;
-      } else {
+      }
+#elif defined(PC98)
+      if ((packet[0] & 0x4) == 0) {
+        xev.button = Button1;
+        _mouse.button_state = Button1Mask;
+      } else if ((packet[0] & 0x2) == 0) {
+        xev.button = Button2;
+        _mouse.button_state = Button2Mask;
+      } else if ((packet[0] & 0x01) == 0) {
+        xev.button = Button3;
+        _mouse.button_state = Button3Mask;
+      }
+#else
+      if (packet[0] & 0x1) {
+        xev.button = Button1;
+        _mouse.button_state = Button1Mask;
+      } else if (packet[0] & 0x4) {
+        xev.button = Button2;
+        _mouse.button_state = Button2Mask;
+      } else if (packet[0] & 0x02) {
+        xev.button = Button3;
+        _mouse.button_state = Button3Mask;
+      }
+#endif
+      else {
         xev.button = 0;
       }
 
@@ -347,7 +405,7 @@ static int receive_mouse_event(void) {
 
 #ifdef __DEBUG
       bl_debug_printf(
-          BL_DEBUG_TAG "Button is %s x %d y %d btn %d time %d\n",
+          BL_DEBUG_TAG "Button is %s x %d y %d btn %d time %u\n",
           xev.type == ButtonPress ? "pressed" : xev.type == MotionNotify ? "motion" : "released",
           xev.x, xev.y, xev.button, xev.time);
 #endif
