@@ -38,6 +38,12 @@
 #include <uim-helper.h>
 #include <uim-im-switcher.h>
 
+#if UIM_VERSION_REQUIRE(1, 5, 0)
+#include <uim-scm.h>
+#else
+#define uim_scm_is_initialized (initialized)
+#endif
+
 #include <pobl/bl_mem.h>    /* malloc/alloca/free */
 #include <pobl/bl_str.h>    /* bl_str_alloca_dup bl_str_sep bl_snprintf*/
 #include <pobl/bl_locale.h> /* bl_get_locale */
@@ -890,9 +896,10 @@ static void delete(ui_im_t *im) {
     uim_helper_close_client_fd(helper_fd);
     helper_fd = -1;
 
-    uim_quit();
-
-    initialized = 0;
+    if (initialized > 0) {
+      uim_quit();
+      initialized = 0;
+    }
   }
 }
 
@@ -1275,7 +1282,7 @@ ui_im_t *im_uim_new(u_int64_t magic, vt_char_encoding_t term_encoding,
 #define RESTORE_LOCALE
 #endif
 
-  if (!initialized) {
+  if (!uim_scm_is_initialized()) {
 #ifdef RESTORE_LOCALE
     /*
      * Workaround against make_locale() of m17nlib.
@@ -1305,6 +1312,8 @@ ui_im_t *im_uim_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     syms = export_syms;
 
     initialized = 1;
+  } else if (!initialized) {
+    initialized = -1;
   }
 
   /*
@@ -1415,9 +1424,8 @@ error:
     helper_fd = -1;
   }
 
-  if (initialized && ref_count == 0) {
+  if (initialized > 0 && ref_count == 0) {
     uim_quit();
-
     initialized = 0;
   }
 
@@ -1448,13 +1456,18 @@ im_info_t *im_uim_get_info(char *locale, char *encoding) {
   im_info_t *result = NULL;
   uim_context u;
   int i;
+  int uim_init_done;
 
-  if (uim_init() == -1) {
+  if (uim_scm_is_initialized()) {
+    uim_init_done = 0;
+  } else if (uim_init() == -1) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " failed to initialize uim.");
 #endif
 
     return NULL;
+  } else {
+    uim_init_done = 1;
   }
 
   if (!(u = uim_create_context(NULL, "UTF-8", NULL, NULL, NULL, NULL))) {
@@ -1499,7 +1512,9 @@ im_info_t *im_uim_get_info(char *locale, char *encoding) {
 
   uim_release_context(u);
 
-  uim_quit();
+  if (uim_init_done) {
+    uim_quit();
+  }
 
   result->id = strdup("uim");
   result->name = strdup("uim");
@@ -1512,7 +1527,9 @@ error:
     uim_release_context(u);
   }
 
-  uim_quit();
+  if (uim_init_done) {
+    uim_quit();
+  }
 
   if (result) {
     if (result->args) {

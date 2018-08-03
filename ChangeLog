@@ -1,3 +1,8 @@
+2018-08-03  Araki Ken  <arakiken@users.sf.net>
+
+	* im_uim.c: uim_scm_is_initialized() is used to check if uim_init()
+	  has been called.
+
 2018-07-31  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.fb, doc/ja/README.fb: Updated.
