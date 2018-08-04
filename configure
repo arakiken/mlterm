@@ -679,7 +679,6 @@ EMOJI_LIBS
 EMOJI_CFLAGS
 MLIMGLOADER_LIB
 PERL
-XLFDSEL_OBJ
 MKINSTALLDIRS
 POSUB
 POFILES
@@ -20858,10 +20857,6 @@ $as_echo "$LINGUAS" >&6; }
 		MAKE_DIRS="tool/mlconfig ${MAKE_DIRS}"
 		OUTPUT_FILES="tool/mlconfig/Makefile tool/mlconfig/po/Makefile.in ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
-		if test "$gui" = "xlib" -a "$gtk_version" = "2.0" ; then
-			XLFDSEL_OBJ="gtkxlfdsel.o"
-
-		fi
 	else
 		echo ""
 		echo "** WARNING  **"

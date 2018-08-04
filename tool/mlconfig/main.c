@@ -51,7 +51,7 @@ static void end_application(GtkWidget *widget, gpointer data) { gtk_main_quit();
  */
 
 static int update(mc_io_t io) {
-  char *gui = mc_get_gui();
+  const char *gui = mc_get_gui();
 
   mc_update_char_encoding();
   mc_update_auto_detect();
@@ -460,7 +460,7 @@ static int show(void) {
   GtkWidget *label;
   GtkWidget *config_widget;
   GtkWidget *separator;
-  char *gui = mc_get_gui();
+  const char *gui = mc_get_gui();
 
   window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   g_signal_connect(window, "destroy", G_CALLBACK(end_application), NULL);

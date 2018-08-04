@@ -10,9 +10,8 @@
 #include <glib.h>
 #include <c_intl.h>
 
-#if !defined(USE_WIN32GUI) && !defined(G_PLATFORM_WIN32) && !GTK_CHECK_VERSION(2, 90, 0) && \
-    !defined(USE_QUARTZ)
-#include "gtkxlfdsel.h"
+#if defined(GDK_WINDOWING_X11) && !GTK_CHECK_VERSION(2, 90, 0)
+#include "gtkxlfdsel.c"
 #endif
 
 #include "mc_combo.h"
@@ -908,8 +907,7 @@ static gint fontcs_selected(GtkWidget *widget, gpointer data) {
   return 0;
 }
 
-#if !defined(USE_WIN32GUI) && !defined(G_PLATFORM_WIN32) && !GTK_CHECK_VERSION(2, 90, 0) && \
-    !defined(USE_QUARTZ)
+#if defined(GDK_WINDOWING_X11) && !GTK_CHECK_VERSION(2, 90, 0)
 
 static gchar *get_xlfd_font_name(gpointer dialog) {
   char *name;
@@ -1127,10 +1125,10 @@ static void select_fc_font(GtkWidget *widget, gpointer p) {
 }
 
 static void select_font(GtkWidget *widget, gpointer p) {
-#if !defined(USE_WIN32GUI) && !defined(G_PLATFORM_WIN32) && !GTK_CHECK_VERSION(2, 90, 0) && \
-    !defined(USE_QUARTZ)
+#if defined(GDK_WINDOWING_X11) && !GTK_CHECK_VERSION(2, 90, 0)
   if (!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(xft_flag)) &&
-      !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cairo_flag))) {
+      !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cairo_flag)) &&
+      strcmp(mc_get_gui(), "xlib") == 0) {
     select_xlfd_font(widget, p);
   } else
 #endif
