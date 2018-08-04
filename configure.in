@@ -1,3 +1,4 @@
+# -*- mode:sh; tab-width:2; indent-tabs-mode:t -*-
 AC_INIT()
 
 AC_CONFIG_HEADER(common/c_config.h)
@@ -967,10 +968,6 @@ mlconfig)
 		MAKE_DIRS="tool/mlconfig ${MAKE_DIRS}"
 		OUTPUT_FILES="tool/mlconfig/Makefile tool/mlconfig/po/Makefile.in ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
-		if test "$gui" = "xlib" -a "$gtk_version" = "2.0" ; then
-			XLFDSEL_OBJ="gtkxlfdsel.o"
-			AC_SUBST(XLFDSEL_OBJ)
-		fi
 	else
 		echo ""
 		echo "** WARNING  **"

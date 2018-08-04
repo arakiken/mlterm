@@ -1,3 +1,14 @@
+2018-08-04  Araki Ken  <arakiken@users.sf.net>
+
+	* mc_font.c:
+	  - gtkxlfdsel.c is included if GDK_WINDOWING_X11 is defined regardless
+	    USE_<PLATFORM> macro defined by mlterm.
+	  - select_xlfd_font() is called only if mc_get_gui() == "xlib".
+
+	* main.c: char *gui; => const char *gui;
+
+	* configure.in, tool/mlconfig/Makefile.in: XLFDSEL_OBJ is removed.
+
 2018-08-03  Araki Ken  <arakiken@users.sf.net>
 
 	* im_uim.c: uim_scm_is_initialized() is used to check if uim_init()
