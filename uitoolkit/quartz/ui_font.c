@@ -1,6 +1,10 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
+#ifdef COCOA_TOUCH
+#include <CoreGraphics/CoreGraphics.h>
+#else
 #include <ApplicationServices/ApplicationServices.h>
+#endif
 
 #include "../ui_font.h"
 
@@ -16,6 +20,12 @@
 
 #ifdef USE_OT_LAYOUT
 #include <otl.h>
+#endif
+
+#ifdef COCOA_TOUCH
+#define DEFAULT_FONT "Courier"
+#else
+#define DEFAULT_FONT "Menlo"
 #endif
 
 #include "cocoa.h"
@@ -242,7 +252,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     }
   } else {
     /* Default font */
-    font_family = "Menlo";
+    font_family = DEFAULT_FONT;
   }
 
   if (font->id & FONT_BOLD) {
@@ -256,12 +266,12 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   while (!(font->xfont->cg_font = cocoa_create_font(font_family))) {
     bl_warn_printf("%s font is not found.\n", font_family);
 
-    if (col_width == 0 && strcmp(font_family, "Menlo") != 0) {
+    if (col_width == 0 && strcmp(font_family, DEFAULT_FONT) != 0) {
       /*
        * standard(usascii) font
        * Fall back to default font.
        */
-      font_family = "Menlo";
+      font_family = DEFAULT_FONT;
     } else {
       free(font);
 

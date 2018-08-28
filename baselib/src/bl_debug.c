@@ -65,6 +65,16 @@ static void close_msg_file(FILE *fp) {
   }
 }
 
+#if defined(__APPLE__) && defined(USE_NSLOG)
+#include <CoreFoundation/CoreFoundation.h>
+
+static int debug_printf(const char *prefix, const char *format, va_list arg_list) {
+  CFStringRef cffmt = CFStringCreateWithCString(NULL, format, kCFStringEncodingUTF8);
+  NSLog(cffmt, arg_list);
+
+  return 1;
+}
+#else
 static int debug_printf(const char *prefix, const char *format, va_list arg_list) {
   size_t prefix_len;
   int ret;
@@ -89,6 +99,7 @@ static int debug_printf(const char *prefix, const char *format, va_list arg_list
 
   return ret;
 }
+#endif
 
 /* --- global functions --- */
 

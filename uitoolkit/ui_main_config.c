@@ -451,6 +451,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     }
   }
 
+#ifdef USE_XLIB
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
   main_config->type_engine = TYPE_CAIRO;
 #elif !defined(USE_TYPE_XCORE) && defined(USE_TYPE_XFT)
@@ -459,10 +460,11 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   main_config->type_engine = TYPE_XCORE;
 #endif
 
-#ifdef USE_XLIB
   if ((value = bl_conf_get_value(conf, "type_engine"))) {
     main_config->type_engine = ui_get_type_engine_by_name(value);
   }
+#else
+  main_config->type_engine = TYPE_XCORE;
 #endif
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO) || \
@@ -691,7 +693,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   }
 #endif
 
-#ifdef USE_CONSOLE
+#if defined(USE_CONSOLE) || defined(COCOA_TOUCH)
   main_config->sb_mode = SBM_NONE;
 #else
   if ((value = bl_conf_get_value(conf, "scrollbar_mode"))) {
@@ -1059,7 +1061,6 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
       main_config->show_dialog = 1;
     }
   }
-
 #endif
 
 #ifdef USE_LIBSSH2

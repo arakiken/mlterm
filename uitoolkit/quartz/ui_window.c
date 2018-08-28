@@ -648,7 +648,7 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
     win->width = width;
   }
 
-  /* Maui.height of each window is screen height. */
+  /* Max.height of each window is screen height. */
   if ((flag & LIMIT_RESIZE) && win->disp->height < height) {
     win->height = win->disp->height - win->vmargin * 2;
   } else {
@@ -656,8 +656,13 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
   }
 
   if (win->parent) {
+#ifdef COCOA_TOUCH
+    view_set_rect(win->my_window, win->x, win->y,
+                  ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
+#else
     view_set_rect(win->my_window, win->x, ACTUAL_HEIGHT(win->parent) - ACTUAL_HEIGHT(win) - win->y,
                   ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
+#endif
 
     if ((flag & NOTIFY_TO_PARENT) && win->parent->child_window_resized) {
       (*win->parent->child_window_resized)(win->parent, win);
@@ -669,7 +674,15 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
      * not only win->parent but also IS_XLAYOUT(win) is necessary.
      */
     if (IS_XLAYOUT(win)) {
+#ifdef COCOA_TOUCH
+      if (ACTUAL_WIDTH(win) < win->disp->width ||
+          ACTUAL_HEIGHT(win) < win->disp->height) {
+        return ui_window_resize_with_margin(win, win->disp->width, win->disp->height,
+                                            NOTIFY_TO_MYSELF);
+      }
+#else
       window_resize(win->my_window, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
+#endif
     }
   }
 
@@ -764,8 +777,13 @@ int ui_window_move(ui_window_t *win, int x, int y) {
   win->y = y;
 
   if (win->parent) {
+#ifdef COCOA_TOUCH
+    view_set_rect(win->my_window, x, y,
+                  ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
+#else
     view_set_rect(win->my_window, x, ACTUAL_HEIGHT(win->parent) - ACTUAL_HEIGHT(win) - y,
                   ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
+#endif
   }
 
   return 1;
@@ -1182,6 +1200,11 @@ void ui_set_use_clipboard_selection(int use_it) {}
 int ui_is_using_clipboard_selection(void) { return 0; }
 
 int ui_window_set_selection_owner(ui_window_t *win, Time time) {
+#ifdef COCOA_TOUCH
+  if (win->utf_selection_requested) {
+    (*win->utf_selection_requested)(win, NULL, time);
+  }
+#else
   if (ui_window_is_selection_owner(win)) {
     /* Already owner */
 
@@ -1193,6 +1216,7 @@ int ui_window_set_selection_owner(ui_window_t *win, Time time) {
 #endif
 
   cocoa_clipboard_own(win->my_window);
+#endif
 
   return 1;
 }

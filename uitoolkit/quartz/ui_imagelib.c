@@ -2,7 +2,11 @@
 
 #ifndef NO_IMAGE
 
+#ifdef COCOA_TOUCH
+#include <CoreGraphics/CoreGraphics.h>
+#else
 #include <ApplicationServices/ApplicationServices.h>
+#endif
 
 #include "../ui_imagelib.h"
 

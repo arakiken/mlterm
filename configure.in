@@ -1,4 +1,4 @@
-# -*- mode:sh; tab-width:2; indent-tabs-mode:t -*-
+# -*- mode:sh; sh-basic-offset:2; tab-width:2; indent-tabs-mode:t -*-
 AC_INIT()
 
 AC_CONFIG_HEADER(common/c_config.h)
@@ -36,6 +36,46 @@ AC_SUBST(LPOBL)
 AC_SUBST(POBL_CFLAGS)
 
 AC_CHECK_TOOL(PKG_CONFIG, pkg-config)
+
+AC_ARG_WITH(ios-sdk,
+	[  --with-ios-sdk@<:@=ARG@:>@    iOS SDK(e.g. iphoneos4.3 iphonesimulator4.3) ],
+	ios_sdk=$with_ios_sdk)
+if test "$ios_sdk" != ""; then
+	AC_CHECK_PROG(XCRUN, xcrun, xcrun)
+	if test "$XCRUN" != ""; then
+		if test "$SDKROOT" = ""; then
+			SDKROOT=`$XCRUN --sdk $ios_sdk --show-sdk-path`
+		fi
+
+		if test "$CC" = ""; then
+			# Do 'export' for baselib/configure and encodefilter/configure.
+			export CC="`$XCRUN --sdk $ios_sdk -f cc` -isysroot $SDKROOT"
+		fi
+		AC_ARG_WITH(ios-arch,
+			[  --with-ios-arch@<:@=ARG@:>@   iOS architectures (e.g. arm7v x86_64,i686) ],
+			ios_arch=$with_ios_arch)
+		if test "$ios_arch" != ""; then
+			ios_arch=`echo ${ios_arch} | sed 's/,/ /g'`
+			for arch in $ios_arch; do
+				CC="$CC -arch $arch"
+			done
+		fi
+
+		if test "$CPP" = ""; then
+			export CPP="$CC -E"
+		fi
+		if test "$RANLIB" = ""; then
+			export RANLIB=`$XCRUN --sdk $ios_sdk -f ranlib`
+		fi
+		if test "$LIBTOOL" = ""; then
+			export LIBTOOL=`$XCRUN --sdk $ios_sdk -f libtool`
+		fi
+		if test "$AR" = ""; then
+			export AR=`$XCRUN --sdk $ios_sdk -f ar`
+		fi
+	fi
+	XCRUN=
+fi
 
 AC_PROG_CC
 # mlimgloader (gdiplus.cpp) and SCIM
@@ -206,13 +246,6 @@ esac
 # for java/Makefile.in
 AC_SUBST(WIN32TAG)
 AC_SUBST(CYGPATHW)
-
-if test "$gui" = "quartz"; then
-	VT_NORM_OBJ="vt_normalize.o"
-	VT_NORM_CFLAGS="-DUSE_NORMALIZE"
-fi
-AC_SUBST(VT_NORM_OBJ)
-AC_SUBST(VT_NORM_CFLAGS)
 
 if test "$ml_cv_is_posix" = "yes" -o "$debug" = "yes" ; then
 	SUBSYSTEM="-Wl,--subsystem,console"
@@ -427,7 +460,21 @@ elif test "$gui" = "xlib" ; then
 elif test "$gui" = "quartz" ; then
 	GUI="quartz"
 	GUI_CFLAGS="-DUSE_QUARTZ"
+	if test "$ios_sdk" != ""; then
+		GUI_CFLAGS="$GUI_CFLAGS -DCOCOA_TOUCH"
+		COCOAOBJ=cocoatouch.o
+		COCOA_LIBS="-framework Foundation -framework UIKit -framework CoreGraphics"
+	else
+		COCOAOBJ=cocoa.o
+		COCOA_LIBS="-framework Foundation -framework Cocoa"
+	fi
+	AC_SUBST(COCOAOBJ)
+	AC_SUBST(COCOA_LIBS)
 	X_CFLAGS=""
+	VT_NORM_OBJ="vt_normalize.o"
+	VT_NORM_CFLAGS="-DUSE_NORMALIZE"
+	AC_SUBST(VT_NORM_OBJ)
+	AC_SUBST(VT_NORM_CFLAGS)
 elif test "$gui" = "console" ; then
 	GUI="console"
 	GUI_CFLAGS="-DUSE_CONSOLE"

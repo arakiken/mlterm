@@ -1,19 +1,24 @@
 comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
-MacOS X/Cocoa support (Experimental)
+iOS/Cocoa Touch support (Experimental)
 
 * Tested environment
-  MacOS X 10.6
+  iOS 4.3
 
 * Build
-  ./configure --with-gui=quartz (--config-cache) --prefix=/foo/bar
+  ./configure --with-gui=quartz --prefix=/foo/bar --disable-shared \
+              --with-ios-sdk=(iphoneos4.3|iphonesimulator4.3|...) \
+              --with-ios-arch=(arm7v|i686|...)
   make
   make install
-  cp -R cocoa/mlterm.app ~/
-  $(top_srcdir)/cocoa/install.sh /foo/bar
+  cp -R cocoa/mlterm-ios.app ~/
+  $(top_srcdir)/cocoa/install-ios.sh /foo/bar
+
+  It is possible to use build-ios.sh or build-iossim.sh in cocoa/
+  instead of executing ./configure manually.
 
 * Configuration
-  Edit main, font, key and color files in ~/.mlterm/
+  Edit main, font, key and color files mlterm-ios.app/etc/mlterm/
   See files in http://bitbucket.org/arakiken/mlterm/src/tip/etc/
 
   (Font Configuration)
@@ -26,13 +31,14 @@ MacOS X/Cocoa support (Experimental)
   aafont, vaafont, taafont files are not used.
 
 * Start
-  open -a $HOME/mlterm.app
+  Click mlterm icon.
 
 * Caution
   o -L/--ls, -u/--onlyucsfont and --boxdraw options are enabled by default.
   o It is impossible to disable -s/--mdi option.
   o OPEN_SCREEN, OPEN_PTY, NEXT_PTY and PREV_PTY shortcut keys are
-    Command+F1, Command+F2, Command+F3 and Command+F4.
+    Command+F1, Command+F2, Command+F3 and Command+F4, but these keys don't
+    work for now.
   o ISCII font is unavailable.
     (If you want to show indic characters, build mlterm with harfbuzz and
      enable -otl/use_ot_layout option.)

@@ -1,6 +1,9 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
+#ifdef USE_IM_PLUGIN
 #import <Cocoa/Cocoa.h>
+#endif
+
 #include "../ui_im_status_screen.h"
 
 #ifdef USE_IM_PLUGIN
@@ -14,7 +17,7 @@
  * methods of ui_im_status_screen_t
  */
 
-static int delete (ui_im_status_screen_t* stat_screen) {
+static int delete(ui_im_status_screen_t* stat_screen) {
   NSWindow* window = stat_screen->window.my_window;
 
   [window release];
@@ -99,7 +102,7 @@ static int set(ui_im_status_screen_t* stat_screen, ef_parser_t* parser,
 
 /* --- global functions --- */
 
-ui_im_status_screen_t* ui_im_status_screen_new(ui_display_t* disp,
+ui_im_status_screen_t *ui_im_status_screen_new(ui_display_t* disp,
                                                ui_font_manager_t* font_man,
                                                ui_color_manager_t* color_man,
                                                void *vtparser, int is_vertical,
@@ -170,11 +173,11 @@ ui_im_status_screen_t* ui_im_status_screen_new(ui_display_t* disp,
 
 #else /* ! USE_IM_PLUGIN */
 
-ui_im_status_screen_t* ui_im_status_screen_new(ui_display_t* disp,
-                                             ui_font_manager_t* font_man,
-                                             ui_color_manager_t* color_man,
-                                             int is_vertical, u_int line_height,
-                                             int x, int y) {
+ui_im_status_screen_t *ui_im_status_screen_new(ui_display_t* disp,
+                                               ui_font_manager_t* font_man,
+                                               ui_color_manager_t* color_man,
+                                               void *vtparser,  int is_vertical,
+                                               u_int line_height, int x, int y) {
   return NULL;
 }
 

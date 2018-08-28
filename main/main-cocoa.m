@@ -1,6 +1,10 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
+#ifdef COCOA_TOUCH
+#import <UIKit/UIKit.h>
+#else
 #import <Cocoa/Cocoa.h>
+#endif
 #include <pobl/bl_conf_io.h>
 #include <pobl/bl_debug.h>
 #include <pobl/bl_dlfcn.h>
@@ -32,7 +36,9 @@ static void set_lang(void) {
 
 /* --- global functions --- */
 
+#ifndef COCOA_TOUCH
 extern char *global_args;
+#endif
 
 int main(int argc, const char* argv[]) {
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -42,7 +48,18 @@ int main(int argc, const char* argv[]) {
       set_lang();
     }
 
+#ifdef COCOA_TOUCH
+    char *bundle = [[[NSBundle mainBundle] bundlePath] UTF8String];
+    char *path;
+
+    if ((path = alloca(strlen(bundle) + 5))) {
+      strcpy(path, bundle);
+      strcat(path, "/etc");
+      bl_set_sys_conf_dir(path);
+    }
+#else
     bl_set_sys_conf_dir([[[NSBundle mainBundle] bundlePath] UTF8String]);
+#endif
   }
   @finally {
     [pool release];
@@ -61,7 +78,8 @@ int main(int argc, const char* argv[]) {
       len += (strlen(argv[count]) + 1);
     }
 
-    if ((global_args = malloc(len))) {
+#ifndef COCOA_TOUCH
+    if ((global_args = alloca(len))) {
       char *p = global_args;
 
       for (count = 0; count < argc - 1; count++) {
@@ -71,7 +89,12 @@ int main(int argc, const char* argv[]) {
       }
       strcpy(p, argv[count]);
     }
+#endif
   }
 
+#ifdef COCOA_TOUCH
+  return UIApplicationMain(argc, argv, nil, nil);
+#else
   return NSApplicationMain(argc, argv);
+#endif
 }
