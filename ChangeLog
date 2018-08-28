@@ -1,3 +1,35 @@
+2018-08-28  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.cocoatouch: Added.
+
+	* main/Makefile.in: -framework Foundation -framework Cocoa => @COCOA_LIBS@
+
+	* uitoolkit/Makefile.in: cocoa.o => @COCOAOBJ@
+
+	* configure.in:
+	  - --with-ios-sdk and --with-ios-arch are added.
+	  - If --with-ios-sdk option is specified, COCOA_TOUCH macro is defined.
+
+	* cocoa/build-ios.sh, build-iossim.sh, install-ios.sh, mlterm-ios.app: Added.
+
+	* ui_screen_manager.c: New pty is opened in pty_closed() if pty is closed
+	  and there is no pty.
+
+	* main-cocoa.m, quartz/ui_font.c, ui_im_status_screen-cocoa.m,
+	  quartz/ui_imagelib.c, quartz/ui_window.c: CocoaTouch is supported.
+
+	* cocoatouch.m: Added.
+
+	* cocoa.m: [super becomeFirstResponder] is called in becomeFirstResponder().
+
+	* ui_main_config.c: The default value of type_engine option is always
+	  TYPE_XCORE on platforms except xlib.
+
+	* im_uim.c: Compiling error is fixed.
+
+	* baselib/configure.in: Following checks are executed only if $host = $build.
+	  AC_RUNIFELSE(posix_openpt), AC_TRY_RUN(calloc).
+
 2018-08-04  Araki Ken  <arakiken@users.sf.net>
 
 	* mc_font.c:

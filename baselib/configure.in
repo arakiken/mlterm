@@ -1,3 +1,4 @@
+# -*- mode:sh; sh-basic-offset:2; tab-width:2; indent-tabs-mode:t -*-
 AC_INIT()
 
 AC_CONFIG_HEADER(src/bl_config.h)
@@ -261,10 +262,10 @@ AC_CACHE_VAL(bl_cv_pty,
 		bl_cv_pty=none
 	elif test "$bl_cv_mingw32" = "yes" ; then
 		bl_cv_pty=streams
-	else
-		AC_CHECK_FUNC( posix_openpt,
+	elif test "$host" = "$build" ; then
+		AC_CHECK_FUNC(posix_openpt,
 			[AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <fcntl.h>],
-				[return posix_openpt( O_RDWR | O_NOCTTY) == -1;])],
+				[return posix_openpt(O_RDWR | O_NOCTTY) == -1;])],
 				[
 				AC_DEFINE(HAVE_POSIX_OPENPT,,"HAVE_POSIX_OPENPT")
 				bl_cv_pty=streams
@@ -276,6 +277,14 @@ AC_CACHE_VAL(bl_cv_pty,
 				[return open( "/dev/ptmx", O_RDWR | O_NOCTTY, 0) == -1;])],
 				[bl_cv_pty=streams])
 		fi
+	else
+    # cross compiling
+		AC_CHECK_FUNC(posix_openpt,
+			[
+				AC_DEFINE(HAVE_POSIX_OPENPT,,"HAVE_POSIX_OPENPT")
+				bl_cv_pty=streams
+			],
+			[bl_cv_pty=bsd])
 	fi
 	])
 AC_ARG_ENABLE(pty_helper,
@@ -372,16 +381,15 @@ fi
 #
 # --- check for malloc ---
 #
-AC_TRY_RUN(
-[
-#include <stdio.h>
-int
-main()
-{
-return  calloc(8 , ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0 ;
-}
-],
-AC_DEFINE(CALLOC_CHECK_OVERFLOW))
-
+if test "$host" = "$build"; then
+	AC_TRY_RUN(
+	[
+	#include <stdio.h>
+	int main() {
+		return  calloc(8 , ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0 ;
+	}
+	],
+	AC_DEFINE(CALLOC_CHECK_OVERFLOW))
+fi
 
 AC_OUTPUT(Makefile src/Makefile)

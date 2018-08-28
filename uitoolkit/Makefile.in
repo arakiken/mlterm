@@ -31,7 +31,7 @@ OBJ2_win32 = ui_gdiobj_pool.o ui.o ui_im_status_screen.o
 
 OBJ2_fb = ui.o ui_decsp_font.o ui_virtual_kbd.o ui_im_status_screen.o
 
-OBJ2_quartz = ui.o cocoa.o ui_im_status_screen-cocoa.o
+OBJ2_quartz = ui.o @COCOAOBJ@ ui_im_status_screen-cocoa.o
 
 OBJ2_console = ui.o ui_im_status_screen.o
 

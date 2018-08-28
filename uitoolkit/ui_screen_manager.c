@@ -876,6 +876,28 @@ static void pty_closed(void *p, ui_screen_t *screen /* screen->term was already 
       vt_term_t *term;
 
       if ((term = vt_get_detached_term(NULL)) == NULL) {
+#ifdef COCOA_TOUCH
+        if (vt_get_all_terms(NULL) == 0 && (term = create_term_intern())) {
+          if (open_pty_intern(term, main_config.cmd_path, main_config.cmd_argv, &screen->window,
+#ifdef USE_LIBSSH2
+                               main_config.show_dialog
+#else
+                               0
+#endif
+                               )) {
+            ui_window_t *root = ui_get_root_window(&screen->window);
+            u_int w = root->width;
+            u_int h = root->height;
+            ui_screen_attach(screen, term);
+            ui_window_resize(root, w, h, NOTIFY_TO_MYSELF);
+
+            return;
+          } else {
+            vt_destroy_term(term);
+          }
+        }
+#endif
+
 #ifdef __DEBUG
         bl_debug_printf(" no detached term. closing screen.\n");
 #endif

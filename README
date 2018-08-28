@@ -213,11 +213,12 @@ Supported platforms
   * MS Windows 8 + Cygwin 2.10.0 / GDI, SDL2 (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
   * MS Windows 8 + MSYS2 2.7.0 / GDI (x86)
   * MacOSX 10.6 / X, Cocoa, SDL2 (x86)
+  * iOS 4.3 / CocoaTouch (x86)
   * Android 4.0 (x86)
   * Java 1.8.0 / SWT (x86)
 
-  See README.fb, README.win32, README.android, README.cocoa, README.console,
-  README.wayland and README.sdl2 in
+  See README.fb, README.win32, README.android, README.cocoa, README.cocoatouch,
+  README.console, README.wayland and README.sdl2 in
   http://bitbucket.org/arakiken/mlterm/src/tip/doc/en in detail.
 
   Following platforms are not actually tested by developers, but were supported

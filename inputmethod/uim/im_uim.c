@@ -41,7 +41,7 @@
 #if UIM_VERSION_REQUIRE(1, 5, 0)
 #include <uim-scm.h>
 #else
-#define uim_scm_is_initialized (initialized)
+#define uim_scm_is_initialized() (initialized)
 #endif
 
 #include <pobl/bl_mem.h>    /* malloc/alloca/free */
