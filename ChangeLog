@@ -1,3 +1,17 @@
+2018-09-01  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_window.c, ui_screen_manager.c: Hack to keep window size is fixed.
+
+	* main-cocoa.m: Application class instead of UIApplication is used.
+
+	* cocoatouch.m:
+	  - UITextInput protocol is implemented.
+	  - Application class derived from UIApplication is added to receive all
+	    keyboard input events.
+	  - viewDidMoveToWindow => didMoveToWindow.
+
+	* vt_pty_unix.c: Hack for iOS 4.3 is added.
+
 2018-08-28  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.cocoatouch: Added.

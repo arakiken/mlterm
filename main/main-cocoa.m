@@ -21,10 +21,10 @@
 /* --- static functions --- */
 
 static void set_lang(void) {
-  char* locale;
+  const char* locale;
 
   if ((locale = [[[NSLocale currentLocale]
-           objectForKey:NSLocaleIdentifier] UTF8String])) {
+                   objectForKey:NSLocaleIdentifier] UTF8String])) {
     char* p;
 
     if ((p = alloca(strlen(locale) + 7))) {
@@ -49,7 +49,7 @@ int main(int argc, const char* argv[]) {
     }
 
 #ifdef COCOA_TOUCH
-    char *bundle = [[[NSBundle mainBundle] bundlePath] UTF8String];
+    const char *bundle = [[[NSBundle mainBundle] bundlePath] UTF8String];
     char *path;
 
     if ((path = alloca(strlen(bundle) + 5))) {
@@ -93,7 +93,7 @@ int main(int argc, const char* argv[]) {
   }
 
 #ifdef COCOA_TOUCH
-  return UIApplicationMain(argc, argv, nil, nil);
+  return UIApplicationMain(argc, argv, @"Application", nil);
 #else
   return NSApplicationMain(argc, argv);
 #endif

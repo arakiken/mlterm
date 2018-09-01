@@ -641,6 +641,14 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
     return 0;
   }
 
+#ifdef COCOA_TOUCH
+  if (!win->parent) {
+    /* Don't allow to change the size of a root window. */
+    flag |= NOTIFY_TO_MYSELF;
+    goto end;
+  }
+#endif
+
   /* Max width of each window is screen width. */
   if ((flag & LIMIT_RESIZE) && win->disp->width < width) {
     win->width = win->disp->width - win->hmargin * 2;
@@ -674,18 +682,13 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
      * not only win->parent but also IS_XLAYOUT(win) is necessary.
      */
     if (IS_XLAYOUT(win)) {
-#ifdef COCOA_TOUCH
-      if (ACTUAL_WIDTH(win) < win->disp->width ||
-          ACTUAL_HEIGHT(win) < win->disp->height) {
-        return ui_window_resize_with_margin(win, win->disp->width, win->disp->height,
-                                            NOTIFY_TO_MYSELF);
-      }
-#else
       window_resize(win->my_window, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
-#endif
     }
   }
 
+#ifdef COCOA_TOUCH
+end:
+#endif
   if ((flag & NOTIFY_TO_MYSELF) && win->window_resized) {
     (*win->window_resized)(win);
     win->update_window_flag = 0; /* force redraw */
@@ -755,8 +758,6 @@ void ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_hei
   root = ui_get_root_window(win);
 
   window_set_normal_hints(root->my_window, total_width_inc(root), total_height_inc(root));
-
-  return 1;
 }
 
 void ui_window_set_override_redirect(ui_window_t *win, int flag) {}
