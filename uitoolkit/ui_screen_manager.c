@@ -885,11 +885,7 @@ static void pty_closed(void *p, ui_screen_t *screen /* screen->term was already 
                                0
 #endif
                                )) {
-            ui_window_t *root = ui_get_root_window(&screen->window);
-            u_int w = root->width;
-            u_int h = root->height;
             ui_screen_attach(screen, term);
-            ui_window_resize(root, w, h, NOTIFY_TO_MYSELF);
 
             return;
           } else {

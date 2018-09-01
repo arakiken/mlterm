@@ -9,6 +9,9 @@
 #include <signal.h> /* signal/SIGWINCH */
 #include <string.h> /* strchr/memcpy */
 #include <stdlib.h> /* putenv */
+#ifdef __APPLE__
+#include <errno.h>
+#endif
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h> /* realloc/alloca */
 #include <pobl/bl_str.h> /* strdup */
@@ -90,7 +93,22 @@ static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
 }
 
 static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
+#ifdef __APPLE__
+  ssize_t ret;
+
+  /*
+   * XXX
+   * If a child shell exits by 'exit' command, mlterm doesn't receive SIG_CHLD on
+   * iOS 4.3 with japanese software keyboard.
+   */
+  if ((ret = write(pty->master, buf, len)) < 0 && errno == EIO) {
+    bl_trigger_sig_child(pty->child_pid);
+  }
+
+  return ret;
+#else
   return write(pty->master, buf, len);
+#endif
 }
 
 static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {

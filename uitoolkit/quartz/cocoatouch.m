@@ -16,6 +16,9 @@
 #include "../ui_layout.h"
 #include "../ui_selection_encoding.h"
 
+@interface Application : UIApplication
+@end
+
 @interface AppDelegate_iPhone : NSObject <UIApplicationDelegate> {
   UIWindow *window;
 }
@@ -30,7 +33,21 @@
 @property (nonatomic, retain) IBOutlet UIWindow *window;
 @end
 
-@interface MLTermView : UIView<UIKeyInput> {
+@interface TextPosition : UITextPosition {
+  int position;
+}
+@property (nonatomic) int position;
+@end
+
+@interface TextRange : UITextRange {
+  TextPosition *start;
+  TextPosition *end;
+}
+@property (nonatomic, readonly) UITextPosition *start;
+@property (nonatomic, readonly) UITextPosition *end;
+@end
+
+@interface MLTermView : UIView<UITextInput> {
   ui_window_t *uiwindow;
   CGContextRef ctx;
   CGLayerRef layer;
@@ -38,12 +55,15 @@
 
   BOOL ignoreKeyDown;
   NSString *markedText;
-  int currentShiftMask;
-	NSRange markedRange;
-	NSRange selectedRange;
+  TextRange *selectedTextRange;
+  TextRange *markedTextRange;
+
   int cand_x;
   int cand_y;
 }
+
+@property (readwrite, copy) UITextRange *selectedTextRange;
+@property (nonatomic, readonly) UITextRange *markedTextRange;
 
 - (void)drawString:(ui_font_t *)font
                   :(ui_color_t *)fg_color
@@ -73,7 +93,6 @@
 - (void)unsetClip;
 - (void)update:(int)flag;
 - (void)bgColorChanged;
-- (void)viewDidMoveToWindow;
 @end
 
 /* --- static variables --- */
@@ -87,6 +106,9 @@ static struct {
 static u_int num_additional_fds;
 static ui_window_t *uiwindow_for_mlterm_view;
 static int keyboard_margin;
+
+static u_int key_code;
+static u_int key_mod;
 
 /* --- static functions --- */
 
@@ -349,9 +371,61 @@ static void show_dialog(const char *msg) {
   [alert show]; /* XXX This doesn't stop. */
 }
 
+static ui_window_t *search_focused_window(ui_window_t *win) {
+  u_int count;
+  ui_window_t *focused;
+
+  /*
+   * *parent* - *child*
+   *            ^^^^^^^ => Hit this window instead of the parent window.
+   *          - child
+   *          - child
+   * (**: is_focused == 1)
+   */
+  for (count = 0; count < win->num_children; count++) {
+    if ((focused = search_focused_window(win->children[count]))) {
+      return focused;
+    }
+  }
+
+  if (win->is_focused) {
+    return win;
+  }
+
+  return NULL;
+}
+
 /* --- class --- */
 
 int cocoa_dialog_alert(const char *msg);
+
+@implementation Application
+
+- (void)sendEvent:(UIEvent *)event {
+  [super sendEvent:event];
+
+  if ([event respondsToSelector:@selector(_gsEvent)]) {
+    u_int32_t *buf = [event performSelector:@selector(_gsEvent)];
+
+    if (buf && buf[2] == 10 /* Event type */) {
+      u_int num;
+      ui_display_t **disps = ui_get_opened_displays(&num);
+      ui_window_t *win = search_focused_window(disps[0]->roots[0]);
+
+      if (win) {
+        MLTermView *view = win->my_window;
+
+        if (![view hasText]) {
+          key_mod = buf[12];
+          key_code = (buf[15] >> 16) & 0xffff;
+          [self sendAction:@selector(keyEvent) to:view from:nil forEvent:nil];
+        }
+      }
+    }
+  }
+}
+
+@end
 
 @implementation AppDelegate_iPhone
 
@@ -375,7 +449,6 @@ int cocoa_dialog_alert(const char *msg);
 	MLTermView *view = [[MLTermView alloc] initWithFrame:CGRectMake(0, 0,
                                                                   r.size.width, r.size.height)];
 	[self.window addSubview:view];
-  [view viewDidMoveToWindow];
 	[self.window makeKeyAndVisible];
 
 	return YES;
@@ -447,7 +520,6 @@ int cocoa_dialog_alert(const char *msg);
 	MLTermView *view = [[MLTermView alloc] initWithFrame:CGRectMake(0, 0,
                                                                   r.size.width, r.size.height)];
 	[self.window addSubview:view];
-  [view viewDidMoveToWindow];
 	[self.window makeKeyAndVisible];
 
 	return YES;
@@ -487,11 +559,38 @@ int cocoa_dialog_alert(const char *msg);
 
 @end
 
+@implementation TextPosition
+@synthesize position;
+@end
+
+@implementation TextRange
+@synthesize start;
+@synthesize end;
+
+- (id)init {
+  [super init];
+
+  start = [TextPosition alloc];
+  end = [TextPosition alloc];
+}
+
+- (void)dealloc {
+  [super dealloc];
+
+  [start release];
+  [end release];
+}
+@end
+
 @implementation MLTermView
 
-@synthesize keyboardType = UIKeyboardTypeDefault;
-@synthesize keyboardAppearance = UIKeyboardAppearanceDefault;
-@synthesize returnKeyType = UIReturnKeyDefault;
+@synthesize selectedTextRange;
+@synthesize markedTextRange;
+@synthesize tokenizer;
+@synthesize inputDelegate;
+@synthesize endOfDocument;
+@synthesize beginningOfDocument;
+@synthesize markedTextStyle;
 
 - (id)initWithFrame:(CGRect)frame {
   if (uiwindow_for_mlterm_view) {
@@ -517,8 +616,8 @@ int cocoa_dialog_alert(const char *msg);
 
   ignoreKeyDown = FALSE;
   markedText = nil;
-  markedRange = NSMakeRange(NSNotFound, 0);
-  selectedRange = NSMakeRange(NSNotFound, 0);
+  markedTextRange = [UITextRange alloc];
+  selectedTextRange = [UITextRange alloc];
 
   UILongPressGestureRecognizer *longpress =
     [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPress:)];
@@ -541,6 +640,9 @@ int cocoa_dialog_alert(const char *msg);
 - (void)dealloc {
   [[NSNotificationCenter defaultCenter] removeObserver:self];
   [self.window removeObserver:self forKeyPath:@"frame"];
+
+  [markedTextRange release];
+  [selectedTextRange release];
 
   if (layer) {
     CGLayerRelease(layer);
@@ -618,7 +720,7 @@ int cocoa_dialog_alert(const char *msg);
   [self windowResized];
 }
 
-- (void)viewDidMoveToWindow {
+- (void)didMoveToWindow {
   if ([self window] == nil) {
     /* just before being deallocated */
     return;
@@ -889,60 +991,58 @@ static ui_window_t *get_current_window(ui_window_t *win) {
     ui_window_receive_event(uiwindow, (XEvent *)&bevRelease);
   }
 }
+#endif
 
-- (void)keyDown:(NSEvent *)event {
-  if ([event type] == NSFlagsChanged) {
+- (void)keyEvent {
+  XKeyEvent kev;
+
+#if 0
+  NSLog(@"Key event: mod %x keycode %x", key_mod, key_code);
+#endif
+
+  if (0xf700 <= key_code && key_code <= 0xf8ff) {
+    /*
+     * Function keys
+     * 0xf700-0xf703 are cursor keys which insertText() ignores.
+     */
+    if (0xf704 <= key_code && !key_mod) {
+      return;
+    }
+  } else if (key_code == 0x1b) {
+    /* do nothing */
+  } else if ((key_mod & NSControlKeyMask) || (key_mod & NSCommandKeyMask)) {
+    if ('a' <= key_code && key_code <= 'z') {
+      key_code -= 0x60;
+    } else if (0x40 <= key_code && key_code < 0x60) {
+      key_code -= 0x40;
+    } else {
+      return;
+    }
+  } else {
     return;
   }
 
-  u_int flags = event.modifierFlags;
-
-  /* ShiftMask is not set without this. (see insertText()) */
-  currentShiftMask = flags & NSShiftKeyMask;
-
-  NSString *oldMarkedText = markedText;
-
-  /* Alt+x isn't interpreted unless preediting. */
-  if (markedText || !(flags & NSAlternateKeyMask) ||
-      (flags & NSControlKeyMask)) {
-    [self interpretKeyEvents:[NSArray arrayWithObject:event]];
-  }
-
-  if (ignoreKeyDown) {
-    ignoreKeyDown = FALSE;
-  } else if (!oldMarkedText && !markedText) {
-    XKeyEvent kev;
-
-    kev.type = UI_KEY_PRESS;
-    kev.state = flags & (NSShiftKeyMask | NSControlKeyMask |
-                         NSAlternateKeyMask | NSCommandKeyMask);
-
-    if (kev.state & NSControlKeyMask) {
-      kev.keysym = [[event charactersIgnoringModifiers] characterAtIndex:0];
-      kev.utf8 = [event characters].UTF8String;
-    } else if (kev.state & NSAlternateKeyMask) {
-      kev.keysym = [[event charactersIgnoringModifiers] characterAtIndex:0];
-      kev.utf8 = NULL;
-    } else {
-      kev.keysym = [[event characters] characterAtIndex:0];
-      kev.utf8 = [event characters].UTF8String;
-    }
-
-    if ((kev.state & NSShiftKeyMask) && 'A' <= kev.keysym &&
-        kev.keysym <= 'Z') {
-      kev.keysym += 0x20;
-    }
-
-    ui_window_receive_event(uiwindow, (XEvent *)&kev);
-  }
+  kev.type = UI_KEY_PRESS;
+  kev.state = key_mod;
+  kev.keysym = key_code;
+  kev.utf8 = NULL;
+  ui_window_receive_event(uiwindow, (XEvent *)&kev);
 }
 
-- (NSUInteger)characterIndexForPoint:(CGPoint)point {
-  return 0;
+- (UITextRange *)characterRangeAtPoint:(CGPoint)point {
+  return nil;
 }
 
-- (CGRect)firstRectForCharacterRange:(NSRange)range
-                         actualRange:(NSRangePointer)actualRange {
+- (UITextPosition *)closestPositionToPoint:(CGPoint)point {
+  return nil;
+}
+
+- (UITextPosition *)closestPositionToPoint:(CGPoint)point withinRange:(UITextRange *)range {
+  return nil;
+}
+
+- (CGRect)firstRectForRange:(UITextRange *)range {
+#if 0
   int x = cand_x + uiwindow->x + uiwindow->hmargin;
   int y = ACTUAL_HEIGHT(uiwindow->parent) - (cand_y + uiwindow->y + uiwindow->vmargin);
 
@@ -961,54 +1061,78 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 
   CGRect r = CGRectMake(x, y, ui_col_width((ui_screen_t *)uiwindow),
                         ui_line_height((ui_screen_t *)uiwindow));
-#if 0
-  r.origin = [[self window] convertBaseToScreen:r.origin];
 #endif
 
-  return r;
+  return CGRectMake(0, 0, 1, 1);
 }
 
-- (NSArray *)validAttributesForMarkedText {
+- (CGRect)caretRectForPosition:(UITextPosition *)position {
+  return CGRectMake(0, 0, 1, 1);
+}
+
+- (void)setBaseWritingDirection:(UITextWritingDirection)writingDirection
+                       forRange:(UITextRange *)range {
+}
+
+- (UITextWritingDirection)baseWritingDirectionForPosition:(UITextPosition *)position
+                                              inDirection:(UITextStorageDirection)direction {
+  return UITextWritingDirectionLeftToRight;
+}
+
+- (UITextRange *)characterRangeByExtendingPosition:(UITextPosition *)position
+                                       inDirection:(UITextLayoutDirection)direction {
   return nil;
 }
 
-- (NSAttributedString *)attributedSubstringForProposedRange:(NSRange)range
-                                                actualRange:(NSRangePointer)
-                                                                actualRange {
+- (UITextPosition *)positionWithinRange:(UITextRange *)range
+                    farthestInDirection:(UITextLayoutDirection)direction {
   return nil;
 }
 
-- (BOOL)hasMarkedText {
-  if (markedText) {
-    return YES;
+- (NSInteger)offsetFromPosition:(UITextPosition *)from
+                     toPosition:(UITextPosition *)toPosition {
+  return ((TextPosition*)toPosition).position - ((TextPosition*)from).position;
+}
+
+- (NSComparisonResult)comparePosition:(UITextPosition *)position
+                           toPosition:(UITextPosition *)other {
+  int p = ((TextPosition *)position).position;
+  int o = ((TextPosition *)other).position;
+
+  if (p < o) {
+    return NSOrderedAscending;
+  } else if (p > 0) {
+    return NSOrderedDescending;
   } else {
-    return NO;
+    return NSOrderedSame;
   }
 }
 
-- (NSRange)markedRange {
-  return markedRange;
+- (UITextPosition *)positionFromPosition:(UITextPosition *)position
+                                  offset:(NSInteger)offset {
+  TextPosition *pos = [[TextPosition alloc] autorelease];
+  pos.position = ((TextPosition *)position).position + offset;
+
+  return pos;
 }
 
-- (NSRange)selectedRange {
-  return selectedRange;
+- (UITextPosition *)positionFromPosition:(UITextPosition *)position
+                             inDirection:(UITextLayoutDirection)direction
+                                  offset:(NSInteger)offset {
+  return nil;
 }
 
-- (void)unmarkText {
-  [markedText release];
-  markedText = nil;
-  update_ime_text(uiwindow, "", NULL);
+- (UITextRange *)textRangeFromPosition:(UITextPosition *)fromPosition
+                            toPosition:(UITextPosition *)toPosition {
+  TextRange *range = [[TextRange alloc] autorelease];
+  ((TextPosition *)range.start).position = ((TextPosition *)fromPosition).position;
+  ((TextPosition *)range.end).position = ((TextPosition *)toPosition).position;
+
+  return range;
 }
 
-- (void)setMarkedText:(id)string
-        selectedRange:(NSRange)selected
-     replacementRange:(NSRange)replacement {
-  if ([string isKindOfClass:[NSAttributedString class]]) {
-    string = [string string];
-  }
-
-  selectedRange = selected;
-
+- (void)showMarkedText:(id)string
+         selectedRange:(NSRange)selectedRange {
   if ([string length] > 0) {
     char *p;
 
@@ -1018,9 +1142,8 @@ static ui_window_t *get_current_window(ui_window_t *win) {
     *p = '\0';
 
     if (selectedRange.location > 0) {
-      strcpy(p,
-             [[string substringWithRange:
-                          NSMakeRange(0, selectedRange.location)] UTF8String]);
+      strcpy(p, [[string substringWithRange:
+                           NSMakeRange(0, selectedRange.location)] UTF8String]);
     }
 
     if (selectedRange.length > 0) {
@@ -1047,6 +1170,19 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   } else if (markedText) {
     update_ime_text(uiwindow, "", markedText.UTF8String);
   }
+}
+
+- (void)setMarkedText:(id)string
+        selectedRange:(NSRange)selectedRange {
+  if ([string isKindOfClass:[NSAttributedString class]]) {
+    string = [string string];
+  }
+
+  ((TextPosition *)selectedTextRange.start).position = 0;
+  ((TextPosition *)selectedTextRange.end).position = selectedRange.location +
+                                                     selectedRange.length;
+
+  [self showMarkedText:string selectedRange:selectedRange];
 
   if (markedText) {
     [markedText release];
@@ -1055,28 +1191,62 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 
   if ([string length] > 0) {
     markedText = [string copy];
-    markedRange = NSMakeRange(0, [string length]);
+    ((TextPosition *)markedTextRange.end).position = [string length];
   } else {
-    markedRange = NSMakeRange(NSNotFound, 0);
+    ((TextPosition *)markedTextRange.end).position = 0;
+  }
+  ((TextPosition *)markedTextRange.start).position = 0;
+}
+
+- (void)unmarkText {
+  if (markedText) {
+    update_ime_text(uiwindow, "", NULL);
+    [self insertText:markedText];
+    [markedText release];
+    markedText = nil;
   }
 }
-#endif
+
+- (void)replaceRange:(UITextRange *)range withText:(NSString *)text {
+  if (!markedText) {
+    NSRange range = NSMakeRange(0, [text length]);
+    [self setMarkedText:text selectedRange:range];
+
+    return;
+  }
+
+  int start = ((TextPosition *)range.start).position;
+  int length = ((TextPosition *)range.end).position - start;
+  NSMutableString *nsstr = [NSMutableString stringWithString:markedText];
+  [nsstr replaceCharactersInRange:NSMakeRange(start, length) withString:text];
+  [markedText release];
+  markedText = [NSString stringWithString:nsstr];
+  [nsstr release];
+  ((TextPosition *)selectedTextRange.start).position = start;
+  ((TextPosition *)selectedTextRange.start).position = start + [text length];
+
+  [self showMarkedText:markedText selectedRange:NSMakeRange(start, [text length])];
+}
+
+- (NSString *)textInRange:(UITextRange *)range {
+  return markedText;
+}
 
 - (BOOL)hasText {
-  return NO;
+  if (markedText) {
+    return YES;
+  } else {
+    return NO;
+  }
 }
 
 - (void)insertText:(NSString *)string {
-#if 0
-  [self unmarkText];
-#endif
-
   if ([string length] > 0) {
     unichar c = [string characterAtIndex:0];
     XKeyEvent kev;
 
     kev.type = UI_KEY_PRESS;
-    kev.state = currentShiftMask;
+    kev.state = 0;
     if (0xf700 <= c && c <= 0xf8ff) {
       /* Function keys */
       kev.keysym = c;
@@ -1096,7 +1266,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
     XKeyEvent kev;
 
     kev.type = UI_KEY_PRESS;
-    kev.state = currentShiftMask;
+    kev.state = 0;
     kev.keysym = 0x08;
     kev.utf8 = "\x08";
 
@@ -1294,7 +1464,6 @@ void view_alloc(ui_window_t *uiwindow) {
   MLTermView *view =
       [[MLTermView alloc] initWithFrame:CGRectMake(0, 0, 400, 400)];
   [((UIWindow *)uiwindow->parent->my_window) addSubview:view];
-  [view viewDidMoveToWindow];
 }
 
 void view_dealloc(UIView *view) {
