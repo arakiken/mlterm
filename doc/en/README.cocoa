@@ -37,5 +37,9 @@ MacOS X/Cocoa support (Experimental)
     (If you want to show indic characters, build mlterm with harfbuzz and
      enable -otl/use_ot_layout option.)
 
-* Executable binaries
+  (for iOS)
+  o If you enter scrolling, right key scrolls upward and left key scrolls downward.
+  o Touch screen for more than 0.5 sec to select characters.
+
+* Executable binaries (MacOSX)
   http://mlterm.sf.net/bin.html

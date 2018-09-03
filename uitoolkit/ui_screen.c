@@ -1704,7 +1704,19 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
       bs_half_page_upward(screen);
 
       return 1;
-    } else if (ksym == XK_Shift_L || ksym == XK_Shift_R || ksym == XK_Control_L ||
+    }
+#if defined(COCOA_TOUCH) || defined(__ANDROID__)
+    else if (state == 0 && (ksym == XK_Right || ksym == XK_Left)) {
+      if (ksym == XK_Right) {
+        bs_scroll_upward(screen, 1);
+      } else {
+        bs_scroll_downward(screen, 1);
+      }
+
+      return 1;
+    }
+#endif
+    else if (ksym == XK_Shift_L || ksym == XK_Shift_R || ksym == XK_Control_L ||
                ksym == XK_Control_R || ksym == XK_Caps_Lock || ksym == XK_Shift_Lock ||
                ksym == XK_Meta_L || ksym == XK_Meta_R || ksym == XK_Alt_L || ksym == XK_Alt_R ||
                ksym == XK_Super_L || ksym == XK_Super_R || ksym == XK_Hyper_L ||
@@ -2973,7 +2985,7 @@ static void button_motion(ui_window_t *win, XMotionEvent *event) {
 #ifdef FLICK_SCROLL
   if (screen->flick_time) {
     if (screen->flick_time + 500 /* msec */ > event->time) {
-      int diff = event->y - screen->flick_y;
+      int diff = (event->y - screen->flick_y) / 2;
 
       if (diff > 15) {
         diff = 15; /* scroll 105 lines */

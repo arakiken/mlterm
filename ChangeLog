@@ -1,3 +1,8 @@
+2018-09-03  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c: Right key scrolls upward and left key scrolls downward
+	  in scrolling mode.
+
 2018-09-02  Araki Ken  <arakiken@users.sf.net>
 
 	* README.android, doc/en/PROTOCOL: Updated.
