@@ -31,7 +31,7 @@ Android support
     - Add "ISCII_HINDI=.../DVYG0ntt.ttf" and "ISCII_BENGALI=.../BNDR0ntt.ttf"
       to /sdcard/.mlterm/font-fb
   o You can show a software keyboard if you double-click the left mouse
-    button (Button1) at the right bottom corner of the screen.
+    button (Button1) at the lower right corner of the screen.
   o You can rotate display by "rotate_display = right" or "rotate_display = left"
     in /sdcard/.mlterm/main.
   o The default values of following options are as below on Android.
@@ -41,5 +41,6 @@ Android support
   o "use_local_echo" option is unavailable.
   o "start_with_local_pty" option disables ssh connection dialog on startup if
     "default_server" option is not specified.
-  o Context menu (copy&paste and configuration) pops up by long click.
+  o Context menu (copy&paste and configuration) pops up by long click at the
+    lower right corner.
   o Input method plugin is not supported.

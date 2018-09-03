@@ -372,8 +372,8 @@ static int process_mouse_event(int source, int action, int64_t time, int x, int 
     if (xev.type == ButtonPress) {
       static int click_num;
 
-      /* 800x600 display => (800+600) / 64 = 21 */
-      if (xev.x + xev.y + (_disp.width + _disp.height) / 64 >= _disp.width + _disp.height) {
+      if (xev.x >= _disp.width - _disp.width / 8 &&
+          xev.y >= _disp.height - _disp.height / 8) {
         if (click_num == 0) {
           click_num = 1;
         } else /* if( click_num == 1) */ {
@@ -422,8 +422,8 @@ static int process_mouse_event(int source, int action, int64_t time, int x, int 
     if (xev.type != ButtonRelease && xev.button == Button1 &&
         /* XXX excludes scrollbar (see x_window_init() called in ui_scrollbar.c) */
         win->width > win->min_width &&
-        win->hmargin < xev.x && xev.x < win->hmargin + win->width &&
-        win->vmargin < xev.y && xev.y < win->vmargin + win->height) {
+        xev.x >= _disp.width - _disp.width / 8 &&
+        xev.y >= _disp.height - _disp.height / 8) {
       /* Start long pressing */
       _display.long_press_counter = 1;
     } else {
@@ -694,7 +694,7 @@ void ui_display_idling(ui_display_t *disp /* ignored */
   u_int count;
 
   if (_display.long_press_counter > 0) {
-    if (_display.long_press_counter++ == 10) {
+    if (_display.long_press_counter++ == 20) {
       _display.long_press_counter = 0;
       perform_long_click(_display.app->activity->vm);
     }

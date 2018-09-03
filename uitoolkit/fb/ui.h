@@ -667,5 +667,6 @@ KeySym XStringToKeysym(char *str);
 #undef USE_REAL_VERTICAL_FONT
 #endif
 #undef NO_DISPLAY_FD
+#undef FLICK_SCROLL
 
 #endif

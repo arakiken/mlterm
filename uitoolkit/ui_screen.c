@@ -826,73 +826,41 @@ static void exit_backscroll_mode(ui_screen_t *screen) {
   }
 }
 
-static void bs_scroll_upward(ui_screen_t *screen) {
-  if (vt_term_backscroll_upward(screen->term, 1)) {
+static int bs_scroll_upward(ui_screen_t *screen, u_int size) {
+  if (vt_term_backscroll_upward(screen->term, size)) {
     ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
 
     if (HAS_SCROLL_LISTENER(screen, scrolled_upward)) {
-      (*screen->screen_scroll_listener->scrolled_upward)(screen->screen_scroll_listener->self, 1);
-    }
-  }
-}
-
-static void bs_scroll_downward(ui_screen_t *screen) {
-  if (vt_term_backscroll_downward(screen->term, 1)) {
-    ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
-
-    if (HAS_SCROLL_LISTENER(screen, scrolled_downward)) {
-      (*screen->screen_scroll_listener->scrolled_downward)(screen->screen_scroll_listener->self, 1);
-    }
-  }
-}
-
-static void bs_half_page_upward(ui_screen_t *screen) {
-  if (vt_term_backscroll_upward(screen->term, vt_term_get_rows(screen->term) / 2)) {
-    ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
-
-    if (HAS_SCROLL_LISTENER(screen, scrolled_upward)) {
-      /* XXX Not necessarily vt_term_get_rows( screen->term) / 2. */
       (*screen->screen_scroll_listener->scrolled_upward)(screen->screen_scroll_listener->self,
-                                                         vt_term_get_rows(screen->term) / 2);
+                                                         size);
     }
+
+    return 1;
+  } else {
+    return 0;
   }
 }
 
-static void bs_half_page_downward(ui_screen_t *screen) {
-  if (vt_term_backscroll_downward(screen->term, vt_term_get_rows(screen->term) / 2)) {
+static int bs_scroll_downward(ui_screen_t *screen, u_int size) {
+  if (vt_term_backscroll_downward(screen->term, size)) {
     ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
 
     if (HAS_SCROLL_LISTENER(screen, scrolled_downward)) {
-      /* XXX Not necessarily vt_term_get_rows( screen->term) / 2. */
       (*screen->screen_scroll_listener->scrolled_downward)(screen->screen_scroll_listener->self,
-                                                           vt_term_get_rows(screen->term) / 2);
+                                                           size);
     }
+
+    return 1;
+  } else {
+    return 0;
   }
 }
 
-static void bs_page_upward(ui_screen_t *screen) {
-  if (vt_term_backscroll_upward(screen->term, vt_term_get_rows(screen->term))) {
-    ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
-
-    if (HAS_SCROLL_LISTENER(screen, scrolled_upward)) {
-      /* XXX Not necessarily vt_term_get_rows( screen->term). */
-      (*screen->screen_scroll_listener->scrolled_upward)(screen->screen_scroll_listener->self,
-                                                         vt_term_get_rows(screen->term));
-    }
-  }
-}
-
-static void bs_page_downward(ui_screen_t *screen) {
-  if (vt_term_backscroll_downward(screen->term, vt_term_get_rows(screen->term))) {
-    ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
-
-    if (HAS_SCROLL_LISTENER(screen, scrolled_downward)) {
-      /* XXX Not necessarily vt_term_get_rows( screen->term). */
-      (*screen->screen_scroll_listener->scrolled_downward)(screen->screen_scroll_listener->self,
-                                                           vt_term_get_rows(screen->term));
-    }
-  }
-}
+#define bs_half_page_upward(screen) bs_scroll_upward(screen, vt_term_get_rows((screen)->term) / 2)
+#define bs_half_page_downward(screen) \
+  bs_scroll_downward(screen, vt_term_get_rows((screen)->term) / 2)
+#define bs_page_upward(screen) bs_scroll_upward(screen, vt_term_get_rows((screen)->term))
+#define bs_page_downward(screen) bs_scroll_downward(screen, vt_term_get_rows((screen)->term))
 
 /*
  * Utility function to execute both ui_restore_selected_region_color() and
@@ -1699,11 +1667,11 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
   if (vt_term_is_backscrolling(screen->term)) {
     if (screen->use_extended_scroll_shortcut) {
       if (ui_shortcut_match(screen->shortcut, SCROLL_UP, ksym, state)) {
-        bs_scroll_downward(screen);
+        bs_scroll_downward(screen, 1);
 
         return 1;
       } else if (ui_shortcut_match(screen->shortcut, SCROLL_DOWN, ksym, state)) {
-        bs_scroll_upward(screen);
+        bs_scroll_upward(screen, 1);
 
         return 1;
       }
@@ -1717,11 +1685,11 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
 
         return 1;
       } else if (ksym == 'k' || ksym == XK_Up || ksym == XK_KP_Up) {
-        bs_scroll_downward(screen);
+        bs_scroll_downward(screen, 1);
 
         return 1;
       } else if (ksym == 'j' || ksym == XK_Down || ksym == XK_KP_Down) {
-        bs_scroll_upward(screen);
+        bs_scroll_upward(screen, 1);
 
         return 1;
       }
@@ -1757,7 +1725,7 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
   if (screen->use_extended_scroll_shortcut &&
       ui_shortcut_match(screen->shortcut, SCROLL_UP, ksym, state)) {
     enter_backscroll_mode(screen);
-    bs_scroll_downward(screen);
+    bs_scroll_downward(screen, 1);
   } else if (ui_shortcut_match(screen->shortcut, PAGE_UP, ksym, state)) {
     enter_backscroll_mode(screen);
     bs_half_page_downward(screen);
@@ -2796,13 +2764,13 @@ static void selecting_with_motion(ui_screen_t *screen, int x, int y, Time time, 
         enter_backscroll_mode(screen);
       }
 
-      bs_scroll_downward(screen);
+      bs_scroll_downward(screen, 1);
     }
 
     y = 0;
   } else if (y > screen->height) {
     if (vt_term_is_backscrolling(screen->term)) {
-      bs_scroll_upward(screen);
+      bs_scroll_upward(screen, 1);
     }
 
     y = screen->height - ui_line_height(screen);
@@ -3002,6 +2970,30 @@ static void button_motion(ui_window_t *win, XMotionEvent *event) {
 
   screen = (ui_screen_t *)win;
 
+#ifdef FLICK_SCROLL
+  if (screen->flick_time) {
+    if (screen->flick_time + 500 /* msec */ > event->time) {
+      int diff = event->y - screen->flick_y;
+
+      if (diff > 15) {
+        diff = 15; /* scroll 105 lines */
+      } else if (diff < -15) {
+        diff = -15; /* scroll 105 lines */
+      } else if (diff == 0) {
+        return;
+      }
+      screen->autoscroll_count += diff;
+    }
+
+    screen->flick_time = 0;
+    screen->flick_y = 0;
+
+    return;
+  } else if (screen->autoscroll_count) {
+    return;
+  }
+#endif
+
   /*
    * event->state is never 0 because this function is 'button'_motion,
    * not 'pointer'_motion.
@@ -3080,6 +3072,14 @@ static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num)
 
   screen = (ui_screen_t *)win;
 
+#ifdef FLICK_SCROLL
+  if (event->button == Button1) {
+    screen->flick_y = event->y;
+    screen->flick_time = event->time;
+    screen->autoscroll_count = 0;
+  }
+#endif
+
   if (vt_term_get_mouse_report_mode(screen->term) && !(event->state & (ShiftMask | ControlMask))) {
     restore_selected_region_color_instantly(screen);
     report_mouse_tracking(screen, event->x, event->y, event->button, event->state, 0, 0);
@@ -3120,7 +3120,7 @@ static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num)
 
     enter_backscroll_mode(screen);
     if (event->state & ShiftMask) {
-      bs_scroll_downward(screen);
+      bs_scroll_downward(screen, 1);
     } else if (event->state & ControlMask) {
       bs_page_downward(screen);
     } else {
@@ -3131,7 +3131,7 @@ static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num)
 
     enter_backscroll_mode(screen);
     if (event->state & ShiftMask) {
-      bs_scroll_upward(screen);
+      bs_scroll_upward(screen, 1);
     } else if (event->state & ControlMask) {
       bs_page_upward(screen);
     } else {
@@ -3146,6 +3146,13 @@ static void button_released(ui_window_t *win, XButtonEvent *event) {
   ui_screen_t *screen;
 
   screen = (ui_screen_t *)win;
+
+#ifdef FLICK_SCROLL
+  if (screen->flick_time) {
+    screen->flick_y = 0;
+    screen->flick_time = 0;
+  }
+#endif
 
   if (vt_term_get_mouse_report_mode(screen->term) && !(event->state & (ShiftMask | ControlMask))) {
     if (event->button >= Button4) {
@@ -3180,6 +3187,29 @@ static void idling(ui_window_t *win) {
   ui_screen_t *screen;
 
   screen = (ui_screen_t *)win;
+
+  if (screen->autoscroll_count) {
+    int count;
+
+    enter_backscroll_mode(screen);
+    if (screen->autoscroll_count < 0) {
+      count = -screen->autoscroll_count;
+
+      if (bs_scroll_downward(screen, count)) {
+        screen->autoscroll_count++;
+      } else {
+        screen->autoscroll_count = 0;
+      }
+    } else {
+      count = screen->autoscroll_count;
+
+      if (bs_scroll_upward(screen, count)) {
+        screen->autoscroll_count--;
+      } else {
+        screen->autoscroll_count = 0;
+      }
+    }
+  }
 
   if (screen->blink_wait >= 0) {
     if (screen->blink_wait == 5) {
@@ -3360,10 +3390,6 @@ static int search_find(ui_screen_t *screen, u_char *pattern, int backward) {
       ui_stop_selecting(&screen->sel);
 
       ui_screen_scroll_to(screen, beg_row);
-      if (HAS_SCROLL_LISTENER(screen, scrolled_to)) {
-        (*screen->screen_scroll_listener->scrolled_to)(screen->screen_scroll_listener->self,
-                                                       beg_row);
-      }
     }
 
 #ifdef HAVE_REGEX
@@ -6150,33 +6176,24 @@ void ui_set_screen_scroll_listener(ui_screen_t *screen,
  */
 
 void ui_screen_scroll_upward(ui_screen_t *screen, u_int size) {
-  if (!vt_term_is_backscrolling(screen->term)) {
-    enter_backscroll_mode(screen);
-  }
-
-  vt_term_backscroll_upward(screen->term, size);
-
-  ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
+  enter_backscroll_mode(screen);
+  bs_scroll_upward(screen, size);
 }
 
 void ui_screen_scroll_downward(ui_screen_t *screen, u_int size) {
-  if (!vt_term_is_backscrolling(screen->term)) {
-    enter_backscroll_mode(screen);
-  }
-
-  vt_term_backscroll_downward(screen->term, size);
-
-  ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
+  enter_backscroll_mode(screen);
+  bs_scroll_downward(screen, size);
 }
 
 void ui_screen_scroll_to(ui_screen_t *screen, int row) {
-  if (!vt_term_is_backscrolling(screen->term)) {
-    enter_backscroll_mode(screen);
+  enter_backscroll_mode(screen);
+  if (vt_term_backscroll_to(screen->term, row)) {
+    ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
+
+    if (HAS_SCROLL_LISTENER(screen, scrolled_to)) {
+      (*screen->screen_scroll_listener->scrolled_to)(screen->screen_scroll_listener->self, row);
+    }
   }
-
-  vt_term_backscroll_to(screen->term, row);
-
-  ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
 }
 
 u_int ui_col_width(ui_screen_t *screen) { return ui_get_usascii_font(screen->font_man)->width; }
@@ -6378,6 +6395,12 @@ int ui_screen_exec_cmd(ui_screen_t *screen, char *cmd) {
         *(opr++) = '\0';
         ui_shortcut_parse(screen->shortcut, arg, opr);
       }
+    }
+  } else if (strcmp(cmd, "autoscroll") == 0) {
+    if (!arg) {
+      screen->autoscroll_count = -10;
+    } else {
+      screen->autoscroll_count = atoi(arg);
     }
   } else {
     if (arg) {
