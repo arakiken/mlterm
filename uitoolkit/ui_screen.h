@@ -125,6 +125,12 @@ typedef struct ui_screen {
 
   ui_icon_picture_t *icon;
 
+#ifdef FLICK_SCROLL
+  Time flick_time;
+  int16_t flick_y;
+  int16_t autoscroll_count;
+#endif
+
   int16_t prev_inline_pic;
 
   u_int16_t prev_mouse_report_col;

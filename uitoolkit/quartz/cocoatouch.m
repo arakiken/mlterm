@@ -621,6 +621,7 @@ int cocoa_dialog_alert(const char *msg);
 
   UILongPressGestureRecognizer *longpress =
     [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPress:)];
+  longpress.minimumPressDuration = 2.0;
   [longpress autorelease];
   [self addGestureRecognizer:longpress];
 

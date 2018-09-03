@@ -3,8 +3,12 @@
 * Support Cygwin/x86_64.
 * Support PS2 mouse and PC98 bus mouse on FreeBSD 4.x or before.
 * Support iOS/Cocoa Touch. (see doc/en/README.cocoatouch)
+* Support scrolling by flick on Android and iOS.
 * Update unicode property table (generated from UnicodeData.txt and
   EastAsianWidth.txt) to version 11.0.0.
+* Add "autoscroll" to OSC 5379.
+* Long press at the lower right corner instead of the entire screen shows
+  context menu.
 * Change the maximum number of sixel graphics palette colors from 256 to 1024.
 * Bug fixes:
   Fix segfault of mlconfig when GTK_IM_MODULE=uim.

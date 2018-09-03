@@ -424,5 +424,6 @@ KeySym XStringToKeysym(char *str);
 #if !defined(__CYGWIN__) && !defined(__MSYS__)
 #define NO_DISPLAY_FD
 #endif
+#undef FLICK_SCROLL
 
 #endif

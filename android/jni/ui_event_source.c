@@ -3,6 +3,7 @@
 #include "ui_event_source.h"
 
 #include <stdio.h> /* sprintf */
+#include <time.h> /* clock */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_str.h>
 #include <pobl/bl_conf_io.h>
@@ -180,6 +181,7 @@ int ui_event_source_process(void) {
   u_int count;
   static u_int prev_num_terms;
   static int *fds;
+  static u_int32_t prev_msec;
 
   looper = ALooper_forThread();
 
@@ -213,6 +215,8 @@ int ui_event_source_process(void) {
   pthread_mutex_lock(&mutex);
 
   if (ident >= 0) {
+    struct timespec tm;
+
     if (!ui_display_process_event(source, ident)) {
       ALooper_removeFds(looper, fds, num_terms);
       prev_num_terms = 0;
@@ -248,8 +252,19 @@ int ui_event_source_process(void) {
          */
       }
     }
+
+    /* ALooper_pollAll() always returns in less than 100ms on some systems. */
+    if (clock_gettime(CLOCK_MONOTONIC, &tm) == 0) {
+      u_int32_t now_msec = tm.tv_sec * 1000 + tm.tv_nsec / 1000000;
+
+      if (now_msec < prev_msec || now_msec > prev_msec + 100) {
+        ui_display_idling(NULL);
+        prev_msec = now_msec;
+      }
+    }
   } else {
     ui_display_idling(NULL);
+    prev_msec += 100;
   }
 
   if (num_terms > 0) {

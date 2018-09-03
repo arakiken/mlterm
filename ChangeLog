@@ -1,3 +1,29 @@
+2018-09-02  Araki Ken  <arakiken@users.sf.net>
+
+	* README.android, doc/en/PROTOCOL: Updated.
+
+	* ui_screen.[ch]:
+	  - 'size' is added to arguments of bs_scroll_{up|down}ward().
+	  - bs_{half_}page_{up|down}ward() are defined as macros instead of functions.
+	  - flick_time, flick_y and autoscroll_count are added to ui_screen_t if
+	    FLICK_SCROLL is defined.
+	  - If screen->autoscroll_count != 0, idling() scrolls screen.
+	  - "autoscroll" is added to ui_screen_exec_cmd().
+
+	* */ui.h: FLICK_SCROLL which enables auto scrolling by flick is defined on
+	  Android and iOS.
+
+	* android/jni/ui_display.c:
+	  - long_press_count == 20 (instead of 10) opens menu.
+	  - The are of double click to show software keyboard is changed.
+	  - Long press at the lower right corner instead of the entire screen
+	    shows context menu.
+
+	* android/jni/ui_event_source.c:
+	  clock_gettime() is called to check if ui_display_idling() should be called.
+
+	* cocoatouch.m: longpress.minimumPressDuration = 2.0.
+
 2018-09-01  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_window.c, ui_screen_manager.c: Hack to keep window size is fixed.
