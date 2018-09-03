@@ -44,3 +44,5 @@ Android support
   o Context menu (copy&paste and configuration) pops up by long click at the
     lower right corner.
   o Input method plugin is not supported.
+  o If you enter scrolling, right key scrolls upward and left key scrolls downward.
+  o Touch screen for more than 0.5 sec to select characters.
