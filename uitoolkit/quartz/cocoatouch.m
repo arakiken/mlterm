@@ -121,6 +121,10 @@ static u_int key_mod;
   ((uiwindow->bg_color.pixel & 0xff000000) == 0xff000000 || \
    ui_window_has_wall_picture(uiwindow))
 
+#ifdef DEBUG
+int main_loop_final(void);
+#endif
+
 static void exit_program(void) {
 #ifdef DEBUG
   main_loop_final();

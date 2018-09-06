@@ -9,9 +9,6 @@
 #include <signal.h> /* signal/SIGWINCH */
 #include <string.h> /* strchr/memcpy */
 #include <stdlib.h> /* putenv */
-#ifdef __APPLE__
-#include <errno.h>
-#endif
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h> /* realloc/alloca */
 #include <pobl/bl_str.h> /* strdup */
@@ -20,6 +17,10 @@
 #include <pobl/bl_unistd.h> /* bl_killpg */
 #ifdef USE_UTMP
 #include <pobl/bl_utmp.h>
+#endif
+#ifdef __APPLE__
+#include <errno.h>
+#include <pobl/bl_sig_child.h>
 #endif
 
 #if 0
