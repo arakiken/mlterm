@@ -1,3 +1,16 @@
+2018-09-06  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in: -mios-simulator-version-min option is added to $CC
+	  on iOS SDK 5.0 or later.
+
+	* cocoa/build-iossim43.sh: Renamed from build-iossim.sh
+
+	* cocoa/build-ios43.sh: Renamed from build-ios.sh
+
+	* cocoa/build-iossim71.sh, mlterm-ios.app/MainWindow_{iPad|iPhone}.xib: Added.
+
+	* cocoatouch.m, vt_pty_unix.c: Minor fixes.
+
 2018-09-03  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.c: Right key scrolls upward and left key scrolls downward
