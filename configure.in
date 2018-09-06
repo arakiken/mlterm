@@ -50,7 +50,22 @@ if test "$ios_sdk" != ""; then
 		if test "$CC" = ""; then
 			# Do 'export' for baselib/configure and encodefilter/configure.
 			export CC="`$XCRUN --sdk $ios_sdk -f cc` -isysroot $SDKROOT"
+
+			simver=`echo $ios_sdk|sed -n 's/^iphonesimulator\(@<:@0-9.@:>@*\)$/\1/p'`
+			if test "$simver" != ""; then
+				case "$simver" in
+				@<:@0-4@:>@.*)
+					# -D__IPHONE_OS_VERSION_MIN_REQUIRED=40300 or something like that
+					# should be defined as the value of CFLAGS environmental variable
+					# before ./configure.
+					;;
+				*)
+					CC="$CC -mios-simulator-version-min=$simver"
+					;;
+				esac
+			fi
 		fi
+
 		AC_ARG_WITH(ios-arch,
 			[  --with-ios-arch@<:@=ARG@:>@   iOS architectures (e.g. arm7v x86_64,i686) ],
 			ios_arch=$with_ios_arch)
