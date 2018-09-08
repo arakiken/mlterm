@@ -19,14 +19,7 @@
 @interface Application : UIApplication
 @end
 
-@interface AppDelegate_iPhone : NSObject <UIApplicationDelegate> {
-  UIWindow *window;
-}
-
-@property (nonatomic, retain) IBOutlet UIWindow *window;
-@end
-
-@interface AppDelegate_iPad : NSObject <UIApplicationDelegate> {
+@interface AppDelegate : NSObject <UIApplicationDelegate> {
   UIWindow *window;
 }
 
@@ -60,6 +53,8 @@
 
   int cand_x;
   int cand_y;
+
+  NSArray *cmds;
 }
 
 @property (readwrite, copy) UITextRange *selectedTextRange;
@@ -431,7 +426,7 @@ int cocoa_dialog_alert(const char *msg);
 
 @end
 
-@implementation AppDelegate_iPhone
+@implementation AppDelegate
 
 @synthesize window;
 
@@ -440,6 +435,9 @@ int cocoa_dialog_alert(const char *msg);
 
 - (BOOL)application:(UIApplication *)application
                    didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+  self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+  [self.window makeKeyAndVisible];
+
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(keyboardDidShow:)
                                                name:UIKeyboardDidShowNotification
@@ -502,67 +500,6 @@ int cocoa_dialog_alert(const char *msg);
 
 @end
 
-@implementation AppDelegate_iPad
-
-@synthesize window;
-
-#pragma mark -
-#pragma mark Application lifecycle
-
-- (BOOL)application:(UIApplication *)application
-                   didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-  [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(keyboardDidShow:)
-                                               name:UIKeyboardDidShowNotification
-                                             object:nil];
-  [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(keyboardDidHide:)
-                                               name:UIKeyboardDidHideNotification
-                                             object:nil];
-
-  CGRect r = [self.window screen].applicationFrame;
-	MLTermView *view = [[MLTermView alloc] initWithFrame:CGRectMake(0, 0,
-                                                                  r.size.width, r.size.height)];
-	[self.window addSubview:view];
-	[self.window makeKeyAndVisible];
-
-	return YES;
-}
-
-- (void)keyboardDidShow:(NSNotification *)note {
-  CGRect r = [[[note userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
-  keyboard_margin = r.size.height;
-  self.window.frame = self.window.frame;
-}
-
-- (void)keyboardDidHide:(NSNotification *)note {
-  keyboard_margin = 0;
-  self.window.frame = self.window.frame; /* call observeValueForKeyPath */
-}
-
-- (void)applicationWillResignActive:(UIApplication *)application {
-}
-
-- (void)applicationDidBecomeActive:(UIApplication *)application {
-}
-
-- (void)applicationWillTerminate:(UIApplication *)application {
-}
-
-#pragma mark -
-#pragma mark Memory management
-
-- (void)applicationDidReceiveMemoryWarning:(UIApplication *)application {
-}
-
-- (void)dealloc {
-  [[NSNotificationCenter defaultCenter] removeObserver:self];
-  exit_program();
-  [super dealloc];
-}
-
-@end
-
 @implementation TextPosition
 @synthesize position;
 @end
@@ -576,6 +513,8 @@ int cocoa_dialog_alert(const char *msg);
 
   start = [TextPosition alloc];
   end = [TextPosition alloc];
+
+  return self;
 }
 
 - (void)dealloc {
@@ -654,11 +593,16 @@ int cocoa_dialog_alert(const char *msg);
     layer = nil;
   }
 
+  if (cmds) {
+    [cmds release];
+  }
+
   [super dealloc];
 }
 
 - (BOOL)canPerformAction:(SEL)action withSender:(id)sender {
-  if (action == @selector(configMenu:) || action == @selector(pasteMenu:)) {
+  if (action == @selector(configMenu:) || action == @selector(pasteMenu:) ||
+      action == @selector(keyEvent:)) {
     return YES;
   } else {
     return NO;
@@ -1033,6 +977,129 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   kev.utf8 = NULL;
   ui_window_receive_event(uiwindow, (XEvent *)&kev);
 }
+
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 70000 /* iOS 7.0 or later */
+- (NSArray *)keyCommands {
+  if (!cmds) {
+    UIKeyModifierFlags flags[] = {
+      0,
+      UIKeyModifierShift,
+      UIKeyModifierShift | UIKeyModifierControl,
+      UIKeyModifierShift | UIKeyModifierAlternate,
+      UIKeyModifierShift | UIKeyModifierCommand,
+      UIKeyModifierShift | UIKeyModifierControl | UIKeyModifierAlternate,
+      UIKeyModifierShift | UIKeyModifierControl | UIKeyModifierAlternate | UIKeyModifierCommand,
+      UIKeyModifierShift | UIKeyModifierControl | UIKeyModifierCommand,
+      UIKeyModifierShift | UIKeyModifierAlternate | UIKeyModifierCommand,
+      UIKeyModifierShift | UIKeyModifierCommand,
+      UIKeyModifierControl,
+      UIKeyModifierControl | UIKeyModifierAlternate,
+      UIKeyModifierControl | UIKeyModifierAlternate | UIKeyModifierCommand,
+      UIKeyModifierControl | UIKeyModifierCommand,
+      UIKeyModifierAlternate,
+      UIKeyModifierAlternate | UIKeyModifierCommand,
+      UIKeyModifierCommand };
+    NSMutableArray *mutable = [[NSMutableArray alloc] init];
+    u_char c[] = "\x60";
+    size_t count;
+
+    for (; c[0] < 0x80; c[0]++) {
+      [mutable addObject:[UIKeyCommand keyCommandWithInput:[NSString stringWithUTF8String:c]
+                                             modifierFlags:UIKeyModifierControl
+                                                    action:@selector(keyEvent:)]];
+    }
+
+    for (count = 0; count < sizeof(flags) / sizeof(flags[0]); count++) {
+      [mutable addObject:[UIKeyCommand keyCommandWithInput:UIKeyInputUpArrow
+                                             modifierFlags:flags[count]
+                                                    action:@selector(keyEvent:)]];
+      [mutable addObject:[UIKeyCommand keyCommandWithInput:UIKeyInputDownArrow
+                                             modifierFlags:flags[count]
+                                                    action:@selector(keyEvent:)]];
+      [mutable addObject:[UIKeyCommand keyCommandWithInput:UIKeyInputLeftArrow
+                                             modifierFlags:flags[count]
+                                                    action:@selector(keyEvent:)]];
+      [mutable addObject:[UIKeyCommand keyCommandWithInput:UIKeyInputRightArrow
+                                             modifierFlags:flags[count]
+                                                    action:@selector(keyEvent:)]];
+      [mutable addObject:[UIKeyCommand keyCommandWithInput:UIKeyInputEscape
+                                             modifierFlags:flags[count]
+                                                    action:@selector(keyEvent:)]];
+
+      [mutable addObject:[UIKeyCommand keyCommandWithInput:@"\x01"
+                                             modifierFlags:flags[count]
+                                                    action:@selector(keyEvent:)]];
+      [mutable addObject:[UIKeyCommand keyCommandWithInput:@"\x04"
+                                             modifierFlags:flags[count]
+                                                    action:@selector(keyEvent:)]];
+      [mutable addObject:[UIKeyCommand keyCommandWithInput:@"\x0b"
+                                             modifierFlags:flags[count]
+                                                    action:@selector(keyEvent:)]];
+      [mutable addObject:[UIKeyCommand keyCommandWithInput:@"\x0c"
+                                             modifierFlags:flags[count]
+                                                    action:@selector(keyEvent:)]];
+      [mutable addObject:[UIKeyCommand keyCommandWithInput:@"\x10"
+                                             modifierFlags:flags[count]
+                                                    action:@selector(keyEvent:)]];
+     }
+
+    cmds = mutable;
+  }
+
+  return cmds;
+}
+
+- (void)keyEvent:(UIKeyCommand *)keyCommand {
+  key_mod = keyCommand.modifierFlags;
+
+#if 0
+  NSLog(@"KeyCmd: %x %x\n", key_mod, [keyCommand.input characterAtIndex:0]);
+  NSLog(keyCommand.input);
+#endif
+
+  if ([keyCommand.input compare:UIKeyInputUpArrow] == NSOrderedSame) {
+    key_code = NSUpArrowFunctionKey;
+  } else if ([keyCommand.input compare:UIKeyInputDownArrow] == NSOrderedSame) {
+    key_code = NSDownArrowFunctionKey;
+  } else if ([keyCommand.input compare:UIKeyInputLeftArrow] == NSOrderedSame) {
+    key_code = NSLeftArrowFunctionKey;
+  } else if ([keyCommand.input compare:UIKeyInputRightArrow] == NSOrderedSame) {
+    key_code = NSRightArrowFunctionKey;
+  } else if ([keyCommand.input compare:UIKeyInputEscape] == NSOrderedSame) {
+    key_code = 0x1b;
+  } else {
+    key_code = [keyCommand.input characterAtIndex:0];
+
+    switch (key_code) {
+    case 0x1:
+      key_code = NSHomeFunctionKey;
+      break;
+
+    case 0x4:
+      key_code = NSEndFunctionKey;
+      break;
+
+    case 0xb:
+      key_code = NSPageUpFunctionKey;
+      break;
+
+    case 0xc:
+      key_code = NSPageDownFunctionKey;
+      break;
+
+    case 0x10:
+      /* iOS sends 0x10 for all function keys. It's impossible to distinguish them. */
+      key_code = NSF1FunctionKey;
+      break;
+
+    default:
+      break;
+    }
+  }
+
+  [self keyEvent];
+}
+#endif
 
 - (UITextRange *)characterRangeAtPoint:(CGPoint)point {
   return nil;
