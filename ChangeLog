@@ -1,3 +1,18 @@
+2018-09-09  Araki Ken  <arakiken@users.sf.net>
+
+	* README.cocoatouch: Updated.
+
+	* cocoatouch.m:
+	  - AppDelegate_{iPhone|iPad} => AppDelegate
+	  - UIWindow is manually allocated in AppDelegate::application().
+	  - keyCommands() is implemented.
+
+	* mlterm-cocoa.m: AppDelegate class is specified in calling UIApplicationMain().
+
+	* mlterm-icon.app/mlterm-Info.plist, Makefile: Added.
+
+	* mlterm-icon.app/Info.plist, MainWindow_{iPad|iPhone}.{nib|xib}: Removed.
+
 2018-09-06  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in: -mios-simulator-version-min option is added to $CC

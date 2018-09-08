@@ -93,7 +93,7 @@ int main(int argc, const char* argv[]) {
   }
 
 #ifdef COCOA_TOUCH
-  return UIApplicationMain(argc, argv, @"Application", nil);
+  return UIApplicationMain(argc, argv, @"Application", @"AppDelegate");
 #else
   return NSApplicationMain(argc, argv);
 #endif

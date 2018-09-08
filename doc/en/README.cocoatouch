@@ -11,6 +11,7 @@ iOS/Cocoa Touch support (Experimental)
               --with-ios-arch=(arm7v|i686|...)
   make
   make install
+  (cd cocoa/mlterm-ios.app;make)
   cp -R cocoa/mlterm-ios.app ~/
   $(top_srcdir)/cocoa/install-ios.sh /foo/bar
 
