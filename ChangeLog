@@ -1,5 +1,7 @@
 2018-09-11  Araki Ken  <arakiken@users.sf.net>
 
+	* cocoa/lipo.sh, mlterm-ios.app/Info.plist: Added.
+
 	* ui_scrollbar.c: sb->current_row is reset in window_resized.
 
 	* ui_screen.[ch]:
