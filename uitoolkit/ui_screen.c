@@ -754,7 +754,9 @@ static int redraw_screen(ui_screen_t *screen) {
       bl_debug_printf(BL_DEBUG_TAG " redrawing -> line %d\n", count);
 #endif
 
-      draw_line(screen, line, y);
+      if (!draw_line(screen, line, y)) {
+        break;
+      }
     }
 #ifdef __DEBUG
     else {
@@ -1270,6 +1272,8 @@ static void window_resized(ui_window_t *win) {
 #endif
 
   screen = (ui_screen_t *)win;
+
+  screen->autoscroll_count = 0;
 
   /* This is necessary since vt_term_t size is changed. */
   ui_stop_selecting(&screen->sel);
@@ -2984,25 +2988,45 @@ static void button_motion(ui_window_t *win, XMotionEvent *event) {
 
 #ifdef FLICK_SCROLL
   if (screen->flick_time) {
-    if (screen->flick_time + 500 /* msec */ > event->time) {
-      int diff = (event->y - screen->flick_y) / 2;
+    int diff = event->y - screen->flick_cur_y;
 
-      if (diff > 15) {
-        diff = 15; /* scroll 105 lines */
-      } else if (diff < -15) {
-        diff = -15; /* scroll 105 lines */
-      } else if (diff == 0) {
+    if (!screen->grab_scroll) {
+#if 0
+      bl_debug_printf("Motion Time %d %d y %d %d\n", screen->flick_time, event->time,
+                      screen->flick_cur_y, event->y);
+#endif
+      if (diff == 0) {
         return;
+      } else if (screen->flick_time + 500 /* msec */ > event->time) {
+        screen->grab_scroll = 1;
+      } else {
+        screen->flick_time = 0;
+        screen->flick_cur_y = screen->flick_base_y = 0;
       }
-      screen->autoscroll_count += diff;
     }
 
-    screen->flick_time = 0;
-    screen->flick_y = 0;
+    if (screen->grab_scroll) {
+      u_int line_height = ui_line_height(screen);
 
-    return;
-  } else if (screen->autoscroll_count) {
-    return;
+      if (diff > 0) {
+        if (diff >= line_height) {
+          bs_scroll_downward(screen, 1);
+          screen->flick_base_y = screen->flick_cur_y;
+          screen->flick_cur_y = event->y;
+        }
+      } else {
+        if (diff <= -line_height) {
+          enter_backscroll_mode(screen);
+          bs_scroll_upward(screen, 1);
+          screen->flick_base_y = screen->flick_cur_y;
+          screen->flick_cur_y = event->y;
+        }
+      }
+
+      screen->flick_time = event->time;
+
+      return;
+    }
   }
 #endif
 
@@ -3086,8 +3110,13 @@ static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num)
 
 #ifdef FLICK_SCROLL
   if (event->button == Button1) {
-    screen->flick_y = event->y;
+    screen->flick_cur_y = screen->flick_base_y = event->y;
     screen->flick_time = event->time;
+    if (screen->autoscroll_count) {
+      screen->grab_scroll = 1;
+    } else {
+      screen->grab_scroll = 0;
+    }
     screen->autoscroll_count = 0;
   }
 #endif
@@ -3160,9 +3189,26 @@ static void button_released(ui_window_t *win, XButtonEvent *event) {
   screen = (ui_screen_t *)win;
 
 #ifdef FLICK_SCROLL
-  if (screen->flick_time) {
-    screen->flick_y = 0;
+  if (screen->grab_scroll) {
+    if (screen->flick_time + 50 /* msec */ > event->time) {
+      int diff = (event->y - screen->flick_base_y) / 2;
+#if 0
+      bl_debug_printf("Release Time %d %d y %d %d\n", screen->flick_time, event->time,
+                      screen->flick_cur_y, event->y);
+#endif
+
+      if (diff > 15) {
+        diff = 15; /* scroll 105 lines */
+      } else if (diff < -15) {
+        diff = -15; /* scroll 105 lines */
+      }
+
+      screen->autoscroll_count += diff;
+    }
+
     screen->flick_time = 0;
+    screen->flick_cur_y = screen->flick_base_y = 0;
+    screen->grab_scroll = 0;
   }
 #endif
 
@@ -3207,7 +3253,7 @@ static void idling(ui_window_t *win) {
     if (screen->autoscroll_count < 0) {
       count = -screen->autoscroll_count;
 
-      if (bs_scroll_downward(screen, count)) {
+      if (bs_scroll_upward(screen, count)) {
         screen->autoscroll_count++;
       } else {
         screen->autoscroll_count = 0;
@@ -3215,7 +3261,7 @@ static void idling(ui_window_t *win) {
     } else {
       count = screen->autoscroll_count;
 
-      if (bs_scroll_upward(screen, count)) {
+      if (bs_scroll_downward(screen, count)) {
         screen->autoscroll_count--;
       } else {
         screen->autoscroll_count = 0;

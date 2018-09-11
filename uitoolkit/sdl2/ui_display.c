@@ -149,6 +149,10 @@ static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text) {
   }
   term = ((ui_screen_t*)uiwindow)->term;
 
+  if (vt_term_is_backscrolling(term)) {
+    return;
+  }
+
   if (cur_preedit_text) {
     vt_term_set_config(term, "use_local_echo", "false");
   }

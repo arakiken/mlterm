@@ -311,6 +311,10 @@ static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text,
                             const char *cur_preedit_text) {
   vt_term_t *term = ((ui_screen_t *)uiwindow)->term;
 
+  if (vt_term_is_backscrolling(term)) {
+    return;
+  }
+
   vt_term_set_config(term, "use_local_echo", "false");
 
   if (orig_draw_preedit_str) {
@@ -950,13 +954,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 #endif
 
   if (0xf700 <= key_code && key_code <= 0xf8ff) {
-    /*
-     * Function keys
-     * 0xf700-0xf703 are cursor keys which insertText() ignores.
-     */
-    if (0xf704 <= key_code && !key_mod) {
-      return;
-    }
+    /* do nothing (Function keys) */
   } else if (key_code == 0x1b) {
     /* do nothing */
   } else if ((key_mod & NSControlKeyMask) || (key_mod & NSCommandKeyMask)) {
@@ -1315,18 +1313,17 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 - (void)insertText:(NSString *)string {
   if ([string length] > 0) {
     unichar c = [string characterAtIndex:0];
-    XKeyEvent kev;
 
+    if (0xf700 <= c && c <= 0xf8ff) {
+      /* Function keys (See keyEvent or keyEvent:) */
+      return;
+    }
+
+    XKeyEvent kev;
     kev.type = UI_KEY_PRESS;
     kev.state = 0;
-    if (0xf700 <= c && c <= 0xf8ff) {
-      /* Function keys */
-      kev.keysym = c;
-      kev.utf8 = NULL;
-    } else {
-      kev.keysym = 0;
-      kev.utf8 = [string UTF8String];
-    }
+    kev.keysym = c;
+    kev.utf8 = [string UTF8String];
 
     ui_window_receive_event(uiwindow, (XEvent *)&kev);
 

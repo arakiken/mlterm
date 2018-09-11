@@ -310,6 +310,7 @@ static void window_resized(ui_window_t *win) {
     sb->bar_height = calculate_bar_height(sb);
     sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height;
   }
+  sb->current_row = 0;
 
   if (sb->view->resized) {
     (*sb->view->resized)(sb->view, sb->window.my_window, sb->window.height);
