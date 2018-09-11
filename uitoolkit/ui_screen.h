@@ -97,6 +97,14 @@ typedef struct ui_screen {
 
   /* ui_bel_mode_t */ int8_t bel_mode;
 
+  int8_t autoscroll_count;
+#ifdef FLICK_SCROLL
+  int8_t grab_scroll;
+  Time flick_time;
+  int16_t flick_cur_y;
+  int16_t flick_base_y;
+#endif
+
   int8_t is_preediting;
   u_int im_preedit_beg_row;
   u_int im_preedit_end_row;
@@ -124,12 +132,6 @@ typedef struct ui_screen {
   ui_picture_t *bg_pic;
 
   ui_icon_picture_t *icon;
-
-#ifdef FLICK_SCROLL
-  Time flick_time;
-  int16_t flick_y;
-  int16_t autoscroll_count;
-#endif
 
   int16_t prev_inline_pic;
 

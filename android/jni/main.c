@@ -4,6 +4,9 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_dlfcn.h>
 #include <vt_term_manager.h>
+#if 0
+#include <sys/prctl.h>
+#endif
 #include "uitoolkit/ui_display.h"
 #include "uitoolkit/ui_event_source.h"
 
@@ -72,6 +75,10 @@ static void finish(struct android_app *app) {
 void android_main(struct android_app *app) {
   int argc = 1;
   char *argv[] = {"mlterm"};
+
+#if 0
+  prctl(PR_SET_DUMPABLE, 1, 0, 0, 0);
+#endif
 
 #ifdef DEBUG
   bl_debug_printf(BL_DEBUG_TAG " android_main started.\n");

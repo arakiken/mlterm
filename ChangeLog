@@ -1,3 +1,16 @@
+2018-09-11  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_scrollbar.c: sb->current_row is reset in window_resized.
+
+	* ui_screen.[ch]:
+	  - grab_scroll is added to ui_screen_t.
+	  - bs_scroll_upward() and bs_scroll_downward() are swapped in flick scrolling.
+
+	* cocoatouch.m: Function keys are ingored in insertText().
+
+	* android/jni/ui_event_source.c, cocoa.m, cocoatouch.m, sdl2/ui_display.c:
+	  If vt_term_is_backscrolling() is true, update_ime_text() does nothing.
+
 2018-09-09  Araki Ken  <arakiken@users.sf.net>
 
 	* README.cocoatouch: Updated.

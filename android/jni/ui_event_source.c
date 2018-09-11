@@ -49,6 +49,10 @@ static void update_ime_text(vt_term_t *term, char *preedit_text, char *commit_te
   u_char buf[128];
   size_t len;
 
+  if (vt_term_is_backscrolling(term)) {
+    return;
+  }
+
   vt_term_set_config(term, "use_local_echo", "false");
 
 #if 0
@@ -89,7 +93,7 @@ static void update_ime_text(vt_term_t *term, char *preedit_text, char *commit_te
     if ((win = UIWINDOW_OF(term))) {
       ui_window_update(win, 3);
     }
-  } else /* if( commit_text) */
+  } else /* if (commit_text) */
   {
     (*utf8_parser->set_str)(utf8_parser, commit_text, strlen(commit_text));
     while (!utf8_parser->is_eos &&

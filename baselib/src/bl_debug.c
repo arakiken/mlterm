@@ -1,6 +1,7 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
-#include "bl_debug.h"
+/* Don't include bl_debug.h because macros in android/jni/bl_debug.h causes compiling error. */
+#include "bl_def.h" /* HAVE_ERRNO_H */
 
 #include <stdio.h>
 #include <stdarg.h>
