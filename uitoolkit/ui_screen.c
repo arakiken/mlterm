@@ -3192,15 +3192,25 @@ static void button_released(ui_window_t *win, XButtonEvent *event) {
   if (screen->grab_scroll) {
     if (screen->flick_time + 50 /* msec */ > event->time) {
       int diff = (event->y - screen->flick_base_y) / 2;
+      int max;
 #if 0
       bl_debug_printf("Release Time %d %d y %d %d\n", screen->flick_time, event->time,
                       screen->flick_cur_y, event->y);
 #endif
 
-      if (diff > 15) {
-        diff = 15; /* scroll 105 lines */
-      } else if (diff < -15) {
-        diff = -15; /* scroll 105 lines */
+      /*
+       * XXX
+       * If vt_term_get_rows(screen->term) < 15, window_scroll_{up|down}ward_region() or
+       * flush_scroll_cache() could cause segfault on Android.
+       */
+      if ((max = vt_term_get_rows(screen->term)) > 15) {
+        max = 15; /* scroll 105 lines */
+      }
+
+      if (diff > max) {
+        diff = max;
+      } else if (diff < -max) {
+        diff = -max;
       }
 
       screen->autoscroll_count += diff;
@@ -3249,10 +3259,10 @@ static void idling(ui_window_t *win) {
   if (screen->autoscroll_count) {
     int count;
 
-    enter_backscroll_mode(screen);
     if (screen->autoscroll_count < 0) {
       count = -screen->autoscroll_count;
 
+      enter_backscroll_mode(screen);
       if (bs_scroll_upward(screen, count)) {
         screen->autoscroll_count++;
       } else {
