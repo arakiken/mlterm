@@ -47,7 +47,6 @@ Console support (similar to GNU screen)
     for mlterm-con.
 
 * Unsupported features
-  o ssh2 client
   o OPEN_SCREEN shortcut of ~/.mlterm/key.
     (OPEN_PTY, HSPLIT_SCREEN, VSPLIT_SCREEN etc are supported.)
   o geometry option

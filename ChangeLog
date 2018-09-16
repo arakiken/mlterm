@@ -1,3 +1,9 @@
+2018-09-16  Araki Ken  <arakiken@users.sf.net>
+
+	* README.console: Updated.
+
+	* ui_screen.c: The place where enter_backscroll_mode() is called is moved.
+
 2018-09-13  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.c: Segfault on Android in scrolling by flick is fixed.

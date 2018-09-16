@@ -3010,13 +3010,13 @@ static void button_motion(ui_window_t *win, XMotionEvent *event) {
 
       if (diff > 0) {
         if (diff >= line_height) {
+          enter_backscroll_mode(screen);
           bs_scroll_downward(screen, 1);
           screen->flick_base_y = screen->flick_cur_y;
           screen->flick_cur_y = event->y;
         }
       } else {
         if (diff <= -line_height) {
-          enter_backscroll_mode(screen);
           bs_scroll_upward(screen, 1);
           screen->flick_base_y = screen->flick_cur_y;
           screen->flick_cur_y = event->y;
@@ -3190,13 +3190,22 @@ static void button_released(ui_window_t *win, XButtonEvent *event) {
 
 #ifdef FLICK_SCROLL
   if (screen->grab_scroll) {
-    if (screen->flick_time + 50 /* msec */ > event->time) {
+    if (screen->flick_time + 25 /* msec */ > event->time) {
       int diff = (event->y - screen->flick_base_y) / 2;
       int max;
+
 #if 0
       bl_debug_printf("Release Time %d %d y %d %d\n", screen->flick_time, event->time,
                       screen->flick_cur_y, event->y);
 #endif
+
+      if (diff > 5) {
+        diff -= 5;
+      } else if (diff < -5) {
+        diff += 5;
+      } else {
+        goto end;
+      }
 
       /*
        * XXX
@@ -3216,6 +3225,7 @@ static void button_released(ui_window_t *win, XButtonEvent *event) {
       screen->autoscroll_count += diff;
     }
 
+ end:
     screen->flick_time = 0;
     screen->flick_cur_y = screen->flick_base_y = 0;
     screen->grab_scroll = 0;
@@ -3262,7 +3272,6 @@ static void idling(ui_window_t *win) {
     if (screen->autoscroll_count < 0) {
       count = -screen->autoscroll_count;
 
-      enter_backscroll_mode(screen);
       if (bs_scroll_upward(screen, count)) {
         screen->autoscroll_count++;
       } else {
@@ -3271,6 +3280,7 @@ static void idling(ui_window_t *win) {
     } else {
       count = screen->autoscroll_count;
 
+      enter_backscroll_mode(screen);
       if (bs_scroll_downward(screen, count)) {
         screen->autoscroll_count--;
       } else {
