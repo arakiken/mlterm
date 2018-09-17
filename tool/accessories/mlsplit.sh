@@ -57,7 +57,7 @@ get_dev_num
 mlcc exec hsplit_screen 101
 mlcc exec next_screen
 mlcc exec vsplit_screen 50%
-mlcc exec hsplit_screen 70%
+mlcc exec hsplit_screen 50%
 
 set_config `expr $dev_num - 1` "input_method=none"
 set_config $dev_num "encoding=eucjp"
