@@ -154,6 +154,10 @@ static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text) {
   }
 
   if (cur_preedit_text) {
+    if (preedit_text && strcmp(preedit_text, cur_preedit_text) == 0) {
+      return;
+    }
+
     vt_term_set_config(term, "use_local_echo", "false");
   }
 
@@ -165,10 +169,6 @@ static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text) {
   } else {
     u_char buf[128];
     size_t len;
-
-    if (bl_compare_str(preedit_text, cur_preedit_text) == 0) {
-      return;
-    }
 
     vt_term_set_config(term, "use_local_echo", "true");
 

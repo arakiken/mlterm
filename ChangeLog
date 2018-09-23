@@ -1,3 +1,21 @@
+2018-09-23  Araki Ken  <arakiken@users.sf.net>
+
+	* README.android, README.cocoatouch: Updated.
+
+	* ui_screen.c: Minor changes about flick scrolling.
+
+	* ui_font_manager.c: The default value of 'max_font_size' is changed from 40 to 50.
+
+	* android/jni/ui_display.c: long_press_count == 15 (instead of 20) opens menu.
+
+	* android/jni/ui_event_source.c:
+	  - ((ui_screen_t*)win)->is_preediting is set in update_ime_text().
+	  - need_resize() considers bottom margin correctly.
+
+	* cocoa.m, cocoatouch.m, android/jni/ui_event_source.c, sdl2/ui_display.c:
+	  If both preedit_text and cur_preedit_text are non-NULL and same value,
+	  update_ime_text() does nothing.
+
 2018-09-17  Araki Ken  <arakiken@users.sf.net>
 
 	* Makefile.in: 'test' target is added for bitbucket pipelines.

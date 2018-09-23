@@ -34,7 +34,7 @@ iOS/Cocoa Touch support (Experimental)
 * Start
   Click mlterm icon.
 
-* Caution
+* Note
   o -L/--ls, -u/--onlyucsfont and --boxdraw options are enabled by default.
   o It is impossible to disable -s/--mdi option.
   o OPEN_SCREEN, OPEN_PTY, NEXT_PTY and PREV_PTY shortcut keys are
@@ -43,6 +43,9 @@ iOS/Cocoa Touch support (Experimental)
   o ISCII font is unavailable.
     (If you want to show indic characters, build mlterm with harfbuzz and
      enable -otl/use_ot_layout option.)
+  o Input method plugin is not supported.
+  o Scroll upward or downward by flick gesture. If you want to select characters
+    instead of scrolling, touch screen for more than 0.5 sec.
 
 * Executable binaries
   http://mlterm.sf.net/bin.html

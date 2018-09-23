@@ -32,17 +32,17 @@ Android support
       to /sdcard/.mlterm/font-fb
   o You can show a software keyboard if you double-click the left mouse
     button (Button1) at the lower right corner of the screen.
+  o Context menu (copy&paste and configuration) pops up by long click at the
+    lower right corner.
   o You can rotate display by "rotate_display = right" or "rotate_display = left"
     in /sdcard/.mlterm/main.
   o The default values of following options are as below on Android.
-    "font_size_range"       => 10-40
+    "font_size_range"       => 10-50
     "only_use_unicode_font" => "true"
     "box_drawing_font"      => "unicode"
   o "use_local_echo" option is unavailable.
   o "start_with_local_pty" option disables ssh connection dialog on startup if
     "default_server" option is not specified.
-  o Context menu (copy&paste and configuration) pops up by long click at the
-    lower right corner.
   o Input method plugin is not supported.
-  o If you enter scrolling, right key scrolls upward and left key scrolls downward.
-  o Touch screen for more than 0.5 sec to select characters.
+  o Scroll upward or downward by flick gesture. If you want to select characters
+    instead of scrolling, touch screen for more than 0.5 sec.

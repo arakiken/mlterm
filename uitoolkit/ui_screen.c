@@ -1708,19 +1708,7 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
       bs_half_page_upward(screen);
 
       return 1;
-    }
-#if defined(COCOA_TOUCH) || defined(__ANDROID__)
-    else if (state == 0 && (ksym == XK_Right || ksym == XK_Left)) {
-      if (ksym == XK_Right) {
-        bs_scroll_upward(screen, 1);
-      } else {
-        bs_scroll_downward(screen, 1);
-      }
-
-      return 1;
-    }
-#endif
-    else if (ksym == XK_Shift_L || ksym == XK_Shift_R || ksym == XK_Control_L ||
+    } else if (ksym == XK_Shift_L || ksym == XK_Shift_R || ksym == XK_Control_L ||
                ksym == XK_Control_R || ksym == XK_Caps_Lock || ksym == XK_Shift_Lock ||
                ksym == XK_Meta_L || ksym == XK_Meta_R || ksym == XK_Alt_L || ksym == XK_Alt_R ||
                ksym == XK_Super_L || ksym == XK_Super_R || ksym == XK_Hyper_L ||
@@ -3117,9 +3105,9 @@ static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num)
     } else {
       screen->grab_scroll = 0;
     }
-    screen->autoscroll_count = 0;
   }
 #endif
+  screen->autoscroll_count = 0;
 
   if (vt_term_get_mouse_report_mode(screen->term) && !(event->state & (ShiftMask | ControlMask))) {
     restore_selected_region_color_instantly(screen);
@@ -3190,8 +3178,8 @@ static void button_released(ui_window_t *win, XButtonEvent *event) {
 
 #ifdef FLICK_SCROLL
   if (screen->grab_scroll) {
-    if (screen->flick_time + 25 /* msec */ > event->time) {
-      int diff = (event->y - screen->flick_base_y) / 2;
+    if (screen->flick_time + 10 /* msec */ > event->time) {
+      int diff = event->y - screen->flick_base_y;
       int max;
 
 #if 0
@@ -3199,13 +3187,15 @@ static void button_released(ui_window_t *win, XButtonEvent *event) {
                       screen->flick_cur_y, event->y);
 #endif
 
-      if (diff > 5) {
-        diff -= 5;
-      } else if (diff < -5) {
-        diff += 5;
+      if (diff < -50) {
+        diff += 50;
+      } else if (diff > 50) {
+        diff -= 50;
       } else {
         goto end;
       }
+
+      diff /= 4;
 
       /*
        * XXX
@@ -3225,7 +3215,7 @@ static void button_released(ui_window_t *win, XButtonEvent *event) {
       screen->autoscroll_count += diff;
     }
 
- end:
+  end:
     screen->flick_time = 0;
     screen->flick_cur_y = screen->flick_base_y = 0;
     screen->grab_scroll = 0;
