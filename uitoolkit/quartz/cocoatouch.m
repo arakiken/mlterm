@@ -315,6 +315,10 @@ static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text,
     return;
   }
 
+  if (preedit_text && cur_preedit_text && strcmp(preedit_text, cur_preedit_text) == 0) {
+    return;
+  }
+
   vt_term_set_config(term, "use_local_echo", "false");
 
   if (orig_draw_preedit_str) {
@@ -333,10 +337,6 @@ static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text,
   if (*preedit_text == '\0') {
     preedit_text = NULL;
   } else {
-    if (bl_compare_str(preedit_text, cur_preedit_text) == 0) {
-      return;
-    }
-
     /* Hide cursor */
     orig_draw_preedit_str = ((ui_screen_t*)uiwindow)->im_listener.draw_preedit_str;
     ((ui_screen_t*)uiwindow)->im_listener.draw_preedit_str = dummy_draw_preedit_str;

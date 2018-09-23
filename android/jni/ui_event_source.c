@@ -12,6 +12,7 @@
 
 #include "ui_display.h"
 #include "ui_window.h"
+#include "ui_screen.h"
 
 #define UIWINDOW_OF(term) \
   ((term)->parser->xterm_listener ? (term)->parser->xterm_listener->self : NULL)
@@ -48,17 +49,22 @@ static vt_term_t *get_current_term(void) {
 static void update_ime_text(vt_term_t *term, char *preedit_text, char *commit_text) {
   u_char buf[128];
   size_t len;
+  ui_window_t *win;
 
   if (vt_term_is_backscrolling(term)) {
     return;
   }
 
+  if (preedit_text && cur_preedit_text && strcmp(preedit_text, cur_preedit_text) == 0) {
+    return;
+  }
+
   vt_term_set_config(term, "use_local_echo", "false");
 
-#if 0
-  /* XXX If IM plugin is supported, see update_ime_text() in cocoa.m. */
-  ((ui_screen_t*)uiwindow)->is_preediting = 0;
-#endif
+  if ((win = UIWINDOW_OF(term))) {
+    /* XXX If IM plugin is supported, see update_ime_text() in cocoa.m. */
+    ((ui_screen_t*)win)->is_preediting = 0;
+  }
 
   if (!utf8_parser && !(utf8_parser = vt_char_encoding_parser_new(VT_UTF8))) {
     return;
@@ -67,19 +73,13 @@ static void update_ime_text(vt_term_t *term, char *preedit_text, char *commit_te
   (*utf8_parser->init)(utf8_parser);
 
   if (preedit_text) {
-    ui_window_t *win;
-
     if (*preedit_text == '\0') {
       preedit_text = NULL;
     } else {
-      if (bl_compare_str(preedit_text, cur_preedit_text) == 0) {
-        return;
+      if (win) {
+        /* XXX If IM plugin is supported, see update_ime_text() in cocoa.m. */
+        ((ui_screen_t*)win)->is_preediting = 1; /* Hide cursor (stop blinking) */
       }
-
-#if 0
-      /* XXX If IM plugin is supported, see update_ime_text() in cocoa.m. */
-      ((ui_screen_t*)uiwindow)->is_preediting = 1; /* Hide cursor */
-#endif
 
       vt_term_set_config(term, "use_local_echo", "true");
 
@@ -90,7 +90,7 @@ static void update_ime_text(vt_term_t *term, char *preedit_text, char *commit_te
       }
     }
 
-    if ((win = UIWINDOW_OF(term))) {
+    if (win) {
       ui_window_update(win, 3);
     }
   } else /* if (commit_text) */
@@ -146,10 +146,14 @@ static int need_resize(u_int cur_width,  /* contains scrollbar width and margin 
 
         /* XXX */
         line_height = win->height / vt_term_get_rows(terms[count]);
+        if (line_height > 1 &&
+            win->height < ((vt_term_get_rows(terms[count]) + 1) * (line_height - 1))) {
+          line_height--;
+        }
 
         if (new_height <= win->y + line_height ||
             (vt_term_cursor_row(terms[count]) + 1) * line_height + win->y + win->vmargin <=
-                new_height) {
+            new_height) {
           return 0;
         }
       }
