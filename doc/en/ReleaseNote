@@ -12,6 +12,7 @@
 * Change the maximum number of sixel graphics palette colors from 256 to 1024.
 * Bug fixes:
   Fix segfault of mlconfig when GTK_IM_MODULE=uim.
+  Fix wrong XSizeHints which causes unexpected resizing.
 
 ver 3.8.6
 * Support preserveAspectRatio option of OSC 1337.

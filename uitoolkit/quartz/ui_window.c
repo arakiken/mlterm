@@ -100,46 +100,15 @@ static void notify_move_to_children(ui_window_t *win) {
   }
 }
 
-static u_int total_min_width(ui_window_t *win) {
-  int count;
-  u_int min_width;
-
-  min_width = win->min_width + win->hmargin * 2;
-
-  for (count = 0; count < win->num_children; count++) {
-    if (win->children[count]->is_mapped) {
-      /* XXX */
-      min_width += total_min_width(win->children[count]);
-    }
-  }
-
-  return min_width;
-}
-
-static u_int total_min_height(ui_window_t *win) {
-  int count;
-  u_int min_height;
-
-  min_height = win->min_height + win->vmargin * 2;
-
-  for (count = 0; count < win->num_children; count++) {
-    if (win->children[count]->is_mapped) {
-      /* XXX */
-      min_height += total_min_height(win->children[count]);
-    }
-  }
-
-  return min_height;
-}
-
 static u_int total_width_inc(ui_window_t *win) {
-  int count;
+  u_int count;
   u_int width_inc;
 
   width_inc = win->width_inc;
 
   for (count = 0; count < win->num_children; count++) {
-    if (win->children[count]->is_mapped) {
+    if (win->children[count]->is_mapped &&
+        (win->children[count]->sizehint_flag & SIZEHINT_WIDTH)) {
       u_int sub_inc;
 
       /*
@@ -156,13 +125,14 @@ static u_int total_width_inc(ui_window_t *win) {
 }
 
 static u_int total_height_inc(ui_window_t *win) {
-  int count;
+  u_int count;
   u_int height_inc;
 
   height_inc = win->height_inc;
 
   for (count = 0; count < win->num_children; count++) {
-    if (win->children[count]->is_mapped) {
+    if (win->children[count]->is_mapped &&
+        (win->children[count]->sizehint_flag & SIZEHINT_HEIGHT)) {
       u_int sub_inc;
 
       /*
@@ -337,6 +307,7 @@ int ui_window_init(ui_window_t *win, u_int width, u_int height, u_int min_width,
   win->min_height = min_height;
   win->width_inc = width_inc;
   win->height_inc = height_inc;
+  win->sizehint_flag = SIZEHINT_WIDTH|SIZEHINT_HEIGHT;
   win->hmargin = hmargin;
   win->vmargin = vmargin;
 

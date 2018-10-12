@@ -32,8 +32,10 @@
 
 # startup_screens = 1
 
+# (Available for mlterm-con)
 # default_cell_size = 8,16
 
+# (Available for mlterm-con)
 # console_sixel_colors = 16
 
 # -- Encoding --
@@ -75,6 +77,7 @@
 
 # use_auto_detect = false
 
+# (Available for mlterm-con)
 # console_encoding = auto
 
 # -- Font --
@@ -123,6 +126,9 @@
 # ot_features = liga,clig,dlig,hlig,rlig
 
 # emoji_path =
+
+# (Available for mlterm-fb or mlterm-wl)
+# use_aafont = false
 
 # -- Appearance --
 # use_transbg = false
@@ -273,3 +279,12 @@
 # broadcast = false
 
 # ignore_broadcasted_chars = false
+
+# (Available for Android)
+# start_with_local_pty = false
+
+# (Available for mlterm-fb on NetBSD/x68k or OpenBSD)
+# fb_resolution =
+
+# (Available for mlterm-fb on NetBSD/x68k)
+# separate_wall_picture = false

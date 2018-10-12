@@ -3,7 +3,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 WIN32 native GUI 対応に関するメモ
 
 * テスト環境
-  Windows 8 + MSYS2 2.7.0 or Cygwin 2.10.0
+  Windows 8 + MSYS2 2.10.0 or Cygwin 2.11.1
             + libssh2 1.8.0(win32 native)
             + Fribidi 0.19.2(win32 native)
 

@@ -407,11 +407,11 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o startup_screens (*1*)
         起動時に立ち上げるウィンドウの数
 
-      o default_cell_size (*8,16*)
+      o default_cell_size (*8,16*) (mlterm-con 用)
         mlterm-con がセルの幅と高さのピクセル数を取得できなかった場合に使用する
         デフォルトの幅と高さ
 
-      o console_sixel_colors (*16*)
+      o console_sixel_colors (*16*) (mlterm-con 用)
         mlterm-con が動作するコンソールがサポートしている Sixel Graphics の色数
         16, 256, full のいずれかを指定します。
 
@@ -514,7 +514,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         あらかじめ、auto_detect_encodings オプションで候補とするエンコーディング
         を指定しておく必要があります。
 
-      o console_encoding (*auto*)
+      o console_encoding (*auto*) (mlterm-con 用)
         mlterm-con が動作するコンソールのエンコーディング
 
       -- Font 関連 --
@@ -627,6 +627,12 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o emoji_path (~/.mlterm/emoji)
         絵文字表示に使用する画像のあるディレクトリ又は絵文字フォント
         (NotoColorEmoji.ttfなど)のパスを指定します。
+
+      o use_aafont (true/false) (mlterm-fb or mlterm-wl 用)
+        mlterm-fb 又は mlterm-wl で truetype フォントを使用する場合に、
+        ~/mlterm/*font-fb でなく ~/.mlterm/*aafont の設定を読み込み、fontconfig
+        を使ってフォントを探す。
+        mlterm-fb のデフォルト値は false、mlterm-wl のデフォルト値は true
 
       -- Appearance 関連 --
       o use_transbg (true/*false*) (#)
@@ -996,6 +1002,17 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
       o ignore_broadcasted_chars (true/*false*)
         broadcast オプションが true の場合でも、ブロードキャストを受け付けない。
+
+      o start_with_local_pty (true/*false*) (Android 用)
+        default_server オプションが指定されていない場合に、起動時の SSH 接続ダイ
+        アログを表示しないようにする。
+
+      o fb_resolution (mlterm-fb on NetBSD/x68k or OpenBSD 用)
+        768x512x4 のような形式で解像度を指定する。
+
+      o separate_wall_picture (true/*false*) (mlterm-fb on NetBSD/x68k 用)
+        壁紙のみ Graphic VRAM ではなく Text VRAM に描画し、スクロール測度を改善
+        する。
 
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)

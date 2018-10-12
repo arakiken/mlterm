@@ -1156,6 +1156,7 @@ int ui_window_init(ui_window_t *win, u_int width, u_int height, u_int min_width,
   win->min_height = min_height;
   win->width_inc = width_inc;
   win->height_inc = height_inc;
+  win->sizehint_flag = SIZEHINT_WIDTH|SIZEHINT_HEIGHT;
   win->hmargin = hmargin;
   win->vmargin = vmargin;
 

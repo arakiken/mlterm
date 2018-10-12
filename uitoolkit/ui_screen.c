@@ -3500,17 +3500,11 @@ static void modify_line_space_and_offset(ui_screen_t *screen) {
   }
 
   if (screen->underline_offset != 0) {
-    if (screen->underline_offset < 0) {
-      if (font_height >= -screen->underline_offset * 8) {
-        return;
-      }
-    } else {
-      if (screen->underline_offset <= font_height - ui_get_usascii_font(screen->font_man)->ascent +
-                                      screen->line_space / 2 /* + screen->line_space % 2 */ -
-                                      screen->baseline_offset) {
-        /* underline_offset < descent + bottom_margin */
-        return;
-      }
+    u_int ascent = ui_line_ascent(screen);
+
+    if (((int)ascent) >= -screen->underline_offset &&
+        ascent + screen->underline_offset < ui_line_height(screen)) {
+      return;
     }
 
     bl_msg_printf("Ignore underline_offset (%d)\n", screen->underline_offset);

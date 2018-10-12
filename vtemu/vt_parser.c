@@ -7699,9 +7699,16 @@ int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
   } else if (strcmp(key, "col_size_of_width_a") == 0) {
     u_int size;
 
-    if (bl_str_to_uint(&size, value)) {
-      set_col_size_of_width_a(vt_parser, size);
+    if (strcmp(value, "switch") == 0) {
+      size = vt_parser->col_size_of_width_a == 1 ? 2 : 1;
+    } else if (!bl_str_to_uint(&size, value)) {
+      goto end;
     }
+
+    set_col_size_of_width_a(vt_parser, size);
+
+  end:
+    ;
   } else if (strcmp(key, "locale") == 0) {
     bl_locale_init(value);
   } else if (strcmp(key, "logging_vt_seq") == 0) {
