@@ -460,11 +460,11 @@ static u_int total_min_width(ui_window_t *win) {
   u_int count;
   u_int min_width;
 
-  min_width = win->min_width + win->hmargin * 2;
+  min_width = win->min_width + win->hmargin * 2 + RIGHT_MARGIN(win);
 
   for (count = 0; count < win->num_children; count++) {
-    if (win->children[count]->is_mapped) {
-      /* XXX */
+    if (win->children[count]->is_mapped &&
+        (win->children[count]->sizehint_flag & SIZEHINT_WIDTH)) {
       min_width += total_min_width(win->children[count]);
     }
   }
@@ -476,11 +476,11 @@ static u_int total_min_height(ui_window_t *win) {
   u_int count;
   u_int min_height;
 
-  min_height = win->min_height + win->vmargin * 2;
+  min_height = win->min_height + win->vmargin * 2 + BOTTOM_MARGIN(win);
 
   for (count = 0; count < win->num_children; count++) {
-    if (win->children[count]->is_mapped) {
-      /* XXX */
+    if (win->children[count]->is_mapped &&
+        (win->children[count]->sizehint_flag & SIZEHINT_HEIGHT)) {
       min_height += total_min_height(win->children[count]);
     }
   }
@@ -495,7 +495,8 @@ static u_int total_width_inc(ui_window_t *win) {
   width_inc = win->width_inc;
 
   for (count = 0; count < win->num_children; count++) {
-    if (win->children[count]->is_mapped) {
+    if (win->children[count]->is_mapped &&
+        (win->children[count]->sizehint_flag & SIZEHINT_WIDTH)) {
       u_int sub_inc;
 
       /*
@@ -518,7 +519,8 @@ static u_int total_height_inc(ui_window_t *win) {
   height_inc = win->height_inc;
 
   for (count = 0; count < win->num_children; count++) {
-    if (win->children[count]->is_mapped) {
+    if (win->children[count]->is_mapped &&
+        (win->children[count]->sizehint_flag & SIZEHINT_HEIGHT)) {
       u_int sub_inc;
 
       /*
@@ -882,6 +884,7 @@ int ui_window_init(ui_window_t *win, u_int width, u_int height,
   win->min_height = min_height;
   win->width_inc = width_inc;
   win->height_inc = height_inc;
+  win->sizehint_flag = SIZEHINT_WIDTH|SIZEHINT_HEIGHT;
   win->hmargin = hmargin;
   win->vmargin = vmargin;
 
@@ -1334,12 +1337,10 @@ int ui_window_show(ui_window_t *win, int hint) {
     size_hints.height_inc = total_height_inc(win);
     size_hints.min_width = total_min_width(win);
     size_hints.min_height = total_min_height(win);
-    size_hints.base_width = size_hints.min_width > size_hints.width_inc
-                                ? size_hints.min_width - size_hints.width_inc
-                                : 0;
-    size_hints.base_height = size_hints.min_height > size_hints.height_inc
-                                 ? size_hints.min_height - size_hints.height_inc
-                                 : 0;
+    size_hints.base_width = size_hints.min_width > size_hints.width_inc ?
+                            size_hints.min_width % size_hints.width_inc : 0;
+    size_hints.base_height = size_hints.min_height > size_hints.height_inc ?
+                             size_hints.min_height % size_hints.height_inc : 0;
 
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " Size hints => w %d h %d wi %d hi %d mw %d mh %d bw %d bh %d\n",
@@ -1586,14 +1587,14 @@ void ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_hei
   size_hints.min_width = total_min_width(root);
   size_hints.min_height = total_min_height(root);
   size_hints.base_width =
-      size_hints.min_width > size_hints.width_inc ? size_hints.min_width - size_hints.width_inc : 0;
-  size_hints.base_height = size_hints.min_height > size_hints.height_inc
-                               ? size_hints.min_height - size_hints.height_inc
-                               : 0;
+      size_hints.min_width > size_hints.width_inc ? size_hints.min_width % size_hints.width_inc : 0;
+  size_hints.base_height = size_hints.min_height > size_hints.height_inc ?
+                           size_hints.min_height % size_hints.height_inc : 0;
   size_hints.flags = PMinSize | PResizeInc | PBaseSize;
 
 #ifdef DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " Size hints => wi %u hi %u mw %u mh %u bw %u bh %u\n",
+  bl_debug_printf(BL_DEBUG_TAG " Size hints => w %u h %u wi %u hi %u mw %u mh %u bw %u bh %u\n",
+                  ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
                   size_hints.width_inc, size_hints.height_inc, size_hints.min_width,
                   size_hints.min_height, size_hints.base_width, size_hints.base_height);
 #endif

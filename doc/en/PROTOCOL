@@ -103,7 +103,7 @@ version 20180612
   brightness = <any ASCII decimal digit>
   click_interval = <any ASCII decimal digit>
   cols = <any ASCII decimal digit>
-  col_size_of_width_a = 1 | 2
+  col_size_of_width_a = 1 | 2 | switch
   contrast = <any ASCII decimal digit>
   co_colors = <color name> | <color rgb>
   console_encoding = <encoding name> | auto
@@ -145,7 +145,7 @@ version 20180612
   stataic_backscroll_mode = true | false | switch
   tabsize = <any ASCII decimal digit>
   trim_trailing_newline_in_pasting = true | false | switch
-  type_engine = xcore | xft
+  type_engine = xcore | xft | cairo
   ul_color = <color name> | <color rgb>
   underline_offset = <any ASCII decimal digit>
   unicode_noconv_areas = (U+XXXX-XXXX,)*

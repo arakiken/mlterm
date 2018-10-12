@@ -840,45 +840,76 @@ static u_int total_height(struct terminal *term) {
   return height;
 }
 
-/* XXX */
-static void total_hint_size(struct terminal *term, u_int *width, u_int *height, u_int *width_inc,
-                            u_int *height_inc) {
-  u_int size;
+static void clear_hint_size(struct terminal *term) {
+  int count;
 
-  if (*width_inc < (size = ui_col_width(term->screen))) {
-    *width_inc = size;
+  for (count = 0; count < 2; count++) {
+    if (term->next[count]) {
+      clear_hint_size(term->next[count]);
+    }
   }
 
-  if (*height_inc < (size = ui_line_height(term->screen))) {
-    *height_inc = size;
-  }
+  term->screen->window.sizehint_flag = 0;
+  term->scrollbar.window.sizehint_flag = 0;
+}
 
+static void total_hint_width(struct terminal *term, u_int *width) {
   if (term->sb_mode != SBM_NONE) {
     *width += SEPARATOR_WIDTH;
   }
 
   if (term->next[0]) {
     *width += SEPARATOR_WIDTH;
+    total_hint_width(term->next[0], width);
+  }
 
-    total_hint_size(term->next[0], width, height, width_inc, height_inc);
+  if (term->next[1]) {
+    clear_hint_size(term->next[1]);
+  }
+
+  term->screen->window.sizehint_flag = SIZEHINT_WIDTH;
+  term->scrollbar.window.sizehint_flag = SIZEHINT_WIDTH;
+}
+
+static void total_hint_height(struct terminal *term, u_int *height) {
+  if (term->next[0]) {
+    clear_hint_size(term->next[0]);
   }
 
   if (term->next[1]) {
     *height += SEPARATOR_HEIGHT;
-
-    total_hint_size(term->next[1], width, height, width_inc, height_inc);
+    total_hint_height(term->next[1], height);
   }
+
+  term->screen->window.sizehint_flag = SIZEHINT_HEIGHT;
+  term->scrollbar.window.sizehint_flag = 0;
+}
+
+static void total_hint_size(struct terminal *term, u_int *width, u_int *height) {
+  if (term->sb_mode != SBM_NONE) {
+    *width += SEPARATOR_WIDTH;
+  }
+
+  if (term->next[0]) {
+    *width += SEPARATOR_WIDTH;
+    total_hint_width(term->next[0], width);
+  }
+
+  if (term->next[1]) {
+    *height += SEPARATOR_HEIGHT;
+    total_hint_height(term->next[1], height);
+  }
+
+  term->screen->window.sizehint_flag = SIZEHINT_HEIGHT|SIZEHINT_WIDTH;
+  term->scrollbar.window.sizehint_flag = SIZEHINT_WIDTH;
 }
 
 static void update_normal_hints(ui_layout_t *layout) {
   u_int min_width = 0;
   u_int min_height = 0;
-  u_int width_inc = 0;
-  u_int height_inc = 0;
 
-  total_hint_size(&layout->term, &min_width, &min_height, &width_inc, &height_inc);
-
-  ui_window_set_normal_hints(&layout->window, min_width, min_height, width_inc, height_inc);
+  total_hint_size(&layout->term, &min_width, &min_height);
+  ui_window_set_normal_hints(&layout->window, min_width, min_height, 0, 0);
 }
 
 #ifndef USE_QUARTZ
@@ -963,6 +994,8 @@ static void change_sb_mode_intern(struct terminal *term, ui_sb_mode_t new_mode,
         ACTUAL_WIDTH(&term->screen->window) - SCROLLBAR_WIDTH(term->scrollbar), 0,
         SCROLLBAR_WIDTH(term->scrollbar), ACTUAL_HEIGHT(&term->screen->window));
   }
+
+  update_normal_hints(layout);
 #else
   else if (old_mode == SBM_NONE) {
     ui_window_map(&term->scrollbar.window);
@@ -974,6 +1007,9 @@ static void change_sb_mode_intern(struct terminal *term, ui_sb_mode_t new_mode,
     goto noresize;
   }
 
+  /* This should be called before ui_window_resize(&layout->window) */
+  update_normal_hints(layout);
+
   if ((term->screen->window.x + ACTUAL_WIDTH(&term->screen->window) +
            (old_mode != SBM_NONE ? SCROLLBAR_WIDTH(term->scrollbar) : 0) <
        ACTUAL_WIDTH(&layout->window)) ||
@@ -983,8 +1019,6 @@ static void change_sb_mode_intern(struct terminal *term, ui_sb_mode_t new_mode,
     reset_layout(&layout->term, 0, 0, layout->window.width, layout->window.height);
   }
 #endif
-
-  update_normal_hints(layout);
 }
 
 static void change_sb_mode(void *p, ui_sb_mode_t new_mode) {

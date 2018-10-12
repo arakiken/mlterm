@@ -43,6 +43,12 @@ typedef enum ui_maximize_flag {
 
 } ui_maximize_flag_t;
 
+typedef enum ui_sizehint_flag {
+  SIZEHINT_NONE = 0x0,
+  SIZEHINT_WIDTH = 0x1,
+  SIZEHINT_HEIGHT = 0x2,
+} ui_sizehint_flag_t;
+
 typedef struct ui_xim_event_listener {
   void *self;
 
@@ -180,6 +186,8 @@ typedef struct ui_window {
   /* button */
   int8_t button_is_pressing;
   int8_t click_num;
+
+  u_int8_t sizehint_flag;
 
   void (*window_realized)(struct ui_window *);
   void (*window_finalized)(struct ui_window *);

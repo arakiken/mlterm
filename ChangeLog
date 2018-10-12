@@ -1,3 +1,22 @@
+2018-10-12  Araki Ken  <arakiken@users.sf.net>
+
+	* README, PROTOCOL, README.win32, README.ja, etc/main, etc/main.ja,
+	  gtk/README, man/mlterm.1: Updated.
+
+	* ui_screen.c: The restriction of the range of screen->underline_offset
+	  is mostly eliminated.
+
+	* ui_layout.c: total_hint_size() sets sizehint_flag of ui_screen_t and
+	  ui_scrollbar_t.
+
+	* ui_window.h, */ui_window.c:
+	  - ui_sizehint_flag_t is added.
+	  - ui_sizehint_flag is added to ui_window_t.
+	  - total_min_{width|height}() and total_{width|height}_inc() use sizehint_flag.
+
+	* vt_parser.c:
+	  "switch" is available for the value of "col_size_of_width_a" of OSC 5379.
+
 2018-09-23  Araki Ken  <arakiken@users.sf.net>
 
 	* README.android, README.cocoatouch: Updated.

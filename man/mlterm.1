@@ -515,6 +515,10 @@ Specify the step of changing font size in pixel when you pushed
 GUI configurator.
 The default is \fB1\fR.
 .TP
+\fB\-\-aafont\fR=(\fIbool\fR) (Available for mlterm-fb or mlterm-wl)
+Whether to use ~/.mlterm/*aafont configurations with the use of fontconfig.
+The default is \fBfalse\fR for mlterm-fb and \fBtrue\fR for mlterm-wl.
+.TP
 \fB\-\-ade\fR=\fIvalue\fR
 Specify character encodings detected automatically.
 .TP
@@ -567,7 +571,7 @@ The default is \fBnoconv\fR which draw them as they are.
 \fB\-\-ciphlist\fR=\fIvalue\fR
 Specify ciphers (comma separated list) for encrypting the ssh session.
 .TP
-\fB\-\-ckm\fR=\fIencoding\fR
+\fB\-\-ckm\fR=\fIencoding\fR (Available for mlterm-con)
 Specify encoding of the console where mlterm-con works.
 Valid encodings are listed in \fBDESCRIPTION\fR section
 above in this man page.
@@ -581,7 +585,7 @@ Specify the color to use to display crossed-out characters.
 Whether to recognize ANSI color change escape sequences.
 The default is \fBtrue\fR.
 .TP
-\fB\-\-csc\fR=\fIvalue\fR
+\fB\-\-csc\fR=\fIvalue\fR (Available for mlterm-con)
 Specify the number of sixel graphics colors of the console where mlterm-con works.
 A valid value is 16, 256 or full. The default is \fB16\fR.
 .TP
@@ -589,7 +593,7 @@ A valid value is 16, 256 or full. The default is \fB16\fR.
 Specify number of extra pixels between lines. (ignored if you specify \fB\-\-V\fR option.)
 The default is \fB0\fR.
 .TP
-\fB\-\-csz\fR=\fIvalue\fR
+\fB\-\-csz\fR=\fIvalue\fR (Available for mlterm-con)
 Specify cell width and height in pixel which mlterm-con uses if it doesn't get them.
 The default is \fB8,16\fR.
 .TP
@@ -677,6 +681,11 @@ See \fBMULTIPLE PTY\fR section for detail.
 Specify prefix characters in pressing meta key if mod_meta_mode = esc.
 The default is \fB\\x1b\fR.
 .TP
+\fB\-\-multivram\fR(=\fIbool\fR) (Available for mlterm-fb on NetBSD/x68k)
+Whether to draw the wall picture on Text VRAM instead of Graphic VRAM to improve
+the performance of scrolling.
+The default is \fBfalse\fR.
+.TP
 \fB\-\-noul\fR(=\fIbool\fR)
 Don't draw underline.
 The default is \fBfalse\fR.
@@ -709,20 +718,6 @@ Treat the value of \-w option as point instead of pixel.
 Note that this option works on xft, cairo or win32.
 The default is \fBfalse\fR.
 .TP
-\fB\-\-scp\fR(=\fIbool\fR)
-Allow OSC 5379 scp.
-The default is \fBfalse\fR.
-Even if allow_scp = false, it is possible to transfer a file to "." directory
-(~/.mlterm/scp).
-.TP
-\fB\-\-serv\fR=\fIvalue\fR
-Specify a host you want to connect via ssh etc.
-This option is enabled only if mlterm is built with MinGW or \-\-enable\-ssh2 option.
-
-Value format: (<protocol>://)(<user>@)<server>(:<port>)(:<encoding>)
-
-e.g.) mlterm \-\-serv ssh://user@host:22:eucjp
-.TP
 \fB\-\-pubkey\fR=\fIvalue\fR
 Specify public key file for ssh connection.
 The default is \fB~/.ssh/id_rsa.pub\fR(\fB%HOMEPATH%\mlterm\id_rsa.pub\fR in win32).
@@ -743,13 +738,31 @@ The default is \fBtrue\fR.
 \fB\-\-rv\fR=\fIvalue\fR
 Specify the color to use to display reverse characters.
 .TP
+\fB\-\-scp\fR(=\fIbool\fR)
+Allow OSC 5379 scp.
+The default is \fBfalse\fR.
+Even if allow_scp = false, it is possible to transfer a file to "." directory
+(~/.mlterm/scp).
+.TP
 \fB\-\-seqfmt\fR=\fIvalue\fR
 Specify the format of logging vt100 sequence. \fBraw\fR for logging as it is
 and \fBttyrec\fR for logging by ttyrec format.
 The default is \fBraw\fR.
 .TP
+\fB\-\-serv\fR=\fIvalue\fR
+Specify a host you want to connect via ssh etc.
+This option is enabled only if mlterm is built with MinGW or \-\-enable\-ssh2 option.
+
+Value format: (<protocol>://)(<user>@)<server>(:<port>)(:<encoding>)
+
+e.g.) mlterm \-\-serv ssh://user@host:22:eucjp
+.TP
 \fB\-\-shortcut\fR(=\fIbool\fR)
 Whether to allow dynamic change of shortcut keys by OSC 5379 set_shortcut sequence.
+The default is \fBfalse\fR.
+.TP
+\fB\-\-slp\fR(=\fIbool\fR) (Available for Android)
+Whether to start mlterm with local pty instead of ssh connection.
 The default is \fBfalse\fR.
 .TP
 \fB\-\-trim\fR(=\fIbool\fR)
@@ -1467,10 +1480,10 @@ Number of columns of Unicode characters with EastAsianAmbiguous property.
 \fBcompose_dec_special_font=\fIbool\fR (\fB\-Y\fR, \fB\-\-decsp\fR)
 Compose line drawing character set.
 .TP
-\fBconsole_encoding=\fIencoding\fR (\fB\-\-ckm\fR)
+\fBconsole_encoding=\fIencoding\fR (\fB\-\-ckm\fR) (Available for mlterm-con)
 Specify encoding of the console where mlterm-con works.
 .TP
-\fBconsole_sixel_colors=\fIvalue\fR (\fB\-\-csc\fR)
+\fBconsole_sixel_colors=\fIvalue\fR (\fB\-\-csc\fR) (Available for mlterm-con)
 Specify the number of sixel graphics colors of the console where mlterm-con works.
 .TP
 \fBcontrast=\fIvalue\fR (\fB\-3\fR, \fB\-\-contrast\fR)
@@ -1485,7 +1498,7 @@ Specify foreground color for cursor.
 \fBdaemon_mode=\fImode\fR (\fB\-j\fR, \fB\-\-daemon\fR)
 Start as a daemon process.
 .TP
-\fBdefault_cell_size=\fIvalue\fR (\fB\-\-csz\fR)
+\fBdefault_cell_size=\fIvalue\fR (\fB\-\-csz\fR) (Available for mlterm-con)
 Specify cell width and height in pixel which mlterm-con uses if it doesn't get them.
 .TP
 \fBdefault_server=\fIvalue\fR (\fB\-\-serv\fR)
@@ -1509,6 +1522,9 @@ Exit backscroll mode on receiving data from pty.
 .TP
 \fBfade_ratio=\fIratio\fR (\fB\-r\fR, \fB\-\-fade_ratio\fR)
 Specify fading ratio when window is unfocused.
+.TP
+\fBfb_resolution=\fIratio\fR (Available for mlterm-fb on NetBSD/x68k or OpenBSD)
+Specify the screen resolution and depth. (e.g. 768x512x4)
 .TP
 \fBfg_color=\fIcolor\fR (\fB\-f\fR, \fB\-\-fg\fR)
 Foreground color.
@@ -1637,6 +1653,9 @@ Specify name of scrollbar.
 \fBsecondary_da=\fIvalue\fR (\fB\-\-da2\fR)
 Specify secondary device attributes string.
 .TP
+\fBseparate_wall_picture=\fIbool\fR (\fB\-\-multivram\fR) (Available for mlterm-fb on NetBSD/x68k)
+Draw the wall picture on Text VRAM instead of Graphic VRAM to improve
+the performance of scrolling.
 \fBssh_auto_reconnect\fR=\fIbool\fR (\fB\-\-rcn\fR)
 Reconnect to ssh server automatically in unexpected disconnection.
 .TP
@@ -1651,6 +1670,9 @@ Specify private key file for ssh connection.
 .TP
 \fBssh_x11_forwarding\fR=\fIbool\fR (\fB\-\-x11\fR)
 Enable x11 forwarding for ssh connection.
+.TP
+\fBstart_with_local_pty\fR (\fB\-\-slp\fR) (Available for Android)
+Start mlterm with local pty instead of ssh connection.
 .TP
 \fBstep_in_changing_font_size\fR (\fB\-z\fR, \fB\-\-largesmall\fR)
 Specify changing size when font size becomes larger or smaller.
@@ -1685,6 +1707,9 @@ Force half width regardless of EastAsianWidth.txt.
 .TP
 \fBunicode_noconv_areas\fR=\fIvalue\fR (\fB\-\-ucsnoconv\fR)
 Use unicode fonts partially regardless of -n option.
+.TP
+\fBuse_aafont=\fIbool\fR (\fB\-\-aafont\fR) (Available for mlterm-fb or mlterm-wl)
+Use ~/.mlterm/*aafont configurations with the use of fontconfig.
 .TP
 \fBuse_auto_detect=\fIbool\fR (\fB\-\-auto\fR)
 Automatically detect appropriate character encoding from the encodings
