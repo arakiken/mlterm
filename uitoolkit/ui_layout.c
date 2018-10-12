@@ -994,8 +994,6 @@ static void change_sb_mode_intern(struct terminal *term, ui_sb_mode_t new_mode,
         ACTUAL_WIDTH(&term->screen->window) - SCROLLBAR_WIDTH(term->scrollbar), 0,
         SCROLLBAR_WIDTH(term->scrollbar), ACTUAL_HEIGHT(&term->screen->window));
   }
-
-  update_normal_hints(layout);
 #else
   else if (old_mode == SBM_NONE) {
     ui_window_map(&term->scrollbar.window);
@@ -1007,18 +1005,22 @@ static void change_sb_mode_intern(struct terminal *term, ui_sb_mode_t new_mode,
     goto noresize;
   }
 
-  /* This should be called before ui_window_resize(&layout->window) */
-  update_normal_hints(layout);
-
-  if ((term->screen->window.x + ACTUAL_WIDTH(&term->screen->window) +
-           (old_mode != SBM_NONE ? SCROLLBAR_WIDTH(term->scrollbar) : 0) <
-       ACTUAL_WIDTH(&layout->window)) ||
-      !ui_window_resize(&layout->window, total_width(&layout->term), total_height(&layout->term),
-                        NOTIFY_TO_MYSELF)) {
-  noresize:
-    reset_layout(&layout->term, 0, 0, layout->window.width, layout->window.height);
+  if (term->screen->window.x + ACTUAL_WIDTH(&term->screen->window) +
+        (old_mode != SBM_NONE ? SCROLLBAR_WIDTH(term->scrollbar) : 0) >=
+      ACTUAL_WIDTH(&layout->window)) {
+    /* This should be called before ui_window_resize(&layout->window) */
+    update_normal_hints(layout);
+    if (ui_window_resize(&layout->window, total_width(&layout->term), total_height(&layout->term),
+                         NOTIFY_TO_MYSELF)) {
+      return;
+    }
   }
+
+noresize:
+  reset_layout(&layout->term, 0, 0, layout->window.width, layout->window.height);
 #endif
+
+  update_normal_hints(layout);
 }
 
 static void change_sb_mode(void *p, ui_sb_mode_t new_mode) {
