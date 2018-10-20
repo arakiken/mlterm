@@ -9,7 +9,7 @@ pipelines:
   default:
     - step:
         script: # Modify the commands below to build your repository.
-	  # bitbucket pipeline doesn't support sdl2.
-	  - ./configure --with-gui=xlib,fb,console,wayland
+        # bitbucket pipeline doesn't support sdl2.
+          - ./configure --with-gui=xlib,fb,console,wayland
           - make
           - make test
