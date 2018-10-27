@@ -8,6 +8,9 @@ How to build & install libvte compatible library using mlterm engine.
   o terminal emulators or other applications using libvte 
     (gnome-terminal, roxterm, synaptic or etc)
 
+* Supported API
+  vte 0.52.0
+
 * Build
   $ ./configure (--with-type-engine=cairo --with-imagelib=gdk-pixbuf --enable-pty-helper \
     --with-gtk=2.0 ...)

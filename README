@@ -194,6 +194,18 @@ What you need for compilation
   (If you want to use camellia as common key cryptography, download libssh2
    camellia branch from https://bitbucket.org/arakiken/libssh2/downloads)
 
+Compilation of library based on mlterm
+-----------------------
+
+  vte compatible library
+
+  $ make vte
+  (see http://bitbucket.org/arakiken/mlterm/src/tip/gtk/README)
+
+  libvterm compatible library
+
+  $ make vterm
+  (see http://bitbucket.org/arakiken/mlterm/src/tip/libvterm/README)
 
 Supported platforms
 -------------------
@@ -209,6 +221,7 @@ Supported platforms
   * Arch Linux / X, framebuffer, wayland, SDL2 (x86)
   * CentOS 5 / X (x86)
   * FreeBSD 9.0 / framebuffer (x86)
+  * FreeBSD(98) 4.11 / framebuffer (np21w ver.0.86 rev.42)
   * OpenBSD 5.3 / framebuffer (x86)
   * MS Windows 10 + Cygwin 2.11.1 / GDI, SDL2 (CC=gcc, CC="i686-pc-mingw32-gcc") (x86_64)
   * MS Windows 10 + MSYS2 2.10.0 / GDI (x86)

@@ -3,8 +3,12 @@ top_srcdir = @top_srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
+mandir = @mandir@
 
 BINDIR = $(DESTDIR)$(bindir)
+
+MANDIR = $(DESTDIR)$(mandir)
+MAN1DIR = $(MANDIR)/man1
 
 VPATH = $(top_srcdir)/contrib/tool/mlcc
 
@@ -37,11 +41,16 @@ clean:
 $(BINDIR):
 	mkdir -p $(BINDIR)
 
-install: $(BINDIR)
+$(MAN1DIR):
+	mkdir -p $(MAN1DIR)
+
+install: $(BINDIR) $(MAN1DIR)
 	$(INSTALL) -m 755 $(PROG) $(BINDIR)
+	$(INSTALL) -m 644 $(top_srcdir)/contrib/tool/mlcc/mlcc.1 $(MAN1DIR)
 
 uninstall:
 	rm -f $(BINDIR)/$(PROG)
+	rm -f $(MAN1DIR)/mlcc.1
 
 mostlyclean:
 	rm -f $(OBJECTS) core core.* $(PROG).core 

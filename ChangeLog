@@ -1,3 +1,17 @@
+2018-10-27  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.8.7 released.
+	  (tag "rel-3_8_7")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  mlterm.c, android/jni/version.h:
+	  updated for 3.8.7.
+
+	* README, man/mlterm.1, libvterm/README, gtk/README, mlcc.1: Updated.
+
+	* ui_font_config.c: ui_customize_font_file() resets font_config->font_name_table
+	  if *value is '\0'.
+
 2018-10-13  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_layout.c: The position of calling update_normal_hints() is fixed.

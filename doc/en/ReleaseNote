@@ -1,3 +1,4 @@
+ver 3.8.7
 * Support sixel graphics extension and option1 of
   https://github.com/kmiya-culti/RLogin/issues/22#issue-341758598
 * Support Cygwin/x86_64.

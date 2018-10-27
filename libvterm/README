@@ -11,7 +11,7 @@ How to build & install libvterm compatible library using mlterm engine.
   $ make
   $ make vterm (== "cd libvterm ; make")
 
-* Install (Replace official libvte)
+* Install (Replace official libvterm)
   $ cd baselib ; make install-la
   $ cd encodefilter ; make install-la
   $ make install-vterm (== "cd libvterm ; make install")
@@ -19,7 +19,7 @@ How to build & install libvterm compatible library using mlterm engine.
            [where official libvterm is installed]/libvterm.so.0
 
 * Start neovim terminal using libvterm
-  $ neovim => :terminal
+  $ nvim => :terminal
 
 * Notice
   o Sixel graphics is available under these conditions.
