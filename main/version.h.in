@@ -12,7 +12,7 @@
 
 #if 0
 #define CHANGE_DATE "pre/@CHANGE_DATE@"
-#elif 1
+#elif 0
 #define CHANGE_DATE "post/@CHANGE_DATE@"
 #else
 #define CHANGE_DATE ""

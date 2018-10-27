@@ -697,6 +697,25 @@ static ui_font_config_t *create_shared_font_config(ui_type_engine_t type_engine,
   return NULL;
 }
 
+static void new_table(ui_font_config_t *font_config) {
+  bl_map_new_with_size(vt_font_t, char *, font_config->font_name_table, bl_map_hash_int,
+                       bl_map_compare_int, 16);
+}
+
+static void delete_table(ui_font_config_t *font_config) {
+  u_int count;
+  u_int size;
+  BL_PAIR(ui_font_name) * fn_array;
+
+  fn_array = get_font_name_pairs_array(&size, font_config->font_name_table);
+
+  for (count = 0; count < size; count++) {
+    free(fn_array[count]->value);
+  }
+
+  bl_map_delete(font_config->font_name_table);
+}
+
 /* --- global functions --- */
 
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
@@ -809,8 +828,7 @@ ui_font_config_t *ui_font_config_new(ui_type_engine_t type_engine, ui_font_prese
     return NULL;
   }
 
-  bl_map_new_with_size(vt_font_t, char *, font_config->font_name_table, bl_map_hash_int,
-                       bl_map_compare_int, 16);
+  new_table(font_config);
 
   font_config->type_engine = type_engine;
   font_config->font_present = font_present;
@@ -820,18 +838,7 @@ ui_font_config_t *ui_font_config_new(ui_type_engine_t type_engine, ui_font_prese
 }
 
 void ui_font_config_delete(ui_font_config_t *font_config) {
-  int count;
-  u_int size;
-  BL_PAIR(ui_font_name) * fn_array;
-
-  fn_array = get_font_name_pairs_array(&size, font_config->font_name_table);
-
-  for (count = 0; count < size; count++) {
-    free(fn_array[count]->value);
-  }
-
-  bl_map_delete(font_config->font_name_table);
-
+  delete_table(font_config);
   free(font_config);
 }
 
@@ -854,6 +861,7 @@ int ui_customize_font_file(const char *file, /* if null, use "mlterm/font" file.
   ui_font_config_t *targets[6];
   u_int num_targets;
   u_int count;
+  int ret;
 
   if (file == NULL ||
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
@@ -895,34 +903,39 @@ int ui_customize_font_file(const char *file, /* if null, use "mlterm/font" file.
   }
 #endif
 
-  if (save) {
-    int ret;
+  if (change_custom_cache(file, key, value)) {
+    if (*value == '\0') {
+      /* remove */
+      for (count = 0; count < num_targets; count++) {
+        /*
+         * reset font_name_table
+         *
+         * ~/.mlterm/font: ISO10646_UCS4_1=a
+         * => mlcc font ISO10646_UCS4_1 b
+         * => mlcc font ISO10646_UCS4_1 "" (results in ISO10646_UCS4_1=a)
+         */
+        delete_table(targets[count]);
+        new_table(targets[count]);
 
-    if (change_custom_cache(file, key, value)) {
+        read_all_conf(targets[count], NULL);
+      }
+
+      return 1;
+    } else {
       ret = 1;
       for (count = 0; count < num_targets; count++) {
         read_all_conf(targets[count], file);
       }
-    } else {
-      ret = 0;
-    }
-
-    if (!save_conf(file, key, value)) {
-      return ret ? -1 : 0;
-    } else {
-      return ret;
     }
   } else {
-    if (!change_custom_cache(file, key, value)) {
-      return 0;
-    }
-
-    for (count = 0; count < num_targets; count++) {
-      read_all_conf(targets[count], file);
-    }
+    ret = 0;
   }
 
-  return 1;
+  if (save && !save_conf(file, key, value)) {
+    return ret ? -1 : 0;
+  } else {
+    return ret;
+  }
 }
 
 char *ui_get_config_font_name(ui_font_config_t *font_config, u_int font_size, vt_font_t font) {

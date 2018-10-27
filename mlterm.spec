@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 3.8.6
+%define version 3.8.7
 %define release 1
 %define prefix /usr
 %define bindir /usr/bin
@@ -76,10 +76,14 @@ rm -rf $RPM_BUILD_ROOT
 %{sysconfdir}/mlterm/
 %{mandir}/man1/mlterm.1*
 %{mandir}/man1/mlclient.1*
+%{mandir}/man1/mlcc.1*
 %{pixmapdir}/mlterm*
 %{datadir}/locale/*/LC_MESSAGES/mlconfig.mo
 
 %changelog
+* Sat Oct 27 2018 Araki Ken <arakiken@users.sf.net>
+- Source version 3.8.7
+
 * Tue Jun 12 2018 Araki Ken <arakiken@users.sf.net>
 - Source version 3.8.6
 

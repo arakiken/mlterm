@@ -1,7 +1,7 @@
 comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
 mlterm configuration protocol
-version 20180612
+version 20181021
 
 * Protocol
   exec             = "\x1b]5379;" <command> "\x07"

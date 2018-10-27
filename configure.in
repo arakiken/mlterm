@@ -1020,7 +1020,7 @@ if test "$enable_use_tools" = "no" ; then
 fi
 AC_SUBST(TOOLS_CFLAGS)
 
-AM_INIT_AUTOMAKE(mlterm,3.8.6)
+AM_INIT_AUTOMAKE(mlterm,3.8.7)
 
 for tool in ${tools} ; do
 case ${tool} in

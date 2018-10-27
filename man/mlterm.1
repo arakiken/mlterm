@@ -1,5 +1,5 @@
 .\" mlterm.1   -*- nroff -*-
-.TH MLTERM 1 "2018-06-12"
+.TH MLTERM 1 "2018-10-27"
 .SH NAME
 mlterm \- Multi Lingual TERMinal emulator on X
 .SH SYNOPSIS
@@ -972,6 +972,10 @@ Whether to use unicode fonts (or non-unicode fonts) all the time
 regardless of a selected encoding. (\fB\-u\fR, \fB\-\-onlyucsfont\fR)
 (\fB\-n\fR, \fB\-\-noucsfont\fR)
 .TP
+Unicode areas you won't convert to other charsets
+Specify code point areas which are shown by unicode fonts regardless of -n option.
+(\fB\-\-ucsnoconv\fR)
+.TP
 Box drawing
 Whether to use a unicode font or (a dec special font) all the time
 to draw box drawing characters. (\fB\-\-boxdraw\fR)
@@ -1121,6 +1125,9 @@ Change font size.
 .TP
 Full reset
 Reset internal status.
+.TP
+Snapshot
+Snapshot the screen and save it to ~/.mlterm/*.snp.
 .TP
 SSH SCP
 Transfer a file via SCP.
@@ -2167,35 +2174,41 @@ configurations dynamically.
 
 e.g.) echo -en "\\x1b]5379;encoding=eucjp\\x07"
 .PP
-\fBREADME.fb\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.fb)
-for mlterm on framebuffer.
-.PP
-\fBREADME.win32\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.win32)
-for mlterm on Win32 GDI.
-.PP
 \fBREADME.android\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.android)
 for mlterm on Android.
+.PP
+\fBREADME.brltty\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.brltty)
+for accessibility with the use of brlapi. (http://brl.thefreecat.org).
 .PP
 \fBREADME.cocoa\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.cocoa)
 for mlterm on MacOSX/Cocoa.
 .PP
+\fBREADME.cocoatouch\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.cocoatouch)
+for mlterm on iOS/Cocoa Touch.
+.PP
 \fBREADME.console\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.console)
 for mlterm on Console.
 .PP
-\fBREADME.wayland\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.wayland)
-for mlterm on Wayland.
+\fBREADME.fb\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.fb)
+for mlterm on framebuffer.
 .PP
 \fBREADME.indic\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.indic)
 for indic scripts.
 .PP
-\fBREADME.ssh\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.ssh)
-for ssh connection with the use of libssh2 (http://www.libssh2.org).
-.PP
 \fBREADME.sb\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.sb)
 for development of scrollbar library.
 .PP
-\fBREADME.brltty\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.brltty)
-for accessibility with the use of brlapi. (http://brl.thefreecat.org).
+\fBREADME.sdl2\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.sdl2)
+for mlterm on SDL2.
+.PP
+\fBREADME.ssh\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.ssh)
+for ssh connection with the use of libssh2 (http://www.libssh2.org).
+.PP
+\fBREADME.wayland\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.wayland)
+for mlterm on Wayland.
+.PP
+\fBREADME.win32\fR (http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.win32)
+for mlterm on Win32 GDI.
 .PP
 Mapping tables between Unicode and local character sets
 (and encodings) are found at Unicode Consortium web site

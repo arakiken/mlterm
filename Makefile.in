@@ -38,13 +38,13 @@ clean-vte:
 	(cd gtk; $(MAKE) clean)
 
 vterm:
-	(cd vterm; $(MAKE))
+	(cd libvterm; $(MAKE))
 
 install-vterm:
-	(cd vterm; $(MAKE) install)
+	(cd libvterm; $(MAKE) install)
 
 clean-vterm:
-	(cd vterm; $(MAKE) clean)
+	(cd libvterm; $(MAKE) clean)
 
 distclean:
 	if [ -f baselib/Makefile ]; then (cd baselib ; $(MAKE) $@) ; fi
