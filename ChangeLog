@@ -1,3 +1,10 @@
+2018-11-05  Araki Ken  <arakiken@users.sf.net>
+
+	* android/jni/ui_display.c: Even if the cursor moves slightly,
+	  long click is assumed to continue.
+
+	* version.h: 3.8.7 -> 3.8.7post
+
 2018-10-27  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.8.7 released.
