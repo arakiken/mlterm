@@ -392,7 +392,14 @@ static int process_mouse_event(int source, int action, int64_t time, int x, int 
 
       memset(&prev_xev, 0, sizeof(prev_xev));
     } else if (xev.type == MotionNotify) {
-      if (prev_xev.type == MotionNotify && prev_xev.x == xev.x && prev_xev.y == xev.y) {
+      if (prev_xev.type == MotionNotify &&
+#if 1
+          prev_xev.x - 3 <= xev.x && xev.x <= prev_xev.x + 3 &&
+          prev_xev.y - 3 <= xev.y && xev.y <= prev_xev.y + 3
+#else
+          prev_xev.x == xev.x && prev_xev.y == xev.y
+#endif
+          ) {
         /* Long click on touch panel sends same MotionNotify events continuously. */
 #if 0
         bl_debug_printf("Same event is ignored.\n");
@@ -405,6 +412,7 @@ static int process_mouse_event(int source, int action, int64_t time, int x, int 
 
         return 1;
       }
+
       prev_xev = xev;
     }
 
@@ -695,7 +703,7 @@ void ui_display_idling(ui_display_t *disp /* ignored */
   u_int count;
 
   if (_display.long_press_counter > 0) {
-    if (_display.long_press_counter++ == 15) {
+    if (_display.long_press_counter++ == 20) {
       _display.long_press_counter = 0;
       perform_long_click(_display.app->activity->vm);
     }
