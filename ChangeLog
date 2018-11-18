@@ -1,3 +1,13 @@
+2018-11-18  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja: Minor fixes.
+
+	* mlconfig/po/*.po: Updated.
+
+	* fb/ui_font.c, ui_font_ft.c: FcNameParse() is used.
+
+	* ui_font_config.c: Parsing ';' and ',' for backward compatibility is fixed.
+
 2018-11-05  Araki Ken  <arakiken@users.sf.net>
 
 	* android/jni/ui_display.c: Even if the cursor moves slightly,
