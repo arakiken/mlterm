@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-17 23:51+0900\n"
+"POT-Creation-Date: 2018-11-18 09:34+0900\n"
 "PO-Revision-Date: 2003-03-24 17:32+0100\n"
 "Last-Translator: Mike Fabian <mfabian@suse.de>\n"
 "Language-Team: German <suse-i18n@suse.de>\n"
@@ -326,7 +326,7 @@ msgstr "PTY Liste"
 msgid " New "
 msgstr " Neu "
 
-#: tool/mlconfig/main.c:442 tool/mlconfig/mc_font.c:1266
+#: tool/mlconfig/main.c:442 tool/mlconfig/mc_font.c:1264
 #: tool/mlconfig/mc_wall_pic.c:62
 msgid "Select"
 msgstr " Auswahl "
@@ -555,36 +555,36 @@ msgstr ""
 msgid "Send keys to all windows"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:1188
+#: tool/mlconfig/mc_font.c:1186
 msgid "Font size (pixels)"
 msgstr "Fontgröße (Pixel)"
 
-#: tool/mlconfig/mc_font.c:1250
+#: tool/mlconfig/mc_font.c:1248
 #, fuzzy
 msgid "Font name"
 msgstr "Font"
 
-#: tool/mlconfig/mc_font.c:1276
+#: tool/mlconfig/mc_font.c:1274
 msgid "Font width"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:1280
+#: tool/mlconfig/mc_font.c:1278
 msgid "Narrow"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:1285
+#: tool/mlconfig/mc_font.c:1283
 msgid "Widen"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:1290
+#: tool/mlconfig/mc_font.c:1288
 msgid "Default"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:1305
+#: tool/mlconfig/mc_font.c:1303
 msgid "Unicode areas you won't convert to other charsets"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:1308
+#: tool/mlconfig/mc_font.c:1306
 msgid " Edit "
 msgstr ""
 

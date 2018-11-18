@@ -16683,9 +16683,6 @@ fi
 if test "$gui" = "fb" ; then
 	MAKE_DIRS="doc/kbd ${MAKE_DIRS}"
 	OUTPUT_FILES="doc/kbd/Makefile ${OUTPUT_FILES}"
-elif test "$gui" = "quartz" ; then
-	(cd uitoolkit/quartz/ && \
-	 for file in `ls *.c` ; do if test -f ../$file ; then mv ../$file ../xlib/ ; fi ; done)
 fi
 
 ml_cv_is_posix="yes"
@@ -25501,3 +25498,14 @@ echo "libvte                            : $have_vte$vte_version"
 echo "brlapi                            : $brlapi"
 echo "VT52                              : $vt52"
 echo
+
+# This should be called at the end of configure.
+# If --with-gui=quartz,console is specified, copy uitoolkit/* to gui/console/uitoolkit
+# before removing following files.
+if test "$gui" = "quartz" ; then
+	# ui_event_source.c, ui_sb_view_factory.c, ui_scrollbar.c and ui_simple_sb_view.c
+	# exist in uitoolkit/ and uitoolkit/quartz/.
+	# Those in uitoolkit/ must be removed to build those in uitoolkit/quartz/.
+	(cd uitoolkit/quartz/ && \
+	 for file in `ls *.c` ; do if test -f ../$file ; then mv ../$file ../xlib/ ; fi ; done)
+fi

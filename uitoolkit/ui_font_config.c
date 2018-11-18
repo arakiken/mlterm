@@ -265,22 +265,17 @@ check_style:
   return font;
 }
 
-static int parse_value(char **font_name, /* if value is "" or illegal format, not changed. */
-                       char *value       /* Don't specify NULL. */
-                       ) {
-  if (strchr(value, ',')) {
-    /* XXX Compat with old format (3.6.3 or before): [size],[font name] */
+static void parse_value(char **font_name, /* if value is "" or illegal format, not changed. */
+                        char *value       /* Don't specify NULL. */ ) {
+#if 1 /* XXX Compat with old format (3.6.3 or before): [size],[font name] */
+  char *p;
 
-    /*
-     * bl_str_sep() never returns NULL and and value never becomes NULL
-     * because strchr( value , ',') is succeeded.
-     */
-    bl_str_sep(&value, ",");
+  if ('0' <= *value && *value <= '9' && (p = strchr(value, ','))) {
+    value = p + 1;
   }
+#endif
 
   *font_name = value;
-
-  return 1;
 }
 
 /*
@@ -368,17 +363,28 @@ static int parse_conf(ui_font_config_t *font_config, const char *key,
     return 0;
   }
 
-  /*
-   * XXX Compat with old formats (3.6.3 or before): [entry];[entry];[entry];...
-   *
-   * bl_str_sep() returns NULL only if value == NULL.
-   */
   font_name = bl_str_alloca_dup(value);
-  font_name = bl_str_sep(&font_name, ";");
 
-  if (parse_value(&font_name, font_name)) {
-    customize_font_name(font_config, font, font_name);
+  /*
+   * XXX
+   * Compat with old formats (3.6.3 or before): [default font name];[font size],[font name];...
+   */
+#if 1
+  {
+    const char *p = value;
+    while ((p = strchr(p, ';'))) {
+      p++;
+      if (('0' <= *p && *p <= '9') || *p == '\0') {
+        font_name[p - value - 1] = '\0';
+
+        break;
+      }
+    }
   }
+#endif
+
+  parse_value(&font_name, font_name);
+  customize_font_name(font_config, font, font_name);
 
   return 1;
 }
@@ -966,7 +972,7 @@ char *ui_get_config_font_name(ui_font_config_t *font_config, u_int font_size, vt
           ((pair = get_font_name_pair(font_config->font_name_table, FONT_CS(cand_font))) &&
            (font_name = bl_str_replace(pair->value, orig_style[idx], new_style[idx])))) {
 #ifdef DEBUG
-        bl_debug_printf(BL_DEBUG_TAG "Set font %s for %x\n", font_name, font);
+        bl_debug_printf(BL_DEBUG_TAG " Set font %s for %x\n", font_name, font);
 #endif
 
         set_font_name_to_table(font_config->font_name_table, cand_font, font_name);

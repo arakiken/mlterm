@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-17 23:51+0900\n"
+"POT-Creation-Date: 2018-11-18 09:34+0900\n"
 "PO-Revision-Date: 2002-11-25 19:24+0100\n"
 "Last-Translator: Tomohiro KUBOTA <kubota@debian.org>\n"
 "Language-Team: Japanese <mlterm-dev-ja@lists.sourceforge.net>\n"
@@ -326,7 +326,7 @@ msgstr "仮想端末一覧"
 msgid " New "
 msgstr "新規"
 
-#: tool/mlconfig/main.c:442 tool/mlconfig/mc_font.c:1266
+#: tool/mlconfig/main.c:442 tool/mlconfig/mc_font.c:1264
 #: tool/mlconfig/mc_wall_pic.c:62
 #, fuzzy
 msgid "Select"
@@ -557,35 +557,35 @@ msgstr "貼付け時に末尾の改行コードを削除"
 msgid "Send keys to all windows"
 msgstr "全ウィンドウに同時送信"
 
-#: tool/mlconfig/mc_font.c:1188
+#: tool/mlconfig/mc_font.c:1186
 msgid "Font size (pixels)"
 msgstr "フォントサイズ(ピクセル)"
 
-#: tool/mlconfig/mc_font.c:1250
+#: tool/mlconfig/mc_font.c:1248
 msgid "Font name"
 msgstr "フォント名"
 
-#: tool/mlconfig/mc_font.c:1276
+#: tool/mlconfig/mc_font.c:1274
 msgid "Font width"
 msgstr "フォント幅"
 
-#: tool/mlconfig/mc_font.c:1280
+#: tool/mlconfig/mc_font.c:1278
 msgid "Narrow"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:1285
+#: tool/mlconfig/mc_font.c:1283
 msgid "Widen"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:1290
+#: tool/mlconfig/mc_font.c:1288
 msgid "Default"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:1305
+#: tool/mlconfig/mc_font.c:1303
 msgid "Unicode areas you won't convert to other charsets"
 msgstr "Unicodeから他の文字集合に変換しない範囲"
 
-#: tool/mlconfig/mc_font.c:1308
+#: tool/mlconfig/mc_font.c:1306
 msgid " Edit "
 msgstr "編集"
 

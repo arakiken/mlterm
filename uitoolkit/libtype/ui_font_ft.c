@@ -76,6 +76,18 @@ static int parse_fc_font_name(
 
   *font_family = font_name;
 
+  p = font_name + strlen(font_name) - 1;
+  if ('0' <= *p && *p <= '9') {
+    do {
+      p--;
+    } while ('0' <= *p && *p <= '9');
+
+    if (*p == ':' && bl_str_to_uint(percent, p + 1)) {
+      /* Parsing ":[Percentage]" */
+      *p = '\0';
+    }
+  }
+
   p = font_name;
   while (1) {
     if (*p == '\\' && *(p + 1)) {
@@ -87,18 +99,6 @@ static int parse_fc_font_name(
       /* encoding and percentage is not specified. */
 
       *font_name = '\0';
-
-      break;
-    } else if (*p == ':') {
-      /* Parsing ":[Percentage]" */
-
-      *font_name = '\0';
-
-      if (!bl_str_to_uint(percent, p + 1)) {
-#ifdef DEBUG
-        bl_warn_printf(BL_DEBUG_TAG " Percentage(%s) is illegal.\n", p + 1);
-#endif
-      }
 
       break;
     }
@@ -273,13 +273,16 @@ static FcPattern *fc_pattern_create(char *family,                        /* can 
                                     int aa_opt) {
   FcPattern *pattern;
 
-  if (!(pattern = FcPatternCreate())) {
+  if (family && (pattern = FcNameParse(family))) {
+    /* do nothing */
+  } else if ((pattern = FcPatternCreate())) {
+    if (family) {
+      FcPatternAddString(pattern, FC_FAMILY, family);
+    }
+  } else {
     return NULL;
   }
 
-  if (family) {
-    FcPatternAddString(pattern, FC_FAMILY, family);
-  }
   FcPatternAddDouble(pattern, fc_size_type, size);
   if (weight >= 0) {
     FcPatternAddInteger(pattern, FC_WEIGHT, weight);

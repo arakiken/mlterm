@@ -1080,7 +1080,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         [font family]( Bold Italic [font size]:[percentage])
 
         (--with-gui=fb の場合)
-        [font file path]
+        --enable-fontconfig: [font file path]
+        --disable-fontconfig: [font family]( Bold Italic [font size]:[percentage])
 
       o aafont/vaafont/taafont
         [font family]( Bold Italic [font size]:[percentage])
@@ -1099,7 +1100,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         を使用する場合などに使います。
 
         e.g.)
-        JISX0208_1983 = Hoge:100;
+        JISX0208_1983 = Hoge:100
 
         但し、表示の際に基準となるフォント(US-ASCII相当のグリフを表示するフォン
         ト) 以外のフォントの percentage 指定は無視され、できるだけ基準フォント
@@ -1107,7 +1108,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
         また、縦用フォントは、デフォルトで、すべて全角幅となりますので、
 
-        ISO8859_1 = a10:100;
+        ISO8859_1 = a10:100
 
         のようにすると、a10 フォントを無理矢理横幅 10 point で表示します。
 
