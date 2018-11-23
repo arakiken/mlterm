@@ -1,3 +1,8 @@
+2018-11-23  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c: Fix segfault by "CSI 21 t".
+	  (https://sourceforge.net/p/mlterm/mailman/message/36472061/)
+
 2018-11-18  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja: Minor fixes.
