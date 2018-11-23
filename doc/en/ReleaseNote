@@ -1,4 +1,6 @@
 * Support "[font family]:style=..." format in aafont or font-fb config file.
+* Bug fixes:
+  Fix https://sourceforge.net/p/mlterm/mailman/message/36472061/
 
 ver 3.8.7
 * Support sixel graphics extension and option1 of

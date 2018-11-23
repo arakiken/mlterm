@@ -1667,6 +1667,10 @@ static void report_window_or_icon_name(vt_parser_t *vt_parser, int is_window) {
     pre = "\x1b]L";
   }
 
+  if (!title) {
+    title = "";
+  }
+
   /* see parse_title() */
   src_encoding = vt_get_char_encoding("auto");
 
