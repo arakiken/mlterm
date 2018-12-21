@@ -193,7 +193,7 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
           }
 
 #ifdef USE_LIBSSH2
-          if (proto == ID_SSH || proto == ID_MOSH) {
+          if (proto == IDD_SSH || proto == IDD_MOSH) {
             selected_proto = proto;
           }
 #else
