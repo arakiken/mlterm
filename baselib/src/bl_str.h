@@ -34,7 +34,7 @@ int bl_snprintf(char *str, size_t size, const char *format, ...);
 
 char *bl_str_dup(const char *str, const char *file, int line, const char *func);
 
-#define bl_str_alloca_dup(src) __bl_str_copy(alloca(strlen(src) + 1), (src))
+#define bl_str_alloca_dup(src) __bl_str_copy((char*)alloca(strlen(src) + 1), (src))
 
 char* __bl_str_copy(char *dst, const char *src);
 
@@ -55,7 +55,7 @@ u_int bl_count_char_in_str(const char *str, char ch);
 
 int bl_compare_str(const char *str1, const char *str2);
 
-char *bl_str_replace(const char *str, const char *orig, const char *new);
+char *bl_str_replace(const char *str, const char *orig_sub, const char *new_sub);
 
 char *bl_str_unescape(const char *str);
 

@@ -58,6 +58,8 @@ static int parse(int *protoid, /* If seq doesn't have proto, -1 is set. */
   if (proto) {
     if (strcmp(proto, "ssh") == 0) {
       *protoid = IDD_SSH;
+    } else if (strcmp(proto, "mosh") == 0) {
+      *protoid = IDD_MOSH;
     } else if (strcmp(proto, "telnet") == 0) {
       *protoid = IDD_TELNET;
     } else if (strcmp(proto, "rlogin") == 0) {
@@ -190,7 +192,11 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
             item = IDD_PASS;
           }
 
-#ifndef USE_LIBSSH2
+#ifdef USE_LIBSSH2
+          if (proto == ID_SSH || proto == ID_MOSH) {
+            selected_proto = proto;
+          }
+#else
           if (proto != -1) {
             selected_proto = proto;
           }
@@ -207,10 +213,8 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
 #ifdef USE_LIBSSH2
       EnableWindow(GetDlgItem(dlgwin, IDD_TELNET), FALSE);
       EnableWindow(GetDlgItem(dlgwin, IDD_RLOGIN), FALSE);
-      CheckRadioButton(dlgwin, IDD_SSH, IDD_RLOGIN, IDD_SSH);
-#else
-      CheckRadioButton(dlgwin, IDD_SSH, IDD_RLOGIN, selected_proto);
 #endif
+      CheckRadioButton(dlgwin, IDD_SSH, IDD_RLOGIN, selected_proto);
 
 #ifdef USE_LIBSSH2
       if (use_x11_forwarding) {
@@ -258,6 +262,7 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
       break;
 
     case IDD_SSH:
+    case IDD_MOSH:
     case IDD_TELNET:
     case IDD_RLOGIN:
       selected_proto = LOWORD(wparam);
@@ -447,6 +452,8 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
     goto end;
   } else if (selected_proto == IDD_SSH) {
     proto = "ssh://";
+  } else if (selected_proto == IDD_MOSH) {
+    proto = "mosh://";
   } else if (selected_proto == IDD_TELNET) {
     proto = "telnet://";
   } else if (selected_proto == IDD_RLOGIN) {

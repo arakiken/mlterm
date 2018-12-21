@@ -739,6 +739,7 @@ INSTALL_OPT
 UTMP_CFLAGS
 VT_PTY_OBJ
 SSH2_LIBS_FOR_PROG
+MOSH_DIR
 SSH2_LIBS
 SSH2_CFLAGS
 PROG
@@ -934,6 +935,7 @@ enable_fontconfig
 with_type_engines
 enable_otl
 enable_ssh2
+with_mosh
 enable_utmp
 enable_pty_helper
 with_tools
@@ -1674,7 +1676,7 @@ Optional Features:
   --enable-vt52           enable VT52 emulation [default=disabled]
   --enable-optimize-redrawing    optimize redrawing a line [default=disabled]
   --disable-ind           libind [default=enabled]
-  --enable-brlapi           libbrlapi [default=disabled]
+  --enable-brlapi         libbrlapi [default=disabled]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1696,6 +1698,7 @@ Optional Packages:
   --with-imagelib[=ARG]   image library (gdk-pixbuf) [default=no]
   --without-pthread       don't use pthread [default=with]
   --with-type-engines[=ARG] type engines (xcore, xft, cairo) [default=xcore,xft,cairo]
+  --with-mosh[=ARG]       The directory where mosh is built.
   --with-tools[=ARG]      external tools [default=mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp,mlfc]
   --with-libltdl[=PREFIX] load modules with libltdl [default=without]
   --with-scrollbars[=ARG] scrollbar plugins (sample, extra, pixmap_engine) [default=sample,extra,pixmap_engine]
@@ -19091,6 +19094,22 @@ fi
 			# dlopen libptyssh
 			MAKE_DIRS="vtemu/libptyssh ${MAKE_DIRS}"
 			OUTPUT_FILES="vtemu/libptyssh/Makefile ${OUTPUT_FILES}"
+
+			VT_PTY_OBJ="vt_pty_mosh.o ${VT_PTY_OBJ}"
+
+
+# Check whether --with-mosh was given.
+if test "${with_mosh+set}" = set; then :
+  withval=$with_mosh;
+fi
+
+			if test -d "$with_mosh"; then
+				MOSH_DIR=$with_mosh
+
+
+				MAKE_DIRS="vtemu/libptymosh ${MAKE_DIRS}"
+				OUTPUT_FILES="vtemu/libptymosh/Makefile ${OUTPUT_FILES}"
+			fi
 		fi
 	fi
 fi
@@ -25484,6 +25503,7 @@ echo "DnD                               : $dnd"
 echo "Input Methods                     : XIM$input_methods_result"
 echo "Scrollbars                        : simple${scrollbars_result}"
 echo "libssh2                           : $ssh2"
+echo "mosh directory                    : $MOSH_DIR"
 if test "$have_gtk" = "yes"; then
 	echo "GTK+                              : yes ($gtk_version)"
 else

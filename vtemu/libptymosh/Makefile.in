@@ -1,0 +1,74 @@
+top_builddir = ../..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libdir = @libdir@
+
+LIBDIR = $(DESTDIR)$(libdir)/mlterm
+
+MOSH_DIR = @MOSH_DIR@
+
+VPATH = ${top_srcdir}/vtemu/libptymosh:$(MOSH_DIR)/src/network:$(MOSH_DIR)/src/crypto:$(MOSH_DIR)/src/terminal:$(MOSH_DIR)/src/util:$(MOSH_DIR)/src/statesync:$(MOSH_DIR)/src/protobufs
+
+CFLAGS = $(CFLAGS_LOCAL) -D_GNU_SOURCE @DEB_CFLAGS@ @POBL_CFLAGS@ @MEF_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+	-pthread -I/usr/local/include -DLIBDIR=\"$(libdir)\" \
+	-I$(MOSH_DIR) -I$(MOSH_DIR)/src/protobufs -I$(MOSH_DIR)/src/crypto -I$(MOSH_DIR)/src/network \
+	-I$(MOSH_DIR)/src/util -I$(MOSH_DIR)/src/terminal -I$(MOSH_DIR)/src/statesync
+
+LIBS = $(LIBS_LOCAL) @LPOBL@ ../libptyssh/libptyssh.la -lncursesw -lprotobuf -pthread -lz -lcrypto
+
+PROTO = userinput.pb.cc hostinput.pb.cc transportinstruction.pb.cc
+OBJ = vt_pty_mosh.o compressor.o network.o transportfragment.o base64.o crypto.o ocb.o \
+	parser.o parseraction.o parserstate.o terminal.o terminaldispatcher.o terminaldisplay.o \
+	terminaldisplayinit.o terminalframebuffer.o terminalfunctions.o terminaluserinput.o \
+	select.o timestamp.o completeterminal.o user.o $(PROTO:.cc=.o)
+
+CC = @CXX@
+INSTALL = @INSTALL@
+LIBTOOL = @LIBTOOL@
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+all: $(PROTO) libptymosh.la
+
+userinput.pb.cc:
+	protoc --cpp_out=$(MOSH_DIR)/src/protobufs -I$(MOSH_DIR)/src/protobufs $(MOSH_DIR)/src/protobufs/userinput.proto
+	cp $(MOSH_DIR)/src/protobufs/userinput.pb.* .
+
+hostinput.pb.cc:
+	protoc --cpp_out=$(MOSH_DIR)/src/protobufs -I$(MOSH_DIR)/src/protobufs $(MOSH_DIR)/src/protobufs/hostinput.proto
+	cp $(MOSH_DIR)/src/protobufs/hostinput.pb.* .
+
+transportinstruction.pb.cc:
+	protoc --cpp_out=$(MOSH_DIR)/src/protobufs -I$(MOSH_DIR)/src/protobufs $(MOSH_DIR)/src/protobufs/transportinstruction.proto
+	cp $(MOSH_DIR)/src/protobufs/transportinstruction.pb.* .
+
+libptymosh.la: $(OBJ)
+	$(LIBTOOL_LINK) -pthread -o libptymosh.la $(OBJ:.o=.lo) \
+	-rpath $(libdir)/mlterm -module -avoid-version @NO_UNDEFINED_FLAG@ \
+	$(LIBS)
+
+.SUFFIXES: .o .cpp .cc
+
+.cpp.o:
+	$(LIBTOOL_CC) -c $(CFLAGS) $<
+
+.cc.o:
+	$(LIBTOOL_CC) -c $(CFLAGS) $<
+
+$(LIBDIR):
+	mkdir -p $(LIBDIR)
+
+install: $(LIBDIR)
+	$(LIBTOOL_INSTALL) libptymosh.la $(LIBDIR)
+
+uninstall:
+	rm -f $(LIBDIR)/*ptymosh.*
+
+clean:
+	rm -rf $(OBJ) $(OBJ:.o=.lo) $(PROTO) $(PROTO:.cc=.h) *ptymosh.* .libs
+
+distclean: clean
+	rm -f Makefile

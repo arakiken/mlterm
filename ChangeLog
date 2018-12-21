@@ -1,3 +1,27 @@
+2018-12-21  Araki Ken  <arakiken@users.sf.net>
+
+	* README, README.ja: Updated.
+
+	* vt_pty.c: vt_pty_new() calls vt_pty_mosh_new() instead of vt_pty_ssh_new()
+	  if 'host' contains "mosh://".
+
+	* vt_pty_ssh.c: read_pty() calls bl_trigger_sig_child() only if
+	  libssh2_channel_read() returns 0 or less value.
+	  (If libssh2_channel_eof() returns true and libssh2_channel_read() > 0,
+	   bl_trigger_sig_child() is not called.)
+	  This change is for mosh.
+
+	* win32/ui_connect_dialog.[ch], winrs.rs: IDD_MOSH is added.
+
+	* bl_path.c: bl_parse_uri() recognizes "mosh://".
+
+	* configure.in: --with-mosh option is added.
+
+	* vtemu/libptymosh: Added.
+
+	* vt_parser.c: get_vtmode() returns 3 (permanently set) for
+	  DECPCCM, DECATCUM and DECATCBM.
+
 2018-11-23  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: Fix segfault by "CSI 21 t".

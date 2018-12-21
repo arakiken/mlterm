@@ -1,4 +1,6 @@
 * Support "[font family]:style=..." format in aafont or font-fb config file.
+* Support mosh. (Experimental)
+  (./configure --with-mosh=[mosh source directory])
 * Bug fixes:
   Fix https://sourceforge.net/p/mlterm/mailman/message/36472061/
 
