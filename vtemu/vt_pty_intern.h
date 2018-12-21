@@ -62,4 +62,8 @@ vt_pty_t *vt_pty_ssh_new(const char *cmd_path, char **cmd_argv, char **env, cons
 vt_pty_t *vt_pty_pipe_new(const char *cmd_path, char **cmd_argv, char **env, const char *host,
                           const char *pass, u_int cols, u_int rows);
 
+vt_pty_t *vt_pty_mosh_new(const char *cmd_path, char **cmd_argv, char **env, const char *host,
+                         const char *pass, const char *pubkey, const char *privkey, u_int cols,
+                         u_int rows, u_int width_pix, u_int height_pix);
+
 #endif

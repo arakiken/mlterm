@@ -3678,8 +3678,11 @@ static int get_vtmode(vt_parser_t *vt_parser, int mode) {
   }
 
   if (mode == 8 /* DECARM (auto repeat) */ ||
+      mode == 64 /* DECPCCM (page cursor-coupling mode) */ ||
       mode == 98 /* DECARSM (change lines per screen automatically by DECSLPP) */ ||
       mode == 102 /* DECNULM (always dicard NUL character) */ ||
+      mode == 114 /* DECATCUM (alternate text color underline mode) */ ||
+      mode == 115 /* DECATCBM (alternate text color blink mode) */ ||
       mode == 19 /* DECPEX (Ignore DECSTBM in MC and DECMC) */) {
     return 3; /* permanently set */
   } else if (mode == 4 /* DECSCLM (smooth scroll) */ || mode == 9 /* X10 mouse report */ ||

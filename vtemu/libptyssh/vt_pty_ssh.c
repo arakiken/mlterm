@@ -873,8 +873,8 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   SetEvent(rd_ev);
 #endif
 
-  if (ret == LIBSSH2_ERROR_SOCKET_SEND || ret == LIBSSH2_ERROR_SOCKET_RECV ||
-      libssh2_channel_eof(((vt_pty_ssh_t *)pty)->channel)) {
+  if (ret <= 0 && (ret == LIBSSH2_ERROR_SOCKET_SEND || ret == LIBSSH2_ERROR_SOCKET_RECV ||
+                   libssh2_channel_eof(((vt_pty_ssh_t *)pty)->channel))) {
     if ((ret < 0 && reconnect((vt_pty_ssh_t*)pty)) || zombie((vt_pty_ssh_t *)pty)) {
       return 0;
     }

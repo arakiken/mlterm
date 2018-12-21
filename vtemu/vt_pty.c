@@ -44,8 +44,13 @@ vt_pty_t *vt_pty_new(const char *cmd_path, /* can be NULL */
 #endif
   {
 #if defined(USE_LIBSSH2)
-    pty = vt_pty_ssh_new(cmd_path, cmd_argv, env, host, pass, pubkey, privkey, cols, rows,
-                         width_pix, height_pix);
+    if (strncmp(host, "mosh://", 7) == 0) {
+      pty = vt_pty_mosh_new(cmd_path, cmd_argv, env, host + 7, pass, pubkey, privkey, cols, rows,
+                            width_pix, height_pix);
+    } else {
+      pty = vt_pty_ssh_new(cmd_path, cmd_argv, env, host, pass, pubkey, privkey, cols, rows,
+                           width_pix, height_pix);
+    }
 #elif defined(USE_WIN32API)
     pty = vt_pty_pipe_new(cmd_path, cmd_argv, env, host, pass, cols, rows);
 #else

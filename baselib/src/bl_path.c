@@ -175,14 +175,22 @@ int bl_parse_uri(char **proto, /* proto can be NULL. If seq doesn't have proto, 
   }
 
   len = strlen(seq);
-  if (len > 6 && (strncmp(seq, "ssh://", 6) == 0 || strncmp(seq, "ftp://", 6) == 0)) {
-    seq = (p = seq) + 6;
-    *(seq - 3) = '\0';
-  } else if (len > 9 && (strncmp(seq, "telnet://", 9) == 0 || strncmp(seq, "rlogin://", 9) == 0)) {
-    seq = (p = seq) + 9;
-    *(seq - 3) = '\0';
-  } else {
-    p = NULL;
+  p = NULL;
+  if (len > 6) {
+    if (strncmp(seq, "ssh://", 6) == 0 || strncmp(seq, "ftp://", 6) == 0) {
+      seq = (p = seq) + 6;
+      *(seq - 3) = '\0';
+    } else if (len > 7) {
+      if (strncmp(seq, "mosh://", 7) == 0) {
+        seq = (p = seq) + 7;
+        *(seq - 3) = '\0';
+      } else if (len > 9) {
+        if (strncmp(seq, "telnet://", 9) == 0 || strncmp(seq, "rlogin://", 9) == 0) {
+          seq = (p = seq) + 9;
+          *(seq - 3) = '\0';
+        }
+      }
+    }
   }
 
   if (proto) {

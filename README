@@ -79,6 +79,10 @@ Options for configure
     libssh2 of camellia branch at https://bitbucket.org/arakiken/libssh2/downloads.
     (see http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.ssh)
 
+  --with-mosh=(mosh source directory)
+    Enable mosh and specify its source directory.
+    (./configure script should be executed in advance.)
+
   --without-pthread
     Don't depend on pthread for secure copy (scp) over ssh.
     (Furthermore, don't link libpthread to mlterm in NetBSD even if --enable-ibus

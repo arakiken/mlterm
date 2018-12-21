@@ -916,6 +916,18 @@ else
 			# dlopen libptyssh
 			MAKE_DIRS="vtemu/libptyssh ${MAKE_DIRS}"
 			OUTPUT_FILES="vtemu/libptyssh/Makefile ${OUTPUT_FILES}"
+
+			VT_PTY_OBJ="vt_pty_mosh.o ${VT_PTY_OBJ}"
+
+			AC_ARG_WITH(mosh,
+				[  --with-mosh@<:@=ARG@:>@       The directory where mosh is built.])
+			if test -d "$with_mosh"; then
+				MOSH_DIR=$with_mosh
+				AC_SUBST(MOSH_DIR)
+
+				MAKE_DIRS="vtemu/libptymosh ${MAKE_DIRS}"
+				OUTPUT_FILES="vtemu/libptymosh/Makefile ${OUTPUT_FILES}"
+			fi
 		fi
 	fi
 fi
@@ -1693,7 +1705,7 @@ AC_SUBST(CTL_LIBS)
 AC_SUBST(CTL_LIBS_FOR_PROG)
 
 AC_ARG_ENABLE(brlapi,
-	[  --enable-brlapi           libbrlapi @<:@default=disabled@:>@],
+	[  --enable-brlapi         libbrlapi @<:@default=disabled@:>@],
 	brlapi=$enable_brlapi, brlapi="no")
 if test "$brlapi" = "yes" ; then
 	BRLAPI_CFLAGS='-DUSE_BRLAPI'
@@ -1758,6 +1770,7 @@ echo "DnD                               : $dnd"
 echo "Input Methods                     : XIM$input_methods_result"
 echo "Scrollbars                        : simple${scrollbars_result}"
 echo "libssh2                           : $ssh2"
+echo "mosh directory                    : $MOSH_DIR"
 if test "$have_gtk" = "yes"; then
 	echo "GTK+                              : yes ($gtk_version)"
 else
