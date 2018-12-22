@@ -938,6 +938,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         値の形式は、(<protocol>://)(<user>@)<server>(:<port>)(:<encoding>)
 
         例) mlterm --serv ssh://user@host:22:eucjp
+            mlterm --serv mosh://user@host:22:utf8
 
       o ssh_public_key (~/.ssh/id_rsa.pub (win32 では %HOMEPATH%\mlterm\id_rsa.pub))
         ssh 接続の認証で使用する公開鍵のファイルを指定する。

@@ -67,7 +67,11 @@ static u_int modify_separator(u_int separator, u_int total, u_int next_min, u_in
   int dont_round_up;
 
   if (total < separator + margin + next_min) {
+#if 0
     separator = total - next_min - margin;
+#else
+    separator = total / 2;
+#endif
     dont_round_up = 1;
   } else {
     dont_round_up = 0;
