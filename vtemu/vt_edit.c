@@ -582,7 +582,6 @@ int vt_edit_clone(vt_edit_t *dst_edit, vt_edit_t *src_edit) {
 }
 
 int vt_edit_resize(vt_edit_t *edit, u_int num_cols, u_int num_rows) {
-  u_int old_filled_rows;
   u_int old_cols;
   u_int slide;
 
@@ -590,10 +589,27 @@ int vt_edit_resize(vt_edit_t *edit, u_int num_cols, u_int num_rows) {
   vt_cursor_dump(&edit->cursor);
 #endif
 
-  if ((old_filled_rows = vt_model_get_num_filled_rows(&edit->model)) > num_rows) {
-    if (edit->is_logging && edit->scroll_listener->receive_scrolled_out_line) {
-      int count;
+  if (edit->is_logging && edit->scroll_listener->receive_scrolled_out_line) {
+    u_int count;
+    u_int old_filled_rows = vt_model_get_num_filled_rows(&edit->model);
+    int scroll_all = 0;
 
+    for (count = 0; count < old_filled_rows; count++) {
+      vt_line_t *line = vt_model_get_line(&edit->model, count);
+      if (vt_str_cols(line->chars, vt_line_get_num_filled_chars_except_sp(line)) > num_cols) {
+        scroll_all = 1;
+        break;
+      }
+    }
+
+    if (scroll_all) {
+      for (count = 0; count < old_filled_rows; count++) {
+        (*edit->scroll_listener->receive_scrolled_out_line)(edit->scroll_listener->self,
+                                                            vt_model_get_line(&edit->model, count));
+      }
+      vt_edit_goto_home(edit);
+      vt_edit_clear_below(edit);
+    } else if (old_filled_rows > num_rows) {
       for (count = 0; count < old_filled_rows - num_rows; count++) {
         (*edit->scroll_listener->receive_scrolled_out_line)(edit->scroll_listener->self,
                                                             vt_model_get_line(&edit->model, count));

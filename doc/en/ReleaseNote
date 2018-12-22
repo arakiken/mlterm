@@ -1,6 +1,8 @@
 * Support "[font family]:style=..." format in aafont or font-fb config file.
 * Support mosh. (Experimental)
   (./configure --with-mosh=[mosh source directory])
+* Clear a window and scroll out all lines if the size of a window decreases
+  and some of them disappear.
 * Bug fixes:
   Fix https://sourceforge.net/p/mlterm/mailman/message/36472061/
 

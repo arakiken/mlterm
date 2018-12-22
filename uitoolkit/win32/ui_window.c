@@ -354,11 +354,12 @@ static int is_in_the_same_window_family(ui_window_t *win, Window window) {
 }
 #endif
 
+/* RIGHT_MARGIN is not added. (See WM_SIZE) */
 static u_int total_min_width(ui_window_t *win) {
   u_int count;
   u_int min_width;
 
-  min_width = win->min_width + win->hmargin * 2 + RIGHT_MARGIN(win);
+  min_width = win->min_width + win->hmargin * 2;
 
   for (count = 0; count < win->num_children; count++) {
     if (win->children[count]->is_mapped &&
@@ -370,11 +371,12 @@ static u_int total_min_width(ui_window_t *win) {
   return min_width;
 }
 
+/* BOTTOM_MARGIN is not added. (See WM_SIZE) */
 static u_int total_min_height(ui_window_t *win) {
   u_int count;
   u_int min_height;
 
-  min_height = win->min_height + win->vmargin * 2 + BOTTOM_MARGIN(win);
+  min_height = win->min_height + win->vmargin * 2;
 
   for (count = 0; count < win->num_children; count++) {
     if (win->children[count]->is_mapped &&
@@ -2107,10 +2109,9 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
         min_width = total_min_width(win);
         min_height = total_min_height(win);
 
-        if (width < min_width + win->hmargin * 2 || height < min_height + win->vmargin * 2) {
-          ui_window_resize(win, BL_MAX(min_width + win->hmargin * 2, width) - win->hmargin * 2,
-                           BL_MAX(min_height + win->vmargin * 2, height) - win->vmargin * 2,
-                           NOTIFY_TO_MYSELF);
+        if (width < min_width || height < min_height) {
+          ui_window_resize(win, BL_MAX(min_width, width) - win->hmargin * 2,
+                           BL_MAX(min_height, height) - win->vmargin * 2, NOTIFY_TO_MYSELF);
         } else if (width != ACTUAL_WIDTH(win) || height != ACTUAL_HEIGHT(win)) {
           u_int width_surplus;
           u_int height_surplus;
@@ -2119,7 +2120,6 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
             width_surplus = height_surplus = 0;
           } else {
             width_surplus = (width - min_width - win->hmargin * 2) % total_width_inc(win);
-
             height_surplus = (height - min_height - win->vmargin * 2) % total_height_inc(win);
           }
 
