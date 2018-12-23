@@ -297,7 +297,7 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
                      "-oProxyCommand=nc %h %p",
 #endif
                      ip, "--", "mosh-server", "new", "-c", "256", "-s",
-                     "-l", "LANG=ja_JP.UTF-8", "--", "/bin/bash", NULL};
+                     "-l", "LANG=en_US.UTF-8", "--", "/bin/bash", NULL};
     execv("/usr/bin/ssh", argv);
   } else if (pid < 0) {
     close(fds[0]);
@@ -310,7 +310,8 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
   char *base_argv[] = { "mosh-server", "new", "-c", "256", "-s", "-l", "LANG=en_US.UTF-8", NULL };
 
   char *locale;
-  if ((locale = bl_get_locale())) {
+  /* The default locale is C.UTF-8 on cygwin. */
+  if ((locale = bl_get_locale()) && strncmp(locale, "C.", 2) != 0) {
     char *p;
     if ((p = (char*)alloca(5 + strlen(locale) + 1))) {
       sprintf(p, "LANG=%s", locale);
@@ -409,6 +410,13 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
 #ifdef __DEBUG
         bl_debug_printf("IP=%s\n", ip);
 #endif
+      /*
+       * "The locale requested by LANG=... isn't available here."
+       * "Running `locale-gen ...' may be necessary."
+       */
+      } else if (strstr(line, "available here") ||
+                 strstr(line, "Running")) {
+        bl_msg_printf("mosh-server: %s\n", line);
       }
 #ifdef __DEBUG
       else {
