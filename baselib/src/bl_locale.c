@@ -149,18 +149,8 @@ int bl_locale_init(const char *locale) {
   char *locale_p;
   int result;
 
-  if (sys_locale) {
-    if (locale && strcmp(locale, sys_locale) == 0) {
-      return 1;
-    } else {
-      free(sys_locale);
-      sys_locale = NULL;
-    }
-  }
-
-  if (sys_lang_country) {
-    free(sys_lang_country);
-    sys_lang_country = NULL;
+  if (sys_locale && locale && strcmp(locale, sys_locale) == 0) {
+    return 1;
   }
 
   if ((locale = setlocale(LC_CTYPE, locale)) == NULL) {
@@ -168,32 +158,37 @@ int bl_locale_init(const char *locale) {
     bl_warn_printf(BL_DEBUG_TAG " setlocale() failed.\n");
 #endif
 
-    result = 0;
-
     if (sys_locale) {
       /* restoring locale info. nothing is changed. */
-
       setlocale(LC_CTYPE, sys_locale);
 
       return 0;
-    } else {
-      /* sys_locale is NULL */
+    } else if ((locale = getenv("LC_ALL")) == NULL && (locale = getenv("LC_CTYPE")) == NULL &&
+               (locale = getenv("LANG")) == NULL) {
+      /* nothing is changed */
 
-      if ((locale = getenv("LC_ALL")) == NULL && (locale = getenv("LC_CTYPE")) == NULL &&
-          (locale = getenv("LANG")) == NULL) {
-        /* nothing is changed */
-
-        return 0;
-      }
+      return 0;
     }
-  } else {
-    /*
-     * If external library calls setlocale(), this 'locale' variable
-     * can be free'ed, so strdup() shoule be called.
-     */
-    sys_locale = strdup(locale);
-    result = 1;
+
+    result = 0;
   }
+
+  if (sys_locale) {
+    free(sys_locale);
+    sys_locale = NULL;
+  }
+
+  if (sys_lang_country) {
+    free(sys_lang_country);
+    sys_lang_country = NULL;
+  }
+
+  /*
+   * If external library calls setlocale(), this 'locale' variable
+   * can be free'ed, so strdup() shoule be called.
+   */
+  sys_locale = strdup(locale);
+  result = 1;
 
   if ((locale_p = sys_lang_country = strdup(locale)) == NULL) {
     sys_locale = NULL;

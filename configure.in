@@ -917,7 +917,7 @@ else
 			MAKE_DIRS="vtemu/libptyssh ${MAKE_DIRS}"
 			OUTPUT_FILES="vtemu/libptyssh/Makefile ${OUTPUT_FILES}"
 
-			VT_PTY_OBJ="vt_pty_mosh.o ${VT_PTY_OBJ}"
+			VT_PTY_OBJ="${VT_PTY_OBJ} vt_pty_mosh.o"
 
 			AC_ARG_WITH(mosh,
 				[  --with-mosh@<:@=ARG@:>@       The directory where mosh is built.])
@@ -925,8 +925,8 @@ else
 				MOSH_DIR=$with_mosh
 				AC_SUBST(MOSH_DIR)
 
-				MAKE_DIRS="vtemu/libptymosh ${MAKE_DIRS}"
-				OUTPUT_FILES="vtemu/libptymosh/Makefile ${OUTPUT_FILES}"
+				MAKE_DIRS="${MAKE_DIRS} vtemu/libptymosh"
+				OUTPUT_FILES="${OUTPUT_FILES} vtemu/libptymosh/Makefile"
 			fi
 		fi
 	fi

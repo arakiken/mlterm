@@ -1,5 +1,17 @@
 2018-12-23  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_pty_mosh.cpp:
+	  - "C.UTF-8" locale (which is the default value on cygwin) is ignored.
+	  - Error message of locale setting by mosh-server is output.
+
+	* bl_locale.c: If setlocale() fails, setlocale() is called again with
+	  the previous locale.
+
+	* configure.in: vtemu/libptymosh is placed after vtemu/libptyssh in
+	  MAKE_DIRS and OUTPUT_FILES.
+
+2018-12-23  Araki Ken  <arakiken@users.sf.net>
+
 	* etc/key, mlterm.1, README.ja: Updated.
 
 	* ui_screen.c: "%s" in "exesel:..." is replaced by selected strings.
