@@ -33,9 +33,12 @@
 # Control+F12="proto:use_local_echo=false"
 # Control+F13="proto:broadcast=switch"
 # Control+F14="proto:ignore_broadcasted_chars=switch"
-# Button3="exesel:mlclient -e w3m"
-# Button3="exesel:\"/cygdrive/c/Program Files/Internet Explorer/iexplore.exe\""
-# Button3="exesel:/cygdrive/c/Program\\ Files/Internet\\ Explorer/iexplore.exe"
-# Button3="exesel:explorer.exe microsoft-edge:"
+# Shift+Button3="exesel:mlclient -e w3m"
+# Shift+Button3="exesel:\"/cygdrive/c/Program Files/Internet Explorer/iexplore.exe\" \"%s\""
+# Shift+Button3="exesel:/cygdrive/c/Program\\ Files/Internet\\ Explorer/iexplore.exe \"%s\""
+# (Enclose %s by "" to invalidate special characters of cmd.exe)
+# Shift+Button3="exesel:cmd.exe /C \"start microsoft-edge:\\"%s\\"\""
+# (This doesn't necessarily work because MS-Edge doesn't start if "%s" contains "=")
+# Shift+Button3="exesel:explorer.exe microsoft-edge:\"%s\""
 # Button4="\x1bOA\x1bOA"
 # Button5="\x1bOB\x1bOB"

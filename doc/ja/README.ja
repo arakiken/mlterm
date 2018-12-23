@@ -1320,7 +1320,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       doc/en/PROTOCOL の set プロトコル(の簡略版。key=value を ';' で区切って
       複数指定)と解釈されます。
       'exesel:' から始まっている場合は、以降の文字列をコマンドと解釈し、選択文字
-      列を引数として実行します。
+      列を引数として実行します(コマンド文字列中に"%s"があると、選択文字列に置換
+      します。)。
       'menu:' から始まっている場合は、以降の文字列を configuration program と解
       釈して実行します。
 

@@ -1793,41 +1793,56 @@ static int shortcut_str(ui_screen_t *screen, KeySym ksym, u_int state, int x, in
     start_menu(screen, str + 5, x, y);
   } else if (strncmp(str, "exesel:", 7) == 0) {
     size_t str_len;
+    char *sel;
+    size_t sel_len;
     char *key;
     size_t key_len;
-
-    str += 7;
 
     if (screen->sel.sel_str == NULL || screen->sel.sel_len == 0) {
       return 0;
     }
 
+    str += 7;
     str_len = strlen(str) + 1;
 
-    key_len = str_len + screen->sel.sel_len * VTCHAR_UTF_MAX_SIZE + 1;
-    key = alloca(key_len);
-
-    strcpy(key, str);
-
-    switch(str[strlen(str) - 1]) {
-    case ' ':
-    case ':': /* XXX microsoft-edge: => microsoft-edge:<URL> */
-      str_len--;
-      break;
-
-    default:
-      key[str_len - 1] = ' ';
-      break;
+    sel_len = screen->sel.sel_len * VTCHAR_UTF_MAX_SIZE + 1;
+    if (!(sel = alloca(sel_len))) {
+      return 0;
     }
 
     (*vt_str_parser->init)(vt_str_parser);
     vt_str_parser_set_str(vt_str_parser, screen->sel.sel_str, screen->sel.sel_len);
-
     vt_term_init_encoding_conv(screen->term);
-    key_len =
-        vt_term_convert_to(screen->term, key + str_len, key_len - str_len, vt_str_parser) +
-        str_len;
-    key[key_len] = '\0';
+    sel_len = vt_term_convert_to(screen->term, sel, sel_len, vt_str_parser);
+    sel[sel_len] = '\0';
+
+    key_len = str_len + strlen(sel) + 1;
+    if (!(key = alloca(key_len))) {
+      return 0;
+    }
+
+    if (strstr(str, "%s")) {
+      sprintf(key, str, sel);
+    }
+    /* XXX Backward compatible with 3.8.7 or before */
+#if 1
+    else {
+      strcpy(key, str);
+
+      switch(str[strlen(str) - 1]) {
+      case ' ':
+      case ':': /* XXX microsoft-edge: => microsoft-edge:<URL> */
+        str_len--;
+        break;
+
+      default:
+        key[str_len - 1] = ' ';
+        break;
+      }
+
+      strcpy(key + str_len, sel);
+    }
+#endif
 
     if (strncmp(key, "mlclient", 8) == 0) {
       ui_screen_exec_cmd(screen, key);
