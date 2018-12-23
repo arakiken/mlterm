@@ -1,3 +1,9 @@
+2018-12-23  Araki Ken  <arakiken@users.sf.net>
+
+	* etc/key, mlterm.1, README.ja: Updated.
+
+	* ui_screen.c: "%s" in "exesel:..." is replaced by selected strings.
+
 2018-12-22  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_edit.c: If the size of a window decreases and some characters on it

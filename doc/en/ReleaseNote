@@ -3,6 +3,7 @@
   (./configure --with-mosh=[mosh source directory])
 * Clear a window and scroll out all lines if the size of a window decreases
   and some of them disappear.
+* Support "%s" (replaced by selected strings) in "exesel:..." in ~/.mlterm/key.
 * Bug fixes:
   Fix https://sourceforge.net/p/mlterm/mailman/message/36472061/
 

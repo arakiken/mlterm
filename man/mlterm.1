@@ -2057,7 +2057,7 @@ means changing the current character encoding to UTF-8.
 .TP
 \fB"exesel:\fISTRING\fB"\fR
 The specified string is assumed to a command to be executed with selected
-strings as arguments.
+strings as arguments. "%s" in a command string is replaced by selected strings.
 For example, \fB"exesel:mlclient -e w3m"\fR means executing
 "mlclient -e w3m [selected text]".
 .TP
