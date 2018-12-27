@@ -255,8 +255,7 @@ static int load_file(Display *display, char *path, u_int width, u_int height, in
                      ui_picture_modifier_t *pic_mod, u_int depth, Pixmap *pixmap,
                      PixmapMask *mask) {
   pid_t pid;
-  int fds1[2];
-  int fds2[2];
+  int fds[2];
   ssize_t size;
   u_int32_t tmp;
 
@@ -289,25 +288,19 @@ static int load_file(Display *display, char *path, u_int width, u_int height, in
   (*pixmap)->width = width;
   (*pixmap)->height = height;
   if (!((*pixmap)->image = ui_display_get_bitmap(path, &(*pixmap)->width, &(*pixmap)->height))) {
-    goto error;
-  }
-#else
-  if (pipe(fds1) == -1) {
+    free(*pixmap);
+
     return 0;
   }
-  if (pipe(fds2) == -1) {
-    close(fds1[0]);
-    close(fds1[1]);
-
+#else
+  if (pipe(fds) == -1) {
     return 0;
   }
 
   pid = fork();
   if (pid == -1) {
-    close(fds1[0]);
-    close(fds1[1]);
-    close(fds2[0]);
-    close(fds2[0]);
+    close(fds[0]);
+    close(fds[1]);
 
     return 0;
   }
@@ -334,9 +327,8 @@ static int load_file(Display *display, char *path, u_int width, u_int height, in
       args[6] = NULL;
     }
 
-    close(fds1[1]);
-    close(fds2[0]);
-    if (dup2(fds1[0], STDIN_FILENO) != -1 && dup2(fds2[1], STDOUT_FILENO) != -1) {
+    close(fds[0]);
+    if (dup2(fds[1], STDOUT_FILENO) != -1) {
       execv(args[0], args);
     }
 
@@ -345,20 +337,19 @@ static int load_file(Display *display, char *path, u_int width, u_int height, in
     exit(1);
   }
 
-  close(fds1[0]);
-  close(fds2[1]);
+  close(fds[1]);
 
   if (!(*pixmap = calloc(1, sizeof(**pixmap)))) {
     goto error;
   }
 
-  if (read(fds2[0], &tmp, sizeof(u_int32_t)) != sizeof(u_int32_t)) {
+  if (read(fds[0], &tmp, sizeof(u_int32_t)) != sizeof(u_int32_t)) {
     goto error;
   }
 
   size = ((*pixmap)->width = tmp) * sizeof(u_int32_t);
 
-  if (read(fds2[0], &tmp, sizeof(u_int32_t)) != sizeof(u_int32_t)) {
+  if (read(fds[0], &tmp, sizeof(u_int32_t)) != sizeof(u_int32_t)) {
     goto error;
   }
 
@@ -371,7 +362,7 @@ static int load_file(Display *display, char *path, u_int width, u_int height, in
     ssize_t n_rd;
 
     p = (*pixmap)->image;
-    while ((n_rd = read(fds2[0], p, size)) > 0) {
+    while ((n_rd = read(fds[0], p, size)) > 0) {
       p += n_rd;
       size -= n_rd;
     }
@@ -381,8 +372,7 @@ static int load_file(Display *display, char *path, u_int width, u_int height, in
     }
   }
 
-  close(fds2[0]);
-  close(fds1[1]);
+  close(fds[0]);
 #endif
 
 loaded:
@@ -409,8 +399,7 @@ error:
     free(*pixmap);
   }
 
-  close(fds2[0]);
-  close(fds1[1]);
+  close(fds[0]);
 
   return 0;
 }

@@ -1098,9 +1098,8 @@ void ui_display_output_picture(ui_display_t *disp, u_char *picture, u_int width,
     } else {
       disp->display->sixel_dither = sixel_dither_get(dither_id);
     }
-
-    sixel_dither_set_pixelformat(disp->display->sixel_dither, PIXELFORMAT_RGBA8888);
   }
+  sixel_dither_set_pixelformat(disp->display->sixel_dither, PIXELFORMAT_RGBA8888);
 
   sixel_encode(picture, width, height, 4, disp->display->sixel_dither, disp->display->sixel_output);
 }

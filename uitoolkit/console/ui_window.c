@@ -279,7 +279,13 @@ static int copy_area(ui_window_t *win, Pixmap src, int src_x, /* can be minus */
   }
 #endif
 
-  if (dst_x >= (int)win->width + hmargin || dst_y >= (int)win->height + vmargin) {
+  if (width == 0 || height == 0) {
+    /* This can happen in setting a wall paper. */
+    return 0;
+  }
+
+  if (dst_x >= (int)win->width + hmargin - right_margin ||
+      dst_y >= (int)win->height + vmargin - bottom_margin) {
     return 0;
   }
 
