@@ -873,16 +873,22 @@ body:
       }
 
       if (width < new_width) {
-        need_resize = 1;
-        if (height > new_height) {
-          new_height = height;
+        /* w200 h100 -> w400 h0 case is ignored. */
+        if (new_height > 0) {
+          need_resize = 1;
+          if (height > new_height) {
+            new_height = height;
+          }
         }
       }
 
       if (height < new_height) {
-        need_resize = 1;
-        if (width > new_width) {
-          new_width = width;
+        /* w200 h100 -> w0 h200 case is ignored. */
+        if (new_width > 0) {
+          need_resize = 1;
+          if (width > new_width) {
+            new_width = width;
+          }
         }
       }
 

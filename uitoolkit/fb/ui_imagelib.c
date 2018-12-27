@@ -550,27 +550,18 @@ static int exec_mlimgloader(char *path, u_int width, u_int height, int keep_aspe
 static int exec_mlimgloader(char *path, u_int width, u_int height, int keep_aspect,
                             Pixmap *pixmap) {
   pid_t pid;
-  int fds1[2];
-  int fds2[2];
+  int fds[2];
   ssize_t size;
   u_int32_t tmp;
 
-  if (pipe(fds1) == -1) {
-    return 0;
-  }
-  if (pipe(fds2) == -1) {
-    close(fds1[0]);
-    close(fds1[1]);
-
+  if (pipe(fds) == -1) {
     return 0;
   }
 
   pid = fork();
   if (pid == -1) {
-    close(fds1[0]);
-    close(fds1[1]);
-    close(fds2[0]);
-    close(fds2[0]);
+    close(fds[0]);
+    close(fds[0]);
 
     return 0;
   }
@@ -597,9 +588,8 @@ static int exec_mlimgloader(char *path, u_int width, u_int height, int keep_aspe
       args[6] = NULL;
     }
 
-    close(fds1[1]);
-    close(fds2[0]);
-    if (dup2(fds1[0], STDIN_FILENO) != -1 && dup2(fds2[1], STDOUT_FILENO) != -1) {
+    close(fds[0]);
+    if (dup2(fds[1], STDOUT_FILENO) != -1) {
       execv(args[0], args);
     }
 
@@ -608,20 +598,19 @@ static int exec_mlimgloader(char *path, u_int width, u_int height, int keep_aspe
     exit(1);
   }
 
-  close(fds1[0]);
-  close(fds2[1]);
+  close(fds[1]);
 
   if (!(*pixmap = calloc(1, sizeof(**pixmap)))) {
     goto error;
   }
 
-  if (read(fds2[0], &tmp, sizeof(u_int32_t)) != sizeof(u_int32_t)) {
+  if (read(fds[0], &tmp, sizeof(u_int32_t)) != sizeof(u_int32_t)) {
     goto error;
   }
 
   size = ((*pixmap)->width = tmp) * sizeof(u_int32_t);
 
-  if (read(fds2[0], &tmp, sizeof(u_int32_t)) != sizeof(u_int32_t)) {
+  if (read(fds[0], &tmp, sizeof(u_int32_t)) != sizeof(u_int32_t)) {
     goto error;
   }
 
@@ -634,7 +623,7 @@ static int exec_mlimgloader(char *path, u_int width, u_int height, int keep_aspe
     ssize_t n_rd;
 
     p = (*pixmap)->image;
-    while ((n_rd = read(fds2[0], p, size)) > 0) {
+    while ((n_rd = read(fds[0], p, size)) > 0) {
       p += n_rd;
       size -= n_rd;
     }
@@ -644,8 +633,7 @@ static int exec_mlimgloader(char *path, u_int width, u_int height, int keep_aspe
     }
   }
 
-  close(fds2[0]);
-  close(fds1[1]);
+  close(fds[0]);
 
   /* bl_pty_fork() in vt_pty_unix_new() may block without this in startup. */
 #if 1
@@ -664,8 +652,7 @@ error:
     free(*pixmap);
   }
 
-  close(fds2[0]);
-  close(fds1[1]);
+  close(fds[0]);
 
   return 0;
 }

@@ -1,3 +1,14 @@
+2018-12-28  Araki Ken  <arakiken@users.sf.net>
+
+	* console/ui_window.c: copy_area() checks if width == 0 or height == 0.
+
+	* c_sixel.c: Rare segfault case is fixed.
+
+	* */ui_imagelib.c: Pipe from mlterm to mlimgloader is removed.
+
+	* console/ui_display.c: ui_display_output_picture() calls
+	  sixel_dither_set_pixelformat() every time.
+
 2018-12-23  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_pty_mosh.cpp:
