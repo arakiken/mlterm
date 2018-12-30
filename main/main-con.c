@@ -230,11 +230,6 @@ connected:
 
   atexit(exit_cb);
 
-  /* XXX mlterm-con exits by SIGPIPE on fedora 24. */
-#if 0
-  signal(SIGPIPE, SIG_IGN);
-#endif
-
   write(connect_fd, argv[0], strlen(argv[0]));
   for (count = 1; count < argc; count++) {
     write(connect_fd, " \"", 2);

@@ -1,3 +1,15 @@
+2018-12-29  Araki Ken  <arakiken@users.sf.net>
+
+	* README.console, README.ja: Updated.
+
+	* console/ui_display.c:
+	  - The default value of dither_id is changed from BUILTIN_XTERM16 to BUILTIN_XTERM256.
+	  - CSI?8452h or CSI?8452l is output.
+	  - CSI?1;1;0S (XTCOLREQ) is output and the response of it is parsed in
+	    receive_stdin_event() or ui_display_output_picture().
+
+	* vt_parser.c: Typo is fixed.
+
 2018-12-28  Araki Ken  <arakiken@users.sf.net>
 
 	* console/ui_window.c: copy_area() checks if width == 0 or height == 0.

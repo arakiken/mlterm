@@ -15,17 +15,17 @@ Console support (similar to GNU screen)
   Configuration of console version is almost same as that of X11 version.
 
   <mlterm-con specific options>
-  o console_encoding
+  o console_encoding (--ckm)
     Encoding of the console where mlterm-con works.
 
     OPTION:  console_encoding  encoding
                     |              |
             xterm <=> mlterm-con <=> vim
 
-  o default_cell_size
+  o default_cell_size (--csz)
     Cell width and height in pixel if mlterm-con can't get them by TIOCGWINSZ.
 
-  o console_sixel_colors
+  o console_sixel_colors (--csc)
     The number of sixel graphics colors of the console where mlterm-con works.
 
 * Start
@@ -33,6 +33,8 @@ Console support (similar to GNU screen)
 
   mlterm-con starts $libexecdir/mlterm/mlterm-con-server which works a daemon
   process, and connects to it.
+  If it doesn't work expectedly, try to execute $libexec/mlterm/mlterm-con-server
+  directly.
 
   If a console window where mlterm-con works exits unexpectedly, you can revive
   it by starting mlterm-con and pressing Ctrl+F3.

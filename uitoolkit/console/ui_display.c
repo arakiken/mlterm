@@ -50,6 +50,11 @@ static vt_char_encoding_t encoding = VT_UTF8;
 static u_int default_col_width = 8;
 static u_int default_line_height = 16;
 
+#ifdef USE_LIBSIXEL
+static int dither_id = BUILTIN_XTERM256;
+static int check_xtcolreg;
+#endif
+
 /* --- static functions --- */
 
 static void set_blocking(int fd, int block) {
@@ -135,6 +140,24 @@ static void sig_winch(int sig) {
   signal(SIGWINCH, sig_winch);
 }
 
+static void init_console(int fd) {
+#ifdef USE_LIBSIXEL
+  /*
+   * The response is parsed in receive_stdin_event() or ui_display_output_picture().
+   * (To reflect it to wall picture, ui_display_output_picture() parses it.)
+   */
+  write(fd, "\x1b[?1;1;0S", 9);
+  check_xtcolreg = -1;
+#endif
+
+  /* The response is parsed in receive_stdin_event(). */
+  write(fd, "\x1b[>c", 4);
+
+  write(fd, "\x1b[?25l", 6);
+  write(fd, "\x1b[>4;2m", 7);
+  write(fd, "\x1b[?1002h\x1b[?1006h\x1b[?8452h", 24);
+}
+
 static ui_display_t *open_display_socket(int fd) {
   void *p;
 
@@ -166,10 +189,7 @@ static ui_display_t *open_display_socket(int fd) {
   bl_file_set_cloexec(fd);
   set_blocking(fd, 1);
 
-  write(fd, "\x1b[?25l", 6);
-  write(fd, "\x1b[>4;2m", 7);
-  write(fd, "\x1b[?1002h\x1b[?1006h", 16);
-  write(fd, "\x1b[>c", 4);
+  init_console(fd);
 
   displays[num_displays]->display->conv = vt_char_encoding_conv_new(encoding);
   vt_char_encoding_conv_set_use_loose_rule(displays[num_displays]->display->conv, encoding, 1);
@@ -214,10 +234,7 @@ static ui_display_t *open_display_console(void) {
   close(STDOUT_FILENO);
   close(STDERR_FILENO);
 
-  write(fd, "\x1b[?25l", 6);
-  write(fd, "\x1b[>4;2m", 7);
-  write(fd, "\x1b[?1002h\x1b[?1006h", 16);
-  write(fd, "\x1b[>c", 4);
+  init_console(fd);
 
   tio = orig_tm;
   tio.c_iflag &= ~(IXON | IXOFF | ICRNL | INLCR | IGNCR | IMAXBEL | ISTRIP);
@@ -494,6 +511,21 @@ static int parse_modify_other_keys(XKeyEvent *kev, const char *param, const char
   }
 }
 
+#ifdef USE_LIBSIXEL
+static void parse_xtcolreg(ui_display_t *disp, u_char *param) {
+  int pi;
+  int pa;
+  int pv;
+
+  if (sscanf(param, "%d;%d;%dS", &pi, &pa, &pv) == 3) {
+    check_xtcolreg = 1;
+    if (pv == 16) {
+      ui_display_set_sixel_colors(disp, "16");
+    }
+  }
+}
+#endif
+
 /* Same as fb/ui_display */
 static int receive_stdin_event(ui_display_t *disp) {
   u_char *p;
@@ -538,18 +570,16 @@ static int receive_stdin_event(ui_display_t *disp) {
     }
 
     if (*p == '\x1b' && (p[1] == '[' || p[1] == 'O')) {
-      if (p[1] == '[') {
-        u_char *tmp;
-
-        if (!parse(&param, &intermed, &ft, p + 2)) {
-          set_blocking(fileno(disp->display->fp), 0);
-          if (!receive_stdin(disp->display)) {
-            break;
-          }
-
-          continue;
+      if (!parse(&param, &intermed, &ft, p + 2)) {
+        set_blocking(fileno(disp->display->fp), 0);
+        if (!receive_stdin(disp->display)) {
+          break;
         }
 
+        continue;
+      }
+
+      if (p[1] == '[') {
         p = ft + 1;
 
         if (*ft == '~') {
@@ -678,14 +708,15 @@ static int receive_stdin_event(ui_display_t *disp) {
           if (!parse_modify_other_keys(&kev, param, "%d;%du", 1)) {
             continue;
           }
-        } else if (param && *ft == 'c') {
+        } else if (param && /* (*param == '>' || *param == '?') && */ *ft == 'c') {
           int pp;
           int pv;
           int pc;
 
           /*
-           * iTerm2: CSI?0;95;c
-           * MacOSX Terminal: CSI?1;2c
+           * iTerm2 2.0.0.20141103: CSI>0;95;c
+           * MacOSX Terminal 2.1.2: CSI?1;2c
+           * mlterm: CSI>24;279;0c
            */
           if (sscanf(param + 1, "%d;%d;%dc", &pp, &pv, &pc) >= 2 &&
               (pp >= 41 /* VT420 or later */ ||
@@ -702,7 +733,15 @@ static int receive_stdin_event(ui_display_t *disp) {
           }
 
           continue;
-        } else if ('P' <= *ft && *ft <= 'S') {
+        }
+#ifdef USE_LIBSIXEL
+        else if (param && *param == '?' && *ft == 'S') {
+          parse_xtcolreg(disp, param + 1);
+
+          continue;
+        }
+#endif
+        else if ('P' <= *ft && *ft <= 'S') {
           kev.ksym = XK_F1 + (*ft - 'P');
         }
 #ifdef __FreeBSD__
@@ -754,20 +793,14 @@ static int receive_stdin_event(ui_display_t *disp) {
           }
         }
 
-        if (param && (tmp = strchr(param, ';'))) {
-          param = tmp + 1;
-        }
-      } else /* if( p[1] == 'O') */
-      {
-        if (!parse(&param, &intermed, &ft, p + 2)) {
-          set_blocking(fileno(disp->display->fp), 0);
-          if (!receive_stdin(disp->display)) {
-            break;
+        if (param) {
+          u_char *tmp;
+
+          if ((tmp = strchr(param, ';'))) {
+            param = tmp + 1;
           }
-
-          continue;
         }
-
+      } else /* if( p[1] == 'O') */ {
         p = ft + 1;
 
         switch (*ft) {
@@ -880,7 +913,7 @@ void ui_display_close(ui_display_t *disp) {
 
   write(fileno(disp->display->fp), "\x1b[?25h", 6);
   write(fileno(disp->display->fp), "\x1b[>4;0m", 7);
-  write(fileno(disp->display->fp), "\x1b[?1002l\x1b[?1006l", 16);
+  write(fileno(disp->display->fp), "\x1b[?1002l\x1b[?1006l\x1b[?8452l", 24);
   fclose(disp->display->fp);
   (*disp->display->conv->delete)(disp->display->conv);
 
@@ -1058,19 +1091,23 @@ void ui_display_set_default_cell_size(u_int width, u_int height) {
 }
 
 #ifdef USE_LIBSIXEL
-static int dither_id = BUILTIN_XTERM16;
-
 void ui_display_set_sixel_colors(ui_display_t *disp, const char *colors) {
-  if (strcmp(colors, "256") == 0) {
-    dither_id = BUILTIN_XTERM256;
+  int old_dither_id = dither_id;
+
+  if (strcmp(colors, "16") == 0) {
+    dither_id = BUILTIN_XTERM16;
   } else if (strcmp(colors, "full") == 0) {
     dither_id = -1;
   } else {
-    dither_id = BUILTIN_XTERM16;
+    dither_id = BUILTIN_XTERM256;
   }
 
   if (disp) {
     if (disp->display->sixel_dither) {
+      if (old_dither_id == dither_id) {
+        return;
+      }
+
       sixel_dither_destroy(disp->display->sixel_dither);
     }
 
@@ -1090,6 +1127,23 @@ static int callback(char *data, int size, void *out) { return fwrite(data, 1, si
 void ui_display_output_picture(ui_display_t *disp, u_char *picture, u_int width, u_int height) {
   if (!disp->display->sixel_output) {
     disp->display->sixel_output = sixel_output_create(callback, disp->display->fp);
+  }
+
+  if (check_xtcolreg == -1) {
+    /*
+     * Don't call receive_stdin_event() which may have called this function itself.
+     * (receive_stdin_event() -> set_winsize() -> ui_display_output_picture().
+     */
+    if (disp->display->buf_len > 0 || receive_stdin(disp->display)) {
+      char *p;
+
+      for (p = disp->display->buf; (p = strchr(p, '\x1b')); p ++) {
+        if (p[1] == '[' && p[2] == '?' && strchr(p, 'S')) {
+          parse_xtcolreg(disp, p + 3);
+          break;
+        }
+      }
+    }
   }
 
   if (!disp->display->sixel_dither) {

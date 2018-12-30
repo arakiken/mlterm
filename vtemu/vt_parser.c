@@ -4755,7 +4755,7 @@ inline static int parse_vt100_escape_sequence(
         } else if (*str_p == 'S') {
           /*
            * "CSI ? Pi;Pa;Pv S" (Xterm original)
-           * The number of palettes mlterm supports is 256 alone.
+           * The number of palettes mlterm supports is 1024 alone.
            */
           char *seq;
 
