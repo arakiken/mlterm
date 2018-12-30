@@ -47,7 +47,12 @@ static DWORD WINAPI wait_child_exited(LPVOID thr_param) {
       config_menu->pid = 0;
 
 #ifdef USE_LIBSSH2
-      vt_pty_set_use_loopback(config_menu->pty, 0);
+      if (config_menu->is_mosh) {
+        vt_pty_mosh_set_use_loopback(config_menu->pty, 0);
+        config_menu->is_mosh = 0;
+      } else {
+        vt_pty_ssh_set_use_loopback(config_menu->pty, 0);
+      }
       config_menu->pty = NULL;
 #endif
 
@@ -75,7 +80,12 @@ static void sig_child(void *self, pid_t pid) {
 
 #ifdef USE_LIBSSH2
     if (config_menu->pty) {
-      vt_pty_set_use_loopback(config_menu->pty, 0);
+      if (config_menu->is_mosh) {
+        vt_pty_mosh_set_use_loopback(config_menu->pty, 0);
+        config_menu->is_mosh = 0;
+      } else {
+        vt_pty_ssh_set_use_loopback(config_menu->pty, 0);
+      }
       config_menu->pty = NULL;
     }
 #endif
@@ -130,9 +140,14 @@ int vt_config_menu_start(vt_config_menu_t *config_menu, char *cmd_path, int x, i
 
   input_read = output_write = error_write = 0;
 
-  if ((pty_fd = vt_pty_get_slave_fd(pty)) == -1) {
+  if ((pty_fd = vt_pty_get_slave_fd(pty)) < 0) {
 #ifdef USE_LIBSSH2
-    if (vt_pty_set_use_loopback(pty, 1)) {
+    if (pty_fd == -2) {
+      config_menu->is_mosh = 1;
+    }
+
+    if ((config_menu->is_mosh ? vt_pty_mosh_set_use_loopback(pty, 1) :
+                                vt_pty_ssh_set_use_loopback(pty, 1))) {
       pty_fd = vt_pty_get_slave_fd(pty);
       config_menu->pty = pty;
     } else
@@ -287,7 +302,12 @@ error2:
 
 #ifdef USE_LIBSSH2
   if (config_menu->pty) {
-    vt_pty_set_use_loopback(config_menu->pty, 0);
+    if (config_menu->is_mosh) {
+      vt_pty_mosh_set_use_loopback(config_menu->pty, 0);
+      config_menu->is_mosh = 0;
+    } else {
+      vt_pty_ssh_set_use_loopback(config_menu->pty, 0);
+    }
     config_menu->pty = NULL;
   }
 #endif
@@ -306,9 +326,13 @@ error2:
     return 0;
   }
 
-  if ((pty_fd = vt_pty_get_slave_fd(pty)) == -1) {
+  if ((pty_fd = vt_pty_get_slave_fd(pty)) < 0) {
 #ifdef USE_LIBSSH2
-    if (vt_pty_set_use_loopback(pty, 1)) {
+    if (pty_fd == -2) {
+      config_menu->is_mosh = 1;
+    }
+    if ((config_menu->is_mosh ? vt_pty_mosh_set_use_loopback(pty, 1) :
+                                vt_pty_ssh_set_use_loopback(pty, 1))) {
       pty_fd = vt_pty_get_slave_fd(pty);
       config_menu->pty = pty;
     } else

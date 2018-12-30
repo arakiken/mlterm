@@ -18,14 +18,15 @@
 #define IDM_SORT       107
 #define IDD_FOLDER     110
 #define IDD_SSH        120
-#define IDD_TELNET     121
-#define IDD_RLOGIN     122
-#define IDD_SERVER     123
-#define IDD_PORT       124
-#define IDD_USER       125
-#define IDD_ENCODING   126
-#define IDD_EXEC_CMD   127
-#define IDD_X11        128
+#define IDD_MOSH       121
+#define IDD_TELNET     122
+#define IDD_RLOGIN     123
+#define IDD_SERVER     124
+#define IDD_PORT       125
+#define IDD_USER       126
+#define IDD_ENCODING   127
+#define IDD_EXEC_CMD   128
+#define IDD_X11        129
 
 #define WM_TREEVIEW_LBUTTONUP (WM_USER + 1)
 #define WM_TREEVIEW_MOUSEMOVE (WM_USER + 2)
@@ -47,6 +48,7 @@ static HTREEITEM drag_src;
 
 /*
  * Parsing "<proto>://<user>@<host>:<port>:<encoding>".
+ * (See bl_parse_uri() in bl_path.c)
  */
 static int parse(int *protoid, /* If seq doesn't have proto, -1 is set. */
                  char **user,  /* If seq doesn't have user, NULL is set. */
@@ -57,19 +59,29 @@ static int parse(int *protoid, /* If seq doesn't have proto, -1 is set. */
   char *p;
   size_t len = strlen(seq);
 
-  if (len > 6 && (strncmp(seq, "ssh://", 6) == 0 || strncmp(seq, "ftp://", 6) == 0)) {
-    seq = (p = seq) + 6;
-    *(seq - 3) = '\0';
-  } else if (len > 9 && (strncmp(seq, "telnet://", 9) == 0 || strncmp(seq, "rlogin://", 9) == 0)) {
-    seq = (p = seq) + 9;
-    *(seq - 3) = '\0';
-  } else {
-    p = NULL;
+  p = NULL;
+  if (len > 6) {
+    if (strncmp(seq, "ssh://", 6) == 0 || strncmp(seq, "ftp://", 6) == 0) {
+      seq = (p = seq) + 6;
+      *(seq - 3) = '\0';
+    } else if (len > 7) {
+      if (strncmp(seq, "mosh://", 7) == 0) {
+        seq = (p = seq) + 7;
+        *(seq - 3) = '\0';
+      } else if (len > 9) {
+        if (strncmp(seq, "telnet://", 9) == 0 || strncmp(seq, "rlogin://", 9) == 0) {
+          seq = (p = seq) + 9;
+          *(seq - 3) = '\0';
+        }
+      }
+    }
   }
 
   if (p) {
     if (strcmp(p, "ssh") == 0) {
       *protoid = IDD_SSH;
+    } else if (strcmp(p, "mosh") == 0) {
+      *protoid = IDD_MOSH;
     } else if (strcmp(p, "telnet") == 0) {
       *protoid = IDD_TELNET;
     } else if (strcmp(p, "rlogin") == 0) {
@@ -228,7 +240,7 @@ LRESULT CALLBACK edit_dialog_proc(HWND dialog, UINT msg, WPARAM wparam, LPARAM l
 
       EnableWindow(GetDlgItem(dialog, IDD_TELNET), FALSE);
       EnableWindow(GetDlgItem(dialog, IDD_RLOGIN), FALSE);
-      CheckRadioButton(dialog, IDD_SSH, IDD_RLOGIN, IDD_SSH);
+      CheckRadioButton(dialog, IDD_SSH, IDD_RLOGIN, selected_proto);
 
       if (use_x11_forwarding) {
         SendMessage(GetDlgItem(dialog, IDD_X11), BM_SETCHECK, BST_CHECKED, 0);
@@ -260,7 +272,10 @@ LRESULT CALLBACK edit_dialog_proc(HWND dialog, UINT msg, WPARAM wparam, LPARAM l
               total_len = 6;
             } else
 #endif
-            if (selected_proto == IDD_TELNET) {
+            if (selected_proto == IDD_MOSH) {
+              strcpy(return_text, "mosh://");
+              total_len = 7;
+            } else if (selected_proto == IDD_TELNET) {
               strcpy(return_text, "telnet://");
               total_len = 9;
             } else if (selected_proto == IDD_RLOGIN) {
@@ -315,6 +330,7 @@ LRESULT CALLBACK edit_dialog_proc(HWND dialog, UINT msg, WPARAM wparam, LPARAM l
           break;
 
         case IDD_SSH:
+        case IDD_MOSH:
         case IDD_TELNET:
         case IDD_RLOGIN:
           selected_proto = LOWORD(wparam);
@@ -457,11 +473,15 @@ static void add_path(HWND tree, char *path) {
 
   while (1) {
     if (*path == '/') {
-      char orig = *(++path);
-      *path = '\0';
-      parent = add_item(tree, parent, name, 1);
-      *path = orig;
-      name = path;
+      if (path[1] == '/') {
+        path += 2; /* skip :// */
+      } else {
+        char orig = *(++path);
+        *path = '\0';
+        parent = add_item(tree, parent, name, 1);
+        *path = orig;
+        name = path;
+      }
     } else if (*path == '\0') {
       if (*name != '\0') {
         parent = add_item(tree, parent, name, 0);

@@ -18,6 +18,7 @@ typedef struct vt_config_menu {
 
 #ifdef USE_LIBSSH2
   vt_pty_ptr_t pty;
+  int is_mosh;
 #endif
 
 } vt_config_menu_t;

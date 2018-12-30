@@ -6,7 +6,7 @@
 #include <pobl/bl_def.h>   /* USE_WIN32API */
 #include <pobl/bl_types.h> /* u_int/u_char */
 
-#ifdef USE_LIBSSH2
+#if defined(USE_LIBSSH2) && !defined(USE_MOSH)
 
 #include "vt_char_encoding.h"
 
@@ -79,9 +79,10 @@ char *vt_pty_get_cmd_line(vt_pty_ptr_t pty);
 void vt_pty_set_hook(vt_pty_ptr_t pty, vt_pty_hook_t *hook);
 
 #ifdef USE_LIBSSH2
+#ifndef USE_MOSH
 void *vt_search_ssh_session(const char *host, const char *port, const char *user);
 
-int vt_pty_set_use_loopback(vt_pty_ptr_t pty, int use);
+int vt_pty_ssh_set_use_loopback(vt_pty_ptr_t pty, int use);
 
 int vt_pty_ssh_scp(vt_pty_ptr_t pty, vt_char_encoding_t pty_encoding,
                    vt_char_encoding_t path_encoding, char *dst_path, char *src_path,
@@ -102,6 +103,9 @@ u_int vt_pty_ssh_get_x11_fds(int **fds);
 int vt_pty_ssh_send_recv_x11(int idx, int bidirection);
 
 void vt_pty_ssh_set_use_auto_reconnect(int flag);
+#endif
+
+int vt_pty_mosh_set_use_loopback(vt_pty_ptr_t pty, int use);
 #endif
 
 #ifdef USE_WIN32API
