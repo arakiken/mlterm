@@ -985,7 +985,7 @@ static int check_sig_child(pid_t pid) {
 static ssize_t lo_read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
 #ifdef __CYGWIN__
   if (check_sig_child(pty->config_menu.pid)) {
-    /* vt_pty_set_use_loopback(0) is called from sig_child() in vt_config_menu.c. */
+    /* vt_pty_ssh_set_use_loopback(0) is called from sig_child() in vt_config_menu.c. */
     return 0;
   }
 #endif
@@ -997,7 +997,7 @@ static ssize_t lo_write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
 #ifdef __CYGWIN__
   if (check_sig_child(pty->config_menu.pid)) {
     /*
-     * vt_pty_set_use_loopback(0) is called from sig_child()
+     * vt_pty_ssh_set_use_loopback(0) is called from sig_child()
      * in vt_config_menu.c is called
      */
     return 0;
@@ -1081,7 +1081,7 @@ static int unuse_loopback(vt_pty_t *pty) {
   ssize_t len;
 
   if (!pty->stored || --(pty->stored->ref_count) > 0) {
-    return 1;
+    return 0;
   }
 
   while ((len = (*pty->read)(pty, buf, sizeof(buf))) > 0) {
@@ -1486,7 +1486,7 @@ static int open_channel(vt_pty_ssh_t *pty,    /* pty->session is non-blocking */
   }
 
   pty->pty.master = pty->session->sock;
-  pty->pty.slave = -1;
+  pty->pty.slave = -1; /* -2: Mosh */
   pty->pty.child_pid = (pid_t)pty->channel; /* XXX regarding pid_t as channel */
   pty->pty.final = final;
   pty->pty.set_winsize = set_winsize;
@@ -1954,7 +1954,7 @@ void *vt_search_ssh_session(const char *host, const char *port, /* can be NULL *
   return NULL;
 }
 
-int vt_pty_set_use_loopback(vt_pty_t *pty, int use) {
+int vt_pty_ssh_set_use_loopback(vt_pty_t *pty, int use) {
   if (use) {
     if (((vt_pty_ssh_t *)pty)->session->suspended) {
       return 0;

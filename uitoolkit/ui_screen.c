@@ -2554,7 +2554,7 @@ static void set_xdnd_config(ui_window_t *win, char *dev, char *key, char *value)
   screen = (ui_screen_t *)win;
 
   if (strcmp(key, "scp") == 0) {
-    if (vt_term_get_slave_fd(screen->term) == -1) /* connecting to remote host. */
+    if (vt_term_get_slave_fd(screen->term) == -1) /* connecting to remote host via SSH. */
     {
       /* value is always UTF-8 */
       vt_term_scp(screen->term, ".", value, VT_UTF8);

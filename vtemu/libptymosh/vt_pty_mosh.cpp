@@ -1,12 +1,14 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 extern "C" {
-#undef USE_LIBSSH2
+#define USE_LIBSSH2
+#define USE_MOSH
 #include "../vt_pty_intern.h"
 
 #include <stdio.h>  /* sprintf */
 #include <unistd.h> /* close */
 #include <string.h> /* strchr/memcpy */
+#include <fcntl.h>
 #include <stdlib.h>
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h> /* malloc */
@@ -19,6 +21,10 @@ extern "C" {
 
 #include <arpa/inet.h> /* inet_ntoa */
 #include <pthread.h>
+
+#ifdef __CYGWIN__
+#include <sys/wait.h> /* waitpid */
+#endif
 }
 
 #include <fatal_assert.h>
@@ -39,6 +45,7 @@ extern "C" {
 
 typedef struct vt_pty_mosh {
   vt_pty_t pty;
+
   Terminal::Complete complete;
   Terminal::Framebuffer framebuffer;
   Network::Transport<Network::UserStream, Terminal::Complete> *network;
@@ -54,12 +61,112 @@ typedef struct vt_pty_mosh {
 
 static vt_pty_mosh_t **ptys;
 static u_int num_ptys;
+static Network::Transport<Network::UserStream, Terminal::Complete> *dead_network;
 
 static int fds[2];
 static bool event_in_pipe = false;
 static pthread_mutex_t event_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* --- static functions --- */
+
+
+#ifdef __CYGWIN__
+static int check_sig_child(pid_t pid) {
+  /* SIGCHLD signal isn't delivered on cygwin even if mlconfig exits. */
+  int status;
+
+  if (pid > 0 && waitpid(pid, &status, WNOHANG) == pid) {
+    bl_trigger_sig_child(pid);
+
+    return 1;
+  } else {
+    return 0;
+  }
+}
+#endif
+
+static ssize_t lo_read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
+#ifdef __CYGWIN__
+  if (check_sig_child(pty->config_menu.pid)) {
+    /* vt_pty_mosh_set_use_loopback(0) is called from sig_child() in vt_config_menu.c. */
+    return 0;
+  }
+#endif
+
+  return read(pty->master, buf, len);
+}
+
+static ssize_t lo_write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
+#ifdef __CYGWIN__
+  if (check_sig_child(pty->config_menu.pid)) {
+    /*
+     * vt_pty_mosh_set_use_loopback(0) is called from sig_child()
+     * in vt_config_menu.c is called
+     */
+    return 0;
+  }
+#endif
+
+  return write(pty->slave, buf, len);
+}
+
+static int use_loopback(vt_pty_t *pty) {
+  int fds[2];
+
+  if (pty->stored) {
+    pty->stored->ref_count++;
+
+    return 1;
+  }
+
+  if ((pty->stored = (struct vt_pty::_stored*)malloc(sizeof(*pty->stored))) == NULL) {
+    return 0;
+  }
+
+  pty->stored->master = pty->master;
+  pty->stored->slave = pty->slave;
+  pty->stored->read = pty->read;
+  pty->stored->write = pty->write;
+
+  if (pipe(fds) == 0) {
+    fcntl(fds[0], F_SETFL, O_NONBLOCK | fcntl(pty->master, F_GETFL, 0));
+    fcntl(fds[1], F_SETFL, O_NONBLOCK | fcntl(pty->slave, F_GETFL, 0));
+
+    pty->read = lo_read_pty;
+    pty->write = lo_write_to_pty;
+  } else {
+    free(pty->stored);
+    pty->stored = NULL;
+
+    return 0;
+  }
+
+  pty->master = fds[0];
+  pty->slave = fds[1];
+
+  pty->stored->ref_count = 1;
+
+  return 1;
+}
+
+static int unuse_loopback(vt_pty_t *pty) {
+  if (!pty->stored || --(pty->stored->ref_count) > 0) {
+    return 0;
+  }
+
+  close(pty->slave);
+  close(pty->master);
+
+  pty->master = pty->stored->master;
+  pty->slave = pty->stored->slave;
+  pty->read = pty->stored->read;
+  pty->write = pty->stored->write;
+
+  free(pty->stored);
+  pty->stored = NULL;
+
+  return 1;
+}
 
 static void *watch_ptys(void *arg) {
   pthread_detach(pthread_self());
@@ -72,6 +179,7 @@ static void *watch_ptys(void *arg) {
     int timeout = 100;
     pthread_mutex_lock(&event_mutex);
     u_int count;
+    int prev_num_ptys = num_ptys;
     for (count = 0; count < num_ptys; count++) {
       std::vector<int> fd_list(ptys[count]->network->fds());
       for (std::vector<int>::const_iterator it = fd_list.begin();
@@ -91,19 +199,25 @@ static void *watch_ptys(void *arg) {
     }
 
     bool ready = false;
-    pthread_mutex_lock(&event_mutex);
-    for (count = 0; count < num_ptys; count++) {
-      std::vector<int> fd_list(ptys[count]->network->fds());
-      for (std::vector<int>::const_iterator it = fd_list.begin();
-           it != fd_list.end(); it++) {
-        if (sel.read(*it)) {
-          ptys[count]->network->recv();
-          ptys[count]->ready = ready = true;
 
-          break;
+    pthread_mutex_lock(&event_mutex);
+    if (prev_num_ptys == num_ptys) {
+      for (count = 0; count < num_ptys; count++) {
+        std::vector<int> fd_list(ptys[count]->network->fds());
+        for (std::vector<int>::const_iterator it = fd_list.begin();
+             it != fd_list.end(); it++) {
+          if (sel.read(*it)) {
+            ptys[count]->network->recv();
+            ptys[count]->ready = ready = true;
+
+            break;
+          }
         }
+        ptys[count]->network->tick();
       }
-      ptys[count]->network->tick();
+    } else if (dead_network) {
+      delete dead_network;
+      dead_network = NULL;
     }
     pthread_mutex_unlock(&event_mutex);
 
@@ -128,7 +242,6 @@ static int final(vt_pty_t *pty) {
   }
 
   pthread_mutex_lock(&event_mutex);
-
   u_int count;
   for (count = 0; count < num_ptys; count++) {
     if (ptys[count] == pty_mosh) {
@@ -136,8 +249,14 @@ static int final(vt_pty_t *pty) {
     }
   }
 
-  delete pty_mosh->network;
-
+  if (dead_network) {
+    delete dead_network; /* XXX */
+  }
+  /*
+   * If delete pty_mosh->network here, watch_ptys() might fall into infinite loop.
+   * (in sel.select()?)
+   */
+  dead_network = pty_mosh->network;
   pthread_mutex_unlock(&event_mutex);
 
   return 1;
@@ -217,6 +336,20 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   pthread_mutex_lock(&event_mutex);
   Terminal::Framebuffer framebuffer(pty_mosh->network->get_latest_remote_state().state.get_fb());
   pthread_mutex_unlock(&event_mutex);
+
+  if (!pty_mosh->initialized) {
+    /* Put terminal in application-cursor-key mode */
+    std::string init_str = pty_mosh->display.open();
+
+    if (init_str.length() <= len) {
+      memcpy(buf, init_str.c_str(), init_str.length());
+      prev_len += init_str.length();
+      buf += init_str.length();
+      len -= init_str.length();
+    } else {
+      /* XXX ignored */
+    }
+  }
 
   std::string update = pty_mosh->display.new_frame(pty_mosh->initialized, pty_mosh->framebuffer,
                                                    framebuffer);
@@ -473,6 +606,21 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
       pty->pty.write = write_to_pty;
       pty->pty.read = read_pty;
 
+      pty->pty.child_pid = 0;
+      while (*key) {
+        pty->pty.child_pid += *(key++);
+      }
+
+      u_int count = 0;
+      while (count < num_ptys) {
+        if (ptys[count]->pty.child_pid == pty->pty.child_pid) {
+          pty->pty.child_pid++;
+          count = 0;
+        } else {
+          count++;
+        }
+      }
+
       void *p;
       if ((p = realloc(ptys, sizeof(*ptys) * (num_ptys + 1)))) {
         ptys = (vt_pty_mosh_t**)p;
@@ -486,12 +634,7 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
       }
 
       pty->pty.master = fds[0];
-      pty->pty.slave = -1;
-
-      pty->pty.child_pid = 0;
-      while (*key) {
-        pty->pty.child_pid = *(key++);
-      }
+      pty->pty.slave = -2; /* -1: SSH */
 
       return &pty->pty;
     } else {
@@ -502,4 +645,13 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
   }
 
   return NULL;
+}
+
+int vt_pty_mosh_set_use_loopback(vt_pty_t *pty, int use) {
+  if (use) {
+    use_loopback(pty);
+    return 1;
+  } else {
+    return unuse_loopback(pty);
+  }
 }

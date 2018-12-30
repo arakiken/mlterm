@@ -15,6 +15,7 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_path.h> /* bl_basename */
 #include <pobl/bl_mem.h>  /* alloca */
+#include <pobl/bl_file.h>
 
 #ifndef LIBDIR
 #define SSHLIB_DIR "/usr/local/lib/mlterm/"
@@ -31,7 +32,7 @@
 static vt_pty_ptr_t (*ssh_new)(const char *, char **, char **, const char *, const char *,
                                const char *, const char *, u_int, u_int, u_int, u_int);
 static void *(*search_ssh_session)(const char *, const char *, const char *);
-static int (*set_use_loopback)(vt_pty_ptr_t, int);
+static int (*ssh_set_use_loopback)(vt_pty_ptr_t, int);
 static int (*ssh_scp)(vt_pty_ptr_t, int, char *, char *);
 static void (*ssh_set_cipher_list)(const char *);
 static void (*ssh_set_keepalive_interval)(u_int);
@@ -68,7 +69,7 @@ static void load_library(void) {
 
   ssh_new = bl_dl_func_symbol(handle, "vt_pty_ssh_new");
   search_ssh_session = bl_dl_func_symbol(handle, "vt_search_ssh_session");
-  set_use_loopback = bl_dl_func_symbol(handle, "vt_pty_set_use_loopback");
+  ssh_set_use_loopback = bl_dl_func_symbol(handle, "vt_pty_ssh_set_use_loopback");
   ssh_scp = bl_dl_func_symbol(handle, "vt_pty_ssh_scp_intern");
   ssh_set_cipher_list = bl_dl_func_symbol(handle, "vt_pty_ssh_set_cipher_list");
   ssh_set_keepalive_interval = bl_dl_func_symbol(handle, "vt_pty_ssh_set_keepalive_interval");
@@ -117,9 +118,9 @@ void *vt_search_ssh_session(const char *host, const char *port, /* can be NULL *
   }
 }
 
-int vt_pty_set_use_loopback(vt_pty_ptr_t pty, int use) {
-  if (set_use_loopback) {
-    return (*set_use_loopback)(pty, use);
+int vt_pty_ssh_set_use_loopback(vt_pty_ptr_t pty, int use) {
+  if (ssh_set_use_loopback) {
+    return (*ssh_set_use_loopback)(pty, use);
   } else {
     return 0;
   }

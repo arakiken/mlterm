@@ -1,3 +1,30 @@
+2018-12-31  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_config_menu.c:
+	  - vt_pty_set_use_loopback() => vt_pty_{ssh|mosh}_set_use_loopback()
+	  - is_mosh is added to vt_config_menu_t.
+
+	* vt_pty.h: If USE_MOSH is defined, ssh2 specific functions are concealed
+
+	* vt_pty_ssh.c: vt_pty_set_use_loopback() => vt_pty_ssh_set_use_loopback()
+
+	* vt_pty_mosh.c: vt_pty_mosh_set_use_loopback() is added.
+
+	* libptymosh/vt_pty_mosh.cpp:
+	  - USE_LIBSSH2 and USE_MOSH are defined explicitly.
+	  - vt_pty_mosh_set_use_loopback() is added.
+	  - Dead lock is fixed in watch_ptys().
+	  - If pty_mosh->initialized is false, pty_mosh->display.open() is
+	    called in read_pty().
+	  - vt_pty_t::slave is -2 instead of -1 to distinguish from ssh.
+	  - Calculation of vt_pty_t::child_pid is fixed.
+
+	* winrs.rs: The size of "Protocol" group box is fixed.
+
+	* servman/main.c, servman/servman.rc:
+	  - mosh protocol (IDD_MOSH) is supported.
+	  - "://" is not regarded as a separator of path.
+
 2018-12-29  Araki Ken  <arakiken@users.sf.net>
 
 	* README.console, README.ja: Updated.

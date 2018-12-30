@@ -9,9 +9,9 @@
 #include <pobl/bl_debug.h>
 
 #ifndef LIBDIR
-#define SSHLIB_DIR "/usr/local/lib/mlterm/"
+#define MOSHLIB_DIR "/usr/local/lib/mlterm/"
 #else
-#define SSHLIB_DIR LIBDIR "/mlterm/"
+#define MOSHLIB_DIR LIBDIR "/mlterm/"
 #endif
 
 #if 0
@@ -22,6 +22,7 @@
 
 static vt_pty_ptr_t (*mosh_new)(const char *, char **, char **, const char *, const char *,
                                 const char *, const char *, u_int, u_int, u_int, u_int);
+static int (*mosh_set_use_loopback)(vt_pty_ptr_t, int);
 
 static int is_tried;
 static bl_dl_handle_t handle;
@@ -31,7 +32,7 @@ static bl_dl_handle_t handle;
 static void load_library(void) {
   is_tried = 1;
 
-  if (!(handle = bl_dl_open(SSHLIB_DIR, "ptymosh")) && !(handle = bl_dl_open("", "ptymosh"))) {
+  if (!(handle = bl_dl_open(MOSHLIB_DIR, "ptymosh")) && !(handle = bl_dl_open("", "ptymosh"))) {
     bl_error_printf("MOSH: Could not load.\n");
 
     return;
@@ -40,6 +41,7 @@ static void load_library(void) {
   bl_dl_close_at_exit(handle);
 
   mosh_new = bl_dl_func_symbol(handle, "vt_pty_mosh_new");
+  mosh_set_use_loopback = bl_dl_func_symbol(handle, "vt_pty_mosh_set_use_loopback");
 }
 
 #endif
@@ -61,4 +63,12 @@ vt_pty_ptr_t vt_pty_mosh_new(const char *cmd_path, char **cmd_argv, char **env, 
 #endif
 
   return NULL;
+}
+
+int vt_pty_mosh_set_use_loopback(vt_pty_ptr_t pty, int use) {
+  if (mosh_set_use_loopback) {
+    return (*mosh_set_use_loopback)(pty, use);
+  } else {
+    return 0;
+  }
 }

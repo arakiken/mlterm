@@ -34,7 +34,7 @@ typedef struct vt_pty {
 
   vt_config_menu_t config_menu;
 
-  struct {
+  struct _stored {
     int master;
     int slave;
     ssize_t (*write)(vt_pty_ptr_t, u_char*, size_t);
@@ -42,7 +42,7 @@ typedef struct vt_pty {
 
     u_int ref_count;
 
-  } * stored;
+  } *stored;
 
   char *cmd_line;
 

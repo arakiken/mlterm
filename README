@@ -80,8 +80,9 @@ Options for configure
     (see http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.ssh)
 
   --with-mosh=(mosh source directory)
-    Enable mosh and specify its source directory.
-    (./configure script should be executed in advance.)
+    Enable mosh and specify its source directory, where ./configure script should
+    be executed in advance.
+    This option is available only if libssh2 is enabled.
 
   --without-pthread
     Don't depend on pthread for secure copy (scp) over ssh.
