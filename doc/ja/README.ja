@@ -231,6 +231,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       なお、あらかじめ mosh の ./configure スクリプトを実行しておいてください。
       また、このオプションは、libssh2 が有効な場合のみ、利用できます。
 
+      libptymosh をバイナリ形式で配布しないでください。
+
     --without-pthread
       ssh サーバとの (doc/en/PROTOCOL の scp コマンドによる) secure copy において
       pthread を使用しません。

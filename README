@@ -83,6 +83,7 @@ Options for configure
     Enable mosh and specify its source directory, where ./configure script should
     be executed in advance.
     This option is available only if libssh2 is enabled.
+    Don't distribute libptymosh in binary format.
 
   --without-pthread
     Don't depend on pthread for secure copy (scp) over ssh.

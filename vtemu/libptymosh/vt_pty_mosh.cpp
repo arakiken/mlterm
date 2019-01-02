@@ -18,6 +18,7 @@ extern "C" {
 #include <pobl/bl_str.h>
 #include <pobl/bl_net.h>
 #include <pobl/bl_locale.h>
+#include <pobl/bl_unistd.h> /* bl_setenv */
 
 #include <arpa/inet.h> /* inet_ntoa */
 #include <pthread.h>
@@ -32,6 +33,7 @@ extern "C" {
 #include <completeterminal.h>
 #include <networktransport.h>
 #include <networktransport-impl.h>
+#include <terminaloverlay.h>
 #include <select.h>
 #include <user.h>
 
@@ -50,6 +52,7 @@ typedef struct vt_pty_mosh {
   Terminal::Framebuffer framebuffer;
   Network::Transport<Network::UserStream, Terminal::Complete> *network;
   Terminal::Display display;
+  Overlay::OverlayManager *overlay;
   bool initialized;
   char *buf;
   size_t buf_len;
@@ -168,6 +171,18 @@ static int unuse_loopback(vt_pty_t *pty) {
   return 1;
 }
 
+static void give_hint_to_overlay(vt_pty_mosh_t *pty_mosh) {
+  pty_mosh->overlay->get_notification_engine().server_heard(
+    pty_mosh->network->get_latest_remote_state().timestamp);
+  pty_mosh->overlay->get_notification_engine().server_acked(
+    pty_mosh->network->get_sent_state_acked_timestamp());
+  pty_mosh->overlay->get_prediction_engine().set_local_frame_acked(
+    pty_mosh->network->get_sent_state_acked());
+  pty_mosh->overlay->get_prediction_engine().set_send_interval(pty_mosh->network->send_interval());
+  pty_mosh->overlay->get_prediction_engine().set_local_frame_late_acked(
+    pty_mosh->network->get_latest_remote_state().state.get_echo_ack());
+}
+
 static void *watch_ptys(void *arg) {
   pthread_detach(pthread_self());
 
@@ -179,7 +194,7 @@ static void *watch_ptys(void *arg) {
     int timeout = 100;
     pthread_mutex_lock(&event_mutex);
     u_int count;
-    int prev_num_ptys = num_ptys;
+    u_int prev_num_ptys = num_ptys;
     for (count = 0; count < num_ptys; count++) {
       std::vector<int> fd_list(ptys[count]->network->fds());
       for (std::vector<int>::const_iterator it = fd_list.begin();
@@ -208,6 +223,7 @@ static void *watch_ptys(void *arg) {
              it != fd_list.end(); it++) {
           if (sel.read(*it)) {
             ptys[count]->network->recv();
+            give_hint_to_overlay(ptys[count]);
             ptys[count]->ready = ready = true;
 
             break;
@@ -242,6 +258,7 @@ static int final(vt_pty_t *pty) {
   }
 
   pthread_mutex_lock(&event_mutex);
+
   u_int count;
   for (count = 0; count < num_ptys; count++) {
     if (ptys[count] == pty_mosh) {
@@ -257,16 +274,23 @@ static int final(vt_pty_t *pty) {
    * (in sel.select()?)
    */
   dead_network = pty_mosh->network;
+
+  delete pty_mosh->overlay;
+
   pthread_mutex_unlock(&event_mutex);
 
   return 1;
 }
 
 static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
+  vt_pty_mosh_t *pty_mosh = (vt_pty_mosh_t*)pty;
+
   pthread_mutex_lock(&event_mutex);
 
-  ((vt_pty_mosh_t*)pty)->network->get_current_state().push_back(Parser::Resize(cols, rows));
-  ((vt_pty_mosh_t*)pty)->network->tick();
+  pty_mosh->network->get_current_state().push_back(Parser::Resize(cols, rows));
+  pty_mosh->network->tick();
+
+  pty_mosh->overlay->get_prediction_engine().reset();
 
   pthread_mutex_unlock(&event_mutex);
 
@@ -274,12 +298,18 @@ static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
 }
 
 static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
+  vt_pty_mosh_t *pty_mosh = (vt_pty_mosh_t*)pty;
+
   pthread_mutex_lock(&event_mutex);
 
+  pty_mosh->overlay->get_prediction_engine().set_local_frame_sent(
+    pty_mosh->network->get_sent_state_last());
+
   for (size_t count = 0; count < len; count++) {
-    ((vt_pty_mosh_t*)pty)->network->get_current_state().push_back(Parser::UserByte(buf[count]));
+    pty_mosh->overlay->get_prediction_engine().new_user_byte(buf[count], pty_mosh->framebuffer);
+    pty_mosh->network->get_current_state().push_back(Parser::UserByte(buf[count]));
   }
-  ((vt_pty_mosh_t*)pty)->network->tick();
+  pty_mosh->network->tick();
 
   pthread_mutex_unlock(&event_mutex);
 
@@ -334,20 +364,27 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   pty_mosh->ready = false;
 
   pthread_mutex_lock(&event_mutex);
-  Terminal::Framebuffer framebuffer(pty_mosh->network->get_latest_remote_state().state.get_fb());
+  Terminal::Framebuffer framebuffer = pty_mosh->network->get_latest_remote_state().state.get_fb();
+  pty_mosh->overlay->apply(framebuffer);
   pthread_mutex_unlock(&event_mutex);
 
   if (!pty_mosh->initialized) {
     /* Put terminal in application-cursor-key mode */
     std::string init_str = pty_mosh->display.open();
 
-    if (init_str.length() <= len) {
+    if (init_str.length() > len) {
+      memcpy(buf, init_str.c_str(), len);
+      if ((pty_mosh->buf = (char*)malloc(init_str.length() - len))) {
+        pty_mosh->buf_len = init_str.length() - len;
+        memcpy(pty_mosh->buf, init_str.c_str() + len, pty_mosh->buf_len);
+      }
+
+      return prev_len + len;
+    } else {
       memcpy(buf, init_str.c_str(), init_str.length());
       prev_len += init_str.length();
       buf += init_str.length();
       len -= init_str.length();
-    } else {
-      /* XXX ignored */
     }
   }
 
@@ -597,9 +634,39 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
 
       Select::set_verbose(0);
 
+      /* see Display::Display() in terminaldisplayinit.cc */
+      char *term = getenv("TERM");
+      if (term == NULL ||
+          (strncmp(term, "xterm", 5) && strncmp(term, "rxvt", 4) &&
+           strncmp(term, "kterm", 5) && strncmp(term, "Eterm", 5) &&
+           strncmp(term, "screen", 6))) {
+        bl_setenv("TERM", "xterm", 1);
+      }
+
       pty->display = Terminal::Display(true);
       pty->initialized = false;
       pty->framebuffer = Terminal::Framebuffer(cols, rows);
+      /* OverlayManager doesn't support operator= */
+      pty->overlay = new Overlay::OverlayManager();
+
+      char *predict_mode;
+      while ((predict_mode = getenv("MOSH_PREDICTION_DISPLAY"))) {
+        Overlay::PredictionEngine::DisplayPreference pref;
+
+        if (strcmp(predict_mode, "always") == 0) {
+          pref = Overlay::PredictionEngine::Always;
+        } else if (strcmp(predict_mode, "never") == 0) {
+          pref = Overlay::PredictionEngine::Never;
+        } else if (strcmp(predict_mode, "adaptive") == 0) {
+          pref = Overlay::PredictionEngine::Adaptive;
+        } else if (strcmp(predict_mode, "experimental") == 0) {
+          pref = Overlay::PredictionEngine::Experimental;
+        } else {
+          break;
+        }
+        pty->overlay->get_prediction_engine().set_display_preference(pref);
+        break;
+      }
 
       pty->pty.final = final;
       pty->pty.set_winsize = set_winsize;
