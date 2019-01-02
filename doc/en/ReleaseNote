@@ -1,5 +1,6 @@
 * Support "[font family]:style=..." format in aafont or font-fb config file.
 * Support mosh. (Experimental) (See doc/en/README.mosh)
+  (Don't distribute libptymosh in binary format.)
 * Clear a window and scroll out all lines if the size of a window decreases
   and some of them disappear.
 * Support "%s" (replaced by selected strings) in "exesel:..." in ~/.mlterm/key.
