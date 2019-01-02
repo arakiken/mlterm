@@ -326,6 +326,8 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "ignore broadcasted characters [false]");
   bl_conf_add_opt(conf, '\0', "emoji", 0, "emoji_path",
                   "emoji directory or file path [~/.mlterm/emoji]");
+  bl_conf_add_opt(conf, '\0', "lew", 0, "local_echo_wait",
+                  "time (msec) to keep local echo mode [250]");
 #ifdef USE_IM_CURSOR_COLOR
   bl_conf_add_opt(conf, '\0', "imcolor", 0, "im_cursor_color",
                   "cursor color when input method is activated. [false]");
@@ -1198,6 +1200,13 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   if ((value = bl_conf_get_value(conf, "use_local_echo"))) {
     if (strcmp(value, "true") == 0) {
       main_config->use_local_echo = 1;
+    }
+  }
+
+  if ((value = bl_conf_get_value(conf, "local_echo_wait"))) {
+    u_int msec;
+    if (bl_str_to_uint(&msec, value)) {
+      vt_set_local_echo_wait(msec);
     }
   }
 

@@ -659,6 +659,10 @@ The maximum value is \fB224\fR.
 Embold glyphs by drawing doubly at 1 pixel leftward instead of rightward.
 The default is \fBfalse\fR.
 .TP
+\fB\-\-lew\fR=\fIvalue\fR
+Specify time (msec) to keep local echo mode.
+The default is \fB250\fR.
+.TP
 \fB\-\-locale\fR=\fIvalue\fR
 Specify locale.
 The default is \fB""\fR.
@@ -1589,6 +1593,9 @@ If you use multiple fonts whose heights are different, adjust this option.
 .TP
 \fBlocale=\fIvalue\fR (\fB\-\-locale\fR)
 Specify locale.
+.TP
+\fBlocal_echo_wait=\fIvalue\fR (\fB\-\-lew\fR)
+Specify time (msec) to keep local echo mode.
 .TP
 \fBlogging_msg=\fIbool\fR (\fB\-\-logmsg\fR)
 Enable logging messages of mlterm to ~/.mlterm/msg[pid].log.

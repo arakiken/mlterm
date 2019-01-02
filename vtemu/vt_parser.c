@@ -212,6 +212,8 @@ static int is_broadcasting;
 
 static int old_drcs_sixel; /* Compatible behavior with RLogin 2.23.0 or before */
 
+static u_int local_echo_wait_msec = 250;
+
 #ifdef USE_LIBSSH2
 static int use_scp_full;
 #endif
@@ -6723,6 +6725,10 @@ void vt_set_secondary_da(char *da) {
   secondary_da = strdup(da);
 }
 
+void vt_set_local_echo_wait(u_int msec) {
+  local_echo_wait_msec = msec;
+}
+
 void vt_parser_final(void) {
   vt_config_proto_final();
 
@@ -6865,7 +6871,7 @@ void vt_parser_set_config_listener(vt_parser_t *vt_parser,
 int vt_parse_vt100_sequence(vt_parser_t *vt_parser) {
   clock_t beg;
 
-  if (vt_screen_local_echo_wait(vt_parser->screen, 500)) {
+  if (vt_screen_local_echo_wait(vt_parser->screen, local_echo_wait_msec)) {
     return 1;
   }
 
@@ -6984,6 +6990,19 @@ int vt_parser_preedit(vt_parser_t *vt_parser, const u_char *buf, size_t len) {
 
 int vt_parser_local_echo(vt_parser_t *vt_parser, const u_char *buf, size_t len) {
   size_t count;
+
+  if (len == 1) {
+    if (vt_parser->prev_local_echo_char == buf[0]) {
+      vt_screen_local_echo_wait(vt_parser->screen, 0);
+      vt_parse_vt100_sequence(vt_parser);
+
+      return 1;
+    } else {
+      vt_parser->prev_local_echo_char = buf[0];
+    }
+  } else {
+    vt_parser->prev_local_echo_char = 0;
+  }
 
   for (count = 0; count < len; count++) {
     if (buf[count] < 0x20) {
@@ -7608,6 +7627,9 @@ int vt_parser_get_config(
     } else {
       value = "false";
     }
+  } else if (strcmp(key, "local_echo_wait") == 0) {
+    sprintf(digit, "%d", local_echo_wait_msec);
+    value = digit;
   } else if (strcmp(key, "challenge") == 0) {
     value = vt_get_proto_challenge();
     if (to_menu < 0) {
@@ -7781,6 +7803,12 @@ int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
 
     if ((flag = true_or_false(value)) != -1) {
       old_drcs_sixel = flag;
+    }
+  } else  if (strcmp(key, "local_echo_wait") == 0) {
+    u_int msec;
+
+    if (bl_str_to_uint(&msec, value)) {
+      local_echo_wait_msec = msec;
     }
   } else {
     /* Continue to process it in x_screen.c */

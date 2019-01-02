@@ -1,3 +1,13 @@
+2019-01-02  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja, PROTOCOL: Updated.
+
+	* ui_main_config.c: "local_echo_wait" / --lew option is added.
+
+	* vt_parser.[ch]:
+	  - vt_set_local_echo_wait() is added.
+	  - "local_echo_wait" is added to OSC 5379-5383.
+
 2018-12-31  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_config_menu.c:
