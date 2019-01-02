@@ -1476,18 +1476,31 @@ int ui_layout_remove_child(ui_layout_t *layout, ui_screen_t *screen) {
         term->next[1]->separator_x = term->separator_x;
       }
     }
+
     term->next[idx2]->yfirst = term->yfirst;
 
     next = term->next[idx2];
 
     if (term->next[!idx2]) {
       struct terminal *parent;
+      int empty_idx;
 
+      /* Search from 'next' for a term whose child is NULL. */
       parent = search_parent_term(next, NULL);
       if (parent->next[!idx2] == NULL) {
-        parent->next[!idx2] = term->next[!idx2];
+        empty_idx = !idx2;
       } else {
-        parent->next[idx2] = term->next[!idx2];
+        empty_idx = idx2;
+      }
+
+      parent->next[empty_idx] = term->next[!idx2];
+      if (empty_idx == 0) {
+        parent->separator_x =
+          get_separator_x(parent->screen,
+                          parent->sb_mode == SBM_NONE ? 0 : SCROLLBAR_WIDTH(parent->scrollbar),
+                          100);
+      } else {
+        parent->separator_y = get_separator_y(parent->screen, 100);
       }
     }
 

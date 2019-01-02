@@ -1,0 +1,26 @@
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
+
+Memo about mosh
+
+* Requirement
+  libssh2
+
+* Build
+  cd /foo/mosh-x.x.x
+  ./configure ...
+
+  cd /bar/mlterm-x.x.x
+  ./configure --with-mosh=/foo/mosh-x.x.x
+  make
+  make install
+
+* Start
+  mlterm --serv=mosh://...
+
+* Environmental Variables
+ - MOSH_SERVER
+   Specify the path of mosh-server in the remote host.
+
+ - MOSH_PREDICTION_DISPLAY
+   Control use of speculative local echo.
+   The value defaults to "adaptive", and can also be "always" or "never".

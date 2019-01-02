@@ -1,5 +1,21 @@
 2019-01-02  Araki Ken  <arakiken@users.sf.net>
 
+	* doc/en/README.mosh: Added.
+
+	* vt_pty_mosh.cpp:
+	  - 'Overlay::OverlayManager *overlay' is added to vt_pty_mosh_t.
+	  - The returned value of pty_mosh->display.open() is always returned
+	    to the caller of read_pty().
+	  - If the value of TERM environmental variable is not "xterm",
+	    "rxvt", "kterm, "Eterm" or "screen", setenv("TERM", "xterm") forcibly
+	    in order to enable to set window or icon title by OSC 0-2.
+	  - MOSH_PREDICTION_DISPLAY environmental variable is supported.
+
+	* ui_layout.c: When parent->next[0] or parent->next[1] is set,
+	  parent->separator_x or parent->separator_y is also set.
+
+2019-01-02  Araki Ken  <arakiken@users.sf.net>
+
 	* man/mlterm.1, README.ja, PROTOCOL: Updated.
 
 	* ui_main_config.c: "local_echo_wait" / --lew option is added.
