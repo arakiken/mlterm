@@ -4,8 +4,10 @@
 * Clear a window and scroll out all lines if the size of a window decreases
   and some of them disappear.
 * Support "%s" (replaced by selected strings) in "exesel:..." in ~/.mlterm/key.
+* Add local_echo_wait / --lew option.
 * Bug fixes:
   Fix https://sourceforge.net/p/mlterm/mailman/message/36472061/
+  Fix segfault in processing illegal sixel sequence.
 
 ver 3.8.7
 * Support sixel graphics extension and option1 of

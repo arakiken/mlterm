@@ -53,7 +53,7 @@ version 20181021
                      use_ot_layout | ot_script | ot_features | regard_uri_as_word | vt_color_mode |
                      console_encoding | console_sixel_colors | borderless | underline_offset |
                      baseline_offset | trim_trailing_newline_in_pasting | use_vertical_cursor |
-                     click_interval | emoji_path
+                     click_interval | emoji_path | use_local_echo | local_echo_wait
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
@@ -73,7 +73,8 @@ version 20181021
                      auto_detect_encodings | use_auto_detect | use_ot_layout | ot_script |
                      ot_features | regard_uri_as_word | borderless | use_aafont | underline_offset |
                      baseline_offset | trim_trailing_newline_in_pasting | fontconfig |
-                     use_vertical_cursor | click_interval | emoji_path
+                     use_vertical_cursor | click_interval | emoji_path | use_local_echo |
+                     local_echo_wait
 
                    (*): Works in "proto:xxxx" in ~/.mlterm/key.
 
@@ -122,6 +123,7 @@ version 20181021
   it_color = <color name> | <color rgb>
   line_space = <any ASCII decimal digit>
   locale = <locale name>
+  local_echo_wait = <any ASCII decimal digit>
   logsize = <any ASCII decimal digit>
   mod_meta_key = none | mod1 | mod2 | mod3 | mod4 | meta | alt | super | hyper
   mod_meta_mode = none | esc | 8bit
@@ -161,6 +163,7 @@ version 20181021
   use_combining = true | false | switch
   use_italic_font = true | false | switch
   use_dynamic_comb = true | false | switch
+  use_local_echo = true | false | switch
   use_multi_column_char = true | false | switch
   use_ot_layout = true | false | switch
   use_transbg = true | false | switch

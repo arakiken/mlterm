@@ -984,6 +984,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o use_local_echo (true/*false*) (#)
         local echo mode を有効にする。
 
+      o local_echo_wait (250)
+        local echo 状態を保持する時間 (ミリ秒)
+
       o use_alt_buffer (*true*/false)
         Alternate screen buffer を有効にする。
         xterm の "titeInhibit" 相当のオプションですが、"titeInhibit" とは、

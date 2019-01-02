@@ -268,6 +268,7 @@ typedef struct vt_parser {
   int8_t modify_cursor_keys;
   int8_t modify_function_keys;
   int8_t modify_other_keys;
+  u_char prev_local_echo_char;
 
   /* Used for non iso2022 encoding */
   ef_charset_t gl;
@@ -337,6 +338,8 @@ void vt_set_timeout_read_pty(u_long timeout);
 void vt_set_primary_da(char *da);
 
 void vt_set_secondary_da(char *da);
+
+void vt_set_local_echo_wait(u_int msec);
 
 #define vt_parser_init vt_config_proto_init
 
