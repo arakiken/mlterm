@@ -1,3 +1,10 @@
+2019-01-03  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_pty_mosh.cpp: read_pty() is called within at least 500 msec to
+	  show notification message such as "Last contact N seconds ago.".
+
+	* README.android: The way of building mlterm for android is added.
+
 2019-01-02  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.mosh: Added.
