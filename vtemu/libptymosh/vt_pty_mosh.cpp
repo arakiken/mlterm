@@ -188,6 +188,7 @@ static void *watch_ptys(void *arg) {
 
   Select &sel = Select::get_instance();
 
+  int total_timeout = 0;
   while (num_ptys > 0) {
     sel.clear_fds();
 
@@ -236,6 +237,21 @@ static void *watch_ptys(void *arg) {
       dead_network = NULL;
     }
     pthread_mutex_unlock(&event_mutex);
+
+    if (!ready) {
+      total_timeout += timeout;
+
+      if (total_timeout >= 500) {
+        total_timeout = 0;
+
+        ready = true;
+        for (count = 0; count < num_ptys; count++) {
+          ptys[count]->ready = true;
+        }
+      }
+    } else {
+      total_timeout = 0;
+    }
 
     if (ready && !event_in_pipe) {
       event_in_pipe = true;
@@ -363,11 +379,6 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   }
   pty_mosh->ready = false;
 
-  pthread_mutex_lock(&event_mutex);
-  Terminal::Framebuffer framebuffer = pty_mosh->network->get_latest_remote_state().state.get_fb();
-  pty_mosh->overlay->apply(framebuffer);
-  pthread_mutex_unlock(&event_mutex);
-
   if (!pty_mosh->initialized) {
     /* Put terminal in application-cursor-key mode */
     std::string init_str = pty_mosh->display.open();
@@ -387,6 +398,11 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
       len -= init_str.length();
     }
   }
+
+  pthread_mutex_lock(&event_mutex);
+  Terminal::Framebuffer framebuffer = pty_mosh->network->get_latest_remote_state().state.get_fb();
+  pty_mosh->overlay->apply(framebuffer);
+  pthread_mutex_unlock(&event_mutex);
 
   std::string update = pty_mosh->display.new_frame(pty_mosh->initialized, pty_mosh->framebuffer,
                                                    framebuffer);
@@ -667,6 +683,12 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
         pty->overlay->get_prediction_engine().set_display_preference(pref);
         break;
       }
+
+#if 0
+      if (!getenv("MOSH_TITLE_NOPREFIX")) {
+        pty->overlay->set_title_prefix(wstring(L"[mosh] "));
+      }
+#endif
 
       pty->pty.final = final;
       pty->pty.set_winsize = set_winsize;

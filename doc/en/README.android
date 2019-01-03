@@ -13,6 +13,12 @@ Android support
 * Configuration
   Place configuration files (see README.fb in detail) in /sdcard/.mlterm/.
 
+* Build
+  ./prepare.sh /foo/bar
+  cd /foo/bar
+  ./build.sh
+  => Install bin/mlterm-release-unsigned.apk to Android.
+
 * Note
   o Available font formats are pcf and ttf.
   o mlterm uses /system/fonts/DroidSansMono.ttf by default.
