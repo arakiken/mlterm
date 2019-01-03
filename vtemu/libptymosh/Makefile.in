@@ -16,7 +16,7 @@ CFLAGS = $(CFLAGS_LOCAL) -D_GNU_SOURCE @DEB_CFLAGS@ @POBL_CFLAGS@ @MEF_CFLAGS@ @
 	-I$(MOSH_DIR)/src/util -I$(MOSH_DIR)/src/terminal -I$(MOSH_DIR)/src/statesync \
 	-I$(MOSH_DIR)/src/frontend
 
-LIBS = $(LIBS_LOCAL) @LPOBL@ ../libptyssh/libptyssh.la -lncursesw -lprotobuf -pthread -lz -lcrypto
+LIBS = $(LIBS_LOCAL) @LPOBL@ ../libptyssh/libptyssh.la -lprotobuf -pthread -lz -lcrypto
 
 PROTO = userinput.pb.cc hostinput.pb.cc transportinstruction.pb.cc
 OBJ = vt_pty_mosh.o compressor.o network.o transportfragment.o base64.o crypto.o ocb.o \

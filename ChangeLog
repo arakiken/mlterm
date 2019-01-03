@@ -1,5 +1,14 @@
 2019-01-03  Araki Ken  <arakiken@users.sf.net>
 
+	* libptymosh/Makefile.in: -lncursesw is removed.
+
+	* libptymosh/terminaldisplayinit.cc: Added.
+
+	* vt_pty_mosh.cpp: Warn if the value of "termtype" option is "kterm" or
+	  "mlterm" which doesn't support bce.
+
+2019-01-03  Araki Ken  <arakiken@users.sf.net>
+
 	* vt_pty_mosh.cpp: read_pty() is called within at least 500 msec to
 	  show notification message such as "Last contact N seconds ago.".
 

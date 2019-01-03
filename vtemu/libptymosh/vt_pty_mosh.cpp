@@ -45,6 +45,16 @@ extern "C" {
 #define TEST_BY_SSH
 #endif
 
+/*
+ * Following 3 steps allow you to use original terminaldisplayinit.cc.
+ * 1) Remove terminaldisplayinit.cc here.
+ * 2) #if 0 => #if 1 (define USE_ORIG_TERMINALDISPLAYINIT
+ * 3) Add -lncursesw to Makefile.in
+ */
+#if 0
+#define USE_ORIG_TERMINALDISPLAYINIT
+#endif
+
 typedef struct vt_pty_mosh {
   vt_pty_t pty;
 
@@ -529,6 +539,14 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
     for (env_count = 0; env[env_count]; env_count++) {
       /* "COLORFGBG=default;default" breaks following environmental variables. */
       if (!strchr(env[env_count], ';')) {
+#ifndef USE_ORIG_TERMINALDISPLAYINIT
+        if (strncmp(env[env_count], "TERM=", 5) == 0 &&
+            (strcmp(env[env_count] + 5, "mlterm") == 0 ||
+             strcmp(env[env_count] + 5, "kterm") == 0)) {
+          bl_msg_printf("mlterm's mosh doesn't support %s which disables bce.\n", env[env_count]);
+        }
+#endif
+
         *(argv_p++) = "-l";
         *(argv_p++) = env[env_count];
       }
@@ -650,7 +668,8 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
 
       Select::set_verbose(0);
 
-      /* see Display::Display() in terminaldisplayinit.cc */
+#ifdef USE_ORIG_TERMINALDISPLAYINIT
+      /* see Display::Display() in mosh-x.x.x/src/terminal/terminaldisplayinit.cc */
       char *term = getenv("TERM");
       if (term == NULL ||
           (strncmp(term, "xterm", 5) && strncmp(term, "rxvt", 4) &&
@@ -658,6 +677,7 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
            strncmp(term, "screen", 6))) {
         bl_setenv("TERM", "xterm", 1);
       }
+#endif
 
       pty->display = Terminal::Display(true);
       pty->initialized = false;
