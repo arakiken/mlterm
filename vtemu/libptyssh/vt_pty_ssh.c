@@ -894,10 +894,12 @@ static int scp_stop(vt_pty_ssh_t *pty_ssh) {
 }
 
 #ifdef USE_WIN32API
+/* Same as vt_pty_mosh.cpp */
 static ssize_t lo_recv_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   return recv(pty->master, buf, len, 0);
 }
 
+/* Same as vt_pty_mosh.cpp */
 static ssize_t lo_send_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   if (len == 1 && buf[0] == '\x03') {
     /* ^C */
@@ -912,12 +914,13 @@ static ssize_t lo_send_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   return send(pty->slave, buf, len, 0);
 }
 
+/* Same as vt_pty_mosh.cpp */
 static int _socketpair(int af, int type, int proto, SOCKET sock[2]) {
   SOCKET listen_sock;
   SOCKADDR_IN addr;
   int addr_len;
 
-  if ((listen_sock = WSASocket(af, type, proto, NULL, 0, 0)) == -1) {
+  if ((listen_sock = WSASocket(af, type, proto, NULL, 0, 0)) == INVALID_SOCKET) {
     return -1;
   }
 
@@ -941,7 +944,7 @@ static int _socketpair(int af, int type, int proto, SOCKET sock[2]) {
   }
 
   /* select() and receive() can call simultaneously on java. */
-  if ((sock[0] = WSASocket(af, type, proto, NULL, 0, WSA_FLAG_OVERLAPPED)) == -1) {
+  if ((sock[0] = WSASocket(af, type, proto, NULL, 0, WSA_FLAG_OVERLAPPED)) == INVALID_SOCKET) {
     goto error1;
   }
 
@@ -1877,7 +1880,7 @@ static char *get_user_name(void) {
 /* --- global functions --- */
 
 #ifdef USE_WIN32API
-void vt_pty_set_pty_read_trigger(void (*func)(void)) {
+void vt_pty_ssh_set_pty_read_trigger(void (*func)(void)) {
   trigger_pty_read = func;
 }
 #endif

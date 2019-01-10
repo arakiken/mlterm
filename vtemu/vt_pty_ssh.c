@@ -42,6 +42,9 @@ static int (*ssh_poll)(void *);
 static u_int (*ssh_get_x11_fds)(int **);
 static int (*ssh_send_recv_x11)(int, int);
 static void (*ssh_set_use_auto_reconnect)(int);
+#ifdef USE_WIN32API
+static int (*ssh_set_pty_read_trigger)(void (*func)(void));
+#endif
 
 static int is_tried;
 static bl_dl_handle_t handle;
@@ -53,6 +56,10 @@ static bl_dl_handle_t handle;
  */
 static u_int keepalive_interval_sec;
 static int auto_reconnect;
+
+#ifdef USE_WIN32API
+static void (*trigger_pty_read)(void);
+#endif
 
 /* --- static functions --- */
 
@@ -89,6 +96,13 @@ static void load_library(void) {
     vt_pty_ssh_set_use_auto_reconnect(1);
     auto_reconnect = 0;
   }
+
+#ifdef USE_WIN32API
+  ssh_set_pty_read_trigger = bl_dl_func_symbol(handle, "vt_pty_ssh_set_pty_read_trigger");
+  if (trigger_pty_read) {
+    vt_pty_ssh_set_pty_read_trigger(trigger_pty_read);
+  }
+#endif
 }
 
 /* --- global functions --- */
@@ -197,6 +211,17 @@ void vt_pty_ssh_set_use_auto_reconnect(int use) {
     (*ssh_set_use_auto_reconnect)(use);
   }
 }
+
+#ifdef USE_WIN32API
+void vt_pty_ssh_set_pty_read_trigger(void (*func)(void)) {
+  /* This function can be called before vt_pty_ssh_new() */
+  if (!is_tried) {
+    trigger_pty_read = func;
+  } else if (ssh_set_pty_read_trigger) {
+    (*ssh_set_pty_read_trigger)(func);
+  }
+}
+#endif
 
 #endif /* NO_DYNAMIC_LOAD_SSH */
 
