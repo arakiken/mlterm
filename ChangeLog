@@ -1,3 +1,31 @@
+2019-01-10  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_pty_ssh.c: vt_pty_ssh_set_pty_read_trigger() is added.
+
+	* libptyssh/vt_pty_ssh.c: vt_pty_set_pty_read_trigger() is renamed to
+	  vt_pty_ssh_set_pty_read_trigger().
+
+	* vt_pty_mosh.cpp:
+	  - 'static pthread_cond_t event_cond' is added to synchronize
+	    the main thread and watch_ptys thread.
+	  - wcwidth(), convert_utf8_to_ucs() and convert_ucs_to_utf8() are
+	    added for terminal.cc, terminaloverlay.cc, parser.cc and
+	    terminalframebuffer.h on win32.
+	  - use_loopback() and unuse_loopback() support win32.
+	  - Select of mosh-x.x.x/src/util/select.h is replaced by
+	    select(2).
+	  - final() calls unuse_loopback().
+	  - vt_pty_mosh_set_pty_read_trigger() is added.
+
+	* libptymosh/Makefile.in: select.o is removed from OBJ.
+
+	* configure.in:
+	  - If --with-mosh is specified on win32, ssh2 and mosh features are
+	    built as modules.
+	  - PKG_CHECK_MODULES(protobuf) is added.
+
+	* version.h: 3.8.6 -> 3.8.7
+
 2019-01-03  Araki Ken  <arakiken@users.sf.net>
 
 	* libptymosh/Makefile.in: -lncursesw is removed.

@@ -10,6 +10,21 @@ extern "C" {
 #include <string.h> /* strchr/memcpy */
 #include <fcntl.h>
 #include <stdlib.h>
+
+#include <pthread.h>
+
+#ifdef USE_WIN32API
+#include <winsock2.h> /* inet_ntoa (winsock2.h should be included before windows.h) */
+#include <mef/ef_ucs_property.h>
+#else
+#include <sys/select.h>
+#include <arpa/inet.h> /* inet_ntoa */
+#endif
+
+#ifdef __CYGWIN__
+#include <sys/wait.h> /* waitpid */
+#endif
+
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h> /* malloc */
 #include <pobl/bl_path.h>   /* bl_basename */
@@ -19,13 +34,6 @@ extern "C" {
 #include <pobl/bl_net.h>
 #include <pobl/bl_locale.h>
 #include <pobl/bl_unistd.h> /* bl_setenv */
-
-#include <arpa/inet.h> /* inet_ntoa */
-#include <pthread.h>
-
-#ifdef __CYGWIN__
-#include <sys/wait.h> /* waitpid */
-#endif
 }
 
 #include <fatal_assert.h>
@@ -34,8 +42,8 @@ extern "C" {
 #include <networktransport.h>
 #include <networktransport-impl.h>
 #include <terminaloverlay.h>
-#include <select.h>
 #include <user.h>
+#include <timestamp.h>
 
 #if 0
 #define __DEBUG
@@ -76,12 +84,272 @@ static vt_pty_mosh_t **ptys;
 static u_int num_ptys;
 static Network::Transport<Network::UserStream, Terminal::Complete> *dead_network;
 
-static int fds[2];
-static bool event_in_pipe = false;
+#ifdef USE_WIN32API
+static void (*trigger_pty_read)(void);
+#else
+static int event_fds[2];
+#endif
+static int event_in_pipe;
+static pthread_cond_t event_cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t event_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* --- static functions --- */
 
+#ifdef USE_WIN32API
+int wcwidth(wchar_t ch) {
+  ef_property_t prop = ef_get_ucs_property(ch);
+
+  if (prop & (EF_FULLWIDTH /*| EF_AWIDTH*/)) {
+    return 2;
+  } else if (prop & EF_COMBINING) {
+    return 0;
+  } else {
+    return 1;
+  }
+}
+
+/*
+ * Return value
+ * -1: utf8_ch is invalid.
+ * -2: utf8_ch is insufficient.
+ */
+size_t convert_utf8_to_ucs(u_int32_t *ucs_ch, u_char *utf8_ch, size_t len) {
+  if ((utf8_ch[0] & 0xc0) == 0x80) {
+    return (size_t) -1;
+  } else if ((utf8_ch[0] & 0x80) == 0) {
+    *ucs_ch = utf8_ch[0];
+
+    return 1;
+  } else if ((utf8_ch[0] & 0xe0) == 0xc0) {
+    if (len < 2) {
+      return (size_t) -2;
+    }
+
+    if (utf8_ch[1] < 0x80) {
+      return (size_t) -1;
+    }
+
+    *ucs_ch = (((utf8_ch[0] & 0x1f) << 6) & 0xffffffc0) | (utf8_ch[1] & 0x3f);
+
+    if (*ucs_ch < 0x80) {
+      return (size_t) -1;
+    }
+
+    return 2;
+  } else if ((utf8_ch[0] & 0xf0) == 0xe0) {
+    if (len < 3) {
+      return (size_t) -2;
+    }
+
+    if (utf8_ch[1] < 0x80 || utf8_ch[2] < 0x80) {
+      return (size_t) -1;
+    }
+
+    *ucs_ch = (((utf8_ch[0] & 0x0f) << 12) & 0xffff000) |
+              (((utf8_ch[1] & 0x3f) << 6) & 0xffffffc0) | (utf8_ch[2] & 0x3f);
+
+    if (*ucs_ch < 0x800) {
+      return (size_t) -1;
+    }
+
+    return 3;
+  } else if ((utf8_ch[0] & 0xf8) == 0xf0) {
+    if (len < 4) {
+      return (size_t) -2;
+    }
+
+    if (utf8_ch[1] < 0x80 || utf8_ch[2] < 0x80 || utf8_ch[3] < 0x80) {
+      return (size_t) -1;
+    }
+
+    *ucs_ch = (((utf8_ch[0] & 0x07) << 18) & 0xfffc0000) |
+              (((utf8_ch[1] & 0x3f) << 12) & 0xffff000) |
+              (((utf8_ch[2] & 0x3f) << 6) & 0xffffffc0) | (utf8_ch[3] & 0x3f);
+
+    if (*ucs_ch < 0x10000) {
+      return (size_t) -1;
+    }
+
+    return 4;
+  } else if ((utf8_ch[0] & 0xfc) == 0xf8) {
+    if (len < 5) {
+      return (size_t) -2;
+    }
+
+    if (utf8_ch[1] < 0x80 || utf8_ch[2] < 0x80 || utf8_ch[3] < 0x80 || utf8_ch[4] < 0x80) {
+      return (size_t) -1;
+    }
+
+    *ucs_ch = (((utf8_ch[0] & 0x03) << 24) & 0xff000000) |
+              (((utf8_ch[1] & 0x3f) << 18) & 0xfffc0000) |
+              (((utf8_ch[2] & 0x3f) << 12) & 0xffff000) |
+              (((utf8_ch[3] & 0x3f) << 6) & 0xffffffc0) | (utf8_ch[4] & 0x3f);
+
+    if (*ucs_ch < 0x200000) {
+      return (size_t) -1;
+    }
+
+    return 5;
+  } else if ((utf8_ch[0] & 0xfe) == 0xfc) {
+    if (len < 6) {
+      return (size_t) -2;
+    }
+
+    if (utf8_ch[1] < 0x80 || utf8_ch[2] < 0x80 || utf8_ch[3] < 0x80 || utf8_ch[4] < 0x80 ||
+        utf8_ch[5] < 0x80) {
+      return (size_t) -1;
+    }
+
+    *ucs_ch =
+        (((utf8_ch[0] & 0x01 << 30) & 0xc0000000)) | (((utf8_ch[1] & 0x3f) << 24) & 0xff000000) |
+        (((utf8_ch[2] & 0x3f) << 18) & 0xfffc0000) | (((utf8_ch[3] & 0x3f) << 12) & 0xffff000) |
+        (((utf8_ch[4] & 0x3f) << 6) & 0xffffffc0) | (utf8_ch[4] & 0x3f);
+
+    if (*ucs_ch < 0x4000000) {
+      return (size_t) -1;
+    }
+
+    return 6;
+  } else {
+    return (size_t) -1;
+  }
+}
+
+/*
+ * Return value
+ * -1: ucs_ch is invalid.
+ * -2: utf8_ch is insufficient.
+ */
+size_t convert_ucs_to_utf8(u_char *utf8, size_t len, u_int32_t ucs_ch) {
+  if (/* 0x00 <= ucs_ch && */ ucs_ch <= 0x7f) {
+    utf8[0] = ucs_ch;
+
+    return 1;
+  } else if (ucs_ch <= 0x07ff) {
+    if (len < 2) {
+      return (size_t) -2;
+    }
+
+    utf8[0] = ((ucs_ch >> 6) & 0xff) | 0xc0;
+    utf8[1] = (ucs_ch & 0x3f) | 0x80;
+
+    return 2;
+  } else if (ucs_ch <= 0xffff) {
+    if (len < 3) {
+      return (size_t) -2;
+    }
+
+    utf8[0] = ((ucs_ch >> 12) & 0x0f) | 0xe0;
+    utf8[1] = ((ucs_ch >> 6) & 0x3f) | 0x80;
+    utf8[2] = (ucs_ch & 0x3f) | 0x80;
+
+    return 3;
+  } else if (ucs_ch <= 0x1fffff) {
+    if (len < 4) {
+      return (size_t) -2;
+    }
+
+    utf8[0] = ((ucs_ch >> 18) & 0x07) | 0xf0;
+    utf8[1] = ((ucs_ch >> 12) & 0x3f) | 0x80;
+    utf8[2] = ((ucs_ch >> 6) & 0x3f) | 0x80;
+    utf8[3] = (ucs_ch & 0x3f) | 0x80;
+
+    return 4;
+  } else if (ucs_ch <= 0x03ffffff) {
+    if (len < 5) {
+      return (size_t) -2;
+    }
+
+    utf8[0] = ((ucs_ch >> 24) & 0x03) | 0xf8;
+    utf8[1] = ((ucs_ch >> 18) & 0x3f) | 0x80;
+    utf8[2] = ((ucs_ch >> 12) & 0x3f) | 0x80;
+    utf8[4] = ((ucs_ch >> 6) & 0x3f) | 0x80;
+    utf8[5] = (ucs_ch & 0x3f) | 0x80;
+
+    return 5;
+  } else if (ucs_ch <= 0x7fffffff) {
+    if (len < 6) {
+      return (size_t) -2;
+    }
+
+    utf8[0] = ((ucs_ch >> 30) & 0x01) | 0xfc;
+    utf8[1] = ((ucs_ch >> 24) & 0x3f) | 0x80;
+    utf8[2] = ((ucs_ch >> 18) & 0x3f) | 0x80;
+    utf8[3] = ((ucs_ch >> 12) & 0x3f) | 0x80;
+    utf8[4] = ((ucs_ch >> 6) & 0x3f) | 0x80;
+    utf8[5] = (ucs_ch & 0x3f) | 0x80;
+
+    return 6;
+  } else {
+    return (size_t) -1;
+  }
+}
+
+/* Same as vt_pty_ssh.cpp */
+static ssize_t lo_recv_pty(vt_pty_t *pty, u_char *buf, size_t len) {
+  return recv(pty->master, (char*)buf, len, 0);
+}
+
+/* Same as vt_pty_ssh.cpp */
+static ssize_t lo_send_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
+  return send(pty->slave, (char*)buf, len, 0);
+}
+
+/* Same as vt_pty_ssh.cpp */
+static int _socketpair(int af, int type, int proto, SOCKET sock[2]) {
+  SOCKET listen_sock;
+  SOCKADDR_IN addr;
+  int addr_len;
+
+  if ((listen_sock = WSASocket(af, type, proto, NULL, 0, 0)) == INVALID_SOCKET) {
+    return -1;
+  }
+
+  addr_len = sizeof(addr);
+
+  memset((void *)&addr, 0, sizeof(addr));
+  addr.sin_family = af;
+  addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+  addr.sin_port = 0;
+
+  if (bind(listen_sock, (SOCKADDR *)&addr, addr_len) != 0) {
+    goto error1;
+  }
+
+  if (getsockname(listen_sock, (SOCKADDR *)&addr, &addr_len) != 0) {
+    goto error1;
+  }
+
+  if (listen(listen_sock, 1) != 0) {
+    goto error1;
+  }
+
+  /* select() and receive() can call simultaneously on java. */
+  if ((sock[0] = WSASocket(af, type, proto, NULL, 0, WSA_FLAG_OVERLAPPED)) == INVALID_SOCKET) {
+    goto error1;
+  }
+
+  if (connect(sock[0], (SOCKADDR *)&addr, addr_len) != 0) {
+    goto error2;
+  }
+
+  if ((sock[1] = accept(listen_sock, 0, 0)) == INVALID_SOCKET) {
+    goto error2;
+  }
+
+  closesocket(listen_sock);
+
+  return 0;
+
+error2:
+  closesocket(sock[0]);
+
+error1:
+  closesocket(listen_sock);
+
+  return -1;
+}
+#endif /* USE_WIN32API */
 
 #ifdef __CYGWIN__
 static int check_sig_child(pid_t pid) {
@@ -141,13 +409,31 @@ static int use_loopback(vt_pty_t *pty) {
   pty->stored->read = pty->read;
   pty->stored->write = pty->write;
 
+#ifdef USE_WIN32API
+  if (_socketpair(AF_INET, SOCK_STREAM, 0, (SOCKET*)fds) == 0) {
+    u_long val;
+
+    val = 1;
+    ioctlsocket(fds[0], FIONBIO, &val);
+    val = 1;
+    ioctlsocket(fds[1], FIONBIO, &val);
+
+    pty->read = lo_recv_pty;
+    pty->write = lo_send_to_pty;
+  } else if (_pipe(fds, 256, O_BINARY) == 0) {
+    pty->read = lo_read_pty;
+    pty->write = lo_write_to_pty;
+  }
+#else
   if (pipe(fds) == 0) {
     fcntl(fds[0], F_SETFL, O_NONBLOCK | fcntl(pty->master, F_GETFL, 0));
     fcntl(fds[1], F_SETFL, O_NONBLOCK | fcntl(pty->slave, F_GETFL, 0));
 
     pty->read = lo_read_pty;
     pty->write = lo_write_to_pty;
-  } else {
+  }
+#endif
+  else {
     free(pty->stored);
     pty->stored = NULL;
 
@@ -167,8 +453,16 @@ static int unuse_loopback(vt_pty_t *pty) {
     return 0;
   }
 
-  close(pty->slave);
-  close(pty->master);
+#ifdef USE_WIN32API
+  if (pty->read == lo_recv_pty) {
+    closesocket(pty->slave);
+    closesocket(pty->master);
+  } else
+#endif
+  {
+    close(pty->slave);
+    close(pty->master);
+  }
 
   pty->master = pty->stored->master;
   pty->slave = pty->stored->slave;
@@ -196,13 +490,14 @@ static void give_hint_to_overlay(vt_pty_mosh_t *pty_mosh) {
 static void *watch_ptys(void *arg) {
   pthread_detach(pthread_self());
 
-  Select &sel = Select::get_instance();
-
   int total_timeout = 0;
   while (num_ptys > 0) {
-    sel.clear_fds();
-
     int timeout = 100;
+    int maxfd = 0;
+    fd_set fds;
+
+    FD_ZERO(&fds);
+
     pthread_mutex_lock(&event_mutex);
     u_int count;
     u_int prev_num_ptys = num_ptys;
@@ -210,7 +505,10 @@ static void *watch_ptys(void *arg) {
       std::vector<int> fd_list(ptys[count]->network->fds());
       for (std::vector<int>::const_iterator it = fd_list.begin();
            it != fd_list.end(); it++) {
-        sel.add_fd(*it);
+        FD_SET(*it, &fds);
+        if (*it > maxfd) {
+          maxfd = *it;
+        }
       }
 
       int wait = ptys[count]->network->wait_time();
@@ -220,24 +518,31 @@ static void *watch_ptys(void *arg) {
     }
     pthread_mutex_unlock(&event_mutex);
 
-    if (sel.select(timeout) < 0) {
+    struct timeval tv;
+    tv.tv_usec = timeout * 1000;
+    tv.tv_sec = 0;
+    int sel_result = select(maxfd + 1, &fds, NULL, NULL, &tv);
+    if (sel_result < 0) {
       break;
     }
+    freeze_timestamp();
 
     bool ready = false;
 
     pthread_mutex_lock(&event_mutex);
     if (prev_num_ptys == num_ptys) {
       for (count = 0; count < num_ptys; count++) {
-        std::vector<int> fd_list(ptys[count]->network->fds());
-        for (std::vector<int>::const_iterator it = fd_list.begin();
-             it != fd_list.end(); it++) {
-          if (sel.read(*it)) {
-            ptys[count]->network->recv();
-            give_hint_to_overlay(ptys[count]);
-            ptys[count]->ready = ready = true;
+        if (sel_result > 0) {
+          std::vector<int> fd_list(ptys[count]->network->fds());
+          for (std::vector<int>::const_iterator it = fd_list.begin();
+               it != fd_list.end(); it++) {
+            if (FD_ISSET(*it, &fds)) {
+              ptys[count]->network->recv();
+              give_hint_to_overlay(ptys[count]);
+              ptys[count]->ready = ready = true;
 
-            break;
+              break;
+            }
           }
         }
         ptys[count]->network->tick();
@@ -263,21 +568,35 @@ static void *watch_ptys(void *arg) {
       total_timeout = 0;
     }
 
-    if (ready && !event_in_pipe) {
+    if (ready) {
+      pthread_mutex_lock(&event_mutex);
+      while (event_in_pipe) {
+        pthread_cond_wait(&event_cond, &event_mutex);
+      }
       event_in_pipe = true;
-      write(fds[1], "G", 1);
-      fsync(fds[1]);
+      pthread_mutex_unlock(&event_mutex);
+
+#ifdef USE_WIN32API
+      (*trigger_pty_read)();
+#else
+      write(event_fds[1], "G", 1);
+      fsync(event_fds[1]);
+#endif
     }
   }
 
-  close(fds[0]);
-  close(fds[1]);
+#ifndef USE_WIN32API
+  close(event_fds[0]);
+  close(event_fds[1]);
+#endif
 
   return NULL;
 }
 
 static int final(vt_pty_t *pty) {
   vt_pty_mosh_t *pty_mosh = (vt_pty_mosh_t*)pty;
+
+  unuse_loopback(pty);
 
   if (pty_mosh->buf_len > 0) {
     free(pty_mosh->buf);
@@ -297,7 +616,7 @@ static int final(vt_pty_t *pty) {
   }
   /*
    * If delete pty_mosh->network here, watch_ptys() might fall into infinite loop.
-   * (in sel.select()?)
+   * (in select()?)
    */
   dead_network = pty_mosh->network;
 
@@ -346,9 +665,16 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   vt_pty_mosh_t *pty_mosh = (vt_pty_mosh_t*)pty;
 
   if (event_in_pipe) {
+#ifndef USE_WIN32API
     char dummy[16];
-    if (read(fds[0], dummy, sizeof(dummy)) > 0) {
+
+    if (read(event_fds[0], dummy, sizeof(dummy)) > 0)
+#endif
+    {
+      pthread_mutex_lock(&event_mutex);
+      pthread_cond_signal(&event_cond);
       event_in_pipe = false;
+      pthread_mutex_unlock(&event_mutex);
     }
   }
 
@@ -434,6 +760,12 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
 
 /* --- global functions --- */
 
+#ifdef USE_WIN32API
+void vt_pty_mosh_set_pty_read_trigger(void (*func)(void)) {
+  trigger_pty_read = func;
+}
+#endif
+
 vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not exec'ed. */
                           char **cmd_argv,      /* can be NULL(only if cmd_path is NULL) */
                           char **env,           /* can be NULL */
@@ -505,6 +837,7 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
 #else
   char *base_argv[] = { "mosh-server", "new", "-c", "256", "-s", "-l", "LANG=en_US.UTF-8", NULL };
 
+#ifndef USE_WIN32API
   char *locale;
   /* The default locale is C.UTF-8 on cygwin. */
   if ((locale = bl_get_locale()) && strncmp(locale, "C.", 2) != 0) {
@@ -514,6 +847,7 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
       base_argv[6] = p;
     }
   }
+#endif
 
   char *mosh_server = getenv("MOSH_SERVER");
   if (mosh_server) {
@@ -666,8 +1000,6 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
 
       pthread_mutex_unlock(&event_mutex);
 
-      Select::set_verbose(0);
-
 #ifdef USE_ORIG_TERMINALDISPLAYINIT
       /* see Display::Display() in mosh-x.x.x/src/terminal/terminaldisplayinit.cc */
       char *term = getenv("TERM");
@@ -735,14 +1067,18 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
         ptys = (vt_pty_mosh_t**)p;
         ptys[num_ptys++] = pty;
         if (num_ptys == 1) {
-          pipe(fds);
+#ifndef USE_WIN32API
+          pipe(event_fds);
+#endif
 
           pthread_t thrd;
           pthread_create(&thrd, NULL, watch_ptys, NULL);
         }
       }
 
-      pty->pty.master = fds[0];
+#ifndef USE_WIN32API
+      pty->pty.master = event_fds[0];
+#endif
       pty->pty.slave = -2; /* -1: SSH */
 
       return &pty->pty;

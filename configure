@@ -737,9 +737,11 @@ VTE_LIBS
 VTE_CFLAGS
 INSTALL_OPT
 UTMP_CFLAGS
+MOSH_DIR
 VT_PTY_OBJ
 SSH2_LIBS_FOR_PROG
-MOSH_DIR
+PROTOBUF_LIBS
+PROTOBUF_CFLAGS
 SSH2_LIBS
 SSH2_CFLAGS
 PROG
@@ -1000,6 +1002,8 @@ HB_CFLAGS
 HB_LIBS
 SSH2_CFLAGS
 SSH2_LIBS
+PROTOBUF_CFLAGS
+PROTOBUF_LIBS
 VTE_CFLAGS
 VTE_LIBS
 SDL_CFLAGS
@@ -1698,7 +1702,7 @@ Optional Packages:
   --with-imagelib[=ARG]   image library (gdk-pixbuf) [default=no]
   --without-pthread       don't use pthread [default=with]
   --with-type-engines[=ARG] type engines (xcore, xft, cairo) [default=xcore,xft,cairo]
-  --with-mosh[=ARG]       The directory where mosh is built.
+  --with-mosh[=ARG]       The directory where mosh is built
   --with-tools[=ARG]      external tools [default=mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp,mlfc]
   --with-libltdl[=PREFIX] load modules with libltdl [default=without]
   --with-scrollbars[=ARG] scrollbar plugins (sample, extra, pixmap_engine) [default=sample,extra,pixmap_engine]
@@ -1752,6 +1756,10 @@ Some influential environment variables:
   HB_LIBS     linker flags for HB, overriding pkg-config
   SSH2_CFLAGS C compiler flags for SSH2, overriding pkg-config
   SSH2_LIBS   linker flags for SSH2, overriding pkg-config
+  PROTOBUF_CFLAGS
+              C compiler flags for PROTOBUF, overriding pkg-config
+  PROTOBUF_LIBS
+              linker flags for PROTOBUF, overriding pkg-config
   VTE_CFLAGS  C compiler flags for VTE, overriding pkg-config
   VTE_LIBS    linker flags for VTE, overriding pkg-config
   SDL_CFLAGS  C compiler flags for SDL, overriding pkg-config
@@ -19051,13 +19059,106 @@ $as_echo "yes" >&6; }
 fi
 fi
 
+if test "$enable_shared" != "no" ; then
+
+# Check whether --with-mosh was given.
+if test "${with_mosh+set}" = set; then :
+  withval=$with_mosh;
+fi
+
+
+	if test -d "$with_mosh"; then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PROTOBUF" >&5
+$as_echo_n "checking for PROTOBUF... " >&6; }
+
+if test -n "$PROTOBUF_CFLAGS"; then
+    pkg_cv_PROTOBUF_CFLAGS="$PROTOBUF_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"protobuf\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "protobuf") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_PROTOBUF_CFLAGS=`$PKG_CONFIG --cflags "protobuf" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$PROTOBUF_LIBS"; then
+    pkg_cv_PROTOBUF_LIBS="$PROTOBUF_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"protobuf\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "protobuf") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_PROTOBUF_LIBS=`$PKG_CONFIG --libs "protobuf" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        PROTOBUF_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "protobuf" 2>&1`
+        else
+	        PROTOBUF_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "protobuf" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$PROTOBUF_PKG_ERRORS" >&5
+
+	with_mosh=""
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	with_mosh=""
+else
+	PROTOBUF_CFLAGS=$pkg_cv_PROTOBUF_CFLAGS
+	PROTOBUF_LIBS=$pkg_cv_PROTOBUF_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	MOSH_DIR=$with_mosh
+fi
+	fi
+fi
+
 if test "$ml_cv_is_posix" = "no" ; then
 	if test "$ssh2" = "yes" ; then
-		VT_PTY_OBJ="vt_pty_ssh.o"
-		# Not dlopen
-		SSH2_CFLAGS="$SSH2_CFLAGS -DNO_DYNAMIC_LOAD_SSH"
-		SSH2_LIBS_FOR_PROG="$SSH2_LIBS -lwsock32 -lws2_32"
-		SSH2_LIBS=
+		VT_PTY_OBJ="vt_pty_ssh.o vt_pty_mosh.o"
+
+		if test -d "$with_mosh"; then
+			MOSH_DIR=$with_mosh
+			MAKE_DIRS="${MAKE_DIRS} vtemu/libptyssh vtemu/libptymosh"
+			OUTPUT_FILES="${OUTPUT_FILES} vtemu/libptyssh/Makefile vtemu/libptymosh/Makefile"
+			SSH2_LIBS_FOR_PROG="-lwsock32"
+			# XXX Hack for wcwidth()
+			PROTOBUF_LIBS="$PROTOBUF_LIBS \${top_builddir}/encodefilter/src/libmef.la"
+		else
+			# Not dlopen
+			SSH2_CFLAGS="$SSH2_CFLAGS -DNO_DYNAMIC_LOAD_SSH"
+			SSH2_LIBS_FOR_PROG="$SSH2_LIBS -lwsock32 -lws2_32"
+			SSH2_LIBS=
+		fi
 	else
 		VT_PTY_OBJ="vt_pty_pipewin32.o"
 	fi
@@ -19097,22 +19198,16 @@ fi
 
 			VT_PTY_OBJ="${VT_PTY_OBJ} vt_pty_mosh.o"
 
-
-# Check whether --with-mosh was given.
-if test "${with_mosh+set}" = set; then :
-  withval=$with_mosh;
-fi
-
 			if test -d "$with_mosh"; then
-				MOSH_DIR=$with_mosh
-
-
 				MAKE_DIRS="${MAKE_DIRS} vtemu/libptymosh"
 				OUTPUT_FILES="${OUTPUT_FILES} vtemu/libptymosh/Makefile"
 			fi
 		fi
 	fi
 fi
+
+
+
 
 
 

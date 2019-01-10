@@ -103,13 +103,17 @@ u_int vt_pty_ssh_get_x11_fds(int **fds);
 int vt_pty_ssh_send_recv_x11(int idx, int bidirection);
 
 void vt_pty_ssh_set_use_auto_reconnect(int flag);
+
+#ifdef USE_WIN32API
+void vt_pty_ssh_set_pty_read_trigger(void (*func)(void));
+#endif
 #endif
 
 int vt_pty_mosh_set_use_loopback(vt_pty_ptr_t pty, int use);
-#endif
 
 #ifdef USE_WIN32API
-void vt_pty_set_pty_read_trigger(void (*func)(void));
+void vt_pty_mosh_set_pty_read_trigger(void (*func)(void));
+#endif
 #endif
 
 #endif
