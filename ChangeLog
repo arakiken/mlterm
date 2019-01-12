@@ -1,3 +1,7 @@
+2019-01-12  Araki Ken  <arakiken@users.sf.net>
+
+	* README.mosh: Updated.
+
 2019-01-10  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_pty_ssh.c: vt_pty_ssh_set_pty_read_trigger() is added.
