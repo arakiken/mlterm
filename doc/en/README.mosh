@@ -8,6 +8,8 @@ Memo about mosh
 * Build
   cd /foo/mosh-x.x.x
   ./configure ...
+  (If you want to build with MinGW, use http://bitbucket.org/arakiken/mosh/get/winsock.tar.gz
+   which works on winsock2 instead of *nix.)
 
   cd /bar/mlterm-x.x.x
   ./configure --with-mosh=/foo/mosh-x.x.x
