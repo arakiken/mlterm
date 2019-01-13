@@ -1,3 +1,48 @@
+2019-01-13  Araki Ken  <arakiken@users.sf.net>
+
+	* README.mosh: Updated.
+
+	* ui_event_source.c, ui_screen.c:
+	  'vt_term_get_slave_fd() == -1' => 'vt_term_get_pty_mode() == PTY_SSH'
+
+	* ui_main_config.c: If bl_get_lang() is not only "ja" but also
+	  "Japanese" (on win32api), the default value of "col_size_of_width_a"
+	  option is 2 instead of 1.
+
+	* vt_term.[ch]: vt_term_get_slave_fd() is added.
+
+	* vt_pty_mosh.cpp:
+	  - If the value of "MOSH_AWIDTH" environmental variable is "2",
+	    wcwidth() returns 2 for ambiguous width characters.
+	  - win32api locale is changed to *nix locale as follows before sending
+	    it to mosh-server.
+	    Japanese.Japan => ja_JP.UTF-8
+	    Chinese.Taiwan => zh_TW.UTF-8
+	    Chinese.Hong Kong SAR => zh_HK.UTF-8
+	    Chinese.China => zh_CN.UTF-8
+	    Korean.Korea => ko_KR.UTF-8
+	  - PTY_MOSH is set.
+
+	* vt_config_menu.c:
+	  - is_mosh is removed from vt_config_menu_t.
+	  - config_menu->is_mosh is replaced by vt_pty_get_mode() == PTY_MOSH.
+
+	* vt_parser.c:
+	  - vt_parser_set_pty() modifies col_size_of_width_a if pty is mosh.
+	  - set_col_size_of_width_a() does nothing if pty is mosh.
+
+	* vt_pty_ssh.c: PTY_SSH is set.
+
+	* vt_pty_pipewin32.c: PTY_PIPE is set.
+
+	* vt_pty_unix.c: PTY_LOCAL is set.
+
+	* vt_pty_intern.h: mode is added to vt_pty_t.
+
+	* vt_pty.[ch]:
+	  - vt_pty_mode_t is added.
+	  - vt_pty_get_mode() is added.
+
 2019-01-12  Araki Ken  <arakiken@users.sf.net>
 
 	* README.mosh: Updated.

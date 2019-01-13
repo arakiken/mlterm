@@ -30,6 +30,7 @@ int __bl_usleep(u_int microseconds);
 
 #ifdef USE_WIN32API
 
+/* getenv() doesn't get the value set by bl_setenv(). */
 #define bl_setenv(name, value, overwrite) SetEnvironmentVariableA(name, value)
 
 #else /* USE_WIN32API */

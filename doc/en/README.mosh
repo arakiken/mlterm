@@ -20,9 +20,20 @@ Memo about mosh
   mlterm --serv=mosh://...
 
 * Environmental Variables
- - MOSH_SERVER
-   Specify the path of mosh-server in the remote host.
+  o MOSH_SERVER
+    Specify the path of mosh-server in the remote host.
 
- - MOSH_PREDICTION_DISPLAY
-   Control use of speculative local echo.
-   The value defaults to "adaptive", and can also be "always" or "never".
+  o MOSH_PREDICTION_DISPLAY
+    Control use of speculative local echo.
+    The value defaults to "adaptive", and can also be "always" or "never".
+
+* Note
+  o Don't specify a value except "UTF-8" for "encoding" option.
+  o It is impossible to change the value of "col_size_of_width_a" option.
+    (mlterm for *nix)
+    The value of "col_size_of_width_a" option is automatically determined by the
+    result of wcwidth().
+
+    (mlterm for win32api)
+    The value of "col_size_of_width_a" option specified in startup is applied
+    but permanently unchangeable.

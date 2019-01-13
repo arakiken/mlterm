@@ -1489,12 +1489,13 @@ static int open_channel(vt_pty_ssh_t *pty,    /* pty->session is non-blocking */
   }
 
   pty->pty.master = pty->session->sock;
-  pty->pty.slave = -1; /* -2: Mosh */
+  pty->pty.slave = -1;
   pty->pty.child_pid = (pid_t)pty->channel; /* XXX regarding pid_t as channel */
   pty->pty.final = final;
   pty->pty.set_winsize = set_winsize;
   pty->pty.write = write_to_pty;
   pty->pty.read = read_pty;
+  pty->pty.mode = PTY_SSH;
 
   if (set_winsize(&pty->pty, cols, rows, width_pix, height_pix) == 0) {
 #ifdef DEBUG

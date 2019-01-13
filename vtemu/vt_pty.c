@@ -344,3 +344,7 @@ int vt_start_config_menu(vt_pty_t *pty, char *cmd_path, int x, int y, char *disp
 char *vt_pty_get_cmd_line(vt_pty_t *pty) { return pty->cmd_line; }
 
 void vt_pty_set_hook(vt_pty_t *pty, vt_pty_hook_t *hook) { pty->hook = hook; }
+
+vt_pty_mode_t vt_pty_get_mode(vt_pty_ptr_t pty) {
+  return pty->mode;
+}

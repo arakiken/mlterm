@@ -776,8 +776,12 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     }
   }
 
-  /* "cn" and "ko" ? */
-  if (strcmp(bl_get_lang(), "ja") == 0) {
+  /* "zh" and "ko" ? */
+  if (strcmp(bl_get_lang(), "ja") == 0
+#ifdef USE_WIN32API
+      || strcmp(bl_get_lang(), "Japanese") == 0
+#endif
+     ) {
     main_config->col_size_of_width_a = 2;
   } else {
     main_config->col_size_of_width_a = 1;

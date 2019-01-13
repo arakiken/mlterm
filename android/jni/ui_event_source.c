@@ -401,7 +401,7 @@ jboolean Java_mlterm_native_1activity_MLActivity_isSSH(JNIEnv *env, jobject this
 #ifdef USE_LIBSSH2
   vt_term_t *term;
   if ((term = get_current_term())) {
-    if (vt_term_get_slave_fd(term) == -1) { /* connecting to remote host via SSH. */
+    if (vt_term_get_pty_mode(term) == PTY_SSH) {
       return JNI_TRUE;
     }
   }

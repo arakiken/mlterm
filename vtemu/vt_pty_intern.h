@@ -46,6 +46,8 @@ typedef struct vt_pty {
 
   char *cmd_line;
 
+  vt_pty_mode_t mode;
+
 } vt_pty_t;
 
 vt_pty_t *vt_pty_unix_new(const char *cmd_path, char **cmd_argv, char **env, const char *host,
