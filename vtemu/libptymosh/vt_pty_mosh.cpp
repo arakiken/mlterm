@@ -33,7 +33,11 @@ extern "C" {
 #include <pobl/bl_str.h>
 #include <pobl/bl_net.h>
 #include <pobl/bl_locale.h>
-#include <pobl/bl_unistd.h> /* bl_setenv */
+
+#ifndef USE_WIN32API
+#define _XOPEN_SOURCE
+#include <wchar.h> /* wcwidth */
+#endif
 }
 
 #include <fatal_assert.h>
@@ -85,6 +89,8 @@ static u_int num_ptys;
 static Network::Transport<Network::UserStream, Terminal::Complete> *dead_network;
 
 #ifdef USE_WIN32API
+static int full_width_prop = -1;
+
 static void (*trigger_pty_read)(void);
 #else
 static int event_fds[2];
@@ -99,7 +105,17 @@ static pthread_mutex_t event_mutex = PTHREAD_MUTEX_INITIALIZER;
 int wcwidth(wchar_t ch) {
   ef_property_t prop = ef_get_ucs_property(ch);
 
-  if (prop & (EF_FULLWIDTH /*| EF_AWIDTH*/)) {
+  if (full_width_prop == -1) {
+    char *env = getenv("MOSH_AWIDTH");
+
+    if (env && *env == '2') {
+      full_width_prop = EF_FULLWIDTH | EF_AWIDTH;
+    } else {
+      full_width_prop = EF_FULLWIDTH;
+    }
+  }
+
+  if (prop & full_width_prop) {
     return 2;
   } else if (prop & EF_COMBINING) {
     return 0;
@@ -837,17 +853,36 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
 #else
   char *base_argv[] = { "mosh-server", "new", "-c", "256", "-s", "-l", "LANG=en_US.UTF-8", NULL };
 
-#ifndef USE_WIN32API
   char *locale;
-  /* The default locale is C.UTF-8 on cygwin. */
-  if ((locale = bl_get_locale()) && strncmp(locale, "C.", 2) != 0) {
-    char *p;
-    if ((p = (char*)alloca(5 + strlen(locale) + 1))) {
-      sprintf(p, "LANG=%s", locale);
-      base_argv[6] = p;
+  if ((locale = bl_get_locale())) {
+#ifdef USE_WIN32API
+    if (strstr(locale, "Japanese")) {
+      locale = "ja_JP.UTF-8";
+    } else if (strstr(locale, "Taiwan")) {
+      locale = "zh_TW.UTF-8";
+    } else if (strstr(locale, "Hong Kong")) {
+      locale = "zh_HK.UTF-8";
+    } else if (strstr(locale, "China")) {
+      locale = "zh_CN.UTF-8";
+    } else if (strstr(locale, "Korean")) {
+      locale = "ko_KR.UTF-8";
+    } else {
+      locale = "en_US.UTF-8";
+      goto end_locale;
+    }
+
+  end_locale:
+#endif
+
+    /* The default locale is C.UTF-8 on cygwin. */
+    if (strncmp(locale, "C.", 2) != 0) {
+      char *p;
+      if ((p = (char*)alloca(5 + strlen(locale) + 1))) {
+        sprintf(p, "LANG=%s", locale);
+        base_argv[6] = p;
+      }
     }
   }
-#endif
 
   char *mosh_server = getenv("MOSH_SERVER");
   if (mosh_server) {
@@ -948,11 +983,31 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
 #ifdef __DEBUG
         bl_debug_printf("IP=%s\n", ip);
 #endif
+      }
+#if 1
+      else if (strncmp(line, "MOSH AWIDTH ", 12) == 0) {
+#ifdef USE_WIN32API
+        /*
+         * SUSv2 and glibc (>=2.1.3) defines the tyep of the argument of putenv()
+         * as 'char*' (not 'const char*').
+         */
+        putenv(line[12] == '2' ? (char*)"MOSH_AWIDTH=2" : (char*)"MOSH_AWIDTH=1");
+#else
+        int serv_width = (line[12] == '2') ? 2 : 1;
+        int cli_width = wcwidth(0x25a0); /* See vt_parser_set_pty() in vt_parser.c */
+
+        if (serv_width != cli_width) {
+          bl_msg_printf("The number of columns of awidth chars doesn't match.\n"
+                        " mosh-server: %d, mosh-client: %d\n", serv_width, cli_width);
+        }
+#endif
+      }
+#endif
       /*
        * "The locale requested by LANG=... isn't available here."
        * "Running `locale-gen ...' may be necessary."
        */
-      } else if (strstr(line, "available here") ||
+      else if (strstr(line, "available here") ||
                  strstr(line, "Running")) {
         bl_msg_printf("mosh-server: %s\n", line);
       }
@@ -1007,7 +1062,7 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
           (strncmp(term, "xterm", 5) && strncmp(term, "rxvt", 4) &&
            strncmp(term, "kterm", 5) && strncmp(term, "Eterm", 5) &&
            strncmp(term, "screen", 6))) {
-        bl_setenv("TERM", "xterm", 1);
+        putenv((char*)"TERM=xterm");
       }
 #endif
 
@@ -1041,6 +1096,8 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
         pty->overlay->set_title_prefix(wstring(L"[mosh] "));
       }
 #endif
+
+      pty->pty.mode = PTY_MOSH;
 
       pty->pty.final = final;
       pty->pty.set_winsize = set_winsize;
@@ -1079,7 +1136,7 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
 #ifndef USE_WIN32API
       pty->pty.master = event_fds[0];
 #endif
-      pty->pty.slave = -2; /* -1: SSH */
+      pty->pty.slave = -1;
 
       return &pty->pty;
     } else {

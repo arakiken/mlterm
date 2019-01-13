@@ -25,6 +25,14 @@
 
 #endif /* USE_LIBSSH2 */
 
+typedef enum {
+  PTY_NONE,
+  PTY_LOCAL,
+  PTY_SSH,
+  PTY_MOSH,
+  PTY_PIPE,
+} vt_pty_mode_t;
+
 typedef struct vt_pty_event_listener {
   void *self;
 
@@ -78,6 +86,8 @@ char *vt_pty_get_cmd_line(vt_pty_ptr_t pty);
 
 void vt_pty_set_hook(vt_pty_ptr_t pty, vt_pty_hook_t *hook);
 
+vt_pty_mode_t vt_pty_get_mode(vt_pty_ptr_t pty);
+
 #ifdef USE_LIBSSH2
 #ifndef USE_MOSH
 void *vt_search_ssh_session(const char *host, const char *port, const char *user);
@@ -107,6 +117,7 @@ void vt_pty_ssh_set_use_auto_reconnect(int flag);
 #ifdef USE_WIN32API
 void vt_pty_ssh_set_pty_read_trigger(void (*func)(void));
 #endif
+
 #endif
 
 int vt_pty_mosh_set_use_loopback(vt_pty_ptr_t pty, int use);

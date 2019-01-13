@@ -596,6 +596,7 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
   pty->pty.set_winsize = set_winsize;
   pty->pty.write = write_to_pty;
   pty->pty.read = read_pty;
+  pty->pty.mode = PTY_PIPE;
 
   if (set_winsize(&pty->pty, cols, rows, 0, 0) == 0) {
 #ifdef DEBUG

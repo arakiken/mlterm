@@ -36,6 +36,11 @@
 #include "cygfile.h"
 #endif
 
+#if defined(USE_LIBSSH2) && !defined(USE_WIN32API)
+#define _XOPEN_SOURCE
+#include <wchar.h> /* wcwidth */
+#endif
+
 /*
  * kterm BUF_SIZE in ptyx.h is 4096.
  */
@@ -2357,7 +2362,13 @@ static void snapshot(vt_parser_t *vt_parser, vt_char_encoding_t encoding,
 
 static void set_col_size_of_width_a(vt_parser_t *vt_parser, u_int col_size_a) {
   if (col_size_a == 1 || col_size_a == 2) {
-    vt_parser->col_size_of_width_a = col_size_a;
+#ifdef USE_LIBSSH2
+    /* Don't change it after vt_parser_set_pty() on mosh. See vt_parser_set_pty(). */
+    if (!vt_parser->pty || vt_pty_get_mode(vt_parser->pty) != PTY_MOSH)
+#endif
+    {
+      vt_parser->col_size_of_width_a = col_size_a;
+    }
   } else {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " col size should be 1 or 2. default value 1 is used.\n");
@@ -6855,6 +6866,23 @@ int vt_parser_delete(vt_parser_t *vt_parser) {
 }
 
 void vt_parser_set_pty(vt_parser_t *vt_parser, vt_pty_ptr_t pty) {
+#ifdef USE_LIBSSH2
+  /* See set_col_size_of_width_a() */
+  if (!vt_parser->pty && vt_pty_get_mode(pty) == PTY_MOSH) {
+#ifdef USE_WIN32API
+    char *env = getenv("MOSH_AWIDTH");
+
+    if (!env) {
+      putenv(vt_parser->col_size_of_width_a == 2 ? "MOSH_AWIDTH=2" : "MOSH_AWIDTH=1");
+    } else {
+      vt_parser->col_size_of_width_a = (*env == '2' ? 2 : 1);
+    }
+#else
+    vt_parser->col_size_of_width_a = (wcwidth(0x25a0) == 2) ? 2 : 1;
+#endif
+  }
+#endif
+
   vt_parser->pty = pty;
 }
 

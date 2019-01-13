@@ -538,6 +538,14 @@ pid_t vt_term_get_child_pid(vt_term_t *term) {
   return vt_pty_get_pid(term->pty);
 }
 
+pid_t vt_term_get_pty_mode(vt_term_t *term) {
+  if (term->pty == NULL) {
+    return PTY_NONE;
+  }
+
+  return vt_pty_get_mode(term->pty);
+}
+
 size_t vt_term_write(vt_term_t *term, u_char *buf, size_t len) {
   if (term->pty == NULL) {
     return 0;

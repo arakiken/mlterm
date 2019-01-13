@@ -216,6 +216,7 @@ vt_pty_t *vt_pty_unix_new_with(int master, int slave, pid_t child_pid, const cha
   pty->read = read_pty;
   pty->master = master;
   pty->slave = slave;
+  pty->mode = PTY_LOCAL;
 
   if ((pty->child_pid = child_pid) > 0) {
 /* Parent process */
