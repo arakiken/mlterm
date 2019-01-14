@@ -65,8 +65,8 @@ vt_pty_t *vt_pty_new(const char *cmd_path, /* can be NULL */
   return pty;
 }
 
-vt_pty_ptr_t vt_pty_new_with(int master, int slave, pid_t child_pid, u_int cols, u_int rows,
-                             u_int width_pix, u_int height_pix) {
+vt_pty_t *vt_pty_new_with(int master, int slave, pid_t child_pid, u_int cols, u_int rows,
+                          u_int width_pix, u_int height_pix) {
   vt_pty_t *pty;
 
 #ifndef USE_WIN32API
@@ -120,10 +120,6 @@ int vt_pty_delete(vt_pty_t *pty) {
 
 int vt_set_pty_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
   return (*pty->set_winsize)(pty, cols, rows, width_pix, height_pix);
-}
-
-void vt_pty_set_listener(vt_pty_t *pty, vt_pty_event_listener_t *pty_listener) {
-  pty->pty_listener = pty_listener;
 }
 
 /*
@@ -306,13 +302,6 @@ void vt_response_config(vt_pty_t *pty, char *key, char *value, int to_menu) {
   }
 }
 
-pid_t vt_pty_get_pid(vt_pty_t *pty) { return pty->child_pid; }
-
-int vt_pty_get_master_fd(vt_pty_t *pty) { return pty->master; }
-
-/* Return: slave fd or -1 */
-int vt_pty_get_slave_fd(vt_pty_t *pty) { return pty->slave; }
-
 /*
  * Always return non-NULL value.
  * XXX Static data can be returned. (Not reentrant)
@@ -339,12 +328,4 @@ char *vt_pty_get_slave_name(vt_pty_t *pty) {
 
 int vt_start_config_menu(vt_pty_t *pty, char *cmd_path, int x, int y, char *display) {
   return vt_config_menu_start(&pty->config_menu, cmd_path, x, y, display, pty);
-}
-
-char *vt_pty_get_cmd_line(vt_pty_t *pty) { return pty->cmd_line; }
-
-void vt_pty_set_hook(vt_pty_t *pty, vt_pty_hook_t *hook) { pty->hook = hook; }
-
-vt_pty_mode_t vt_pty_get_mode(vt_pty_ptr_t pty) {
-  return pty->mode;
 }

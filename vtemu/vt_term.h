@@ -19,7 +19,7 @@ typedef struct vt_term {
   /*
    * private
    */
-  vt_pty_ptr_t pty;
+  vt_pty_t *pty;
   vt_pty_event_listener_t *pty_listener; /* pool until pty opened. */
 
   vt_parser_t *parser;
@@ -79,7 +79,7 @@ int vt_term_open_pty(vt_term_t *term, const char *cmd_path, char **argv, char **
                      const char *host, const char *work_dir, const char *pass, const char *pubkey,
                      const char *privkey, u_int width_pix, u_int height_pix);
 
-int vt_term_plug_pty(vt_term_t *term, vt_pty_ptr_t pty);
+int vt_term_plug_pty(vt_term_t *term, vt_pty_t *pty);
 
 #define vt_term_pty_is_opened(term) ((term)->pty != NULL)
 

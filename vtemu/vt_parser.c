@@ -341,7 +341,7 @@ static area_t *set_area_to_table(area_t *area_table, u_int *num, char *areas) {
   return area_table;
 }
 
-static void response_area_table(vt_pty_ptr_t pty, u_char *key, area_t *area_table, u_int num,
+static void response_area_table(vt_pty_t *pty, u_char *key, area_t *area_table, u_int num,
                                 int to_menu) {
   u_char *value;
 
@@ -3289,7 +3289,7 @@ static void invoke_macro(vt_parser_t *vt_parser, int id) {
   }
 }
 
-static int response_termcap(vt_pty_ptr_t pty, u_char *key, u_char *value) {
+static int response_termcap(vt_pty_t *pty, u_char *key, u_char *value) {
   u_char *response;
 
   if ((response = alloca(5 + strlen(key) + 1 + strlen(value) * 2 + 3))) {
@@ -4179,7 +4179,7 @@ static void send_device_status(vt_parser_t *vt_parser, int num, int id) {
   vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
 }
 
-static void send_device_attributes(vt_pty_ptr_t pty, int rank) {
+static void send_device_attributes(vt_pty_t *pty, int rank) {
   char *seq;
 
   if (rank == 1) {
@@ -4213,7 +4213,7 @@ static void send_device_attributes(vt_pty_ptr_t pty, int rank) {
   vt_write_to_pty(pty, seq, strlen(seq));
 }
 
-static void send_display_extent(vt_pty_ptr_t pty, u_int cols, u_int rows, int vmargin,
+static void send_display_extent(vt_pty_t *pty, u_int cols, u_int rows, int vmargin,
                                 int hmargin, int page) {
   char seq[DIGIT_STR_LEN(int) * 5 + 1];
 
@@ -6865,7 +6865,7 @@ int vt_parser_delete(vt_parser_t *vt_parser) {
   return 1;
 }
 
-void vt_parser_set_pty(vt_parser_t *vt_parser, vt_pty_ptr_t pty) {
+void vt_parser_set_pty(vt_parser_t *vt_parser, vt_pty_t *pty) {
 #ifdef USE_LIBSSH2
   /* See set_col_size_of_width_a() */
   if (!vt_parser->pty && vt_pty_get_mode(pty) == PTY_MOSH) {
@@ -7487,7 +7487,7 @@ int true_or_false(const char *str) {
 
 int vt_parser_get_config(
     vt_parser_t *vt_parser,
-    vt_pty_ptr_t output, /* if vt_parser->pty == output, NULL is set */
+    vt_pty_t *output, /* if vt_parser->pty == output, NULL is set */
     char *key, int to_menu, int *flag) {
   char *value;
   char digit[DIGIT_STR_LEN(u_int) + 1];

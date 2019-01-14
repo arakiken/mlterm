@@ -161,7 +161,7 @@ static void *
 #endif
     open_pty(void *p) {
   pty_args_t *args;
-  vt_pty_ptr_t pty;
+  vt_pty_t *pty;
 #ifdef USE_WIN32API
   static HANDLE mutex;
 
@@ -336,7 +336,7 @@ void vt_term_delete(vt_term_t *term) {
 
 void vt_term_zombie(vt_term_t *term) {
   if (term->pty) {
-    vt_pty_ptr_t pty;
+    vt_pty_t *pty;
 
     pty = term->pty;
 
@@ -398,7 +398,7 @@ int vt_term_open_pty(vt_term_t *term, const char *cmd_path, char **argv, char **
     } else
 #endif /* OPEN_PTY_ASYNC */
     {
-      vt_pty_ptr_t pty;
+      vt_pty_t *pty;
 
       if (!(pty = vt_pty_new(cmd_path, argv, env, host, work_dir, pass, pubkey, privkey,
                              vt_screen_get_logical_cols(term->screen),
@@ -419,8 +419,7 @@ int vt_term_open_pty(vt_term_t *term, const char *cmd_path, char **argv, char **
   return 1;
 }
 
-int vt_term_plug_pty(vt_term_t *term, vt_pty_ptr_t pty /* Not NULL */
-                     ) {
+int vt_term_plug_pty(vt_term_t *term, vt_pty_t *pty /* Not NULL */) {
   if (!term->pty) {
     if (term->pty_listener) {
       vt_pty_set_listener(pty, term->pty_listener);

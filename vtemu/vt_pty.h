@@ -6,6 +6,8 @@
 #include <pobl/bl_def.h>   /* USE_WIN32API */
 #include <pobl/bl_types.h> /* u_int/u_char */
 
+#include "vt_config_menu.h"
+
 #if defined(USE_LIBSSH2) && !defined(USE_MOSH)
 
 #include "vt_char_encoding.h"
@@ -50,51 +52,85 @@ typedef struct vt_pty_hook {
 
 } vt_pty_hook_t;
 
-typedef struct vt_pty *vt_pty_ptr_t;
+typedef struct vt_pty {
+  int master; /* master pty fd */
+  int slave;  /* slave pty fd */
+  pid_t child_pid;
 
-vt_pty_ptr_t vt_pty_new(const char *cmd_path, char **cmd_argv, char **env, const char *host,
-                        const char *work_dir, const char *pass, const char *pubkey,
-                        const char *privkey, u_int cols, u_int rows, u_int width_pix,
-                        u_int height_pix);
+  /* Used in vt_write_to_pty */
+  u_char *buf;
+  size_t left;
+  size_t size;
 
-vt_pty_ptr_t vt_pty_new_with(int master, int slave, pid_t child_pid, u_int cols, u_int rows,
-                             u_int width_pix, u_int height_pix);
+  int (*final)(struct vt_pty *);
+  int (*set_winsize)(struct vt_pty *, u_int, u_int, u_int, u_int);
+  ssize_t (*write)(struct vt_pty *, u_char*, size_t);
+  ssize_t (*read)(struct vt_pty *, u_char*, size_t);
 
-int vt_pty_delete(vt_pty_ptr_t pty);
+  vt_pty_event_listener_t *pty_listener;
+  vt_pty_hook_t *hook;
 
-void vt_pty_set_listener(vt_pty_ptr_t pty, vt_pty_event_listener_t *pty_listener);
+  vt_config_menu_t config_menu;
 
-int vt_set_pty_winsize(vt_pty_ptr_t pty, u_int cols, u_int rows, u_int width_pix, u_int height_pix);
+  struct _stored {
+    int master;
+    int slave;
+    ssize_t (*write)(struct vt_pty *, u_char*, size_t);
+    ssize_t (*read)(struct vt_pty *, u_char*, size_t);
 
-size_t vt_write_to_pty(vt_pty_ptr_t pty, u_char *buf, size_t len);
+    u_int ref_count;
 
-size_t vt_read_pty(vt_pty_ptr_t pty, u_char *buf, size_t left);
+  } *stored;
 
-void vt_response_config(vt_pty_ptr_t pty, char *key, char *value, int to_menu);
+  char *cmd_line;
 
-pid_t vt_pty_get_pid(vt_pty_ptr_t pty);
+  vt_pty_mode_t mode;
 
-int vt_pty_get_master_fd(vt_pty_ptr_t pty);
+} vt_pty_t;
 
-int vt_pty_get_slave_fd(vt_pty_ptr_t pty);
+vt_pty_t *vt_pty_new(const char *cmd_path, char **cmd_argv, char **env, const char *host,
+                     const char *work_dir, const char *pass, const char *pubkey,
+                     const char *privkey, u_int cols, u_int rows, u_int width_pix,
+                     u_int height_pix);
 
-char *vt_pty_get_slave_name(vt_pty_ptr_t pty);
+vt_pty_t *vt_pty_new_with(int master, int slave, pid_t child_pid, u_int cols, u_int rows,
+                          u_int width_pix, u_int height_pix);
 
-int vt_start_config_menu(vt_pty_ptr_t pty, char *cmd_path, int x, int y, char *display);
+int vt_pty_delete(vt_pty_t *pty);
 
-char *vt_pty_get_cmd_line(vt_pty_ptr_t pty);
+#define vt_pty_set_listener(pty, listener) ((pty)->pty_listener = listener)
 
-void vt_pty_set_hook(vt_pty_ptr_t pty, vt_pty_hook_t *hook);
+int vt_set_pty_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u_int height_pix);
 
-vt_pty_mode_t vt_pty_get_mode(vt_pty_ptr_t pty);
+size_t vt_write_to_pty(vt_pty_t *pty, u_char *buf, size_t len);
+
+size_t vt_read_pty(vt_pty_t *pty, u_char *buf, size_t left);
+
+void vt_response_config(vt_pty_t *pty, char *key, char *value, int to_menu);
+
+#define vt_pty_get_pid(pty) ((pty)->child_pid)
+
+#define vt_pty_get_master_fd(pty) ((pty)->master)
+
+#define vt_pty_get_slave_fd(pty) ((pty)->slave)
+
+char *vt_pty_get_slave_name(vt_pty_t *pty);
+
+int vt_start_config_menu(vt_pty_t *pty, char *cmd_path, int x, int y, char *display);
+
+#define vt_pty_get_cmd_line(pty) ((pty)->cmd_line)
+
+#define vt_pty_set_hook(pty, hk) ((pty)->hook = hk)
+
+#define vt_pty_get_mode(pty) ((pty)->mode)
 
 #ifdef USE_LIBSSH2
 #ifndef USE_MOSH
 void *vt_search_ssh_session(const char *host, const char *port, const char *user);
 
-int vt_pty_ssh_set_use_loopback(vt_pty_ptr_t pty, int use);
+int vt_pty_ssh_set_use_loopback(vt_pty_t *pty, int use);
 
-int vt_pty_ssh_scp(vt_pty_ptr_t pty, vt_char_encoding_t pty_encoding,
+int vt_pty_ssh_scp(vt_pty_t *pty, vt_char_encoding_t pty_encoding,
                    vt_char_encoding_t path_encoding, char *dst_path, char *src_path,
                    int use_scp_full);
 
@@ -120,7 +156,7 @@ void vt_pty_ssh_set_pty_read_trigger(void (*func)(void));
 
 #endif
 
-int vt_pty_mosh_set_use_loopback(vt_pty_ptr_t pty, int use);
+int vt_pty_mosh_set_use_loopback(vt_pty_t *pty, int use);
 
 #ifdef USE_WIN32API
 void vt_pty_mosh_set_pty_read_trigger(void (*func)(void));
