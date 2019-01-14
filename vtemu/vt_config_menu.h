@@ -5,7 +5,7 @@
 
 #include <pobl/bl_types.h> /* pid_t */
 
-#include "vt_pty.h"
+typedef struct vt_pty *vt_pty_ptr_t;
 
 typedef struct vt_config_menu {
 #ifdef USE_WIN32API

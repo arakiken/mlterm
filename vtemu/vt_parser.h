@@ -202,7 +202,7 @@ typedef struct vt_parser {
   vt_read_buffer_t r_buf;
   vt_write_buffer_t w_buf;
 
-  vt_pty_ptr_t pty;
+  vt_pty_t *pty;
   vt_pty_hook_t pty_hook;
 
   vt_screen_t *screen;
@@ -356,7 +356,7 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
 
 int vt_parser_delete(vt_parser_t *vt_parser);
 
-void vt_parser_set_pty(vt_parser_t *vt_parser, vt_pty_ptr_t pty);
+void vt_parser_set_pty(vt_parser_t *vt_parser, vt_pty_t *pty);
 
 void vt_parser_set_xterm_listener(vt_parser_t *vt_parser,
                                         vt_xterm_event_listener_t *xterm_listener);
@@ -437,16 +437,16 @@ int vt_parser_is_broadcasting(vt_parser_t *vt_parser);
 
 int true_or_false(const char *str);
 
-int vt_parser_get_config(vt_parser_t *vt_parser, vt_pty_ptr_t output, char *key,
-                               int to_menu, int *flag);
+int vt_parser_get_config(vt_parser_t *vt_parser, vt_pty_t *output, char *key,
+                         int to_menu, int *flag);
 
 int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *val);
 
 int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd);
 
 void vt_parser_report_mouse_tracking(vt_parser_t *vt_parser, int col, int row,
-                                           int button, int is_released, int key_state,
-                                           int button_state);
+                                     int button, int is_released, int key_state,
+                                     int button_state);
 
 #define vt_parser_is_visible_cursor(vt_parser) ((vt_parser)->is_visible_cursor)
 

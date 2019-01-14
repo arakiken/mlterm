@@ -1,3 +1,9 @@
+2019-01-14  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_config_menu.[ch], vt_parser.[ch], vt_pty.[ch], vt_pty_intern.h,
+	  vt_pty_mosh.c, vt_pty_ssh.c, vt_term.[ch]:
+	  vt_pty_ptr_t -> vt_pty_t *
+
 2019-01-13  Araki Ken  <arakiken@users.sf.net>
 
 	* README.mosh: Updated.

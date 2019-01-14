@@ -19,6 +19,8 @@
 #include <pobl/bl_def.h>  /* HAVE_WINDOWS_H */
 #include <pobl/bl_path.h> /* BL_LIBEXECDIR */
 
+#include "vt_pty.h"
+
 /* --- static functions --- */
 
 #ifdef USE_WIN32API

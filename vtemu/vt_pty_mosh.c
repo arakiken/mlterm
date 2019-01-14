@@ -20,9 +20,9 @@
 
 /* --- static variables --- */
 
-static vt_pty_ptr_t (*mosh_new)(const char *, char **, char **, const char *, const char *,
-                                const char *, const char *, u_int, u_int, u_int, u_int);
-static int (*mosh_set_use_loopback)(vt_pty_ptr_t, int);
+static vt_pty_t *(*mosh_new)(const char *, char **, char **, const char *, const char *,
+                             const char *, const char *, u_int, u_int, u_int, u_int);
+static int (*mosh_set_use_loopback)(vt_pty_t *, int);
 static int (*mosh_set_pty_read_trigger)(void (*func)(void));
 
 static int is_tried;
@@ -60,9 +60,9 @@ static void load_library(void) {
 
 /* --- global functions --- */
 
-vt_pty_ptr_t vt_pty_mosh_new(const char *cmd_path, char **cmd_argv, char **env, const char *uri,
-                             const char *pass, const char *pubkey, const char *privkey, u_int cols,
-                             u_int rows, u_int width_pix, u_int height_pix) {
+vt_pty_t *vt_pty_mosh_new(const char *cmd_path, char **cmd_argv, char **env, const char *uri,
+                          const char *pass, const char *pubkey, const char *privkey, u_int cols,
+                          u_int rows, u_int width_pix, u_int height_pix) {
 #ifndef NO_DYNAMIC_LOAD_SSH
   if (!is_tried) {
     load_library();
@@ -77,7 +77,7 @@ vt_pty_ptr_t vt_pty_mosh_new(const char *cmd_path, char **cmd_argv, char **env, 
   return NULL;
 }
 
-int vt_pty_mosh_set_use_loopback(vt_pty_ptr_t pty, int use) {
+int vt_pty_mosh_set_use_loopback(vt_pty_t *pty, int use) {
 #ifndef NO_DYNAMIC_LOAD_SSH
   if (mosh_set_use_loopback) {
     return (*mosh_set_use_loopback)(pty, use);

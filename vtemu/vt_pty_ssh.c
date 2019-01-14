@@ -29,11 +29,11 @@
 
 /* --- static variables --- */
 
-static vt_pty_ptr_t (*ssh_new)(const char *, char **, char **, const char *, const char *,
-                               const char *, const char *, u_int, u_int, u_int, u_int);
+static vt_pty_t *(*ssh_new)(const char *, char **, char **, const char *, const char *,
+                            const char *, const char *, u_int, u_int, u_int, u_int);
 static void *(*search_ssh_session)(const char *, const char *, const char *);
-static int (*ssh_set_use_loopback)(vt_pty_ptr_t, int);
-static int (*ssh_scp)(vt_pty_ptr_t, int, char *, char *);
+static int (*ssh_set_use_loopback)(vt_pty_t *, int);
+static int (*ssh_scp)(vt_pty_t *, int, char *, char *);
 static void (*ssh_set_cipher_list)(const char *);
 static void (*ssh_set_keepalive_interval)(u_int);
 static u_int (*ssh_keepalive)(u_int);
@@ -107,9 +107,9 @@ static void load_library(void) {
 
 /* --- global functions --- */
 
-vt_pty_ptr_t vt_pty_ssh_new(const char *cmd_path, char **cmd_argv, char **env, const char *uri,
-                            const char *pass, const char *pubkey, const char *privkey, u_int cols,
-                            u_int rows, u_int width_pix, u_int height_pix) {
+vt_pty_t *vt_pty_ssh_new(const char *cmd_path, char **cmd_argv, char **env, const char *uri,
+                         const char *pass, const char *pubkey, const char *privkey, u_int cols,
+                         u_int rows, u_int width_pix, u_int height_pix) {
   if (!is_tried) {
     load_library();
   }
@@ -132,7 +132,7 @@ void *vt_search_ssh_session(const char *host, const char *port, /* can be NULL *
   }
 }
 
-int vt_pty_ssh_set_use_loopback(vt_pty_ptr_t pty, int use) {
+int vt_pty_ssh_set_use_loopback(vt_pty_t *pty, int use) {
   if (ssh_set_use_loopback) {
     return (*ssh_set_use_loopback)(pty, use);
   } else {
@@ -225,7 +225,7 @@ void vt_pty_ssh_set_pty_read_trigger(void (*func)(void)) {
 
 #endif /* NO_DYNAMIC_LOAD_SSH */
 
-int vt_pty_ssh_scp(vt_pty_ptr_t pty, vt_char_encoding_t pty_encoding, /* Not VT_UNKNOWN_ENCODING */
+int vt_pty_ssh_scp(vt_pty_t *pty, vt_char_encoding_t pty_encoding, /* Not VT_UNKNOWN_ENCODING */
                    vt_char_encoding_t path_encoding,                  /* Not VT_UNKNOWN_ENCODING */
                    char *dst_path, char *src_path, int use_scp_full) {
   int dst_is_remote;
