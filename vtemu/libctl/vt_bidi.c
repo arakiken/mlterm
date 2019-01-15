@@ -169,7 +169,7 @@ int vt_bidi(vt_bidi_state_t state, vt_char_t *src, u_int size, vt_bidi_mode_t bi
   if (size == 0) {
     state->size = 0;
 
-    return 1;
+    return 0;
   }
 
   if ((fri_src = alloca(sizeof(FriBidiChar) * size)) == NULL) {
@@ -239,7 +239,7 @@ int vt_bidi(vt_bidi_state_t state, vt_char_t *src, u_int size, vt_bidi_mode_t bi
 
       cur_pos = count + 1;
     } else if (IS_ISCII(cs)) {
-      return -2;
+      return -2; /* iscii */
     } else {
 #ifdef __DEBUG
       bl_debug_printf(BL_DEBUG_TAG " %x is not ucs.\n", cs);
@@ -322,11 +322,7 @@ int vt_bidi(vt_bidi_state_t state, vt_char_t *src, u_int size, vt_bidi_mode_t bi
   } else {
     state->size = 0;
 
-    if (had_rtl) {
-      ret = 2; /* order is changed */
-    } else {
-      ret = 1; /* order is not changed */
-    }
+    return -1; /* ot layout */
   }
 
   if (fri_type == FRIBIDI_TYPE_RTL) {
@@ -335,7 +331,7 @@ int vt_bidi(vt_bidi_state_t state, vt_char_t *src, u_int size, vt_bidi_mode_t bi
 
   state->bidi_mode = bidi_mode;
 
-  return (state->size == 0) ? -1 : ret;
+  return ret;
 }
 
 int vt_bidi_copy(vt_bidi_state_t dst, vt_bidi_state_t src, int optimize) {

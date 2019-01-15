@@ -7,6 +7,7 @@
 * Add local_echo_wait / --lew option.
 * Bug fixes:
   Fix https://sourceforge.net/p/mlterm/mailman/message/36472061/
+  Fix https://sourceforge.net/p/mlterm/mailman/message/36513313/
   Fix segfault in processing illegal sixel sequence.
 
 ver 3.8.7

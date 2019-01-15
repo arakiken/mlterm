@@ -37,3 +37,7 @@ Memo about mosh
     (mlterm for win32api)
     The value of "col_size_of_width_a" option specified in startup is applied
     but permanently unchangeable.
+  o Unsupported platforms are as follows.
+    - Java/SWT
+    - Android
+

@@ -212,7 +212,7 @@ int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len) {
 
       ucs_buf[ucs_filled] = code;
       if (vt_is_rtl_char(ucs_buf[ucs_filled])) {
-        return -1;
+        return -1; /* bidi */
       } else if (IS_VAR_WIDTH_CHAR(ucs_buf[ucs_filled])) {
         state->has_var_width_char = 1;
       }
@@ -224,7 +224,7 @@ int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len) {
       for (count = 0; count < num; count++) {
         ucs_buf[ucs_filled] = vt_char_code(comb++);
         if (vt_is_rtl_char(ucs_buf[ucs_filled])) {
-          return -1;
+          return -1; /* bidi */
         }
         /* Don't do it in vt_is_rtl_char() which may be replaced by (0). */
         ucs_filled++;
@@ -282,7 +282,7 @@ int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len) {
 
       prev_shaped_filled = shaped_filled;
     } else if (IS_ISCII(FONT_CS(font))) {
-      return -2;
+      return -2; /* iscii */
     } else {
       num_chars_array[++dst_pos] = 1;
     }

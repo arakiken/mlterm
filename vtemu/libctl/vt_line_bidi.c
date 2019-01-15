@@ -103,6 +103,11 @@ int vt_line_bidi_render(vt_line_t *line, /* is always modified */
 
     if ((ret = vt_bidi(line->ctl_info.bidi, line->chars, line->num_filled_chars, bidi_mode,
                        separators)) <= 0) {
+      if (base_was_rtl) {
+        /* shifting RTL-base to LTR-base (which requires redrawing line all) */
+        vt_line_set_modified_all(line);
+      }
+
       return ret;
     }
 
