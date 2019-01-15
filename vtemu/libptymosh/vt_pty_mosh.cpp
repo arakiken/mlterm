@@ -985,6 +985,7 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
 #endif
       }
 #if 1
+      /* See src/frontend/mosh-server.cc at http://bitbucket.org/arakiken/mosh/branch/winsock */
       else if (strncmp(line, "MOSH AWIDTH ", 12) == 0) {
 #ifdef USE_WIN32API
         /*

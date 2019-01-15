@@ -1,3 +1,12 @@
+2019-01-15  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_line_bidi.c: If vt_bidi() returns 0 or less value and base_was_trl
+	  is true, vt_line_set_modified_all(line) is called.
+
+	* vt_bidi.c: If size == 0, return 0 instead of 1.
+
+	* terminaldisplayinit.cc: Code formatting.
+
 2019-01-14  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_config_menu.[ch], vt_parser.[ch], vt_pty.[ch], vt_pty_intern.h,
