@@ -85,6 +85,80 @@ static void add_glyphs(cairo_glyph_t *glyphs, int num) {
   memcpy(glyph_buf + num_glyph_buf, glyphs, sizeof(cairo_glyph_t) * num);
   num_glyph_buf += num;
 }
+
+static int show_iscii(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font,
+                      ui_color_t *fg_color, int x, int y,
+                      u_char *str, u_int str_len) {
+  cairo_glyph_t *glyphs;
+  u_int count;
+  cairo_text_extents_t extents;
+  FT_Face face;
+  int drawn_x;
+
+  if (cairo_get_user_data(cr, 1) != xfont) {
+    flush_glyphs(cr);
+    cairo_set_user_data(cr, 1, xfont, NULL);
+  }
+
+  /*
+   * If cairo_get_user_data() returns NULL, it means that source rgb value is
+   * default one (black == 0).
+   */
+  if ((u_long)cairo_get_user_data(cr, 2) !=
+      (u_long)((fg_color->red << 16) | (fg_color->green << 8) |
+               (fg_color->blue) | (fg_color->alpha << 24))) {
+    flush_glyphs(cr);
+    cairo_set_user_data(cr, 2,
+                        (u_long)((fg_color->red << 16) | (fg_color->green << 8) |
+                                 (fg_color->blue) | (fg_color->alpha << 24)),
+                        NULL);
+  }
+
+  if (font->size_attr == DOUBLE_WIDTH) {
+    flush_glyphs(cr);
+    x /= 2;
+    font->width /= 2;
+    cairo_scale(cr, 2.0, 1.0);
+  }
+
+  if (!(glyphs = alloca(sizeof(*glyphs) * (str_len + 1)))) {
+    return 0;
+  }
+
+  face = cairo_ft_scaled_font_lock_face(xfont);
+  FT_Select_Charmap(face, FT_ENCODING_APPLE_ROMAN);
+
+  glyphs[0].x = x;
+  glyphs[0].y = y;
+  for (count = 0; count < str_len; count++) {
+    glyphs[count].index = FT_Get_Char_Index(face, str[count]);
+    cairo_scaled_font_glyph_extents(xfont, glyphs + count, 1, &extents);
+    glyphs[count + 1].x = glyphs[count].x + extents.x_advance;
+    glyphs[count + 1].y = y;
+  }
+
+  cairo_ft_scaled_font_unlock_face(xfont);
+
+  add_glyphs(glyphs, str_len);
+
+  if (font->double_draw_gap) {
+    for (count = 0; count < str_len; count++) {
+      glyphs[count].x += font->double_draw_gap;
+    }
+
+    add_glyphs(glyphs, str_len);
+  }
+
+  drawn_x = glyphs[str_len].x;
+
+  if (font->size_attr == DOUBLE_WIDTH) {
+    flush_glyphs(cr);
+    font->width *= 2;
+    cairo_scale(cr, 0.5, 1.0);
+  }
+
+  return drawn_x;
+}
 #endif
 
 static int show_text(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font,
@@ -112,8 +186,7 @@ static int show_text(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font,
 #if CAIRO_VERSION_ENCODE(1, 4, 0) <= CAIRO_VERSION
   /*
    * If cairo_get_user_data() returns NULL, it means that source rgb value is
-   * default one
-   * (black == 0).
+   * default one (black == 0).
    */
   if ((u_long)cairo_get_user_data(cr, 2) !=
       (u_long)((fg_color->red << 16) | (fg_color->green << 8) |
@@ -136,6 +209,7 @@ static int show_text(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font,
   }
 
   if (font->size_attr == DOUBLE_WIDTH) {
+    flush_glyphs(cr);
     x /= 2;
     font->width /= 2;
     cairo_scale(cr, 2.0, 1.0);
@@ -171,7 +245,7 @@ static int show_text(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font,
     for (count = 0; count < str_len;) {
       glyphs[count].index = ((FcChar32*)str)[count];
       glyphs[count].y = y;
-      cairo_glyph_extents(cr, glyphs + count, 1, &extent);
+      cairo_scaled_font_glyph_extents(xfont, glyphs + count, 1, &extent);
 
       count++;
 
@@ -189,11 +263,7 @@ static int show_text(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font,
       add_glyphs(glyphs, str_len);
     }
 
-    if (str_len > 0) {
-      drawn_x = glyphs[str_len - 1].x + extent.x_advance;
-    } else {
-      drawn_x = 0;
-    }
+    drawn_x = glyphs[str_len].x;
   } else
 #endif
   {
@@ -233,14 +303,11 @@ static int show_text(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font,
       cairo_glyph_free(orig_glyphs);
     }
 
-    if (num_glyphs > 0) {
-      drawn_x = glyphs[num_glyphs].x;
-    } else {
-      drawn_x = 0;
-    }
+    drawn_x = glyphs[num_glyphs].x;
   }
 
   if (font->size_attr == DOUBLE_WIDTH) {
+    flush_glyphs(cr);
     font->width *= 2;
     cairo_scale(cr, 0.5, 1.0);
   }
@@ -312,6 +379,16 @@ void ui_window_cairo_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t 
   size_t count;
   u_char *p;
 
+#if CAIRO_VERSION_ENCODE(1, 8, 0) <= CAIRO_VERSION
+  ef_charset_t cs = FONT_CS(font->id);
+
+  if (IS_ISCII(cs)) {
+    show_iscii(win->cairo_draw, font->cairo_font, font, fg_color, x + font->x_off + win->hmargin,
+               y + win->vmargin, str, len);
+    return;
+  }
+#endif
+
   /* Removing trailing spaces. */
   while (1) {
     if (len == 0) {
@@ -362,7 +439,7 @@ void ui_window_cairo_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t
       font->compl_fonts) {
     u_int count;
 
-    for (count = 0; count < len; count++) {
+    for (count = 0; count < len;) {
       if (!FcCharSetHasChar(font->compl_fonts[0].charset, str[count])) {
         int compl_idx;
 
@@ -371,7 +448,7 @@ void ui_window_cairo_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t
           int x_off;
 
           if (count > 0) {
-            x += draw_string32(win, xfont, font, fg_color, x + font->x_off, y, str, count);
+            x = draw_string32(win, xfont, font, fg_color, x + font->x_off, y, str, count);
           }
 
           substr = str + count;
@@ -379,20 +456,23 @@ void ui_window_cairo_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t
           for (count++;
                count < len && !FcCharSetHasChar(font->compl_fonts[0].charset, str[count]) &&
                    FcCharSetHasChar(font->compl_fonts[compl_idx + 1].charset, str[count]);
-               count++)
-            ;
+               count++);
 
           x_off = font->x_off;
           font->x_off = 0;
-          x += draw_string32(win, font->compl_fonts[compl_idx].next, font, fg_color,
-                             x + font->x_off, y, substr, substr - str + count);
+          x = draw_string32(win, font->compl_fonts[compl_idx].next, font, fg_color,
+                            x + font->x_off, y, substr, substr - str + count);
           font->x_off = x_off;
 
           str += count;
           len -= count;
           count = 0;
+
+          continue;
         }
       }
+
+      count ++;
     }
   }
 #endif

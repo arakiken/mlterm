@@ -1,3 +1,20 @@
+2019-01-20  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_font_ft.c:
+	  - A font name which contains "-" is not passed to FcNameParse().
+	  - FT_ENCODING_APPLE_ROMAN is not set for ISCII in xft_font_open() and
+	    cairo_font_open().
+	  - "drawn_x +=" => "drawn_x =" in show_text().
+	  - Unexpected increment of a counter is fixed in ui_window_draw_string32().
+
+	* ui_window_cairo.c:
+	  - show_iscii() is added to show ISCII characters.
+	  - flush_glyphs() is called when font->size_attr == DOUBLE_WIDTH.
+
+	* ui_window_xft.c:
+	  ui_window_xft_draw_string8() shows iscii characters by
+	  FC_Get_Char_Index() and XftDrawGlyphs().
+
 2019-01-15  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_line_bidi.c: If vt_bidi() returns 0 or less value and base_was_trl

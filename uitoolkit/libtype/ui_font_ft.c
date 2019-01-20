@@ -273,9 +273,22 @@ static FcPattern *fc_pattern_create(char *family,                        /* can 
                                     int aa_opt) {
   FcPattern *pattern;
 
-  if (family && (pattern = FcNameParse(family))) {
-    /* do nothing */
-  } else if ((pattern = FcPatternCreate())) {
+  if (family) {
+    /*
+     * XXX
+     * FcNameParse() unexpectedly separates "BN-TTDurga" to "BN" and "TTDurga".
+     * '-' must be escaped by '\' before calling FcNameParse().
+     */
+    if (strchr(family, '-')) {
+      if (strchr(family, ':')) { /* BN-TTDurga:style=... */
+        bl_msg_printf("Failed to parse %s.\n", family);
+      }
+    } else if ((pattern = FcNameParse(family))) {
+      goto created;
+    }
+  }
+
+  if ((pattern = FcPatternCreate())) {
     if (family) {
       FcPatternAddString(pattern, FC_FAMILY, family);
     }
@@ -283,6 +296,7 @@ static FcPattern *fc_pattern_create(char *family,                        /* can 
     return NULL;
   }
 
+created:
   FcPatternAddDouble(pattern, fc_size_type, size);
   if (weight >= 0) {
     FcPatternAddInteger(pattern, FC_WEIGHT, weight);
@@ -373,7 +387,8 @@ static XftFont *xft_font_open(ui_font_t *font, char *family, /* can be NULL */
     return NULL;
   }
 
-#if 1
+  /* ui_window_xft_draw_string8() calls FT_Select_Charmap(FT_ENCODING_APPLE_ROMAN) */
+#if 0
   if (is_iscii) {
     FT_Face face;
     int count;
@@ -528,7 +543,8 @@ static cairo_scaled_font_t *cairo_font_open(ui_font_t *font, char *family, /* ca
     goto error2;
   }
 
-#if 1
+  /* ui_window_cairo_draw_string8() calls FT_Select_Charmap(FT_ENCODING_APPLE_ROMAN) */
+#if 0
   if (IS_ISCII(cs)) {
     FT_Face face;
     int count;
