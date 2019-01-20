@@ -39,30 +39,65 @@ int ui_window_set_use_xft(ui_window_t *win, int use_xft) {
 
 void ui_window_xft_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
                                 int y, u_char *str, size_t len) {
-  XftColor *xftcolor;
+  XftColor *xftcolor = ui_color_to_xft(fg_color);
+  ef_charset_t cs = FONT_CS(font->id);
 
-  /* Removing trailing spaces. */
-  while (1) {
-    if (len == 0) {
-      return;
+  if (IS_ISCII(cs)) {
+    /*
+     * Font name: "BN-TTDurga"
+     * FT_ENCODING: _APPLE_ROMAN  _UNICODE
+     *                  0x86    =>  0x2020
+     *                  0x99    =>  0x2122
+     *
+     * It seems impossible to make XftDrawString8() use FT_ENCODING_APPLE_ROMAN,
+     * so both FT_Select_Charmap() and FT_Get_Char_Index() are used to show ISCII.
+     */
+    FT_Face face = XftLockFace(font->xft_font);
+    FT_UInt *glyphs = alloca(sizeof(*glyphs) * len);
+
+    if (glyphs) {
+      size_t count;
+
+      /* Call FT_Select_Charmap() every time to keep FT_ENCODING_APPLE_ROMAN. */
+      FT_Select_Charmap(face, FT_ENCODING_APPLE_ROMAN);
+
+      for (count = 0; count < len; count++) {
+        glyphs[count] = FT_Get_Char_Index(face, str[count]);
+      }
+
+      XftDrawGlyphs(win->xft_draw, xftcolor, font->xft_font, x + font->x_off + win->hmargin,
+                    y + win->vmargin, glyphs, len);
+
+      if (font->double_draw_gap) {
+        XftDrawGlyphs(win->xft_draw, xftcolor, font->xft_font,
+                      x + font->x_off + win->hmargin + font->double_draw_gap, y + win->vmargin,
+                      glyphs, len);
+      }
     }
 
-    if (*(str + len - 1) == ' ') {
-      len--;
-    } else {
-      break;
+    XftUnlockFace(font->xft_font);
+  } else {
+    /* Removing trailing spaces. */
+    while (1) {
+      if (len == 0) {
+        return;
+      }
+
+      if (*(str + len - 1) == ' ') {
+        len--;
+      } else {
+        break;
+      }
     }
-  }
 
-  xftcolor = ui_color_to_xft(fg_color);
+    XftDrawString8(win->xft_draw, xftcolor, font->xft_font, x + font->x_off + win->hmargin,
+                   y + win->vmargin, str, len);
 
-  XftDrawString8(win->xft_draw, xftcolor, font->xft_font, x + font->x_off + win->hmargin,
-                 y + win->vmargin, str, len);
-
-  if (font->double_draw_gap) {
-    XftDrawString8(win->xft_draw, xftcolor, font->xft_font,
-                   x + font->x_off + win->hmargin + font->double_draw_gap, y + win->vmargin, str,
-                   len);
+    if (font->double_draw_gap) {
+      XftDrawString8(win->xft_draw, xftcolor, font->xft_font,
+                     x + font->x_off + win->hmargin + font->double_draw_gap, y + win->vmargin,
+                     str, len);
+    }
   }
 }
 
