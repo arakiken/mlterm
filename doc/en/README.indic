@@ -93,7 +93,7 @@ Following is a instruction of setting up mlterm indic support.
   $ LD_PRELOAD=(INSTALLED DIRECTORY)/lib/mlterm/libfc_wrapper.so mlterm ...
 
 * Notice
-  o Support for indic scripts except devanagari and bengali is buggy.
+  o Tamil is not supported.
   o We are not a native speaker and mlterm indic support itself may be still
     unstable.
     So if you find something strange or wrong about it, please report it without

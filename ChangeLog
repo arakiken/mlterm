@@ -1,3 +1,11 @@
+2019-01-24  Araki Ken  <arakiken@users.sf.net>
+
+	* README.indic: Updated.
+
+	* etc/*font*: ISCII_* except ISCII_TAMIL are activated.
+
+	* libind/Makefile.in: tamil.o is not built.
+
 2019-01-20  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_font_ft.c:
