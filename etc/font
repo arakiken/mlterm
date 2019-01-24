@@ -12,4 +12,4 @@
 
 ISCII_BENGALI = -freetype-bn ttdurga-medium-r-normal--17-120-100-100-p-57-iso10646-1
 ISCII_HINDI = -freetype-dv ttyogesh-medium-r-normal--17-120-100-100-p-63-iso10646-1
-ISCII_TAMIL = -freetype-tm ttvalluvar-medium-r-normal--17-120-100-100-p-107-iso10646-1
+#ISCII_TAMIL = -freetype-tm ttvalluvar-medium-r-normal--17-120-100-100-p-107-iso10646-1
