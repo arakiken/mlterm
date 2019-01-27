@@ -1,3 +1,14 @@
+2019-01-27  Araki Ken  <arakiken@users.sf.net>
+
+	* cocoa.m: CGLayer is used if MacOSX is 10.14 or later.
+	  (See http://twitter.com/Cj_bc_sd/status/1088111309223161857)
+
+	* cocoatouch.m: CGContextSetBlendMode(kCGBlendModeCopy) is added.
+
+	* lex.split.c: Logging to stdout is removed.
+
+	* bl_dlfcn_dl.c: Compiling warning is fixed.
+
 2019-01-24  Araki Ken  <arakiken@users.sf.net>
 
 	* README.indic: Updated.

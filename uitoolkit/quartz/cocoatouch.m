@@ -625,6 +625,11 @@ int cocoa_dialog_alert(const char *msg);
 }
 
 - (void)setFrame:(CGRect)r {
+  if (layer) {
+    CGLayerRelease(layer);
+    layer = nil;
+  }
+
   CGRect sr = [self.window screen].applicationFrame;
 
   r.origin.x += sr.origin.x;
@@ -635,11 +640,6 @@ int cocoa_dialog_alert(const char *msg);
 #endif
 
   [super setFrame:r];
-
-  if (layer) {
-    CGLayerRelease(layer);
-    layer = nil;
-  }
 }
 
 - (void)windowResized {
@@ -734,6 +734,7 @@ int cocoa_dialog_alert(const char *msg);
   CGContextSaveGState(screen_ctx);
   CGContextTranslateCTM(screen_ctx, 0.0, self.bounds.size.height);
   CGContextScaleCTM(screen_ctx, 1.0, -1.0);
+  CGContextSetBlendMode(screen_ctx, kCGBlendModeCopy);
 
 #if 0
   CGAffineTransform t = CGContextGetCTM(ctx);
@@ -743,6 +744,7 @@ int cocoa_dialog_alert(const char *msg);
   if (!layer) {
     layer = CGLayerCreateWithContext(screen_ctx, self.bounds.size, NULL);
     ctx = CGLayerGetContext(layer);
+    CGContextSetBlendMode(ctx, kCGBlendModeCopy);
 
     if (uiwindow->update_window_flag == 0) {
       uiwindow->update_window_flag = 3; /* UPDATE_SCREEN|UPDATE_CURSOR (ui_screen.c) */

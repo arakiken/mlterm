@@ -5,12 +5,15 @@
   and some characters in it disappear.
 * Support "%s" (replaced by selected strings) in "exesel:..." in ~/.mlterm/key.
 * Add local_echo_wait / --lew option.
+* Remove libind_tamil.so because it is very buggy.
 * Bug fixes:
   Fix https://sourceforge.net/p/mlterm/mailman/message/36472061/
   Fix https://sourceforge.net/p/mlterm/mailman/message/36513313/
   Fix segfault in processing illegal sixel sequence.
   Fix invalidation of DECDWL on cairo. (Enbugged at 3.8.6)
   Fix handling ISCII fonts on cairo and xft. (Improve showing bengali characters.)
+  Fix screen corruption (http://twitter.com/Cj_bc_sd/status/1088111309223161857)
+  on MacOSX 10.14. (Thanks to @Cj_bc_sd)
 
 ver 3.8.7
 * Support sixel graphics extension and option1 of

@@ -16,9 +16,17 @@
 #include "../ui_layout.h"
 #include "../ui_selection_encoding.h"
 
+/* XXX USE_CGLAYER is defined if 10.14 Mojave or later for now. */
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101400
+#define USE_CGLAYER
+#endif
+
 @interface MLTermView : NSView<NSTextInputClient> {
   ui_window_t *uiwindow;
   CGContextRef ctx;
+#ifdef USE_CGLAYER
+  CGLayerRef layer;
+#endif
   int forceExpose; /* 2 = visual bell */
 
   BOOL ignoreKeyDown;
@@ -460,6 +468,14 @@ int cocoa_dialog_alert(const char *msg);
 
 - (void)dealloc {
   [[NSNotificationCenter defaultCenter] removeObserver:self];
+
+#ifdef USE_CGLAYER
+  if (layer) {
+    CGLayerRelease(layer);
+    layer = nil;
+  }
+#endif
+
   [super dealloc];
 }
 
@@ -476,6 +492,17 @@ int cocoa_dialog_alert(const char *msg);
     ui_screen_exec_cmd((ui_screen_t *)uiwindow, "paste");
   }
 }
+
+#ifdef USE_CGLAYER
+- (void)setFrameSize:(NSSize)s {
+  if (layer) {
+    CGLayerRelease(layer);
+    layer = nil;
+  }
+
+  [super setFrameSize:s];
+}
+#endif
 
 static void reset_position(ui_window_t *uiwindow) {
   u_int count;
@@ -590,6 +617,9 @@ static void reset_position(ui_window_t *uiwindow) {
 
   if (!uiwindow->parent->my_window) {
     [[self window] useOptimizedDrawing:YES];
+#if 0
+    [[self window] allowsConcurrentViewDrawing:YES];
+#endif
 
     uiwindow->parent->my_window = [self window];
 
@@ -669,11 +699,33 @@ static void reset_position(ui_window_t *uiwindow) {
 
   XExposeEvent ev;
 
+#ifdef USE_CGLAYER
+  CGContextRef screen_ctx = [[NSGraphicsContext currentContext] graphicsPort];
+  CGContextSetBlendMode(screen_ctx, kCGBlendModeCopy);
+#else
   ctx = [[NSGraphicsContext currentContext] graphicsPort];
+#endif
+
 #if 0
   CGAffineTransform t = CGContextGetCTM(ctx);
   bl_debug_printf("%f %f %f %f %f %f\n", t.a, t.b, t.c, t.d, t.tx, t.ty);
 #endif
+
+#ifdef USE_CGLAYER
+  if (!layer) {
+    layer = CGLayerCreateWithContext(screen_ctx, self.bounds.size, NULL);
+    ctx = CGLayerGetContext(layer);
+
+    if (uiwindow->update_window_flag == 0) {
+      uiwindow->update_window_flag = 3; /* UPDATE_SCREEN|UPDATE_CURSOR (ui_screen.c) */
+    }
+    forceExpose = 1;
+  }
+
+  CGPoint p = CGPointMake(0, 0);
+#endif
+
+  CGContextSetBlendMode(ctx, kCGBlendModeCopy);
 
   if (forceExpose & 2) {
     /* Visual bell */
@@ -683,6 +735,9 @@ static void reset_position(ui_window_t *uiwindow) {
                   :uiwindow->width
                   :uiwindow->height];
     CGContextFlush(ctx);
+#ifdef USE_CGLAYER
+    CGContextDrawLayerAtPoint(screen_ctx, p, layer);
+#endif
 
     [[NSRunLoop currentRunLoop]
         runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
@@ -702,6 +757,10 @@ static void reset_position(ui_window_t *uiwindow) {
 
   forceExpose = 0;
   uiwindow->update_window_flag = 0;
+
+#ifdef USE_CGLAYER
+  CGContextDrawLayerAtPoint(screen_ctx, p, layer);
+#endif
 }
 
 - (BOOL)isOpaque {
@@ -1266,23 +1325,21 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   color->pixel += (0x10 * (count++));
 #endif
 
+  CGFloat alpha;
   if (IS_OPAQUE) {
-    set_fill_color(color);
-
-    CGRect rect =
-        CGRectMake(x, ACTUAL_HEIGHT(uiwindow) - y - height, width, height);
-    CGContextAddRect(ctx, rect);
-    CGContextFillPath(ctx);
+    alpha = 1.0;
   } else {
-    [[NSColor colorWithDeviceRed:((color->pixel >> 16) & 0xff) / 255.0
-                           green:((color->pixel >> 8) & 0xff) / 255.0
-                            blue:(color->pixel & 0xff) / 255.0
-                           alpha:((color->pixel >> 24) & 0xff) / 255.0] set];
-
-    NSRectFillUsingOperation(
-        NSMakeRect(x, ACTUAL_HEIGHT(uiwindow) - y - height, width, height),
-        NSCompositeCopy);
+    alpha = (((color)->pixel >> 24) & 0xff) / 255.0;
   }
+
+  CGContextSetRGBFillColor(ctx, (((color)->pixel >> 16) & 0xff) / 255.0,
+                           (((color)->pixel >> 8) & 0xff) / 255.0,
+                           ((color)->pixel & 0xff) / 255.0, alpha);
+
+  CGRect rect =
+    CGRectMake(x, ACTUAL_HEIGHT(uiwindow) - y - height, width, height);
+  CGContextAddRect(ctx, rect);
+  CGContextFillPath(ctx);
 }
 
 - (void)drawRectFrame:(ui_color_t *)color:(int)x1:(int)y1:(int)x2:(int)y2 {
@@ -1736,7 +1793,7 @@ char *cocoa_dialog_password(const char *msg) {
 int cocoa_dialog_okcancel(const char *msg) {
   NSAlert *alert = create_dialog(msg, 1);
   if (alert == nil) {
-    return NULL;
+    return 0;
   }
 
   if ([alert runModal] == NSAlertFirstButtonReturn) {

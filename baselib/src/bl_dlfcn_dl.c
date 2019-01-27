@@ -45,7 +45,7 @@ bl_dl_handle_t bl_dl_open(const char *dirpath, const char *name) {
   }
 #else
   {
-    char *p;
+    const char *p;
 
     /* XXX Hack */
     if ((strcmp((p = dirpath + strlen(dirpath) - 4), "mef/") == 0 ||
