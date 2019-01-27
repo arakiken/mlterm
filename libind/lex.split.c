@@ -445,7 +445,11 @@ YY_MALLOC_DECL
 /* This used to be an fputs(), but since the string might contain NUL's,
  * we now use fwrite().
  */
+#if 0
 #define ECHO (void) fwrite(yytext, (size_t)yyleng, 1, yyout)
+#else
+#define ECHO (0)
+#endif
 #endif
 
 /* Gets input and stuffs it into "buf".  number of characters read, or YY_NULL,
