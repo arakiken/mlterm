@@ -78,30 +78,23 @@ typedef struct vt_char {
  *
  * (*) ISO10646_UCS4_1_V is set during being shaped.
  *     (See vt_shape.c and vt_char_set_cs())
+ *
+ * attr2 member contents.
+ * Total 2 bit
+ * 1 bit : unused
+ * 1 bit : is_zerowidth(0 or 1)
  */
 #ifdef WORDS_BIGENDIAN
       u_int code : 21;
-      /*
-       * cols = 0 or 1 or 2
-       *
-       * XXX 'cols == 2' equals to 'is_fullwidth == 1', so there is room to
-       * improve efficiency of memory.
-       */
-      u_int cols : 2;
+      u_int attr2 : 2;
       u_int fg_color : 9;
       u_int bg_color : 9;
-      u_int attr : 21;
+      u_int attr : 23;
 #else
       u_int attr : 23;
       u_int fg_color : 9;
       u_int bg_color : 9;
-      /*
-       * cols = 0 or 1 or 2
-       *
-       * XXX 'cols == 2' equals to 'is_fullwidth == 1', so there is room to
-       * improve efficiency of memory.
-       */
-      u_int cols : 2;
+      u_int attr2 : 2;
       u_int code : 21;
 #endif
     } ch;
@@ -178,6 +171,8 @@ vt_font_t vt_char_font(vt_char_t *ch);
 u_int vt_char_cols(vt_char_t *ch);
 
 int vt_char_is_fullwidth(vt_char_t *ch);
+
+int vt_char_is_zerowidth(vt_char_t *ch);
 
 vt_color_t vt_char_fg_color(vt_char_t *ch);
 

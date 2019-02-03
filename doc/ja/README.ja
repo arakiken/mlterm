@@ -467,7 +467,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
       o bidi_separators (#)
         BiDi レンダリングを行う範囲を区切る文字を指定する。
-        ('\x'から始まる16進数の使用も可)
+        ('\x'から始まる16進数の使用も可。指定できる文字は \x00-\xff)
 
       o use_combining  (*true*/false) (#)
         結合文字を処理する(直前の基底文字に結合する)
