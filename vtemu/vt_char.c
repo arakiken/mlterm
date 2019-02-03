@@ -21,6 +21,7 @@
 #define IS_ITALIC(attr) ((attr) & (0x1 << 16))
 #define IS_BOLD(attr) ((attr) & (0x1 << 15))
 #define IS_FULLWIDTH(attr) ((attr) & (0x1 << 14))
+#define COLUMNS(attr) ((((attr) >> 14) & 0x1) + 1);
 #define CHARSET(attr) \
   IS_UNICODE_AREA_CS(attr) ? (ISO10646_UCS4_1 | (((attr) >> 5) & 0x100)) : (((attr) >> 5) & 0x1ff)
 
@@ -45,6 +46,8 @@
   (((line_style) << 19) | ((is_blinking) << 18) | ((is_unicode_area_cs) << 17) | \
    ((is_italic) << 16) | ((is_bold) << 15) | ((is_fullwidth) << 14) | ((charset) << 5) | \
    ((is_protected) << 3) | ((is_comb) << 2) | 0x1)
+
+#define IS_ZEROWIDTH(c) ((c)->u.ch.attr2)
 
 /* --- static variables --- */
 
@@ -80,7 +83,7 @@ static vt_char_t *new_comb(vt_char_t *ch, u_int *comb_size_ptr) {
   u_int comb_size;
 
   if (IS_SINGLE_CH(ch->u.ch.attr)) {
-    if (ch->u.ch.cols == 0) {
+    if (IS_ZEROWIDTH(ch)) {
       /*
        * Zero width characters must not be combined to
        * show string like U+09b0 + U+200c + U+09cd + U+09af correctly.
@@ -115,7 +118,7 @@ static vt_char_t *new_comb(vt_char_t *ch, u_int *comb_size_ptr) {
       abort();
     }
   } else {
-    if (ch->u.multi_ch->u.ch.cols == 0) {
+    if (IS_ZEROWIDTH(ch->u.multi_ch)) {
       /*
        * Zero width characters must not be combined to
        * show string like U+09b0 + U+200c + U+09cd + U+09af correctly.
@@ -317,11 +320,12 @@ void vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidt
    */
   if ((code & ~0x2f) == 0x2000 /* 0x2000-0x2000f or 0x2020-0x202f */ && cs == ISO10646_UCS4_1 &&
       ((0x200c <= code && code <= 0x200f) || (0x202a <= code && code <= 0x202e))) {
-    ch->u.ch.cols = 0;
-  } else {
-    ch->u.ch.cols = is_fullwidth ? 2 : 1;
-  }
+    ch->u.ch.attr2 = 1; /* is zerowidth */
+  } else
 #endif
+  {
+    ch->u.ch.attr2 = 0;
+  }
 
   ch->u.ch.attr = COMPOUND_ATTR(cs, is_fullwidth != 0, is_bold != 0, is_italic != 0, idx > 0,
                                 line_style, is_blinking != 0, is_protected != 0, is_comb != 0);
@@ -633,10 +637,6 @@ vt_font_t vt_char_font(vt_char_t *ch) {
   }
 }
 
-/*
- * Return the number of columns when ch is shown in the screen.
- * (If vt_char_cols(ch) returns 0, nothing is shown in the screen.)
- */
 u_int vt_char_cols(vt_char_t *ch) {
   u_int attr;
 
@@ -644,9 +644,9 @@ u_int vt_char_cols(vt_char_t *ch) {
 
   if (IS_SINGLE_CH(attr)) {
     if (!use_multi_col_char) {
-      return ch->u.ch.cols ? 1 : 0;
+      return 1;
     } else {
-      return ch->u.ch.cols;
+      return COLUMNS(attr);
     }
   } else {
     return vt_char_cols(ch->u.multi_ch);
@@ -661,6 +661,15 @@ int vt_char_is_fullwidth(vt_char_t *ch) {
     return IS_FULLWIDTH(ch->u.ch.attr);
   } else {
     return vt_char_is_fullwidth(ch->u.multi_ch);
+  }
+}
+
+/* If true, nothing is shown in the screen. */
+int vt_char_is_zerowidth(vt_char_t *ch) {
+  if (IS_SINGLE_CH(ch->u.ch.attr)) {
+    return IS_ZEROWIDTH(ch);
+  } else {
+    return vt_char_is_zerowidth(ch->u.multi_ch);
   }
 }
 

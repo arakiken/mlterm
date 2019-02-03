@@ -1,3 +1,14 @@
+2019-02-04  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_draw_str.c: 'vt_char_cols == 0' => vt_char_is_zerowidth().
+
+	* vt_char.[ch]: vt_char_is_zerowidth() is added.
+
+	* vt_line_bidi.c: set_visual_modified() checks visual order properly.
+
+	* vt_bidi.c: 'bidi_mode = BIDI_ALWAYS_LEFT' instead of
+	  'fri_type == FRIBIDI_TYPE_LTR' for DEC_SPECIAL characters.
+
 2019-01-27  Araki Ken  <arakiken@users.sf.net>
 
 	* cocoa.m: CGLayer is used if MacOSX is 10.14 or later.

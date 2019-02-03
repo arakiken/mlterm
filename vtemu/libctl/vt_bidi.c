@@ -48,12 +48,12 @@ static void log2vis(FriBidiChar *str, u_int size, FriBidiCharType *type_p, vt_bi
   u_int pos;
 
   if (size > cur_pos) {
-    if (bidi_mode == BIDI_ALWAYS_RIGHT) {
-      type = FRIBIDI_TYPE_RTL;
-    } else if (bidi_mode == BIDI_ALWAYS_LEFT) {
-      type = FRIBIDI_TYPE_LTR;
-    } else {
+    if (bidi_mode == BIDI_NORMAL_MODE) {
       type = FRIBIDI_TYPE_ON;
+    } else if (bidi_mode == BIDI_ALWAYS_RIGHT) {
+      type = FRIBIDI_TYPE_RTL;
+    } else /* if (bidi_mode == BIDI_ALWAYS_LEFT) */ {
+      type = FRIBIDI_TYPE_LTR;
     }
 
     fribidi_log2vis(str + cur_pos, size - cur_pos, &type, NULL, order + cur_pos, NULL, NULL);
@@ -101,8 +101,7 @@ static void log2vis(FriBidiChar *str, u_int size, FriBidiCharType *type_p, vt_bi
     if (append) {
       order[size] = size;
     }
-  } else /* if( *type_p == FRIBIDI_TYPE_RTL) */
-  {
+  } else /* if (*type_p == FRIBIDI_TYPE_RTL) */ {
     if (cur_pos > 0) {
       for (pos = 0; pos < cur_pos; pos++) {
         order[pos] += (size - cur_pos);
@@ -229,7 +228,7 @@ int vt_bidi(vt_bidi_state_t state, vt_char_t *src, u_int size, vt_bidi_mode_t bi
       }
     } else if (cs == DEC_SPECIAL) {
     decsp:
-      fri_type = FRIBIDI_TYPE_LTR;
+      bidi_mode = BIDI_ALWAYS_LEFT;
 
       if (HAS_RTL(state)) {
         log2vis(fri_src, count, &fri_type, bidi_mode, fri_order, cur_pos, 1);

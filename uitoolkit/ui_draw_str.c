@@ -428,7 +428,7 @@ static void fc_draw_combining_chars(ui_window_t *window, ui_font_manager_t *font
   ui_font_t *uifont;
 
   for (count = 0; count < size; count++) {
-    if (vt_char_cols(&chars[count]) == 0) {
+    if (vt_char_is_zerowidth(&chars[count])) {
       continue;
     }
 
@@ -518,7 +518,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   end_of_str = 0;
 
   count = 0;
-  while (vt_char_cols(&chars[count]) == 0) {
+  while (vt_char_is_zerowidth(&chars[count])) {
     if (++count >= num_chars) {
       return 1;
     }
@@ -594,7 +594,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 
         break;
       }
-    } while (vt_char_cols(&chars[count]) == 0);
+    } while (vt_char_is_zerowidth(&chars[count]));
 
     if (!end_of_str) {
       ch_code = vt_char_code(&chars[count]);
@@ -777,7 +777,7 @@ static int xcore_draw_combining_chars(ui_window_t *window, ui_font_manager_t *fo
   int x_off;
 
   for (count = 0; count < size; count++) {
-    if (vt_char_cols(&chars[count]) == 0) {
+    if (vt_char_is_zerowidth(&chars[count])) {
       continue;
     }
 
@@ -880,7 +880,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   }
 
   count = 0;
-  while (vt_char_cols(&chars[count]) == 0) {
+  while (vt_char_is_zerowidth(&chars[count])) {
     if (++count >= num_chars) {
       return 1;
     }
@@ -954,7 +954,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 
         break;
       }
-    } while (vt_char_cols(&chars[count]) == 0);
+    } while (vt_char_is_zerowidth(&chars[count]));
 
     if (!end_of_str) {
       ch_code = vt_char_code(&chars[count]);

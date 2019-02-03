@@ -146,7 +146,7 @@ static int convert_char_index_to_x(
 
       ch = vt_char_at(line, count);
 
-      if (vt_char_cols(ch) > 0) {
+      if (!vt_char_is_zerowidth(ch)) {
         x -= ui_calculate_vtchar_width(ui_get_font(screen->font_man, vt_char_font(ch)), ch, NULL);
       }
     }
@@ -160,7 +160,7 @@ static int convert_char_index_to_x(
 
       ch = vt_char_at(line, count);
 
-      if (vt_char_cols(ch) > 0) {
+      if (!vt_char_is_zerowidth(ch)) {
         x += ui_calculate_vtchar_width(ui_get_font(screen->font_man, vt_char_font(ch)), ch, NULL);
       }
     }
@@ -212,7 +212,7 @@ static int convert_x_to_char_index(ui_screen_t *screen, vt_line_t *line, u_int *
 
       ch = vt_char_at(line, count);
 
-      if (vt_char_cols(ch) == 0) {
+      if (vt_char_is_zerowidth(ch)) {
         continue;
       }
 
@@ -234,7 +234,7 @@ static int convert_x_to_char_index(ui_screen_t *screen, vt_line_t *line, u_int *
 
       ch = vt_char_at(line, count);
 
-      if (vt_char_cols(ch) == 0) {
+      if (vt_char_is_zerowidth(ch)) {
         continue;
       }
 

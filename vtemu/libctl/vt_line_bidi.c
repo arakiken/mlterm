@@ -36,6 +36,7 @@ static void copy_char_with_mirror_check(vt_char_t *dst, vt_char_t *src, u_int16_
 }
 
 static void set_visual_modified(vt_line_t *line, int logical_mod_beg, int logical_mod_end) {
+  int log_pos;
   int visual_mod_beg;
   int visual_mod_end;
 
@@ -47,15 +48,17 @@ static void set_visual_modified(vt_line_t *line, int logical_mod_beg, int logica
     return;
   }
 
-  visual_mod_beg = line->ctl_info.bidi->visual_order[logical_mod_beg];
-  visual_mod_end = line->ctl_info.bidi->visual_order[logical_mod_end];
+  visual_mod_beg = vt_line_end_char_index(line);
+  visual_mod_end = 0;
+  for (log_pos = logical_mod_beg; log_pos <= logical_mod_end; log_pos++) {
+    int vis_pos = line->ctl_info.bidi->visual_order[log_pos];
 
-  if (visual_mod_beg > visual_mod_end) {
-    int tmp;
-
-    tmp = visual_mod_end;
-    visual_mod_end = visual_mod_beg;
-    visual_mod_beg = tmp;
+    if (vis_pos < visual_mod_beg) {
+      visual_mod_beg = vis_pos;
+    }
+    if (vis_pos > visual_mod_end) {
+      visual_mod_end = vis_pos;
+    }
   }
 
 #if 0
@@ -63,6 +66,7 @@ static void set_visual_modified(vt_line_t *line, int logical_mod_beg, int logica
                   visual_mod_end);
 #endif
 
+  vt_line_set_updated(line);
   vt_line_set_modified(line, visual_mod_beg, visual_mod_end);
 }
 
@@ -125,8 +129,8 @@ int vt_line_bidi_render(vt_line_t *line, /* is always modified */
     ret = 1; /* order is not changed */
   }
 
-  if (ret == 2) /* order is changed => force to redraw all */
-  {
+  if (ret == 2) {
+    /* order is changed => force to redraw all */
     if (vt_line_get_end_of_modified(line) > vt_line_end_char_index(line)) {
       vt_line_set_modified_all(line);
     } else {

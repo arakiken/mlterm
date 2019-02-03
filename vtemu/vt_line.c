@@ -1234,14 +1234,6 @@ int vt_convert_char_index_to_col(vt_line_t *line, int char_index, int flag /* BR
 
   if ((flag & BREAK_BOUNDARY) && line->num_filled_chars <= char_index) {
     for (count = 0; count < line->num_filled_chars; count++) {
-#ifdef DEBUG
-      if (vt_char_cols(line->chars + count) == 0) {
-        bl_warn_printf(BL_DEBUG_TAG " vt_char_cols returns 0.\n");
-
-        continue;
-      }
-#endif
-
       col += vt_char_cols(line->chars + count);
     }
 
