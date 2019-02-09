@@ -288,10 +288,12 @@ static u_int total_height_inc(ui_window_t *win) {
   return height_inc;
 }
 
-static int check_resize(u_int old_width, u_int old_height, int32_t *new_width, int32_t *new_height,
-                        u_int min_width, u_int min_height, u_int width_inc, u_int height_inc,
-                        int check_inc) {
+static int modify_resize(u_int old_width, u_int old_height, int32_t *new_width, int32_t *new_height,
+                         u_int min_width, u_int min_height, u_int width_inc, u_int height_inc,
+                         int check_inc) {
   u_int diff;
+  u_int orig_new_width = *new_width;
+  u_int orig_new_height = *new_height;
 
   if (rotate_display) {
     BL_SWAP(unsigned int, min_width, min_height);
@@ -334,7 +336,7 @@ static int check_resize(u_int old_width, u_int old_height, int32_t *new_width, i
     }
   }
 
-  if (old_width == *new_width && old_height == *new_height) {
+  if (orig_new_width == *new_width && orig_new_height == *new_height) {
     return 0;
   } else {
     return 1;
@@ -802,9 +804,9 @@ static void poll_event(void) {
       u_int height = ev.window.data2;
 
 #if 0
-      if (check_resize(disp->display->width, disp->display->height, &width, &height,
-                       total_min_width(disp->roots[0]), total_min_height(disp->roots[0]),
-                       total_width_inc(disp->roots[0]), total_height_inc(disp->roots[0]), 1)) {
+      if (modify_resize(disp->display->width, disp->display->height, &width, &height,
+                        total_min_width(disp->roots[0]), total_min_height(disp->roots[0]),
+                        total_width_inc(disp->roots[0]), total_height_inc(disp->roots[0]), 1)) {
         SDL_SetWindowSize(disp->display->window, width, height);
       } else
 #endif
@@ -822,6 +824,11 @@ static void poll_event(void) {
         init_display(disp->display, NULL, 0, 0, 0);
         disp->display->resizing = 0;
         ui_window_resize_with_margin(disp->roots[0], disp->width, disp->height, NOTIFY_TO_MYSELF);
+
+#if 1
+        /* This is because ui_window_resize_with_margin() redraws screen partially. */
+        ui_window_update_all(disp->roots[0]);
+#endif
       }
     } else if (ev.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
       ui_window_t *win;

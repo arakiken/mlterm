@@ -974,6 +974,10 @@ static int create_shm_buffer(Display *display) {
 }
 
 static void destroy_shm_buffer(Display *display) {
+#if 0
+  display->damage_x = display->damage_y = display->damage_width = display->damage_height = 0;
+#endif
+
   wl_surface_attach(display->surface, NULL, 0, 0);
   wl_buffer_destroy(display->buffer);
   munmap(display->fb, display->line_length * (display->height + DECORATION_MARGIN));
@@ -1600,28 +1604,42 @@ static int flush_damage(Display *display) {
 }
 
 static int cache_damage_h(Display *display, int x, int y, u_int width, u_int height) {
-  if (x == display->damage_x && y == display->damage_y + display->damage_height &&
-      width == display->damage_width) {
-    display->damage_height += height;
-    return 1;
-  } else {
-    return 0;
+  if (x == display->damage_x && width == display->damage_width) {
+    if (y == display->damage_y + display->damage_height) {
+      display->damage_height += height;
+
+      return 1;
+    } else if (y + height == display->damage_y) {
+      display->damage_y = y;
+      display->damage_height += height;
+
+      return 1;
+    }
   }
+
+  return 0;
 }
 
 static int cache_damage_v(Display *display, int x, int y, u_int width, u_int height) {
-  if (y == display->damage_y && x == display->damage_x + display->damage_width &&
-      height == display->damage_height) {
-    display->damage_width += width;
-    return 1;
-  } else {
-    return 0;
+  if (y == display->damage_y && height == display->damage_height) {
+    if (x == display->damage_x + display->damage_width) {
+      display->damage_width += width;
+
+      return 1;
+    } else if (x + width == display->damage_x) {
+      display->damage_x = x;
+      display->damage_width += width;
+
+      return 1;
+    }
   }
+
+  return 0;
 }
 
 static void damage_buffer(Display *display, int x, int y, u_int width, u_int height) {
-  if (rotate_display ? !cache_damage_v(display, x, y, width, height) :
-                       !cache_damage_h(display, x, y, width, height)) {
+  if (!cache_damage_v(display, x, y, width, height) &&
+      !cache_damage_h(display, x, y, width, height)) {
     if (display->damage_height > 0) {
       wl_surface_damage(display->surface, display->damage_x, display->damage_y,
                         display->damage_width, display->damage_height);
@@ -2195,7 +2213,7 @@ void ui_display_put_image(ui_display_t *disp, int x, int y, u_char *image, size_
       }
     }
 
-    damage_buffer(display, x, rotate_display > 0 ? y : y - size + 1, 1 , size);
+    damage_buffer(display, x, rotate_display > 0 ? y : y - size + 1, 1, size);
   } else {
     memcpy(get_fb(display, x, y), image, size);
 

@@ -1,3 +1,13 @@
+2019-02-09  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1: Typo is fixed.
+
+	* wayland/ui_display.c: cache_damage_h() and cache_damage_v() works
+	  if rotate_display = right.
+
+	* sdl2/ui_display.c: ui_window_update_all() is called
+	  if SDL_WINDOWEVENT_SIZE_CHANGED is received.
+
 2019-02-04  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_draw_str.c: 'vt_char_cols == 0' => vt_char_is_zerowidth().
