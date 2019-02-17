@@ -14,6 +14,7 @@
   Fix handling ISCII fonts on cairo and xft. (Improve showing bengali characters.)
   Fix screen corruption (http://twitter.com/Cj_bc_sd/status/1088111309223161857)
   on MacOSX 10.14. (Thanks to @Cj_bc_sd)
+  Fix segfault in showing an input method window. (Thanks to @isaki68k)
 
 ver 3.8.7
 * Support sixel graphics extension and option1 of

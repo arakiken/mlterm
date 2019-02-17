@@ -1,3 +1,7 @@
+2019-02-17  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/ui_window.c: Segfault in showing an input method window is fixed.
+
 2019-02-09  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1: Typo is fixed.
