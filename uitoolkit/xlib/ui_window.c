@@ -1337,9 +1337,11 @@ int ui_window_show(ui_window_t *win, int hint) {
     size_hints.height_inc = total_height_inc(win);
     size_hints.min_width = total_min_width(win);
     size_hints.min_height = total_min_height(win);
-    size_hints.base_width = size_hints.min_width > size_hints.width_inc ?
+    size_hints.base_width = (size_hints.width_inc > 0 &&
+                             size_hints.min_width > size_hints.width_inc) ?
                             size_hints.min_width % size_hints.width_inc : 0;
-    size_hints.base_height = size_hints.min_height > size_hints.height_inc ?
+    size_hints.base_height = (size_hints.height_inc > 0 &&
+                              size_hints.min_height > size_hints.height_inc) ?
                              size_hints.min_height % size_hints.height_inc : 0;
 
 #ifdef DEBUG
@@ -1586,9 +1588,11 @@ void ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_hei
   size_hints.height_inc = total_height_inc(root);
   size_hints.min_width = total_min_width(root);
   size_hints.min_height = total_min_height(root);
-  size_hints.base_width =
-      size_hints.min_width > size_hints.width_inc ? size_hints.min_width % size_hints.width_inc : 0;
-  size_hints.base_height = size_hints.min_height > size_hints.height_inc ?
+  size_hints.base_width = (size_hints.width_inc > 0 &&
+                           size_hints.min_width > size_hints.width_inc) ?
+                          size_hints.min_width % size_hints.width_inc : 0;
+  size_hints.base_height = (size_hints.height_inc > 0 &&
+                            size_hints.min_height > size_hints.height_inc) ?
                            size_hints.min_height % size_hints.height_inc : 0;
   size_hints.flags = PMinSize | PResizeInc | PBaseSize;
 
