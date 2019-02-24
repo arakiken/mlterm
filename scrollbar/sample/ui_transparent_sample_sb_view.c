@@ -80,7 +80,7 @@ static void resized(ui_sb_view_t *view, Window window, unsigned int height) {
   view->height = height;
 }
 
-static void delete (ui_sb_view_t *view) {
+static void destroy(ui_sb_view_t *view) {
   sample_sb_view_t *sample;
 
   sample = (sample_sb_view_t*)view;
@@ -212,7 +212,7 @@ ui_sb_view_t *ui_sample_transparent_sb_view_new(void) {
   sample->view.get_default_color = get_default_color;
   sample->view.realized = realized;
   sample->view.resized = resized;
-  sample->view.delete = delete;
+  sample->view.destroy = destroy;
 
   sample->view.draw_scrollbar = draw_scrollbar;
   sample->view.draw_up_button = draw_up_button;

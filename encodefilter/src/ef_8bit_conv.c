@@ -177,7 +177,7 @@ static size_t convert_to_iscii(ef_conv_t *conv, u_char *dst, size_t dst_size,
 
 static void conv_init(ef_conv_t *conv) {}
 
-static void conv_delete(ef_conv_t *conv) { free(conv); }
+static void conv_destroy(ef_conv_t *conv) { free(conv); }
 
 static ef_conv_t *iscii_conv_new(ef_charset_t cs) {
   ef_iscii_conv_t *iscii_conv;
@@ -188,7 +188,7 @@ static ef_conv_t *iscii_conv_new(ef_charset_t cs) {
 
   iscii_conv->conv.convert = convert_to_iscii;
   iscii_conv->conv.init = conv_init;
-  iscii_conv->conv.delete = conv_delete;
+  iscii_conv->conv.destroy = conv_destroy;
   iscii_conv->conv.illegal_char = NULL;
   iscii_conv->cs = cs;
 
@@ -206,7 +206,7 @@ ef_conv_t *ef_koi8_r_conv_new(void) {
 
   conv->convert = convert_to_koi8_r;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;
@@ -221,7 +221,7 @@ ef_conv_t *ef_koi8_u_conv_new(void) {
 
   conv->convert = convert_to_koi8_u;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;
@@ -236,7 +236,7 @@ ef_conv_t *ef_koi8_t_conv_new(void) {
 
   conv->convert = convert_to_koi8_t;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;
@@ -251,7 +251,7 @@ ef_conv_t *ef_georgian_ps_conv_new(void) {
 
   conv->convert = convert_to_georgian_ps;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;
@@ -266,7 +266,7 @@ ef_conv_t *ef_cp1250_conv_new(void) {
 
   conv->convert = convert_to_cp1250;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;
@@ -281,7 +281,7 @@ ef_conv_t *ef_cp1251_conv_new(void) {
 
   conv->convert = convert_to_cp1251;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;
@@ -296,7 +296,7 @@ ef_conv_t *ef_cp1252_conv_new(void) {
 
   conv->convert = convert_to_cp1252;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;
@@ -311,7 +311,7 @@ ef_conv_t *ef_cp1253_conv_new(void) {
 
   conv->convert = convert_to_cp1253;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;
@@ -326,7 +326,7 @@ ef_conv_t *ef_cp1254_conv_new(void) {
 
   conv->convert = convert_to_cp1254;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;
@@ -341,7 +341,7 @@ ef_conv_t *ef_cp1255_conv_new(void) {
 
   conv->convert = convert_to_cp1255;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;
@@ -356,7 +356,7 @@ ef_conv_t *ef_cp1256_conv_new(void) {
 
   conv->convert = convert_to_cp1256;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;
@@ -371,7 +371,7 @@ ef_conv_t *ef_cp1257_conv_new(void) {
 
   conv->convert = convert_to_cp1257;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;
@@ -386,7 +386,7 @@ ef_conv_t *ef_cp1258_conv_new(void) {
 
   conv->convert = convert_to_cp1258;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;
@@ -401,7 +401,7 @@ ef_conv_t *ef_cp874_conv_new(void) {
 
   conv->convert = convert_to_cp874;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;
@@ -416,7 +416,7 @@ ef_conv_t *ef_viscii_conv_new(void) {
 
   conv->convert = convert_to_viscii;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;

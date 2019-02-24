@@ -131,7 +131,7 @@ ui_decsp_font_t *ui_decsp_font_new(Display *display, u_int width, u_int height, 
   return font;
 }
 
-void ui_decsp_font_delete(ui_decsp_font_t *font, Display *display) {
+void ui_decsp_font_destroy(ui_decsp_font_t *font, Display *display) {
   int count;
 
   for (count = 0; count < sizeof(font->glyphs) / sizeof(font->glyphs[0]); count++) {

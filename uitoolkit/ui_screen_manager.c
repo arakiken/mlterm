@@ -83,7 +83,7 @@ static void config_saved(void) {
   ui_prepare_for_main_config(conf);
   ui_main_config_init(&main_config, conf, 1, argv);
 
-  bl_conf_delete(conf);
+  bl_conf_destroy(conf);
 }
 
 static void font_config_updated(void) {
@@ -448,7 +448,7 @@ static void close_screen_win32(ui_screen_t *screen) {
     /*
      * XXX Hack
      * In case SendMessage(WM_CLOSE) causes WM_KILLFOCUS
-     * and operates screen->term which was already deleted.
+     * and operates screen->term which was already destroyed.
      * (see window_unfocused())
      */
     screen->window.window_unfocused = NULL;
@@ -456,8 +456,8 @@ static void close_screen_win32(ui_screen_t *screen) {
 
   SendMessage(ui_get_root_window(&screen->window)->my_window, WM_CLOSE, 0, 0);
 
-  if (is_orphan && screen->window.window_deleted) {
-    (*screen->window.window_deleted)(&screen->window);
+  if (is_orphan && screen->window.window_destroyed) {
+    (*screen->window.window_destroyed)(&screen->window);
   }
 }
 #endif
@@ -471,8 +471,8 @@ static void close_screen_intern(ui_screen_t *screen) {
   }
 
   ui_screen_detach(screen);
-  ui_font_manager_delete(screen->font_man);
-  ui_color_manager_delete(screen->color_man);
+  ui_font_manager_destroy(screen->font_man);
+  ui_color_manager_destroy(screen->color_man);
 
   root = ui_get_root_window(&screen->window);
   disp = root->disp;
@@ -616,7 +616,7 @@ static ui_screen_t *open_screen_intern(char *disp_name, vt_term_t *term, ui_layo
   if ((p = realloc(screens, sizeof(ui_screen_t *) * (num_screens + 1))) == NULL) {
     /*
      * XXX
-     * After ui_display_show_root() screen is not deleted correctly by
+     * After ui_display_show_root() screen is not destroyed correctly by
      * 'goto error'(see following error handling in open_pty_intern),
      * but I don't know how to do.
      */
@@ -670,11 +670,11 @@ static ui_screen_t *open_screen_intern(char *disp_name, vt_term_t *term, ui_layo
 
 error:
   if (font_man) {
-    ui_font_manager_delete(font_man);
+    ui_font_manager_destroy(font_man);
   }
 
   if (color_man) {
-    ui_color_manager_delete(color_man);
+    ui_color_manager_destroy(color_man);
   }
 
   if (!root || !ui_display_remove_root(disp, root)) {
@@ -683,11 +683,11 @@ error:
      */
 
     if (screen) {
-      ui_screen_delete(screen);
+      ui_screen_destroy(screen);
     }
 
     if (layout) {
-      ui_layout_delete(layout);
+      ui_layout_destroy(layout);
     }
   }
 
@@ -863,7 +863,7 @@ static void close_pty(void *p, ui_screen_t *screen, char *dev) {
   bl_trigger_sig_child(vt_term_get_child_pid(term));
 }
 
-static void pty_closed(void *p, ui_screen_t *screen /* screen->term was already deleted. */
+static void pty_closed(void *p, ui_screen_t *screen /* screen->term was already destroyed. */
                        ) {
   int count;
 
@@ -1122,7 +1122,7 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
     bl_conf_add_opt(conf, '\0', "vsep", 0, "vsep", "");
 
     if (!bl_conf_parse_args(conf, &argc, &argv, 1)) {
-      bl_conf_delete(conf);
+      bl_conf_destroy(conf);
 
       return 0;
     }
@@ -1147,7 +1147,7 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
 
     ui_main_config_init(&main_config, conf, argc, argv);
 
-    bl_conf_delete(conf);
+    bl_conf_destroy(conf);
 
     if (screen) {
       if (sep) {

@@ -5,7 +5,7 @@
 
 #include <pobl/bl_types.h> /* size_t */
 
-#if defined(USE_WIN32GUI) || defined(USE_QUARTZ)
+#if defined(USE_WIN32GUI) || defined(USE_QUARTZ) || defined(USE_BEOS)
 #include <vt_char_encoding.h>
 #endif
 
@@ -18,7 +18,7 @@ typedef struct ui_xic {
 #if defined(USE_WIN32GUI)
   WORD prev_keydown_wparam;
   ef_parser_t *parser;
-#elif defined(USE_QUARTZ)
+#elif defined(USE_QUARTZ) || defined(USE_BEOS)
   ef_parser_t *parser;
 #elif defined(USE_XLIB)
   XFontSet fontset;

@@ -19,7 +19,7 @@ typedef struct ef_parser {
   /* public */
   void (*init)(struct ef_parser *);
   void (*set_str)(struct ef_parser *, u_char *str, size_t size);
-  void (*delete)(struct ef_parser *);
+  void (*destroy)(struct ef_parser *);
   int (*next_char)(struct ef_parser *, ef_char_t *);
 
 } ef_parser_t;

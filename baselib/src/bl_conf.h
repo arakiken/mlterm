@@ -47,7 +47,7 @@ char *bl_get_prog_path(void);
 
 bl_conf_t *bl_conf_new(void);
 
-int bl_conf_delete(bl_conf_t *conf);
+int bl_conf_destroy(bl_conf_t *conf);
 
 int bl_conf_add_opt(bl_conf_t *conf, char short_opt, char *long_opt, int is_boolean, char *key,
                     char *help);

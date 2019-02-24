@@ -228,7 +228,7 @@ static void resized(ui_sb_view_t *view, Window window, unsigned int height) {
   mozmod_sb->background = vt_create_sb_bg_pixmap(view, WIDTH, view->height - MARGIN * 2);
 }
 
-static void delete (ui_sb_view_t *view) {
+static void destroy(ui_sb_view_t *view) {
   mozmod_sb_view_t *mozmod_sb;
 
   mozmod_sb = (mozmod_sb_view_t *)view;
@@ -415,7 +415,7 @@ ui_sb_view_t *ui_mozmodern_sb_view_new(void) {
   mozmod_sb->view.get_default_color = get_default_color;
   mozmod_sb->view.realized = realized;
   mozmod_sb->view.resized = resized;
-  mozmod_sb->view.delete = delete;
+  mozmod_sb->view.destroy = destroy;
 
   mozmod_sb->view.draw_scrollbar = draw_scrollbar;
   mozmod_sb->view.draw_up_button = draw_up_button;
@@ -437,7 +437,7 @@ ui_sb_view_t *ui_mozmodern_transparent_sb_view_new(void) {
   mozmod_sb->view.get_default_color = get_default_color;
   mozmod_sb->view.realized = realized;
   mozmod_sb->view.resized = resized;
-  mozmod_sb->view.delete = delete;
+  mozmod_sb->view.destroy = destroy;
 
   mozmod_sb->view.draw_scrollbar = draw_transparent_scrollbar;
   mozmod_sb->view.draw_up_button = draw_up_button;

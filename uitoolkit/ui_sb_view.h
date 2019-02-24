@@ -41,7 +41,7 @@ typedef struct ui_sb_view {
   void (*realized)(struct ui_sb_view *, Display *, int screen, Window, GC, unsigned int height);
   void (*resized)(struct ui_sb_view *, Window, unsigned int height);
   void (*color_changed)(struct ui_sb_view *, int);
-  void (*delete)(struct ui_sb_view *);
+  void (*destroy)(struct ui_sb_view *);
 
   /*
    * Win32: ui_sb_view_t::gc is set by ui_scrollbar.c before following draw_XXX

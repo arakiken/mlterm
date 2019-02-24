@@ -161,7 +161,7 @@ static void utf8_parser_set_str(ef_parser_t *utf8_parser, u_char *str, size_t si
   utf8_parser->is_eos = 0;
 }
 
-static void utf8_parser_delete(ef_parser_t *s) { free(s); }
+static void utf8_parser_destroy(ef_parser_t *s) { free(s); }
 
 /* --- global functions --- */
 
@@ -176,7 +176,7 @@ ef_parser_t *ef_utf8_parser_new(void) {
 
   utf8_parser->init = ef_parser_init;
   utf8_parser->set_str = utf8_parser_set_str;
-  utf8_parser->delete = utf8_parser_delete;
+  utf8_parser->destroy = utf8_parser_destroy;
   utf8_parser->next_char = utf8_parser_next_char;
 
   return utf8_parser;

@@ -610,7 +610,7 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
     bl_warn_printf(BL_DEBUG_TAG " CreateThread() failed.\n");
 #endif
 
-    vt_pty_delete(&pty->pty);
+    vt_pty_destroy(&pty->pty);
 
     return NULL;
   } else {
@@ -621,7 +621,7 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
     /* Add to child_procs */
 
     if (!(p = realloc(child_procs, sizeof(HANDLE) * (num_child_procs + 1)))) {
-      vt_pty_delete(&pty->pty);
+      vt_pty_destroy(&pty->pty);
 
       return NULL;
     }

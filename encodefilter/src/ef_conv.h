@@ -9,7 +9,7 @@
 
 typedef struct ef_conv {
   void (*init)(struct ef_conv *);
-  void (*delete)(struct ef_conv *);
+  void (*destroy)(struct ef_conv *);
   size_t (*convert)(struct ef_conv *, u_char *, size_t, ef_parser_t *);
   size_t (*illegal_char)(struct ef_conv *, u_char *, size_t, int *, ef_char_t *);
 

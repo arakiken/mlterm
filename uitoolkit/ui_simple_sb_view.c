@@ -142,7 +142,7 @@ static void resized(ui_sb_view_t *view, Window window, unsigned int height) {
   view->height = height;
 }
 
-static void delete (ui_sb_view_t *view) { free(view); }
+static void destroy(ui_sb_view_t *view) { free(view); }
 
 static void draw_arrow_up_icon(ui_sb_view_t *view, int is_dent) {
   draw_icon(view, 0, 0, is_dent ? arrow_up_dent_src : arrow_up_src, WIDTH, TOP_MARGIN);
@@ -205,7 +205,7 @@ ui_sb_view_t *ui_simple_sb_view_new(void) {
   simple_sb->view.get_default_color = get_default_color;
   simple_sb->view.realized = realized;
   simple_sb->view.resized = resized;
-  simple_sb->view.delete = delete;
+  simple_sb->view.destroy = destroy;
 
   simple_sb->view.draw_scrollbar = draw_scrollbar;
   simple_sb->view.draw_background = draw_background;

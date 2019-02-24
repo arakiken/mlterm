@@ -48,7 +48,7 @@ static BL_MAP(ui_font) uifont_table_new(void) {
   return uifont_table;
 }
 
-static void uifont_table_delete(BL_MAP(ui_font) uifont_table, ui_font_t *exception) {
+static void uifont_table_destroy(BL_MAP(ui_font) uifont_table, ui_font_t *exception) {
   u_int count;
   u_int size;
   BL_PAIR(ui_font) * f_array;
@@ -57,11 +57,11 @@ static void uifont_table_delete(BL_MAP(ui_font) uifont_table, ui_font_t *excepti
 
   for (count = 0; count < size; count++) {
     if (f_array[count]->value != NULL && f_array[count]->value != exception) {
-      ui_font_delete(f_array[count]->value);
+      ui_font_destroy(f_array[count]->value);
     }
   }
 
-  bl_map_delete(uifont_table);
+  bl_map_destroy(uifont_table);
 }
 
 #ifdef USE_XLIB
@@ -158,7 +158,7 @@ ui_font_cache_t *ui_acquire_font_cache(Display *display, u_int font_size,
   font_cache->prev_cache.uifont = NULL;
 
   if (!init_usascii_font(font_cache)) {
-    uifont_table_delete(font_cache->uifont_table, NULL);
+    uifont_table_destroy(font_cache->uifont_table, NULL);
     free(font_cache);
 
     return NULL;
@@ -178,7 +178,7 @@ void ui_release_font_cache(ui_font_cache_t *font_cache) {
     if (font_caches[count] == font_cache) {
       font_caches[count] = font_caches[--num_caches];
 
-      uifont_table_delete(font_cache->uifont_table, NULL);
+      uifont_table_destroy(font_cache->uifont_table, NULL);
       free(font_cache);
 
       if (num_caches == 0) {
@@ -198,7 +198,7 @@ void ui_font_cache_unload(ui_font_cache_t *font_cache) {
    * Discarding existing cache.
    */
 
-  uifont_table_delete(font_cache->uifont_table, font_cache->usascii_font);
+  uifont_table_destroy(font_cache->uifont_table, font_cache->usascii_font);
   prev_usascii_font = font_cache->usascii_font;
   font_cache->usascii_font = NULL;
   font_cache->prev_cache.font = 0;
@@ -220,7 +220,7 @@ void ui_font_cache_unload(ui_font_cache_t *font_cache) {
     bl_map_set(result, font_cache->uifont_table, NORMAL_FONT_OF(font_cache->usascii_font_cs),
                prev_usascii_font);
   } else {
-    ui_font_delete(prev_usascii_font);
+    ui_font_destroy(prev_usascii_font);
   }
 }
 

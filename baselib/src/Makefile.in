@@ -36,7 +36,7 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 LIBNAME=libpobl
 LIBNAME_DEB=libpobl_deb
-MAJOR = 1
+MAJOR = 2
 MINOR = 0
 
 SUBDIRS = config util io collection sys i18n

@@ -51,7 +51,7 @@ static void resized(ui_sb_view_t *view, Window window, unsigned int height) {
   view->height = height;
 }
 
-static void delete (ui_sb_view_t *view) {
+static void destroy(ui_sb_view_t *view) {
   athena_sb_view_t *athena_sb;
 
   athena_sb = (athena_sb_view_t *)view;
@@ -110,7 +110,7 @@ ui_sb_view_t *ui_athena_sb_view_new(void) {
   athena_sb->view.get_default_color = get_default_color;
   athena_sb->view.realized = realized;
   athena_sb->view.resized = resized;
-  athena_sb->view.delete = delete;
+  athena_sb->view.destroy = destroy;
 
   athena_sb->view.draw_scrollbar = draw_scrollbar;
 
@@ -130,7 +130,7 @@ ui_sb_view_t *ui_athena_transparent_sb_view_new(void) {
   athena_sb->view.get_default_color = get_default_color;
   athena_sb->view.realized = realized;
   athena_sb->view.resized = resized;
-  athena_sb->view.delete = delete;
+  athena_sb->view.destroy = destroy;
 
   athena_sb->view.draw_scrollbar = draw_scrollbar;
 

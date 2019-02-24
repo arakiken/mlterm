@@ -544,14 +544,14 @@ static void pty_closed(void *p /* screen->term->pty is NULL */
     create_io(terminal);
 
     /*
-     * Not screen->term but screen->term->pty is being deleted in
+     * Not screen->term but screen->term->pty is being destroyed in
      * vt_close_dead_terms()
      * because of vt_term_manager_enable_zombie_pty(1) in
      * vte_terminal_class_init().
      */
     term = screen->term;
     ui_screen_detach(screen);
-    vt_term_delete(term);
+    vt_term_destroy(term);
 
     /* It is after widget is realized that ui_screen_attach can be called. */
     if (GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
@@ -653,7 +653,7 @@ static void __exit(void *p, int status) {
     }
   }
   free(disp.roots);
-  ui_gc_delete(disp.gc);
+  ui_gc_destroy(disp.gc);
 #ifdef USE_XLIB
   ui_xim_display_closed(disp.display);
 #endif
@@ -1069,8 +1069,8 @@ static void vte_terminal_finalize(GObject *obj) {
   }
 #endif
 
-  ui_font_manager_delete(PVT(terminal)->screen->font_man);
-  ui_color_manager_delete(PVT(terminal)->screen->color_man);
+  ui_font_manager_destroy(PVT(terminal)->screen->font_man);
+  ui_color_manager_destroy(PVT(terminal)->screen->color_man);
 
   if (PVT(terminal)->image) {
     g_object_unref(PVT(terminal)->image);
@@ -1423,8 +1423,8 @@ static void vte_terminal_unrealize(GtkWidget *widget) {
   ui_screen_detach(screen);
 
   if (!PVT(terminal)->term->pty) {
-    /* PVT(terminal)->term is not deleted in pty_closed() */
-    vt_term_delete(PVT(terminal)->term);
+    /* PVT(terminal)->term is not destroyed in pty_closed() */
+    vt_term_destroy(PVT(terminal)->term);
     PVT(terminal)->term = NULL;
   }
 
@@ -1872,7 +1872,7 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
   }
 #endif
 
-  bl_conf_delete(conf);
+  bl_conf_destroy(conf);
 
 #ifdef USE_BRLAPI
   ui_brltty_init();
@@ -2958,7 +2958,7 @@ void vte_terminal_copy_clipboard(VteTerminal *terminal) {
     free(buf);
   }
 
-  (*parser->delete)(parser);
+  (*parser->destroy)(parser);
 }
 
 #if VTE_CHECK_VERSION(0, 50, 0)
@@ -3723,7 +3723,7 @@ char *vte_terminal_match_check(VteTerminal *terminal, glong column, glong row, i
     }
   }
 
-  (*parser->delete)(parser);
+  (*parser->destroy)(parser);
 
   return buf;
 }

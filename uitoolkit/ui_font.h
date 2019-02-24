@@ -99,7 +99,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
                        ui_font_present_t font_present, const char *fontname, u_int fontsize,
                        u_int col_width, int use_medium_for_bold, u_int letter_space);
 
-void ui_font_delete(ui_font_t *font);
+void ui_font_destroy(ui_font_t *font);
 
 int ui_font_load_xft_font(ui_font_t *font, char *fontname, u_int fontsize, u_int col_width,
                           int use_medium_for_bold);

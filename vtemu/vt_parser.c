@@ -114,8 +114,8 @@ static u_int64_t true64 = 1;
 
 #define VTMODE(mode) ((mode) + 10000)
 
-#define delete_drcs(drcs) \
-  vt_drcs_delete(drcs);   \
+#define destroy_drcs(drcs) \
+  vt_drcs_destroy(drcs);   \
   (drcs) = NULL;
 
 /*
@@ -1515,7 +1515,7 @@ static char *parse_title(vt_parser_t *vt_parser, char *src /* the caller should 
     dst[len] = '\0';
 
     if (parser != vt_parser->cc_parser) {
-      (*parser->delete)(parser);
+      (*parser->destroy)(parser);
     }
   }
 
@@ -2071,7 +2071,7 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
         }
       }
 
-      vt_str_delete(data, img_cols * img_rows);
+      vt_str_destroy(data, img_cols * img_rows);
 
       vt_screen_set_auto_wrap(vt_parser->screen, orig_auto_wrap);
 
@@ -2138,7 +2138,7 @@ static void define_drcs_picture(vt_parser_t *vt_parser, char *path, ef_charset_t
         }
       }
 
-      vt_str_delete(data, cols * rows);
+      vt_str_destroy(data, cols * rows);
     }
   }
 }
@@ -2354,7 +2354,7 @@ static void snapshot(vt_parser_t *vt_parser, vt_char_encoding_t encoding,
   vt_screen_write_content(vt_parser->screen, fd, conv, 0, area);
 
   if (conv != vt_parser->cc_conv) {
-    (*conv->delete)(conv);
+    (*conv->destroy)(conv);
   }
 
   close(fd);
@@ -3074,7 +3074,7 @@ static void set_selection(vt_parser_t *vt_parser, u_char *encoded) {
   }
 }
 
-static void delete_macro(vt_parser_t *vt_parser,
+static void destroy_macro(vt_parser_t *vt_parser,
                          int id /* should be less than vt_parser->num_macros */
                          ) {
   if (vt_parser->macros[id].is_sixel) {
@@ -3087,11 +3087,11 @@ static void delete_macro(vt_parser_t *vt_parser,
   vt_parser->macros[id].str = NULL;
 }
 
-static void delete_all_macros(vt_parser_t *vt_parser) {
+static void destroy_all_macros(vt_parser_t *vt_parser) {
   u_int count;
 
   for (count = 0; count < vt_parser->num_macros; count++) {
-    delete_macro(vt_parser, count);
+    destroy_macro(vt_parser, count);
   }
 
   free(vt_parser->macros);
@@ -3209,7 +3209,7 @@ static void define_macro(vt_parser_t *vt_parser, u_char *param, u_char *data) {
   }
 
   if (ps[1] == 1) {
-    delete_all_macros(vt_parser);
+    destroy_all_macros(vt_parser);
   }
 
   if (ps[0] >= vt_parser->num_macros) {
@@ -3225,7 +3225,7 @@ static void define_macro(vt_parser_t *vt_parser, u_char *param, u_char *data) {
     vt_parser->macros = p;
     vt_parser->num_macros = ps[0] + 1;
   } else {
-    delete_macro(vt_parser, ps[0]);
+    destroy_macro(vt_parser, ps[0]);
 
     if (*data == '\0') {
       return;
@@ -4123,8 +4123,8 @@ static void full_reset(vt_parser_t *vt_parser) {
   vt_screen_goto(vt_parser->screen, 0, 0);
   vt_screen_set_tab_size(vt_parser->screen, 8);
   clear_display_all(vt_parser); /* XXX off-screen pages are not cleared */
-  delete_all_macros(vt_parser);
-  delete_drcs(vt_parser->drcs);
+  destroy_all_macros(vt_parser);
+  destroy_drcs(vt_parser->drcs);
 
   /* Compatible with xterm (CSI > T / CSI > t) */
   vt_parser->set_title_using_hex = vt_parser->get_title_using_hex =
@@ -6179,7 +6179,7 @@ inline static int parse_vt100_escape_sequence(
 
             if (cs == UNKNOWN_CS) {
               if (ps[2] == 2) {
-                delete_drcs(vt_parser->drcs);
+                destroy_drcs(vt_parser->drcs);
               }
             } else {
               if (ps[2] == 0) {
@@ -6829,11 +6829,11 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
 
 error:
   if (vt_parser->cc_conv) {
-    (*vt_parser->cc_conv->delete)(vt_parser->cc_conv);
+    (*vt_parser->cc_conv->destroy)(vt_parser->cc_conv);
   }
 
   if (vt_parser->cc_parser) {
-    (*vt_parser->cc_parser->delete)(vt_parser->cc_parser);
+    (*vt_parser->cc_parser->destroy)(vt_parser->cc_parser);
   }
 
   free(vt_parser);
@@ -6841,12 +6841,12 @@ error:
   return NULL;
 }
 
-int vt_parser_delete(vt_parser_t *vt_parser) {
+int vt_parser_destroy(vt_parser_t *vt_parser) {
   vt_str_final(vt_parser->w_buf.chars, PTY_WR_BUFFER_SIZE);
-  (*vt_parser->cc_parser->delete)(vt_parser->cc_parser);
-  (*vt_parser->cc_conv->delete)(vt_parser->cc_conv);
-  delete_drcs(vt_parser->drcs);
-  delete_all_macros(vt_parser);
+  (*vt_parser->cc_parser->destroy)(vt_parser->cc_parser);
+  (*vt_parser->cc_conv->destroy)(vt_parser->cc_conv);
+  destroy_drcs(vt_parser->drcs);
+  destroy_all_macros(vt_parser);
   free(vt_parser->sixel_palette);
 
   if (vt_parser->log_file != -1) {
@@ -7071,11 +7071,11 @@ int vt_parser_change_encoding(vt_parser_t *vt_parser, vt_char_encoding_t encodin
     bl_warn_printf(BL_DEBUG_TAG " encoding not changed.\n");
 #endif
     if (cc_parser) {
-      (*cc_parser->delete)(cc_parser);
+      (*cc_parser->destroy)(cc_parser);
     }
 
     if (cc_conv) {
-      (*cc_conv->delete)(cc_conv);
+      (*cc_conv->destroy)(cc_conv);
     }
 
     return 0;
@@ -7085,8 +7085,8 @@ int vt_parser_change_encoding(vt_parser_t *vt_parser, vt_char_encoding_t encodin
   bl_warn_printf(BL_DEBUG_TAG " encoding changed.\n");
 #endif
 
-  (*vt_parser->cc_parser->delete)(vt_parser->cc_parser);
-  (*vt_parser->cc_conv->delete)(vt_parser->cc_conv);
+  (*vt_parser->cc_parser->destroy)(vt_parser->cc_parser);
+  (*vt_parser->cc_conv->destroy)(vt_parser->cc_conv);
 
   vt_parser->encoding = encoding;
   vt_parser->cc_parser = cc_parser;
@@ -7137,7 +7137,7 @@ int vt_set_auto_detect_encodings(char *encodings) {
 
   if (num_auto_detect_encodings > 0) {
     for (count = 0; count < num_auto_detect_encodings; count++) {
-      (*auto_detect[count].parser->delete)(auto_detect[count].parser);
+      (*auto_detect[count].parser->destroy)(auto_detect[count].parser);
     }
 
     free(auto_detect);

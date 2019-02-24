@@ -17,7 +17,7 @@
  * methods of ui_im_status_screen_t
  */
 
-static int delete(ui_im_status_screen_t* stat_screen) {
+static int destroy(ui_im_status_screen_t* stat_screen) {
   NSWindow* window = stat_screen->window.my_window;
 
   [window release];
@@ -159,7 +159,7 @@ ui_im_status_screen_t *ui_im_status_screen_new(ui_display_t* disp,
   stat_screen->window.my_window = window;
 
   /* methods of ui_im_status_screen_t */
-  stat_screen->delete = delete;
+  stat_screen->destroy = destroy;
   stat_screen->show = show;
   stat_screen->hide = hide;
   stat_screen->set_spot = set_spot;

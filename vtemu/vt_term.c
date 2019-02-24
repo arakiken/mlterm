@@ -55,7 +55,7 @@ int start_with_local_pty = 0;
 
 #ifdef OPEN_PTY_ASYNC
 
-static void pty_args_delete(pty_args_t *args) {
+static void pty_args_destroy(pty_args_t *args) {
   int count;
 
   free(args->cmd_path);
@@ -198,7 +198,7 @@ static void *
     args->term->return_special_pid = 0;
   }
 
-  pty_args_delete(args);
+  pty_args_destroy(args);
 
 #ifdef USE_WIN32API
   ReleaseMutex(mutex);
@@ -297,11 +297,11 @@ vt_term_t *vt_term_new(const char *term_type, u_int cols, u_int rows, u_int tab_
 
 error:
   if (term->screen) {
-    vt_screen_delete(term->screen);
+    vt_screen_destroy(term->screen);
   }
 
   if (term->parser) {
-    vt_parser_delete(term->parser);
+    vt_parser_destroy(term->parser);
   }
 
   free(term);
@@ -309,7 +309,7 @@ error:
   return NULL;
 }
 
-void vt_term_delete(vt_term_t *term) {
+void vt_term_destroy(vt_term_t *term) {
 #ifndef NO_IMAGE
   if (vt_term_pty_closed_event) {
     (*vt_term_pty_closed_event)(term);
@@ -319,7 +319,7 @@ void vt_term_delete(vt_term_t *term) {
   free(term->user_data);
 
   if (term->pty) {
-    vt_pty_delete(term->pty);
+    vt_pty_destroy(term->pty);
   } else if (term->pty_listener) {
     (*term->pty_listener->closed)(term->pty_listener->self);
   }
@@ -328,8 +328,8 @@ void vt_term_delete(vt_term_t *term) {
   free(term->icon_path);
   free(term->bidi_separators);
 
-  vt_screen_delete(term->screen);
-  vt_parser_delete(term->parser);
+  vt_screen_destroy(term->screen);
+  vt_parser_destroy(term->parser);
 
   free(term);
 }
@@ -340,10 +340,10 @@ void vt_term_zombie(vt_term_t *term) {
 
     pty = term->pty;
 
-    /* Should be NULL because vt_pty_delete calls term->pty_listener->closed. */
+    /* Should be NULL because vt_pty_destroy calls term->pty_listener->closed. */
     term->pty = NULL;
 
-    vt_pty_delete(pty);
+    vt_pty_destroy(pty);
   }
 #ifdef DEBUG
   else {
@@ -760,7 +760,7 @@ int vt_term_update_special_visual(vt_term_t *term) {
   int had_logvis = 0;
   int has_logvis = 0;
 
-  had_logvis = vt_screen_delete_logical_visual(term->screen);
+  had_logvis = vt_screen_destroy_logical_visual(term->screen);
 
   if (term->use_dynamic_comb) {
     if ((logvis = vt_logvis_comb_new())) {
@@ -778,7 +778,7 @@ int vt_term_update_special_visual(vt_term_t *term) {
         bl_warn_printf(BL_DEBUG_TAG " vt_screen_add_logical_visual failed.\n");
 #endif
 
-        (*logvis->delete)(logvis);
+        (*logvis->destroy)(logvis);
       }
     }
 #ifdef DEBUG
@@ -800,7 +800,7 @@ int vt_term_update_special_visual(vt_term_t *term) {
         bl_warn_printf(BL_DEBUG_TAG " vt_screen_add_logical_visual failed.\n");
 #endif
 
-        (*logvis->delete)(logvis);
+        (*logvis->destroy)(logvis);
       }
     }
 #ifdef DEBUG
@@ -819,7 +819,7 @@ int vt_term_update_special_visual(vt_term_t *term) {
         bl_warn_printf(BL_DEBUG_TAG " vt_screen_add_logical_visual failed.\n");
 #endif
 
-        (*logvis->delete)(logvis);
+        (*logvis->destroy)(logvis);
       }
     }
 #ifdef DEBUG

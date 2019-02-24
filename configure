@@ -779,6 +779,7 @@ SDL2GUI
 sdl2_config
 SDL2_LIBS
 SDL2_CFLAGS
+BEOS_LIBS
 SIXEL_LIBS
 SIXEL_CFLAGS
 VT_NORM_CFLAGS
@@ -1697,7 +1698,7 @@ Optional Packages:
   --with-sysroot[=DIR]    Search for dependent libraries within DIR (or the
                           compiler's sysroot if not specified).
   --with-x                use the X Window System
-  --with-gui[=ARG]        gui library(xlib|win32|fb|quartz|console|wayland|sdl2)
+  --with-gui[=ARG]        gui library(xlib|win32|fb|quartz|console|wayland|sdl2|beos)
   --with-gtk[=ARG]        gtk+ version (2.0|3.0)
   --with-imagelib[=ARG]   image library (gdk-pixbuf) [default=no]
   --without-pthread       don't use pthread [default=with]
@@ -16841,7 +16842,7 @@ fi
 
 *)
 	CYGPATHW=echo
-	if test "$gui" != "xlib" -a "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" -a "$gui" != "wayland" -a "$gui" != "sdl2"; then
+	if test "$gui" != "xlib" -a "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" -a "$gui" != "wayland" -a "$gui" != "sdl2" -a "$gui" != "beos"; then
 		if test "$gui" != "" ; then
 			echo "$gui is not supported in ${host_os}. xlib is used instead."
 		fi
@@ -17911,6 +17912,11 @@ fi
 		IMAGELIB_LIBS=""
 	fi
 
+
+elif test "$gui" = "beos" ; then
+	GUI="beos"
+	GUI_CFLAGS="-DUSE_BEOS"
+	BEOS_LIBS="-lbe"
 
 elif test "$gui" = "wayland" ; then
 	GUI="wayland"

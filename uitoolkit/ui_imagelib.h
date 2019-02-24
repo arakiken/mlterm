@@ -23,12 +23,12 @@ int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, 
 Pixmap ui_imagelib_pixbuf_to_pixmap(ui_window_t *win, ui_picture_modifier_t *pic_mod,
                                     GdkPixbufPtr pixbuf);
 
-void ui_delete_image(Display *display, Pixmap pixmap);
+void ui_destroy_image(Display *display, Pixmap pixmap);
 
 #ifdef USE_XLIB
-#define ui_delete_mask(display, mask) ((mask) ? ui_delete_image(display, mask) : 0)
+#define ui_destroy_mask(display, mask) ((mask) ? ui_destroy_image(display, mask) : 0)
 #else
-void ui_delete_mask(Display *display, PixmapMask mask);
+void ui_destroy_mask(Display *display, PixmapMask mask);
 #endif
 
 #endif

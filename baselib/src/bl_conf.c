@@ -28,7 +28,7 @@ static char *prog_version;
 
 static void __exit(bl_conf_t *conf, int status) {
 #ifdef DEBUG
-  bl_conf_delete(conf);
+  bl_conf_destroy(conf);
   bl_mem_free_all();
 #endif
 
@@ -211,7 +211,7 @@ bl_conf_t *bl_conf_new(void) {
   return conf;
 }
 
-int bl_conf_delete(bl_conf_t *conf) {
+int bl_conf_destroy(bl_conf_t *conf) {
   int count;
   BL_PAIR(bl_conf_entry) * pairs;
   u_int size;
@@ -235,7 +235,7 @@ int bl_conf_delete(bl_conf_t *conf) {
     free(pairs[count]->value);
   }
 
-  bl_map_delete(conf->conf_entries);
+  bl_map_destroy(conf->conf_entries);
 
   free(conf);
 

@@ -110,7 +110,7 @@ int ui_animate_inline_pictures(vt_term_t *term);
 int ui_load_tmp_picture(ui_display_t *disp, char *file_path, Pixmap *pixmap, PixmapMask *mask,
                         u_int *width, u_int *height);
 
-void ui_delete_tmp_picture(ui_display_t *disp, Pixmap pixmap, PixmapMask mask);
+void ui_destroy_tmp_picture(ui_display_t *disp, Pixmap pixmap, PixmapMask mask);
 
 #endif
 

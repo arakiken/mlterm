@@ -395,7 +395,7 @@ static void window_finalized(ui_window_t *win) {
 
   layout = (ui_layout_t *)win;
 
-  ui_layout_delete(layout);
+  ui_layout_destroy(layout);
 }
 
 #ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
@@ -544,25 +544,25 @@ static void set_xdnd_config(ui_window_t *win, char *dev, char *buf, char *value)
 }
 #endif
 
-static void window_deleted_intern(struct terminal *term) {
+static void window_destroyed_intern(struct terminal *term) {
   /* dispatch to screen */
-  (*term->screen->window.window_deleted)(&term->screen->window);
+  (*term->screen->window.window_destroyed)(&term->screen->window);
 
   if (term->next[0]) {
-    window_deleted_intern(term->next[0]);
+    window_destroyed_intern(term->next[0]);
   }
 
   if (term->next[1]) {
-    window_deleted_intern(term->next[1]);
+    window_destroyed_intern(term->next[1]);
   }
 }
 
-static void window_deleted(ui_window_t *win) {
+static void window_destroyed(ui_window_t *win) {
   ui_layout_t *layout;
 
   layout = (ui_layout_t *)win;
 
-  window_deleted_intern(&layout->term);
+  window_destroyed_intern(&layout->term);
 }
 
 #ifndef USE_QUARTZ
@@ -1070,28 +1070,28 @@ static void screen_pointer_motion(ui_window_t *win, XMotionEvent *event) {
   }
 }
 
-static void delete_term(struct terminal *term) {
+static void destroy_term(struct terminal *term) {
   ui_scrollbar_final(&term->scrollbar);
 
   if (term->next[0]) {
-    delete_term(term->next[0]);
+    destroy_term(term->next[0]);
     free(term->next[0]);
   }
 
   if (term->next[1]) {
-    delete_term(term->next[1]);
+    destroy_term(term->next[1]);
     free(term->next[1]);
   }
 }
 
-static void delete_screen_bg_pic(ui_screen_t *screen) {
+static void destroy_screen_bg_pic(ui_screen_t *screen) {
   free(screen->pic_file_path);
   screen->pic_file_path = NULL;
   ui_release_picture(screen->bg_pic);
   screen->bg_pic = NULL;
 }
 
-static void delete_layout_bg_pic(ui_layout_t *layout) {
+static void destroy_layout_bg_pic(ui_layout_t *layout) {
   free(layout->pic_file_path);
   layout->pic_file_path = NULL;
   ui_release_picture(layout->bg_pic);
@@ -1250,7 +1250,7 @@ ui_layout_t *ui_layout_new(ui_screen_t *screen, char *view_name, char *fg_color,
   layout->window.key_pressed = key_pressed;
   layout->window.utf_selection_notified = utf_selection_notified;
   layout->window.xct_selection_notified = xct_selection_notified;
-  layout->window.window_deleted = window_deleted;
+  layout->window.window_destroyed = window_destroyed;
 #ifndef DISABLE_XDND
   layout->window.set_xdnd_config = set_xdnd_config;
 #endif
@@ -1270,12 +1270,12 @@ error:
   return NULL;
 }
 
-void ui_layout_delete(ui_layout_t *layout) {
+void ui_layout_destroy(ui_layout_t *layout) {
   if (layout->bg_pic) {
-    delete_layout_bg_pic(layout);
+    destroy_layout_bg_pic(layout);
   }
 
-  delete_term(&layout->term);
+  destroy_term(&layout->term);
   free(layout);
 }
 
@@ -1392,7 +1392,7 @@ int ui_layout_add_child(ui_layout_t *layout, ui_screen_t *screen, int horizontal
   ui_window_add_child(&layout->window, &screen->window, 0, 0, 0);
 
   if (screen->pic_file_path) {
-    delete_screen_bg_pic(screen);
+    destroy_screen_bg_pic(screen);
   }
 
   ui_window_show(&screen->window, 0);
@@ -1511,6 +1511,9 @@ int ui_layout_remove_child(ui_layout_t *layout, ui_screen_t *screen) {
     term->scrollbar.sb_listener = &term->sb_listener;
 #ifndef USE_QUARTZ
     term->scrollbar.view->win = &term->scrollbar.window;
+#ifdef USE_BEOS
+    view_reset_uiwindow(&term->scrollbar.window);
+#endif
 #endif
 
     term = next;

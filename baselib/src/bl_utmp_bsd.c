@@ -226,7 +226,7 @@ error:
   return NULL;
 }
 
-int bl_utmp_delete(bl_utmp_t utmp) {
+int bl_utmp_destroy(bl_utmp_t utmp) {
   struct utmp ut;
 
   bl_priv_restore_euid();

@@ -122,13 +122,13 @@ static void client_connected(void) {
   }
 
   if ((line = bl_file_get_line(from, &line_len)) == NULL) {
-    bl_file_delete(from);
+    bl_file_destroy(from);
 
     goto error;
   }
 
   if ((args = alloca(line_len)) == NULL) {
-    bl_file_delete(from);
+    bl_file_destroy(from);
 
     goto error;
   }
@@ -136,7 +136,7 @@ static void client_connected(void) {
   strncpy(args, line, line_len - 1);
   args[line_len - 1] = '\0';
 
-  bl_file_delete(from);
+  bl_file_destroy(from);
 
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " %s\n", args);

@@ -113,7 +113,7 @@ static void parser_set_str(ef_parser_t *parser, u_char *str, size_t size) {
   parser->is_eos = 0;
 }
 
-static void parser_delete(ef_parser_t *s) { free(s); }
+static void parser_destroy(ef_parser_t *s) { free(s); }
 
 static ef_parser_t *iscii_parser_new(ef_charset_t cs) {
   ef_iscii_parser_t *iscii_parser;
@@ -127,7 +127,7 @@ static ef_parser_t *iscii_parser_new(ef_charset_t cs) {
   iscii_parser->parser.init = ef_parser_init;
   iscii_parser->parser.next_char = iscii_parser_next_char;
   iscii_parser->parser.set_str = parser_set_str;
-  iscii_parser->parser.delete = parser_delete;
+  iscii_parser->parser.destroy = parser_destroy;
   iscii_parser->cs = cs;
 
   return &iscii_parser->parser;
@@ -147,7 +147,7 @@ ef_parser_t *ef_koi8_r_parser_new(void) {
   parser->init = ef_parser_init;
   parser->next_char = koi8_r_parser_next_char;
   parser->set_str = parser_set_str;
-  parser->delete = parser_delete;
+  parser->destroy = parser_destroy;
 
   return parser;
 }
@@ -164,7 +164,7 @@ ef_parser_t *ef_koi8_u_parser_new(void) {
   parser->init = ef_parser_init;
   parser->next_char = koi8_u_parser_next_char;
   parser->set_str = parser_set_str;
-  parser->delete = parser_delete;
+  parser->destroy = parser_destroy;
 
   return parser;
 }
@@ -181,7 +181,7 @@ ef_parser_t *ef_koi8_t_parser_new(void) {
   parser->init = ef_parser_init;
   parser->next_char = koi8_t_parser_next_char;
   parser->set_str = parser_set_str;
-  parser->delete = parser_delete;
+  parser->destroy = parser_destroy;
 
   return parser;
 }
@@ -198,7 +198,7 @@ ef_parser_t *ef_georgian_ps_parser_new(void) {
   parser->init = ef_parser_init;
   parser->next_char = georgian_ps_parser_next_char;
   parser->set_str = parser_set_str;
-  parser->delete = parser_delete;
+  parser->destroy = parser_destroy;
 
   return parser;
 }
@@ -215,7 +215,7 @@ ef_parser_t *ef_cp1250_parser_new(void) {
   parser->init = ef_parser_init;
   parser->next_char = cp1250_parser_next_char;
   parser->set_str = parser_set_str;
-  parser->delete = parser_delete;
+  parser->destroy = parser_destroy;
 
   return parser;
 }
@@ -232,7 +232,7 @@ ef_parser_t *ef_cp1251_parser_new(void) {
   parser->init = ef_parser_init;
   parser->next_char = cp1251_parser_next_char;
   parser->set_str = parser_set_str;
-  parser->delete = parser_delete;
+  parser->destroy = parser_destroy;
 
   return parser;
 }
@@ -249,7 +249,7 @@ ef_parser_t *ef_cp1252_parser_new(void) {
   parser->init = ef_parser_init;
   parser->next_char = cp1252_parser_next_char;
   parser->set_str = parser_set_str;
-  parser->delete = parser_delete;
+  parser->destroy = parser_destroy;
 
   return parser;
 }
@@ -266,7 +266,7 @@ ef_parser_t *ef_cp1253_parser_new(void) {
   parser->init = ef_parser_init;
   parser->next_char = cp1253_parser_next_char;
   parser->set_str = parser_set_str;
-  parser->delete = parser_delete;
+  parser->destroy = parser_destroy;
 
   return parser;
 }
@@ -283,7 +283,7 @@ ef_parser_t *ef_cp1254_parser_new(void) {
   parser->init = ef_parser_init;
   parser->next_char = cp1254_parser_next_char;
   parser->set_str = parser_set_str;
-  parser->delete = parser_delete;
+  parser->destroy = parser_destroy;
 
   return parser;
 }
@@ -300,7 +300,7 @@ ef_parser_t *ef_cp1255_parser_new(void) {
   parser->init = ef_parser_init;
   parser->next_char = cp1255_parser_next_char;
   parser->set_str = parser_set_str;
-  parser->delete = parser_delete;
+  parser->destroy = parser_destroy;
 
   return parser;
 }
@@ -317,7 +317,7 @@ ef_parser_t *ef_cp1256_parser_new(void) {
   parser->init = ef_parser_init;
   parser->next_char = cp1256_parser_next_char;
   parser->set_str = parser_set_str;
-  parser->delete = parser_delete;
+  parser->destroy = parser_destroy;
 
   return parser;
 }
@@ -334,7 +334,7 @@ ef_parser_t *ef_cp1257_parser_new(void) {
   parser->init = ef_parser_init;
   parser->next_char = cp1257_parser_next_char;
   parser->set_str = parser_set_str;
-  parser->delete = parser_delete;
+  parser->destroy = parser_destroy;
 
   return parser;
 }
@@ -351,7 +351,7 @@ ef_parser_t *ef_cp1258_parser_new(void) {
   parser->init = ef_parser_init;
   parser->next_char = cp1258_parser_next_char;
   parser->set_str = parser_set_str;
-  parser->delete = parser_delete;
+  parser->destroy = parser_destroy;
 
   return parser;
 }
@@ -368,7 +368,7 @@ ef_parser_t *ef_cp874_parser_new(void) {
   parser->init = ef_parser_init;
   parser->next_char = cp874_parser_next_char;
   parser->set_str = parser_set_str;
-  parser->delete = parser_delete;
+  parser->destroy = parser_destroy;
 
   return parser;
 }
@@ -385,7 +385,7 @@ ef_parser_t *ef_viscii_parser_new(void) {
   viscii_parser->init = ef_parser_init;
   viscii_parser->next_char = viscii_parser_next_char;
   viscii_parser->set_str = parser_set_str;
-  viscii_parser->delete = parser_delete;
+  viscii_parser->destroy = parser_destroy;
 
   return viscii_parser;
 }

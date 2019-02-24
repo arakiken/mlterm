@@ -26,7 +26,7 @@ ui_gc_t *ui_gc_new(Display *display, Drawable drawable) {
   return gc;
 }
 
-void ui_gc_delete(ui_gc_t *gc) {
+void ui_gc_destroy(ui_gc_t *gc) {
   free(gc);
 }
 

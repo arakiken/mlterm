@@ -95,7 +95,7 @@ static size_t convert_to_big5(ef_conv_t *conv, u_char *dst, size_t dst_size,
 
 static void conv_init(ef_conv_t *conv) {}
 
-static void conv_delete(ef_conv_t *conv) { free(conv); }
+static void conv_destroy(ef_conv_t *conv) { free(conv); }
 
 /* --- global functions --- */
 
@@ -108,7 +108,7 @@ ef_conv_t *ef_big5_conv_new(void) {
 
   conv->convert = convert_to_big5;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;
@@ -123,7 +123,7 @@ ef_conv_t *ef_big5hkscs_conv_new(void) {
 
   conv->convert = convert_to_big5;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;

@@ -38,7 +38,6 @@
 
 /* --- static variables --- */
 
-static int click_interval = 250; /* millisecond, same as xterm. */
 static int use_urgent_bell;
 
 /* --- static functions --- */
@@ -995,8 +994,8 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
     case UI_CLOSE_WINDOW:
       /* root window */
       win->my_window = None;
-      if (win->window_deleted) {
-        (*win->window_deleted)(win);
+      if (win->window_destroyed) {
+        (*win->window_destroyed)(win);
       }
       break;
   }
@@ -1235,13 +1234,9 @@ void ui_window_remove_icon(ui_window_t *win) {}
 
 void ui_window_reset_group(ui_window_t *win) {}
 
-void ui_set_click_interval(int interval) {
-  click_interval = interval;
-}
+void ui_set_click_interval(int interval) {}
 
-int ui_get_click_interval(void) {
-  return click_interval;
-}
+int ui_get_click_interval(void) { return 250; /* dummy */ }
 
 u_int ui_window_get_mod_ignore_mask(ui_window_t *win, KeySym *keysyms) { return ~0; }
 

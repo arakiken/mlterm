@@ -35,7 +35,7 @@ static void utf16_parser_set_str(ef_parser_t *parser, u_char *str, size_t size) 
   parser->is_eos = 0;
 }
 
-static void utf16_parser_delete(ef_parser_t *parser) { free(parser); }
+static void utf16_parser_destroy(ef_parser_t *parser) { free(parser); }
 
 static int utf16_parser_next_char(ef_parser_t *parser, ef_char_t *ucs4_ch) {
   ef_utf16_parser_t *utf16_parser;
@@ -163,7 +163,7 @@ ef_parser_t *ef_utf16_parser_new(void) {
 
   utf16_parser->parser.init = utf16_parser_init;
   utf16_parser->parser.set_str = utf16_parser_set_str;
-  utf16_parser->parser.delete = utf16_parser_delete;
+  utf16_parser->parser.destroy = utf16_parser_destroy;
   utf16_parser->parser.next_char = utf16_parser_next_char;
 
   return (ef_parser_t*)utf16_parser;
@@ -180,7 +180,7 @@ ef_parser_t *ef_utf16le_parser_new(void) {
 
   utf16_parser->parser.init = utf16le_parser_init;
   utf16_parser->parser.set_str = utf16_parser_set_str;
-  utf16_parser->parser.delete = utf16_parser_delete;
+  utf16_parser->parser.destroy = utf16_parser_destroy;
   utf16_parser->parser.next_char = utf16_parser_next_char;
 
   return (ef_parser_t*)utf16_parser;

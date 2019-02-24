@@ -30,7 +30,7 @@ static void hz_parser_set_str(ef_parser_t *parser, u_char *str, size_t size) {
   parser->is_eos = 0;
 }
 
-static void hz_parser_delete(ef_parser_t *parser) { free(parser); }
+static void hz_parser_destroy(ef_parser_t *parser) { free(parser); }
 
 static int hz_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   ef_hz_parser_t *hz_parser;
@@ -148,7 +148,7 @@ ef_parser_t *ef_hz_parser_new(void) {
 
   hz_parser->parser.init = hz_parser_init;
   hz_parser->parser.set_str = hz_parser_set_str;
-  hz_parser->parser.delete = hz_parser_delete;
+  hz_parser->parser.destroy = hz_parser_destroy;
   hz_parser->parser.next_char = hz_parser_next_char;
 
   return (ef_parser_t*)hz_parser;

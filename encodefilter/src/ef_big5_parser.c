@@ -86,7 +86,7 @@ static void big5_parser_set_str(ef_parser_t *big5_parser, u_char *str, size_t si
   big5_parser->is_eos = 0;
 }
 
-static void big5_parser_delete(ef_parser_t *s) { free(s); }
+static void big5_parser_destroy(ef_parser_t *s) { free(s); }
 
 /* --- global functions --- */
 
@@ -102,7 +102,7 @@ ef_parser_t *ef_big5_parser_new(void) {
   big5_parser->init = ef_parser_init;
   big5_parser->next_char = big5_parser_next_char;
   big5_parser->set_str = big5_parser_set_str;
-  big5_parser->delete = big5_parser_delete;
+  big5_parser->destroy = big5_parser_destroy;
 
   return big5_parser;
 }
@@ -119,7 +119,7 @@ ef_parser_t *ef_big5hkscs_parser_new(void) {
   big5_parser->init = ef_parser_init;
   big5_parser->next_char = big5hkscs_parser_next_char;
   big5_parser->set_str = big5_parser_set_str;
-  big5_parser->delete = big5_parser_delete;
+  big5_parser->destroy = big5_parser_destroy;
 
   return big5_parser;
 }

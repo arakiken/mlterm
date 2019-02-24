@@ -33,7 +33,7 @@ ui_font_manager_t *ui_font_manager_new(Display *display, ui_type_engine_t type_e
                                        u_int step_in_changing_font_size, u_int letter_space,
                                        int use_bold_font, int use_italic_font);
 
-void ui_font_manager_delete(ui_font_manager_t *font_man);
+void ui_font_manager_destroy(ui_font_manager_t *font_man);
 
 void ui_font_manager_set_attr(ui_font_manager_t *font_man, int size_attr, int use_ot_layout);
 

@@ -347,7 +347,7 @@ static GtkWidget *xim_widget_new(const char *xim_name, const char *xim_locale,
 
   num_xims = size + 1;
 
-  bl_map_delete(xim_locale_table);
+  bl_map_destroy(xim_locale_table);
 
   /*
    * create widgets

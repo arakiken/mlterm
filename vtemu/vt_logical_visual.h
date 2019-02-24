@@ -39,7 +39,7 @@ typedef struct vt_logical_visual {
 
   int (*init)(struct vt_logical_visual *, vt_model_t *, vt_cursor_t *);
 
-  int (*delete)(struct vt_logical_visual *);
+  int (*destroy)(struct vt_logical_visual *);
 
   u_int (*logical_cols)(struct vt_logical_visual *);
   u_int (*logical_rows)(struct vt_logical_visual *);

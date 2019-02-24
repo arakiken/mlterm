@@ -11,7 +11,7 @@
 
 #ifdef __APPLE__
 vt_isciikey_state_t vt_isciikey_state_new(int) __attribute__((weak));
-void vt_isciikey_state_delete(vt_isciikey_state_t) __attribute__((weak));
+void vt_isciikey_state_destroy(vt_isciikey_state_t) __attribute__((weak));
 size_t vt_convert_ascii_to_iscii(vt_isciikey_state_t, u_char*, size_t, u_char*, size_t)
     __attribute__((weak));
 #endif
@@ -26,10 +26,10 @@ vt_isciikey_state_t vt_isciikey_state_new(int is_inscript) {
   return (*func)(is_inscript);
 }
 
-void vt_isciikey_state_delete(vt_isciikey_state_t state) {
+void vt_isciikey_state_destroy(vt_isciikey_state_t state) {
   void (*func)(vt_isciikey_state_t);
 
-  if (!(func = vt_load_ctl_iscii_func(VT_ISCIIKEY_STATE_DELETE))) {
+  if (!(func = vt_load_ctl_iscii_func(VT_ISCIIKEY_STATE_DESTROY))) {
     return;
   }
 
@@ -59,7 +59,7 @@ size_t vt_convert_ascii_to_iscii(vt_isciikey_state_t state, u_char *iscii, size_
 
 vt_isciikey_state_t vt_isciikey_state_new(int is_inscript) { return NULL; }
 
-void vt_isciikey_state_delete(vt_isciikey_state_t state) {}
+void vt_isciikey_state_destroy(vt_isciikey_state_t state) {}
 
 size_t vt_convert_ascii_to_iscii(vt_isciikey_state_t state, u_char *iscii, size_t iscii_len,
                                  u_char *ascii, size_t ascii_len) {

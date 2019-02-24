@@ -271,8 +271,8 @@ int main(int argc, char **argv) {
     fwrite(output, 1, size, stdout);
   }
 
-  (*parser->delete)(parser);
-  (*conv->delete)(conv);
+  (*parser->destroy)(parser);
+  (*conv->destroy)(conv);
 
   return 0;
 }

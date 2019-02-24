@@ -1351,7 +1351,7 @@ static void window_unfocused(ui_window_t *win) {
 /*
  * XXX
  * Unfocus event can be received in deleting window after screen->term was
- * deleted.
+ * destroyed.
  */
 #if 1
   if (!screen->term) {
@@ -1387,9 +1387,9 @@ static void window_unfocused(ui_window_t *win) {
  * ui_display_close or ui_display_remove_root -> ui_window_final ->
  *window_finalized
  */
-static void window_finalized(ui_window_t *win) { ui_screen_delete((ui_screen_t *)win); }
+static void window_finalized(ui_window_t *win) { ui_screen_destroy((ui_screen_t *)win); }
 
-static void window_deleted(ui_window_t *win) {
+static void window_destroyed(ui_window_t *win) {
   ui_screen_t *screen;
 
   screen = (ui_screen_t *)win;
@@ -4096,7 +4096,7 @@ static void change_im(ui_screen_t *screen, char *input_method) {
   ui_xic_deactivate(&screen->window);
 
   /*
-   * Avoid to delete anything inside im-module by calling ui_im_delete()
+   * Avoid to destroy anything inside im-module by calling ui_im_destroy()
    * after ui_im_new().
    */
   im = screen->im;
@@ -4127,7 +4127,7 @@ static void change_im(ui_screen_t *screen, char *input_method) {
   }
 
   if (im) {
-    ui_im_delete(im);
+    ui_im_destroy(im);
   }
 }
 
@@ -4604,7 +4604,7 @@ static int select_in_window(void *p, vt_char_t **chars, u_int *len, int beg_char
 #endif
 
   if (!ui_window_set_selection_owner(&screen->window, CurrentTime)) {
-    vt_str_delete(*chars, size);
+    vt_str_destroy(*chars, size);
 
     return 0;
   } else {
@@ -5069,7 +5069,7 @@ static void im_changed(void *p, char *input_method) {
   free(screen->input_method);
   screen->input_method = input_method; /* strdup'ed one */
 
-  ui_im_delete(screen->im);
+  ui_im_destroy(screen->im);
   screen->im = new;
 }
 
@@ -5484,7 +5484,7 @@ static void xterm_set_selection(void *p,
 
   if (ui_window_set_selection_owner(&screen->window, CurrentTime)) {
     if (screen->sel.sel_str) {
-      vt_str_delete(screen->sel.sel_str, screen->sel.sel_len);
+      vt_str_destroy(screen->sel.sel_str, screen->sel.sel_len);
     }
 
     screen->sel.sel_str = str;
@@ -5703,7 +5703,7 @@ static void xterm_show_tmp_picture(void *p, char *file_path) {
   if (!vt_term_get_vertical_mode(screen->term) &&
       ui_load_tmp_picture(screen->window.disp, file_path, &pixmap, &mask, &width, &height)) {
     ui_window_copy_area(&screen->window, pixmap, mask, 0, 0, width, height, 0, 0);
-    ui_delete_tmp_picture(screen->window.disp, pixmap, mask);
+    ui_destroy_tmp_picture(screen->window.disp, pixmap, mask);
 
     /*
      * ui_display_sync() is not necessary here because xterm_show_tmp_picture()
@@ -5796,8 +5796,8 @@ static void pty_closed(void *p) {
   ui_sel_clear(&screen->sel);
 
   /*
-   * term is being deleted in this context.
-   * vt_close_dead_terms => vt_term_delete => vt_pty_delete => pty_closed.
+   * term is being destroyed in this context.
+   * vt_close_dead_terms => vt_term_destroy => vt_pty_destroy => pty_closed.
    */
   screen->term = NULL;
 
@@ -6063,7 +6063,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
 
   screen->window.window_realized = window_realized;
   screen->window.window_finalized = window_finalized;
-  screen->window.window_deleted = window_deleted;
+  screen->window.window_destroyed = window_destroyed;
   screen->window.mapping_notify = mapping_notify;
   screen->window.window_exposed = window_exposed;
   screen->window.update_window = update_window;
@@ -6125,7 +6125,7 @@ error:
   return NULL;
 }
 
-void ui_screen_delete(ui_screen_t *screen) {
+void ui_screen_destroy(ui_screen_t *screen) {
   if (screen->term) {
     vt_term_detach(screen->term);
   }
@@ -6145,7 +6145,7 @@ void ui_screen_delete(ui_screen_t *screen) {
   free(screen->input_method);
 
   if (screen->im) {
-    ui_im_delete(screen->im);
+    ui_im_destroy(screen->im);
   }
 
   free(screen);
@@ -6201,10 +6201,10 @@ int ui_screen_attach(ui_screen_t *screen, vt_term_t *term) {
     im = screen->im;
     screen->im = im_new(screen);
     /*
-     * Avoid to delete anything inside im-module by calling ui_im_delete()
+     * Avoid to destroy anything inside im-module by calling ui_im_destroy()
      * after ui_im_new().
      */
-    ui_im_delete(im);
+    ui_im_destroy(im);
   }
 
   ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);

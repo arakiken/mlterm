@@ -539,7 +539,7 @@ void ef_iso2022_parser_init_func(ef_iso2022_parser_t *iso2022_parser) {
 
   iso2022_parser->parser.init = iso2022_parser_init;
   iso2022_parser->parser.set_str = ef_iso2022_parser_set_str;
-  iso2022_parser->parser.delete = ef_iso2022_parser_delete;
+  iso2022_parser->parser.destroy = ef_iso2022_parser_destroy;
   iso2022_parser->parser.next_char = ef_iso2022_parser_next_char;
 }
 
@@ -550,7 +550,7 @@ void ef_iso2022_parser_set_str(ef_parser_t *parser, u_char *str, size_t size) {
   parser->is_eos = 0;
 }
 
-void ef_iso2022_parser_delete(ef_parser_t *parser) { free(parser); }
+void ef_iso2022_parser_destroy(ef_parser_t *parser) { free(parser); }
 
 int ef_iso2022_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   if (sub_next_char((ef_iso2022_parser_t *)parser, ch) == 0) {

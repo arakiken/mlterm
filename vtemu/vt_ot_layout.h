@@ -42,7 +42,7 @@ void *vt_ot_layout_get_font(void *term, vt_font_t font);
 
 vt_ot_layout_state_t vt_ot_layout_new(void);
 
-int vt_ot_layout_delete(vt_ot_layout_state_t state);
+void vt_ot_layout_destroy(vt_ot_layout_state_t state);
 
 int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len);
 

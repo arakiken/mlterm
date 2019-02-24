@@ -1490,7 +1490,7 @@ void aux_quit(void) {
   filter_info_list = NULL;
 
   if (conv_iso88591) {
-    (*conv_iso88591->delete)(conv_iso88591);
+    (*conv_iso88591->destroy)(conv_iso88591);
     conv_iso88591 = NULL;
   }
 
@@ -1668,7 +1668,7 @@ void aux_unset_focus(aux_t *aux) {
   }
 }
 
-void aux_delete(aux_t *aux) {
+void aux_destroy(aux_t *aux) {
   aux_id_info_t *info = id_info_list;
   aux_im_data_t *im_data;
 

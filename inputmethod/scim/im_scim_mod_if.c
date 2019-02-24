@@ -62,7 +62,7 @@ static int panel_fd = -1;
  * methods of ui_im_t
  */
 
-static void delete(ui_im_t *im) {
+static void destroy(ui_im_t *im) {
   im_scim_t *scim;
 
   scim = (im_scim_t *)im;
@@ -70,11 +70,11 @@ static void delete(ui_im_t *im) {
   im_scim_destroy_context(scim->context);
 
   if (scim->parser_term) {
-    (*scim->parser_term->delete)(scim->parser_term);
+    (*scim->parser_term->destroy)(scim->parser_term);
   }
 
   if (scim->conv) {
-    (*scim->conv->delete)(scim->conv);
+    (*scim->conv->destroy)(scim->conv);
   }
 
   free(scim);
@@ -90,7 +90,7 @@ static void delete(ui_im_t *im) {
     im_scim_finalize();
 
     if (parser_utf8) {
-      (*parser_utf8->delete)(parser_utf8);
+      (*parser_utf8->destroy)(parser_utf8);
       parser_utf8 = NULL;
     }
 
@@ -145,7 +145,7 @@ static void commit(void *ptr, char *utf8_str) {
 
 skip:
   if (scim->im.cand_screen) {
-    (*scim->im.cand_screen->delete)(scim->im.cand_screen);
+    (*scim->im.cand_screen->destroy)(scim->im.cand_screen);
     scim->im.cand_screen = NULL;
   }
 }
@@ -162,7 +162,7 @@ static void preedit_update(void *ptr, char *utf8_str, int cursor_offset) {
   scim = (im_scim_t *)ptr;
 
   if (scim->im.preedit.chars) {
-    (*syms->vt_str_delete)(scim->im.preedit.chars, scim->im.preedit.num_chars);
+    (*syms->vt_str_destroy)(scim->im.preedit.chars, scim->im.preedit.num_chars);
     scim->im.preedit.chars = NULL;
   }
 
@@ -314,7 +314,7 @@ draw:
 
   /* Drop the current candidates since the segment is changed */
   if (saved_segment_offset != scim->im.preedit.segment_offset && scim->im.cand_screen) {
-    (*scim->im.cand_screen->delete)(scim->im.cand_screen);
+    (*scim->im.cand_screen->destroy)(scim->im.cand_screen);
     scim->im.cand_screen = NULL;
   }
 }
@@ -352,7 +352,7 @@ static void candidate_update(void *ptr, int is_vertical_lookup, uint num_candiat
   }
 
   if (!(*scim->im.cand_screen->init)(scim->im.cand_screen, num_candiate, num_candiate)) {
-    (*scim->im.cand_screen->delete)(scim->im.cand_screen);
+    (*scim->im.cand_screen->destroy)(scim->im.cand_screen);
     scim->im.cand_screen = NULL;
 
     return;
@@ -501,7 +501,7 @@ ui_im_t *im_scim_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   /*
    * set methods of ui_im_t
    */
-  scim->im.delete = delete;
+  scim->im.destroy = destroy;
   scim->im.key_event = key_event;
   scim->im.switch_mode = switch_mode;
   scim->im.is_active = is_active;
@@ -520,11 +520,11 @@ error:
     }
 
     if (scim->conv) {
-      (*scim->conv->delete)(scim->conv);
+      (*scim->conv->destroy)(scim->conv);
     }
 
     if (scim->parser_term) {
-      (*scim->parser_term->delete)(scim->parser_term);
+      (*scim->parser_term->destroy)(scim->parser_term);
     }
 
     free(scim);
@@ -539,7 +539,7 @@ error:
     im_scim_finalize();
 
     if (parser_utf8) {
-      (*parser_utf8->delete)(parser_utf8);
+      (*parser_utf8->destroy)(parser_utf8);
       parser_utf8 = NULL;
     }
   }

@@ -120,7 +120,7 @@ static void conv_init(ef_conv_t *conv) {
   hz_conv->cur_cs = US_ASCII;
 }
 
-static void conv_delete(ef_conv_t *conv) { free(conv); }
+static void conv_destroy(ef_conv_t *conv) { free(conv); }
 
 /* --- global functions --- */
 
@@ -133,7 +133,7 @@ ef_conv_t *ef_hz_conv_new(void) {
 
   hz_conv->conv.convert = convert_to_hz;
   hz_conv->conv.init = conv_init;
-  hz_conv->conv.delete = conv_delete;
+  hz_conv->conv.destroy = conv_destroy;
   hz_conv->conv.illegal_char = NULL;
 
   hz_conv->cur_cs = US_ASCII;

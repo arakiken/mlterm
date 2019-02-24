@@ -38,8 +38,8 @@ static size_t conv_utf16_to_utf8(u_char *dst, size_t dst_len, u_char *src, size_
 
   dst[conv_len] = '\0';
 
-  (*utf16_parser->delete)(utf16_parser);
-  (*utf8_conv->delete)(utf8_conv);
+  (*utf16_parser->destroy)(utf16_parser);
+  (*utf8_conv->destroy)(utf8_conv);
 
   return conv_len;
 }
@@ -128,8 +128,8 @@ int ui_dnd_filter_event(XEvent *event, ui_window_t *win) {
   }
 
 #ifndef USE_WIN32API
-  (*utf8_parser->delete)(utf8_parser);
-  (*utf16_conv->delete)(utf16_conv);
+  (*utf8_parser->destroy)(utf8_parser);
+  (*utf16_conv->destroy)(utf16_conv);
 #endif
 
   DragFinish(drop);

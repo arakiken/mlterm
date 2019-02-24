@@ -50,7 +50,7 @@ static void cp_parser_set_str(ef_parser_t *parser, u_char *str,
   }
 }
 
-static void cp_parser_delete(ef_parser_t *parser) { free(parser); }
+static void cp_parser_destroy(ef_parser_t *parser) { free(parser); }
 
 static int cp_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   cp_parser_t *cp_parser;
@@ -94,7 +94,7 @@ ef_parser_t *ef_codepoint_parser_new(void) {
 
   cp_parser->parser.init = cp_parser_init;
   cp_parser->parser.set_str = cp_parser_set_str;
-  cp_parser->parser.delete = cp_parser_delete;
+  cp_parser->parser.destroy = cp_parser_destroy;
   cp_parser->parser.next_char = cp_parser_next_char;
 
   return &cp_parser->parser;

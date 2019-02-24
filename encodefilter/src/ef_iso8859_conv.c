@@ -123,7 +123,7 @@ static void conv_init_iso8859_16(ef_conv_t *conv) { conv_init_intern(conv, ISO88
 
 static void conv_init_tcvn5712_3_1993(ef_conv_t *conv) { conv_init_intern(conv, TCVN5712_3_1993); }
 
-static void conv_delete(ef_conv_t *conv) { free(conv); }
+static void conv_destroy(ef_conv_t *conv) { free(conv); }
 
 static ef_conv_t *iso8859_conv_new(void (*init)(ef_conv_t *)) {
   ef_iso2022_conv_t *iso2022_conv;
@@ -136,7 +136,7 @@ static ef_conv_t *iso8859_conv_new(void (*init)(ef_conv_t *)) {
 
   iso2022_conv->conv.convert = convert_to_iso8859;
   iso2022_conv->conv.init = init;
-  iso2022_conv->conv.delete = conv_delete;
+  iso2022_conv->conv.destroy = conv_destroy;
   iso2022_conv->conv.illegal_char = NULL;
 
   return (ef_conv_t *)iso2022_conv;

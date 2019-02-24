@@ -218,7 +218,7 @@ static void update_preedit_text(IBusInputContext *context, IBusText *text, gint 
   } else {
 #ifdef USE_IM_CANDIDATE_SCREEN
     if (ibus->im.cand_screen) {
-      (*ibus->im.cand_screen->delete)(ibus->im.cand_screen);
+      (*ibus->im.cand_screen->destroy)(ibus->im.cand_screen);
       ibus->im.cand_screen = NULL;
     }
 #endif
@@ -303,7 +303,7 @@ static void commit_text(IBusInputContext *context, IBusText *text, gpointer data
 
 #ifdef USE_IM_CANDIDATE_SCREEN
   if (ibus->im.cand_screen) {
-    (*ibus->im.cand_screen->delete)(ibus->im.cand_screen);
+    (*ibus->im.cand_screen->destroy)(ibus->im.cand_screen);
     ibus->im.cand_screen = NULL;
   }
 #endif
@@ -392,7 +392,7 @@ static void update_lookup_table(IBusInputContext *context, IBusLookupTable *tabl
   }
 
   if (!(*ibus->im.cand_screen->init)(ibus->im.cand_screen, num_cands, 10)) {
-    (*ibus->im.cand_screen->delete)(ibus->im.cand_screen);
+    (*ibus->im.cand_screen->destroy)(ibus->im.cand_screen);
     ibus->im.cand_screen = NULL;
 
     return;
@@ -485,7 +485,7 @@ static void remove_event_source(int complete) {
  * methods of ui_im_t
  */
 
-static void delete(ui_im_t *im) {
+static void destroy(ui_im_t *im) {
   im_ibus_t *ibus;
 
   ibus = (im_ibus_t*)im;
@@ -501,12 +501,12 @@ static void delete(ui_im_t *im) {
   bl_slist_remove(ibus_list, ibus);
 
   if (ibus->conv) {
-    (*ibus->conv->delete)(ibus->conv);
+    (*ibus->conv->destroy)(ibus->conv);
   }
 
 #ifdef USE_IM_CANDIDATE_SCREEN
   if (ibus->parser_term) {
-    (*ibus->parser_term->delete)(ibus->parser_term);
+    (*ibus->parser_term->destroy)(ibus->parser_term);
   }
 
   free(ibus->prev_first_cand);
@@ -521,13 +521,13 @@ static void delete(ui_im_t *im) {
     ibus_bus = NULL;
 
     if (parser_utf8) {
-      (*parser_utf8->delete)(parser_utf8);
+      (*parser_utf8->destroy)(parser_utf8);
       parser_utf8 = NULL;
     }
   }
 
 #ifdef IM_IBUS_DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count);
+  bl_debug_printf(BL_DEBUG_TAG " An object was destroyed. ref_count: %d\n", ref_count);
 #endif
 }
 
@@ -978,7 +978,7 @@ ui_im_t *im_ibus_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   /*
    * set methods of ui_im_t
    */
-  ibus->im.delete = delete;
+  ibus->im.destroy = destroy;
   ibus->im.key_event = key_event;
   ibus->im.switch_mode = switch_mode;
   ibus->im.is_active = is_active;
@@ -1003,19 +1003,19 @@ error:
     ibus_bus = NULL;
 
     if (parser_utf8) {
-      (*parser_utf8->delete)(parser_utf8);
+      (*parser_utf8->destroy)(parser_utf8);
       parser_utf8 = NULL;
     }
   }
 
   if (ibus) {
     if (ibus->conv) {
-      (*ibus->conv->delete)(ibus->conv);
+      (*ibus->conv->destroy)(ibus->conv);
     }
 
 #ifdef USE_IM_CANDIDATE_SCREEN
     if (ibus->parser_term) {
-      (*ibus->parser_term->delete)(ibus->parser_term);
+      (*ibus->parser_term->destroy)(ibus->parser_term);
     }
 #endif
 

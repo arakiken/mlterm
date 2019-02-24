@@ -152,7 +152,7 @@ static void euccn_conv_init(ef_conv_t *conv) {
 
 static void conv_init(ef_conv_t *conv) {}
 
-static void conv_delete(ef_conv_t *conv) { free(conv); }
+static void conv_destroy(ef_conv_t *conv) { free(conv); }
 
 /* --- global functions --- */
 
@@ -167,7 +167,7 @@ ef_conv_t *ef_euccn_conv_new(void) {
 
   iso2022_conv->conv.convert = convert_to_euccn;
   iso2022_conv->conv.init = euccn_conv_init;
-  iso2022_conv->conv.delete = conv_delete;
+  iso2022_conv->conv.destroy = conv_destroy;
   iso2022_conv->conv.illegal_char = NULL;
 
   return (ef_conv_t*)iso2022_conv;
@@ -182,7 +182,7 @@ ef_conv_t *ef_gbk_conv_new(void) {
 
   conv->convert = convert_to_gbk;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;
@@ -197,7 +197,7 @@ ef_conv_t *ef_gb18030_2000_conv_new(void) {
 
   conv->convert = convert_to_gb18030_2000;
   conv->init = conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;

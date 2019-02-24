@@ -1,3 +1,27 @@
+2019-02-23  Araki Ken  <arakiken@users.sf.net>
+
+	* uitoolkit/beos: Added.
+
+	* main/main-beos.cpp: Added.
+
+	* configure.in: --with-gui=beos is added.
+
+	* main/Makefile.in, uitoolkit/Makefile.in, skk/Makefile.in, kbd/Makefile.in:
+	  *_beos are added.
+
+	* ui.h: beos is added.
+
+	* encodefilter/src/Makefile.in: MAJOR is changed from 2 to 3.
+
+	* baselib/src/Makefile.in: MAJOR is changed from 1 to 2.
+
+	* baselib/configure.in: The case of "$host_os" = "haiku" is supported.
+
+	* delete (which is reserved keyword of C++) => destroy
+
+	* quartz/cocoa.[hm], cocoatouch.m: The returned value of
+	  cocoa_clipboard_own() is changed from int to void.
+
 2019-02-17  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/ui_window.c: Segfault in showing an input method window is fixed.

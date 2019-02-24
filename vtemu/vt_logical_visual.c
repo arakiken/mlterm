@@ -75,7 +75,7 @@ static char *vertical_mode_name_table[] = {
 
 /* --- static functions --- */
 
-static int container_delete(vt_logical_visual_t *logvis) {
+static int container_destroy(vt_logical_visual_t *logvis) {
   container_logical_visual_t *container;
   int count;
 
@@ -83,7 +83,7 @@ static int container_delete(vt_logical_visual_t *logvis) {
 
   if (container->num_children) {
     for (count = container->num_children - 1; count >= 0; count--) {
-      (*container->children[count]->delete)(container->children[count]);
+      (*container->children[count]->destroy)(container->children[count]);
     }
   }
 
@@ -212,7 +212,7 @@ static int container_visual_line(vt_logical_visual_t *logvis, vt_line_t *line) {
  * dynamic combining
  */
 
-static int comb_delete(vt_logical_visual_t *logvis) {
+static int comb_destroy(vt_logical_visual_t *logvis) {
   free(logvis);
 
   return 1;
@@ -261,7 +261,7 @@ static int comb_visual(vt_logical_visual_t *logvis) {
 #if 0
         /*
          * This doesn't work as expected, for example, when
-         * one of combined two characters are deleted.
+         * one of combined two characters is destroyed.
          */
         if (vt_line_is_modified(line)) {
           int beg;
@@ -373,7 +373,7 @@ static int comb_logical(vt_logical_visual_t *logvis) {
 #if 0
           /*
            * This doesn't work as expected, for example, when
-           * one of combined two characters are deleted.
+           * one of combined two characters is destroyed.
            */
           if (vt_line_is_modified(line)) {
             int beg;
@@ -446,7 +446,7 @@ static int comb_visual_line(vt_logical_visual_t *logvis, vt_line_t *line) {
  * vertical view logical <=> visual methods
  */
 
-static int vert_delete(vt_logical_visual_t *logvis) {
+static int vert_destroy(vt_logical_visual_t *logvis) {
   vert_logical_visual_t *vert_logvis;
 
   if (logvis->model) {
@@ -676,7 +676,7 @@ static int vert_visual_line(vt_logical_visual_t *logvis, vt_line_t *line) { retu
  * Ctl logical <=> visual methods
  */
 
-static int ctl_delete(vt_logical_visual_t *logvis) {
+static int ctl_destroy(vt_logical_visual_t *logvis) {
   int row;
 
   if (logvis->model) {
@@ -857,7 +857,7 @@ vt_logical_visual_t *vt_logvis_container_new(void) {
     return NULL;
   }
 
-  container->logvis.delete = container_delete;
+  container->logvis.destroy = container_destroy;
   container->logvis.init = container_init;
   container->logvis.logical_cols = container_logical_cols;
   container->logvis.logical_rows = container_logical_rows;
@@ -906,7 +906,7 @@ vt_logical_visual_t *vt_logvis_comb_new(void) {
     return NULL;
   }
 
-  comb_logvis->logvis.delete = comb_delete;
+  comb_logvis->logvis.destroy = comb_destroy;
   comb_logvis->logvis.init = comb_init;
   comb_logvis->logvis.logical_cols = comb_logical_cols;
   comb_logvis->logvis.logical_rows = comb_logical_rows;
@@ -931,7 +931,7 @@ vt_logical_visual_t *vt_logvis_vert_new(vt_vertical_mode_t vertical_mode) {
     return NULL;
   }
 
-  vert_logvis->logvis.delete = vert_delete;
+  vert_logvis->logvis.destroy = vert_destroy;
   vert_logvis->logvis.init = vert_init;
   vert_logvis->logvis.logical_cols = vert_logical_cols;
   vert_logvis->logvis.logical_rows = vert_logical_rows;
@@ -1003,7 +1003,7 @@ vt_logical_visual_t *vt_logvis_ctl_new(vt_bidi_mode_t bidi_mode, const char *sep
   ctl_logvis->separators = separators;
   ctl_logvis->term = term;
 
-  ctl_logvis->logvis.delete = ctl_delete;
+  ctl_logvis->logvis.destroy = ctl_destroy;
   ctl_logvis->logvis.init = ctl_init;
   ctl_logvis->logvis.logical_cols = ctl_logical_cols;
   ctl_logvis->logvis.logical_rows = ctl_logical_rows;

@@ -15,7 +15,7 @@ void vt_line_iscii_logical(void);
 /* --- global variables --- */
 
 void *vt_ctl_iscii_func_table[MAX_CTL_ISCII_FUNCS] = {
-    (void*)CTL_API_COMPAT_CHECK_MAGIC, vt_isciikey_state_new, vt_isciikey_state_delete,
+    (void*)CTL_API_COMPAT_CHECK_MAGIC, vt_isciikey_state_new, vt_isciikey_state_destroy,
     vt_convert_ascii_to_iscii, vt_line_set_use_iscii,
     vt_line_iscii_convert_logical_char_index_to_visual, vt_shape_iscii, vt_iscii_copy,
     vt_iscii_reset, vt_line_iscii_need_shape, vt_line_iscii_render, vt_line_iscii_visual,

@@ -58,7 +58,7 @@ void vt_str_final(vt_char_t *str, u_int size) {
   }
 }
 
-void vt_str_delete(vt_char_t *str, u_int size) {
+void vt_str_destroy(vt_char_t *str, u_int size) {
   vt_str_final(str, size);
   free(str);
 }

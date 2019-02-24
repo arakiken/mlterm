@@ -215,7 +215,7 @@ static void resized(ui_sb_view_t *view, Window window, unsigned int height) {
   next_sb->background = create_bg(view, WIDTH, view->height);
 }
 
-static void delete (ui_sb_view_t *view) {
+static void destroy(ui_sb_view_t *view) {
   next_sb_view_t *next_sb;
 
   next_sb = (next_sb_view_t *)view;
@@ -456,7 +456,7 @@ ui_sb_view_t *ui_next_sb_view_new(void) {
   next_sb->view.get_default_color = get_default_color;
   next_sb->view.realized = realized;
   next_sb->view.resized = resized;
-  next_sb->view.delete = delete;
+  next_sb->view.destroy = destroy;
 
   next_sb->view.draw_scrollbar = draw_scrollbar;
 
@@ -479,7 +479,7 @@ ui_sb_view_t *ui_next_transparent_sb_view_new(void) {
   next_sb->view.get_default_color = get_default_color;
   next_sb->view.realized = realized;
   next_sb->view.resized = resized;
-  next_sb->view.delete = delete;
+  next_sb->view.destroy = destroy;
 
   next_sb->view.draw_scrollbar = draw_scrollbar;
 

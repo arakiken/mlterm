@@ -184,7 +184,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   return font;
 }
 
-void ui_font_delete(ui_font_t *font) {
+void ui_font_destroy(ui_font_t *font) {
   free(font);
 }
 

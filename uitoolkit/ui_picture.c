@@ -106,7 +106,7 @@ error1:
   return NULL;
 }
 
-static int delete_picture_intern(ui_picture_t *pic) {
+static int destroy_picture_intern(ui_picture_t *pic) {
   free(pic->file_path);
   free(pic->mod);
   free(pic);
@@ -130,7 +130,7 @@ static ui_picture_t *create_bg_picture(ui_window_t *win, ui_picture_modifier_t *
   }
 
   if (pic->pixmap == None) {
-    delete_picture_intern(pic);
+    destroy_picture_intern(pic);
 
     return NULL;
   }
@@ -144,16 +144,16 @@ static ui_picture_t *create_bg_picture(ui_window_t *win, ui_picture_modifier_t *
   return pic;
 }
 
-static int delete_picture(ui_picture_t *pic) {
+static int destroy_picture(ui_picture_t *pic) {
   /* XXX Pixmap of "pixmap:<ID>" is managed by others, so don't free here. */
   if (strncmp(pic->file_path, "pixmap:", 7) != 0) {
-    ui_delete_image(pic->display, pic->pixmap);
+    ui_destroy_image(pic->display, pic->pixmap);
   }
 
-  delete_picture_intern(pic);
+  destroy_picture_intern(pic);
 
 #ifdef DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " pixmap is deleted.\n");
+  bl_debug_printf(BL_DEBUG_TAG " pixmap is destroyed.\n");
 #endif
 
   return 1;
@@ -197,13 +197,13 @@ static ui_icon_picture_t *create_icon_picture(ui_display_t *disp,
   return pic;
 }
 
-static int delete_icon_picture(ui_icon_picture_t *pic) {
+static int destroy_icon_picture(ui_icon_picture_t *pic) {
 #ifdef __DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " %s icon will be deleted.\n", pic->file_path);
+  bl_debug_printf(BL_DEBUG_TAG " %s icon will be destroyed.\n", pic->file_path);
 #endif
 
-  ui_delete_image(pic->disp->display, pic->pixmap);
-  ui_delete_mask(pic->disp->display, pic->mask);
+  ui_destroy_image(pic->disp->display, pic->pixmap);
+  ui_destroy_mask(pic->disp->display, pic->mask);
 
   free(pic->cardinal);
   free(pic->file_path);
@@ -250,7 +250,7 @@ static int anim_file_exists(char *file_path, char *dir, int hash, int count) {
  * This function should be called synchronously because both load_file_async()
  * and cleanup_inline_pictures() can call this asynchronously.
  */
-static int delete_inline_picture(ui_inline_picture_t *pic /* pic->pixmap mustn't be NULL. */
+static int destroy_inline_picture(ui_inline_picture_t *pic /* pic->pixmap mustn't be NULL. */
                                  ) {
   if (pic->pixmap == DUMMY_PIXMAP) {
     if (strstr(pic->file_path, "mlterm/anim")) {
@@ -265,8 +265,8 @@ static int delete_inline_picture(ui_inline_picture_t *pic /* pic->pixmap mustn't
   /* pic->disp can be NULL by ui_picture_display_closed() and load_file(). */
   if (pic->disp) {
     if (pic->pixmap != DUMMY_PIXMAP) {
-      ui_delete_image(pic->disp->display, pic->pixmap);
-      ui_delete_mask(pic->disp->display, pic->mask);
+      ui_destroy_image(pic->disp->display, pic->pixmap);
+      ui_destroy_mask(pic->disp->display, pic->mask);
     }
 
     pic->disp = NULL;
@@ -322,10 +322,10 @@ static void pty_closed(vt_term_t *term) {
   for (count = 0; count < num_inline_pics; count++) {
     if (inline_pics[count].term == term && inline_pics[count].pixmap) {
 #ifdef DEBUG
-      bl_debug_printf(BL_DEBUG_TAG " delete inline picture %d (%d)\n", count, num_inline_pics);
+      bl_debug_printf(BL_DEBUG_TAG " destroy inline picture %d (%d)\n", count, num_inline_pics);
 #endif
 
-      delete_inline_picture(inline_pics + count);
+      destroy_inline_picture(inline_pics + count);
     }
   }
 
@@ -403,7 +403,7 @@ static int cleanup_inline_pictures(vt_term_t *term) {
 
     /*
      * Inline pictures in back logs except recent MAX_INLINE_PICTURES*2 lines
-     * are deleted in line_scrolled_out() in ui_screen.c.
+     * are destroyed in line_scrolled_out() in ui_screen.c.
      */
     if ((beg = -vt_term_get_num_logged_lines(term)) < INLINEPIC_AVAIL_ROW) {
       beg = INLINEPIC_AVAIL_ROW;
@@ -449,11 +449,11 @@ static int cleanup_inline_pictures(vt_term_t *term) {
         continue;
       } else {
 #ifdef DEBUG
-        bl_debug_printf(BL_DEBUG_TAG " delete inline picture %s %d (%d) \n",
+        bl_debug_printf(BL_DEBUG_TAG " destroy inline picture %s %d (%d) \n",
                         inline_pics[count].file_path, count, num_inline_pics);
 #endif
 
-        if (!delete_inline_picture(inline_pics + count)) {
+        if (!destroy_inline_picture(inline_pics + count)) {
           continue;
         }
 
@@ -528,7 +528,7 @@ static int load_file(void *p) {
     return 1;
   } else {
     inline_pics[idx].disp = NULL;
-    delete_inline_picture(inline_pics + idx);
+    destroy_inline_picture(inline_pics + idx);
 
     return 0;
   }
@@ -594,7 +594,7 @@ static int ensure_inline_picture(ui_display_t *disp, const char *file_path,
   inline_pics[idx].col_width = col_width;
   inline_pics[idx].line_height = line_height;
   inline_pics[idx].next_frame = -1;
-  /* Don't delete before being inserted to vt_term_t after loading async. */
+  /* Don't destroy before being inserted to vt_term_t after loading async. */
   inline_pics[idx].weighting = 2;
 
   return idx;
@@ -631,7 +631,7 @@ void ui_picture_display_closed(Display *display) {
   if (num_icon_pics > 0) {
     for (count = num_icon_pics - 1; count >= 0; count--) {
       if (icon_pics[count]->disp->display == display) {
-        delete_icon_picture(icon_pics[count]);
+        destroy_icon_picture(icon_pics[count]);
         icon_pics[count] = icon_pics[--num_icon_pics];
       }
     }
@@ -649,8 +649,8 @@ void ui_picture_display_closed(Display *display) {
   for (count = 0; count < num_inline_pics; count++) {
     if (inline_pics[count].disp && inline_pics[count].disp->display == display) {
       if (PIXMAP_IS_ACTIVE(inline_pics[count])) {
-        ui_delete_image(display, inline_pics[count].pixmap);
-        ui_delete_mask(display, inline_pics[count].mask);
+        ui_destroy_image(display, inline_pics[count].pixmap);
+        ui_destroy_mask(display, inline_pics[count].mask);
       }
 
       /*
@@ -752,7 +752,7 @@ void ui_release_picture(ui_picture_t *pic) {
   for (count = 0; count < num_pics; count++) {
     if (pic == pics[count]) {
       if (--(pic->ref_count) == 0) {
-        delete_picture(pic);
+        destroy_picture(pic);
 
         if (--num_pics == 0) {
 #ifdef DEBUG
@@ -812,7 +812,7 @@ void ui_release_icon_picture(ui_icon_picture_t *pic) {
   for (count = 0; count < num_icon_pics; count++) {
     if (pic == icon_pics[count]) {
       if (--(pic->ref_count) == 0) {
-        delete_icon_picture(pic);
+        destroy_icon_picture(pic);
 
         if (--num_icon_pics == 0) {
 #ifdef DEBUG
@@ -1114,9 +1114,9 @@ int ui_load_tmp_picture(ui_display_t *disp, char *file_path, Pixmap *pixmap, Pix
   }
 }
 
-void ui_delete_tmp_picture(ui_display_t *disp, Pixmap pixmap, PixmapMask mask) {
-  ui_delete_image(disp->display, pixmap);
-  ui_delete_mask(disp->display, mask);
+void ui_destroy_tmp_picture(ui_display_t *disp, Pixmap pixmap, PixmapMask mask) {
+  ui_destroy_image(disp->display, pixmap);
+  ui_destroy_mask(disp->display, mask);
 }
 
 #endif /* NO_IMAGE */

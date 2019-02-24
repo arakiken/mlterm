@@ -22,6 +22,7 @@ OBJ_xlib = main.o
 OBJ_win32 = main.o
 OBJ_fb = main.o
 OBJ_quartz = main-cocoa.o
+OBJ_beos = main-beos.o
 OBJ_console = main.o
 OBJ_wayland = main.o
 OBJ_sdl2 = main.o
@@ -56,6 +57,8 @@ LIBS2_win32 = -mwindows -limm32 ../uitoolkit/winrs.o # @SUBSYSTEM@
 
 LIBS2_quartz = @COCOA_LIBS@
 
+LIBS2_beos = @BEOS_LIBS@ -lsocket
+
 LIBS2_console = @SIXEL_LIBS@ @MATH_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ @SOCK_LIBS@
 
 LIBS2_wayland = @FT_LIBS@ @MATH_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ @SOCK_LIBS@ \
@@ -72,6 +75,7 @@ PROG_win32 = mlterm
 PROG_fb = mlterm-fb
 PROG_console = mlterm-con-server
 PROG_quartz = mlterm
+PROG_beos = mlterm
 PROG_wayland = mlterm-wl
 PROG_sdl2 = mlterm-sdl2
 PROG2_console = mlterm-con
@@ -95,13 +99,15 @@ mlterm-con: $(top_srcdir)/main/main-con.c
 	$(CC) -o mlterm-con $(top_srcdir)/main/main-con.c $(CFLAGS_LOCAL) @CFLAGS@ @CPPFLAGS@ \
 		@SOCK_LIBS@ @LDFLAGS@ -DBINDIR=\"$(bindir)\" -DLIBEXECDIR=\"$(libexecdir)\"
 
-.SUFFIXES: .c .o
-.SUFFIXES: .m .o
+.SUFFIXES: .c.o .m.o .cpp.o
 
 .c.o:
 	$(LIBTOOL_CC) -c $<
 
 .m.o:
+	$(LIBTOOL_CC) -c $<
+
+.cpp.o:
 	$(LIBTOOL_CC) -c $<
 
 $(BINDIR):

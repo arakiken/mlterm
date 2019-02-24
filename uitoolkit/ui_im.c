@@ -25,9 +25,9 @@ typedef ui_im_t *(*ui_im_new_func_t)(u_int64_t magic, vt_char_encoding_t term_en
 /* --- static variables --- */
 
 static ui_im_export_syms_t im_export_syms = {
-    vt_str_init, vt_str_delete, vt_char_combine, vt_char_set, vt_get_char_encoding_name,
+    vt_str_init, vt_str_destroy, vt_char_combine, vt_char_set, vt_get_char_encoding_name,
     vt_get_char_encoding, vt_convert_to_internal_ch, vt_isciikey_state_new,
-    vt_isciikey_state_delete, vt_convert_ascii_to_iscii, vt_char_encoding_parser_new,
+    vt_isciikey_state_destroy, vt_convert_ascii_to_iscii, vt_char_encoding_parser_new,
     vt_char_encoding_conv_new, ui_im_candidate_screen_new, ui_im_status_screen_new,
     ui_event_source_add_fd, ui_event_source_remove_fd, XStringToKeysym
 
@@ -191,7 +191,7 @@ ui_im_t *ui_im_new(ui_display_t *disp, ui_font_manager_t *font_man, ui_color_man
   return im;
 }
 
-void ui_im_delete(ui_im_t *im) {
+void ui_im_destroy(ui_im_t *im) {
   bl_dl_handle_t handle;
   int do_close;
 
@@ -204,20 +204,20 @@ void ui_im_delete(ui_im_t *im) {
   free(im->name);
 
   if (im->cand_screen) {
-    (*im->cand_screen->delete)(im->cand_screen);
+    (*im->cand_screen->destroy)(im->cand_screen);
   }
 
   if (im->stat_screen) {
-    (*im->stat_screen->delete)(im->stat_screen);
+    (*im->stat_screen->destroy)(im->stat_screen);
   }
 
   if (im->preedit.chars) {
-    vt_str_delete(im->preedit.chars, im->preedit.num_chars);
+    vt_str_destroy(im->preedit.chars, im->preedit.num_chars);
   }
 
   handle = im->handle;
 
-  (*im->delete)(im);
+  (*im->destroy)(im);
 
   /*
    * Don't unload libim-ibus.so or libim-fcitx.so because it depends
@@ -273,7 +273,7 @@ ui_im_t *ui_im_new(ui_display_t *disp, ui_font_manager_t *font_man, ui_color_man
   return NULL;
 }
 
-void ui_im_delete(ui_im_t *im) {}
+void ui_im_destroy(ui_im_t *im) {}
 
 void ui_im_redraw_preedit(ui_im_t *im, int is_focused) {}
 

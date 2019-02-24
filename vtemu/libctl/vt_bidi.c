@@ -32,7 +32,7 @@ vt_bidi_state_t vt_bidi_new(void) {
   return state;
 }
 
-int vt_bidi_delete(vt_bidi_state_t state) {
+int vt_bidi_destroy(vt_bidi_state_t state) {
   free(state->visual_order);
   free(state);
 
@@ -337,7 +337,7 @@ int vt_bidi_copy(vt_bidi_state_t dst, vt_bidi_state_t src, int optimize) {
   u_int16_t *p;
 
   if (optimize && !HAS_RTL(src)) {
-    vt_bidi_delete(dst);
+    vt_bidi_destroy(dst);
 
     return -1;
   } else if (src->size == 0) {

@@ -299,33 +299,33 @@ static kbd_type_t find_kbd_type(char *locale) {
  * methods of ui_im_t
  */
 
-static void delete(ui_im_t *im) {
+static void destroy(ui_im_t *im) {
   im_kbd_t *kbd;
 
   kbd = (im_kbd_t*)im;
 
   if (kbd->isciikey_state) {
-    (*syms->vt_isciikey_state_delete)(kbd->isciikey_state);
+    (*syms->vt_isciikey_state_destroy)(kbd->isciikey_state);
   }
 
   if (kbd->parser) {
-    (*kbd->parser->delete)(kbd->parser);
+    (*kbd->parser->destroy)(kbd->parser);
   }
 
   if (kbd->conv) {
-    (*kbd->conv->delete)(kbd->conv);
+    (*kbd->conv->destroy)(kbd->conv);
   }
 
   ref_count--;
 
 #ifdef IM_KBD_DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count);
+  bl_debug_printf(BL_DEBUG_TAG " An object was destroyed. ref_count: %d\n", ref_count);
 #endif
 
   free(kbd);
 
   if (initialized && ref_count == 0) {
-    (*parser_ascii->delete)(parser_ascii);
+    (*parser_ascii->destroy)(parser_ascii);
     parser_ascii = NULL;
 
     initialized = 0;
@@ -447,7 +447,7 @@ static int switch_mode(ui_im_t *im) {
   } else /* kbd->type == KBD_TYPE_ISCII */
   {
     if (kbd->isciikey_state) {
-      (*syms->vt_isciikey_state_delete)(kbd->isciikey_state);
+      (*syms->vt_isciikey_state_destroy)(kbd->isciikey_state);
       kbd->isciikey_state = NULL;
     }
 
@@ -487,7 +487,7 @@ static int switch_mode(ui_im_t *im) {
 
   if (kbd->mode == KBD_MODE_ASCII) {
     if (kbd->im.stat_screen) {
-      (*kbd->im.stat_screen->delete)(kbd->im.stat_screen);
+      (*kbd->im.stat_screen->destroy)(kbd->im.stat_screen);
       kbd->im.stat_screen = NULL;
     }
   } else {
@@ -633,7 +633,7 @@ ui_im_t *im_kbd_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   /*
    * set methods of ui_im_t
    */
-  kbd->im.delete = delete;
+  kbd->im.destroy = destroy;
   kbd->im.key_event = (kbd->type == KBD_TYPE_ISCII) ? key_event_iscii : key_event_arabic_hebrew;
   kbd->im.switch_mode = switch_mode;
   kbd->im.is_active = is_active;
@@ -651,14 +651,14 @@ ui_im_t *im_kbd_new(u_int64_t magic, vt_char_encoding_t term_encoding,
 error:
   if (kbd) {
     if (kbd->parser) {
-      (*kbd->parser->delete)(kbd->parser);
+      (*kbd->parser->destroy)(kbd->parser);
     }
 
     free(kbd);
   }
 
   if (initialized && ref_count) {
-    (*parser_ascii->delete)(parser_ascii);
+    (*parser_ascii->destroy)(parser_ascii);
     parser_ascii = NULL;
 
     initialized = 0;

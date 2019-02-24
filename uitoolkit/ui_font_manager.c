@@ -211,7 +211,7 @@ ui_font_manager_t *ui_font_manager_new(Display *display, ui_type_engine_t type_e
   return font_man;
 }
 
-void ui_font_manager_delete(ui_font_manager_t *font_man) {
+void ui_font_manager_destroy(ui_font_manager_t *font_man) {
   ui_release_font_cache(font_man->font_cache);
 
   ui_release_font_config(font_man->font_config);

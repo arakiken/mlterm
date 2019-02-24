@@ -24,7 +24,7 @@ int vt_line_set_use_iscii(vt_line_t *line, int flag) {
     line->ctl_info_type = VINFO_ISCII;
   } else {
     if (vt_line_is_using_iscii(line)) {
-      vt_iscii_delete(line->ctl_info.iscii);
+      vt_iscii_destroy(line->ctl_info.iscii);
       line->ctl_info_type = 0;
     }
   }
@@ -109,7 +109,7 @@ int vt_line_iscii_visual(vt_line_t *line) {
 
     if ((chars = vt_str_new(dst_len))) {
       /* XXX => shrunk at vt_screen.c and vt_logical_visual_ctl.c */
-      vt_str_delete(line->chars, line->num_chars);
+      vt_str_destroy(line->chars, line->num_chars);
       line->chars = chars;
       line->num_chars = dst_len;
     } else {

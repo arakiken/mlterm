@@ -534,8 +534,8 @@ static int receive_stdin_event(ui_display_t *disp) {
     u_int count;
 
     for (count = disp->num_roots; count > 0; count--) {
-      if (disp->roots[count - 1]->window_deleted) {
-        (*disp->roots[count - 1]->window_deleted)(disp->roots[count - 1]);
+      if (disp->roots[count - 1]->window_destroyed) {
+        (*disp->roots[count - 1]->window_destroyed)(disp->roots[count - 1]);
       }
     }
 
@@ -901,7 +901,7 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
 void ui_display_close(ui_display_t *disp) {
   u_int count;
 
-/* inline pictures are alive until vt_term_t is deleted. */
+/* inline pictures are alive until vt_term_t is destroyed. */
 #if 0
   ui_picture_display_closed(disp->display);
 #endif
@@ -915,7 +915,7 @@ void ui_display_close(ui_display_t *disp) {
   write(fileno(disp->display->fp), "\x1b[>4;0m", 7);
   write(fileno(disp->display->fp), "\x1b[?1002l\x1b[?1006l\x1b[?8452l", 24);
   fclose(disp->display->fp);
-  (*disp->display->conv->delete)(disp->display->conv);
+  (*disp->display->conv->destroy)(disp->display->conv);
 
   for (count = 0; count < num_displays; count++) {
     if (displays[count] == disp) {
@@ -1079,7 +1079,7 @@ void ui_display_set_char_encoding(ui_display_t *disp, vt_char_encoding_t e) {
   encoding = e;
 
   if (disp) {
-    (*disp->display->conv->delete)(disp->display->conv);
+    (*disp->display->conv->destroy)(disp->display->conv);
     disp->display->conv = vt_char_encoding_conv_new(encoding);
     vt_char_encoding_conv_set_use_loose_rule(disp->display->conv, encoding, 1);
   }

@@ -704,7 +704,7 @@ static FcCharSet *get_cached_charset(const char *family) {
 }
 
 #if 0
-static void delete_charset_chache(void) {
+static void destroy_charset_chache(void) {
   u_int count;
   for (count = 0; count < charset_cache_size; count++) {
     free(charset_cache[count].family);
@@ -1375,7 +1375,7 @@ void cairo_unset_font(ui_font_t *font) {
   }
 
 #if 0
-  delete_charset_cache();
+  destroy_charset_cache();
 #endif
 }
 

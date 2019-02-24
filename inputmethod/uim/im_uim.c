@@ -117,7 +117,7 @@ static void update_stat_screen(im_uim_t *uim, int mode_changed) {
   if (!uim->im.cand_screen) {
     if (uim->mode == 0 /* direct input */ /* || uim->im.preedit.filled_len == 0 */) {
       if (uim->im.stat_screen) {
-        (*uim->im.stat_screen->delete)(uim->im.stat_screen);
+        (*uim->im.stat_screen->destroy)(uim->im.stat_screen);
         uim->im.stat_screen = NULL;
       }
 
@@ -517,7 +517,7 @@ static void preedit_clear(void *ptr) {
   uim = (im_uim_t *)ptr;
 
   if (uim->im.preedit.chars) {
-    (*syms->vt_str_delete)(uim->im.preedit.chars, uim->im.preedit.num_chars);
+    (*syms->vt_str_destroy)(uim->im.preedit.chars, uim->im.preedit.num_chars);
     uim->im.preedit.chars = NULL;
   }
 
@@ -598,7 +598,7 @@ static void preedit_pushback(void *ptr, int attr, const char *_str) {
       bl_warn_printf(BL_DEBUG_TAG " realloc failed.\n");
 #endif
 
-      (*syms->vt_str_delete)(uim->im.preedit.chars, uim->im.preedit.num_chars);
+      (*syms->vt_str_destroy)(uim->im.preedit.chars, uim->im.preedit.num_chars);
       uim->im.preedit.chars = NULL;
       uim->im.preedit.num_chars = 0;
       uim->im.preedit.filled_len = 0;
@@ -707,7 +707,7 @@ static void candidate_activate(void *p, int num, int limit) {
                                 uim->im.preedit.segment_offset, &x, &y);
 
   if (uim->im.stat_screen) {
-    (*uim->im.stat_screen->delete)(uim->im.stat_screen);
+    (*uim->im.stat_screen->destroy)(uim->im.stat_screen);
     uim->im.stat_screen = NULL;
   }
 
@@ -728,7 +728,7 @@ static void candidate_activate(void *p, int num, int limit) {
   }
 
   if (!(*uim->im.cand_screen->init)(uim->im.cand_screen, num, limit)) {
-    (*uim->im.cand_screen->delete)(uim->im.cand_screen);
+    (*uim->im.cand_screen->destroy)(uim->im.cand_screen);
     uim->im.cand_screen = NULL;
 
     return;
@@ -850,7 +850,7 @@ static void candidate_deactivate(void *p) {
   uim = (im_uim_t *)p;
 
   if (uim->im.cand_screen) {
-    (*uim->im.cand_screen->delete)(uim->im.cand_screen);
+    (*uim->im.cand_screen->destroy)(uim->im.cand_screen);
     uim->im.cand_screen = NULL;
   }
 }
@@ -859,7 +859,7 @@ static void candidate_deactivate(void *p) {
  * methods of ui_im_t
  */
 
-static void delete(ui_im_t *im) {
+static void destroy(ui_im_t *im) {
   im_uim_t *uim;
 
   uim = (im_uim_t *)im;
@@ -869,13 +869,13 @@ static void delete(ui_im_t *im) {
   }
 
   if (uim->parser_uim) {
-    (*uim->parser_uim->delete)(uim->parser_uim);
+    (*uim->parser_uim->destroy)(uim->parser_uim);
   }
 
-  (*uim->parser_term->delete)(uim->parser_term);
+  (*uim->parser_term->destroy)(uim->parser_term);
 
   if (uim->conv) {
-    (*uim->conv->delete)(uim->conv);
+    (*uim->conv->destroy)(uim->conv);
   }
 
   uim_release_context(uim->context);
@@ -883,7 +883,7 @@ static void delete(ui_im_t *im) {
   ref_count--;
 
 #ifdef IM_UIM_DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count);
+  bl_debug_printf(BL_DEBUG_TAG " An object was destroyed. ref_count: %d\n", ref_count);
 #endif
 
   bl_slist_remove(uim_list, uim);
@@ -1188,7 +1188,7 @@ static void helper_commit_string(u_char *str /* UTF-8? */
   }
 
   if (!(parser_utf8 = (*syms->vt_char_encoding_parser_new)(VT_UTF8))) {
-    (*conv->delete)(conv);
+    (*conv->destroy)(conv);
     return;
   }
 
@@ -1209,8 +1209,8 @@ static void helper_commit_string(u_char *str /* UTF-8? */
                                                filled_len);
   }
 
-  (*parser_utf8->delete)(parser_utf8);
-  (*conv->delete)(conv);
+  (*parser_utf8->destroy)(parser_utf8);
+  (*conv->destroy)(conv);
 }
 
 static void helper_read_handler(void) {
@@ -1398,7 +1398,7 @@ ui_im_t *im_uim_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   /*
    * set methods of ui_im_t
    */
-  uim->im.delete = delete;
+  uim->im.destroy = destroy;
   uim->im.key_event = key_event;
   uim->im.switch_mode = switch_mode;
   uim->im.is_active = is_active;
@@ -1433,15 +1433,15 @@ error:
 
   if (uim) {
     if (uim->parser_uim) {
-      (*uim->parser_uim->delete)(uim->parser_uim);
+      (*uim->parser_uim->destroy)(uim->parser_uim);
     }
 
     if (uim->parser_term) {
-      (*uim->parser_term->delete)(uim->parser_term);
+      (*uim->parser_term->destroy)(uim->parser_term);
     }
 
     if (uim->conv) {
-      (*uim->conv->delete)(uim->conv);
+      (*uim->conv->destroy)(uim->conv);
     }
 
     free(uim);

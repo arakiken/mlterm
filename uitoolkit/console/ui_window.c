@@ -1422,7 +1422,7 @@ void ui_set_window_name(ui_window_t *win, u_char *name) {
     }
     fwrite("\x07", 1, 1, win->disp->display->fp);
 
-    (*parser->delete)(parser);
+    (*parser->destroy)(parser);
   }
 }
 
@@ -1453,7 +1453,7 @@ void ui_set_icon_name(ui_window_t *win, u_char *name) {
     }
     fwrite("\x07", 1, 1, win->disp->display->fp);
 
-    (*parser->delete)(parser);
+    (*parser->destroy)(parser);
   }
 }
 

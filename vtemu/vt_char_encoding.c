@@ -360,7 +360,7 @@ static void ovrd_iso2022kr_conv_init(ef_conv_t *conv) {
   /* this returns sequence of designating KSC5601 to G1 */
   (*conv->convert)(conv, buf, sizeof(buf), parser);
 
-  (*parser->delete)(parser);
+  (*parser->destroy)(parser);
 }
 
 static void ovrd_iso2022kr_parser_init(ef_parser_t *parser) {
@@ -379,7 +379,7 @@ static void ovrd_iso2022kr_parser_init(ef_parser_t *parser) {
   /* this returns sequence of designating KSC5601 to G1 */
   (*conv->convert)(conv, buf, sizeof(buf), parser);
 
-  (*conv->delete)(conv);
+  (*conv->destroy)(conv);
 }
 
 static size_t iso2022_illegal_char(ef_conv_t *conv, u_char *dst, size_t dst_size, int *is_full,
@@ -595,7 +595,7 @@ size_t vt_char_encoding_convert(u_char *dst, size_t dst_len, vt_char_encoding_t 
   (*parser->init)(parser);
   (*parser->set_str)(parser, src, src_len);
   filled_len = vt_char_encoding_convert_with_parser(dst, dst_len, dst_encoding, parser);
-  (*parser->delete)(parser);
+  (*parser->destroy)(parser);
 
   return filled_len;
 }
@@ -611,7 +611,7 @@ size_t vt_char_encoding_convert_with_parser(u_char *dst, size_t dst_len,
 
   (*conv->init)(conv);
   filled_len = (*conv->convert)(conv, dst, dst_len, parser);
-  (*conv->delete)(conv);
+  (*conv->destroy)(conv);
 
   return filled_len;
 }

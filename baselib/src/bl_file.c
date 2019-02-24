@@ -31,7 +31,7 @@ bl_file_t *bl_file_new(FILE* fp) {
   return file;
 }
 
-int bl_file_delete(bl_file_t *file) {
+int bl_file_destroy(bl_file_t *file) {
   /* not fclose(file->fp) */
 
   free(file->buffer);
@@ -59,7 +59,7 @@ int bl_file_close(bl_file_t *file) {
     result = 0;
   }
 
-  result |= bl_file_delete(file);
+  result |= bl_file_destroy(file);
 
   return result;
 }

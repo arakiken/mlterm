@@ -176,7 +176,7 @@ ui_display_t *ui_display_open(char *disp_name, /* Ignored */
   fd = -1;
 #else
   if ((fd = open("/dev/windows", O_NONBLOCK, 0)) == -1) {
-    ui_gc_delete(_disp.gc);
+    ui_gc_destroy(_disp.gc);
 
     return NULL;
   }
@@ -213,7 +213,7 @@ void ui_display_close_all(void) {
 
   ui_picture_display_closed(_disp.display);
 
-  ui_gc_delete(_disp.gc);
+  ui_gc_destroy(_disp.gc);
 
   for (count = 0; count < _disp.num_roots; count++) {
     ui_window_unmap(_disp.roots[count]);

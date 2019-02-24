@@ -344,9 +344,9 @@ int ui_brltty_final(void) {
 
     brlapi_leaveTtyMode();
     brlapi_closeConnection();
-    (*parser->delete)(parser);
-    (*conv->delete)(conv);
-    (*wconv->delete)(wconv);
+    (*parser->destroy)(parser);
+    (*conv->destroy)(conv);
+    (*wconv->destroy)(wconv);
   }
 
   return brltty_fd;

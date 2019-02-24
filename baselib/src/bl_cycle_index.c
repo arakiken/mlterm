@@ -34,7 +34,7 @@ bl_cycle_index_t *bl_cycle_index_new(u_int size) {
   return cycle;
 }
 
-int bl_cycle_index_delete(bl_cycle_index_t *cycle) {
+int bl_cycle_index_destroy(bl_cycle_index_t *cycle) {
   free(cycle);
 
   return 1;

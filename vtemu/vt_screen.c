@@ -762,14 +762,14 @@ error1:
   return NULL;
 }
 
-int vt_screen_delete(vt_screen_t *screen) {
+int vt_screen_destroy(vt_screen_t *screen) {
   /*
    * this should be done before vt_edit_final() since termscr->logvis refers
    * to vt_edit_t and may have some data structure for it.
    */
   if (screen->logvis) {
     (*screen->logvis->logical)(screen->logvis);
-    (*screen->logvis->delete)(screen->logvis);
+    (*screen->logvis->destroy)(screen->logvis);
   }
 
   vt_edit_final(&screen->normal_edit);
@@ -961,10 +961,10 @@ int vt_screen_add_logical_visual(vt_screen_t *screen, vt_logical_visual_t *logvi
   return 1;
 }
 
-int vt_screen_delete_logical_visual(vt_screen_t *screen) {
+int vt_screen_destroy_logical_visual(vt_screen_t *screen) {
   if (screen->logvis) {
     (*screen->logvis->logical)(screen->logvis);
-    (*screen->logvis->delete)(screen->logvis);
+    (*screen->logvis->destroy)(screen->logvis);
     screen->logvis = NULL;
     screen->container_logvis = NULL;
 
@@ -1457,7 +1457,7 @@ int vt_screen_search_find(vt_screen_t *screen,
   }
 
   if (!(conv = vt_char_encoding_conv_new(VT_UTF8))) {
-    (*parser->delete)(parser);
+    (*parser->destroy)(parser);
 
     return 0;
   }
@@ -1604,8 +1604,8 @@ int vt_screen_search_find(vt_screen_t *screen,
     }
   }
 
-  (*parser->delete)(parser);
-  (*conv->delete)(conv);
+  (*parser->destroy)(parser);
+  (*conv->destroy)(conv);
   vt_str_final(line_str, vt_screen_get_logical_cols(screen));
 
   return res;
@@ -2038,7 +2038,7 @@ int vt_screen_write_content(vt_screen_t *screen, int fd, ef_conv_t *conv, int cl
     write(fd, "\n\x1b[1000S\x1b[H", 11);
   }
 
-  (*vt_str_parser->delete)(vt_str_parser);
+  (*vt_str_parser->destroy)(vt_str_parser);
 
   return 1;
 }

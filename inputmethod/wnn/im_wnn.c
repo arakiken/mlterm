@@ -85,7 +85,7 @@ static void wchar_parser_set_str(ef_parser_t *parser, u_char *str, size_t size) 
   parser->is_eos = 0;
 }
 
-static void wchar_parser_delete(ef_parser_t *parser) { free(parser); }
+static void wchar_parser_destroy(ef_parser_t *parser) { free(parser); }
 
 static int wchar_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   wchar wch;
@@ -135,7 +135,7 @@ static ef_parser_t *wchar_parser_new(void) {
 
   parser->init = ef_parser_init;
   parser->set_str = wchar_parser_set_str;
-  parser->delete = wchar_parser_delete;
+  parser->destroy = wchar_parser_destroy;
   parser->next_char = wchar_parser_next_char;
 
   return parser;
@@ -254,7 +254,7 @@ candidate:
     return;
   } else if (candidateword_len == 0) {
     if (wnn->im.stat_screen) {
-      (*wnn->im.stat_screen->delete)(wnn->im.stat_screen);
+      (*wnn->im.stat_screen->destroy)(wnn->im.stat_screen);
       wnn->im.stat_screen = NULL;
     }
   } else {
@@ -580,16 +580,16 @@ static int fix(im_wnn_t *wnn) {
  * methods of ui_im_t
  */
 
-static void delete(ui_im_t *im) {
+static void destroy(ui_im_t *im) {
   im_wnn_t *wnn;
   struct wnn_buf *buf;
 
   wnn = (im_wnn_t*)im;
 
-  (*wnn->parser_term->delete)(wnn->parser_term);
+  (*wnn->parser_term->destroy)(wnn->parser_term);
 
   if (wnn->conv) {
-    (*wnn->conv->delete)(wnn->conv);
+    (*wnn->conv->destroy)(wnn->conv);
   }
 
   buf = wnn->convbuf->wnn;
@@ -601,11 +601,11 @@ static void delete(ui_im_t *im) {
   ref_count--;
 
 #ifdef IM_WNN_DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count);
+  bl_debug_printf(BL_DEBUG_TAG " An object was destroyed. ref_count: %d\n", ref_count);
 #endif
 
   if (ref_count == 0) {
-    (*parser_wchar->delete)(parser_wchar);
+    (*parser_wchar->destroy)(parser_wchar);
     parser_wchar = NULL;
   }
 }
@@ -878,7 +878,7 @@ ui_im_t *im_wnn_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   /*
    * set methods of ui_im_t
    */
-  wnn->im.delete = delete;
+  wnn->im.destroy = destroy;
   wnn->im.key_event = key_event;
   wnn->im.switch_mode = switch_mode;
   wnn->im.is_active = is_active;
@@ -896,18 +896,18 @@ ui_im_t *im_wnn_new(u_int64_t magic, vt_char_encoding_t term_encoding,
 error:
   if (ref_count == 0) {
     if (parser_wchar) {
-      (*parser_wchar->delete)(parser_wchar);
+      (*parser_wchar->destroy)(parser_wchar);
       parser_wchar = NULL;
     }
   }
 
   if (wnn) {
     if (wnn->parser_term) {
-      (*wnn->parser_term->delete)(wnn->parser_term);
+      (*wnn->parser_term->destroy)(wnn->parser_term);
     }
 
     if (wnn->conv) {
-      (*wnn->conv->delete)(wnn->conv);
+      (*wnn->conv->destroy)(wnn->conv);
     }
 
     buf = wnn->convbuf->wnn;

@@ -49,7 +49,7 @@ void ef_iso2022_parser_init_func(ef_iso2022_parser_t *iso2022_parser);
 
 void ef_iso2022_parser_set_str(ef_parser_t *parser, u_char *str, size_t size);
 
-void ef_iso2022_parser_delete(ef_parser_t *parser);
+void ef_iso2022_parser_destroy(ef_parser_t *parser);
 
 int ef_iso2022_parser_next_char(ef_parser_t *parser, ef_char_t *ch);
 

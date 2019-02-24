@@ -48,7 +48,7 @@ typedef struct ui_im_event_listener {
  */
 typedef struct ui_im_export_syms {
   void (*vt_str_init)(vt_char_t *, u_int);
-  void (*vt_str_delete)(vt_char_t *, u_int);
+  void (*vt_str_destroy)(vt_char_t *, u_int);
   vt_char_t *(*vt_char_combine)(vt_char_t *, u_int32_t, ef_charset_t, int, int, vt_color_t,
                                 vt_color_t, int, int, int, int, int);
   int (*vt_char_set)(vt_char_t *, u_int32_t, ef_charset_t cs, int, int, vt_color_t, vt_color_t,
@@ -57,7 +57,7 @@ typedef struct ui_im_export_syms {
   vt_char_encoding_t (*vt_get_char_encoding)(const char *);
   int (*vt_convert_to_internal_ch)(void *, ef_char_t *);
   vt_isciikey_state_t (*vt_isciikey_state_new)(int);
-  void (*vt_isciikey_state_delete)(vt_isciikey_state_t);
+  void (*vt_isciikey_state_destroy)(vt_isciikey_state_t);
   size_t (*vt_convert_ascii_to_iscii)(vt_isciikey_state_t, u_char *, size_t, u_char *, size_t);
   ef_parser_t *(*vt_char_encoding_parser_new)(vt_char_encoding_t);
   ef_conv_t *(*vt_char_encoding_conv_new)(vt_char_encoding_t);
@@ -97,7 +97,7 @@ typedef struct ui_im {
    * methods
    */
 
-  void (*delete)(struct ui_im *);
+  void (*destroy)(struct ui_im *);
   /* Return 1 if key event to be processed is still left. */
   int (*key_event)(struct ui_im *, u_char, KeySym, XKeyEvent *);
   /* Return 1 if switching is succeeded. */
@@ -113,7 +113,7 @@ ui_im_t *ui_im_new(ui_display_t *disp, ui_font_manager_t *font_man, ui_color_man
                    void *vtparser, ui_im_event_listener_t *im_listener,
                    char *input_method, u_int mod_ignore_mask);
 
-void ui_im_delete(ui_im_t *xim);
+void ui_im_destroy(ui_im_t *xim);
 
 void ui_im_redraw_preedit(ui_im_t *im, int is_focused);
 

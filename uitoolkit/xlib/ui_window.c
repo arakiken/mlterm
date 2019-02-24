@@ -920,7 +920,7 @@ void ui_window_final(ui_window_t *win) {
     XDestroyWindow(win->disp->display, win->my_window);
 
     if (win->create_gc) {
-      ui_gc_delete(win->gc);
+      ui_gc_destroy(win->gc);
     }
   } else {
     /* ui_window_show() is not called yet. */
@@ -2412,8 +2412,8 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG " DeleteWindow message is received. exiting...\n");
 #endif
-      if (win->window_deleted) {
-        (*win->window_deleted)(win);
+      if (win->window_destroyed) {
+        (*win->window_destroyed)(win);
       } else {
         exit(0);
       }

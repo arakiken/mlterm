@@ -66,7 +66,7 @@
 /*
  * the deletion of pair->key/pair->value should be done by users of bl_map.
  */
-#define bl_map_delete(map)    \
+#define bl_map_destroy(map)   \
   {                           \
     free((map)->pairs);       \
     free((map)->pairs_array); \

@@ -30,7 +30,7 @@ struct vt_bidi_state {
 
 vt_bidi_state_t vt_bidi_new(void);
 
-int vt_bidi_delete(vt_bidi_state_t state);
+int vt_bidi_destroy(vt_bidi_state_t state);
 
 int vt_bidi(vt_bidi_state_t state, vt_char_t *src, u_int size, vt_bidi_mode_t mode,
             const char *separators);

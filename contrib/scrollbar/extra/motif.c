@@ -79,7 +79,7 @@ static void resized(ui_sb_view_t *view, Window window, unsigned int height) {
   view->height = height;
 }
 
-static void delete (ui_sb_view_t *view) {
+static void destroy(ui_sb_view_t *view) {
   motif_sb_view_t *motif_sb;
 
   motif_sb = (motif_sb_view_t*)view;
@@ -406,7 +406,7 @@ ui_sb_view_t *ui_motif_sb_view_new(void) {
   motif_sb->view.get_default_color = get_default_color;
   motif_sb->view.realized = realized;
   motif_sb->view.resized = resized;
-  motif_sb->view.delete = delete;
+  motif_sb->view.destroy = destroy;
 
   motif_sb->view.color_changed = color_changed;
   motif_sb->view.draw_scrollbar = draw_scrollbar;
@@ -429,7 +429,7 @@ ui_sb_view_t *ui_motif_transparent_sb_view_new(void) {
   motif_sb->view.get_default_color = get_default_color;
   motif_sb->view.realized = realized;
   motif_sb->view.resized = resized;
-  motif_sb->view.delete = delete;
+  motif_sb->view.destroy = destroy;
 
   motif_sb->view.color_changed = color_changed;
   motif_sb->view.draw_scrollbar = draw_scrollbar;

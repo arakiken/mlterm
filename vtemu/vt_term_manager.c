@@ -200,13 +200,13 @@ void vt_term_manager_final(void) {
     /*
      * All windows may be invalid before vt_term_manager_final() is called.
      * Without this vt_term_detach(), if terms[count] is not detached,
-     * pty_listener::pty_closed() which is called in vt_pty_delete() can
+     * pty_listener::pty_closed() which is called in vt_pty_destroy() can
      * operate invalid window.
      */
     vt_term_detach(terms[count]);
 #endif
 
-    vt_term_delete(terms[count]);
+    vt_term_destroy(terms[count]);
   }
 
   free(terms);
@@ -304,7 +304,7 @@ vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int t
 
             continue;
           } else {
-            vt_pty_delete(pty);
+            vt_pty_destroy(pty);
           }
         }
 
@@ -367,7 +367,7 @@ void vt_destroy_term(vt_term_t *term) {
     }
   }
 
-  vt_term_delete(term);
+  vt_term_destroy(term);
 }
 
 vt_term_t *vt_get_term(const char *dev) {
@@ -484,7 +484,7 @@ void vt_close_dead_terms(void) {
             term = terms[idx * MTU + count];
             /*
              * Update terms and num_terms before
-             * vt_term_delete, which calls
+             * vt_term_destroy, which calls
              * vt_pty_event_listener::pty_close in which
              * vt_term_manager can be used.
              */
@@ -492,7 +492,7 @@ void vt_close_dead_terms(void) {
             if (zombie_pty) {
               vt_term_zombie(term);
             } else {
-              vt_term_delete(term);
+              vt_term_destroy(term);
             }
           }
         }

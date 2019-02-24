@@ -189,7 +189,7 @@ candidate:
     return;
   } else if (strlen(candidateword) == 0) {
     if (canna->im.stat_screen) {
-      (*canna->im.stat_screen->delete)(canna->im.stat_screen);
+      (*canna->im.stat_screen->destroy)(canna->im.stat_screen);
       canna->im.stat_screen = NULL;
     }
   } else {
@@ -268,15 +268,15 @@ static void commit(im_canna_t *canna, const char *str) {
  * methods of ui_im_t
  */
 
-static void delete(ui_im_t *im) {
+static void destroy(ui_im_t *im) {
   im_canna_t *canna;
 
   canna = (im_canna_t*)im;
 
-  (*canna->parser_term->delete)(canna->parser_term);
+  (*canna->parser_term->destroy)(canna->parser_term);
 
   if (canna->conv) {
-    (*canna->conv->delete)(canna->conv);
+    (*canna->conv->destroy)(canna->conv);
   }
 
   free(canna->mode);
@@ -284,13 +284,13 @@ static void delete(ui_im_t *im) {
   ref_count--;
 
 #ifdef IM_CANNA_DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count);
+  bl_debug_printf(BL_DEBUG_TAG " An object was destroyed. ref_count: %d\n", ref_count);
 #endif
 
   free(canna);
 
   if (ref_count == 0) {
-    (*parser_eucjp->delete)(parser_eucjp);
+    (*parser_eucjp->destroy)(parser_eucjp);
     parser_eucjp = NULL;
     jrKanjiControl(0, KC_FINALIZE, 0);
   }
@@ -529,7 +529,7 @@ ui_im_t *im_canna_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   /*
    * set methods of ui_im_t
    */
-  canna->im.delete = delete;
+  canna->im.destroy = destroy;
   canna->im.key_event = key_event;
   canna->im.switch_mode = switch_mode;
   canna->im.is_active = is_active;
@@ -547,7 +547,7 @@ ui_im_t *im_canna_new(u_int64_t magic, vt_char_encoding_t term_encoding,
 error:
   if (ref_count == 0) {
     if (parser_eucjp) {
-      (*parser_eucjp->delete)(parser_eucjp);
+      (*parser_eucjp->destroy)(parser_eucjp);
       parser_eucjp = NULL;
     }
 
@@ -556,11 +556,11 @@ error:
 
   if (canna) {
     if (canna->parser_term) {
-      (*canna->parser_term->delete)(canna->parser_term);
+      (*canna->parser_term->destroy)(canna->parser_term);
     }
 
     if (canna->conv) {
-      (*canna->conv->delete)(canna->conv);
+      (*canna->conv->destroy)(canna->conv);
     }
 
     free(canna);

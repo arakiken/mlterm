@@ -78,22 +78,22 @@ ef_conv_t *ui_get_selection_conv(int utf) {
 #if 0
 void ui_selection_encoding_final(void) {
   if (utf_parser) {
-    (*utf_parser->delete)(utf_parser);
+    (*utf_parser->destroy)(utf_parser);
     utf_parser = NULL;
   }
 
   if (parser) {
-    (*parser->delete)(parser);
+    (*parser->destroy)(parser);
     parser = NULL;
   }
 
   if (utf_conv) {
-    (*utf_conv->delete)(utf_conv);
+    (*utf_conv->destroy)(utf_conv);
     utf_conv = NULL;
   }
 
   if (conv) {
-    (*conv->delete)(conv);
+    (*conv->destroy)(conv);
     conv = NULL;
   }
 }
