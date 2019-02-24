@@ -1681,7 +1681,7 @@ Pixmap ui_imagelib_pixbuf_to_pixmap(ui_window_t *win, ui_picture_modifier_t *pic
   return None;
 }
 
-void ui_delete_image(Display *display, Pixmap pixmap) {
+void ui_destroy_image(Display *display, Pixmap pixmap) {
   XFreePixmap(display, pixmap);
 }
 

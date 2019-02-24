@@ -259,7 +259,7 @@ static void iso2022jp_8_conv_init(ef_conv_t *conv) {
   iso2022_conv->g3 = UNKNOWN_CS;
 }
 
-static void conv_delete(ef_conv_t *conv) { free(conv); }
+static void conv_destroy(ef_conv_t *conv) { free(conv); }
 
 /* --- global functions --- */
 
@@ -274,7 +274,7 @@ ef_conv_t *ef_iso2022jp_8_conv_new(void) {
 
   iso2022_conv->conv.convert = convert_to_iso2022jp_8;
   iso2022_conv->conv.init = iso2022jp_8_conv_init;
-  iso2022_conv->conv.delete = conv_delete;
+  iso2022_conv->conv.destroy = conv_destroy;
   iso2022_conv->conv.illegal_char = NULL;
 
   return (ef_conv_t*)iso2022_conv;
@@ -291,7 +291,7 @@ ef_conv_t *ef_iso2022jp_7_conv_new(void) {
 
   iso2022_conv->conv.convert = convert_to_iso2022jp_7;
   iso2022_conv->conv.init = iso2022jp_7_conv_init;
-  iso2022_conv->conv.delete = conv_delete;
+  iso2022_conv->conv.destroy = conv_destroy;
   iso2022_conv->conv.illegal_char = NULL;
 
   return (ef_conv_t*)iso2022_conv;
@@ -308,7 +308,7 @@ ef_conv_t *ef_iso2022jp2_conv_new(void) {
 
   iso2022_conv->conv.convert = convert_to_iso2022jp2;
   iso2022_conv->conv.init = iso2022jp_7_conv_init;
-  iso2022_conv->conv.delete = conv_delete;
+  iso2022_conv->conv.destroy = conv_destroy;
   iso2022_conv->conv.illegal_char = NULL;
 
   return (ef_conv_t*)iso2022_conv;
@@ -325,7 +325,7 @@ ef_conv_t *ef_iso2022jp3_conv_new(void) {
 
   iso2022_conv->conv.convert = convert_to_iso2022jp3;
   iso2022_conv->conv.init = iso2022jp_7_conv_init;
-  iso2022_conv->conv.delete = conv_delete;
+  iso2022_conv->conv.destroy = conv_destroy;
   iso2022_conv->conv.illegal_char = NULL;
 
   return (ef_conv_t*)iso2022_conv;

@@ -1307,7 +1307,7 @@ end:
   return font;
 }
 
-void ui_font_delete(ui_font_t *font) {
+void ui_font_destroy(ui_font_t *font) {
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
   if (font->xft_font) {
     xft_unset_font(font);
@@ -1328,7 +1328,7 @@ void ui_font_delete(ui_font_t *font) {
 #endif
 
   if (font->decsp_font) {
-    ui_decsp_font_delete(font->decsp_font, font->display);
+    ui_decsp_font_destroy(font->decsp_font, font->display);
     font->decsp_font = NULL;
   }
 

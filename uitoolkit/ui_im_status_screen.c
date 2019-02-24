@@ -190,16 +190,16 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
  * methods of ui_im_status_screen_t
  */
 
-static void delete(ui_im_status_screen_t *stat_screen) {
+static void destroy(ui_im_status_screen_t *stat_screen) {
   ui_display_remove_root(stat_screen->window.disp, &stat_screen->window);
 
   if (stat_screen->chars) {
-    vt_str_delete(stat_screen->chars, stat_screen->num_chars);
+    vt_str_destroy(stat_screen->chars, stat_screen->num_chars);
   }
 
 #ifdef USE_REAL_VERTICAL_FONT
   if (stat_screen->is_vertical) {
-    ui_font_manager_delete(stat_screen->font_man);
+    ui_font_manager_destroy(stat_screen->font_man);
   }
 #endif
 
@@ -320,7 +320,7 @@ static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, u_char *
     ;
 
   if (old_chars) {
-    vt_str_delete(old_chars, old_num_chars);
+    vt_str_destroy(old_chars, old_num_chars);
   }
 
   if (modified_beg < old_filled_len || old_filled_len != stat_screen->filled_len) {
@@ -422,7 +422,7 @@ ui_im_status_screen_t *ui_im_status_screen_new(ui_display_t *disp, ui_font_manag
   stat_screen->window.window_exposed = window_exposed;
 
   /* methods of ui_im_status_screen_t */
-  stat_screen->delete = delete;
+  stat_screen->destroy = destroy;
   stat_screen->show = show;
   stat_screen->hide = hide;
   stat_screen->set_spot = set_spot;
@@ -452,7 +452,7 @@ error:
 
 /* --- static functions --- */
 
-static void delete(ui_im_status_screen_t *stat_screen) {
+static void destroy(ui_im_status_screen_t *stat_screen) {
   vt_parser_write_loopback(stat_screen->vtparser, "\x1b[0$~", 5);
   free(stat_screen);
 }
@@ -517,7 +517,7 @@ ui_im_status_screen_t *ui_im_status_screen_new(ui_display_t *disp, ui_font_manag
   stat_screen->is_vertical = is_vertical;
 
   /* methods of ui_im_status_screen_t */
-  stat_screen->delete = delete;
+  stat_screen->destroy = destroy;
   stat_screen->show = show;
   stat_screen->hide = hide;
   stat_screen->set_spot = set_spot;

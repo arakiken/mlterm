@@ -28,7 +28,7 @@ typedef struct ui_gc {
 
 ui_gc_t *ui_gc_new(Display *display, Drawable drawable);
 
-void ui_gc_delete(ui_gc_t *gc);
+void ui_gc_destroy(ui_gc_t *gc);
 
 void ui_gc_set_fg_color(ui_gc_t *gc, u_long fg_color);
 

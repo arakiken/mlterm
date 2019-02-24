@@ -244,7 +244,7 @@ int main_loop_init(int argc, char **argv) {
                           0
 #endif
       )) {
-    bl_conf_delete(conf);
+    bl_conf_destroy(conf);
 
     return 0;
   }
@@ -445,7 +445,7 @@ int main_loop_init(int argc, char **argv) {
   }
 #endif
 
-  bl_conf_delete(conf);
+  bl_conf_destroy(conf);
 
   if (!ui_screen_manager_init("MLTERM=" VERSION, depth, max_screens_multiple,
                               num_startup_screens, &main_config)) {

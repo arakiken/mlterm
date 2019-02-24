@@ -242,7 +242,7 @@ error1:
 static void close_display(ui_display_t *disp) {
   u_int count;
 
-  ui_gc_delete(disp->gc);
+  ui_gc_destroy(disp->gc);
 
   if (disp->modmap.map) {
     XFreeModifiermap(disp->modmap.map);

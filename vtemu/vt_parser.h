@@ -354,7 +354,7 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
                            int use_ansi_colors, vt_alt_color_mode_t alt_color_mode,
                            vt_cursor_style_t cursor_style, int ignore_broadcasted_chars);
 
-int vt_parser_delete(vt_parser_t *vt_parser);
+int vt_parser_destroy(vt_parser_t *vt_parser);
 
 void vt_parser_set_pty(vt_parser_t *vt_parser, vt_pty_t *pty);
 

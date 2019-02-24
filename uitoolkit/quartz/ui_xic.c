@@ -38,7 +38,7 @@ int ui_xic_deactivate(ui_window_t *win) {
     return 0;
   }
 
-  (*win->xic->parser->delete)(win->xic->parser);
+  (*win->xic->parser->destroy)(win->xic->parser);
   free(win->xic);
   win->xic = NULL;
 

@@ -186,7 +186,7 @@ static void receive_next_event(void) {
   additional_minus_fds:
 #endif
     /*
-     * additional_fds.handler (-> update_preedit_text -> cand_screen->delete) of
+     * additional_fds.handler (-> update_preedit_text -> cand_screen->destroy) of
      * ibus may destroy ui_display on wayland.
      */
     for (count = 0; count < num_additional_fds; count++) {
@@ -213,7 +213,7 @@ static void receive_next_event(void) {
 #ifdef USE_LIBSSH2
   /*
    * vt_pty_ssh_send_recv_x11() should be called before
-   * vt_term_parse_vt100_sequence() where xssh_fds can be deleted.
+   * vt_term_parse_vt100_sequence() where xssh_fds can be destroyed.
    */
   for (count = num_xssh_fds; count > 0; count--) {
     vt_pty_ssh_send_recv_x11(count - 1,

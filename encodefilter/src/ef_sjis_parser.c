@@ -221,7 +221,7 @@ static void sjis_parser_set_str(ef_parser_t *sjis_parser, u_char *str, size_t si
   sjis_parser->is_eos = 0;
 }
 
-static void sjis_parser_delete(ef_parser_t *s) { free(s); }
+static void sjis_parser_destroy(ef_parser_t *s) { free(s); }
 
 /* --- global functions --- */
 
@@ -236,7 +236,7 @@ ef_parser_t *ef_sjis_parser_new(void) {
 
   sjis_parser->init = ef_parser_init;
   sjis_parser->set_str = sjis_parser_set_str;
-  sjis_parser->delete = sjis_parser_delete;
+  sjis_parser->destroy = sjis_parser_destroy;
   sjis_parser->next_char = sjis_parser_next_char;
 
   return sjis_parser;
@@ -253,7 +253,7 @@ ef_parser_t *ef_sjisx0213_parser_new(void) {
 
   sjis_parser->init = ef_parser_init;
   sjis_parser->set_str = sjis_parser_set_str;
-  sjis_parser->delete = sjis_parser_delete;
+  sjis_parser->destroy = sjis_parser_destroy;
   sjis_parser->next_char = sjisx0213_parser_next_char;
 
   return sjis_parser;

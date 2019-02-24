@@ -35,7 +35,7 @@ static void utf32_parser_set_str(ef_parser_t *parser, u_char *str, size_t size) 
   parser->is_eos = 0;
 }
 
-static void utf32_parser_delete(ef_parser_t *parser) { free(parser); }
+static void utf32_parser_destroy(ef_parser_t *parser) { free(parser); }
 
 static int utf32_parser_next_char(ef_parser_t *parser, ef_char_t *ucs4_ch) {
   ef_utf32_parser_t *utf32_parser;
@@ -108,7 +108,7 @@ ef_parser_t *ef_utf32_parser_new(void) {
 
   utf32_parser->parser.init = utf32_parser_init;
   utf32_parser->parser.set_str = utf32_parser_set_str;
-  utf32_parser->parser.delete = utf32_parser_delete;
+  utf32_parser->parser.destroy = utf32_parser_destroy;
   utf32_parser->parser.next_char = utf32_parser_next_char;
 
   return (ef_parser_t*)utf32_parser;
@@ -125,7 +125,7 @@ ef_parser_t *ef_utf32le_parser_new(void) {
 
   utf32_parser->parser.init = utf32le_parser_init;
   utf32_parser->parser.set_str = utf32_parser_set_str;
-  utf32_parser->parser.delete = utf32_parser_delete;
+  utf32_parser->parser.destroy = utf32_parser_destroy;
   utf32_parser->parser.next_char = utf32_parser_next_char;
 
   return (ef_parser_t*)utf32_parser;

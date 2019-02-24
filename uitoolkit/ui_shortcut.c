@@ -268,20 +268,22 @@ void ui_shortcut_init(ui_shortcut_t *shortcut) {
 
     shortcut->str_map[0].ksym = 0;
     shortcut->str_map[0].state = Button1Mask | ControlMask;
-    shortcut->str_map[0].str = strdup(
-        "menu:mlterm-menu"
+
+    shortcut->str_map[0].str =
 #ifdef HAVE_WINDOWS_H
-        ".exe"
+      strdup("menu:mlterm-menu.exe");
+#else
+      strdup("menu:mlterm-menu");
 #endif
-        );
+
     shortcut->str_map[1].ksym = 0;
     shortcut->str_map[1].state = Button3Mask | ControlMask;
-    shortcut->str_map[1].str = strdup(
-        "menu:mlconfig"
+    shortcut->str_map[1].str =
 #ifdef HAVE_WINDOWS_H
-        ".exe"
+      strdup("menu:mlconfig.exe");
+#else
+      strdup("menu:mlconfig");
 #endif
-        );
     button_mask |= (Button1Mask | Button3Mask);
   } else {
     shortcut->str_map_size = 0;

@@ -12969,7 +12969,7 @@ PTY_NAME="${bl_cv_pty}"
 #
 UTMP_NAME=
 UTMP_LIBS=
-if test "$bl_cv_pty" = helper -o "$bl_cv_mingw32" = yes -o "$bl_cv_cygwin" = yes ; then
+if test "$bl_cv_pty" = helper -o "$bl_cv_mingw32" = yes -o "$bl_cv_cygwin" = yes -o "$host_os" = "haiku"; then
 	UTMP_NAME=none
 	UTMP_LIBS=
 fi
@@ -13141,10 +13141,10 @@ else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-			#include <stdio.h>
-			int main() {
-				return  calloc(8 , ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0 ;
-			}
+	#include <stdio.h>
+	int main() {
+		return  calloc(8 , ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0 ;
+	}
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"; then :

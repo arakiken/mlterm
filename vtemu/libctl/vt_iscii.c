@@ -220,7 +220,7 @@ u_int vt_iscii_shape(ef_charset_t cs, u_char *dst, size_t dst_size, u_char *src)
 
 vt_iscii_state_t vt_iscii_new(void) { return calloc(1, sizeof(struct vt_iscii_state)); }
 
-int vt_iscii_delete(vt_iscii_state_t state) {
+int vt_iscii_destroy(vt_iscii_state_t state) {
   free(state->num_chars_array);
   free(state);
 
@@ -345,7 +345,7 @@ int vt_iscii_copy(vt_iscii_state_t dst, vt_iscii_state_t src, int optimize) {
   u_int8_t *p;
 
   if (optimize && !src->has_iscii) {
-    vt_iscii_delete(dst);
+    vt_iscii_destroy(dst);
 
     return -1;
   } else if (src->size == 0) {
@@ -383,7 +383,7 @@ vt_isciikey_state_t vt_isciikey_state_new(int is_inscript) {
   return state;
 }
 
-void vt_isciikey_state_delete(vt_isciikey_state_t state) {
+void vt_isciikey_state_destroy(vt_isciikey_state_t state) {
   free(state);
 }
 

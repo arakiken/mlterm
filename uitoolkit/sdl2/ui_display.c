@@ -687,8 +687,8 @@ static void poll_event(void) {
       disp = get_display(ev.window.windowID);
 
       for (count = 0; count < disp->num_roots; count++) {
-        if (disp->roots[count]->window_deleted) {
-          (*disp->roots[count]->window_deleted)(disp->roots[count]);
+        if (disp->roots[count]->window_destroyed) {
+          (*disp->roots[count]->window_destroyed)(disp->roots[count]);
         }
       }
     }
@@ -934,7 +934,7 @@ void ui_display_close(ui_display_t *disp) {
         free(cur_preedit_text);
         cur_preedit_text = NULL;
 
-        (*utf8_parser->delete)(utf8_parser);
+        (*utf8_parser->destroy)(utf8_parser);
         utf8_parser = NULL;
 
 #ifdef MONITOR_PTY

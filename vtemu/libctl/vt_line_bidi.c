@@ -87,7 +87,7 @@ int vt_line_set_use_bidi(vt_line_t *line, int flag) {
     line->ctl_info_type = VINFO_BIDI;
   } else {
     if (vt_line_is_using_bidi(line)) {
-      vt_bidi_delete(line->ctl_info.bidi);
+      vt_bidi_destroy(line->ctl_info.bidi);
       line->ctl_info_type = 0;
     }
   }

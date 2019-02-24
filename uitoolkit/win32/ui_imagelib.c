@@ -406,7 +406,7 @@ int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, 
   return 1;
 }
 
-void ui_delete_image(Display *display, Pixmap pixmap) {
+void ui_destroy_image(Display *display, Pixmap pixmap) {
   HBITMAP bmp;
 
   bmp = CreateBitmap(1, 1, 1, 1, NULL);
@@ -415,7 +415,7 @@ void ui_delete_image(Display *display, Pixmap pixmap) {
   DeleteObject(bmp);
 }
 
-void ui_delete_mask(Display *display, PixmapMask mask /* can be NULL */) {
+void ui_destroy_mask(Display *display, PixmapMask mask /* can be NULL */) {
   if (mask) {
     DeleteObject(mask);
   }

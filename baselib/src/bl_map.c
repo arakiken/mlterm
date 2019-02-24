@@ -106,7 +106,7 @@ int main(void) {
     printf("%d %s\n", array[key]->key, array[key]->value);
   }
 
-  bl_map_delete(map);
+  bl_map_destroy(map);
 
   return 1;
 }

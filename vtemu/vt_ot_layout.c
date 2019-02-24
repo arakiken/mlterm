@@ -102,11 +102,9 @@ void *vt_ot_layout_get_font(void *term, vt_font_t font) {
 
 vt_ot_layout_state_t vt_ot_layout_new(void) { return calloc(1, sizeof(struct vt_ot_layout_state)); }
 
-int vt_ot_layout_delete(vt_ot_layout_state_t state) {
+void vt_ot_layout_destroy(vt_ot_layout_state_t state) {
   free(state->num_chars_array);
   free(state);
-
-  return 1;
 }
 
 int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len) {
@@ -322,7 +320,7 @@ int vt_ot_layout_copy(vt_ot_layout_state_t dst, vt_ot_layout_state_t src, int op
   u_int8_t *p;
 
   if (optimize && !src->substituted) {
-    vt_ot_layout_delete(dst);
+    vt_ot_layout_destroy(dst);
 
     return -1;
   } else if (src->size == 0) {

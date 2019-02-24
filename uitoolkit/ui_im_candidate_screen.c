@@ -61,7 +61,7 @@ static int free_candidates(ui_im_candidate_t *candidates, u_int num_candidates) 
   }
 
   for (i = 0, c = candidates; i < num_candidates; i++, c++) {
-    vt_str_delete(c->chars, c->num_chars);
+    vt_str_destroy(c->chars, c->num_chars);
 
     c->filled_len = 0;
     c->num_chars = 0;
@@ -573,14 +573,14 @@ static void adjust_window_x_position(ui_im_candidate_screen_t *cand_screen, int 
  * methods of ui_im_candidate_screen_t
  */
 
-static void delete(ui_im_candidate_screen_t *cand_screen) {
+static void destroy(ui_im_candidate_screen_t *cand_screen) {
   free_candidates(cand_screen->candidates, cand_screen->num_candidates);
 
   ui_display_remove_root(cand_screen->window.disp, &cand_screen->window);
 
 #ifdef USE_REAL_VERTICAL_FONT
   if (cand_screen->is_vertical_term) {
-    ui_font_manager_delete(cand_screen->font_man);
+    ui_font_manager_destroy(cand_screen->font_man);
   }
 #endif
 
@@ -675,8 +675,8 @@ static int set_candidate(ui_im_candidate_screen_t *cand_screen, ef_parser_t *par
   }
 
   if (cand_screen->candidates[index].chars) {
-    vt_str_delete(cand_screen->candidates[index].chars,
-                  cand_screen->candidates[index].num_chars);
+    vt_str_destroy(cand_screen->candidates[index].chars,
+                   cand_screen->candidates[index].num_chars);
   }
 
   if (!(cand_screen->candidates[index].chars = vt_str_new(count))) {
@@ -928,12 +928,12 @@ ui_im_candidate_screen_t *ui_im_candidate_screen_new(ui_display_t *disp,
   cand_screen->window.button_pressed = button_pressed;
 #if 0
   cand_screen->window.button_press_continued = button_press_continued;
-  cand_screen->window.window_deleted = window_deleted;
+  cand_screen->window.window_destroyed = window_destroyed;
   cand_screen->window.mapping_notify = mapping_notify;
 #endif
 
   /* methods of ui_im_candidate_screen_t */
-  cand_screen->delete = delete;
+  cand_screen->destroy = destroy;
   cand_screen->show = show;
   cand_screen->hide = hide;
   cand_screen->set_spot = set_spot;

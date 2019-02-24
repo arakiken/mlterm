@@ -106,7 +106,7 @@ static void johab_parser_set_str(ef_parser_t *johab_parser, u_char *str, size_t 
   johab_parser->is_eos = 0;
 }
 
-static void johab_parser_delete(ef_parser_t *s) { free(s); }
+static void johab_parser_destroy(ef_parser_t *s) { free(s); }
 
 /* --- global functions --- */
 
@@ -122,7 +122,7 @@ ef_parser_t *ef_johab_parser_new(void) {
   johab_parser->init = ef_parser_init;
   johab_parser->next_char = johab_parser_next_char;
   johab_parser->set_str = johab_parser_set_str;
-  johab_parser->delete = johab_parser_delete;
+  johab_parser->destroy = johab_parser_destroy;
 
   return johab_parser;
 }

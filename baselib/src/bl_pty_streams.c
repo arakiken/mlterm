@@ -23,7 +23,7 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__HAIKU__)
 #include <termios.h>
 #else
 #include <sys/termios.h>

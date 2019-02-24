@@ -124,7 +124,7 @@ ui_color_manager_t *ui_color_manager_new(ui_display_t *disp,
   return color_man;
 }
 
-void ui_color_manager_delete(ui_color_manager_t *color_man) {
+void ui_color_manager_destroy(ui_color_manager_t *color_man) {
   int count;
 
   for (count = 0; count < MAX_SYS_COLORS; count++) {

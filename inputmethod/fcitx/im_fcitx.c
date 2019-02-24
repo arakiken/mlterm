@@ -72,7 +72,7 @@ static int mod_key_debug = 0;
  * methods of ui_im_t
  */
 
-static void delete(ui_im_t *im) {
+static void destroy(ui_im_t *im) {
   im_fcitx_t *fcitx;
 
   fcitx = (im_fcitx_t*)im;
@@ -81,12 +81,12 @@ static void delete(ui_im_t *im) {
   g_object_unref(fcitx->client);
 
   if (fcitx->conv) {
-    (*fcitx->conv->delete)(fcitx->conv);
+    (*fcitx->conv->destroy)(fcitx->conv);
   }
 
 #ifdef USE_IM_CANDIDATE_SCREEN
   if (fcitx->parser_term) {
-    (*fcitx->parser_term->delete)(fcitx->parser_term);
+    (*fcitx->parser_term->destroy)(fcitx->parser_term);
   }
 #endif
 
@@ -96,13 +96,13 @@ static void delete(ui_im_t *im) {
     (*syms->ui_event_source_remove_fd)(FCITX_ID);
 
     if (parser_utf8) {
-      (*parser_utf8->delete)(parser_utf8);
+      (*parser_utf8->destroy)(parser_utf8);
       parser_utf8 = NULL;
     }
   }
 
 #ifdef IM_FCITX_DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count);
+  bl_debug_printf(BL_DEBUG_TAG " An object was destroyed. ref_count: %d\n", ref_count);
 #endif
 }
 
@@ -338,7 +338,7 @@ static void disconnected(FcitxClient *client, void *data) {
   fcitx->is_enabled = FALSE;
 
   if (fcitx->im.stat_screen) {
-    (*fcitx->im.stat_screen->delete)(fcitx->im.stat_screen);
+    (*fcitx->im.stat_screen->destroy)(fcitx->im.stat_screen);
     fcitx->im.stat_screen = NULL;
   }
 }
@@ -391,7 +391,7 @@ static void commit_string(FcitxClient *client, char *str, void *data) {
 
 #ifdef USE_IM_CANDIDATE_SCREEN
   if (fcitx->im.stat_screen) {
-    (*fcitx->im.stat_screen->delete)(fcitx->im.stat_screen);
+    (*fcitx->im.stat_screen->destroy)(fcitx->im.stat_screen);
     fcitx->im.stat_screen = NULL;
   }
 #endif
@@ -522,7 +522,7 @@ static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdow
   if (strlen(candidateword) == 0) {
 #ifdef USE_IM_CANDIDATE_SCREEN
     if (fcitx->im.stat_screen) {
-      (*fcitx->im.stat_screen->delete)(fcitx->im.stat_screen);
+      (*fcitx->im.stat_screen->destroy)(fcitx->im.stat_screen);
       fcitx->im.stat_screen = NULL;
     }
 #endif
@@ -796,7 +796,7 @@ ui_im_t *im_fcitx_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   /*
    * set methods of ui_im_t
    */
-  fcitx->im.delete = delete;
+  fcitx->im.destroy = destroy;
   fcitx->im.key_event = key_event;
   fcitx->im.switch_mode = switch_mode;
   fcitx->im.is_active = is_active;
@@ -820,12 +820,12 @@ ui_im_t *im_fcitx_new(u_int64_t magic, vt_char_encoding_t term_encoding,
 error:
   if (fcitx) {
     if (fcitx->conv) {
-      (*fcitx->conv->delete)(fcitx->conv);
+      (*fcitx->conv->destroy)(fcitx->conv);
     }
 
 #ifdef USE_IM_CANDIDATE_SCREEN
     if (fcitx->parser_term) {
-      (*fcitx->parser_term->delete)(fcitx->parser_term);
+      (*fcitx->parser_term->destroy)(fcitx->parser_term);
     }
 #endif
 

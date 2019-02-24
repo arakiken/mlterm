@@ -146,7 +146,7 @@ static void init(ef_parser_t *ef_parser) {
 
 static void set_str(ef_parser_t *ef_parser, u_char *str, size_t size) { /* do nothing */ }
 
-static void delete (ef_parser_t *s) { free(s); }
+static void destroy(ef_parser_t *s) { free(s); }
 
 /* --- global functions --- */
 
@@ -161,7 +161,7 @@ ef_parser_t *vt_str_parser_new(void) {
 
   vt_str_parser->parser.init = init;
   vt_str_parser->parser.set_str = set_str;
-  vt_str_parser->parser.delete = delete;
+  vt_str_parser->parser.destroy = destroy;
   vt_str_parser->parser.next_char = next_char;
 
   return (ef_parser_t*)vt_str_parser;

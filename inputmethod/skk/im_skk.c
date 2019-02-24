@@ -114,7 +114,7 @@ static void preedit_add(im_skk_t *skk, wchar wch) {
   skk->preedit[skk->preedit_len++] = ch;
 }
 
-static void preedit_delete(im_skk_t *skk) { --skk->preedit_len; }
+static void preedit_destroy(im_skk_t *skk) { --skk->preedit_len; }
 
 static void candidate_clear(im_skk_t *skk);
 
@@ -270,7 +270,7 @@ candidate:
     return;
   } else if (candidateword_len == 0 && (candidateword_len = strlen(candidateword)) == 0) {
     if (skk->im.stat_screen) {
-      (*skk->im.stat_screen->delete)(skk->im.stat_screen);
+      (*skk->im.stat_screen->destroy)(skk->im.stat_screen);
       skk->im.stat_screen = NULL;
     }
   } else {
@@ -385,7 +385,7 @@ static int insert_char(im_skk_t *skk, u_char key_char) {
   wchar wch;
 
   if (skk->dan) {
-    preedit_delete(skk);
+    preedit_destroy(skk);
   }
 
   if (key_char == 'a' || key_char == 'i' || key_char == 'u' || key_char == 'e' || key_char == 'o') {
@@ -578,15 +578,15 @@ static void insert_alphabet_full(im_skk_t *skk, u_char key_char) {
  * methods of ui_im_t
  */
 
-static void delete(ui_im_t *im) {
+static void destroy(ui_im_t *im) {
   im_skk_t *skk;
 
   skk = (im_skk_t*)im;
 
-  (*skk->parser_term->delete)(skk->parser_term);
+  (*skk->parser_term->destroy)(skk->parser_term);
 
   if (skk->conv) {
-    (*skk->conv->delete)(skk->conv);
+    (*skk->conv->destroy)(skk->conv);
   }
 
   free(skk->status[HIRAGANA]);
@@ -610,7 +610,7 @@ static void delete(ui_im_t *im) {
   }
 
 #ifdef IM_SKK_DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count);
+  bl_debug_printf(BL_DEBUG_TAG " An object was destroyed. ref_count: %d\n", ref_count);
 #endif
 }
 
@@ -884,7 +884,7 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
         if (skk->preedit_len == 1) {
           preedit_clear(skk);
         } else {
-          preedit_delete(skk);
+          preedit_destroy(skk);
         }
       }
     } else if (skk->is_editing_new_word) {
@@ -1205,13 +1205,13 @@ ui_im_t *im_skk_new(u_int64_t magic, vt_char_encoding_t term_encoding,
       skk->status[mode] = strdup(buf);
     }
 
-    (*parser->delete)(parser);
+    (*parser->destroy)(parser);
   }
 
   /*
    * set methods of ui_im_t
    */
-  skk->im.delete = delete;
+  skk->im.destroy = destroy;
   skk->im.key_event = key_event;
   skk->im.switch_mode = switch_mode;
   skk->im.is_active = is_active;
@@ -1229,11 +1229,11 @@ ui_im_t *im_skk_new(u_int64_t magic, vt_char_encoding_t term_encoding,
 error:
   if (skk) {
     if (skk->parser_term) {
-      (*skk->parser_term->delete)(skk->parser_term);
+      (*skk->parser_term->destroy)(skk->parser_term);
     }
 
     if (skk->conv) {
-      (*skk->conv->delete)(skk->conv);
+      (*skk->conv->destroy)(skk->conv);
     }
 
     free(skk);

@@ -37,7 +37,7 @@ static void set_str(ef_parser_t *parser, u_char *str, /* ef_char_t* */
   parser->is_eos = 0;
 }
 
-static void delete (ef_parser_t *parser) {}
+static void destroy(ef_parser_t *parser) {}
 
 static int next_char(ef_parser_t *parser, ef_char_t *ch) {
   if (parser->is_eos) {
@@ -53,7 +53,7 @@ static int next_char(ef_parser_t *parser, ef_char_t *ch) {
 /* --- static variables --- */
 
 static ef_parser_t parser = {
-    NULL, 0, 0, 0, parser_init, set_str, delete, next_char,
+    NULL, 0, 0, 0, parser_init, set_str, destroy, next_char,
 };
 
 /* --- global functions --- */

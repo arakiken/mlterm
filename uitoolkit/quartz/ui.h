@@ -203,27 +203,25 @@ typedef struct { int fd; } Display;
 
 typedef int XIC;
 typedef int XID;
-typedef void* Window; /* NSView */
+typedef void *Window; /* NSView */
 typedef int Drawable;
-typedef struct CGImage* Pixmap;
-typedef struct CGImage* PixmapMask;
+typedef struct CGImage *Pixmap;
+typedef struct CGImage *PixmapMask;
 typedef int GC;
 typedef int Font;
 #ifndef __QUICKDRAWTYPES__
 typedef int Cursor;
 #endif
-typedef int KeyCode; /* Same as type of wparam */
-typedef int KeySym;  /* Same as type of wparam */
+typedef int KeyCode;
+typedef int KeySym;
 
-typedef struct /* Same as definition in X11/X.h */
-    {
+typedef struct /* Same as definition in X11/X.h */ {
   int max_keypermod;
   KeyCode *modifiermap;
 
 } XModifierKeymap;
 
-typedef struct /* Same as definition in X11/X.h */
-    {
+typedef struct /* Same as definition in X11/X.h */ {
   unsigned char byte1;
   unsigned char byte2;
 

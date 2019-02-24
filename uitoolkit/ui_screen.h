@@ -181,7 +181,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, ui_font_manager_t *font_man,
                            u_int vmargin, int hide_underline, int underline_offset,
                            int baseline_offset);
 
-void ui_screen_delete(ui_screen_t *screen);
+void ui_screen_destroy(ui_screen_t *screen);
 
 int ui_screen_attach(ui_screen_t *screen, vt_term_t *term);
 

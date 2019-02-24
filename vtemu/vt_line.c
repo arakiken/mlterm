@@ -256,7 +256,7 @@ static int vt_line_set_use_ot_layout(vt_line_t *line, int flag) {
     line->ctl_info_type = VINFO_OT_LAYOUT;
   } else {
     if (vt_line_is_using_ot_layout(line)) {
-      vt_ot_layout_delete(line->ctl_info.ot_layout);
+      vt_ot_layout_destroy(line->ctl_info.ot_layout);
       line->ctl_info_type = 0;
     }
   }
@@ -294,7 +294,7 @@ static int vt_line_ot_layout_visual(vt_line_t *line) {
 
     if ((chars = vt_str_new(dst_len))) {
       /* XXX => shrunk at vt_screen.c and vt_logical_visual_ctl.c */
-      vt_str_delete(line->chars, line->num_chars);
+      vt_str_destroy(line->chars, line->num_chars);
       line->chars = chars;
       line->num_chars = dst_len;
     } else {
@@ -663,7 +663,7 @@ void vt_line_final(vt_line_t *line) {
 #endif
 
   if (line->chars) {
-    vt_str_delete(line->chars, line->num_chars);
+    vt_str_destroy(line->chars, line->num_chars);
   }
 }
 

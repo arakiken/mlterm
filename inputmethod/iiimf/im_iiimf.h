@@ -247,7 +247,7 @@ void aux_quit(void);
 
 aux_t *aux_new(im_iiimf_t *iiimf);
 
-void aux_delete(aux_t *aux);
+void aux_destroy(aux_t *aux);
 
 void aux_event(aux_t *aux, IIIMCF_event ev, IIIMCF_event_type);
 
@@ -258,7 +258,7 @@ void aux_unset_focus(aux_t *aux);
 #define aux_init(handle, syms, parser) (0)
 #define aux_quit() (0)
 #define aux_new(iiimf) (NULL)
-#define aux_delete(aux) (0)
+#define aux_destroy(aux) (0)
 #define aux_event(aux, ev, type) (0)
 #define aux_set_focus(aux) (0)
 #define aux_unset_focus(aux) (0)

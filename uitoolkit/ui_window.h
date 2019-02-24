@@ -133,7 +133,7 @@ typedef struct ui_window {
 #if defined(USE_WIN32GUI)
   WORD update_window_flag;
   int cmd_show;
-#elif defined(USE_QUARTZ)
+#elif defined(USE_QUARTZ) || defined(USE_BEOS)
   int update_window_flag;
 #endif
 
@@ -191,7 +191,7 @@ typedef struct ui_window {
 
   void (*window_realized)(struct ui_window *);
   void (*window_finalized)(struct ui_window *);
-  void (*window_deleted)(struct ui_window *);
+  void (*window_destroyed)(struct ui_window *);
   void (*mapping_notify)(struct ui_window *);
   /* Win32: gc->gc is not None. */
   void (*window_exposed)(struct ui_window *, int, int, u_int, u_int);

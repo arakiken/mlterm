@@ -40,7 +40,7 @@ typedef struct vt_pty_unix {
 static int final(vt_pty_t *pty) {
 #ifdef USE_UTMP
   if (((vt_pty_unix_t*)pty)->utmp) {
-    bl_utmp_delete(((vt_pty_unix_t*)pty)->utmp);
+    bl_utmp_destroy(((vt_pty_unix_t*)pty)->utmp);
   }
 #endif
 

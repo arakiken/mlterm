@@ -290,7 +290,7 @@ vt_term_t *mlterm_open(char *host, char *pass, int cols, int rows, u_int log_siz
         default_cmd_path = default_argv[0];
       }
 
-      bl_conf_delete(conf);
+      bl_conf_destroy(conf);
     }
 
     unicode_policy |= ONLY_USE_UNICODE_BOXDRAW_FONT;

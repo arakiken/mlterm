@@ -476,7 +476,7 @@ static void resized(ui_sb_view_t *view, Window window, unsigned int height) {
   create_bg_cache(ps);
 }
 
-static void delete (ui_sb_view_t *view) {
+static void destroy(ui_sb_view_t *view) {
   pixmap_sb_view_t *ps;
 
   ps = (pixmap_sb_view_t *)view;
@@ -774,7 +774,7 @@ ui_sb_view_t *ui_pixmap_engine_sb_engine_new(ui_sb_view_conf_t *conf, int is_tra
   ps->view.get_default_color = get_default_color;
   ps->view.realized = realized;
   ps->view.resized = resized;
-  ps->view.delete = delete;
+  ps->view.destroy = destroy;
   ps->view.draw_scrollbar = draw_scrollbar;
   ps->view.draw_up_button = draw_up_button;
   ps->view.draw_down_button = draw_down_button;

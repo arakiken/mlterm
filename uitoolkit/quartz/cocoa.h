@@ -5,9 +5,6 @@
 
 #ifdef __UI_WINDOW_H__
 
-/* for NSScroller */
-void scroller_update(void *scroller, float pos, float knob);
-
 /* for MLTermView */
 
 void view_alloc(ui_window_t *uiwindow);
@@ -66,6 +63,7 @@ void window_get_position(void *window, int *x, int *y);
 void window_set_title(void *window, const char *title);
 
 /* for NSApp */
+
 void app_urgent_bell(int on);
 
 /* for NSScroller */
@@ -74,7 +72,7 @@ void scroller_update(void *scroller, float pos, float knob);
 
 /* for Clipboard */
 
-int cocoa_clipboard_own(void *view);
+void cocoa_clipboard_own(void *view);
 
 void cocoa_clipboard_set(const u_char *utf8, size_t len);
 

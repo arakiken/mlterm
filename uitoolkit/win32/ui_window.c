@@ -837,7 +837,7 @@ void ui_window_final(ui_window_t *win) {
 
   /*
    * DestroyWindow() is not called here because DestroyWindow internally sends
-   * WM_DESTROY message which causes window_deleted event again.
+   * WM_DESTROY message which causes window_destroyed event again.
    * If you want to close window, call SendMessage( WM_CLOSE ) instead of
    * ui_window_final().
    */
@@ -845,7 +845,7 @@ void ui_window_final(ui_window_t *win) {
   ui_xic_deactivate(win);
 
 #if 0
-  (*m_cp_parser.delete)(&m_cp_parser);
+  (*m_cp_parser.destroy)(&m_cp_parser);
 #endif
 
   if (win->window_finalized) {
@@ -1503,8 +1503,8 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
 
   switch (event->msg) {
     case WM_DESTROY:
-      if (win->window_deleted) {
-        (*win->window_deleted)(win);
+      if (win->window_destroyed) {
+        (*win->window_destroyed)(win);
       }
 
       return 1;
@@ -2599,7 +2599,7 @@ void ui_set_window_name(ui_window_t *win, u_char *name) {
       len = (*utf_conv->convert)(utf_conv, buf, len * 4, parser);
     }
 
-    (*parser->delete)(parser);
+    (*parser->destroy)(parser);
 
     buf[len] = '\0';
     buf[len + 1] = '\0';

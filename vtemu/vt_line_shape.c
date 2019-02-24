@@ -120,7 +120,7 @@ vt_line_t *vt_line_shape(vt_line_t *line) {
 }
 
 int vt_line_unshape(vt_line_t *line, vt_line_t *orig) {
-  vt_str_delete(line->chars, line->num_chars);
+  vt_str_destroy(line->chars, line->num_chars);
 
   line->chars = orig->chars;
   line->num_filled_chars = orig->num_filled_chars;

@@ -19,7 +19,7 @@ u_int vt_iscii_shape(ef_charset_t cs, u_char *dst, size_t dst_size, u_char *src)
 
 vt_iscii_state_t vt_iscii_new(void);
 
-int vt_iscii_delete(vt_iscii_state_t state);
+int vt_iscii_destroy(vt_iscii_state_t state);
 
 int vt_iscii(vt_iscii_state_t state, vt_char_t *src, u_int src_len);
 

@@ -92,9 +92,9 @@ vt_pty_t *vt_pty_new_with(int master, int slave, pid_t child_pid, u_int cols, u_
   return pty;
 }
 
-int vt_pty_delete(vt_pty_t *pty) {
+int vt_pty_destroy(vt_pty_t *pty) {
 #ifdef __DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " vt_pty_delete is called for %p.\n", pty);
+  bl_debug_printf(BL_DEBUG_TAG " vt_pty_destroy is called for %p.\n", pty);
 #endif
 
   if (pty->pty_listener && pty->pty_listener->closed) {

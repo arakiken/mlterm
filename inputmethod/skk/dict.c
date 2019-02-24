@@ -886,8 +886,8 @@ void dict_final(void) {
   local_data = NULL;
 
   if (local_conv) {
-    (*local_conv->delete)(local_conv);
-    (*local_parser->delete)(local_parser);
+    (*local_conv->destroy)(local_conv);
+    (*local_parser->destroy)(local_parser);
   }
 
   if (global_data) {
@@ -900,8 +900,8 @@ void dict_final(void) {
   }
 
   if (global_conv) {
-    (*global_conv->delete)(global_conv);
-    (*global_parser->delete)(global_parser);
+    (*global_conv->destroy)(global_conv);
+    (*global_parser->destroy)(global_parser);
   }
 
   free(global_dict);
@@ -1309,8 +1309,8 @@ void dict_set_global(char *dict) {
   }
 
   if (global_conv) {
-    (*global_conv->delete)(global_conv);
-    (*global_parser->delete)(global_parser);
+    (*global_conv->destroy)(global_conv);
+    (*global_parser->destroy)(global_parser);
   }
 
   if ((len = strlen(dict)) > 5 && strcmp(dict + len - 5, ":utf8") == 0) {

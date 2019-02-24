@@ -1357,7 +1357,7 @@ void ui_display_close(ui_display_t *disp) {
 
 void ui_display_close_all(void) {
   if (DISP_IS_INITED) {
-/* inline pictures are alive until vt_term_t is deleted. */
+/* inline pictures are alive until vt_term_t is destroyed. */
 #if 0
     ui_picture_display_closed(_disp.display);
 #endif

@@ -126,7 +126,7 @@ static void euckr_conv_init(ef_conv_t *conv) {
 
 static void uhc_conv_init(ef_conv_t *conv) {}
 
-static void conv_delete(ef_conv_t *conv) { free(conv); }
+static void conv_destroy(ef_conv_t *conv) { free(conv); }
 
 /* --- global functions --- */
 
@@ -141,7 +141,7 @@ ef_conv_t *ef_euckr_conv_new(void) {
 
   iso2022_conv->conv.convert = convert_to_euckr;
   iso2022_conv->conv.init = euckr_conv_init;
-  iso2022_conv->conv.delete = conv_delete;
+  iso2022_conv->conv.destroy = conv_destroy;
   iso2022_conv->conv.illegal_char = NULL;
 
   return (ef_conv_t*)iso2022_conv;
@@ -156,7 +156,7 @@ ef_conv_t *ef_uhc_conv_new(void) {
 
   conv->convert = convert_to_uhc;
   conv->init = uhc_conv_init;
-  conv->delete = conv_delete;
+  conv->destroy = conv_destroy;
   conv->illegal_char = NULL;
 
   return conv;

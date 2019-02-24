@@ -29,7 +29,7 @@ typedef struct ui_im_status_screen {
   /*
    * methods of ui_im_status_screen_t which is called from im
    */
-  void (*delete)(struct ui_im_status_screen *);
+  void (*destroy)(struct ui_im_status_screen *);
   void (*show)(struct ui_im_status_screen *);
   void (*hide)(struct ui_im_status_screen *);
   int (*set_spot)(struct ui_im_status_screen *, int, int);

@@ -83,7 +83,7 @@ void ui_display_close_all(void) {
 
   ui_picture_display_closed(_disp.display);
 
-  ui_gc_delete(_disp.gc);
+  ui_gc_destroy(_disp.gc);
 
   for (count = 0; count < _disp.num_roots; count++) {
     ui_window_unmap(_disp.roots[count]);

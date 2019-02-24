@@ -191,7 +191,7 @@ static IIIMCF_input_method find_language_engine(char* lang) {
     }
   }
 
-  (*conv->delete)(conv);
+  (*conv->destroy)(conv);
 
   return result;
 }
@@ -278,7 +278,7 @@ static void preedit_start(im_iiimf_t *iiimf) {
 #endif
 
   if (iiimf->im.preedit.chars) {
-    (*syms->vt_str_delete)(iiimf->im.preedit.chars, iiimf->im.preedit.num_chars);
+    (*syms->vt_str_destroy)(iiimf->im.preedit.chars, iiimf->im.preedit.num_chars);
   }
 
   iiimf->im.preedit.num_chars = 0;
@@ -325,7 +325,7 @@ static void preedit_change(im_iiimf_t *iiimf) {
     (*iiimf->im.listener->draw_preedit_str)(iiimf->im.listener->self, NULL, 0, 0);
 
     if (iiimf->im.preedit.chars) {
-      (*syms->vt_str_delete)(iiimf->im.preedit.chars, iiimf->im.preedit.num_chars);
+      (*syms->vt_str_destroy)(iiimf->im.preedit.chars, iiimf->im.preedit.num_chars);
       iiimf->im.preedit.chars = NULL;
       iiimf->im.preedit.num_chars = 0;
       iiimf->im.preedit.filled_len = 0;
@@ -359,7 +359,7 @@ static void preedit_change(im_iiimf_t *iiimf) {
    */
 
   if (iiimf->im.preedit.chars) {
-    (*syms->vt_str_delete)(iiimf->im.preedit.chars, iiimf->im.preedit.num_chars);
+    (*syms->vt_str_destroy)(iiimf->im.preedit.chars, iiimf->im.preedit.num_chars);
     iiimf->im.preedit.chars = NULL;
     iiimf->im.preedit.num_chars = 0;
     iiimf->im.preedit.filled_len = 0;
@@ -500,7 +500,7 @@ static void preedit_done(im_iiimf_t *iiimf) {
 #endif
 
   if (iiimf->im.preedit.chars) {
-    (*syms->vt_str_delete)(iiimf->im.preedit.chars, iiimf->im.preedit.num_chars);
+    (*syms->vt_str_destroy)(iiimf->im.preedit.chars, iiimf->im.preedit.num_chars);
     iiimf->im.preedit.chars = NULL;
     iiimf->im.preedit.num_chars = 0;
     iiimf->im.preedit.filled_len = 0;
@@ -587,7 +587,7 @@ static void lookup_choice_change(im_iiimf_t *iiimf) {
     }
 
     if (iiimf->im.stat_screen) {
-      (*iiimf->im.stat_screen->delete)(iiimf->im.stat_screen);
+      (*iiimf->im.stat_screen->destroy)(iiimf->im.stat_screen);
       iiimf->im.stat_screen = NULL;
     }
 
@@ -610,7 +610,7 @@ static void lookup_choice_change(im_iiimf_t *iiimf) {
   }
 
   if (!(*iiimf->im.cand_screen->init)(iiimf->im.cand_screen, size, num_per_window)) {
-    (*iiimf->im.cand_screen->delete)(iiimf->im.cand_screen);
+    (*iiimf->im.cand_screen->destroy)(iiimf->im.cand_screen);
     iiimf->im.cand_screen = NULL;
     return;
   }
@@ -654,7 +654,7 @@ static void status_change(im_iiimf_t *iiimf);
 
 static void lookup_choice_done(im_iiimf_t *iiimf) {
   if (iiimf->im.cand_screen) {
-    (*iiimf->im.cand_screen->delete)(iiimf->im.cand_screen);
+    (*iiimf->im.cand_screen->destroy)(iiimf->im.cand_screen);
     iiimf->im.cand_screen = NULL;
     status_change(iiimf);
   }
@@ -679,7 +679,7 @@ static void status_change(im_iiimf_t *iiimf) {
       !htt_show_status_window ||
       iiimcf_get_status_text(iiimf->context, &iiimcf_text) != IIIMF_STATUS_SUCCESS) {
     if (iiimf->im.stat_screen) {
-      (*iiimf->im.stat_screen->delete)(iiimf->im.stat_screen);
+      (*iiimf->im.stat_screen->destroy)(iiimf->im.stat_screen);
       iiimf->im.stat_screen = NULL;
     }
 
@@ -721,7 +721,7 @@ static void status_change(im_iiimf_t *iiimf) {
 
 static void status_done(im_iiimf_t *iiimf) {
   if (iiimf->im.stat_screen) {
-    (*iiimf->im.stat_screen->delete)(iiimf->im.stat_screen);
+    (*iiimf->im.stat_screen->destroy)(iiimf->im.stat_screen);
     iiimf->im.stat_screen = NULL;
   }
 }
@@ -809,21 +809,21 @@ static void dispatch(im_iiimf_t *iiimf, IIIMCF_event event, IIIMCF_event_type ev
  * methods of ui_im_t
  */
 
-static void delete(ui_im_t *im) {
+static void destroy(ui_im_t *im) {
   im_iiimf_t *iiimf;
 
   iiimf = (im_iiimf_t*) im;
 
   if (iiimf->parser_term) {
-    (*iiimf->parser_term->delete)(iiimf->parser_term);
+    (*iiimf->parser_term->destroy)(iiimf->parser_term);
   }
 
   if (iiimf->conv) {
-    (*iiimf->conv->delete)(iiimf->conv);
+    (*iiimf->conv->destroy)(iiimf->conv);
   }
 
   if (iiimf->aux) {
-    aux_delete(iiimf->aux);
+    aux_destroy(iiimf->aux);
   }
 
   if (iiimf->context) {
@@ -835,7 +835,7 @@ static void delete(ui_im_t *im) {
   ref_count--;
 
 #ifdef IM_IIIMF_DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " An object was deleted. ref_count is %d\n", ref_count);
+  bl_debug_printf(BL_DEBUG_TAG " An object was destroyed. ref_count is %d\n", ref_count);
 #endif
 
   if (ref_count == 0 && initialized) {
@@ -846,7 +846,7 @@ static void delete(ui_im_t *im) {
     iiimcf_finalize();
 
     if (parser_utf16) {
-      (*parser_utf16->delete)(parser_utf16);
+      (*parser_utf16->destroy)(parser_utf16);
       parser_utf16 = NULL;
     }
 
@@ -1148,7 +1148,7 @@ ui_im_t *im_iiimf_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   /*
    * set methods of ui_im_t
    */
-  iiimf->im.delete = delete;
+  iiimf->im.destroy = destroy;
   iiimf->im.key_event = key_event;
   iiimf->im.switch_mode = switch_mode;
   iiimf->im.is_active = is_active;
@@ -1225,7 +1225,7 @@ error:
     handle = NULL;
 
     if (parser_utf16) {
-      (*parser_utf16->delete)(parser_utf16);
+      (*parser_utf16->destroy)(parser_utf16);
     }
 
     iiimcf_finalize();
@@ -1237,11 +1237,11 @@ error:
 
   if (iiimf) {
     if (iiimf->parser_term) {
-      (*iiimf->parser_term->delete)(iiimf->parser_term);
+      (*iiimf->parser_term->destroy)(iiimf->parser_term);
     }
 
     if (iiimf->conv) {
-      (*iiimf->conv->delete)(iiimf->conv);
+      (*iiimf->conv->destroy)(iiimf->conv);
     }
 
     free(iiimf);
@@ -1439,11 +1439,11 @@ im_info_t *im_iiimf_get_info(char *locale, char *encoding) {
 
 error:
   if (parser_utf16) {
-    (*parser_utf16->delete)(parser_utf16);
+    (*parser_utf16->destroy)(parser_utf16);
   }
 
   if (conv) {
-    (*conv->delete)(conv);
+    (*conv->destroy)(conv);
   }
 
   if (handle) {

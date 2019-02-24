@@ -303,12 +303,12 @@ static int start_virtual_kbd(ui_display_t *disp) {
 
 error:
   if (normal_pixmap) {
-    ui_delete_image(disp->display, normal_pixmap);
+    ui_destroy_image(disp->display, normal_pixmap);
     normal_pixmap = NULL;
   }
 
   if (pressed_pixmap) {
-    ui_delete_image(disp->display, pressed_pixmap);
+    ui_destroy_image(disp->display, pressed_pixmap);
     pressed_pixmap = NULL;
   }
 
@@ -323,10 +323,10 @@ int ui_virtual_kbd_hide(void) {
   }
 
 #if 0
-  ui_delete_image(kbd_win->disp->display, normal_pixmap);
+  ui_destroy_image(kbd_win->disp->display, normal_pixmap);
   normal_pixmap = NULL;
 
-  ui_delete_image(kbd_win->disp->display, pressed_pixmap);
+  ui_destroy_image(kbd_win->disp->display, pressed_pixmap);
   pressed_pixmap = NULL;
 #endif
 

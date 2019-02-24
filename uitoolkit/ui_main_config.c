@@ -687,7 +687,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
 
   main_config->use_mdi = 1;
 
-#ifndef USE_QUARTZ
+#if defined(USE_QUARTZ) || defined(USE_BEOS)
   if ((value = bl_conf_get_value(conf, "use_mdi"))) {
     if (strcmp(value, "false") == 0) {
       main_config->use_mdi = 0;

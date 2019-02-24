@@ -23,6 +23,11 @@
 #include "quartz/ui.h"
 #define GUI_TYPE "quartz"
 
+#elif defined(USE_BEOS)
+
+#include "beos/ui.h"
+#define GUI_TYPE "beos"
+
 #elif defined(USE_WAYLAND)
 
 #include "wayland/ui.h"

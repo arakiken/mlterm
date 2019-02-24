@@ -527,7 +527,7 @@ static void preedit_changed(im_m17nlib_t *m17nlib) {
    */
 
   if (m17nlib->im.preedit.chars) {
-    (*syms->vt_str_delete)(m17nlib->im.preedit.chars, m17nlib->im.preedit.num_chars);
+    (*syms->vt_str_destroy)(m17nlib->im.preedit.chars, m17nlib->im.preedit.num_chars);
     m17nlib->im.preedit.chars = NULL;
   }
 
@@ -657,7 +657,7 @@ static void candidates_changed(im_m17nlib_t *m17nlib) {
   if (m17nlib->input_context->candidate_list == NULL ||
       m17nlib->input_context->candidate_show == 0) {
     if (m17nlib->im.cand_screen) {
-      (*m17nlib->im.cand_screen->delete)(m17nlib->im.cand_screen);
+      (*m17nlib->im.cand_screen->destroy)(m17nlib->im.cand_screen);
       m17nlib->im.cand_screen = NULL;
     }
 
@@ -709,7 +709,7 @@ static void candidates_changed(im_m17nlib_t *m17nlib) {
   }
 
   if (!(*m17nlib->im.cand_screen->init)(m17nlib->im.cand_screen, num_candidates, 10)) {
-    (*m17nlib->im.cand_screen->delete)(m17nlib->im.cand_screen);
+    (*m17nlib->im.cand_screen->destroy)(m17nlib->im.cand_screen);
     m17nlib->im.cand_screen = NULL;
     return;
   }
@@ -751,7 +751,7 @@ static void candidates_changed(im_m17nlib_t *m17nlib) {
  * methods of ui_im_t
  */
 
-static void delete(ui_im_t *im) {
+static void destroy(ui_im_t *im) {
   im_m17nlib_t *m17nlib;
 
   m17nlib = (im_m17nlib_t*)im;
@@ -759,7 +759,7 @@ static void delete(ui_im_t *im) {
   ref_count--;
 
 #ifdef IM_M17NLIB_DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count);
+  bl_debug_printf(BL_DEBUG_TAG " An object was destroyed. ref_count: %d\n", ref_count);
 #endif
 
   if (m17nlib->input_context) {
@@ -775,11 +775,11 @@ static void delete(ui_im_t *im) {
   }
 
   if (m17nlib->parser_term) {
-    (*m17nlib->parser_term->delete)(m17nlib->parser_term);
+    (*m17nlib->parser_term->destroy)(m17nlib->parser_term);
   }
 
   if (m17nlib->conv) {
-    (*m17nlib->conv->delete)(m17nlib->conv);
+    (*m17nlib->conv->destroy)(m17nlib->conv);
   }
 
   free(m17nlib);
@@ -790,7 +790,7 @@ static void delete(ui_im_t *im) {
     initialized = 0;
 
     if (parser_ascii) {
-      (*parser_ascii->delete)(parser_ascii);
+      (*parser_ascii->destroy)(parser_ascii);
       parser_ascii = NULL;
     }
   }
@@ -897,7 +897,7 @@ static int switch_mode(ui_im_t *im) {
      */
 
     if (m17nlib->im.preedit.chars) {
-      (*syms->vt_str_delete)(m17nlib->im.preedit.chars, m17nlib->im.preedit.num_chars);
+      (*syms->vt_str_destroy)(m17nlib->im.preedit.chars, m17nlib->im.preedit.num_chars);
       m17nlib->im.preedit.chars = NULL;
     }
 
@@ -907,12 +907,12 @@ static int switch_mode(ui_im_t *im) {
     m17nlib->im.preedit.cursor_offset = UI_IM_PREEDIT_NOCURSOR;
 
     if (m17nlib->im.stat_screen) {
-      (*m17nlib->im.stat_screen->delete)(m17nlib->im.stat_screen);
+      (*m17nlib->im.stat_screen->destroy)(m17nlib->im.stat_screen);
       m17nlib->im.stat_screen = NULL;
     }
 
     if (m17nlib->im.cand_screen) {
-      (*m17nlib->im.cand_screen->delete)(m17nlib->im.cand_screen);
+      (*m17nlib->im.cand_screen->destroy)(m17nlib->im.cand_screen);
       m17nlib->im.cand_screen = NULL;
     }
   }
@@ -1075,7 +1075,7 @@ ui_im_t *im_m17nlib_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   /*
    * set methods of ui_im_t
    */
-  m17nlib->im.delete = delete;
+  m17nlib->im.destroy = destroy;
   m17nlib->im.key_event = key_event;
   m17nlib->im.switch_mode = switch_mode;
   m17nlib->im.is_active = is_active;
@@ -1105,11 +1105,11 @@ error:
     }
 
     if (m17nlib->parser_term) {
-      (*m17nlib->parser_term->delete)(m17nlib->parser_term);
+      (*m17nlib->parser_term->destroy)(m17nlib->parser_term);
     }
 
     if (m17nlib->conv) {
-      (*m17nlib->conv->delete)(m17nlib->conv);
+      (*m17nlib->conv->destroy)(m17nlib->conv);
     }
 
     free(m17nlib);
@@ -1119,7 +1119,7 @@ error:
     M17N_FINI();
 
     if (parser_ascii) {
-      (*parser_ascii->delete)(parser_ascii);
+      (*parser_ascii->destroy)(parser_ascii);
       parser_ascii = NULL;
     }
 
@@ -1217,7 +1217,7 @@ error:
   }
 
   if (parser_ascii) {
-    (*parser_ascii->delete)(parser_ascii);
+    (*parser_ascii->destroy)(parser_ascii);
     parser_ascii = NULL;
   }
 

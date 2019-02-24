@@ -38,7 +38,7 @@ static int close_xim(ui_xim_t *xim) {
   }
 
   if (xim->parser) {
-    (*xim->parser->delete)(xim->parser);
+    (*xim->parser->destroy)(xim->parser);
   }
 
   free(xim->name);

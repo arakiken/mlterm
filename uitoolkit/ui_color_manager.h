@@ -30,7 +30,7 @@ ui_color_manager_t *ui_color_manager_new(ui_display_t *disp, char *fg_color, cha
                                          char *bd_color, char *ul_color, char *bl_color,
                                          char *rv_color, char *it_color, char *co_color);
 
-void ui_color_manager_delete(ui_color_manager_t *color_man);
+void ui_color_manager_destroy(ui_color_manager_t *color_man);
 
 int ui_color_manager_set_fg_color(ui_color_manager_t *color_man, char *name);
 

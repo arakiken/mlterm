@@ -100,7 +100,7 @@ int vt_get_regard_uri_as_word(void);
 vt_screen_t *vt_screen_new(u_int cols, u_int rows, u_int tab_size, u_int num_log_lines,
                            int use_bce, vt_bs_mode_t bs_mode);
 
-int vt_screen_delete(vt_screen_t *screen);
+int vt_screen_destroy(vt_screen_t *screen);
 
 void vt_screen_set_listener(vt_screen_t *screen, vt_screen_event_listener_t *screen_listener);
 
@@ -168,7 +168,7 @@ void vt_screen_set_modified_all(vt_screen_t *screen);
 
 int vt_screen_add_logical_visual(vt_screen_t *screen, vt_logical_visual_t *logvis);
 
-int vt_screen_delete_logical_visual(vt_screen_t *screen);
+int vt_screen_destroy_logical_visual(vt_screen_t *screen);
 
 int vt_screen_render(vt_screen_t *screen);
 

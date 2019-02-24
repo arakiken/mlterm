@@ -727,14 +727,14 @@ error:
   free(sb->view_name);
 
   if (sb->view) {
-    (*sb->view->delete)(sb->view);
+    (*sb->view->destroy)(sb->view);
   }
 
   return 0;
 }
 
 void ui_scrollbar_final(ui_scrollbar_t *sb) {
-  (*sb->view->delete)(sb->view);
+  (*sb->view->destroy)(sb->view);
   ui_unload_scrollbar_view_lib(sb->view_name);
 
   ui_unload_xcolor(sb->window.disp, &sb->fg_xcolor);
@@ -948,7 +948,7 @@ int ui_scrollbar_change_view(ui_scrollbar_t *sb, char *name) {
   view->win = &sb->window;
 
   if (sb->view) {
-    (*sb->view->delete)(sb->view);
+    (*sb->view->destroy)(sb->view);
     ui_unload_scrollbar_view_lib(sb->view_name);
   }
 
@@ -999,7 +999,7 @@ int ui_scrollbar_set_transparent(ui_scrollbar_t *sb, ui_picture_modifier_t *pic_
   view->win = &sb->window;
 
   if (sb->view) {
-    (*sb->view->delete)(sb->view);
+    (*sb->view->destroy)(sb->view);
   }
 
   sb->view = view;
@@ -1034,7 +1034,7 @@ int ui_scrollbar_unset_transparent(ui_scrollbar_t *sb) {
   view->win = &sb->window;
 
   if (sb->view) {
-    (*sb->view->delete)(sb->view);
+    (*sb->view->destroy)(sb->view);
   }
 
   sb->view = view;

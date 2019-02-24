@@ -573,7 +573,7 @@ void vt_color_config_init(void) {
 }
 
 void vt_color_config_final(void) {
-  bl_map_delete(color_config);
+  bl_map_destroy(color_config);
   color_config = NULL;
 }
 
@@ -999,7 +999,7 @@ vt_color_t vt_get_closest_color(u_int8_t red, u_int8_t green, u_int8_t blue) {
       ext_color_table[color].is_changed = 1;
 
 #ifdef DEBUG
-      bl_debug_printf(BL_DEBUG_TAG " Delete ext color %x mark %x\n", INDEX_TO_EXT_COLOR(color),
+      bl_debug_printf(BL_DEBUG_TAG " Destroy ext color %x mark %x\n", INDEX_TO_EXT_COLOR(color),
                       ext_color_table[color].mark);
 #endif
 

@@ -96,7 +96,7 @@ static void color_changed(ui_sb_view_t *view, int is_fg /* 1=fg , 0=bg */
   }
 }
 
-static void delete (ui_sb_view_t *view) {
+static void destroy(ui_sb_view_t *view) {
   sample_sb_view_t *sample;
 
   sample = (sample_sb_view_t*)view;
@@ -198,7 +198,7 @@ ui_sb_view_t *ui_sample_sb_view_new(void) {
   sample->view.realized = realized;
   sample->view.resized = resized;
   sample->view.color_changed = color_changed;
-  sample->view.delete = delete;
+  sample->view.destroy = destroy;
 
   sample->view.draw_scrollbar = draw_scrollbar;
   sample->view.draw_background = draw_background;

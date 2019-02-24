@@ -64,9 +64,9 @@ static int parse_text_unicode(ui_window_t *win, u_char *src, int len) {
   if ((conv = win->dnd->conv) && (parser = win->dnd->parser) && (win->dnd->is_incr)) {
     if (len == 0) {
       /* the incr session was finished */
-      (conv->delete)(conv);
+      (conv->destroy)(conv);
       win->dnd->conv = NULL;
-      (parser->delete)(parser);
+      (parser->destroy)(parser);
       win->dnd->parser = NULL;
 #ifdef DEBUG
       bl_debug_printf("freed parser/converter\n");
@@ -77,12 +77,12 @@ static int parse_text_unicode(ui_window_t *win, u_char *src, int len) {
     bl_debug_printf("recycling parser/converter %d, %p, %p\n", win->dnd->is_incr, conv, parser);
 #endif
   } else {
-    if (win->dnd->conv) (win->dnd->conv->delete)(win->dnd->conv);
-    if (win->dnd->parser) (win->dnd->parser->delete)(win->dnd->parser);
+    if (win->dnd->conv) (win->dnd->conv->destroy)(win->dnd->conv);
+    if (win->dnd->parser) (win->dnd->parser->destroy)(win->dnd->parser);
 
     if (!(conv = ef_utf8_conv_new())) return FAILURE;
     if (!(parser = ef_utf16_parser_new())) {
-      (conv->delete)(conv);
+      (conv->destroy)(conv);
       return FAILURE;
     }
 
@@ -115,9 +115,9 @@ static int parse_text_unicode(ui_window_t *win, u_char *src, int len) {
     win->dnd->parser = parser;
     win->dnd->conv = conv;
   } else {
-    (conv->delete)(conv);
+    (conv->destroy)(conv);
     win->dnd->conv = NULL;
-    (parser->delete)(parser);
+    (parser->destroy)(parser);
     win->dnd->parser = NULL;
   }
 
@@ -336,8 +336,8 @@ static void set_badwin_handler(int flag) {
 static int finalize_context(ui_window_t *win) {
   if (!(win->dnd)) return FAILURE;
 
-  if (win->dnd->conv) (win->dnd->conv->delete)(win->dnd->conv);
-  if (win->dnd->parser) (win->dnd->parser->delete)(win->dnd->parser);
+  if (win->dnd->conv) (win->dnd->conv->destroy)(win->dnd->conv);
+  if (win->dnd->parser) (win->dnd->parser->destroy)(win->dnd->parser);
 
   free(win->dnd);
   win->dnd = NULL;

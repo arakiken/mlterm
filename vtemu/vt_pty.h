@@ -38,7 +38,7 @@ typedef enum {
 typedef struct vt_pty_event_listener {
   void *self;
 
-  /* Called when vt_pty_delete. */
+  /* Called when vt_pty_destroy. */
   void (*closed)(void *);
 
   void (*show_config)(void *, char *);
@@ -96,7 +96,7 @@ vt_pty_t *vt_pty_new(const char *cmd_path, char **cmd_argv, char **env, const ch
 vt_pty_t *vt_pty_new_with(int master, int slave, pid_t child_pid, u_int cols, u_int rows,
                           u_int width_pix, u_int height_pix);
 
-int vt_pty_delete(vt_pty_t *pty);
+int vt_pty_destroy(vt_pty_t *pty);
 
 #define vt_pty_set_listener(pty, listener) ((pty)->pty_listener = listener)
 

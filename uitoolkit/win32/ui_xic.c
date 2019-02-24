@@ -81,7 +81,7 @@ int ui_xic_deactivate(ui_window_t *win) {
   }
 
   ImmReleaseContext(win->my_window, win->xic->ic);
-  (*win->xic->parser->delete)(win->xic->parser);
+  (*win->xic->parser->destroy)(win->xic->parser);
   free(win->xic);
   win->xic = NULL;
 

@@ -27,7 +27,7 @@ typedef struct vt_drcs {
 
 #define vt_drcs_new() calloc(1, sizeof(vt_drcs_t))
 
-#define vt_drcs_delete(drcs) \
+#define vt_drcs_destroy(drcs) \
   vt_drcs_final_full(drcs);  \
   free(drcs);
 

@@ -15,7 +15,7 @@ typedef struct ui_decsp_font {
 
 ui_decsp_font_t *ui_decsp_font_new(Display *display, u_int width, u_int height, u_int ascent);
 
-void ui_decsp_font_delete(ui_decsp_font_t *vtgr, Display *display);
+void ui_decsp_font_destroy(ui_decsp_font_t *vtgr, Display *display);
 
 void ui_decsp_font_draw_string(ui_decsp_font_t *vtgr, Display *display, Drawable drawable, GC gc,
                                int x, int y, u_char *str, u_int len);

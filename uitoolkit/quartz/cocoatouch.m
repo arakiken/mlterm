@@ -1711,14 +1711,12 @@ u_int cocoa_font_get_advance(CGFontRef cg_font, u_int fontsize, int size_attr,
   return advance * fontsize / CGFontGetUnitsPerEm(cg_font);
 }
 
-int cocoa_clipboard_own(MLTermView *view) {
+void cocoa_clipboard_own(MLTermView *view) {
 #if 0
   UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
   [pasteboard declareTypes:[NSArray arrayWithObject:NSPasteboardTypeString]
                      owner:view];
 #endif
-
-  return 1;
 }
 
 void cocoa_clipboard_set(const u_char *utf8, size_t len) {

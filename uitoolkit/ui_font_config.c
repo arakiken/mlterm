@@ -708,7 +708,7 @@ static void new_table(ui_font_config_t *font_config) {
                        bl_map_compare_int, 16);
 }
 
-static void delete_table(ui_font_config_t *font_config) {
+static void destroy_table(ui_font_config_t *font_config) {
   u_int count;
   u_int size;
   BL_PAIR(ui_font_name) * fn_array;
@@ -719,7 +719,7 @@ static void delete_table(ui_font_config_t *font_config) {
     free(fn_array[count]->value);
   }
 
-  bl_map_delete(font_config->font_name_table);
+  bl_map_destroy(font_config->font_name_table);
 }
 
 /* --- global functions --- */
@@ -819,7 +819,7 @@ void ui_release_font_config(ui_font_config_t *font_config) {
     return;
   }
 
-  ui_font_config_delete(font_config);
+  ui_font_config_destroy(font_config);
 
   if (num_configs == 0) {
     free(font_configs);
@@ -843,8 +843,8 @@ ui_font_config_t *ui_font_config_new(ui_type_engine_t type_engine, ui_font_prese
   return font_config;
 }
 
-void ui_font_config_delete(ui_font_config_t *font_config) {
-  delete_table(font_config);
+void ui_font_config_destroy(ui_font_config_t *font_config) {
+  destroy_table(font_config);
   free(font_config);
 }
 
@@ -920,7 +920,7 @@ int ui_customize_font_file(const char *file, /* if null, use "mlterm/font" file.
          * => mlcc font ISO10646_UCS4_1 b
          * => mlcc font ISO10646_UCS4_1 "" (results in ISO10646_UCS4_1=a)
          */
-        delete_table(targets[count]);
+        destroy_table(targets[count]);
         new_table(targets[count]);
 
         read_all_conf(targets[count], NULL);
@@ -1297,7 +1297,7 @@ static void TEST_font_config(void) {
   assert(strcmp("-hoge-bold-i-fuga-", value) == 0);
   free(value);
 
-  ui_font_config_delete(font_config);
+  ui_font_config_destroy(font_config);
 #endif
 }
 

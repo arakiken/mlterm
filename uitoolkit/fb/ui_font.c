@@ -1210,7 +1210,7 @@ static void compl_final(void) {
   }
 }
 
-static void compl_xfonts_delete(XFontStruct **xfonts) {
+static void compl_xfonts_destroy(XFontStruct **xfonts) {
   if (xfonts) {
     u_int count;
 
@@ -1706,7 +1706,7 @@ static void xfont_unref(XFontStruct *xfont) {
     u_int count;
 
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
-    compl_xfonts_delete(xfont->compl_xfonts);
+    compl_xfonts_destroy(xfont->compl_xfonts);
 #endif
 
     for (count = 0; count < num_xfonts; count++) {
@@ -2232,7 +2232,7 @@ xfont_loaded:
   return font;
 }
 
-void ui_font_delete(ui_font_t *font) {
+void ui_font_destroy(ui_font_t *font) {
   xfont_unref(font->xfont);
 
 #ifdef USE_OT_LAYOUT

@@ -336,7 +336,7 @@ ui_sb_view_t *ui_sb_view_new(const char *name) {
 
     /*
      * Increment conf->use_count in func_engine().
-     * Decrement conf->use_count in ui_sb_view_t::delete().
+     * Decrement conf->use_count in ui_sb_view_t::destroy().
      */
     return check_version((*func_engine)(conf, 0));
   }
@@ -385,7 +385,7 @@ ui_sb_view_t *ui_transparent_sb_view_new(const char *name) {
 
 /*
  * This function cleans up configurations of pixmap_engine.
- * Call this function after ui_sb_view_t::delete() is called.
+ * Call this function after ui_sb_view_t::destroy() is called.
  */
 void ui_unload_scrollbar_view_lib(const char *name) {
 #ifdef SUPPORT_PIXMAP_ENGINE

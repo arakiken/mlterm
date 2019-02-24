@@ -16,7 +16,7 @@ typedef struct bl_file {
 
 bl_file_t *bl_file_new(FILE* fp);
 
-int bl_file_delete(bl_file_t *file);
+int bl_file_destroy(bl_file_t *file);
 
 bl_file_t *bl_file_open(const char *file_path, const char *mode);
 

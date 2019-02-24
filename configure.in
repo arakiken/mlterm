@@ -127,7 +127,7 @@ AC_SUBST(DEB_CFLAGS)
 AC_SUBST(OPT_CFLAGS)
 
 AC_ARG_WITH(gui,
-	[  --with-gui@<:@=ARG@:>@        gui library(xlib|win32|fb|quartz|console|wayland|sdl2)],
+	[  --with-gui@<:@=ARG@:>@        gui library(xlib|win32|fb|quartz|console|wayland|sdl2|beos)],
 	gui=$with_gui)
 if test `echo $gui | grep ,`; then
 	gui_list=`echo $gui | sed 's/,/ /g'`
@@ -238,7 +238,7 @@ cygwin*)
 
 *)
 	CYGPATHW=echo
-	if test "$gui" != "xlib" -a "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" -a "$gui" != "wayland" -a "$gui" != "sdl2"; then
+	if test "$gui" != "xlib" -a "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" -a "$gui" != "wayland" -a "$gui" != "sdl2" -a "$gui" != "beos"; then
 		if test "$gui" != "" ; then
 			echo "$gui is not supported in ${host_os}. xlib is used instead."
 		fi
@@ -500,6 +500,11 @@ elif test "$gui" = "console" ; then
 	fi
 	AC_SUBST(SIXEL_CFLAGS)
 	AC_SUBST(SIXEL_LIBS)
+elif test "$gui" = "beos" ; then
+	GUI="beos"
+	GUI_CFLAGS="-DUSE_BEOS"
+	BEOS_LIBS="-lbe"
+	AC_SUBST(BEOS_LIBS)
 elif test "$gui" = "wayland" ; then
 	GUI="wayland"
 	GUI_CFLAGS="-DUSE_WAYLAND"

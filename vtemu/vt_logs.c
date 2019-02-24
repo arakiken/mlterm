@@ -60,7 +60,7 @@ void vt_log_final(vt_logs_t *logs) {
     vt_line_final(&logs->lines[count]);
   }
 
-  bl_cycle_index_delete(logs->index);
+  bl_cycle_index_destroy(logs->index);
 
   free(logs->lines);
 }
@@ -85,7 +85,7 @@ int vt_change_log_size(vt_logs_t *logs, u_int new_num_rows) {
     free(logs->lines);
     logs->lines = NULL;
 
-    bl_cycle_index_delete(logs->index);
+    bl_cycle_index_destroy(logs->index);
     logs->index = NULL;
 
     logs->num_rows = 0;

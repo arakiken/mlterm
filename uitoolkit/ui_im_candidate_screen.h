@@ -53,7 +53,7 @@ typedef struct ui_im_candidate_screen {
   /*
    * methods for ui_im_candidate_screen_t which is called from im
    */
-  void (*delete)(struct ui_im_candidate_screen *);
+  void (*destroy)(struct ui_im_candidate_screen *);
   void (*show)(struct ui_im_candidate_screen *);
   void (*hide)(struct ui_im_candidate_screen *);
   int (*set_spot)(struct ui_im_candidate_screen *, int, int);

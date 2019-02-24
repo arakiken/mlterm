@@ -203,7 +203,7 @@ void ui_sel_init(ui_selection_t *sel, ui_sel_event_listener_t *sel_listener) {
 
 void ui_sel_final(ui_selection_t *sel) {
   if (sel->sel_str) {
-    vt_str_delete(sel->sel_str, sel->sel_len);
+    vt_str_destroy(sel->sel_str, sel->sel_len);
   }
 }
 
@@ -260,7 +260,7 @@ int ui_stop_selecting(ui_selection_t *sel) {
   sel->is_locked = 0;
 
   if (sel->sel_str) {
-    vt_str_delete(sel->sel_str, sel->sel_len);
+    vt_str_destroy(sel->sel_str, sel->sel_len);
   }
 
   if (!(*sel->sel_listener->select_in_window)(sel->sel_listener->self, &sel->sel_str, &sel->sel_len,
@@ -286,7 +286,7 @@ int ui_sel_clear(ui_selection_t *sel) {
 
   if (sel->is_selecting) {
     if (sel->sel_str) {
-      vt_str_delete(sel->sel_str, sel->sel_len);
+      vt_str_destroy(sel->sel_str, sel->sel_len);
       sel->sel_str = NULL;
       sel->sel_len = 0;
     }

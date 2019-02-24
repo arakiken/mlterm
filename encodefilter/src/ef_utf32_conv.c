@@ -129,7 +129,7 @@ static void conv_init(ef_conv_t *conv) {
   utf32_conv->is_bof = 1;
 }
 
-static void conv_delete(ef_conv_t *conv) { free(conv); }
+static void conv_destroy(ef_conv_t *conv) { free(conv); }
 
 /* --- global functions --- */
 
@@ -142,7 +142,7 @@ ef_conv_t *ef_utf32_conv_new(void) {
 
   utf32_conv->conv.convert = convert_to_utf32;
   utf32_conv->conv.init = conv_init;
-  utf32_conv->conv.delete = conv_delete;
+  utf32_conv->conv.destroy = conv_destroy;
   utf32_conv->conv.illegal_char = NULL;
 
   utf32_conv->is_bof = 1;
@@ -160,7 +160,7 @@ ef_conv_t *ef_utf32le_conv_new(void) {
 
   utf32_conv->conv.convert = convert_to_utf32le;
   utf32_conv->conv.init = conv_init;
-  utf32_conv->conv.delete = conv_delete;
+  utf32_conv->conv.destroy = conv_destroy;
   utf32_conv->conv.illegal_char = NULL;
 
   utf32_conv->is_bof = 1;
