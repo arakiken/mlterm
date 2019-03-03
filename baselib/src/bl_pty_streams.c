@@ -118,15 +118,15 @@ pid_t bl_pty_fork(int *master, int *slave) {
    * if the application has installed a signal handler to catch SIGCHLD signals.
    * (see http://www.opengroup.org/onlinepubs/007908799/xsh/grantpt.html)
    */
-  bl_sig_child_suspend();
+  bl_sig_child_stop();
   if (grantpt(*master) < 0) {
 #if 0
     /* XXX this fails but it doesn't do harm in some environments */
-    bl_sig_child_resume();
+    bl_sig_child_start();
     return -1;
 #endif
   }
-  bl_sig_child_resume();
+  bl_sig_child_start();
   if (unlockpt(*master) < 0) {
     close(*master);
 
@@ -358,9 +358,7 @@ pid_t bl_pty_fork(int *master, int *slave) {
 }
 
 int bl_pty_close(int master) {
-  close(master);
-
-  return 0;
+  return close(master);
 }
 
 void bl_pty_helper_set_flag(int lastlog, int utmp, int wtmp) {}

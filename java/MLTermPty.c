@@ -9,7 +9,6 @@
 
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h> /* alloca */
-#include <pobl/bl_str.h> /* bl_str_alloca_dup */
 #include <pobl/bl_unistd.h> /* bl_setenv */
 #include <pobl/bl_dialog.h>
 #include <mef/ef_utf16_conv.h>
@@ -398,7 +397,9 @@ Java_mlterm_MLTermPty_nativeOpen(JNIEnv *env, jobject obj, jstring jstr_host,
 
   if (jstr_encoding) {
     char *p = (*env)->GetStringUTFChars(env, jstr_encoding, NULL);
-    encoding_str = bl_str_alloca_dup(p);
+    if ((encoding_str = alloca(strlen(p) + 1))) {
+      strcpy(encoding_str, p);
+    }
     (*env)->ReleaseStringUTFChars(env, jstr_encoding, p);
   } else {
     encoding_str = NULL;
@@ -444,7 +445,9 @@ Java_mlterm_MLTermPty_nativeOpen(JNIEnv *env, jobject obj, jstring jstr_host,
       char *p;
       jobject obj = (*env)->GetObjectArrayElement(env, jarray_argv, count);
       p = (*env)->GetStringUTFChars(env, obj, NULL);
-      argv[count] = bl_str_alloca_dup(p);
+      if ((argv[count] = alloca(strlen(p) + 1))) {
+        strcpy(argv[count], p);
+      }
       (*env)->ReleaseStringUTFChars(env, obj, p);
     }
     argv[count] = NULL;

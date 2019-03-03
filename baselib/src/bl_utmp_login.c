@@ -92,7 +92,7 @@ bl_utmp_t bl_utmp_new(const char *tty, const char *host, int pty_fd) {
   return utmp;
 }
 
-int bl_utmp_destroy(bl_utmp_t utmp) {
+void bl_utmp_destroy(bl_utmp_t utmp) {
   bl_priv_restore_euid();
   bl_priv_restore_egid();
 
@@ -110,6 +110,4 @@ int bl_utmp_destroy(bl_utmp_t utmp) {
 #endif
 
   free(utmp);
-
-  return 1;
 }

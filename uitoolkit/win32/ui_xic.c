@@ -3,7 +3,6 @@
 #include "../ui_xic.h"
 
 #include <pobl/bl_debug.h>
-#include <pobl/bl_str.h>    /* bl_str_alloca_dup */
 #include <pobl/bl_mem.h>    /* malloc */
 #include <pobl/bl_locale.h> /* bl_get_locale */
 

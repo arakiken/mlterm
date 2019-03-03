@@ -682,13 +682,10 @@ static int xcore_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
     char *font_xlfd;
     char *percent_str;
 
-    if ((p = bl_str_alloca_dup(fontname)) == NULL) {
-#ifdef DEBUG
-      bl_warn_printf(BL_DEBUG_TAG " alloca() failed.\n");
-#endif
-
+    if ((p = alloca(strlen(fontname) + 1)) == NULL) {
       return 0;
     }
+    strcpy(p, fontname);
 
     if (parse_xfont_name(&font_xlfd, &percent_str, p)) {
 #ifdef DEBUG

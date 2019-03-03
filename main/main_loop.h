@@ -5,7 +5,7 @@
 
 int main_loop_init(int argc, char **argv);
 
-int main_loop_final(void);
+void main_loop_final(void);
 
 int main_loop_start(void);
 

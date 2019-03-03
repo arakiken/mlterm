@@ -1252,16 +1252,17 @@ static int setup_x11(LIBSSH2_CHANNEL *channel) {
   }
 
   if (strncmp(display, "unix:", 5) == 0) {
-    display_port_str = display + 5;
+    p = display + 5;
   } else if (display[0] == ':') {
-    display_port_str = display + 1;
+    p = display + 1;
   } else {
     return 0;
   }
 
-  if (!(display_port_str = bl_str_alloca_dup(display_port_str))) {
+  if (!(display_port_str = alloca(strlen(p) + 1))) {
     return 0;
   }
+  strcpy(display_port_str, p);
 
   if ((p = strrchr(display_port_str, '.'))) {
     *p = '\0';
@@ -1896,12 +1897,14 @@ vt_pty_t *vt_pty_ssh_new(const char *cmd_path, /* can be NULL */
                          const char *privkey,                                   /* can be NULL */
                          u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
   vt_pty_ssh_t *pty;
+  char *uri_dup;
   char *user;
   char *proto;
   char *host;
   char *port;
 
-  if (!bl_parse_uri(&proto, &user, &host, &port, NULL, NULL, bl_str_alloca_dup(uri))) {
+  if ((uri_dup = alloca(strlen(uri) + 1)) == NULL ||
+      !bl_parse_uri(&proto, &user, &host, &port, NULL, NULL, strcpy(uri_dup, uri))) {
     return NULL;
   }
 

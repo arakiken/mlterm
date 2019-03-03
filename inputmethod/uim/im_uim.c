@@ -45,7 +45,7 @@
 #endif
 
 #include <pobl/bl_mem.h>    /* malloc/alloca/free */
-#include <pobl/bl_str.h>    /* bl_str_alloca_dup bl_str_sep bl_snprintf*/
+#include <pobl/bl_str.h>    /* strdup/bl_str_sep/bl_snprintf */
 #include <pobl/bl_locale.h> /* bl_get_locale */
 #include <pobl/bl_slist.h>
 
@@ -1288,7 +1288,10 @@ ui_im_t *im_uim_new(u_int64_t magic, vt_char_encoding_t term_encoding,
      * Workaround against make_locale() of m17nlib.
      */
     char *cur_locale;
-    cur_locale = bl_str_alloca_dup(bl_get_locale());
+
+    if ((cur_locale = alloca(strlen(bl_get_locale()) + 1))) {
+      strcpy(cur_locale, bl_get_locale());
+    }
 #endif
 
     if (uim_init() == -1) {
@@ -1326,10 +1329,15 @@ ui_im_t *im_uim_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   }
 
   if ((engine == NULL) || (strlen(engine) == 0)) {
-    engine = (char *)uim_get_default_im_name(bl_get_locale());
-    /* The returned string's storage is invalidated when we
-     * call uim next, so we need to make a copy.  */
-    engine = bl_str_alloca_dup(engine);
+    /*
+     * The returned string's storage is invalidated when we
+     * call uim next, so we need to make a copy.
+     */
+    char *p = (char *)uim_get_default_im_name(bl_get_locale());
+
+    if ((engine = alloca(strlen(p) + 1))) {
+      strcpy(engine, p);
+    }
   }
 
   if (!find_engine(engine, &encoding_name)) {

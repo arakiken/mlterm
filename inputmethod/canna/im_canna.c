@@ -4,7 +4,7 @@
 #include <canna/jrkanji.h>
 
 #include <pobl/bl_mem.h> /* malloc/alloca/free */
-#include <pobl/bl_str.h> /* bl_str_alloca_dup bl_str_sep bl_snprintf*/
+#include <pobl/bl_str.h> /* strdup/bl_str_sep/bl_snprintf */
 
 #include <ui_im.h>
 

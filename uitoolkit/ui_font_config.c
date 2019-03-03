@@ -359,11 +359,11 @@ static int parse_conf(ui_font_config_t *font_config, const char *key,
   vt_font_t font;
   char *font_name;
 
-  if ((font = parse_key(key)) == UNKNOWN_CS) {
+  if ((font = parse_key(key)) == UNKNOWN_CS ||
+      (font_name = alloca(strlen(value) + 1)) == NULL) {
     return 0;
   }
-
-  font_name = bl_str_alloca_dup(value);
+  strcpy(font_name, value);
 
   /*
    * XXX

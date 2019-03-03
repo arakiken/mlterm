@@ -8,7 +8,7 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_types.h> /* u_int32_t/u_int16_t */
 #include <pobl/bl_def.h>   /* SSIZE_MAX, USE_WIN32API */
-#include <pobl/bl_str.h>   /* bl_str_alloca_dup */
+#include <pobl/bl_mem.h> /* alloca */
 #if defined(__CYGWIN__) || defined(__MSYS__)
 #include <pobl/bl_path.h> /* bl_conv_to_win32_path */
 #endif
@@ -53,9 +53,10 @@ int main(int argc, char **argv) {
   if (strstr(argv[4], ".rgs")) {
     char *new_path;
 
-    new_path = bl_str_alloca_dup(argv[4]);
-    if (convert_regis_to_bmp(new_path)) {
-      argv[4] = new_path;
+    if ((new_path = alloca(strlen(argv[4]) + 1))) {
+      if (convert_regis_to_bmp(strcpy(new_path, argv[4]))) {
+        argv[4] = new_path;
+      }
     }
   }
 

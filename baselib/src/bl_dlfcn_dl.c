@@ -65,7 +65,7 @@ bl_dl_handle_t bl_dl_open(const char *dirpath, const char *name) {
   return NULL;
 }
 
-int bl_dl_close(bl_dl_handle_t handle) { return dlclose(handle); }
+void bl_dl_close(bl_dl_handle_t handle) { dlclose(handle); }
 
 void *bl_dl_func_symbol(bl_dl_handle_t handle, const char *symbol) { return dlsym(handle, symbol); }
 

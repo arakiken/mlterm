@@ -20,9 +20,9 @@
 
 /* --- static variables --- */
 
-static char *prog_path;
-static char *prog_name;
-static char *prog_version;
+static const char *prog_path;
+static const char *prog_name;
+static const char *prog_version;
 
 /* --- static functions --- */
 
@@ -160,9 +160,8 @@ static bl_conf_entry_t *create_new_conf_entry(bl_conf_t *conf, char *key) {
 
 /* --- global functions --- */
 
-int bl_init_prog(char *path,   /* should be static data */
-                 char *version /* should be static data */
-                 ) {
+void bl_init_prog(const char *path,   /* should be static data */
+                  const char *version /* should be static data */) {
   prog_path = path;
 
   if ((prog_name = strrchr(path, '/')) || (prog_name = strrchr(path, '\\'))) {
@@ -172,11 +171,9 @@ int bl_init_prog(char *path,   /* should be static data */
   }
 
   prog_version = version;
-
-  return 1;
 }
 
-char *bl_get_prog_path(void) { return prog_path; }
+const char *bl_get_prog_path(void) { return prog_path; }
 
 bl_conf_t *bl_conf_new(void) {
   bl_conf_t *conf;
@@ -211,7 +208,7 @@ bl_conf_t *bl_conf_new(void) {
   return conf;
 }
 
-int bl_conf_destroy(bl_conf_t *conf) {
+void bl_conf_destroy(bl_conf_t *conf) {
   int count;
   BL_PAIR(bl_conf_entry) * pairs;
   u_int size;
@@ -238,15 +235,12 @@ int bl_conf_destroy(bl_conf_t *conf) {
   bl_map_destroy(conf->conf_entries);
 
   free(conf);
-
-  return 1;
 }
 
 int bl_conf_add_opt(bl_conf_t *conf, char short_opt, /* '\0' is accepted */
-                    char *long_opt,                  /* should be static data. NULL is accepted */
-                    int is_boolean, char *key,       /* should be static data */
-                    char *help                       /* should be static data */
-                    ) {
+                    const char *long_opt, /* should be static data. NULL is accepted */
+                    int is_boolean, char *key, /* should be static data */
+                    const char *help /* should be static data */) {
   bl_arg_opt_t **opt;
 
   if (short_opt == '\0') {
@@ -294,10 +288,10 @@ int bl_conf_add_opt(bl_conf_t *conf, char short_opt, /* '\0' is accepted */
   return 1;
 }
 
-int bl_conf_set_end_opt(bl_conf_t *conf, char opt, char *long_opt, /* should be static data */
-                        char *key,                                 /* should be static data */
-                        char *help                                 /* should be static data */
-                        ) {
+int bl_conf_set_end_opt(bl_conf_t *conf, char opt,
+                        const char *long_opt, /* should be static data */
+                        char *key, /* should be static data */
+                        const char *help /* should be static data */) {
   conf->end_opt = opt;
 
   /* is_boolean is always true */
@@ -445,7 +439,7 @@ error:
   return 0;
 }
 
-int bl_conf_write(bl_conf_t *conf, char *filename) {
+int bl_conf_write(bl_conf_t *conf, const char *filename) {
   FILE *to;
   BL_PAIR(bl_conf_entry) * pairs;
   u_int size;
@@ -475,7 +469,7 @@ int bl_conf_write(bl_conf_t *conf, char *filename) {
   return 1;
 }
 
-int bl_conf_read(bl_conf_t *conf, char *filename) {
+int bl_conf_read(bl_conf_t *conf, const char *filename) {
   bl_file_t *from;
   char *key;
   char *value;

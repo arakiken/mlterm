@@ -358,11 +358,13 @@ int vt_term_open_pty(vt_term_t *term, const char *cmd_path, char **argv, char **
                      const char *privkey, u_int width_pix, u_int height_pix) {
   if (!term->pty) {
 #ifdef OPEN_PTY_ASYNC
+    char *host_dup;
     char *user;
     char *server;
     char *port;
 
-    if (pass && bl_parse_uri(NULL, &user, &server, &port, NULL, NULL, bl_str_alloca_dup(host)) &&
+    if (pass && (host_dup = alloca(strlen(host) + 1)) &&
+        bl_parse_uri(NULL, &user, &server, &port, NULL, NULL, strcpy(host_dup, host)) &&
         !vt_search_ssh_session(server, port, user)) {
       pty_args_t *args;
 

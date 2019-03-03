@@ -14,7 +14,6 @@
 
 #ifdef GDK_PIXBUF_VERSION
 
-#include <pobl/bl_str.h>     /* bl_str_alloca_dup */
 #include <pobl/bl_conf_io.h> /* bl_get_user_rc_path */
 
 #ifdef USE_FREETYPE_EMOJI
@@ -309,8 +308,8 @@ static GdkPixbuf *gdk_pixbuf_new_from(const char *path) {
       if (strcasecmp(path + strlen(path) - 4, ".rgs") == 0) {
         char *new_path;
 
-        new_path = bl_str_alloca_dup(path);
-        if (convert_regis_to_bmp(new_path)) {
+        if ((new_path = alloca(strlen(path) + 1)) &&
+            convert_regis_to_bmp(strcpy(new_path, path))) {
           path = new_path;
         }
       }

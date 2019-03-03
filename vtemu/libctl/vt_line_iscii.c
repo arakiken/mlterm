@@ -100,7 +100,7 @@ int vt_line_iscii_visual(vt_line_t *line) {
   if ((src = vt_str_alloca(src_len)) == NULL) {
     return 0;
   }
-
+  vt_str_init(src, src_len);
   vt_str_copy(src, line->chars, src_len);
 
   dst_len = line->ctl_info.iscii->size;
@@ -186,7 +186,7 @@ int vt_line_iscii_logical(vt_line_t *line) {
   if ((src = vt_str_alloca(src_len)) == NULL) {
     return 0;
   }
-
+  vt_str_init(src, src_len);
   vt_str_copy(src, line->chars, src_len);
   dst = line->chars;
 

@@ -7,7 +7,7 @@
 
 int bl_locale_init(const char *locale);
 
-int bl_locale_final(void);
+void bl_locale_final(void);
 
 char *bl_get_locale(void);
 

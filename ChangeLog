@@ -1,3 +1,63 @@
+2019-03-03  Araki Ken  <arakiken@users.sf.net>
+
+	* main_loop.c: bl_alloca_garbage_collect() is called at the end of
+	  main_loop_final().
+
+	* gdiplus.cpp, beos.cpp: alloca() is removed.
+
+	* vt_str_alloca() => vt_str_alloca() + vt_str_init().
+
+	* vt_str.[ch]: __vt_str_init() is removed and vt_str_alloca() doesn't call it.
+
+	* bl_arg_str_to_array() => bl_argv_alloca() + bl_arg_str_to_array().
+
+	* bl_args.[ch]: bl_arg_str_to_array() is separated to
+	  bl_argv_alloca() and bl_arg_str_to_array() in order not to
+	  use alloca() in arguments of a function.
+
+	* bl_sig_child.[ch]:
+	  bl_sig_child_{init|suspend|resume}() => bl_sig_child_{start|stop}()
+
+	* bl_conf.[ch]: char* => const char*
+
+	* bl_def.h: #include <stdint.h> to check SIZE_MAX on Haiku R1 Beta1.
+
+	* bl_str.c: bl_str_dup() => __bl_str_dup()
+
+	* bl_str_alloca_dup() => alloca() + strcpy()
+
+	* bl_men.h: bl_str_alloca_dup() is removed.
+
+	* The return value of some functions is changed from int to void.
+
+	* ui_screen_manager.c:
+	  close_screen() calls close_screen_intern() directly.
+
+	* beos.cpp, beos.h:
+	  - MLView::SetFont() is added.
+	  - MLWindow::Quit() is added.
+	  - MLWindow::WindowActivated() and MLWindow::FrameResized() use
+	    LockLooperWithTimeout() - UnlockLooper().
+	  - view_set_clip(), view_unset_clip(), window_set_title() and beos_beep()
+	    are implemented.
+	  - view_draw_string() supports font->double_draw_gap.
+	  - is_italic and is_bold are added to arguments of beos_create_font().
+	  - beos_font_get_advance() supports characters >= 0x80.
+
+	* beos/ui_font.c:
+	  - ui_font_new() processes size_attr.
+	  - ui_calculate_char_width() supports proportional fonts and
+	    considers font->is_var_col_width.
+
+	* beos/ui_window.c:
+	  - need_pointer_motion_mask() is removed.
+	  - window_dealloc() is placed at the end of ui_window_final() because
+	    BWindow::Quit() in window_dealloc() exits the current thread.
+
+	* beos/ui.h: XFontStruct::bfont is renamed to XFontStruct::fid.
+
+	* uitoolkit/beos: Added. (The previous commit failed to add it.)
+
 2019-02-23  Araki Ken  <arakiken@users.sf.net>
 
 	* uitoolkit/beos: Added.

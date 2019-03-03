@@ -65,9 +65,9 @@ void *bl_alloca(size_t size);
 
 int bl_alloca_begin_stack_frame(void);
 
-int bl_alloca_end_stack_frame(void);
+void bl_alloca_end_stack_frame(void);
 
-int bl_alloca_garbage_collect(void);
+void bl_alloca_garbage_collect(void);
 
 #else /* HAVE_ALLOCA */
 

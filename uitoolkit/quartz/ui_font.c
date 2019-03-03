@@ -11,9 +11,8 @@
 #include <stdio.h>
 #include <string.h> /* memset/strncasecmp */
 #include <pobl/bl_debug.h>
-#include <pobl/bl_str.h> /* bl_snprintf */
 #include <pobl/bl_mem.h> /* alloca */
-#include <pobl/bl_str.h> /* bl_str_to_int */
+#include <pobl/bl_str.h> /* bl_str_to_uint */
 #include <mef/ef_ucs4_map.h>
 #include <mef/ef_ucs_property.h>
 #include <vt_char_encoding.h> /* ui_convert_to_xft_ucs4 */
@@ -223,15 +222,12 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   if (fontname) {
     char *p;
 
-    if ((p = bl_str_alloca_dup(fontname)) == NULL) {
-#ifdef DEBUG
-      bl_warn_printf(BL_DEBUG_TAG " alloca() failed.\n");
-#endif
-
+    if ((p = alloca(strlen(fontname) + 1)) == NULL) {
       free(font);
 
       return NULL;
     }
+    strcpy(p, fontname);
 
     double fontsize_d = 0;
     int is_bold = 0;

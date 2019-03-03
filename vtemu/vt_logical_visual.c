@@ -335,6 +335,7 @@ static int comb_logical(vt_logical_visual_t *logvis) {
   if ((buf = vt_str_alloca(logvis->model->num_cols)) == NULL) {
     return 0;
   }
+  vt_str_init(buf, logvis->model->num_cols);
 
   for (row = 0; row < logvis->model->num_rows; row++) {
     vt_line_t *line;

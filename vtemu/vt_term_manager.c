@@ -137,6 +137,9 @@ static void sig_child(void *p, pid_t pid) {
   for (count = 0; count < num_terms; count++) {
     if (pid == vt_term_get_child_pid(terms[count])) {
       u_int idx;
+#ifdef __HAIKU__
+      int fd;
+#endif
 
 #ifdef DEBUG
       bl_debug_printf(BL_DEBUG_TAG " pty %d is dead.\n", count);
@@ -144,6 +147,14 @@ static void sig_child(void *p, pid_t pid) {
 
       idx = count / MTU;
       dead_mask[idx] |= (1 << (count - MTU * idx));
+
+#ifdef __HAIKU__
+      /* XXX select() in ui_event_source.c might not recognize closing pty. */
+      if ((fd = vt_term_get_slave_fd(terms[count])) >= 0) {
+        write(fd, "\xff", 1); /* XXX not async signal safe */
+        /* fsync(fd); */
+      }
+#endif
     }
   }
 }
@@ -216,7 +227,7 @@ void vt_term_manager_final(void) {
   free(auto_restart_cmd);
 }
 
-void vt_set_auto_restart_cmd(char *cmd) {
+void vt_set_auto_restart_cmd(const char *cmd) {
 #if !defined(USE_WIN32API) && !defined(DEBUG)
   char *env;
 
@@ -272,6 +283,7 @@ vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int t
                           int ignore_broadcasted_chars) {
 #if !defined(USE_WIN32API) && !defined(DEBUG)
   char *list;
+  char *list_tmp;
 #endif
 
   if (num_terms == MAX_TERMS) {
@@ -279,12 +291,13 @@ vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int t
   }
 
 #if !defined(USE_WIN32API) && !defined(DEBUG)
-  if ((list = getenv("INHERIT_PTY_LIST")) && (list = bl_str_alloca_dup(list))) {
+  if ((list_tmp = getenv("INHERIT_PTY_LIST")) && (list = alloca(strlen(list_tmp) + 1))) {
     int master;
     int slave;
     pid_t child_pid;
     char *p;
 
+    strcpy(list, list_tmp);
     while ((p = bl_str_sep(&list, ","))) {
       vt_pty_ptr_t pty;
 

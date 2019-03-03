@@ -2,9 +2,9 @@
 
 #include "../ui_xic.h"
 
+#include <string.h> /* strlen */
 #include <X11/Xutil.h> /* X{mb|utf8}LookupString */
 #include <pobl/bl_debug.h>
-#include <pobl/bl_str.h>    /* bl_str_alloca_dup */
 #include <pobl/bl_mem.h>    /* malloc */
 #include <pobl/bl_locale.h> /* bl_get_locale */
 #include <mef/ef_utf8_parser.h>
@@ -56,7 +56,10 @@ static XFontSet load_fontset(ui_window_t *win) {
   char *cur_locale;
   XFontSet fontset;
 
-  cur_locale = bl_str_alloca_dup(bl_get_locale());
+  if ((cur_locale = alloca(strlen(bl_get_locale()) + 1))) {
+    strcpy(cur_locale, bl_get_locale());
+  }
+
   if (bl_locale_init(ui_get_xim_locale(win))) {
     if (!HAS_XIM_LISTENER(win, get_fontset)) {
       return NULL;
@@ -65,7 +68,9 @@ static XFontSet load_fontset(ui_window_t *win) {
     fontset = (*win->xim_listener->get_fontset)(win->xim_listener->self);
 
     /* restoring */
-    bl_locale_init(cur_locale);
+    if (cur_locale) {
+      bl_locale_init(cur_locale);
+    }
   } else {
     fontset = NULL;
   }

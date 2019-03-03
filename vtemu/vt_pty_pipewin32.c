@@ -9,7 +9,6 @@
 #include <stdlib.h> /* putenv/alloca */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h> /* realloc/alloca */
-#include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_pty.h>
 #include <pobl/bl_sig_child.h>
 #include <pobl/bl_path.h>
@@ -524,7 +523,8 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
       char *key;
       char *val;
 
-      if ((key = bl_str_alloca_dup(*env)) && (p = strchr(key, '='))) {
+      if ((key = alloca(strlen(*env) + 1)) &&
+          (p = strchr(strcpy(key, *env), '='))) {
         *p = '\0';
         val = ++p;
         SetEnvironmentVariable(key, val);
@@ -539,8 +539,11 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
 
   if (!cmd_path || /* ! cmd_argv || */
       (strstr(cmd_path, "plink") && cmd_argv[0] && !cmd_argv[1])) {
+    char *p;
+
     if (!(cmd_argv = alloca(sizeof(char*) * 8)) ||
-        !bl_parse_uri(&proto, &user, &host, &port, NULL, NULL, bl_str_alloca_dup(uri))) {
+        !(p = alloca(strlen(uri) + 1)) ||
+        !bl_parse_uri(&proto, &user, &host, &port, NULL, NULL, strcpy(p, uri))) {
       free(pty);
 
       return NULL;
@@ -553,8 +556,6 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
     idx = 0;
     cmd_argv[idx++] = cmd_path;
     if (proto) {
-      char *p;
-
       if ((p = alloca(strlen(proto) + 2))) {
         sprintf(p, "-%s", proto);
         cmd_argv[idx++] = p;

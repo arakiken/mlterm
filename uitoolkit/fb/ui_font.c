@@ -13,7 +13,6 @@
 #include <pobl/bl_mem.h>
 #include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_debug.h>
-#include <pobl/bl_str.h>    /* strdup */
 #include <pobl/bl_path.h>   /* bl_basename */
 #include <pobl/bl_conf_io.h>/* bl_get_user_rc_path */
 #include <pobl/bl_util.h>   /* TOINT32 */
@@ -1446,7 +1445,11 @@ static FcPattern *parse_font_name(const char *fontname, int *is_bold, int *is_it
   if (!fontname) {
     family = NULL;
   } else {
-    parse_fc_font_name(&family, is_bold, is_italic, percent, bl_str_alloca_dup(fontname));
+    char *p;
+
+    if ((p = alloca(strlen(fontname) + 1))) {
+      parse_fc_font_name(&family, is_bold, is_italic, percent, strcpy(p, fontname));
+    }
   }
 
   if ((pattern = fc_pattern_create(family))) {
@@ -1796,7 +1799,10 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
       return NULL;
     }
 
-    font_file = bl_str_alloca_dup(val.u.s);
+    if ((font_file = alloca(strlen(val.u.s) + 1))) {
+      strcpy(font_file, val.u.s);
+    }
+
     FcPatternDestroy(pattern);
   } else
 #endif
@@ -1862,9 +1868,13 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
         while ((entry = readdir(dir))) {
           if (strcasestr(entry->d_name, ".tt")) {
             if (cand == NULL) {
-              cand = bl_str_alloca_dup(entry->d_name);
+              if ((cand = alloca(strlen(entry->d_name) + 1))) {
+                strcpy(cand, entry->d_name);
+              }
             } else if (strcasestr(entry->d_name, "Mono")) {
-              cand = bl_str_alloca_dup(entry->d_name);
+              if ((cand = alloca(strlen(entry->d_name) + 1))) {
+                strcpy(cand, entry->d_name);
+              }
               break;
             }
           }
@@ -1901,9 +1911,10 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   } else {
     char *percent_str;
 
-    if (!(percent_str = bl_str_alloca_dup(fontname))) {
+    if (!(percent_str = alloca(strlen(fontname) + 1))) {
       return NULL;
     }
+    strcpy(percent_str, fontname);
 
 #ifdef USE_WIN32API
     if (percent_str[0] != '\0' && percent_str[1] == ':') {

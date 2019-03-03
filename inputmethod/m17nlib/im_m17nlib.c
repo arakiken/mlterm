@@ -34,7 +34,7 @@
  */
 
 #include <pobl/bl_mem.h>    /* malloc/alloca/free */
-#include <pobl/bl_str.h>    /* bl_str_alloca_dup bl_snprintf bl_str_sep*/
+#include <pobl/bl_str.h>    /* strdup/bl_snprintf/bl_str_sep */
 #include <pobl/bl_locale.h> /* bl_get_lang */
 
 #include <m17n.h>
@@ -382,14 +382,14 @@ static MInputMethod *find_input_method(char *param) {
   int num_ims;
   int i;
 
-  if (param) {
-    lang = bl_str_alloca_dup(param);
+  if (param && (lang = alloca(strlen(param) + 1))) {
+    strcpy(lang, param);
     if (strstr(lang, ":")) {
       im_name = lang;
       lang = bl_str_sep(&im_name, ":");
     }
 
-    if (lang && strcmp(lang, "") == 0) {
+    if (strcmp(lang, "") == 0) {
       lang = NULL;
     }
 
@@ -984,7 +984,10 @@ ui_im_t *im_m17nlib_new(u_int64_t magic, vt_char_encoding_t term_encoding,
      * Workaround against make_locale() of m17nlib.
      */
     char *cur_locale;
-    cur_locale = bl_str_alloca_dup(bl_get_locale());
+
+    if ((cur_locale = alloca(strlen(bl_get_locale()) + 1))) {
+      strcpy(cur_locale, bl_get_locale());
+    }
 #endif
 
     M17N_INIT();

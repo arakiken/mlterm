@@ -55,7 +55,7 @@
 #include <string.h>    /* strncmp */
 #include <dirent.h>
 #include <pobl/bl_mem.h>  /* malloc/alloca/free */
-#include <pobl/bl_str.h>  /* bl_str_sep bl_str_alloca_dup bl_snprintf*/
+#include <pobl/bl_str.h>  /* bl_str_sep/strdup/bl_snprintf */
 #include <pobl/bl_locale.h> /* bl_get_lang */
 #include <pobl/bl_debug.h>
 #include <mef/ef_utf16_parser.h>
@@ -100,8 +100,8 @@ static IIIMCF_language find_language(char *  lang) {
   int num;
   int i;
 
-  if (lang) {
-    p = bl_str_alloca_dup(lang);
+  if (lang && (p = alloca(strlen(lang) + 1))) {
+    strcpy(p, lang);
 
     if ((country = bl_str_sep(&p, ":"))) {
       p = country; /* hold for free() */

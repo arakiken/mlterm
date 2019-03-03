@@ -21,19 +21,6 @@ void vt_str_init(vt_char_t *str, u_int size) {
   }
 }
 
-vt_char_t* __vt_str_init(vt_char_t *str, /* alloca()-ed memory (see vt_char.h) */
-                         u_int size) {
-  if (str == NULL) {
-    /* alloca() failed. */
-
-    return NULL;
-  }
-
-  vt_str_init(str, size);
-
-  return str;
-}
-
 vt_char_t *vt_str_new(u_int size) {
   vt_char_t *str;
 

@@ -473,13 +473,13 @@ int bl_pty_close(int master) {
 
       if (n_write(pty_helper_tunnel, &ops, sizeof(ops)) != sizeof(ops) ||
           n_write(pty_helper_tunnel, &tag, sizeof(tag)) != sizeof(tag)) {
-        return 0;
+        return -1;
       }
 
       ops = GNOME_PTY_SYNCH;
 
       if (n_write(pty_helper_tunnel, &ops, sizeof(ops)) != sizeof(ops)) {
-        return 0;
+        return -1;
       }
 
 #if 0
@@ -489,13 +489,11 @@ int bl_pty_close(int master) {
 
       pty_helper_tags[count] = pty_helper_tags[--num_pty_helper_tags];
 
-      return 1;
+      return 0;
     }
   }
 
-  close(master);
-
-  return 0;
+  return close(master);
 }
 
 void bl_pty_helper_set_flag(int lastlog, int utmp, int wtmp) {

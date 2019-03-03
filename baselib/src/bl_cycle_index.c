@@ -34,31 +34,28 @@ bl_cycle_index_t *bl_cycle_index_new(u_int size) {
   return cycle;
 }
 
-int bl_cycle_index_destroy(bl_cycle_index_t *cycle) {
+void bl_cycle_index_destroy(bl_cycle_index_t *cycle) {
   free(cycle);
-
-  return 1;
 }
 
-int bl_cycle_index_reset(bl_cycle_index_t *cycle) {
+void bl_cycle_index_reset(bl_cycle_index_t *cycle) {
   cycle->start = 0;
   cycle->next = 0;
   cycle->is_init = 1;
-
-  return 1;
 }
 
 /*
  * !! Notice !!
  * this resets the "start" member 0.
  */
-int bl_cycle_index_change_size(bl_cycle_index_t *cycle, u_int new_size) {
+void bl_cycle_index_change_size(bl_cycle_index_t *cycle, u_int new_size) {
   u_int filled;
 
   if ((filled = bl_get_filled_cycle_index(cycle)) == 0) {
     cycle->size = new_size;
+    bl_cycle_index_reset(cycle);
 
-    return bl_cycle_index_reset(cycle);
+    return;
   }
 
   cycle->size = new_size;
@@ -69,8 +66,6 @@ int bl_cycle_index_change_size(bl_cycle_index_t *cycle, u_int new_size) {
   } else {
     cycle->next = filled;
   }
-
-  return 1;
 }
 
 u_int bl_get_cycle_index_size(bl_cycle_index_t *cycle) { return cycle->size; }

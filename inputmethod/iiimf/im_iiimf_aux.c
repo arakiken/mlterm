@@ -59,7 +59,7 @@
 #include <fcntl.h>
 #include <pobl/bl_unistd.h>
 #include <pobl/bl_mem.h> /* malloc/alloca/free */
-#include <pobl/bl_str.h> /* bl_snprintf/bl_str_alloca_dup/bl_str_sep*/
+#include <pobl/bl_str.h> /* bl_snprintf/strdup/bl_str_sep */
 #include <pobl/bl_dlfcn.h> /* bl_dl_open() */
 #include <pobl/bl_file.h>
 #include <pobl/bl_slist.h>
@@ -266,7 +266,8 @@ static aux_module_t *load_module(char *file_name) {
   /*
    * TODO: bl_dirname()
    */
-  if (!(dirname = bl_str_alloca_dup(file_name)) || !(basename = strrchr(dirname, '/'))) {
+  if (!(dirname = alloca(strlen(file_name) + 1)) ||
+      !(basename = strrchr(strcpy(dirname, filename), '/'))) {
     return NULL;
   }
 

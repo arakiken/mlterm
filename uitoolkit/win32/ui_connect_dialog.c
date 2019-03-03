@@ -166,6 +166,7 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
 #endif
 
       if (default_server) {
+        char *default_server_dup;
         char *user;
         int proto;
         char *server;
@@ -179,7 +180,9 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
         }
 #endif
 
-        if (parse(&proto, &user, &server, &port, &encoding, bl_str_alloca_dup(default_server))) {
+        if ((default_server_dup = alloca(strlen(default_server) + 1)) &&
+            parse(&proto, &user, &server, &port, &encoding,
+                  strcpy(default_server_dup, default_server))) {
           SetWindowText(GetDlgItem(dlgwin, IDD_SERVER), server);
           item = IDD_USER;
 

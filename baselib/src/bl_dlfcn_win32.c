@@ -86,7 +86,7 @@ next_step:
   return NULL;
 }
 
-int bl_dl_close(bl_dl_handle_t handle) { return FreeLibrary((HMODULE)handle); }
+void bl_dl_close(bl_dl_handle_t handle) { FreeLibrary((HMODULE)handle); }
 
 void *bl_dl_func_symbol(bl_dl_handle_t handle, const char *symbol) {
   return GetProcAddress((HMODULE)handle, symbol);

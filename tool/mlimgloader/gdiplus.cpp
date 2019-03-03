@@ -9,14 +9,6 @@ extern "C" {
 #include <pobl/bl_debug.h>
 #include <pobl/bl_conf_io.h> /* bl_get_user_rc_path */
 #include <pobl/bl_mem.h>
-#ifdef BL_DEBUG
-#undef alloca
-#if defined(__GNUC__)
-#define alloca(size) memset(__builtin_alloca(size), 0xff, size)
-#elif defined(HAVE_ALLOCA_H)
-#include <alloca.h>
-#endif
-#endif /* BL_DEBUG */
 #if defined(__CYGWIN__) || defined(__MSYS__)
 #include <pobl/bl_path.h> /* bl_conv_to_win32_path */
 #endif
@@ -32,10 +24,6 @@ extern "C" {
 #define _WIN32_WINNT 0x0502 /* for SetDllDirectory */
 #include <windows.h>
 #include <gdiplus.h>
-
-#ifdef USE_WIN32API
-#include <malloc.h> /* alloca */
-#endif
 
 using namespace Gdiplus;
 
@@ -68,20 +56,7 @@ static void help(void) {
 /* path: cygwin style path on cygwin/msys. win32 style path on win32. */
 static u_int32_t *create_cardinals_from_file(const char *path, u_int width, u_int height,
                                              int keep_aspect) {
-  /* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
-  wchar_t wpath[MAX_PATH];
-#if defined(__CYGWIN__) || defined(__MSYS__)
-  char winpath[MAX_PATH];
-#endif
-  Gdiplus::GdiplusStartupInput startup;
-  ULONG_PTR token;
-  HMODULE module;
-  IBindCtx *ctx;
-  IMoniker *moniker;
-  IStream *stream;
-  Gdiplus::Bitmap *bitmap;
-  u_int32_t *cardinal;
-  u_int32_t *p;
+  u_int32_t *cardinal = NULL;
 
   if (strcasecmp(path + strlen(path) - 4, ".six") == 0 &&
       (cardinal = create_cardinals_from_sixel(path)) &&
@@ -89,21 +64,33 @@ static u_int32_t *create_cardinals_from_file(const char *path, u_int width, u_in
     return cardinal;
   }
 
+  Gdiplus::GdiplusStartupInput startup;
+  ULONG_PTR token;
+
   if (Gdiplus::GdiplusStartup(&token, &startup, NULL) != Gdiplus::Ok) {
     return NULL;
   }
 
+  /* MAX_PATH which is 260 (3+255+1+1) is defined in win32 alone. */
+  wchar_t wpath[MAX_PATH];
+#if defined(__CYGWIN__) || defined(__MSYS__)
+  char winpath[MAX_PATH];
+#endif
+  HMODULE module;
+  IBindCtx *ctx;
+  IMoniker *moniker;
+  IStream *stream;
+  Gdiplus::Bitmap *bitmap;
+
   if (cardinal) {
     /* Resize sixel graphics */
-    Graphics *graphics;
-
     Gdiplus::Bitmap src(cardinal[0], cardinal[1], cardinal[0] * 4,
                         PixelFormat32bppARGB, (BYTE*)(cardinal + 2));
-
     if (!(bitmap = new Bitmap(width, height, PixelFormat32bppARGB))) {
       goto end1;
     }
 
+    Graphics *graphics;
     if (!(graphics = Graphics::FromImage(bitmap))) {
       delete bitmap;
 
@@ -154,69 +141,61 @@ static u_int32_t *create_cardinals_from_file(const char *path, u_int width, u_in
     }
 #endif
 
-    if (strcmp(path + strlen(path) - 4, ".gif") == 0) {
-      /* Animation GIF */
-      char *dir;
-
+    char *dir;
+    if (strcmp(path + strlen(path) - 4, ".gif") == 0 && /* Animation GIF */
 #if defined(__CYGWIN__) || defined(__MSYS__)
       /* converted to win32 by bl_conv_to_win32_path */
-      if (!strstr(path, "mlterm\\anim") && (dir = bl_get_user_rc_path("mlterm/")))
+        (!strstr(path, "mlterm\\anim") && (dir = bl_get_user_rc_path("mlterm/")))
 #else
-      if (!strstr(path, "mlterm/anim") && (dir = bl_get_user_rc_path("mlterm\\")))
+        (!strstr(path, "mlterm/anim") && (dir = bl_get_user_rc_path("mlterm\\")))
+#endif
+        ) {
+      char new_path[strlen(dir) + 8 + 5 + DIGIT_STR_LEN(int) + 1];
+
+      sprintf(new_path, "%sanim%d.gif", dir, hash);
+
+      FILE *fp;
+      if (stream && (fp = fopen(new_path, "wb"))) {
+        BYTE buf[10240];
+        ULONG rd_len;
+        HRESULT res;
+
+        do {
+          res = stream->Read(buf, sizeof(buf), &rd_len);
+          fwrite(buf, 1, rd_len, fp);
+        } while (res == Gdiplus::Ok);
+
+        fclose(fp);
+
+        stream->Release();
+        ctx->Release();
+        moniker->Release();
+        FreeLibrary(module);
+        stream = NULL;
+
+        path = new_path;
+      }
+
+      split_animation_gif(path, dir, hash);
+      free(dir);
+
+      /* Replace path by the splitted file. */
+#if defined(__CYGWIN__) || defined(__MSYS__)
+      if (bl_conv_to_win32_path(new_path, winpath, sizeof(winpath)) == 0) {
+        path = winpath;
+      } else
 #endif
       {
-        char *new_path;
-
-        if (!(new_path = (char*)alloca(strlen(dir) + 8 + 5 + DIGIT_STR_LEN(int)+1))) {
-          goto end0;
-        }
-
-        sprintf(new_path, "%sanim%d.gif", dir, hash);
-
-        if (stream) {
-          FILE *fp;
-          BYTE buf[10240];
-          ULONG rd_len;
-          HRESULT res;
-
-          if (!(fp = fopen(new_path, "wb"))) {
-            goto end0;
-          }
-
-          do {
-            res = stream->Read(buf, sizeof(buf), &rd_len);
-            fwrite(buf, 1, rd_len, fp);
-          } while (res == Gdiplus::Ok);
-
-          fclose(fp);
-
-          stream->Release();
-          ctx->Release();
-          moniker->Release();
-          FreeLibrary(module);
-          stream = NULL;
-
-          path = new_path;
-        }
-
-        split_animation_gif(path, dir, hash);
-
-#if defined(__CYGWIN__) || defined(__MSYS__)
-        if (bl_conv_to_win32_path(new_path, winpath, sizeof(winpath)) == 0) {
-          new_path = winpath;
-        }
-#endif
-
-        /* Replace path by the splitted file. */
         path = new_path;
-
-      end0:
-        free(dir);
       }
-    }
 
-    if (!stream) {
-      MultiByteToWideChar(CP_UTF8, 0, path, strlen(path) + 1, wpath, MAX_PATH);
+      if (!stream) {
+        MultiByteToWideChar(CP_UTF8, 0, path, strlen(path) + 1, wpath, MAX_PATH);
+      }
+    } else {
+      if (!stream) {
+        MultiByteToWideChar(CP_UTF8, 0, path, strlen(path) + 1, wpath, MAX_PATH);
+      }
     }
 
     cardinal = NULL;
@@ -228,17 +207,14 @@ static u_int32_t *create_cardinals_from_file(const char *path, u_int width, u_in
       }
     } else {
       Image *image;
-      u_int img_width;
-      u_int img_height;
-      Graphics *graphics;
 
       if ((stream ? !(image = Image::FromStream(stream)) : !(image = Image::FromFile(wpath))) ||
           image->GetLastStatus() != Gdiplus::Ok) {
         goto end2;
       }
 
-      img_width = image->GetWidth();
-      img_height = image->GetHeight();
+      u_int img_width = image->GetWidth();
+      u_int img_height = image->GetHeight();
 
       if (width == 0) {
         width = img_width;;
@@ -266,6 +242,7 @@ static u_int32_t *create_cardinals_from_file(const char *path, u_int width, u_in
         goto end2;
       }
 
+      Graphics *graphics;
       if (!(graphics = Graphics::FromImage(bitmap))) {
         delete image;
 
@@ -288,6 +265,7 @@ static u_int32_t *create_cardinals_from_file(const char *path, u_int width, u_in
   width = bitmap->GetWidth();
   height = bitmap->GetHeight();
 
+  u_int32_t *p;
   if (width > ((SSIZE_MAX / sizeof(*cardinal)) - 2) / height || /* integer overflow */
       !(p = cardinal = (u_int32_t*)malloc((width * height + 2) * sizeof(*cardinal)))) {
     goto end3;
@@ -327,33 +305,30 @@ end1:
 
 int PASCAL WinMain(HINSTANCE hinst, HINSTANCE hprev, char *cmdline, int cmdshow) {
   WCHAR **w_argv;
-  char **argv;
   int argc;
-  int count;
-  u_char *cardinal;
-  u_int width;
-  u_int height;
-  ssize_t size;
 
 #if 0
   bl_set_msg_log_file_name("mlterm/msg.log");
 #endif
 
   w_argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-  if (argc == 0 || !(argv = (char**)alloca(sizeof(*argv) * argc))) {
+  if (argc == 0) {
     GlobalFree(w_argv);
 
     return -1;
   }
 
-  for (count = 0; count < argc; count++) {
-    int len;
+  char *argv[argc];
 
-    len = WideCharToMultiByte(CP_UTF8, 0, w_argv[count], wcslen(w_argv[count]) + 1, NULL, 0, NULL,
-                              NULL);
-    if ((argv[count] = (char*)alloca(len))) {
+  for (int count = 0; count < argc; count++) {
+    int len = WideCharToMultiByte(CP_UTF8, 0, w_argv[count], wcslen(w_argv[count]) + 1,
+                                  NULL, 0, NULL, NULL);
+    if ((argv[count] = (char*)malloc(len))) {
       WideCharToMultiByte(CP_UTF8, 0, w_argv[count], wcslen(w_argv[count]) + 1, argv[count], len,
                           NULL, NULL);
+    } else {
+      argc = count;
+      break;
     }
   }
 
@@ -365,7 +340,6 @@ int PASCAL WinMain(HINSTANCE hinst, HINSTANCE hprev, char *cmdline, int cmdshow)
     return -1;
   }
 
-  /* bl_str_alloca_dup() fails by illegal cast from void* to char*. */
   char new_path[strlen(argv[4]) + 1];
 
   if (strstr(argv[4], ".rgs")) {
@@ -375,21 +349,19 @@ int PASCAL WinMain(HINSTANCE hinst, HINSTANCE hprev, char *cmdline, int cmdshow)
     }
   }
 
-  width = atoi(argv[2]);
-  height = atoi(argv[3]);
+  u_int width = atoi(argv[2]);
+  u_int height = atoi(argv[3]);
 
   /*
    * attr.width / attr.height aren't trustworthy because this program can be
    * called before window is actually resized.
    */
 
+  u_char *cardinal;
+  ssize_t size; /* should declare before 'goto' */
   if (!(cardinal = (u_char*)create_cardinals_from_file(argv[4], width, height,
                                                        (argc == 7 &&
                                                         strcmp(argv[6], "-a") == 0)))) {
-#ifdef DEBUG
-    bl_debug_printf(BL_DEBUG_TAG " Failed to load %s\n", argv[4]);
-#endif
-
     goto error;
   }
 
@@ -416,9 +388,12 @@ int PASCAL WinMain(HINSTANCE hinst, HINSTANCE hprev, char *cmdline, int cmdshow)
   bl_debug_printf(BL_DEBUG_TAG " Exit image loader\n");
 #endif
 
+  /* XXX should free(argv[n]) */
+
   return 0;
 
 error:
+  /* XXX should free(argv[n]) */
   bl_error_printf("Couldn't load %s\n", argv[4]);
 
   return -1;

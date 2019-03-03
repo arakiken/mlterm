@@ -12,10 +12,10 @@
  */
 typedef struct bl_arg_opt {
   char opt;
-  char *long_opt;
+  const char *long_opt;
   int is_boolean;
   char *key;
-  char *help;
+  const char *help;
 
 } bl_arg_opt_t;
 
@@ -41,24 +41,25 @@ typedef struct bl_conf {
 
 } bl_conf_t;
 
-int bl_init_prog(char *path, char *version);
+void bl_init_prog(const char *path, const char *version);
 
-char *bl_get_prog_path(void);
+const char *bl_get_prog_path(void);
 
 bl_conf_t *bl_conf_new(void);
 
-int bl_conf_destroy(bl_conf_t *conf);
+void bl_conf_destroy(bl_conf_t *conf);
 
-int bl_conf_add_opt(bl_conf_t *conf, char short_opt, char *long_opt, int is_boolean, char *key,
-                    char *help);
+int bl_conf_add_opt(bl_conf_t *conf, char short_opt, const char *long_opt, int is_boolean,
+                    char *key, const char *help);
 
-int bl_conf_set_end_opt(bl_conf_t *conf, char opt, char *long_opt, char *key, char *help);
+int bl_conf_set_end_opt(bl_conf_t *conf, char opt, const char *long_opt, char *key,
+                        const char *help);
 
 int bl_conf_parse_args(bl_conf_t *conf, int *argc, char ***argv, int ignore_unknown_opt);
 
-int bl_conf_write(bl_conf_t *conf, char *filename);
+int bl_conf_write(bl_conf_t *conf, const char *filename);
 
-int bl_conf_read(bl_conf_t *conf, char *filename);
+int bl_conf_read(bl_conf_t *conf, const char *filename);
 
 char *bl_conf_get_value(bl_conf_t *conf, char *key);
 

@@ -12,7 +12,7 @@
 #include <sys/wait.h> /* waitpid */
 #include <pwd.h>      /* getpwuid */
 #include <pobl/bl_sig_child.h>
-#include <pobl/bl_str.h> /* bl_alloca_dup */
+#include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_mem.h>
 #include <pobl/bl_path.h>
 #include <pobl/bl_debug.h>
@@ -1694,9 +1694,9 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
   XSynchronize(gdk_x11_display_get_xdisplay(gdk_display_get_default()), True);
 #endif
 
-/* bl_sig_child_init() calls signal(3) internally. */
+/* bl_sig_child_start() calls signal(3) internally. */
 #if 0
-  bl_sig_child_init();
+  bl_sig_child_start();
 #endif
 
   bl_priv_change_euid(bl_getuid());
@@ -3511,10 +3511,8 @@ void vte_terminal_set_word_char_exceptions(VteTerminal *terminal, const char *ex
     return;
   }
 
-  seps = bl_str_alloca_dup(vt_get_word_separators());
-
-  if (seps) {
-    char *p = seps;
+  if ((seps = alloca(strlen(vt_get_word_separators()) + 1))) {
+    char *p = strcpy(seps, vt_get_word_separators());
     char *end = seps + strlen(seps) - 1;
     int do_replace = 0;
 

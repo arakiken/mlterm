@@ -13,10 +13,10 @@
 #endif
 
 #include <pobl/bl_debug.h>
-#include <pobl/bl_str.h>  /* bl_str_sep/bl_str_to_int/bl_str_alloca_dup/strdup */
+#include <pobl/bl_str.h>  /* bl_str_sep/bl_str_to_int/strdup */
 #include <pobl/bl_path.h> /* bl_basename */
 #include <pobl/bl_util.h> /* DIGIT_STR_LEN */
-#include <pobl/bl_mem.h>  /* alloca/bl_alloca_garbage_collect/malloc/free */
+#include <pobl/bl_mem.h>  /* alloca/malloc/free */
 #include <pobl/bl_conf.h>
 #include <pobl/bl_conf_io.h>
 #include <pobl/bl_types.h> /* u_int */
@@ -206,6 +206,8 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
 
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
   if (show_dialog || main_config.default_server) {
+    char *default_server_dup;
+    char *uri_dup;
     char *user;
     char *host;
     char *port;
@@ -218,8 +220,9 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
 
 #ifdef USE_LIBSSH2
     if (!show_dialog && main_config.default_server &&
+        (default_server_dup = alloca(strlen(main_config.default_server) + 1)) &&
         bl_parse_uri(NULL, &user, &host, &port, NULL, &encoding,
-                     bl_str_alloca_dup(main_config.default_server)) &&
+                     strcpy(default_server_dup, main_config.default_server)) &&
         (session = vt_search_ssh_session(host, port, user))) {
       uri = strdup(main_config.default_server);
       pass = strdup("");
@@ -235,12 +238,15 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
       if (vt_get_all_terms(NULL) > 1) {
         return 0;
       }
-    } else {
-      bl_parse_uri(NULL, &user, &host, &port, NULL, &encoding, bl_str_alloca_dup(uri));
+    } else if ((uri_dup = alloca(strlen(uri) + 1))) {
+      bl_parse_uri(NULL, &user, &host, &port, NULL, &encoding, strcpy(uri_dup, uri));
 
 #ifdef USE_LIBSSH2
       vt_pty_ssh_set_use_x11_forwarding(vt_search_ssh_session(host, port, user), x11_fwd);
 #endif
+    } else {
+      /* XXX Not recovering error. */
+      return 0;
     }
 
 #ifdef __DEBUG
@@ -267,15 +273,21 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
     }
 
     if (exec_cmd) {
-      int argc;
-      char *tmp;
+      char *tmp = exec_cmd;
 
-      tmp = exec_cmd;
-      exec_cmd = bl_str_alloca_dup(exec_cmd);
-      cmd_argv = bl_arg_str_to_array(&argc, exec_cmd);
-      cmd_path = cmd_argv[0];
-
+      if ((exec_cmd = alloca(strlen(exec_cmd) + 1))) {
+        strcpy(exec_cmd, tmp);
+      }
       free(tmp);
+
+      if ((tmp = bl_argv_alloca(exec_cmd))) {
+        int argc;
+
+        if (bl_arg_str_to_array((char**)tmp, &argc, exec_cmd)) {
+          cmd_argv = (char**)tmp;
+          cmd_path = cmd_argv[0];
+        }
+      }
     }
   }
 #endif
@@ -731,7 +743,6 @@ static void __exit(void *p, int status) {
 
   bl_msg_printf("reporting unfreed memories --->\n");
 
-  bl_alloca_garbage_collect();
   bl_mem_free_all();
 
   bl_dl_close_all();
@@ -752,6 +763,7 @@ static void open_pty(void *p, ui_screen_t *screen, char *dev) {
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
     char *default_server;
     char *new_cmd_line;
+    char *new_cmd_line_dup;
     char *cmd_path;
     char **cmd_argv;
 #endif
@@ -773,14 +785,19 @@ static void open_pty(void *p, ui_screen_t *screen, char *dev) {
     }
 
     if ((new_cmd_line = vt_term_get_cmd_line(screen->term)) &&
-        (new_cmd_line = bl_str_alloca_dup(new_cmd_line))) {
+        (new_cmd_line_dup = alloca(strlen(new_cmd_line) + 1))) {
       int argc;
 
       cmd_path = main_config.cmd_path;
       cmd_argv = main_config.cmd_argv;
 
-      main_config.cmd_argv = bl_arg_str_to_array(&argc, new_cmd_line);
-      main_config.cmd_path = main_config.cmd_argv[0];
+      if ((main_config.cmd_argv = bl_argv_alloca(new_cmd_line)) &&
+          bl_arg_str_to_array(main_config.cmd_argv, &argc,
+                              strcpy(new_cmd_line_dup, new_cmd_line))) {
+        main_config.cmd_path = main_config.cmd_argv[0];
+      } else {
+        main_config.cmd_argv = cmd_argv;
+      }
     }
 #endif
 
@@ -923,6 +940,7 @@ static void open_cloned_screen(ui_screen_t *cur_screen, ui_layout_t *layout, int
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
   char *default_server;
   char *new_cmd_line;
+  char *new_cmd_line_dup;
   char *cmd_path;
   char **cmd_argv;
 #endif
@@ -936,14 +954,19 @@ static void open_cloned_screen(ui_screen_t *cur_screen, ui_layout_t *layout, int
   }
 
   if ((new_cmd_line = vt_term_get_cmd_line(cur_screen->term)) &&
-      (new_cmd_line = bl_str_alloca_dup(new_cmd_line))) {
+      (new_cmd_line_dup = alloca(strlen(new_cmd_line) + 1))) {
     int argc;
 
     cmd_path = main_config.cmd_path;
     cmd_argv = main_config.cmd_argv;
 
-    main_config.cmd_argv = bl_arg_str_to_array(&argc, new_cmd_line);
-    main_config.cmd_path = main_config.cmd_argv[0];
+    if ((main_config.cmd_argv = bl_argv_alloca(new_cmd_line)) &&
+        bl_arg_str_to_array(main_config.cmd_argv, &argc,
+                            strcpy(new_cmd_line_dup, new_cmd_line))) {
+      main_config.cmd_path = main_config.cmd_argv[0];
+    } else {
+      main_config.cmd_argv = cmd_argv;
+    }
   }
 #endif
 
@@ -1012,8 +1035,18 @@ static int close_screen(void *p, ui_screen_t *screen, /* Screen which triggers t
     bl_debug_printf(BL_DEBUG_TAG " screen %p is registered to be closed.\n", screen);
 #endif
 
+#ifdef USE_BEOS
+    /*
+     * Don't use ui_close_dead_screens().
+     * It doesn't clear dead_mask because BWindow::Quit() called from
+     * close_screen_intern() exists the current thread.
+     */
+    screens[count] = screens[--num_screens];
+    close_screen_intern(screen);
+#else
     idx = count / MSU; /* count / 8 */
     dead_mask[idx] |= (1 << (count - MSU * idx));
+#endif
 
     break;
   }
@@ -1051,7 +1084,9 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
   char **argv;
   int argc;
 
-  argv = bl_arg_str_to_array(&argc, args);
+  if (!(argv = bl_argv_alloca(args)) || !bl_arg_str_to_array(argv, &argc, args)) {
+    return 0;
+  }
 
 #ifdef __DEBUG
   {
@@ -1128,16 +1163,18 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
     }
 
     if (screen && UI_SCREEN_TO_LAYOUT(screen)) {
-      if ((sep = bl_conf_get_value(conf, "hsep"))) {
+      char *p;
+
+      if ((p = bl_conf_get_value(conf, "hsep"))) {
         horizontal = 1;
-      }
-      else if ((sep = bl_conf_get_value(conf, "vsep"))) {
+      } else if ((p = bl_conf_get_value(conf, "vsep"))) {
         horizontal = 0;
-      }
-      else {
+      } else {
         goto end_check_sep;
       }
-      sep = bl_str_alloca_dup(sep);
+      if ((sep = alloca(strlen(p) + 1))) {
+        strcpy(sep, p);
+      }
     } else {
       sep = NULL;
     }

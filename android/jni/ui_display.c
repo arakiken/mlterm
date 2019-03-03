@@ -4,13 +4,13 @@
 
 #include <unistd.h> /* STDIN_FILENO */
 #include <stdlib.h> /* getenv */
+#include <string.h> /* strlen/strcpy */
 #include <linux/kd.h>
 #include <linux/keyboard.h>
 
 #include <pobl/bl_debug.h>
 #include <pobl/bl_conf_io.h>
 #include <pobl/bl_mem.h>
-#include <pobl/bl_str.h> /* bl_str_alloca_dup */
 #include <pobl/bl_path.h>
 #include <pobl/bl_dialog.h>
 
@@ -1009,6 +1009,7 @@ void ui_display_send_text_selection(u_char *sel_data, size_t sel_len) {
 }
 
 void ui_display_show_dialog(char *server, char *privkey) {
+  char *server_dup;
   char *user;
   char *host;
   char *port;
@@ -1021,7 +1022,8 @@ void ui_display_show_dialog(char *server, char *privkey) {
   }
 
   if (server == NULL ||
-      !bl_parse_uri(NULL, &user, &host, &port, NULL, &encoding, bl_str_alloca_dup(server))) {
+      !(server_dup = alloca(strlen(server) + 1)) ||
+      !bl_parse_uri(NULL, &user, &host, &port, NULL, &encoding, strcpy(server_dup, server))) {
     user = host = port = encoding = NULL;
   }
 

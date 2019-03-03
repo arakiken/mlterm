@@ -4,6 +4,7 @@
 
 #include <stdio.h> /* NULL */
 #include <string.h>
+#include <stdlib.h> /* getenv */
 #include <ctype.h> /* isdigit */
 #if defined(__ANDROID__)
 #include <sys/stat.h>
@@ -12,7 +13,6 @@
 #include <windows.h> /* IsDBCSLeadByte */
 #endif
 
-#include "bl_str.h" /* bl_str_alloca_dup */
 #include "bl_debug.h"
 
 #if 0
@@ -76,9 +76,10 @@ int bl_path_cleanname(char *cleaned_path, size_t size, const char *path) {
     return 0;
   }
 
-  if ((src = bl_str_alloca_dup(path)) == NULL) {
+  if ((src = alloca(strlen(path) + 1)) == NULL) {
     return 0;
   }
+  strcpy(src, path);
 
   dst = cleaned_path;
   left = size;
@@ -161,18 +162,10 @@ int bl_parse_uri(char **proto, /* proto can be NULL. If seq doesn't have proto, 
                  char **port,  /* port can be NULL. If seq doesn't have port, NULL is set. */
                  char **path,  /* path can be NULL. If seq doesn't have path, NULL is set. */
                  char **aux,   /* aux can be NULL. If seq doesn't have aux string, NULL is set. */
-                 char *seq     /* broken in this function. If NULL, return 0. */
+                 char *seq     /* broken in this function. */
                  ) {
   char *p;
   size_t len;
-
-  /*
-   * This hack enables the way of calling this function like
-   * 'bl_parse_uri( ... , bl_str_alloca_dup( "string"))'
-   */
-  if (!seq) {
-    return 0;
-  }
 
   len = strlen(seq);
   p = NULL;

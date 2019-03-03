@@ -20,10 +20,8 @@ static const char *sysconfdir;
 
 /* --- global functions --- */
 
-int bl_set_sys_conf_dir(const char *dir) {
+void bl_set_sys_conf_dir(const char *dir) {
   sysconfdir = dir;
-
-  return 1;
 }
 
 char *bl_get_sys_rc_path(const char *rcfile) {
@@ -146,7 +144,7 @@ bl_conf_write_t *bl_conf_write_open(char *name /* can break in this function. */
   return conf;
 
 error : {
-  int count;
+  u_int count;
 
   for (count = 0; count < conf->num; count++) {
     free(conf->lines[count]);
@@ -160,7 +158,7 @@ error : {
 }
 
 int bl_conf_io_write(bl_conf_write_t *conf, const char *key, const char *val) {
-  int count;
+  u_int count;
   char *p;
 
   if (key == NULL) {
@@ -217,8 +215,8 @@ int bl_conf_io_write(bl_conf_write_t *conf, const char *key, const char *val) {
   return 1;
 }
 
-int bl_conf_write_close(bl_conf_write_t *conf) {
-  int count;
+void bl_conf_write_close(bl_conf_write_t *conf) {
+  u_int count;
 
   for (count = 0; count < conf->num; count++) {
     fprintf(conf->to, "%s\n", conf->lines[count]);
@@ -231,8 +229,6 @@ int bl_conf_write_close(bl_conf_write_t *conf) {
 
   free(conf->lines);
   free(conf);
-
-  return 1;
 }
 
 int bl_conf_io_read(bl_file_t *from, char **key, char **val) {

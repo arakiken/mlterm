@@ -100,11 +100,11 @@ error:
   return NULL;
 }
 
-int bl_dl_close(bl_dl_handle_t handle) {
+void bl_dl_close(bl_dl_handle_t handle) {
   loaded_module_t *module;
 
   if (!module_list) {
-    return 1;
+    return;
   }
 
   module = module_list;
@@ -113,7 +113,7 @@ int bl_dl_close(bl_dl_handle_t handle) {
       module->ref_count--;
 
       if (module->ref_count) {
-        return 0;
+        return;
       }
 
       break;
@@ -126,15 +126,13 @@ int bl_dl_close(bl_dl_handle_t handle) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " NSUnLinkModule() failed.\n");
 #endif
-    return 1;
+    return;
   }
 
   bl_slist_remove(module_list, module);
   free(module->dirpath);
   free(module->name);
   free(module);
-
-  return 0;
 }
 
 void *bl_dl_func_symbol(bl_dl_handle_t unused, const char *symbol) {

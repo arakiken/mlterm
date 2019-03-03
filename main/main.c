@@ -38,7 +38,6 @@ static char *dummy_argv[] = {"mlterm", NULL};
 #include <stdio.h> /* sprintf */
 #include <sys/utsname.h>
 
-#include <pobl/bl_str.h>
 #include <pobl/bl_util.h>
 
 static void check_console(void) {
@@ -52,10 +51,10 @@ static void check_console(void) {
     struct utsname name;
     char *rel;
 
-    if (uname(&name) == 0 && (rel = bl_str_alloca_dup(name.release))) {
+    if (uname(&name) == 0 && (rel = alloca(strlen(name.release) + 1))) {
       char *p;
 
-      if ((p = strchr(rel, '.'))) {
+      if ((p = strchr(strcpy(rel, name.release), '.'))) {
         int major;
         int minor;
 

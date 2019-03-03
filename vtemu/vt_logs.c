@@ -165,9 +165,7 @@ int vt_change_log_size(vt_logs_t *logs, u_int new_num_rows) {
   }
 
   if (logs->index) {
-    if (!bl_cycle_index_change_size(logs->index, new_num_rows)) {
-      return 0;
-    }
+    bl_cycle_index_change_size(logs->index, new_num_rows);
   } else {
     if ((logs->index = bl_cycle_index_new(new_num_rows)) == NULL) {
       return 0;

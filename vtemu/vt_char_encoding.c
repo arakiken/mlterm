@@ -4,7 +4,7 @@
 
 #include <stdio.h> /* sscanf */
 
-#include <pobl/bl_str.h> /* bl_str_alloca_dup */
+#include <pobl/bl_str.h> /* bl_str_sep */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>    /* alloca */
 #include <pobl/bl_locale.h> /* bl_get_codeset */
@@ -457,13 +457,11 @@ vt_char_encoding_t vt_get_char_encoding(const char *name /* '_' and '-' are igno
   /*
    * duplicating name so as not to destroy its memory.
    */
-  if ((_name = bl_str_alloca_dup(name)) == NULL || (encoding = alloca(strlen(name) + 1)) == NULL) {
-#ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " alloca() failed.\n");
-#endif
-
+  if ((_name = alloca(strlen(name) + 1)) == NULL ||
+      (encoding = alloca(strlen(name) + 1)) == NULL) {
     return VT_UNKNOWN_ENCODING;
   }
+  strcpy(_name, name);
   encoding[0] = '\0';
 
   /*

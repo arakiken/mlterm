@@ -12,7 +12,7 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_sig_child.h>
 #include <pobl/bl_mem.h> /* alloca */
-#include <pobl/bl_str.h> /* bl_str_alloca_dup */
+#include <pobl/bl_str.h> /* bl_str_to_uint */
 #include <pobl/bl_conf.h>
 #include <pobl/bl_conf_io.h>
 #include <pobl/bl_path.h>   /* bl_basename */
@@ -94,7 +94,7 @@ vt_term_t *mlterm_open(char *host, char *pass, int cols, int rows, u_int log_siz
     bl_init_prog("mlterm", "3.8.7");
     bl_set_sys_conf_dir(CONFIG_PATH);
     bl_locale_init("");
-    bl_sig_child_init();
+    bl_sig_child_start();
     vt_term_manager_init(1);
     vt_color_config_init();
 

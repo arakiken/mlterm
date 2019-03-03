@@ -676,15 +676,12 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   } else if (fontname) {
     char *p;
 
-    if ((p = bl_str_alloca_dup(fontname)) == NULL) {
-#ifdef DEBUG
-      bl_warn_printf(BL_DEBUG_TAG " alloca() failed.\n");
-#endif
-
+    if ((p = alloca(strlen(fontname) + 1)) == NULL) {
       free(font);
 
       return NULL;
     }
+    strcpy(p, fontname);
 
     parse_font_name(&font_family, &weight, &is_italic, &fontsize_d, &percent, p);
   } else {

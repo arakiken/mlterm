@@ -5,13 +5,11 @@
 
 #include "bl_types.h" /* pid_t */
 
-int bl_sig_child_init(void);
+void bl_sig_child_start(void);
 
-int bl_sig_child_final(void);
+void bl_sig_child_stop(void);
 
-int bl_sig_child_suspend(void);
-
-int bl_sig_child_resume(void);
+void bl_sig_child_final(void);
 
 int bl_add_sig_child_listener(void *self, void (*exited)(void *, pid_t));
 

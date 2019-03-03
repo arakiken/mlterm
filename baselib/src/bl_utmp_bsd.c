@@ -226,7 +226,7 @@ error:
   return NULL;
 }
 
-int bl_utmp_destroy(bl_utmp_t utmp) {
+void bl_utmp_destroy(bl_utmp_t utmp) {
   struct utmp ut;
 
   bl_priv_restore_euid();
@@ -247,6 +247,4 @@ int bl_utmp_destroy(bl_utmp_t utmp) {
   bl_priv_change_egid(getgid());
 
   free(utmp);
-
-  return 1;
 }

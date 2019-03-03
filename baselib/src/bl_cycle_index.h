@@ -16,11 +16,11 @@ typedef struct bl_cycle_index {
 
 bl_cycle_index_t *bl_cycle_index_new(u_int size);
 
-int bl_cycle_index_destroy(bl_cycle_index_t *cycle);
+void bl_cycle_index_destroy(bl_cycle_index_t *cycle);
 
-int bl_cycle_index_reset(bl_cycle_index_t *cycle);
+void bl_cycle_index_reset(bl_cycle_index_t *cycle);
 
-int bl_cycle_index_change_size(bl_cycle_index_t *cycle, u_int new_size);
+void bl_cycle_index_change_size(bl_cycle_index_t *cycle, u_int new_size);
 
 u_int bl_get_cycle_index_size(bl_cycle_index_t *cycle);
 

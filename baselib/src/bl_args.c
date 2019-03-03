@@ -23,8 +23,8 @@
  *  "--" cancels parsing options.
  *
  * !! NOTICE !!
- * after bl_parse_options() , argv points to an argument next to a successfully
- *parsed one.
+ * after bl_parse_options(), argv points to an argument next to a successfully
+ * parsed one.
  */
 
 int bl_parse_options(char **opt, char **opt_val, int *argc, char ***argv) {
@@ -68,7 +68,7 @@ int bl_parse_options(char **opt, char **opt_val, int *argc, char ***argv) {
   return 1;
 }
 
-char **_bl_arg_str_to_array(char **argv, int *argc, char *args) {
+int bl_arg_str_to_array(char **argv, int *argc, char *args) {
   char *args_dup;
   char *p;
 
@@ -78,9 +78,10 @@ char **_bl_arg_str_to_array(char **argv, int *argc, char *args) {
 
   *argc = 0;
   args_dup = args;
-  if ((args = bl_str_alloca_dup(args)) == NULL) {
-    return NULL;
+  if ((args = alloca(strlen(args) + 1)) == NULL) {
+    return 0;
   }
+  strcpy(args, args_dup);
 
   p = args_dup;
 
@@ -134,7 +135,7 @@ parse_end:
   /* NULL terminator (POSIX exec family style) */
   argv[*argc] = NULL;
 
-  return argv;
+  return 1;
 }
 
 #ifdef __DEBUG
@@ -148,7 +149,8 @@ int main(void) {
   char *argv_correct[] = {"mlclient", "-l", "hoge fuga \" ", " a b c ", "\'", "\"", "a b", "a\\ b"};
   int count;
 
-  argv = bl_arg_str_to_array(&argc, args);
+  argv = bl_argv_alloca(args);
+  bl_arg_str_to_array(argv, &argc, args);
 
   printf("%d\n", argc);
   for (count = 0; count < argc; count++) {
