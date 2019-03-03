@@ -390,9 +390,9 @@ int cocoa_dialog_alert(const char *msg);
     uiwindow = uiwindow_for_mlterm_view;
   } else {
     if (global_args) {
-      char *args = bl_str_alloca_dup(global_args);
-      if (args) {
-        ui_mlclient(args, NULL);
+      char *args;
+      if ((args = alloca(strlen(global_args) + 1))) {
+        ui_mlclient(strcpy(args, global_args), NULL);
       }
     } else {
       char args[] = "mlclient";

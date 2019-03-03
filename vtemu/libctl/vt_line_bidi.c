@@ -159,7 +159,7 @@ int vt_line_bidi_visual(vt_line_t *line) {
   if ((src = vt_str_alloca(line->ctl_info.bidi->size)) == NULL) {
     return 0;
   }
-
+  vt_str_init(src, line->ctl_info.bidi->size);
   vt_str_copy(src, line->chars, line->ctl_info.bidi->size);
 
   for (count = 0; count < line->ctl_info.bidi->size; count++) {
@@ -189,7 +189,7 @@ int vt_line_bidi_logical(vt_line_t *line) {
   if ((src = vt_str_alloca(line->ctl_info.bidi->size)) == NULL) {
     return 0;
   }
-
+  vt_str_init(src, line->ctl_info.bidi->size);
   vt_str_copy(src, line->chars, line->ctl_info.bidi->size);
 
   for (count = 0; count < line->ctl_info.bidi->size; count++) {

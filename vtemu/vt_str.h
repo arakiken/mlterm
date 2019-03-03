@@ -9,9 +9,7 @@
 
 void vt_str_init(vt_char_t *str, u_int size);
 
-vt_char_t* __vt_str_init(vt_char_t *str, u_int size);
-
-#define vt_str_alloca(size) __vt_str_init(alloca(sizeof(vt_char_t) * (size)), (size))
+#define vt_str_alloca(size) ((vt_char_t*)alloca(sizeof(vt_char_t) * (size)))
 
 vt_char_t *vt_str_new(u_int size);
 

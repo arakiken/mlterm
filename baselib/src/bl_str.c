@@ -69,9 +69,8 @@ int bl_snprintf(char *str, size_t size, const char *format, ...) {
 #endif
 }
 
-char *bl_str_dup(const char *str, const char *file, /* should be allocated memory. */
-                 int line, const char *func         /* should be allocated memory. */
-                 ) {
+char *__bl_str_dup(const char *str, const char *file /* should be allocated memory. */,
+                   int line, const char *func /* should be allocated memory. */) {
   char *new_str;
 
   if ((new_str = bl_mem_malloc(strlen(str) + 1, file, line, func)) == NULL) {
@@ -81,17 +80,6 @@ char *bl_str_dup(const char *str, const char *file, /* should be allocated memor
   strcpy(new_str, str);
 
   return new_str;
-}
-
-char* __bl_str_copy(char *dst, /* alloca()-ed memory (see bl_str.h) */
-                    const char *src) {
-  if (dst == NULL) {
-    /* alloca() failed */
-
-    return NULL;
-  }
-
-  return strcpy(dst, src);
 }
 
 /*

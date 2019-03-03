@@ -13,7 +13,7 @@ typedef enum {
  * Check whether the current thread is a main thread or not, if gui toolkit
  * doesn't support it.
  */
-int bl_dialog_set_callback(int (*callback)(bl_dialog_style_t, const char *));
+void bl_dialog_set_callback(int (*callback)(bl_dialog_style_t, const char *));
 
 int bl_dialog(bl_dialog_style_t style, const char *msg);
 

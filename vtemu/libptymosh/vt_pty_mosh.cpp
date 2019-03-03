@@ -30,7 +30,7 @@ extern "C" {
 #include <pobl/bl_path.h>   /* bl_basename */
 #include <pobl/bl_file.h>
 #include <pobl/bl_sig_child.h>
-#include <pobl/bl_str.h>
+#include <pobl/bl_str.h> /* bl_str_replace */
 #include <pobl/bl_net.h>
 #include <pobl/bl_locale.h>
 
@@ -788,10 +788,12 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
                           const char *uri, const char *pass, const char *pubkey, /* can be NULL */
                           const char *privkey,                                   /* can be NULL */
                           u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
+  char *uri_dup;
   char *host;
   char *ip;
 
-  if (!bl_parse_uri(NULL, NULL, &host, NULL, NULL, NULL, bl_str_alloca_dup(uri))) {
+  if (!(uri_dup = (char*)alloca(strlen(uri) + 1)) ||
+      !bl_parse_uri(NULL, NULL, &host, NULL, NULL, NULL, strcpy(uri_dup, uri))) {
     return NULL;
   }
 
@@ -806,12 +808,11 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
 
   struct in_addr addr;
   addr.s_addr = ((struct sockaddr_in*)res->ai_addr)->sin_addr.s_addr;
-  ip = bl_str_alloca_dup(inet_ntoa(addr));
   freeaddrinfo(res);
 
-  if (!ip) {
-    return NULL;
-  }
+  ip = inet_ntoa(addr);
+  char ip_tmp[strlen(ip) + 1];
+  ip = strcpy(ip_tmp, ip);
 
   if (strcmp(host, ip) != 0) {
     char *new_uri;
@@ -967,18 +968,24 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
       *p = '\0';
 
       if (strncmp(line, "MOSH CONNECT ", 13) == 0) {
-        line += 13;
-        port = line;
+        char *port_tmp = (line += 13);
         while ('0' <= *line && *line <= '9') { line++; }
-        *line = '\0';
-        port = bl_str_alloca_dup(port);
-        key = bl_str_alloca_dup(line + 1);
+        *(line++) = '\0';
+
+        if ((port = (char*)alloca(strlen(port_tmp) + 1))) {
+          strcpy(port, port_tmp);
+        }
+        if ((key = (char*)alloca(strlen(line) + 1))) {
+          strcpy(key, line);
+        }
 
 #ifdef __DEBUG
         bl_debug_printf("MOSH_KEY=%s PORT=%s\n", key, port);
 #endif
       } else if (strncmp(line, "MOSH IP ", 8) == 0) {
-        ip = bl_str_alloca_dup(line + 8);
+        if ((ip = (char*)alloca(strlen(line + 8) + 1))) {
+          strcpy(ip, line + 8);
+        }
 
 #ifdef __DEBUG
         bl_debug_printf("IP=%s\n", ip);

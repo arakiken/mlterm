@@ -13,7 +13,7 @@
 #endif
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h> /* realloc */
-#include <pobl/bl_str.h> /* bl_str_sep/bl_str_to_int/memset/strncasecmp */
+#include <pobl/bl_str.h> /* bl_str_to_int/memset/strncasecmp */
 #include <vt_char.h>     /* UTF_MAX_SIZE */
 
 #ifdef USE_OT_LAYOUT
@@ -929,13 +929,10 @@ static int fc_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
     double fontsize_d;
     u_int percent;
 
-    if ((p = bl_str_alloca_dup(fontname)) == NULL) {
-#ifdef DEBUG
-      bl_warn_printf(BL_DEBUG_TAG " alloca() failed.\n");
-#endif
-
+    if ((p = alloca(strlen(fontname) + 1)) == NULL) {
       return 0;
     }
+    strcpy(p, fontname);
 
     fontsize_d = (double)fontsize;
     percent = 0;

@@ -1275,6 +1275,7 @@ int vt_screen_get_word_region(vt_screen_t *screen, int *beg_char_index, int *beg
       u_int count;
       int slash_num;
 
+      vt_str_init(str, len);
       check_or_copy_region(screen, str, len, *beg_char_index, *beg_row, *end_char_index, *end_row);
 
       for (slash_num = 0, count = 0; count < len; count++) {
@@ -1431,6 +1432,7 @@ int vt_screen_search_find(vt_screen_t *screen,
                           int *end_row,        /* visual position is returned */
                           void *regex, int backward) {
   vt_char_t *line_str;
+  u_int cols;
   ef_parser_t *parser;
   ef_conv_t *conv;
   u_char *buf;
@@ -1443,9 +1445,11 @@ int vt_screen_search_find(vt_screen_t *screen,
     return 0;
   }
 
-  if (!(line_str = vt_str_alloca(vt_screen_get_logical_cols(screen)))) {
+  cols = vt_screen_get_logical_cols(screen);
+  if (!(line_str = vt_str_alloca(cols))) {
     return 0;
   }
+  vt_str_init(line_str, cols);
 
   buf_len = vt_screen_get_logical_cols(screen) * VTCHAR_UTF_MAX_SIZE + 1;
   if (!(buf = alloca(buf_len))) {
@@ -2018,6 +2022,7 @@ int vt_screen_write_content(vt_screen_t *screen, int fd, ef_conv_t *conv, int cl
   if ((buf = vt_str_alloca(num)) == NULL) {
     return 0;
   }
+  vt_str_init(buf, num);
 
   vt_screen_copy_region(screen, buf, num, 0, beg, 0, end, 0);
 

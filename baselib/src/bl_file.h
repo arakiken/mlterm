@@ -16,11 +16,11 @@ typedef struct bl_file {
 
 bl_file_t *bl_file_new(FILE* fp);
 
-int bl_file_destroy(bl_file_t *file);
+void bl_file_destroy(bl_file_t *file);
 
 bl_file_t *bl_file_open(const char *file_path, const char *mode);
 
-int bl_file_close(bl_file_t *file);
+void bl_file_close(bl_file_t *file);
 
 FILE* bl_fopen_with_mkdir(const char *file_path, const char *mode);
 

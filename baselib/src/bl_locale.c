@@ -239,7 +239,7 @@ int bl_locale_init(const char *locale) {
   return result;
 }
 
-int bl_locale_final(void) {
+void bl_locale_final(void) {
   if (sys_locale) {
     free(sys_locale);
     sys_locale = NULL;
@@ -249,8 +249,6 @@ int bl_locale_final(void) {
     free(sys_lang_country);
     sys_lang_country = NULL;
   }
-
-  return 1;
 }
 
 char *bl_get_locale(void) {

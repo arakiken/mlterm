@@ -269,9 +269,7 @@ pid_t bl_pty_fork(int *master, int *slave) {
 }
 
 int bl_pty_close(int master) {
-  close(master);
-
-  return 0;
+  return close(master);
 }
 
 void bl_pty_helper_set_flag(int lastlog, int utmp, int wtmp) {}

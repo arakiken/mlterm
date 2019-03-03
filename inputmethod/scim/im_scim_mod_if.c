@@ -27,7 +27,7 @@
 
 #include <pobl/bl_locale.h> /* bl_get_locale */
 #include <pobl/bl_debug.h>  /* bl_error_printf, bl_warn_printf */
-#include <pobl/bl_str.h>    /* bl_str_alloca_dup */
+#include <pobl/bl_str.h>    /* strdup */
 
 #include <ui_im.h>
 #include "../im_common.h"
@@ -434,7 +434,9 @@ ui_im_t *im_scim_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     /*
      * Workaround against make_locale() of m17nlib.
      */
-    cur_locale = bl_str_alloca_dup(bl_get_locale());
+    if ((cur_locale = alloca(strlen(bl_get_locale()) + 1))) {
+      strcpy(cur_locale, bl_get_locale());
+    }
 #else
     cur_locale = bl_get_locale();
 #endif

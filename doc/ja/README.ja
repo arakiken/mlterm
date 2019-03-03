@@ -577,6 +577,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
       o not_use_unicode_font  (true/*false*) (#)
         UNICODE を適当な文字集合にmapして、UNICODE フォントを使わずに表示する
+        なお、文字幅及び結合文字の属性は、UNICODE の属性を使用します。
 
       o unicode_noconv_areas (#)
         not_use_unicode_font を true とした場合でも、このオプションで指定した範
@@ -587,6 +588,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
       o only_use_unicode_font (true/*false*) (#)
         すべての文字を UNICODE フォントだけを使って表示する
+        なお、文字幅の属性は、UNICODE の属性は使いません。
 
       o iso88591_font_for_usascii (true/*false*)
         US_ASCII の表示には、必ず ISO8859-1 フォントを使用する

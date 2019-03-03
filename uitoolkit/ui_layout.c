@@ -5,6 +5,10 @@
 #include <pobl/bl_types.h> /* u_int */
 #include <pobl/bl_str.h>
 
+#ifdef USE_BEOS
+void view_reset_uiwindow(ui_window_t *uiwindow);
+#endif
+
 #ifdef USE_CONSOLE
 static u_int dummy_arg;
 #define SEPARATOR_WIDTH ui_get_opened_displays(&dummy_arg)[0]->display->col_width

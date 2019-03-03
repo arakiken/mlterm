@@ -1,7 +1,7 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 #include <stdio.h>       /* sprintf */
 #include <pobl/bl_mem.h> /* malloc/alloca/free */
-#include <pobl/bl_str.h> /* bl_str_alloca_dup bl_str_sep */
+#include <pobl/bl_str.h> /* bl_str_sep */
 #include <pobl/bl_locale.h>
 
 #include <vt_str.h>
@@ -119,7 +119,10 @@ ui_im_t *ui_im_new(ui_display_t *disp, ui_font_manager_t *font_man, ui_color_man
   }
 
   if (strchr(input_method, ':')) {
-    im_attr = bl_str_alloca_dup(input_method);
+    if ((im_attr = alloca(strlen(input_method) + 1)) == NULL) {
+      return NULL;
+    }
+    strcpy(im_attr, input_method);
 
     if ((im_name = bl_str_sep(&im_attr, ":")) == NULL) {
 #ifdef DEBUG
@@ -129,19 +132,26 @@ ui_im_t *ui_im_new(ui_display_t *disp, ui_font_manager_t *font_man, ui_color_man
       return NULL;
     }
   } else {
-    im_name = bl_str_alloca_dup(input_method);
+    if ((im_name = alloca(strlen(input_method) + 1))) {
+      strcpy(im_name, input_method);
+    }
     im_attr = NULL;
   }
 
 #ifdef RESTORE_LOCALE
-  cur_locale = bl_str_alloca_dup(bl_get_locale());
+  if ((cur_locale = alloca(strlen(bl_get_locale()) + 1))) {
+    strcpy(cur_locale, bl_get_locale());
+  }
 #endif
 
   if (!dlsym_im_new_func(im_name, &func, &handle)) {
 #ifdef RESTORE_LOCALE
-    bl_locale_init(cur_locale);
+    if (cur_locale) {
+      bl_locale_init(cur_locale);
+    }
 #endif
     bl_error_printf("%s: Could not load.\n", im_name);
+
     return NULL;
   }
 

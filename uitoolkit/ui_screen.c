@@ -1615,6 +1615,7 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
     char ch;
 
     str = vt_str_alloca(0x5e);
+    vt_str_init(str, 0x5e);
     ch = ' ';
     for (count = 0; count < 0x5e; count++) {
       vt_char_set(str + count, ch, US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
@@ -1852,12 +1853,12 @@ static int shortcut_str(ui_screen_t *screen, KeySym ksym, u_int state, int x, in
       char **argv;
       int argc;
 
-      argv = bl_arg_str_to_array(&argc, key);
-
-      if (fork() == 0) {
-        /* child process */
-        execvp(argv[0], argv);
-        exit(1);
+      if ((argv = bl_argv_alloca(key)) && bl_arg_str_to_array(argv, &argc, key)) {
+        if (fork() == 0) {
+          /* child process */
+          execvp(argv[0], argv);
+          exit(1);
+        }
       }
     }
 #endif
@@ -3675,7 +3676,11 @@ static void change_char_encoding(ui_screen_t *screen, vt_char_encoding_t encodin
   }
 
   if (screen->im) {
-    change_im(screen, bl_str_alloca_dup(screen->input_method));
+    char *p;
+
+    if ((p = alloca(strlen(screen->input_method) + 1))) {
+      change_im(screen, strcpy(p, screen->input_method));
+    }
   }
 }
 
@@ -4380,11 +4385,14 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
     if ((value = ui_emoji_get_path(0, 0))) {
       char *p = strrchr(value, '/');
       *p = '\0';
-      p = bl_str_alloca_dup(value);
-      free(value);
-      if (p) {
+
+      if ((p = alloca(strlen(value) + 1))) {
+        strcpy(p, value);
+        free(value);
         value = p;
         goto emoji_path_end;
+      } else {
+        free(value);
       }
     }
     value = "";

@@ -7,7 +7,7 @@
 #include <pobl/bl_locale.h>
 #include <pobl/bl_sig_child.h>
 #include <pobl/bl_mem.h> /* bl_alloca_garbage_collect */
-#include <pobl/bl_str.h> /* bl_str_alloca_dup */
+#include <pobl/bl_str.h> /* bl_str_sep */
 #include <pobl/bl_def.h> /* USE_WIN32API */
 
 #include <ui_font.h> /* ui_use_cp932_ucs_fot_xft */
@@ -65,13 +65,10 @@ static int get_font_size_range(u_int *min, u_int *max, const char *str) {
   char *str_p;
   char *p;
 
-  if ((str_p = bl_str_alloca_dup(str)) == NULL) {
-#ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " alloca() failed.\n");
-#endif
-
+  if ((str_p = alloca(strlen(str) + 1)) == NULL) {
     return 0;
   }
+  strcpy(str_p, str);
 
   /* bl_str_sep() never returns NULL because str_p isn't NULL. */
   p = bl_str_sep(&str_p, "-");
@@ -123,7 +120,7 @@ int main_loop_init(int argc, char **argv) {
     bl_msg_printf("locale settings failed.\n");
   }
 
-  bl_sig_child_init();
+  bl_sig_child_start();
 
   bl_init_prog(argv[0],
                DETAIL_VERSION
@@ -478,7 +475,7 @@ int main_loop_init(int argc, char **argv) {
   return 1;
 }
 
-int main_loop_final(void) {
+void main_loop_final(void) {
 #ifdef USE_BRLAPI
   ui_brltty_final();
 #endif
@@ -503,7 +500,7 @@ int main_loop_final(void) {
 
   bl_locale_final();
 
-  return 1;
+  bl_alloca_garbage_collect();
 }
 
 int main_loop_start(void) {

@@ -9,7 +9,7 @@ int vt_term_manager_init(u_int multiple);
 
 void vt_term_manager_final(void);
 
-void vt_set_auto_restart_cmd(char *cmd);
+void vt_set_auto_restart_cmd(const char *cmd);
 
 vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int tab_size,
                           u_int log_size, vt_char_encoding_t encoding, int is_auto_encoding,

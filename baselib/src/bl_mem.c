@@ -68,7 +68,7 @@ void *bl_alloca(size_t size) {
 #endif
 
 #ifdef __DEBUG
-    fprintf(stderr, "new page(size %d) created.\n", new_page->size);
+    fprintf(stderr, "Create new page(size %d).\n", new_page->size);
 #endif
 
     new_page->prev_page = alloca_page;
@@ -82,7 +82,7 @@ void *bl_alloca(size_t size) {
   total_allocated_size += size;
 
 #ifdef __DEBUG
-  fprintf(stderr, "memory %p(size %d) was successfully allocated.\n", ptr, size);
+  fprintf(stderr, "alloca %p(size %d).\n", ptr, size);
 #endif
 
   return ptr;
@@ -90,66 +90,44 @@ void *bl_alloca(size_t size) {
 
 int bl_alloca_begin_stack_frame(void) {
   if (alloca_page == NULL) {
-    /* no page is found */
-
-    return 0;
+    /* no page is found. curent_stack_frame == 0. */
+    return 1;
   }
 
+  /* stack_frame_bases[0] is always 0. */
   current_stack_frame++;
 
   if (current_stack_frame >= MAX_STACK_FRAMES) {
 #ifdef __DEBUG
-    fprintf(stderr, "end of stack frame.\n");
+    fprintf(stderr, "Failed to create a new stack frame.\n");
 #endif
 
-    return 1;
+    return 0;
   }
-#ifdef DEBUG
-  else if (current_stack_frame < 0) {
-    fprintf(stderr, "current stack frame must not be less than 0.\n");
-
-    return 1;
-  }
-#endif
 
   stack_frame_bases[current_stack_frame] = total_allocated_size;
 
 #ifdef __DEBUG
-  fprintf(stderr, "stack frame (base %d (%d) size 0) created.\n",
-          stack_frame_bases[current_stack_frame], current_stack_frame);
+  fprintf(stderr, "Create %d stack frame (at %d).\n",
+          current_stack_frame, stack_frame_bases[current_stack_frame]);
 #endif
 
   return 1;
 }
 
-int bl_alloca_end_stack_frame(void) {
+void bl_alloca_end_stack_frame(void) {
   if (alloca_page == NULL) {
     /* no page is found */
-
-    return 0;
+    return;
   }
 
-  if (current_stack_frame == 0) {
-#ifdef __DEBUG
-    fprintf(stderr, "beg of stack frame.\n");
-#endif
-
-    return 1;
-  }
-#ifdef DEBUG
-  else if (current_stack_frame < 0) {
-    fprintf(stderr, "current stack frame must not be less than 0.\n");
-
-    return 1;
-  }
-#endif
-  else if (current_stack_frame < MAX_STACK_FRAMES) {
+  /* if (current_stack_frame < MAX_STACK_FRAMES) */ {
     size_t shrink_size;
     alloca_page_t *page;
 
 #ifdef __DEBUG
-    fprintf(stderr, "stack frame (base %d (%d) size %d) deleted\n",
-            stack_frame_bases[current_stack_frame], current_stack_frame,
+    fprintf(stderr, "Delete %d stack frame (at %d size %d).\n",
+            current_stack_frame, stack_frame_bases[current_stack_frame],
             total_allocated_size - stack_frame_bases[current_stack_frame]);
 #endif
 
@@ -162,10 +140,10 @@ int bl_alloca_end_stack_frame(void) {
 
       if ((_page = page->prev_page) == NULL) {
 #ifdef DEBUG
-        fprintf(stderr, "strange page link list...\n");
+        fprintf(stderr, "*** ERROR *** page link list is corrupt.\n");
 #endif
 
-        /* so as not to seg fault ... */
+        /* XXX so as not to cause segfault */
         shrink_size = page->used_size;
 
         break;
@@ -174,7 +152,7 @@ int bl_alloca_end_stack_frame(void) {
       shrink_size -= page->used_size;
 
 #ifdef __DEBUG
-      fprintf(stderr, "page(size %d) deleted.\n", page->size);
+      fprintf(stderr, "Delete page(size %d).\n", page->size);
 #endif
 
       free(page->ptr);
@@ -183,19 +161,18 @@ int bl_alloca_end_stack_frame(void) {
       page = _page;
     }
 
+    /* Don't free the first frame. */
     alloca_page = page;
-
     alloca_page->used_size -= shrink_size;
-
     total_allocated_size = stack_frame_bases[current_stack_frame];
+
+    if (current_stack_frame > 0) {
+      current_stack_frame--;
+    }
   }
-
-  current_stack_frame--;
-
-  return 1;
 }
 
-int bl_alloca_garbage_collect(void) {
+void bl_alloca_garbage_collect(void) {
   alloca_page_t *page;
 
 #ifdef __DEBUG
@@ -219,8 +196,6 @@ int bl_alloca_garbage_collect(void) {
 
   total_allocated_size = 0;
   current_stack_frame = 0;
-
-  return 1;
 }
 
 #endif /* HAVE_ALLOCA */
@@ -293,7 +268,7 @@ void *bl_mem_malloc(size_t size, const char *file, /* should be allocated memory
 
 #ifdef __DEBUG
   fprintf(stderr,
-          " memory %p(size %d) was successfully allocated at %s(l.%d in %s) , "
+          " memory %p(size %d) was successfully allocated at %s(l.%d in %s), "
           "logged in %p.\n",
           log->ptr, log->size, log->func, log->line, log->file, log);
 #endif
@@ -443,3 +418,24 @@ int bl_mem_free_all(void) {
     return 1;
   }
 }
+
+#ifdef __DEBUG
+int main(int argc, char **argv) {
+  u_int count;
+
+  for (count = 0; count < 2; count++) {
+    bl_alloca_begin_stack_frame();
+    memset(bl_alloca(4096), 0xff, 4096);
+    memset(bl_alloca(4096), 0xff, 4096);
+    memset(bl_alloca(4096), 0xff, 4096);
+    bl_alloca_end_stack_frame();
+  }
+  fprintf(stderr, "===> Dump before garbage collect\n");
+  bl_mem_dump_all();
+  bl_alloca_garbage_collect();
+  fprintf(stderr, "===> Dump after garbage collect\n");
+  bl_mem_dump_all();
+
+  return 0;
+}
+#endif

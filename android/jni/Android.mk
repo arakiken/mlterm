@@ -30,7 +30,7 @@ else
 	OTL_CFLAGS :=
 endif
 ifneq (,$(wildcard libssh2/$(TARGET_ARCH_ABI)/lib/libssh2.a))
-	LIBSSH2_SRC_FILES := vtemu/vt_pty_ssh.c
+	LIBSSH2_SRC_FILES := vtemu/vt_pty_ssh.c vtemu/vt_pty_mosh.c
 	LIBSSH2_CFLAGS := -DUSE_LIBSSH2 -Ilibssh2/$(TARGET_ARCH_ABI)/include -DNO_DYNAMIC_LOAD_SSH
 	LIBSSH2_LDLIBS := libssh2/$(TARGET_ARCH_ABI)/lib/libssh2.a libssh2/$(TARGET_ARCH_ABI)/lib/libcrypto.a -lz
 else

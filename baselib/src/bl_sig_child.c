@@ -23,7 +23,6 @@ typedef struct sig_child_event_listener {
 
 static sig_child_event_listener_t *listeners;
 static u_int num_listeners;
-static int is_init;
 
 /* --- static functions --- */
 
@@ -57,57 +56,28 @@ static void sig_child(int sig) {
 
 /* --- global functions --- */
 
-int bl_sig_child_init(void) {
+void bl_sig_child_start(void) {
 #ifndef USE_WIN32API
   signal(SIGCHLD, sig_child);
 #endif
-
-  is_init = 1;
-
-  return 1;
 }
 
-int bl_sig_child_final(void) {
-  if (listeners) {
-    free(listeners);
-  }
-
-  is_init = 0;
-
-  return 1;
-}
-
-int bl_sig_child_suspend(void) {
-  if (is_init) {
+void bl_sig_child_stop(void) {
 #ifndef USE_WIN32API
-    signal(SIGCHLD, SIG_DFL);
+  signal(SIGCHLD, SIG_DFL);
 #endif
-  }
-
-  return 1;
 }
 
-int bl_sig_child_resume(void) {
-  if (is_init) {
+void bl_sig_child_final(void) {
 #ifndef USE_WIN32API
-    signal(SIGCHLD, sig_child);
+  signal(SIGCHLD, SIG_DFL);
 #endif
-  }
-
-  return 1;
+  free(listeners);
+  listeners = NULL;
 }
 
 int bl_add_sig_child_listener(void *self, void (*exited)(void *, pid_t)) {
   void *p;
-
-/*
- * #if 0 - #endif is for mlterm-libvte.
- */
-#if 0
-  if (!is_init) {
-    return 0;
-  }
-#endif
 
   if ((p = realloc(listeners, sizeof(*listeners) * (num_listeners + 1))) == NULL) {
 #ifdef DEBUG

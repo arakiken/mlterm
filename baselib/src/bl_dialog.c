@@ -10,10 +10,8 @@ static int (*callback)(bl_dialog_style_t, const char *);
 
 /* --- global functions --- */
 
-int bl_dialog_set_callback(int (*cb)(bl_dialog_style_t, const char *)) {
+void bl_dialog_set_callback(int (*cb)(bl_dialog_style_t, const char *)) {
   callback = cb;
-
-  return 1;
 }
 
 #if 0

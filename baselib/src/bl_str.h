@@ -28,15 +28,11 @@ int bl_snprintf(char *str, size_t size, const char *format, ...);
 
 #ifdef BL_DEBUG
 
-#define strdup(str) bl_str_dup(str, __FILE__, __LINE__, __FUNCTION__)
+#define strdup(str) __bl_str_dup(str, __FILE__, __LINE__, __FUNCTION__)
 
 #endif
 
-char *bl_str_dup(const char *str, const char *file, int line, const char *func);
-
-#define bl_str_alloca_dup(src) __bl_str_copy((char*)alloca(strlen(src) + 1), (src))
-
-char* __bl_str_copy(char *dst, const char *src);
+char *__bl_str_dup(const char *str, const char *file, int line, const char *func);
 
 size_t bl_str_tabify(u_char *dst, size_t dst_len, const u_char *src, size_t src_len,
                      size_t tab_len);

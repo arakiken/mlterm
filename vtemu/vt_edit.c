@@ -84,12 +84,9 @@ static int insert_chars(vt_edit_t *edit, vt_char_t *ins_chars, u_int num_ins_cha
   }
 
   if ((buffer = vt_str_alloca(buf_len)) == NULL) {
-#ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " alloca() failed.\n");
-#endif
-
     return 0;
   }
+  vt_str_init(buffer, buf_len);
 
   filled_len = 0;
   filled_cols = 0;
@@ -705,12 +702,9 @@ int vt_edit_insert_blank_chars(vt_edit_t *edit, u_int num_blank_chars) {
   reset_wraparound_checker(edit);
 
   if ((blank_chars = vt_str_alloca(num_blank_chars)) == NULL) {
-#ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " alloca() failed.\n");
-#endif
-
     return 0;
   }
+  vt_str_init(blank_chars, num_blank_chars);
 
   if (edit->use_bce) {
     /*
@@ -756,12 +750,9 @@ int vt_edit_overwrite_chars(vt_edit_t *edit, vt_char_t *ow_chars, u_int num_ow_c
   }
 
   if ((buffer = vt_str_alloca(buf_len)) == NULL) {
-#ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " alloca() failed.\n");
-#endif
-
     return 0;
   }
+  vt_str_init(buffer, buf_len);
 
   line = CURSOR_LINE(edit);
   filled_len = 0;
@@ -917,12 +908,9 @@ int vt_edit_delete_cols(vt_edit_t *edit, u_int del_cols) {
   buf_len = cursor_line->num_chars - edit->cursor.col;
 
   if ((buffer = vt_str_alloca(buf_len)) == NULL) {
-#ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " alloca() failed.\n");
-#endif
-
     return 0;
   }
+  vt_str_init(buffer, buf_len);
 
   filled_len = 0;
 

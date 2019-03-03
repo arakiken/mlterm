@@ -285,6 +285,7 @@ static int vt_line_ot_layout_visual(vt_line_t *line) {
   if ((src = vt_str_alloca(src_len)) == NULL) {
     return 0;
   }
+  vt_str_init(src, src_len);
 
   vt_str_copy(src, line->chars, src_len);
 
@@ -376,6 +377,7 @@ static int vt_line_ot_layout_logical(vt_line_t *line) {
   if ((src = vt_str_alloca(src_len)) == NULL) {
     return 0;
   }
+  vt_str_init(src, src_len);
 
   vt_str_copy(src, line->chars, src_len);
   dst = line->chars;

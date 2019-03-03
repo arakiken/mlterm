@@ -18,7 +18,7 @@
 #include <pobl/bl_mem.h>    /* malloc/free */
 #include <pobl/bl_util.h>   /* DIGIT_STR_LEN */
 #include <pobl/bl_conf_io.h>/* bl_get_user_rc_path */
-#include <pobl/bl_str.h>    /* bl_str_alloca_dup */
+#include <pobl/bl_str.h>    /* strdup */
 #include <pobl/bl_args.h>
 #include <pobl/bl_unistd.h>   /* bl_usleep */
 #include <pobl/bl_locale.h>   /* bl_get_locale */
@@ -7243,10 +7243,8 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
             non_ucs.cs != ISO8859_6_R && /* ARABIC */
             non_ucs.cs != ISO8859_8_R)   /* HEBREW */
         {
-          if (IS_FULLWIDTH_CS(non_ucs.cs)) {
-            non_ucs.property = EF_FULLWIDTH;
-          }
-
+          /* Use width property of unicode (the original charset). */
+          non_ucs.property = ch.property;
           ch = non_ucs;
 
           goto end_block;
@@ -7351,10 +7349,16 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
 
       if (ef_map_to_ucs4(&ucs, &ch)) {
         u_int32_t code = ef_char_to_int(&ucs);
+        ef_charset_t orig_cs = ch.cs;
 
         ch = ucs;
+
+        /* Use width property of the original charset. */
         ch.property = modify_ucs_property(code, vt_parser->col_size_of_width_a,
-                                          ef_get_ucs_property(code));
+                                          ef_get_ucs_property(code)) & ~(EF_FULLWIDTH|EF_AWIDTH);
+        if (IS_FULLWIDTH_CS(orig_cs)) {
+          ch.property |= EF_FULLWIDTH;
+        }
       }
     } else if (IS_FULLWIDTH_CS(ch.cs)) {
       ch.property = EF_FULLWIDTH;
@@ -7856,29 +7860,30 @@ int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd) {
   } else if (strncmp(cmd, "snapshot", 8) == 0) {
     char **argv;
     int argc;
-    vt_char_encoding_t encoding;
-    char *file;
 
-    argv = bl_arg_str_to_array(&argc, cmd);
+    if ((argv = bl_argv_alloca(cmd)) && bl_arg_str_to_array(argv, &argc, cmd)) {
+      vt_char_encoding_t encoding;
+      char *file;
 
-    if (argc >= 3) {
-      encoding = vt_get_char_encoding(argv[2]);
-    } else {
-      encoding = VT_UNKNOWN_ENCODING;
-    }
+      if (argc >= 3) {
+        encoding = vt_get_char_encoding(argv[2]);
+      } else {
+        encoding = VT_UNKNOWN_ENCODING;
+      }
 
-    if (argc >= 2) {
-      file = argv[1];
-    } else {
-      /* skip /dev/ */
-      file = vt_pty_get_slave_name(vt_parser->pty) + 5;
-    }
+      if (argc >= 2) {
+        file = argv[1];
+      } else {
+        /* skip /dev/ */
+        file = vt_pty_get_slave_name(vt_parser->pty) + 5;
+      }
 
-    if (strstr(file, "..")) {
-      /* insecure file name */
-      bl_msg_printf("%s is insecure file name.\n", file);
-    } else {
-      snapshot(vt_parser, encoding, file, WCA_ALL);
+      if (strstr(file, "..")) {
+        /* insecure file name */
+        bl_msg_printf("%s is insecure file name.\n", file);
+      } else {
+        snapshot(vt_parser, encoding, file, WCA_ALL);
+      }
     }
   }
 #if !defined(NO_IMAGE) && defined(ENABLE_OSC5379PICTURE)
@@ -7892,8 +7897,7 @@ int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd) {
     char **argv;
     int argc;
 
-    argv = bl_arg_str_to_array(&argc, cmd);
-    if (argc == 1) {
+    if (!(argv = bl_argv_alloca(cmd)) || !bl_arg_str_to_array(argv, &argc, cmd) || argc == 1) {
       return 1;
     }
 
@@ -7927,9 +7931,8 @@ int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd) {
     char **argv;
     int argc;
 
-    argv = bl_arg_str_to_array(&argc, cmd);
-
-    if (argc == 3 || argc == 4) {
+    if ((argv = bl_argv_alloca(cmd)) && bl_arg_str_to_array(argv, &argc, cmd) &&
+        (argc == 3 || argc == 4)) {
       vt_char_encoding_t encoding;
 
       if (!argv[3] || (encoding = vt_get_char_encoding(argv[3])) == VT_UNKNOWN_ENCODING) {

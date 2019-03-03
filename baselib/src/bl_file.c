@@ -10,7 +10,6 @@
 
 #include "bl_def.h" /* HAVE_FGETLN */
 #include "bl_mem.h" /* malloc */
-#include "bl_str.h" /* bl_str_alloca_dup */
 #include "bl_debug.h"
 
 #define BUF_UNIT_SIZE 512
@@ -31,13 +30,11 @@ bl_file_t *bl_file_new(FILE* fp) {
   return file;
 }
 
-int bl_file_destroy(bl_file_t *file) {
+void bl_file_destroy(bl_file_t *file) {
   /* not fclose(file->fp) */
 
   free(file->buffer);
   free(file);
-
-  return 1;
 }
 
 bl_file_t *bl_file_open(const char *file_path, const char *mode) {
@@ -50,18 +47,9 @@ bl_file_t *bl_file_open(const char *file_path, const char *mode) {
   return bl_file_new(fp);
 }
 
-int bl_file_close(bl_file_t *file) {
-  int result;
-
-  if (fclose(file->file) == 0) {
-    result = 1;
-  } else {
-    result = 0;
-  }
-
-  result |= bl_file_destroy(file);
-
-  return result;
+void bl_file_close(bl_file_t *file) {
+  fclose(file->file);
+  bl_file_destroy(file);
 }
 
 FILE* bl_fopen_with_mkdir(const char *file_path, const char *mode) {
@@ -72,7 +60,8 @@ FILE* bl_fopen_with_mkdir(const char *file_path, const char *mode) {
     return fp;
   }
 
-  if ((p = bl_str_alloca_dup(file_path)) == NULL || !bl_mkdir_for_file(p, 0700)) {
+  if ((p = alloca(strlen(file_path) + 1)) == NULL ||
+      !bl_mkdir_for_file(strcpy(p, file_path), 0700)) {
     return NULL;
   }
 
