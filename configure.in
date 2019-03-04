@@ -503,8 +503,6 @@ elif test "$gui" = "console" ; then
 elif test "$gui" = "beos" ; then
 	GUI="beos"
 	GUI_CFLAGS="-DUSE_BEOS"
-	BEOS_LIBS="-lbe"
-	AC_SUBST(BEOS_LIBS)
 elif test "$gui" = "wayland" ; then
 	GUI="wayland"
 	GUI_CFLAGS="-DUSE_WAYLAND"

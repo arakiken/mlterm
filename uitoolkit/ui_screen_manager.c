@@ -1170,6 +1170,7 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
       } else if ((p = bl_conf_get_value(conf, "vsep"))) {
         horizontal = 0;
       } else {
+        sep = NULL;
         goto end_check_sep;
       }
       if ((sep = alloca(strlen(p) + 1))) {
