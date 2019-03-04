@@ -57,7 +57,7 @@ LIBS2_win32 = -mwindows -limm32 ../uitoolkit/winrs.o # @SUBSYSTEM@
 
 LIBS2_quartz = @COCOA_LIBS@
 
-LIBS2_beos = @BEOS_LIBS@ -lsocket
+LIBS2_beos = -lbe -ltranslation -lsocket
 
 LIBS2_console = @SIXEL_LIBS@ @MATH_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ @SOCK_LIBS@
 

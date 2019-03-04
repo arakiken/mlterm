@@ -10,6 +10,7 @@
 #include <Screen.h>
 #include <Region.h>
 #include <Beep.h>
+#include <TranslationUtils.h>
 
 extern "C" {
 #include "ui_window.h"
@@ -17,7 +18,7 @@ extern "C" {
 #include "../ui_screen.h"
 
 #include <pobl/bl_privilege.h>
-#include <pobl/bl_unistd.h> /* bl_getuid/bl_getgid */
+#include <pobl/bl_unistd.h> /* usleep/bl_getuid/bl_getgid */
 #include <pobl/bl_file.h> /* bl_file_set_cloexec */
 #include <pobl/bl_debug.h>
 #include <sys/select.h>
@@ -138,27 +139,6 @@ void MLView::Draw(BRect update) {
     /* It has been already removed from ui_layout or term has been detached. */
     return;
   }
-
-#if 0
-  if (forceExpose & 2) {
-    /* Visual bell */
-    [self fillWith:&uiwindow->fg_color
-                  :uiwindow->hmargin
-                  :uiwindow->vmargin
-                  :uiwindow->width
-                  :uiwindow->height];
-    CGContextFlush(ctx);
-#ifdef USE_CGLAYER
-    CGContextDrawLayerAtPoint(screen_ctx, p, layer);
-#endif
-
-    [[NSRunLoop currentRunLoop]
-        runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
-
-    forceExpose &= ~2;
-    uiwindow->update_window_flag = 0;
-  }
-#endif
 
   XExposeEvent ev;
 
@@ -505,6 +485,21 @@ void view_bg_color_changed(/* MLView */ void *view) {
 }
 
 void view_visual_bell(/* MLView */ void *view) {
+  if (((BView*)view)->LockLooperWithTimeout(B_INFINITE_TIMEOUT) != B_OK) {
+    return;
+  }
+
+  u_long pixel = ((MLView*)view)->uiwindow->fg_color.pixel;
+  ((MLView*)view)->SetLowColor((pixel >> 16) & 0xff, (pixel >> 8) & 0xff, pixel & 0xff,
+                               (pixel >> 24) & 0xff);
+
+  ui_window_t *win = ((MLView*)view)->uiwindow;
+  ((MLView*)view)->FillRect(BRect(0, 0, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win)), B_SOLID_LOW);
+  ((BView*)view)->UnlockLooper();
+
+  usleep(100000); /* 100 msec */
+
+  ((MLView*)view)->Draw(BRect(0, 0, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win)));
 }
 
 void view_set_input_focus(/* BView */ void *view) {
@@ -705,8 +700,22 @@ void *beos_create_image(const void *data, u_int len, u_int width, u_int height) 
   return bitmap;
 }
 
+void beos_destroy_image(void *bitmap) {
+  delete (BBitmap*)bitmap;
+}
+
 void *beos_load_image(const char *path, u_int *width, u_int *height) {
-  return NULL;
+  BBitmap *bitmap = BTranslationUtils::GetBitmap(path);
+  BRect rect = bitmap->Bounds();
+  *width = rect.right;
+  *height = rect.bottom;
+
+  return bitmap;
+}
+
+void *beos_resize_image(void *bitmap, u_int width, u_int height) {
+  /* XXX Not implemented yet. */
+  return bitmap;
 }
 
 char *beos_dialog_password(const char *msg) {

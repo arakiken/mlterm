@@ -1,3 +1,20 @@
+2019-03-04  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen_manager.c: Using uninitialized value is fixed.
+
+	* ui_event_source.c: vt_get_all_terms() is called every time
+	  in select() loop.
+
+	* ui_imagelib.c:
+	  - resize() is replaced by beos_resize_image().
+	  - ui_destroy_image() is implemented.
+
+	* beos.cpp, beos.h:
+	  - view_visual_bell() and beos_load_image() are implemented.
+	  - view_destroy_image() and beos_resize_image() are added.
+
+	* configure.in, main/Makefile.in: BEOS_LIBS is removed.
+
 2019-03-03  Araki Ken  <arakiken@users.sf.net>
 
 	* main_loop.c: bl_alloca_garbage_collect() is called at the end of

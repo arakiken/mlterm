@@ -2,8 +2,7 @@
 
 #include "../ui_display.h"
 
-#include <stdio.h>       /* sprintf */
-#include <string.h>      /* memset/memcpy */
+#include <stdio.h>       /* NULL */
 #include <stdlib.h>      /* getenv */
 #include <pobl/bl_def.h> /* USE_WIN32API */
 #include <pobl/bl_file.h>

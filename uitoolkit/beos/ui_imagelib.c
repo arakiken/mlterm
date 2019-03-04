@@ -209,23 +209,6 @@ static int load_file(char *path, /* must be UTF-8 */
   return 1;
 }
 
-static Pixmap resize(Pixmap pixmap, u_int new_width, u_int new_height) {
-#if 0
-  CGColorSpaceRef cs = CGImageGetColorSpace(pixmap);
-  CGContextRef ctx = CGBitmapContextCreate(NULL, new_width, new_height,
-                                           CGImageGetBitsPerComponent(pixmap),
-                                           0, cs, CGImageGetAlphaInfo(pixmap));
-  CGContextDrawImage(ctx, CGRectMake(0, 0, new_width, new_height), pixmap);
-  CGImageRelease(pixmap);
-  Pixmap resized = CGBitmapContextCreateImage(ctx);
-  CGContextRelease(ctx);
-
-  return resized;
-#else
-  return None;
-#endif
-}
-
 /* --- global functions --- */
 
 void ui_imagelib_display_opened(Display *display) {}
@@ -243,7 +226,7 @@ Pixmap ui_imagelib_load_file_for_background(ui_window_t *win, char *path,
   }
 
   if (ACTUAL_WIDTH(win) != width || ACTUAL_HEIGHT(win) != height) {
-    pixmap = resize(pixmap, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
+    pixmap = beos_resize_image(pixmap, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
   }
 
   return pixmap;
@@ -269,7 +252,7 @@ int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, 
   }
 
   if ((*width > 0 && pix_width != *width) || (*height > 0 && pix_height != *height)) {
-    *pixmap = resize(*pixmap, *width, *height);
+    *pixmap = beos_resize_image(*pixmap, *width, *height);
   } else {
     *width = pix_width;
     *height = pix_height;
@@ -279,9 +262,7 @@ int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, 
 }
 
 void ui_destroy_image(Display *display, Pixmap pixmap) {
-#if 0
-  CGImageRelease(pixmap);
-#endif
+  beos_destroy_image(pixmap);
 }
 
 void ui_destroy_mask(Display *display, PixmapMask mask /* can be NULL */) {}

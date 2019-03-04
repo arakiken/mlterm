@@ -92,7 +92,11 @@ u_int beos_font_get_advance(void *bfont, int size_attr, u_int16_t *utf16,
 
 void *beos_create_image(const void *data, u_int len, u_int width, u_int height);
 
+void beos_destroy_image(void *bitmap);
+
 void *beos_load_image(const char *path, u_int *width, u_int *height);
+
+void *beos_resize_image(void *bitmap, u_int width, u_int height);
 
 /* Utility */
 

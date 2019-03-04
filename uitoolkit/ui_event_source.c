@@ -194,6 +194,11 @@ static void receive_next_event(void) {
         (*additional_fds[count].handler)();
       }
     }
+
+#ifdef USE_BEOS
+    /* UI thread might create a new vt_term by pressing Ctrl+F1 key and so on. */
+    num_terms = vt_get_all_terms(&terms);
+#endif
   }
 
   /*
