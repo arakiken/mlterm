@@ -19,8 +19,6 @@ extern "C" {
 #define CONFIG_PATH "/etc"
 #endif
 
-extern char *global_args;
-
 /* --- static functions --- */
 
 static void *pty_watcher(void *app) {
@@ -43,26 +41,6 @@ int main(int argc, char* argv[]) {
   bl_set_msg_log_file_name("mlterm/msg.log");
 
   main_loop_init(argc, argv);
-
-  if (argc > 0) {
-    int count;
-    size_t len = 1; /* NULL terminator */
-
-    for (count = 0; count < argc; count++) {
-      len += (strlen(argv[count]) + 1);
-    }
-
-    if ((global_args = (char*)alloca(len))) {
-      char *p = global_args;
-
-      for (count = 0; count < argc - 1; count++) {
-        strcpy(p, argv[count]);
-        p += strlen(p);
-        *(p++) = ' ';
-      }
-      strcpy(p, argv[count]);
-    }
-  }
 
   pthread_create(&thrd, NULL, pty_watcher, (void*)&app);
 	app.Run();

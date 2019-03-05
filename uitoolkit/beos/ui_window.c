@@ -303,29 +303,29 @@ int ui_window_init(ui_window_t *win, u_int width, u_int height, u_int min_width,
 
 void ui_window_final(ui_window_t *win) {
   u_int count;
-  Window my_window;
-  int is_root;
 
 #ifdef __DEBUG
   bl_debug_printf("[deleting child windows]\n");
   ui_window_dump_children(win);
 #endif
 
-  if ((my_window = win->my_window)) {
+  for (count = 0; count < win->num_children; count++) {
+    ui_window_final(win->children[count]);
+  }
+
+  if (win->my_window) {
     /*
      * win->parent may be NULL because this function is called
      * from ui_layout after ui_window_remove_child(),
      * not only win->parent but also IS_XLAYOUT(win) is necessary.
      */
     if (!win->parent && IS_XLAYOUT(win)) {
-      is_root = 1;
+      window_dealloc(win->my_window);
     } else {
-      is_root = 0;
+      view_dealloc(win->my_window);
     }
-  }
 
-  for (count = 0; count < win->num_children; count++) {
-    ui_window_final(win->children[count]);
+    win->my_window = None;
   }
 
   free(win->children);
@@ -337,14 +337,6 @@ void ui_window_final(ui_window_t *win) {
 
   if (win->window_finalized) {
     (*win->window_finalized)(win);
-  }
-
-  if (my_window) {
-    if (is_root) {
-      window_dealloc(my_window);
-    } else {
-      view_dealloc(my_window);
-    }
   }
 }
 

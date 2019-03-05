@@ -19246,7 +19246,7 @@ if test "${enable_pty_helper+set}" = set; then :
   enableval=$enable_pty_helper; pty_helper=$enable_pty_helper
 fi
 
-if test "$utmp" = "yes" -a "$pty_helper" != "yes" ; then
+if test "$utmp" = "yes" -a "$pty_helper" != "yes" -a "$gui" != "beos"; then
 	UTMP_CFLAGS="-DUSE_UTMP"
 	has_utmp=`grep utmp /etc/group 2>/dev/null`
 	if test "$has_utmp" ; then
@@ -22616,7 +22616,7 @@ fi
 for scrollbar in ${scrollbars} ; do
 case ${scrollbar} in
 sample)
-	if test "$gui" != "fb" -a "$gui" != "console" -a "$gui" != "quartz" -a "$gui" != "wayland" -a "$gui" != "sdl2" ; then
+	if test "$gui" = "xlib" -o "gui" = "win32"; then
 		MAKE_DIRS="scrollbar/sample ${MAKE_DIRS}"
 		OUTPUT_FILES="scrollbar/sample/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != "xno" ; then

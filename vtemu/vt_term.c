@@ -364,8 +364,11 @@ int vt_term_open_pty(vt_term_t *term, const char *cmd_path, char **argv, char **
     char *port;
 
     if (pass && (host_dup = alloca(strlen(host) + 1)) &&
-        bl_parse_uri(NULL, &user, &server, &port, NULL, NULL, strcpy(host_dup, host)) &&
-        !vt_search_ssh_session(server, port, user)) {
+        bl_parse_uri(NULL, &user, &server, &port, NULL, NULL, strcpy(host_dup, host))
+#ifdef USE_LIBSSH2
+        && !vt_search_ssh_session(server, port, user)
+#endif
+        ) {
       pty_args_t *args;
 
       if (!(args = pty_args_new(term, cmd_path, argv, env, host, work_dir, pass, pubkey, privkey,

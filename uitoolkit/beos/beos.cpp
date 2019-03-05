@@ -51,14 +51,21 @@ public:
   ui_window_t *uiwindow;
 };
 
-/* --- global variables --- */
-
-char *global_args;
-
 /* --- static variables --- */
 
 static ef_parser_t *utf16_parser;
 static ef_conv_t *utf8_conv;
+
+/* --- static functions --- */
+
+static void set_input_focus(MLView *view) {
+  view->MakeFocus(true);
+
+  XEvent ev;
+
+  ev.type = UI_KEY_FOCUS_IN;
+  ui_window_receive_event(view->uiwindow, &ev);
+}
 
 /* --- class methods --- */
 
@@ -135,7 +142,8 @@ MLView::MLView(BRect frame, const char *title, uint32 resizemode, uint32 flags)
 }
 
 void MLView::Draw(BRect update) {
-  if (uiwindow->xim_listener /* is ui_screen_t */ && !((ui_screen_t *)uiwindow)->term) {
+  if (!uiwindow ||
+      (uiwindow->xim_listener /* is ui_screen_t */ && !((ui_screen_t *)uiwindow)->term)) {
     /* It has been already removed from ui_layout or term has been detached. */
     return;
   }
@@ -220,7 +228,7 @@ void MLView::MouseDown(BPoint where) {
   }
 
   if (!IsFocus()) {
-    MakeFocus(true);
+    set_input_focus(this);
   }
 
   int32 clicks;
@@ -375,6 +383,7 @@ void view_dealloc(/* BView */ void *view) {
     return;
   }
 
+  ((MLView*)view)->uiwindow = None;
   win->RemoveChild((BView*)view);
   delete (BView*)view;
 
@@ -507,7 +516,7 @@ void view_set_input_focus(/* BView */ void *view) {
     return;
   }
 
-  ((BView*)view)->MakeFocus(true);
+  set_input_focus((MLView*)view);
 
   ((BView*)view)->UnlockLooper();
 }

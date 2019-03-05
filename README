@@ -237,9 +237,10 @@ Supported platforms
   * iOS Simulator 7.1 / CocoaTouch (x86)
   * Android 4.0 (x86)
   * Java 1.8.0 / SWT (x86)
+  * Haiku R1 Beta1 (x86)
 
   See README.fb, README.win32, README.android, README.cocoa, README.cocoatouch,
-  README.console, README.wayland and README.sdl2 in
+  README.console, README.wayland, README.sdl2 and README.beos in
   http://bitbucket.org/arakiken/mlterm/src/tip/doc/en in detail.
 
   Following platforms are not actually tested by developers, but were supported
