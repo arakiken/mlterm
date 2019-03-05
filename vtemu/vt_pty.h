@@ -8,6 +8,7 @@
 
 #include "vt_config_menu.h"
 
+/* USE_MOSH is defined in vt_pty_mosh.cpp */
 #if defined(USE_LIBSSH2) && !defined(USE_MOSH)
 
 #include "vt_char_encoding.h"
@@ -22,10 +23,13 @@
  */
 #if (defined(USE_WIN32API) && !defined(OPEN_PTY_SYNC)) || \
     (defined(HAVE_PTHREAD) && (defined(__CYGWIN__) || defined(__MSYS__)))
-#define OPEN_PTY_ASYNC
 #endif
 
 #endif /* USE_LIBSSH2 */
+
+#ifdef __HAIKU__
+#define OPEN_PTY_ASYNC
+#endif
 
 typedef enum {
   PTY_NONE,

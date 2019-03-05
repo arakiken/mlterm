@@ -1,0 +1,31 @@
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
+
+BeOS (Haiku) support
+
+* Tested environment
+  Haiku R1 Beta1
+
+* Build
+  ./configure --with-gui=beos ...
+  make
+  sudo make install
+
+* Configuration
+  Edit main, font, key and color files in ~/.mlterm/
+  See files in http://bitbucket.org/arakiken/mlterm/src/tip/etc/
+
+  (Font Configuration)
+  Format of font,vfont,tfont is as follows.
+  [font family]( Bold Italic [font size]:[percentage])
+
+  Unlike aafont for cairo and xft, it is not necessary to escape '-' character
+  by '\' in [font family] string.
+
+  aafont, vaafont, taafont files are not used.
+
+* Start
+  mlterm
+
+* Caution
+  o -L/--ls, -u/--onlyucsfont and --boxdraw options are enabled by default.
+  o It is impossible to disable -s/--mdi option.

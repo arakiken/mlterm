@@ -669,7 +669,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     }
   }
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(USE_BEOS)
   main_config->use_login_shell = 1;
 #else
   main_config->use_login_shell = 0;

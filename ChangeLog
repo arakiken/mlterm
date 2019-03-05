@@ -1,3 +1,20 @@
+2019-03-05  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.beos: Added.
+
+	* configure.in: The value of INSTALL_OPT is always "-m 755" on BeOS (Haiku).
+
+	* main-beos.cpp: "extern char *global_args" is removed.
+
+	* beos.cpp:
+	  - UI_KEY_FOCUS_IN event is triggered when BView::MakeFocus() is called.
+	  - "char *global_args" is removed.
+
+	* ui_main_config.c: The default value of "use_login_shell" option is
+	  changed from 0 to 1 on BeOS (Haiku).
+
+	* vt_pty.h: OPEN_PTY_ASYNC is always defined on BeOS (Haiku).
+
 2019-03-04  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen_manager.c: Using uninitialized value is fixed.
