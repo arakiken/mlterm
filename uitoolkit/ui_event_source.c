@@ -23,6 +23,11 @@
 #define __DEBUG
 #endif
 
+#ifdef USE_BEOS
+void beos_lock(void);
+void beos_unlock(void);
+#endif
+
 /* --- static variables --- */
 
 #ifndef NO_DISPLAY_FD
@@ -178,6 +183,10 @@ static void receive_next_event(void) {
     display_idling_wait = 4;
 #endif
 
+#ifdef USE_BEOS
+    beos_lock();
+#endif
+
     for (count = 0; count < num_displays; count++) {
       ui_display_idling(displays[count]);
     }
@@ -196,10 +205,16 @@ static void receive_next_event(void) {
     }
 
 #ifdef USE_BEOS
+    beos_unlock();
+
     /* UI thread might create a new vt_term by pressing Ctrl+F1 key and so on. */
     num_terms = vt_get_all_terms(&terms);
 #endif
   }
+
+#ifdef USE_BEOS
+  beos_lock();
+#endif
 
   /*
    * Processing order should be as follows.
@@ -245,6 +260,10 @@ static void receive_next_event(void) {
       }
     }
   }
+
+#ifdef USE_BEOS
+  beos_unlock();
+#endif
 }
 
 #endif

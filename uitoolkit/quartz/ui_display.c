@@ -179,11 +179,6 @@ void ui_display_idling(ui_display_t *disp) {
   }
 }
 
-/*
- * <Return value>
- *  0: Receive WM_QUIT
- *  1: Receive other messages.
- */
 int ui_display_receive_next_event(ui_display_t *disp) { return 1; }
 
 /*

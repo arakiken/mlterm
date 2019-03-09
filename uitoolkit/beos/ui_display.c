@@ -150,9 +150,6 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
 
   for (count = 0; count < disp->num_roots; count++) {
     if (disp->roots[count] == root) {
-      ui_window_unmap(root);
-      ui_window_final(root);
-
       disp->num_roots--;
 
       if (count == disp->num_roots) {
@@ -160,6 +157,9 @@ int ui_display_remove_root(ui_display_t *disp, ui_window_t *root) {
       } else {
         disp->roots[count] = disp->roots[disp->num_roots];
       }
+
+      ui_window_unmap(root);
+      ui_window_final(root);
 
       return 1;
     }
@@ -176,11 +176,6 @@ void ui_display_idling(ui_display_t *disp) {
   }
 }
 
-/*
- * <Return value>
- *  0: Receive WM_QUIT
- *  1: Receive other messages.
- */
 int ui_display_receive_next_event(ui_display_t *disp) { return 1; }
 
 /*

@@ -7,7 +7,7 @@
 
 #ifdef __UI_WINDOW_H__
 
-/* for MLView */
+/* for BView */
 
 void view_alloc(ui_window_t *uiwindow, int x, int y, u_int width, u_int height);
 
@@ -38,8 +38,6 @@ void view_bg_color_changed(void *view);
 
 void view_visual_bell(void *view);
 
-/* for BView */
-
 void view_set_input_focus(void *view);
 
 void view_resize(void *view, u_int width, u_int height);
@@ -51,19 +49,21 @@ void view_set_hidden(void *view, int flag);
 void view_reset_uiwindow(ui_window_t *uiwindow);
 
 /* for BWindow */
-void window_alloc(ui_window_t *root, u_int width, u_int height);
+void window_alloc(ui_window_t *root, int x, int y, u_int width, u_int height, int popup);
 
-void window_show(ui_window_t *root);
+void window_show(void *window);
 
 void window_dealloc(void *window);
 
-void window_resize(void *window, int width, int height);
+void window_move(void *window, int x, int y);
 
-void window_move_resize(void *window, int x, int y, int width, int height);
+void window_resize(void *window, int width, int height);
 
 void window_get_position(void *window, int *x, int *y);
 
 void window_set_title(void *window, const char *title);
+
+void *window_get_orphan(void *window, int idx);
 
 /* for BApplication */
 
@@ -105,5 +105,9 @@ char *beos_dialog_password(const char *msg);
 int beos_dialog_okcancel(const char *msg);
 
 int beos_dialog_alert(const char *msg);
+
+void beos_lock(void);
+
+void beos_unlock(void);
 
 #endif

@@ -1,3 +1,32 @@
+2019-03-09  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_layout.c: term->next[0] and term->next[1] are destroyed before
+	  destroying term in window_destroyed_intern().
+
+	* ui_event_source.c: beos_lock() and beos_unlock() are called on Haiku.
+
+	* quartz/ui_window.c: IS_XSCREEN() => IS_UISCREEN()
+
+	* beos/ui_window.c:
+	  window_dealloc() (which exits the current thread and never returns) is
+	  placed at the end of ui_window_final().
+
+	* beos/ui_display.c: ui_window_final() is moved after updating
+	  disp->num_roots and disp->roots.
+
+	* beos.cpp, beos.h:
+	  - B_INPUT_METHOD_EVENT is processed in MLView::MessageReceived().
+	  - beos_lock(), beos_unlock(), view_lock(), view_unlock(), window_lock()
+	    and window_unlock() are added.
+	  - LockLooperWithTimeout() is replaced by {window|view}_lock() in
+	    MLWindow::Foo() and MLView::Bar()
+	  - update_ime_text() is added.
+	  - window_get_position() is implemented.
+	  - window_get_orphan() is added for input method window.
+	  - widow_move_resize() is removed and window_move() is added.
+
+	* ui.h: XIM_SPOT_IS_LINE_TOP is defined.
+
 2019-03-05  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.beos: Added.
