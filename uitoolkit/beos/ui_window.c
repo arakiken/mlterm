@@ -25,7 +25,8 @@
 
 #define ParentRelative (1L)
 
-#define IS_XLAYOUT(win) ((win)->child_window_resized)
+#define IS_UILAYOUT(win) ((win)->child_window_resized)
+#define IS_IM_WINDOW(win) ((win)->window_resized == NULL)
 
 #if 0
 #define DEBUG_SCROLLABLE
@@ -162,10 +163,17 @@ static void reset_input_focus(ui_window_t *win) {
 }
 
 static void clear_margin_area(ui_window_t *win) {
+  void *view;
   u_int right_margin;
   u_int bottom_margin;
   u_int win_width;
   u_int win_height;
+
+  if (win->parent) {
+    view = win->my_window;
+  } else if (!(view = window_get_orphan(win->my_window, 0))) {
+    return;
+  }
 
   right_margin = RIGHT_MARGIN(win);
   bottom_margin = BOTTOM_MARGIN(win);
@@ -187,28 +195,28 @@ static void clear_margin_area(ui_window_t *win) {
     }
 
     if (win->hmargin > 0 || right_margin > 0) {
-      view_copy_area(win->my_window, pic, src_x, src_y, win->hmargin, ACTUAL_HEIGHT(win), 0, 0);
-      view_copy_area(win->my_window, pic, src_x + win_width + win->hmargin, src_y,
+      view_copy_area(view, pic, src_x, src_y, win->hmargin, ACTUAL_HEIGHT(win), 0, 0);
+      view_copy_area(view, pic, src_x + win_width + win->hmargin, src_y,
                      win->hmargin + right_margin, ACTUAL_HEIGHT(win), win_width + win->hmargin, 0);
     }
 
     if (win->vmargin > 0 || bottom_margin > 0) {
-      view_copy_area(win->my_window, pic, src_x + win->hmargin, src_y, win_width, win->vmargin,
+      view_copy_area(view, pic, src_x + win->hmargin, src_y, win_width, win->vmargin,
                      win->hmargin, 0);
-      view_copy_area(win->my_window, pic, src_x + win->hmargin, src_y + win_height + win->vmargin,
+      view_copy_area(view, pic, src_x + win->hmargin, src_y + win_height + win->vmargin,
                      win_width, win->vmargin + bottom_margin, win->hmargin,
                      win_height + win->vmargin);
     }
   } else {
     if (win->hmargin > 0 || right_margin > 0) {
-      view_fill_with(win->my_window, &win->bg_color, 0, 0, win->hmargin, ACTUAL_HEIGHT(win));
-      view_fill_with(win->my_window, &win->bg_color, win_width + win->hmargin, 0,
+      view_fill_with(view, &win->bg_color, 0, 0, win->hmargin, ACTUAL_HEIGHT(win));
+      view_fill_with(view, &win->bg_color, win_width + win->hmargin, 0,
                      ACTUAL_WIDTH(win) - win_width - win->hmargin, ACTUAL_HEIGHT(win));
     }
 
     if (win->vmargin > 0 || bottom_margin > 0) {
-      view_fill_with(win->my_window, &win->bg_color, win->hmargin, 0, win_width, win->vmargin);
-      view_fill_with(win->my_window, &win->bg_color, win->hmargin, win_height + win->vmargin,
+      view_fill_with(view, &win->bg_color, win->hmargin, 0, win_width, win->vmargin);
+      view_fill_with(view, &win->bg_color, win->hmargin, win_height + win->vmargin,
                      win_width, ACTUAL_HEIGHT(win) - win_height - win->vmargin);
     }
   }
@@ -303,6 +311,8 @@ int ui_window_init(ui_window_t *win, u_int width, u_int height, u_int min_width,
 
 void ui_window_final(ui_window_t *win) {
   u_int count;
+  Window my_window;
+  int is_window;
 
 #ifdef __DEBUG
   bl_debug_printf("[deleting child windows]\n");
@@ -313,19 +323,22 @@ void ui_window_final(ui_window_t *win) {
     ui_window_final(win->children[count]);
   }
 
+  my_window = win->my_window;
   if (win->my_window) {
     /*
      * win->parent may be NULL because this function is called
      * from ui_layout after ui_window_remove_child(),
-     * not only win->parent but also IS_XLAYOUT(win) is necessary.
+     * not only win->parent but also IS_UILAYOUT(win) is necessary.
      */
-    if (!win->parent && IS_XLAYOUT(win)) {
-      window_dealloc(win->my_window);
+    if (!win->parent && (IS_UILAYOUT(win) || IS_IM_WINDOW(win))) {
+      is_window = 1;
     } else {
-      view_dealloc(win->my_window);
+      is_window = -1;
     }
 
     win->my_window = None;
+  } else {
+    is_window = 0;
   }
 
   free(win->children);
@@ -337,6 +350,13 @@ void ui_window_final(ui_window_t *win) {
 
   if (win->window_finalized) {
     (*win->window_finalized)(win);
+  }
+
+  if (is_window == 1) {
+    window_dealloc(my_window);
+    /* Not reach. */
+  } else if (is_window == -1) {
+    view_dealloc(my_window);
   }
 }
 
@@ -361,11 +381,19 @@ int ui_window_set_wall_picture(ui_window_t *win, Pixmap pic, int do_expose) {
 
   win->wall_picture = pic;
 
-  if (win->my_window != None && do_expose) {
 #if 1
-    view_update(win->my_window);
-#endif
+  if (win->my_window != None && do_expose) {
+    if (win->parent) {
+      view_update(win->my_window);
+    } else {
+      void *view;
+
+      if ((view = window_get_orphan(win->my_window, 0))) {
+        view_update(view);
+      }
+    }
   }
+#endif
 
   for (count = 0; count < win->num_children; count++) {
     ui_window_set_wall_picture(win->children[count], ParentRelative, do_expose);
@@ -417,7 +445,7 @@ int ui_window_set_bg_color(ui_window_t *win, ui_color_t *bg_color) {
 
   win->bg_color = *bg_color;
 
-  if (win->my_window && !IS_XLAYOUT(win)) {
+  if (win->my_window && win->parent) {
     view_bg_color_changed(win->my_window);
     ui_window_update_all(win);
   }
@@ -507,7 +535,8 @@ int ui_window_show(ui_window_t *win,
 
     view_alloc(win, win->x, win->y, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
   } else {
-    window_alloc(win, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
+    window_alloc(win, win->x, win->y, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
+                 IS_IM_WINDOW(win));
   }
 
 #ifndef DISABLE_XDND
@@ -535,7 +564,7 @@ int ui_window_show(ui_window_t *win,
   }
 
   if (!win->parent) {
-    window_show(win);
+    window_show(win->my_window);
   }
 
   /*
@@ -608,8 +637,6 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
   }
 
   if (win->parent) {
-    bl_debug_printf("RESIZE %p %p %d %d\n", win, win->my_window, ACTUAL_WIDTH(win),
-                    ACTUAL_HEIGHT(win));
     view_resize(win->my_window, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
 
     if ((flag & NOTIFY_TO_PARENT) && win->parent->child_window_resized) {
@@ -619,9 +646,9 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
     /*
      * win->parent may be NULL because this function is called
      * from ui_layout after ui_window_remove_child(),
-     * not only win->parent but also IS_XLAYOUT(win) is necessary.
+     * not only win->parent but also IS_UILAYOUT(win) is necessary.
      */
-    if (IS_XLAYOUT(win)) {
+    if (IS_UILAYOUT(win) || IS_IM_WINDOW(win)) {
       window_resize(win->my_window, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
     }
   }
@@ -670,7 +697,8 @@ void ui_window_set_maximize_flag(ui_window_t *win, ui_maximize_flag_t flag) {
       h = win->height;
     }
 
-    window_move_resize(win->my_window, x, y, w, h);
+    window_resize(win->my_window, w, h);
+    window_move(win->my_window, x, y);
 
     /* Same processing as ui_window_resize() */
     if (win->window_resized) {
@@ -704,13 +732,13 @@ int ui_window_move(ui_window_t *win, int x, int y) {
     return 0;
   }
 
-  bl_debug_printf("MOVE %p %p %d %d\n", win, win->my_window, x, y);
-
   win->x = x;
   win->y = y;
 
   if (win->parent) {
     view_move(win->my_window, x, y);
+  } else {
+    window_move(win->my_window, x, y);
   }
 
   return 1;
@@ -721,6 +749,8 @@ int ui_window_move(ui_window_t *win, int x, int y) {
  * events.
  */
 void ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height) {
+  void *view;
+
 #ifdef AUTO_CLEAR_MARGIN
   if (x + width >= win->width) {
     /* Clearing margin area */
@@ -755,6 +785,12 @@ void ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height) 
   }
 #endif
 
+  if (win->parent) {
+    view = win->my_window;
+  } else if (!(view = window_get_orphan(win->my_window, 0))) {
+    return;
+  }
+
   if (win->wall_picture) {
     Pixmap pic;
     int src_x;
@@ -769,9 +805,9 @@ void ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height) 
       src_x = src_y = 0;
     }
 
-    view_copy_area(win->my_window, pic, src_x + x, src_y + y, width, height, x, y);
+    view_copy_area(view, pic, src_x + x, src_y + y, width, height, x, y);
   } else {
-    view_fill_with(win->my_window, &win->bg_color, x, y, width, height);
+    view_fill_with(view, &win->bg_color, x, y, width, height);
   }
 }
 
@@ -785,7 +821,15 @@ void ui_window_fill(ui_window_t *win, int x, int y, u_int width, u_int height) {
 
 void ui_window_fill_with(ui_window_t *win, ui_color_t *color, int x, int y, u_int width,
                         u_int height) {
-  view_fill_with(win->my_window, color, x + win->hmargin, y + win->vmargin, width, height);
+  void *view;
+
+  if (win->parent) {
+    view = win->my_window;
+  } else if (!(view = window_get_orphan(win->my_window, 0))) {
+    return;
+  }
+
+  view_fill_with(view, color, x + win->hmargin, y + win->vmargin, width, height);
 }
 
 /*
@@ -803,16 +847,39 @@ void ui_window_fill_all_with(ui_window_t *win, ui_color_t *color) {}
 #endif
 
 void ui_window_update(ui_window_t *win, int flag) {
+  void *view;
+
+  if (win->parent) {
+    view = win->my_window;
+  }
+  /*
+   * ui_screen which is removed and becomes an orphan is resized by
+   * ui_window_resize() in ui_layout_remove_child(), then ui_window_update()
+   * is called.
+   * In this case win->parent is NULL but win->my_window is not MLWindow* but
+   * MLView*, so window_get_orphan(win->my_window) fails.
+   * 'if ((!IS_UILAYOUT(win) && !IS_IM_WINDOW(win)))' avoids the failure.
+   */
+  else if ((!IS_UILAYOUT(win) && !IS_IM_WINDOW(win)) ||
+           !(view = window_get_orphan(win->my_window, 0))) {
+    return;
+  }
+
   win->update_window_flag |= flag;
-  view_update(win->my_window);
+  view_update(view);
 }
 
 void ui_window_update_all(ui_window_t *win) {
+  void *view;
   u_int count;
 
   if (win->parent) {
-    view_update(win->my_window);
+    view = win->my_window;
+  } else if (!(view = window_get_orphan(win->my_window, 0))) {
+    return;
   }
+
+  view_update(view);
 
   for (count = 0; count < win->num_children; count++) {
     ui_window_update_all(win->children[count]);
@@ -851,7 +918,7 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
       win->inputtable = 1;
       win = ui_get_root_window(win);
       notify_focus_out_to_children(win);
-    /* Fall through */
+      /* Fall through */
 
     case UI_FOCUS_IN:
       urgent_bell(win, 0);
@@ -983,9 +1050,11 @@ int ui_window_scroll_upward_region(ui_window_t *win, int boundary_start, int bou
     return 0;
   }
 
-  view_scroll(win->my_window, win->hmargin, win->vmargin + boundary_start + height, /* src */
-              win->width, boundary_end - boundary_start - height,                   /* size */
-              win->hmargin, win->vmargin + boundary_start);                         /* dst */
+  if (win->parent) {
+    view_scroll(win->my_window, win->hmargin, win->vmargin + boundary_start + height, /* src */
+                win->width, boundary_end - boundary_start - height,                   /* size */
+                win->hmargin, win->vmargin + boundary_start);                         /* dst */
+  }
 
   return 1;
 }
@@ -1009,9 +1078,11 @@ int ui_window_scroll_downward_region(ui_window_t *win, int boundary_start, int b
     return 0;
   }
 
-  view_scroll(win->my_window, win->hmargin, win->vmargin + boundary_start, /* src */
-              win->width, boundary_end - boundary_start - height,          /* size */
-              win->hmargin, win->vmargin + boundary_start + height);       /* dst */
+  if (win->parent) {
+    view_scroll(win->my_window, win->hmargin, win->vmargin + boundary_start, /* src */
+                win->width, boundary_end - boundary_start - height,          /* size */
+                win->hmargin, win->vmargin + boundary_start + height);       /* dst */
+  }
 
   return 1;
 }
@@ -1035,9 +1106,11 @@ int ui_window_scroll_leftward_region(ui_window_t *win, int boundary_start, int b
     return 0;
   }
 
-  view_scroll(win->my_window, win->hmargin + boundary_start + width, win->vmargin, /* src */
-              boundary_end - boundary_start - width, win->height,                  /* size */
-              win->hmargin + boundary_start, win->vmargin);                        /* dst */
+  if (win->parent) {
+    view_scroll(win->my_window, win->hmargin + boundary_start + width, win->vmargin, /* src */
+                boundary_end - boundary_start - width, win->height,                  /* size */
+                win->hmargin + boundary_start, win->vmargin);                        /* dst */
+  }
 
   return 1;
 }
@@ -1061,9 +1134,11 @@ int ui_window_scroll_rightward_region(ui_window_t *win, int boundary_start, int 
     return 0;
   }
 
-  view_scroll(win->my_window, win->hmargin + boundary_start, win->vmargin, /* src */
-              boundary_end - boundary_start - width, win->height,          /* size */
-              win->hmargin + boundary_start + width, win->vmargin);        /* dst */
+  if (win->parent) {
+    view_scroll(win->my_window, win->hmargin + boundary_start, win->vmargin, /* src */
+                boundary_end - boundary_start - width, win->height,          /* size */
+                win->hmargin + boundary_start + width, win->vmargin);        /* dst */
+  }
 
   return 1;
 }
@@ -1085,17 +1160,25 @@ int ui_window_copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x
     height = win->height - dst_y;
   }
 
-  view_copy_area(win->my_window, src, src_x, src_y, width, height, dst_x + win->hmargin,
-                 dst_y + win->vmargin);
+  if (win->parent) {
+    view_copy_area(win->my_window, src, src_x, src_y, width, height, dst_x + win->hmargin,
+                   dst_y + win->vmargin);
+  }
 
   return 1;
 }
 
 void ui_window_set_clip(ui_window_t *win, int x, int y, u_int width, u_int height) {
-  view_set_clip(win->my_window, x + win->hmargin, y + win->vmargin, width, height);
+  if (win->parent) {
+    view_set_clip(win->my_window, x + win->hmargin, y + win->vmargin, width, height);
+  }
 }
 
-void ui_window_unset_clip(ui_window_t *win) { view_unset_clip(win->my_window); }
+void ui_window_unset_clip(ui_window_t *win) {
+  if (win->parent) {
+    view_unset_clip(win->my_window);
+  }
+}
 
 void ui_window_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x,
                                 int y, u_char *str, u_int len) {
@@ -1104,17 +1187,35 @@ void ui_window_draw_decsp_string(ui_window_t *win, ui_font_t *font, ui_color_t *
 
 void ui_window_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
                            u_char *str, u_int len) {
-  view_draw_string(win->my_window, font, fg_color, x + win->hmargin, y + win->vmargin, str, len);
+  void *view;
+
+  if (win->parent) {
+    view = win->my_window;
+  } else if (!(view = window_get_orphan(win->my_window, 0))) {
+    return;
+  }
+
+  view_draw_string(view, font, fg_color, x + win->hmargin, y + win->vmargin, str, len);
 }
 
 void ui_window_draw_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
                              XChar2b *str, u_int len) {
-  view_draw_string16(win->my_window, font, fg_color, x + win->hmargin, y + win->vmargin, str, len);
+  void *view;
+
+  if (win->parent) {
+    view = win->my_window;
+  } else if (!(view = window_get_orphan(win->my_window, 0))) {
+    return;
+  }
+
+  view_draw_string16(view, font, fg_color, x + win->hmargin, y + win->vmargin, str, len);
 }
 
 void ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2) {
-  view_draw_rect_frame(win->my_window, &win->fg_color, x1 + win->hmargin, y1 + win->vmargin,
-                       x2 + win->hmargin, y2 + win->vmargin);
+  if (win->parent) {
+    view_draw_rect_frame(win->my_window, &win->fg_color, x1 + win->hmargin, y1 + win->vmargin,
+                         x2 + win->hmargin, y2 + win->vmargin);
+  }
 }
 
 void ui_set_use_clipboard_selection(int use_it) {}
@@ -1202,7 +1303,9 @@ void ui_window_bell(ui_window_t *win, ui_bel_mode_t mode) {
   urgent_bell(win, 1);
 
   if (mode & BEL_VISUAL) {
-    view_visual_bell(win->my_window);
+    if (win->parent) {
+      view_visual_bell(win->my_window);
+    }
   }
 
   if (mode & BEL_SOUND) {
@@ -1221,7 +1324,9 @@ void ui_window_set_input_focus(ui_window_t *win) {
   reset_input_focus(ui_get_root_window(win));
   win->inputtable = 1;
 
-  view_set_input_focus(win->my_window);
+  if (win->parent) {
+    view_set_input_focus(win->my_window);
+  }
 }
 
 #ifdef DEBUG

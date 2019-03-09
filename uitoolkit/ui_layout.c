@@ -549,9 +549,6 @@ static void set_xdnd_config(ui_window_t *win, char *dev, char *buf, char *value)
 #endif
 
 static void window_destroyed_intern(struct terminal *term) {
-  /* dispatch to screen */
-  (*term->screen->window.window_destroyed)(&term->screen->window);
-
   if (term->next[0]) {
     window_destroyed_intern(term->next[0]);
   }
@@ -559,6 +556,9 @@ static void window_destroyed_intern(struct terminal *term) {
   if (term->next[1]) {
     window_destroyed_intern(term->next[1]);
   }
+
+  /* dispatch to screen */
+  (*term->screen->window.window_destroyed)(&term->screen->window);
 }
 
 static void window_destroyed(ui_window_t *win) {
@@ -1599,7 +1599,7 @@ int ui_layout_remove_child(ui_layout_t *layout, ui_screen_t *screen) {
 
 #ifndef MANAGE_SUB_WINDOWS_BY_MYSELF
   if (ui_screen_attached(screen)) {
-    /* Revert to the original size. */
+    /* Revert the size of vt_term to the original one. */
     ui_window_resize_with_margin(
         &screen->window, ACTUAL_WIDTH(&layout->window) -
                              (term->sb_mode != SBM_NONE ? SCROLLBAR_WIDTH(term->scrollbar) : 0),

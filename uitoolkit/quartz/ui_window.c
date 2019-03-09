@@ -25,8 +25,8 @@
 
 #define ParentRelative (1L)
 
-#define IS_XSCREEN(win) ((win)->selection_cleared)
-#define IS_XLAYOUT(win) ((win)->child_window_resized)
+#define IS_UISCREEN(win) ((win)->selection_cleared)
+#define IS_UILAYOUT(win) ((win)->child_window_resized)
 
 #if 0
 #define DEBUG_SCROLLABLE
@@ -343,9 +343,9 @@ void ui_window_final(ui_window_t *win) {
     /*
      * win->parent may be NULL because this function is called
      * from ui_layout after ui_window_remove_child(),
-     * not only win->parent but also IS_XLAYOUT(win) is necessary.
+     * not only win->parent but also IS_UILAYOUT(win) is necessary.
      */
-    if (!win->parent && IS_XLAYOUT(win)) {
+    if (!win->parent && IS_UILAYOUT(win)) {
       window_dealloc(my_window);
     } else {
       view_dealloc(my_window);
@@ -445,7 +445,7 @@ int ui_window_set_bg_color(ui_window_t *win, ui_color_t *bg_color) {
 
   win->bg_color = *bg_color;
 
-  if (win->my_window && IS_XSCREEN(win)) {
+  if (win->my_window && IS_UISCREEN(win)) {
     view_bg_color_changed(win->my_window);
     ui_window_update_all(win);
   }
@@ -569,7 +569,7 @@ int ui_window_show(ui_window_t *win,
     ui_window_set_transparent(win, win->pic_mod);
   }
 
-  if (IS_XSCREEN(win) && win->parent->my_window) {
+  if (IS_UISCREEN(win) && win->parent->my_window) {
     view_alloc(win);
   }
 
@@ -649,9 +649,9 @@ int ui_window_resize(ui_window_t *win, u_int width, /* excluding margin */
     /*
      * win->parent may be NULL because this function is called
      * from ui_layout after ui_window_remove_child(),
-     * not only win->parent but also IS_XLAYOUT(win) is necessary.
+     * not only win->parent but also IS_UILAYOUT(win) is necessary.
      */
-    if (IS_XLAYOUT(win)) {
+    if (IS_UILAYOUT(win)) {
       window_resize(win->my_window, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
     }
   }
@@ -858,7 +858,7 @@ void ui_window_update(ui_window_t *win, int flag) {
 void ui_window_update_all(ui_window_t *win) {
   u_int count;
 
-  if (IS_XSCREEN(win)) {
+  if (IS_UISCREEN(win)) {
     view_update(win->my_window, 1);
   }
 

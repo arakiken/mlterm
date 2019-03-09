@@ -480,6 +480,7 @@ static void close_screen_intern(ui_screen_t *screen) {
 
   if (UI_SCREEN_TO_LAYOUT(screen)) {
     ui_layout_remove_child(UI_SCREEN_TO_LAYOUT(screen), screen);
+    /* ui_get_root_window() below doesn't return ui_layout. */
   }
 
   ui_screen_detach(screen);
