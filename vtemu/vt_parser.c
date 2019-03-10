@@ -106,11 +106,16 @@
 static u_int64_t true64 = 1;
 #define SHIFT_FLAG64(mode) ((sizeof(true64) < 8 && (mode) >= 32) ? 0 : (true64 << (mode)))
 
+/*
+ * The default of DECMODE_1010 is 'set' (scroll to bottom on tty output) on xterm,
+ * but is 'reset' on mlterm ("exit_backscroll_by_pty" option).
+ */
 #define INITIAL_VTMODE_FLAGS \
   SHIFT_FLAG64(DECMODE_2) | /* is_vt52_mode == 0 */ \
   SHIFT_FLAG64(DECMODE_7) | /* auto_wrap == 1 (compatible with xterm, not with VT220) */ \
   SHIFT_FLAG64(DECMODE_25) | /* is_visible_cursor == 1 */ \
-  SHIFT_FLAG64(VTMODE_12);   /* local echo is false */
+  SHIFT_FLAG64(DECMODE_1034) | /* mod_meta_mode = 8bit (compatible with xterm) */ \
+  SHIFT_FLAG64(VTMODE_12); /* local echo is false */
 
 #define VTMODE(mode) ((mode) + 10000)
 
@@ -141,12 +146,15 @@ typedef enum {
   DECMODE_116,
   DECMODE_117,
   DECMODE_1000,
-  DECMODE_1002, /* Don't add an entry between 1000 and 1002 (see set_vtmode()) */
+  DECMODE_1002, /* Don't add an entry between 1000 and 1002 (see set_vtmode() idx - DECMODE_1000) */
   DECMODE_1003,
   DECMODE_1004,
   DECMODE_1005,
   DECMODE_1006,
-  DECMODE_1015, /* Don't add an entry between 1006 and 1015 (see set_vtmode()) */
+  DECMODE_1015, /* Don't add an entry between 1005 and 1015 (see set_vtmode() idx - DECMODE_1005) */
+  DECMODE_1010,
+  DECMODE_1034,
+  DECMODE_1036,
   DECMODE_1042,
   DECMODE_1047,
   DECMODE_1048,
@@ -180,7 +188,8 @@ static u_int16_t vtmodes[] = {
   /* DECSET/DECRST */
   1, 2, 3, 5, 6, 7, 25, 40, 47, 66, 67, 69, 80, 95, 116, 117,
   1000, 1002, /* Don't add an entry between 1000 and 1002 (see set_vtmode()) */
-  1003, 1004, 1005, 1006, 1015, /* Don't add an entry between 1006 and 1015 (see set_vtmode()) */
+  1003, 1004, 1005, 1006, 1015, /* Don't add an entry between 1005 and 1015 (see set_vtmode()) */
+  1010, 1034, 1036,
   1042, 1047, 1048, 1049, 2004, 7727, 8428, 8452, 8800,
 
   /* SM/RM */
@@ -3701,6 +3710,7 @@ static int get_vtmode(vt_parser_t *vt_parser, int mode) {
   } else if (mode == 4 /* DECSCLM (smooth scroll) */ || mode == 9 /* X10 mouse report */ ||
              mode == 38 /* Tek */ || mode == 45 /* reverse wraparound */ ||
              mode == 1001 /* highlight mouse tracking */ ||
+             mode == 1011 /* scroll to bottom on key press */ ||
              /*
               * GATM, SRTM, VEM, HEM, PUM, FEAM, FETM, MATM, TTM, SATM, TSM, EBM are
               * permanently reset on VT510.
@@ -3913,17 +3923,29 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
     }
     break;
 
-#if 0
   case DECMODE_1010:
-    /* scroll to bottom on tty output inhibit */
+    /* scroll to bottom on tty output */
+    config_protocol_set_simple(vt_parser, "exit_backscroll_by_pty", flag ? "true" : "false", 0);
     break;
-#endif
 
 #if 0
   case DECMODE_1011:
-    /* scroll to bottom on key press */
+    /* scroll to bottom on key press (always enabled) */
     break;
 #endif
+
+  case DECMODE_1034:
+    if (get_vtmode(vt_parser, 1036) == 2 /* reset */) {
+      config_protocol_set_simple(vt_parser, "mod_meta_mode", flag ? "8bit" : "none", 0);
+    }
+    break;
+
+  case DECMODE_1036:
+    config_protocol_set_simple(vt_parser, "mod_meta_mode",
+                               flag ? "esc" :
+                                      (get_vtmode(vt_parser, 1034) == 1 ? "8bit" : "none"),
+                               0);
+    break;
 
   case DECMODE_1042:
     config_protocol_set_simple(vt_parser, "use_urgent_bell", flag ? "true" : "false", 0);
@@ -4052,6 +4074,7 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
   }
 }
 
+/* Options configurable by ~/.mlterm/main are not reset. */
 static void soft_reset(vt_parser_t *vt_parser) {
   /*
    * XXX

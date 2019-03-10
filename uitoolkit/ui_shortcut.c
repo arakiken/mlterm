@@ -243,10 +243,13 @@ void ui_shortcut_init(ui_shortcut_t *shortcut) {
       {
        XK_Down, ShiftMask, 1,
       },
-
       /* INSERT_SELECTION */
       {
+#if defined(USE_QUARTZ) || (defined(USE_SDL2) && defined(__APPLE__))
+       'v', CommandMask, 1,
+#else
        XK_Insert, ShiftMask, 1,
+#endif
       },
 
 #ifdef DEBUG

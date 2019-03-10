@@ -399,5 +399,6 @@ KeySym XStringToKeysym(char *str);
 #undef USE_REAL_VERTICAL_FONT
 #undef NO_DISPLAY_FD
 #undef FLICK_SCROLL
+#define UIWINDOW_SUPPORTS_PREEDITING
 
 #endif

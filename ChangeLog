@@ -1,3 +1,36 @@
+2019-03-10  Araki Ken  <arakiken@users.sf.net>
+
+	* ControlSequences, README.cocoa, README.cocoatouch: Updated.
+
+	* ui_shortcut.c: The default value of INSERT_SELECTION is changed from
+	  Shift+Insert to Command+v on MacOSX and iOS.
+
+	* vt_parser.c: CSI ? 1010 h, CSI ? 1010 l, CSI ? 1034 h, CSI ? 1034 l,
+	  CSI ? 1036 h and CSI ? 1036 l are supported.
+
+	* quartz/ui_event_source-cocoa.m: Added.
+
+	* quartz/ui_event_source.c: Removed.
+
+	* ui_screen.c: preedit() which is set to ui_window_t::preedit is added.
+
+	* sdl2/ui_display.c: update_ime_text() is moved to preedit() in ui_screen.c.
+
+	* uitoolkit/Makefile.in: ui_event_source.o is moved from OBJ1 to OBJ2_*,
+	  and ui_event_source-cocoa.o is added to OBJ2_quartz.
+
+	* cocoa.[hm], cocoatouch.m:
+	  - update_ime_text() is moved to preedit() in ui_screen.c.
+	  - Almost all codes in monitor_pty() is moved to ui_event_source_process().
+	  - cocoa_add_fd() and cocoa_remove_fd() are integrated to
+	    ui_event_source_add_fd() and ui_event_source_remove_fd().
+
+	* beos.cpp:
+	  - update_ime_text() is moved to preedit() in ui_screen.c.
+	  - beos_resize_image() is implemented.
+
+	* */ui.h: UIWINDOW_SUPPORTS_PREEDITING is added.
+
 2019-03-09  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_layout.c: term->next[0] and term->next[1] are destroyed before

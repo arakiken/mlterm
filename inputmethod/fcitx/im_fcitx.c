@@ -531,7 +531,6 @@ static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdow
 
     (*fcitx->im.listener->get_spot)(fcitx->im.listener->self, fcitx->im.preedit.chars,
                                     fcitx->im.preedit.segment_offset, &x, &y);
-    bl_debug_printf("%d: %d %d\n", fcitx->im.preedit.segment_offset, x, y);
 
     if (fcitx->im.stat_screen == NULL) {
       if (!(fcitx->im.stat_screen = (*syms->ui_im_status_screen_new)(

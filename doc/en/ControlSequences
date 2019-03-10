@@ -288,6 +288,10 @@ O XTMSESGR (Enable SGR Mouse Mode)                          CSI ? 1006 [hl]
 O XTMSEUTF (Enable UTF-8 Mouse Mode)                        CSI ? 1005 [hl]
 O XTMSEWIN (Send FocusIn/FocusOut events)                   CSI ? 1004 [hl]
 O XTMSEX11 (Send Mouse X & Y on button press and release)   CSI ? 1000 [hl]
+O (Scroll to bottom on tty output (rxvt))                   CSI ? 1010 [hl]
+X (Scroll to bottom on key press (rxvt))                    CSI ? 1011 [hl]
+O (Interpret "meta" key (set eighth bit of keyboard input)) CSI ? 1034 [hl]
+O (Send ESC when Meta modifiers a key)                      CSI ? 1036 [hl]
 O XTHDPT (Set resource value pointerMode)                   CSI > Pn p
 O XTREST (Restore DEC Private Mode Values)                  CSI ? Pn r
 O XTSAVE (Save DEC Private Mode Values)                     CSI ? Pn s

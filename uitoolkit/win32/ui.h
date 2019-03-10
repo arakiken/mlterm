@@ -425,5 +425,6 @@ KeySym XStringToKeysym(char *str);
 #define NO_DISPLAY_FD
 #endif
 #undef FLICK_SCROLL
+#undef UIWINDOW_SUPPORTS_PREEDITING
 
 #endif
