@@ -956,7 +956,7 @@ void beos_beep(void) {
 }
 
 void *beos_create_image(const void *data, u_int len, u_int width, u_int height) {
-  BBitmap *bitmap = new BBitmap(BRect(0, 0, width - 1, height), 0, B_RGBA32);
+  BBitmap *bitmap = new BBitmap(BRect(0, 0, width, height), 0, B_RGBA32);
   bitmap->SetBits(data, len, 0, B_RGBA32);
 
   return bitmap;
@@ -990,6 +990,10 @@ void *beos_resize_image(void *bitmap, u_int width, u_int height) {
   delete (BBitmap*)bitmap;
 
   return new_bitmap;
+}
+
+u_char *beos_get_bits(void *bitmap) {
+  return (u_char*)((BBitmap*)bitmap)->Bits();
 }
 
 char *beos_dialog_password(const char *msg) {

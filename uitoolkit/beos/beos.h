@@ -98,6 +98,8 @@ void *beos_load_image(const char *path, u_int *width, u_int *height);
 
 void *beos_resize_image(void *bitmap, u_int width, u_int height);
 
+u_char *beos_get_bits(void *bitmap);
+
 /* Utility */
 
 char *beos_dialog_password(const char *msg);

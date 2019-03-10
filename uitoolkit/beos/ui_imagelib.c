@@ -84,7 +84,7 @@ static void adjust_pixmap(u_char *image, u_int width, u_int height,
   }
 }
 
-static void adjust_cgimage(u_char *image, u_int width, u_int height,
+static void adjust_pixmap2(u_char *image, u_int width, u_int height,
                            ui_picture_modifier_t *pic_mod) {
   u_char *value_table;
   u_int y;
@@ -149,7 +149,7 @@ static int load_file(char *path, /* must be UTF-8 */
     info = check_has_alpha(image, *width, *height) ? kCGImageAlphaPremultipliedLast
                                                    : kCGImageAlphaNoneSkipLast;
 #endif
-    *pixmap = beos_create_image(image, (*width) * (*height) * 4, *width, *height);
+    *pixmap = beos_create_image(image, (*width - 1) * (*height) * 4, *width - 1, *height);
   } else
 #endif
   {
@@ -175,27 +175,13 @@ static int load_file(char *path, /* must be UTF-8 */
 #endif
 
     if (!ui_picture_modifier_is_normal(pic_mod)) {
-#if 0
-      CGDataProviderRef provider = CGImageGetDataProvider(*pixmap);
-      CFDataRef data = CGDataProviderCopyData(provider);
-      image = (u_char *)CFDataGetBytePtr(data);
+      Pixmap new_pixmap;
 
-      adjust_cgimage(image, *width, *height, pic_mod);
-
-      CFDataRef new_data = CFDataCreate(NULL, image, CFDataGetLength(data));
-      CGDataProviderRef new_provider = CGDataProviderCreateWithCFData(new_data);
-      CGImageRef new_image = CGImageCreate(
-          *width, *height, CGImageGetBitsPerComponent(*pixmap), CGImageGetBitsPerPixel(*pixmap),
-          CGImageGetBytesPerRow(*pixmap), CGImageGetColorSpace(*pixmap),
-          CGImageGetBitmapInfo(*pixmap), new_provider, NULL, CGImageGetShouldInterpolate(*pixmap),
-          CGImageGetRenderingIntent(*pixmap));
-      CGImageRelease(*pixmap);
-      CFRelease(new_provider);
-      CFRelease(data);
-      CFRelease(new_data);
-
-      *pixmap = new_image;
-#endif
+      image = beos_get_bits(*pixmap);
+      adjust_pixmap2(image, *width, *height, pic_mod);
+      new_pixmap = beos_create_image(image, (*width) * (*height) * 4, *width, *height);
+      beos_destroy_image(*pixmap);
+      *pixmap = new_pixmap;
     }
   }
 

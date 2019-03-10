@@ -1277,6 +1277,10 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   forceExpose |= flag;
 
   if (IS_OPAQUE || forceExpose) {
+    /*
+     * setNeedsDisplay:YES calls drawRect with full screen 'rect'.
+     * But if forceExpose is 0, expose() in ui_window.c ignores it.
+     */
     [self setNeedsDisplay:YES];
   } else {
     int x;
