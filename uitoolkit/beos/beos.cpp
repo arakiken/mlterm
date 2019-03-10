@@ -27,7 +27,6 @@ extern "C" {
 #include <pobl/bl_debug.h>
 #include <sys/select.h>
 #include <mef/ef_utf16_parser.h>
-#include <mef/ef_utf8_conv.h>
 }
 
 #define IS_UISCREEN(win) ((win)->xim_listener)
@@ -64,7 +63,6 @@ static pthread_mutex_t mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
 /* --- static variables --- */
 
 static ef_parser_t *utf16_parser;
-static ef_conv_t *utf8_conv;
 
 /* --- static functions --- */
 
@@ -77,57 +75,8 @@ static void set_input_focus(MLView *view) {
   ui_window_receive_event(view->uiwindow, &ev);
 }
 
-static void (*orig_draw_preedit_str)(void *, vt_char_t *, u_int, int);
-
-static void dummy_draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars,
-                                   int cursor_offset) {
-  /* Don't set ui_screen_t::is_preediting = 0. */
-}
-
 static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text) {
-  vt_term_t *term = ((ui_screen_t *)uiwindow)->term;
-
-  if (vt_term_is_backscrolling(term)) {
-    return;
-  }
-
-  vt_term_set_config(term, "use_local_echo", "false");
-
-  if (orig_draw_preedit_str) {
-    ((ui_screen_t*)uiwindow)->im_listener.draw_preedit_str = orig_draw_preedit_str;
-    orig_draw_preedit_str = NULL;
-    ((ui_screen_t*)uiwindow)->is_preediting = 0;
-  }
-
-  ef_parser_t *utf8_parser;
-  if (!(utf8_parser = ui_get_selection_parser(1))) {
-    return;
-  }
-
-  (*utf8_parser->init)(utf8_parser);
-
-  if (*preedit_text == '\0') {
-    preedit_text = NULL;
-  } else {
-    /* Hide cursor */
-    orig_draw_preedit_str = ((ui_screen_t*)uiwindow)->im_listener.draw_preedit_str;
-    ((ui_screen_t*)uiwindow)->im_listener.draw_preedit_str = dummy_draw_preedit_str;
-    ((ui_screen_t*)uiwindow)->is_preediting = 1;
-
-    vt_term_parse_vt100_sequence(term);
-    vt_term_set_config(term, "use_local_echo", "true");
-
-    (*utf8_parser->set_str)(utf8_parser, (u_char*)preedit_text, strlen(preedit_text));
-
-    u_char buf[128];
-    size_t len;
-    while (!utf8_parser->is_eos &&
-           (len = vt_term_convert_to(term, buf, sizeof(buf), utf8_parser)) > 0) {
-      vt_term_preedit(term, buf, len);
-    }
-  }
-
-  ui_window_update(uiwindow, 3); /* UPDATE_SCREEN|UPDATE_CURSOR */
+  (*uiwindow->preedit)(uiwindow, preedit_text, NULL);
 }
 
 static void draw_screen(ui_window_t *uiwindow, BRect update) {
@@ -663,10 +612,9 @@ void view_draw_string(/* BView */ void *view, ui_font_t *font, ui_color_t *fg_co
 void view_draw_string16(/* BView */ void *view, ui_font_t *font, ui_color_t *fg_color,
                         int x, int y, XChar2b *str, size_t len) {
   if (!utf16_parser) {
-    /* XXX leaked */
-    utf16_parser = ef_utf16le_parser_new();
-    utf8_conv = ef_utf8_conv_new();
+    utf16_parser = ef_utf16le_parser_new(); /* XXX leaked */
   }
+  ef_conv_t *utf8_conv = ui_get_selection_conv(1);
 
   char str2[len * UTF_MAX_SIZE];
 
@@ -960,8 +908,8 @@ u_int beos_font_get_advance(void *bfont, int size_attr,
   if (!utf16_parser) {
     /* XXX leaked */
     utf16_parser = ef_utf16le_parser_new();
-    utf8_conv = ef_utf8_conv_new();
   }
+  ef_conv_t *utf8_conv = ui_get_selection_conv(1);
 
   char utf8[len * UTF_MAX_SIZE];
 
@@ -1028,8 +976,20 @@ void *beos_load_image(const char *path, u_int *width, u_int *height) {
 }
 
 void *beos_resize_image(void *bitmap, u_int width, u_int height) {
-  /* XXX Not implemented yet. */
-  return bitmap;
+  BRect rect(0, 0, width, height);
+  BBitmap *new_bitmap = new BBitmap(rect, B_RGBA32, true);
+  BView *view = new BView(rect, "", B_FOLLOW_ALL_SIDES, 0);
+  new_bitmap->AddChild(view);
+  new_bitmap->Lock();
+  view->DrawBitmap((BBitmap*)bitmap, ((BBitmap*)bitmap)->Bounds(), rect);
+  new_bitmap->Unlock();
+
+  new_bitmap->RemoveChild(view);
+  delete view;
+
+  delete (BBitmap*)bitmap;
+
+  return new_bitmap;
 }
 
 char *beos_dialog_password(const char *msg) {

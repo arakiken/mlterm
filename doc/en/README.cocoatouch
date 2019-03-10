@@ -37,6 +37,7 @@ iOS/Cocoa Touch support (Experimental)
 * Note
   o -L/--ls, -u/--onlyucsfont and --boxdraw options are enabled by default.
   o It is impossible to disable -s/--mdi option.
+  o INSERT_SELECTION shortcut key is Command+v.
   o OPEN_SCREEN, OPEN_PTY, NEXT_PTY and PREV_PTY shortcut keys are
     Command+F1, Command+F2, Command+F3 and Command+F4, but these keys don't
     work for now.

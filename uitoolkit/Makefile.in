@@ -16,7 +16,7 @@ BINDIR = $(DESTDIR)$(bindir)
 
 VPATH = $(top_srcdir)/uitoolkit/@GUI@:$(top_srcdir)/uitoolkit
 
-OBJ1 = ui_screen_manager.o ui_event_source.o ui_display.o ui_window.o ui_screen.o \
+OBJ1 = ui_screen_manager.o ui_display.o ui_window.o ui_screen.o \
 	ui_xic.o ui_color_manager.o ui_font_manager.o ui_picture.o ui_font.o \
 	ui_color.o ui_selection.o ui_font_config.o ui_main_config.o \
 	ui_shortcut.o ui_bel_mode.o ui_sb_mode.o ui_mod_meta_mode.o ui_font_cache.o \
@@ -25,21 +25,21 @@ OBJ1 = ui_screen_manager.o ui_event_source.o ui_display.o ui_window.o ui_screen.
 	ui_type_engine.o ui_im.o ui_im_candidate_screen.o ui_brltty.o \
 	ui_selection_encoding.o ui_emoji.o
 
-OBJ2_xlib = ui_decsp_font.o ui_xim.o ui_im_status_screen.o @TYPE_LOADER_OBJ@
+OBJ2_xlib = ui_event_source.o ui_decsp_font.o ui_xim.o ui_im_status_screen.o @TYPE_LOADER_OBJ@
 
-OBJ2_win32 = ui_gdiobj_pool.o ui.o ui_im_status_screen.o
+OBJ2_win32 = ui_event_source.o ui_gdiobj_pool.o ui.o ui_im_status_screen.o
 
-OBJ2_fb = ui.o ui_decsp_font.o ui_virtual_kbd.o ui_im_status_screen.o
+OBJ2_fb = ui.o ui_event_source.o ui_decsp_font.o ui_virtual_kbd.o ui_im_status_screen.o
 
-OBJ2_beos = ui.o beos.o ui_im_status_screen.o
+OBJ2_beos = ui.o ui_event_source.o beos.o ui_im_status_screen.o
 
-OBJ2_quartz = ui.o @COCOAOBJ@ ui_im_status_screen-cocoa.o
+OBJ2_quartz = ui.o @COCOAOBJ@ ui_event_source-cocoa.o ui_im_status_screen-cocoa.o
 
-OBJ2_console = ui.o ui_im_status_screen.o
+OBJ2_console = ui.o ui_event_source.o ui_im_status_screen.o
 
-OBJ2_wayland = ui.o ui_decsp_font.o ui_im_status_screen.o
+OBJ2_wayland = ui.o ui_event_source.o ui_decsp_font.o ui_im_status_screen.o
 
-OBJ2_sdl2 = ui.o ui_decsp_font.o ui_im_status_screen.o syswminfo.o
+OBJ2_sdl2 = ui.o ui_event_source.o ui_decsp_font.o ui_im_status_screen.o syswminfo.o
 
 RSOBJ_win32 = winrs.o
 

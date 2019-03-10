@@ -8,12 +8,9 @@
 #include <pobl/bl_privilege.h>
 #include <pobl/bl_unistd.h> /* bl_getuid/bl_getgid */
 #include <pobl/bl_mem.h>
-#include <pobl/bl_file.h> /* bl_file_set_cloexec */
 #include <pobl/bl_str.h>  /* bl_compare_str */
-#include <sys/select.h>
-#include <vt_term_manager.h>
 #include "../ui_screen_manager.h"
-#include "../ui_layout.h"
+#include "../ui_event_source.h"
 #include "../ui_selection_encoding.h"
 
 @interface Application : UIApplication
@@ -92,13 +89,6 @@
 
 /* --- static variables --- */
 
-static struct {
-  int fd;
-  void (*handler)(void);
-
-} * additional_fds;
-
-static u_int num_additional_fds;
 static ui_window_t *uiwindow_for_mlterm_view;
 static int keyboard_margin;
 
@@ -136,78 +126,9 @@ static void monitor_pty(void) {
   bl_priv_change_egid(bl_getgid());
 #endif
 
-  dispatch_async(
-      dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        static int ret;
-        static fd_set read_fds;
-        static int maxfd;
-        static int is_cont_read;
-
-        for (;;) {
-          dispatch_sync(dispatch_get_main_queue(), ^{
-            vt_close_dead_terms();
-
-            vt_term_t **terms;
-            u_int num_terms = vt_get_all_terms(&terms);
-
-            int count;
-            int ptyfd;
-            if (ret > 0) {
-              for (count = 0; count < num_additional_fds; count++) {
-                if (additional_fds[count].fd < 0) {
-                  (*additional_fds[count].handler)();
-                }
-              }
-
-              for (count = 0; count < num_terms; count++) {
-                if ((ptyfd = vt_term_get_master_fd(terms[count])) >= 0 &&
-                    FD_ISSET(ptyfd, &read_fds)) {
-                  vt_term_parse_vt100_sequence(terms[count]);
-                }
-              }
-
-              if (++is_cont_read >= 2) {
-                [[NSRunLoop currentRunLoop]
-                    runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.01]];
-              }
-            } else if (ret == 0) {
-              ui_display_idling(NULL);
-              is_cont_read = 0;
-            }
-
-            FD_ZERO(&read_fds);
-            maxfd = -1;
-
-            for (count = 0; count < num_terms; count++) {
-              if ((ptyfd = vt_term_get_master_fd(terms[count])) >= 0) {
-                FD_SET(ptyfd, &read_fds);
-
-                if (ptyfd > maxfd) {
-                  maxfd = ptyfd;
-                }
-              }
-            }
-
-            for (count = 0; count < num_additional_fds; count++) {
-              if (additional_fds[count].fd >= 0) {
-                FD_SET(additional_fds[count].fd, &read_fds);
-
-                if (additional_fds[count].fd > maxfd) {
-                  maxfd = additional_fds[count].fd;
-                }
-              }
-            }
-          });
-
-          struct timeval tval;
-          tval.tv_usec = 100000; /* 0.1 sec */
-          tval.tv_sec = 0;
-
-          if (maxfd >= 0 && (ret = select(maxfd + 1, &read_fds, NULL, NULL, &tval)) < 0) {
-            break;
-          }
-        }
-      });
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+      ui_event_source_process();
+    });
 }
 
 /* Undocumented */
@@ -300,62 +221,9 @@ static void drawUnistr(CGContextRef ctx, ui_font_t *font, unichar *str,
   }
 }
 
-static void (*orig_draw_preedit_str)(void *, vt_char_t *, u_int, int);
-
-static void dummy_draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars,
-                                   int cursor_offset) {
-  /* Don't set ui_screen_t::is_preediting = 0. */
-}
-
 static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text,
                             const char *cur_preedit_text) {
-  vt_term_t *term = ((ui_screen_t *)uiwindow)->term;
-
-  if (vt_term_is_backscrolling(term)) {
-    return;
-  }
-
-  if (preedit_text && cur_preedit_text && strcmp(preedit_text, cur_preedit_text) == 0) {
-    return;
-  }
-
-  vt_term_set_config(term, "use_local_echo", "false");
-
-  if (orig_draw_preedit_str) {
-    ((ui_screen_t*)uiwindow)->im_listener.draw_preedit_str = orig_draw_preedit_str;
-    orig_draw_preedit_str = NULL;
-    ((ui_screen_t*)uiwindow)->is_preediting = 0;
-  }
-
-  ef_parser_t *utf8_parser;
-  if (!(utf8_parser = ui_get_selection_parser(1))) {
-    return;
-  }
-
-  (*utf8_parser->init)(utf8_parser);
-
-  if (*preedit_text == '\0') {
-    preedit_text = NULL;
-  } else {
-    /* Hide cursor */
-    orig_draw_preedit_str = ((ui_screen_t*)uiwindow)->im_listener.draw_preedit_str;
-    ((ui_screen_t*)uiwindow)->im_listener.draw_preedit_str = dummy_draw_preedit_str;
-    ((ui_screen_t*)uiwindow)->is_preediting = 1;
-
-    vt_term_parse_vt100_sequence(term);
-    vt_term_set_config(term, "use_local_echo", "true");
-
-    (*utf8_parser->set_str)(utf8_parser, preedit_text, strlen(preedit_text));
-
-    u_char buf[128];
-    size_t len;
-    while (!utf8_parser->is_eos &&
-           (len = vt_term_convert_to(term, buf, sizeof(buf), utf8_parser)) > 0) {
-      vt_term_preedit(term, buf, len);
-    }
-  }
-
-  ui_window_update(uiwindow, 3); /* UPDATE_SCREEN|UPDATE_CURSOR */
+  (*uiwindow->preedit)(uiwindow, preedit_text, cur_preedit_text);
 }
 
 static void show_dialog(const char *msg) {
@@ -1758,54 +1626,6 @@ CGImageRef cocoa_load_image(const char *path, u_int *width, u_int *height) {
   [uiimg release];
 
   return cgimg;
-}
-
-/*
- * fd >= 0  -> Normal file descriptor. handler is invoked if fd is ready.
- * fd < 0 -> Special ID. handler is invoked at interval of 0.1 sec.
- */
-int cocoa_add_fd(int fd, void (*handler)(void)) {
-  void *p;
-
-  if (!handler) {
-    return 0;
-  }
-
-  if ((p = realloc(additional_fds, sizeof(*additional_fds) *
-                                       (num_additional_fds + 1))) == NULL) {
-    return 0;
-  }
-
-  additional_fds = p;
-  additional_fds[num_additional_fds].fd = fd;
-  additional_fds[num_additional_fds++].handler = handler;
-  if (fd >= 0) {
-    bl_file_set_cloexec(fd);
-  }
-
-#ifdef DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " %d is added to additional fds.\n", fd);
-#endif
-
-  return 1;
-}
-
-int cocoa_remove_fd(int fd) {
-  u_int count;
-
-  for (count = 0; count < num_additional_fds; count++) {
-    if (additional_fds[count].fd == fd) {
-#ifdef DEBUG
-      bl_debug_printf(BL_DEBUG_TAG " Additional fd %d is removed.\n", fd);
-#endif
-
-      additional_fds[count] = additional_fds[--num_additional_fds];
-
-      return 1;
-    }
-  }
-
-  return 0;
 }
 
 const char *cocoa_get_bundle_path(void) {

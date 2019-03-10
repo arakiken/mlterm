@@ -31,8 +31,8 @@ MacOS X/Cocoa support (Experimental)
 * Caution
   o -L/--ls, -u/--onlyucsfont and --boxdraw options are enabled by default.
   o It is impossible to disable -s/--mdi option.
-  o OPEN_SCREEN, OPEN_PTY, NEXT_PTY and PREV_PTY shortcut keys are
-    Command+F1, Command+F2, Command+F3 and Command+F4.
+  o OPEN_SCREEN, OPEN_PTY, NEXT_PTY, PREV_PTY and INSERT_SELECTION shortcut keys
+    are Command+F1, Command+F2, Command+F3, Command+F4 and Command+v.
   o ISCII font is unavailable.
     (If you want to show indic characters, build mlterm with harfbuzz and
      enable -otl/use_ot_layout option.)

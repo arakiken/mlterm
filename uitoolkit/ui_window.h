@@ -218,6 +218,9 @@ typedef struct ui_window {
    */
   void (*set_xdnd_config)(struct ui_window *, char *, char *, char *);
   void (*idling)(struct ui_window *);
+#ifdef UIWINDOW_SUPPORTS_PREEDITING
+  void (*preedit)(struct ui_window *, const char *, const char *);
+#endif
 
 } ui_window_t;
 

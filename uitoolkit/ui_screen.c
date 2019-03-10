@@ -1089,6 +1089,68 @@ static ui_im_t *im_new(ui_screen_t *screen) {
  * callbacks of ui_window events
  */
 
+#ifdef UIWINDOW_SUPPORTS_PREEDITING
+
+static void (*orig_draw_preedit_str)(void *, vt_char_t *, u_int, int);
+
+static void dummy_draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars,
+                                   int cursor_offset) {
+  /* Don't set ui_screen_t::is_preediting = 0. */
+}
+
+static void preedit(ui_window_t *win, const char *preedit_text, const char *cur_preedit_text) {
+  ef_parser_t *utf8_parser;
+  vt_term_t *term = ((ui_screen_t *)win)->term;
+
+  if (vt_term_is_backscrolling(term)) {
+    return;
+  }
+
+  if (preedit_text && cur_preedit_text && strcmp(preedit_text, cur_preedit_text) == 0) {
+    return;
+  }
+
+  vt_term_set_config(term, "use_local_echo", "false");
+
+  if (orig_draw_preedit_str) {
+    ((ui_screen_t*)win)->im_listener.draw_preedit_str = orig_draw_preedit_str;
+    orig_draw_preedit_str = NULL;
+    ((ui_screen_t*)win)->is_preediting = 0;
+  }
+
+  if (!(utf8_parser = ui_get_selection_parser(1))) {
+    return;
+  }
+
+  (*utf8_parser->init)(utf8_parser);
+
+  if (*preedit_text == '\0') {
+    preedit_text = NULL;
+  } else {
+    u_char buf[128];
+    size_t len;
+
+    /* Hide cursor */
+    orig_draw_preedit_str = ((ui_screen_t*)win)->im_listener.draw_preedit_str;
+    ((ui_screen_t*)win)->im_listener.draw_preedit_str = dummy_draw_preedit_str;
+    ((ui_screen_t*)win)->is_preediting = 1;
+
+    vt_term_parse_vt100_sequence(term);
+    vt_term_set_config(term, "use_local_echo", "true");
+
+    (*utf8_parser->set_str)(utf8_parser, preedit_text, strlen(preedit_text));
+
+    while (!utf8_parser->is_eos &&
+           (len = vt_term_convert_to(term, buf, sizeof(buf), utf8_parser)) > 0) {
+      vt_term_preedit(term, buf, len);
+    }
+  }
+
+  ui_window_update(win, 3); /* UPDATE_SCREEN|UPDATE_CURSOR */
+}
+
+#endif
+
 static void window_realized(ui_window_t *win) {
   ui_screen_t *screen;
   char *name;
@@ -6093,6 +6155,9 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->window.set_xdnd_config = set_xdnd_config;
 #endif
   screen->window.idling = idling;
+#ifdef UIWINDOW_SUPPORTS_PREEDITING
+  screen->window.preedit = preedit;
+#endif
 
   if (use_transbg) {
     ui_window_set_transparent(&screen->window, ui_screen_get_picture_modifier(screen));

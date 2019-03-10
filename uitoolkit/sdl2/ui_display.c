@@ -12,12 +12,10 @@
 #include <pobl/bl_util.h> /* BL_SWAP */
 #include <pobl/bl_dialog.h>
 
-#include <mef/ef_utf8_parser.h>
-
 #include "../ui_window.h"
 #include "../ui_picture.h"
 #include "../ui_imagelib.h"
-#include "../ui_screen.h" /* update_ime_text */
+#include "../ui_selection_encoding.h"
 #include "syswminfo.h"
 
 #ifndef USE_WIN32API
@@ -46,7 +44,6 @@ static int rotate_display;
 static Uint32 pty_event_type;
 static Uint32 vsync_interval_msec;
 static Uint32 next_vsync_msec;
-static ef_parser_t *utf8_parser;
 static u_char *cur_preedit_text;
 static SDL_threadID main_tid;
 #ifdef MONITOR_PTY
@@ -142,47 +139,19 @@ static ui_window_t *search_inputtable_window(ui_window_t *candidate, ui_window_t
 }
 
 static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text) {
-  vt_term_t *term;
-
   if (!(uiwindow = search_focused_window(uiwindow)) || !uiwindow->inputtable) {
     return;
   }
-  term = ((ui_screen_t*)uiwindow)->term;
 
-  if (vt_term_is_backscrolling(term)) {
-    return;
-  }
-
-  if (cur_preedit_text) {
-    if (preedit_text && strcmp(preedit_text, cur_preedit_text) == 0) {
-      return;
-    }
-
-    vt_term_set_config(term, "use_local_echo", "false");
-  }
-
-  (*utf8_parser->init)(utf8_parser);
+  (*uiwindow->preedit)(uiwindow, preedit_text, cur_preedit_text);
 
   if (*preedit_text == '\0') {
     free(cur_preedit_text);
     cur_preedit_text = NULL;
   } else {
-    u_char buf[128];
-    size_t len;
-
-    vt_term_set_config(term, "use_local_echo", "true");
-
-    (*utf8_parser->set_str)(utf8_parser, preedit_text, strlen(preedit_text));
-    while (!utf8_parser->is_eos &&
-           (len = vt_term_convert_to(term, buf, sizeof(buf), utf8_parser)) > 0) {
-      vt_term_preedit(term, buf, len);
-    }
-
     free(cur_preedit_text);
     cur_preedit_text = strdup(preedit_text);
   }
-
-  ui_window_update(uiwindow, 3); /* UPDATE_SCREEN|UPDATE_CURSOR */
 }
 
 /*
@@ -727,7 +696,7 @@ static void poll_event(void) {
         xev.xkey.keycode = 0;
       }
       xev.xkey.str = ev.text.text;
-      xev.xkey.parser = utf8_parser;
+      xev.xkey.parser = ui_get_selection_parser(1);
       xev.xkey.state = get_mod_state(SDL_GetModState());
 
       ui_window_receive_event(win, &xev);
@@ -864,10 +833,6 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
   void *p;
   struct rgb_info rgbinfo = {0, 0, 0, 16, 8, 0};
 
-  if (!utf8_parser && !(utf8_parser = ef_utf8_parser_new())) {
-    return NULL;
-  }
-
   if (!(disp = calloc(1, sizeof(ui_display_t) + sizeof(Display)))) {
     return NULL;
   }
@@ -933,9 +898,6 @@ void ui_display_close(ui_display_t *disp) {
 
         free(cur_preedit_text);
         cur_preedit_text = NULL;
-
-        (*utf8_parser->destroy)(utf8_parser);
-        utf8_parser = NULL;
 
 #ifdef MONITOR_PTY
         SDL_CondSignal(pty_cond);

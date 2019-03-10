@@ -1,3 +1,4 @@
+* Support Haiku OS. (Experimental)
 * Support "[font family]:style=..." format in aafont or font-fb config file.
 * Support mosh. (Experimental) (See doc/en/README.mosh)
   (Don't distribute libptymosh in binary format.)
@@ -6,6 +7,8 @@
 * Support "%s" (replaced by selected strings) in "exesel:..." in ~/.mlterm/key.
 * Add local_echo_wait / --lew option.
 * Remove libind_tamil.so because it is very buggy.
+* Change the default shortcut key of INSERT_SELECTION from Shift+Insert to
+  Command+v on MacOSX and iOS.
 * Bug fixes:
   Fix https://sourceforge.net/p/mlterm/mailman/message/36472061/
   Fix https://sourceforge.net/p/mlterm/mailman/message/36513313/
