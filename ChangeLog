@@ -1,5 +1,11 @@
 2019-03-10  Araki Ken  <arakiken@users.sf.net>
 
+	* beos/ui_imagelib.c: load_file() processes pic_mod.
+
+	* beos.cpp, beos.h: beos_get_bits() is added.
+
+2019-03-10  Araki Ken  <arakiken@users.sf.net>
+
 	* ControlSequences, README.cocoa, README.cocoatouch: Updated.
 
 	* ui_shortcut.c: The default value of INSERT_SELECTION is changed from
