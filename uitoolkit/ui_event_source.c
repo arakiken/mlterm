@@ -30,7 +30,7 @@ void beos_unlock(void);
 
 /* --- static variables --- */
 
-#ifndef NO_DISPLAY_FD
+#ifndef USE_WIN32API
 static struct {
   int fd;
   void (*handler)(void);
@@ -319,6 +319,12 @@ int ui_event_source_process(void) {
   for (count = 0; count < num_terms; count++) {
     vt_term_parse_vt100_sequence(terms[count]);
   }
+
+#ifndef USE_WIN32API
+  for (count = 0; count < num_additional_fds; count++) {
+    (*additional_fds[count].handler)();
+  }
+#endif
 #endif
 
   ui_close_dead_screens();
@@ -335,7 +341,7 @@ int ui_event_source_process(void) {
  * fd < 0 -> Special ID. handler is invoked at interval of 0.1 sec.
  */
 int ui_event_source_add_fd(int fd, void (*handler)(void)) {
-#ifndef NO_DISPLAY_FD
+#ifndef USE_WIN32API
 
   void *p;
 
@@ -369,7 +375,7 @@ int ui_event_source_add_fd(int fd, void (*handler)(void)) {
 }
 
 void ui_event_source_remove_fd(int fd) {
-#ifndef NO_DISPLAY_FD
+#ifndef USE_WIN32API
   u_int count;
 
   for (count = 0; count < num_additional_fds; count++) {

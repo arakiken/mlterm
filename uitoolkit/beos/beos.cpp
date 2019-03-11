@@ -416,14 +416,31 @@ void MLView::MessageReceived(BMessage *message) {
 
     int32 opcode;
 
+    /*
+     * If a focused view is changed from a view where you are inputting with
+     * ime to another in splitted screen, following check enclosed by
+     * #if 1 ... #endif is necessary.
+     */
     if (message->FindInt32("be:opcode", &opcode) == B_OK) {
       if (opcode == B_INPUT_METHOD_STARTED) {
+#if 1
+        if (messenger) {
+          goto end;
+        }
+#endif
+
         BMessenger m;
 
         if (message->FindMessenger("be:reply_to", &m) == B_OK) {
           messenger = new BMessenger(m);
         }
-      } else if (opcode == B_INPUT_METHOD_STOPPED) {
+      }
+#if 1
+      else if (!messenger) {
+        goto end;
+      }
+#endif
+      else if (opcode == B_INPUT_METHOD_STOPPED) {
         delete messenger;
         messenger = NULL;
       } else if (opcode == B_INPUT_METHOD_CHANGED) {

@@ -1,3 +1,14 @@
+2019-03-12  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_im_status_screen.c: "\x1b[?7l" is output to the status line.
+
+	* ui_event_source.c: additional_fds is processed on SDL2.
+
+	* beos/ui_imagelib.c: Unused code is removed.
+
+	* beos.cpp: Segfault by unexpected NULL or non-NULL value of
+	  MLView::messenger when a focused view is changed in inputting with ime.
+
 2019-03-10  Araki Ken  <arakiken@users.sf.net>
 
 	* beos/ui_imagelib.c: load_file() processes pic_mod.

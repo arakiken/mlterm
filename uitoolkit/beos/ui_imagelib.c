@@ -136,19 +136,12 @@ static int load_file(char *path, /* must be UTF-8 */
                      PixmapMask *mask) {
   char *suffix;
   u_char *image;
-#if 0
-  CGImageAlphaInfo info;
-#endif
 
   suffix = path + strlen(path) - 4;
 #ifdef BUILTIN_SIXEL
   if (strcasecmp(suffix, ".six") == 0 && *width == 0 && *height == 0 &&
       (image = load_sixel_from_file(path, width, height))) {
     adjust_pixmap(image, *width, *height, pic_mod);
-#if 0
-    info = check_has_alpha(image, *width, *height) ? kCGImageAlphaPremultipliedLast
-                                                   : kCGImageAlphaNoneSkipLast;
-#endif
     *pixmap = beos_create_image(image, (*width - 1) * (*height) * 4, *width - 1, *height);
   } else
 #endif
@@ -170,10 +163,6 @@ static int load_file(char *path, /* must be UTF-8 */
       return 0;
     }
 
-#if 0
-    info = CGImageGetAlphaInfo(*pixmap);
-#endif
-
     if (!ui_picture_modifier_is_normal(pic_mod)) {
       Pixmap new_pixmap;
 
@@ -185,12 +174,9 @@ static int load_file(char *path, /* must be UTF-8 */
     }
   }
 
-#if 0
-  if (info == kCGImageAlphaPremultipliedLast || info == kCGImageAlphaPremultipliedFirst ||
-      info == kCGImageAlphaLast || info == kCGImageAlphaFirst) {
-    *mask = 1L; /* dummy */
+  if (mask) {
+    *mask = None;
   }
-#endif
 
   return 1;
 }
