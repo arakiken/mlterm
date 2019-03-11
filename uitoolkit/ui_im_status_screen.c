@@ -479,13 +479,13 @@ static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, u_char *
   u_char *seq;
   size_t len = strlen(str);
 
-  if ((seq = alloca(22 + len))) {
+  if ((seq = alloca(27 + len))) {
     replace_char(str, '\n', ' ');
-    memcpy(seq, "\x1b[2$~\x1b[1$}\x1b[2J\x1b[H", 17);
-    memcpy(seq + 17, str, len);
-    memcpy(seq + 17 + len, "\x1b[0$}", 5);
+    memcpy(seq, "\x1b[2$~\x1b[1$}\x1b[?7l\x1b[2J\x1b[H", 22);
+    memcpy(seq + 22, str, len);
+    memcpy(seq + 22 + len, "\x1b[0$}", 5);
 
-    vt_parser_write_loopback(stat_screen->vtparser, seq, 22 + len);
+    vt_parser_write_loopback(stat_screen->vtparser, seq, 27 + len);
   }
 
   return 1;
