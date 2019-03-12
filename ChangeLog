@@ -1,3 +1,10 @@
+2019-03-13  Araki Ken  <arakiken@users.sf.net>
+
+	* beos.cpp:
+	  - MLView::messenger is deleted in set_input_focus().
+	  - Not only MLView::Draw() but also KeyDown(), MouseDown(), MouseMoved()
+	    and MouseUp() check ((ui_screen_t*)uiwindow)->term.
+
 2019-03-12  Araki Ken  <arakiken@users.sf.net>
 
 	* beos.cpp: BRect::right and BRect::bottom are obtained by subtracting

@@ -44,7 +44,6 @@ class MLView : public BView {
 private:
   int32 buttons;
   const BFont *cur_font;
-  BMessenger *messenger;
 
 public:
   MLView(BRect frame, const char *name, uint32 resizemode, uint32 flags);
@@ -56,6 +55,7 @@ public:
   virtual void SetFont(const BFont *font, uint32 mask = B_FONT_ALL);
   virtual void MessageReceived(BMessage *msg);
   ui_window_t *uiwindow;
+  BMessenger *messenger;
 };
 
 static pthread_mutex_t mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
@@ -67,6 +67,11 @@ static ef_parser_t *utf16_parser;
 /* --- static functions --- */
 
 static void set_input_focus(MLView *view) {
+  if (view->messenger) {
+    delete view->messenger;
+    view->messenger = NULL;
+  }
+
   view->MakeFocus(true);
 
   XEvent ev;
@@ -220,7 +225,7 @@ MLView::MLView(BRect frame, const char *title, uint32 resizemode, uint32 flags)
 }
 
 void MLView::Draw(BRect update) {
-  if (!uiwindow || (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term)) {
+  if ((IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term)) {
     /* It has been already removed from ui_layout or term has been detached. */
     return;
   }
@@ -233,6 +238,11 @@ void MLView::Draw(BRect update) {
 }
 
 void MLView::KeyDown(const char *bytes, int32 numBytes) {
+  if (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term) {
+    /* It has been already removed from ui_layout or term has been detached. */
+    return;
+  }
+
   view_lock(this);
 
   int32 modifiers;
@@ -287,6 +297,11 @@ void MLView::KeyDown(const char *bytes, int32 numBytes) {
 }
 
 void MLView::MouseDown(BPoint where) {
+  if (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term) {
+    /* It has been already removed from ui_layout or term has been detached. */
+    return;
+  }
+
   view_lock(this);
 
   if (!IsFocus()) {
@@ -328,6 +343,11 @@ void MLView::MouseDown(BPoint where) {
 }
 
 void MLView::MouseMoved(BPoint where, uint32 code, const BMessage *dragMessage) {
+  if (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term) {
+    /* It has been already removed from ui_layout or term has been detached. */
+    return;
+  }
+
   view_lock(this);
 
   int32 buttons;
@@ -365,6 +385,11 @@ void MLView::MouseMoved(BPoint where, uint32 code, const BMessage *dragMessage) 
 }
 
 void MLView::MouseUp(BPoint where) {
+  if (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term) {
+    /* It has been already removed from ui_layout or term has been detached. */
+    return;
+  }
+
   view_lock(this);
 
   int32 clicks;
@@ -412,6 +437,11 @@ void MLView::SetFont(const BFont *font, uint32 mask) {
 
 void MLView::MessageReceived(BMessage *message) {
   if (message->what == B_INPUT_METHOD_EVENT) {
+    if (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term) {
+      /* It has been already removed from ui_layout or term has been detached. */
+      return;
+    }
+
     view_lock(this);
 
     int32 opcode;
@@ -561,8 +591,8 @@ void view_dealloc(/* BView */ void *view) {
     return;
   }
 
-  ((MLView*)view)->uiwindow = None;
   win->RemoveChild((BView*)view);
+  ((MLView*)view)->uiwindow = None;
   delete (BView*)view;
 
   win->UnlockLooper();
