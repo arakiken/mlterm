@@ -142,7 +142,7 @@ static int load_file(char *path, /* must be UTF-8 */
   if (strcasecmp(suffix, ".six") == 0 && *width == 0 && *height == 0 &&
       (image = load_sixel_from_file(path, width, height))) {
     adjust_pixmap(image, *width, *height, pic_mod);
-    *pixmap = beos_create_image(image, (*width - 1) * (*height) * 4, *width - 1, *height);
+    *pixmap = beos_create_image(image, (*width) * (*height) * 4, *width, *height);
   } else
 #endif
   {
