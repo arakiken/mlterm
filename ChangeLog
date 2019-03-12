@@ -1,5 +1,7 @@
 2019-03-12  Araki Ken  <arakiken@users.sf.net>
 
+	* c_sixel.c: Memory allocation is fixed.
+
 	* ui_im_status_screen.c: "\x1b[?7l" is output to the status line.
 
 	* ui_event_source.c: additional_fds is processed on SDL2.
