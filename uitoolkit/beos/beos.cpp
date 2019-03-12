@@ -533,7 +533,7 @@ void view_alloc(ui_window_t *uiwindow, int x, int y, u_int width, u_int height) 
     flags |= B_INPUT_METHOD_AWARE;
   }
 
-  MLView *view = new MLView(BRect(x, y, x + width, y + height), "mlterm",
+  MLView *view = new MLView(BRect(x, y, x + width - 1, y + height - 1), "mlterm",
                             B_FOLLOW_NONE, flags);
 
   MLWindow *win = (MLWindow*)uiwindow->parent->my_window;
@@ -581,7 +581,7 @@ void view_update(/* BView */ void *view) {
   x += (uiwindow->hmargin);
   y += (uiwindow->vmargin);
 
-  draw_screen(uiwindow, BRect(x, y, x + 1, y + 1));
+  draw_screen(uiwindow, BRect(x, y, x, y));
 }
 
 void view_set_clip(/* BView */ void *view, int x, int y, u_int width, u_int height) {
@@ -589,7 +589,7 @@ void view_set_clip(/* BView */ void *view, int x, int y, u_int width, u_int heig
     return;
   }
 
-  BRegion *region = new BRegion(BRect(x, y, x + width, y + height));
+  BRegion *region = new BRegion(BRect(x, y, x + width - 1, y + height - 1));
   ((BView*)view)->ConstrainClippingRegion(region);
 
   ((BView*)view)->UnlockLooper();
@@ -689,8 +689,8 @@ void view_copy_area(/* BView */ void *view, Pixmap src, int src_x, int src_y,
   }
 
   ((BView*)view)->DrawBitmap((BBitmap*)src,
-                             BRect(src_x, src_y, src_x + width, src_y + height),
-                             BRect(dst_x, dst_y, dst_x + width, dst_y + height));
+                             BRect(src_x, src_y, src_x + width - 1, src_y + height - 1),
+                             BRect(dst_x, dst_y, dst_x + width - 1, dst_y + height - 1));
 
   ((BView*)view)->UnlockLooper();
 }
@@ -702,8 +702,8 @@ void view_scroll(/* BView */ void *view, int src_x, int src_y, u_int width,
     return;
   }
 
-  ((BView*)view)->CopyBits(BRect(src_x, src_y, src_x + width, src_y + height),
-                           BRect(dst_x, dst_y, dst_x + width, dst_y + height));
+  ((BView*)view)->CopyBits(BRect(src_x, src_y, src_x + width - 1, src_y + height - 1),
+                           BRect(dst_x, dst_y, dst_x + width - 1, dst_y + height - 1));
 
   ((BView*)view)->UnlockLooper();
 #endif
@@ -722,13 +722,14 @@ void view_visual_bell(/* BView */ void *view) {
                               (pixel >> 24) & 0xff);
 
   ui_window_t *win = ((MLView*)view)->uiwindow;
-  ((BView*)view)->FillRect(BRect(0, 0, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win)), B_SOLID_LOW);
+  ((BView*)view)->FillRect(BRect(0, 0, ACTUAL_WIDTH(win) - 1, ACTUAL_HEIGHT(win) - 1), B_SOLID_LOW);
 
   ((BView*)view)->UnlockLooper();
 
   usleep(100000); /* 100 msec */
 
-  draw_screen(((MLView*)view)->uiwindow, BRect(0, 0, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win)));
+  draw_screen(((MLView*)view)->uiwindow,
+              BRect(0, 0, ACTUAL_WIDTH(win) - 1, ACTUAL_HEIGHT(win) - 1));
 }
 
 void view_set_input_focus(/* BView */ void *view) {
@@ -772,12 +773,12 @@ void window_alloc(ui_window_t *root, int x, int y, u_int width, u_int height, in
   MLWindow *window;
 
   if (popup) {
-    window = new MLWindow(BRect(x, y, x + width, y + height), "",
+    window = new MLWindow(BRect(x, y, x + width - 1, y + height - 1), "",
                           B_BORDERED_WINDOW,
                           B_NOT_RESIZABLE|B_NOT_CLOSABLE|B_NOT_ZOOMABLE|B_NOT_MINIMIZABLE|
                           B_NOT_MOVABLE|B_AVOID_FOCUS|B_NOT_ANCHORED_ON_ACTIVATE);
 
-    MLView *view = new MLView(BRect(0, 0, width, height), "IM", B_FOLLOW_NONE, B_WILL_DRAW);
+    MLView *view = new MLView(BRect(0, 0, width - 1, height - 1), "IM", B_FOLLOW_NONE, B_WILL_DRAW);
 
     view->uiwindow = root;
     window->AddChild(view);
@@ -793,13 +794,13 @@ void window_alloc(ui_window_t *root, int x, int y, u_int width, u_int height, in
     }
 #endif
 
-    window = new MLWindow(BRect(x, y, x + width, y + height),
+    window = new MLWindow(BRect(x, y, x + width - 1, y + height - 1),
                           "mlterm", B_DOCUMENT_WINDOW, 0);
     if (root->disp->width == 0) {
       BScreen *screen = new BScreen(window);
       BRect rect = screen->Frame();
-      root->disp->width = rect.right;
-      root->disp->height = rect.bottom;
+      root->disp->width = rect.right + 1;
+      root->disp->height = rect.bottom + 1;
       delete screen;
     }
   }
@@ -973,8 +974,11 @@ void beos_beep(void) {
 }
 
 void *beos_create_image(const void *data, u_int len, u_int width, u_int height) {
-  BBitmap *bitmap = new BBitmap(BRect(0, 0, width, height), 0, B_RGBA32);
-  bitmap->SetBits(data, len, 0, B_RGBA32);
+  BBitmap *bitmap;
+
+  if ((bitmap = new BBitmap(BRect(0, 0, width - 1, height - 1), 0, B_RGBA32))) {
+    bitmap->SetBits(data, len, 0, B_RGBA32);
+  }
 
   return bitmap;
 }
@@ -984,16 +988,19 @@ void beos_destroy_image(void *bitmap) {
 }
 
 void *beos_load_image(const char *path, u_int *width, u_int *height) {
-  BBitmap *bitmap = BTranslationUtils::GetBitmap(path);
-  BRect rect = bitmap->Bounds();
-  *width = rect.right;
-  *height = rect.bottom;
+  BBitmap *bitmap;
+
+  if ((bitmap = BTranslationUtils::GetBitmap(path))) {
+    BRect rect = bitmap->Bounds();
+    *width = rect.right + 1;
+    *height = rect.bottom + 1;
+  }
 
   return bitmap;
 }
 
 void *beos_resize_image(void *bitmap, u_int width, u_int height) {
-  BRect rect(0, 0, width, height);
+  BRect rect(0, 0, width - 1, height - 1);
   BBitmap *new_bitmap = new BBitmap(rect, B_RGBA32, true);
   BView *view = new BView(rect, "", B_FOLLOW_ALL_SIDES, 0);
   new_bitmap->AddChild(view);

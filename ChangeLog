@@ -1,5 +1,8 @@
 2019-03-12  Araki Ken  <arakiken@users.sf.net>
 
+	* beos.cpp: BRect::right and BRect::bottom are obtained by subtracting
+	  1 from BRect:left + width and BRect::top + height.
+
 	* c_sixel.c: Memory allocation is fixed.
 
 	* ui_im_status_screen.c: "\x1b[?7l" is output to the status line.
