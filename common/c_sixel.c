@@ -687,7 +687,8 @@ body:
             color -= SIXEL_PALETTE_SIZE;
 
             if (!ext_palette) {
-              if (!(ext_palette = (pixel_t*)alloca(1024 - SIXEL_PALETTE_SIZE))) {
+              if (!(ext_palette = (pixel_t*)alloca(sizeof(pixel_t) *
+                                                   (1024 - SIXEL_PALETTE_SIZE)))) {
                 color = 0;
                 goto use_base_palette;
               }
