@@ -67,11 +67,6 @@ static ef_parser_t *utf16_parser;
 /* --- static functions --- */
 
 static void set_input_focus(MLView *view) {
-  if (view->messenger) {
-    delete view->messenger;
-    view->messenger = NULL;
-  }
-
   view->MakeFocus(true);
 
   XEvent ev;
@@ -222,6 +217,14 @@ MLView::MLView(BRect frame, const char *title, uint32 resizemode, uint32 flags)
   SetLowColor(0, 0, 0);
   SetFontSize(14);
   SetDrawingMode(B_OP_OVER);
+  cur_font = NULL;
+  buttons = 0;
+  messenger = NULL;
+
+  /* uiwindow is initialized in view_alloc() or window_alloc(). */
+#if 0
+  uiwindow = NULL;
+#endif
 }
 
 void MLView::Draw(BRect update) {
@@ -453,26 +456,20 @@ void MLView::MessageReceived(BMessage *message) {
      */
     if (message->FindInt32("be:opcode", &opcode) == B_OK) {
       if (opcode == B_INPUT_METHOD_STARTED) {
-#if 1
-        if (messenger) {
-          goto end;
-        }
-#endif
-
         BMessenger m;
 
         if (message->FindMessenger("be:reply_to", &m) == B_OK) {
+          if (messenger) {
+            delete messenger;
+          }
+
           messenger = new BMessenger(m);
         }
-      }
-#if 1
-      else if (!messenger) {
-        goto end;
-      }
-#endif
-      else if (opcode == B_INPUT_METHOD_STOPPED) {
-        delete messenger;
-        messenger = NULL;
+      } else if (opcode == B_INPUT_METHOD_STOPPED) {
+        if (messenger) {
+          delete messenger;
+          messenger = NULL;
+        }
       } else if (opcode == B_INPUT_METHOD_CHANGED) {
         const char *str;
 
@@ -528,7 +525,7 @@ void MLView::MessageReceived(BMessage *message) {
             update_ime_text(uiwindow, str);
           }
         }
-      } else if (opcode == B_INPUT_METHOD_LOCATION_REQUEST) {
+      } else if (opcode == B_INPUT_METHOD_LOCATION_REQUEST && messenger) {
         int x;
         int y;
 
