@@ -1,3 +1,7 @@
+2019-03-14  Araki Ken  <arakiken@users.sf.net>
+
+	* beos.cpp: MLView::cur_font, buttons and messenger are initialized.
+
 2019-03-13  Araki Ken  <arakiken@users.sf.net>
 
 	* beos.cpp:
