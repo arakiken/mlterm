@@ -25,6 +25,10 @@
 #include <windows.h> /* GetModuleHandle */
 #endif
 
+#ifdef __HAIKU__
+#include <sys/select.h> /* fd_set */
+#endif
+
 #ifndef USE_WIN32API
 #define closesocket(sock) close(sock)
 #endif
@@ -217,7 +221,7 @@ static void kbd_callback(const char *name, int name_len, const char *instruction
 }
 
 #ifdef BL_DEBUG
-#define strdup(str) bl_str_dup(str, __FILE__, __LINE__, __FUNCTION__)
+#define strdup(str) __bl_str_dup(str, __FILE__, __LINE__, __FUNCTION__)
 #endif
 
 #ifdef OPEN_PTY_ASYNC
@@ -264,7 +268,12 @@ static void set_use_multi_thread(int use) {
 #ifdef USE_WIN32API
         openssl_locks[count] = CreateMutex(NULL, FALSE, NULL);
 #else
-        openssl_locks[count] = PTHREAD_MUTEX_INITIALIZER;
+        /*
+         * "openssl_locks[count] = PTHREAD_MUTEX_INITIALIZER" fails in some environments
+         * such as HaikuOS(x86, gcc-2.95.3)
+         */
+        pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+        openssl_locks[count] = mutex;
 #endif
       }
 
