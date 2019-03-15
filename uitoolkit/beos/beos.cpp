@@ -12,6 +12,10 @@
 #include <Beep.h>
 #include <TranslationUtils.h>
 #include <Input.h>
+#include <Alert.h>
+#include <TextControl.h>
+#include <LayoutBuilder.h>
+#include <Button.h>
 
 #include <pthread.h>
 
@@ -21,6 +25,7 @@ extern "C" {
 #include "../ui_screen.h"
 #include "../ui_selection_encoding.h"
 
+#include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_privilege.h>
 #include <pobl/bl_unistd.h> /* usleep/bl_getuid/bl_getgid */
 #include <pobl/bl_file.h> /* bl_file_set_cloexec */
@@ -56,6 +61,23 @@ public:
   virtual void MessageReceived(BMessage *msg);
   ui_window_t *uiwindow;
   BMessenger *messenger;
+};
+
+class ConnectDialog : public BWindow {
+private:
+  int button;
+
+public:
+  ConnectDialog();
+  bool Go();
+  void ConnectDialog::Position(BWindow *parent);
+  virtual void MessageReceived(BMessage *message);
+  BTextControl *text;
+};
+
+enum {
+  MSG_OK = 'ok',
+  MSG_CANCEL = 'can'
 };
 
 static pthread_mutex_t mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
@@ -813,7 +835,7 @@ void window_alloc(ui_window_t *root, int x, int y, u_int width, u_int height, in
 #if 1
     /* XXX */
     static int count = 0;
-    BRect r = BScreen().Frame();
+    BRect r = BScreen(window).Frame();
     int x = ((r.right - width) / 8) * count + 50;
     int y = ((r.bottom - height) / 8) * count + 50;
     if (++count == 8) {
@@ -1047,16 +1069,90 @@ u_char *beos_get_bits(void *bitmap) {
   return (u_char*)((BBitmap*)bitmap)->Bits();
 }
 
+ConnectDialog::ConnectDialog()
+  : BWindow(BRect(0, 0, 200, 100), "Password", B_MODAL_WINDOW,
+            B_NOT_RESIZABLE|B_NOT_CLOSABLE|B_NOT_ZOOMABLE|B_NOT_MINIMIZABLE|B_NOT_MOVABLE, 0) {
+  BButton *ok = new BButton(BRect(0, 0, 100, 100), "OkButton", "OK", new BMessage(MSG_OK));
+  BButton *cancel = new BButton(BRect(0, 0, 100, 100), "CancelButton", "Cancel",
+                                new BMessage(MSG_CANCEL));
+
+  text = new BTextControl("", "Password", "", NULL);
+  text->TextView()->HideTyping(true);
+
+  BLayoutBuilder::Group<>(this, B_VERTICAL)
+    .Add(text)
+    .AddGroup(B_HORIZONTAL)
+      .AddGlue()
+      .Add(ok)
+      .Add(cancel)
+    .End()
+    .SetInsets(B_USE_DEFAULT_SPACING);
+
+  SetDefaultButton(ok);
+  button = -1;
+  text->MakeFocus();
+}
+
+bool ConnectDialog::Go() {
+  Show();
+
+  while (button == -1) {
+    usleep(1000);
+  }
+
+  return (button == 0);
+}
+
+void ConnectDialog::Position(BWindow *parent) {
+  BRect rect = (parent ? parent->Frame() : BScreen(this).Frame());
+
+  MoveTo((rect.right + rect.left) / 2 - 100, (rect.bottom + rect.top) / 2 - 50);
+}
+
+void ConnectDialog::MessageReceived(BMessage *message) {
+  switch(message->what) {
+  case MSG_OK:
+    button = 0;
+    break;
+
+  case MSG_CANCEL:
+    button = 1;
+    break;
+
+  default:
+    return;
+  }
+
+  PostMessage(B_QUIT_REQUESTED);
+}
+
 char *beos_dialog_password(const char *msg) {
-  return NULL;
+  ConnectDialog *dialog = new ConnectDialog();
+  dialog->Position(dynamic_cast<BWindow*>(BLooper::LooperForThread(find_thread(NULL))));
+
+  if (dialog->Go()) {
+    return strdup(dialog->text->Text());
+  } else {
+    return NULL;
+  }
 }
 
 int beos_dialog_okcancel(const char *msg) {
-  return 0;
+  BAlert *alert = new BAlert("Dialog", msg, "OK", "Cencel");
+
+  if (alert->Go() == 0) {
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 int beos_dialog_alert(const char *msg) {
-  return 0;
+  BAlert *alert = new BAlert("Alert", msg, "OK");
+
+  alert->Go();
+
+  return 1;
 }
 
 void beos_lock(void) {

@@ -1,3 +1,9 @@
+2019-03-16  Araki Ken  <arakiken@users.sf.net>
+
+	* beos.cpp: beos_dialog_{password|okcancel|alert}() are implemented.
+
+	* vt_pty_ssh.c: Compiling error on Haiku is fixed.
+
 2019-03-14  Araki Ken  <arakiken@users.sf.net>
 
 	* beos.cpp: MLView::cur_font, buttons and messenger are initialized.
