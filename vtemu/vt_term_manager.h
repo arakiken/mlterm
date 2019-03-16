@@ -41,7 +41,7 @@ char *vt_get_pty_list(void);
 
 void vt_term_manager_enable_zombie_pty(void);
 
-#ifdef __HAIKU__
+#if defined(__HAIKU__) || defined(__APPLE__) /* only for cocoatouch */
 int vt_check_sig_child(void);
 #endif
 

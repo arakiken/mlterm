@@ -98,7 +98,8 @@ int ui_event_source_process(void) {
     tval.tv_sec = 0;
 
 #ifdef COCOA_TOUCH
-    if (maxfd >= 0 && (ret = select(maxfd + 1, &read_fds, NULL, NULL, &tval)) < 0) {
+    if (vt_check_sig_child() ||
+        (maxfd >= 0 && (ret = select(maxfd + 1, &read_fds, NULL, NULL, &tval)) < 0)) {
       break;
     }
 #else

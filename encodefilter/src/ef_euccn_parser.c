@@ -133,7 +133,7 @@ static int gbk_parser_next_char_intern(ef_parser_t *parser, ef_char_t *ch, int i
     memcpy(ch->ch, ucs4, 4);
     ch->size = 4;
     ch->cs = ISO10646_UCS4_1;
-    ch->property = ef_get_ucs_property(ef_bytes_to_int(ucs4, 4));
+    ch->property = 0;
 
     return 1;
   }

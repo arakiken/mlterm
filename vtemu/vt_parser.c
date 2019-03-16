@@ -7384,7 +7384,7 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
         }
       }
     } else if (IS_FULLWIDTH_CS(ch.cs)) {
-      ch.property = EF_FULLWIDTH;
+      ch.property |= EF_FULLWIDTH;
     }
   }
 

@@ -2,6 +2,7 @@
 
 #include "../src/ef_ucs4_jisx0208.h"
 
+#include "../src/ef_jis_property.h"
 #include "table/ef_jisx0208_1983_to_ucs4.table"
 #include "table/ef_jisx0208_nec_ext_to_ucs4.table"
 #include "table/ef_jisx0208_necibm_ext_to_ucs4.table"
@@ -78,7 +79,7 @@ int ef_map_ucs4_to_jisx0208_1983(ef_char_t *non_ucs, u_int32_t ucs4_code) {
     ef_int_to_bytes(non_ucs->ch, 2, c);
     non_ucs->size = 2;
     non_ucs->cs = JISX0208_1983;
-    non_ucs->property = 0;
+    non_ucs->property = ef_get_jisx0208_1983_property(non_ucs->ch);
 
     return 1;
   }

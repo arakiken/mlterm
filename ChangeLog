@@ -1,5 +1,32 @@
 2019-03-16  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_event_source-cocoa.m: If vt_check_sig_child() returns true,
+	  ui_event_source_process() exits on cocoatouch.
+
+	* vt_term_manager.[ch]:
+	  vt_check_sig_child() is compiled if __APPLE__ is defined.
+
+	* ef_euccn_parser.c: ef_get_ucs_property() is removed.
+
+	* ef_jis_property.[ch]: 'size' is removed from arguments of
+	  ef_get_jisx0208_1983_property() and ef_get_jisx0213_2000_1_property().
+
+	* ef_jisx0208_1983_property.[ch], ef_jisx0213_2000_property.[ch]
+	  => ef_jis_property.[ch]
+
+	* ef_ucs4_jisx0213.c: ef_map_ucs4_to_jisx0213_2000_1() calls
+	  ef_get_jisx0213_2000_1_property().
+
+	* ef_ucs4_jisx0208.c: ef_map_ucs4_to_jisx0208_1983() calls
+	  ef_get_jisx0208_1983_property().
+
+	* encodefilter/module/Makefile.in: @EF_JIS_PROP_LO@ is added in linking libmef_jajp.la
+
+	* encodefilter/configure.in: EF_JIS_PROP_LO is defined if
+	  $allow_undefined_flag is "unsupported".
+
+2019-03-16  Araki Ken  <arakiken@users.sf.net>
+
 	* ui_event_source.c: If vt_check_sig_child() returns true,
 	  receive_next_event() exits on Haiku.
 

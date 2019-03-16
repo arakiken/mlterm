@@ -1,6 +1,13 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
-#include "ef_jisx0213_2000_property.h"
+#include "ef_jis_property.h"
+
+/*
+ * COMBINING_ENCLOSING_CIRCLE is regarded as LARGE_CIRCLE in JISX0208_1997.
+ */
+#if 0
+#define JISX0208_COMBINING_ENCLOSING_CIRCLE
+#endif
 
 /* --- static variables --- */
 
@@ -46,7 +53,17 @@ static ef_property_t jisx0213_2000_1_property_table[] = {
 
 /* --- global functions --- */
 
-ef_property_t ef_get_jisx0213_2000_1_property(u_char *ch, size_t size) {
+ef_property_t ef_get_jisx0208_1983_property(u_char *ch /* 2 bytes */) {
+#ifdef JISX0208_COMBINING_ENCLOSING_CIRCLE
+  if (memcmp(ch, "\x22\x7e", 2) == 0) {
+    return EF_COMBINING;
+  }
+#endif
+
+  return 0;
+}
+
+ef_property_t ef_get_jisx0213_2000_1_property(u_char *ch /* 2 bytes */) {
   if (ch[0] == 0x2b) {
     if (0x52 <= ch[1] && ch[1] <= 0x7e) {
       return jisx0213_2000_1_property_table[ch[1] - 0x52];

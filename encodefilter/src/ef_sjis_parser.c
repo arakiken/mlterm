@@ -8,8 +8,7 @@
 
 #include "ef_iso2022_parser.h"
 #include "ef_sjis_env.h"
-#include "ef_jisx0208_1983_property.h"
-#include "ef_jisx0213_2000_property.h"
+#include "ef_jis_property.h"
 
 /* --- static functions --- */
 
@@ -187,9 +186,9 @@ static int sjis_parser_next_char_intern(ef_parser_t *sjis_parser, ef_char_t *ch,
     }
 
     if (cs == JISX0208_1983) {
-      ch->property = ef_get_jisx0208_1983_property(ch->ch, ch->size);
+      ch->property = ef_get_jisx0208_1983_property(ch->ch);
     } else if (cs == JISX0213_2000_1) {
-      ch->property = ef_get_jisx0213_2000_1_property(ch->ch, ch->size);
+      ch->property = ef_get_jisx0213_2000_1_property(ch->ch);
     } else {
       ch->property = 0;
     }

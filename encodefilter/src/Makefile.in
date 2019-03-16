@@ -32,7 +32,7 @@ CONV_OBJ = ef_iso8859_conv.o ef_iso2022_conv.o ef_iso2022jp_conv.o ef_iso2022kr_
 MAP_OBJ = ef_ucs4_map.o ef_locale_ucs4_map.o ef_zh_cn_map.o ef_zh_tw_map.o ef_zh_hk_map.o \
 	ef_ko_kr_map.o ef_viet_map.o ef_ja_jp_map.o ef_ru_map.o ef_uk_map.o ef_tg_map.o
 
-PROP_OBJ = ef_ucs_property.o ef_jisx0208_1983_property.o ef_jisx0213_2000_property.o
+PROP_OBJ = ef_ucs_property.o ef_jis_property.o
 
 UCS_TABLE_OBJ = ef_ucs4_iso8859.o ef_ucs4_viscii.o ef_ucs4_tcvn5712_1.o \
 	ef_ucs4_koi8.o ef_ucs4_georgian_ps.o ef_ucs4_cp125x.o ef_ucs4_iscii.o \
