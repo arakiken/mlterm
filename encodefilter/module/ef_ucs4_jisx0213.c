@@ -2,6 +2,7 @@
 
 #include "../src/ef_ucs4_jisx0213.h"
 
+#include "../src/ef_jis_property.h"
 #include "table/ef_jisx0213_2000_1_to_ucs4.table"
 #include "table/ef_jisx0213_2000_2_to_ucs4.table"
 
@@ -47,7 +48,7 @@ int ef_map_ucs4_to_jisx0213_2000_1(ef_char_t *jis, u_int32_t ucs4_code) {
     ef_int_to_bytes(jis->ch, 2, c);
     jis->size = 2;
     jis->cs = JISX0213_2000_1;
-    jis->property = 0;
+    jis->property = ef_get_jisx0213_2000_1_property(jis->ch);
 
     return 1;
   }

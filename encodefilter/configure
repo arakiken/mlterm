@@ -632,6 +632,7 @@ ac_subst_vars='LTLIBOBJS
 LIBOBJS
 DEXPORT
 POBL_LIBS
+EF_JIS_PROP_LO
 EF_CHAR_LO
 NO_UNDEFINED_FLAG
 MAKE_DIRS
@@ -11535,6 +11536,7 @@ $as_echo "not supported" >&6; }
 	NO_UNDEFINED_FLAG="-no-undefined"
 	# link ef_char.lo to module/*.dll to resolve addresses in creating dll.
 	EF_CHAR_LO="../src/ef_char.lo"
+	EF_JIS_PROP_LO="../src/ef_jis_property.lo"
 	if test "x${POBL_BUILDDIR}" != "x" ; then
 		POBL_LIBS="${POBL_BUILDDIR}/src/libpobl.la"
 	else
@@ -11547,6 +11549,7 @@ $as_echo "supported" >&6; }
 	EF_CHAR_LO=""
 	POBL_LIBS=""
 fi
+
 
 
 

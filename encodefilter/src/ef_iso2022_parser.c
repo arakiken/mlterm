@@ -7,8 +7,7 @@
 #include <pobl/bl_debug.h>
 
 #include "ef_iso2022_intern.h"
-#include "ef_jisx0208_1983_property.h"
-#include "ef_jisx0213_2000_property.h"
+#include "ef_jis_property.h"
 
 #define IS_C0(c) ((u_char)c <= 0x1f)
 #define IS_C1(c) (0x80 <= (u_char)c && (u_char)c <= 0x9f)
@@ -558,9 +557,9 @@ int ef_iso2022_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   }
 
   if (ch->cs == JISX0208_1983) {
-    ch->property = ef_get_jisx0208_1983_property(ch->ch, ch->size);
+    ch->property = ef_get_jisx0208_1983_property(ch->ch);
   } else if (ch->cs == JISX0213_2000_1) {
-    ch->property = ef_get_jisx0213_2000_1_property(ch->ch, ch->size);
+    ch->property = ef_get_jisx0213_2000_1_property(ch->ch);
   } else if (ch->cs == TCVN5712_1_1993) {
     if (0x30 <= ch->ch[0] && ch->ch[0] <= 0x34) {
       ch->property = EF_COMBINING;

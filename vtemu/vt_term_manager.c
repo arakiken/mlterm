@@ -536,7 +536,7 @@ char *vt_get_pty_list(void) {
 
 void vt_term_manager_enable_zombie_pty(void) { zombie_pty = 1; }
 
-#ifdef __HAIKU__
+#if defined(__HAIKU__) || defined(__APPLE__) /* only for cocoatouch */
 int vt_check_sig_child(void) {
   if (num_terms > 0) {
     int idx;
