@@ -102,7 +102,7 @@ static void receive_next_event(void) {
     }
 #endif
 
-    maxfd = 0;
+    maxfd = -1;
     FD_ZERO(&read_fds);
 
 #ifdef USE_LIBSSH2
@@ -161,6 +161,11 @@ static void receive_next_event(void) {
       }
     }
 
+#ifdef __HAIKU__
+    if (vt_check_sig_child()) {
+      return;
+    } else
+#endif
     if ((ret = select(maxfd + 1, &read_fds, NULL, NULL, &tval)) != 0) {
       if (ret < 0) {
 /* error happened */
