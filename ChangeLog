@@ -1,5 +1,12 @@
 2019-03-16  Araki Ken  <arakiken@users.sf.net>
 
+	* bl_locale.c, mef.c, im_skk.c, im_wnn.c, mc_font.c, mc_radio.c,
+	  ui_font_ft.c, ui_screen.c, ui_shortcut.c, win32/ui_font.c,
+	  xlib/ui_font.c, vt_iscii.c, vt_shape_bidi.c, vt_char_encoding.c,
+	  vt_termcap.c: Some array declarations are formatted.
+
+2019-03-16  Araki Ken  <arakiken@users.sf.net>
+
 	* ui_event_source-cocoa.m: If vt_check_sig_child() returns true,
 	  ui_event_source_process() exits on cocoatouch.
 

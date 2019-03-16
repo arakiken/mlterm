@@ -32,17 +32,18 @@ struct vt_isciikey_state {
 
 /* for Android */
 
-#include <table/bengali.table>
-#include <table/hindi.table>
-#if 0
 #include <table/assamese.table>
+#include <table/bengali.table>
 #include <table/gujarati.table>
+#include <table/hindi.table>
 #include <table/kannada.table>
 #include <table/malayalam.table>
 #include <table/oriya.table>
 #include <table/punjabi.table>
-#include <table/telugu.table>
+#if 0
+#include <table/tamil.table>
 #endif
+#include <table/telugu.table>
 
 /* --- static variables --- */
 
@@ -51,72 +52,22 @@ static struct {
   size_t size;
 
 } tables[] = {
+  { iscii_assamese_table, sizeof(iscii_assamese_table) / sizeof(struct tabl), },
+  { iscii_bengali_table, sizeof(iscii_bengali_table) / sizeof(struct tabl), },
+  { iscii_gujarati_table, sizeof(iscii_gujarati_table) / sizeof(struct tabl), },
+  { iscii_hindi_table, sizeof(iscii_hindi_table) / sizeof(struct tabl), },
+  { iscii_kannada_table, sizeof(iscii_kannada_table) / sizeof(struct tabl), },
+  { iscii_malayalam_table, sizeof(iscii_malayalam_table) / sizeof(struct tabl), },
+  { iscii_oriya_table, sizeof(iscii_oriya_table) / sizeof(struct tabl), },
+  { iscii_punjabi_table, sizeof(iscii_punjabi_table) / sizeof(struct tabl), },
 #if 0
-    {
-     iscii_assamese_table, sizeof(iscii_assamese_table) / sizeof(struct tabl),
-    },
-    {
-     iscii_bengali_table, sizeof(iscii_bengali_table) / sizeof(struct tabl),
-    },
-    {
-     iscii_gujarati_table, sizeof(iscii_gujarati_table) / sizeof(struct tabl),
-    },
-    {
-     iscii_hindi_table, sizeof(iscii_hindi_table) / sizeof(struct tabl),
-    },
-    {
-     iscii_kannada_table, sizeof(iscii_kannada_table) / sizeof(struct tabl),
-    },
-    {
-     iscii_malayalam_table, sizeof(iscii_malayalam_table) / sizeof(struct tabl),
-    },
-    {
-     iscii_oriya_table, sizeof(iscii_oriya_table) / sizeof(struct tabl),
-    },
-    {
-     iscii_punjabi_table, sizeof(iscii_punjabi_table) / sizeof(struct tabl),
-    },
-    {
-     iscii_tamil_table, sizeof(iscii_tamil_table) / sizeof(struct tabl),
-    },
-    {
-     iscii_telugu_table, sizeof(iscii_telugu_table) / sizeof(struct tabl),
-    },
+  { iscii_tamil_table, sizeof(iscii_tamil_table) / sizeof(struct tabl), },
 #else
-    {
-     NULL, 0,
-    },
-    {
-     iscii_bengali_table, sizeof(iscii_bengali_table) / sizeof(struct tabl),
-    },
-    {
-     NULL, 0,
-    },
-    {
-     iscii_hindi_table, sizeof(iscii_hindi_table) / sizeof(struct tabl),
-    },
-    {
-     NULL, 0,
-    },
-    {
-     NULL, 0,
-    },
-    {
-     NULL, 0,
-    },
-    {
-     NULL, 0,
-    },
-    {
-     NULL, 0,
-    },
-    {
-     NULL, 0,
-    },
-    {
-     NULL, 0,
-    },
+  { NULL, 0, },
 #endif
+  { iscii_telugu_table, sizeof(iscii_telugu_table) / sizeof(struct tabl), },
+  { iscii_bengali_table, sizeof(iscii_bengali_table) / sizeof(struct tabl), },
+  { iscii_hindi_table, sizeof(iscii_hindi_table) / sizeof(struct tabl), },
 };
 
 /* --- static functions --- */

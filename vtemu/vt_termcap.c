@@ -57,48 +57,24 @@ static vt_termcap_t *entries;
 static u_int num_entries;
 
 static str_field_table_t str_field_table[] = {
-    {
-     "kD", TC_DELETE,
-    },
-    {
-     "kb", TC_BACKSPACE,
-    },
-    {
-     "kh", TC_HOME,
-    },
-    {
-     "@7", TC_END,
-    },
-    /* "\x1bOP" in xterm(279), but doc/term/mlterm.ti defined "\x1b[11~" from
-       before. */
-    {
-     "k1", TC_F1,
-    },
-    /* "\x1bOQ" in xterm(279), but doc/term/mlterm.ti defined "\x1b[12~" from
-       before. */
-    {
-     "k2", TC_F2,
-    },
-    /* "\x1bOR" in xterm(279), but doc/term/mlterm.ti defined "\x1b[13~" from
-       before. */
-    {
-     "k3", TC_F3,
-    },
-    /* "\x1bOS" in xterm(279), but doc/term/mlterm.ti defined "\x1b[14~" from
-       before. */
-    {
-     "k4", TC_F4,
-    },
-    /* Requested by Andi Cristian Serbanescu (1 Nov 2012) */
-    {
-     "k5", TC_F5,
-    },
+  { "kD", TC_DELETE, },
+  { "kb", TC_BACKSPACE, },
+  { "kh", TC_HOME, },
+  { "@7", TC_END, },
+  /* "\x1bOP" in xterm(279), but doc/term/mlterm.ti defined "\x1b[11~" from before. */
+  { "k1", TC_F1, },
+  /* "\x1bOQ" in xterm(279), but doc/term/mlterm.ti defined "\x1b[12~" from before. */
+  { "k2", TC_F2, },
+  /* "\x1bOR" in xterm(279), but doc/term/mlterm.ti defined "\x1b[13~" from before. */
+  { "k3", TC_F3, },
+  /* "\x1bOS" in xterm(279), but doc/term/mlterm.ti defined "\x1b[14~" from before. */
+  { "k4", TC_F4, },
+  /* Requested by Andi Cristian Serbanescu (1 Nov 2012) */
+  { "k5", TC_F5, },
 };
 
 static bool_field_table_t bool_field_table[] = {
-    {
-     "ut", TC_BCE,
-    },
+  { "ut", TC_BCE, },
 };
 
 static char *tc_file = "mlterm/termcap";

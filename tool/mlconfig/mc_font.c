@@ -47,519 +47,117 @@ typedef struct cs_info {
  * Combination of x_font_config.c:cs_table and x_font.c:cs_info_table
  */
 static cs_info_t cs_info_table[] = {
-    {
-     "DEFAULT",
-     {
-      NULL, NULL, NULL,
-     },
-    },
+  { "DEFAULT", { NULL, NULL, NULL, }, },
 
-    /*
-     * UNICODE => ISO10646_UCS4_1 or U+XXXX-XXXX in get_correct_cs().
-     */
-    {
-     "UNICODE",
-     {
-      "iso10646-1", NULL, NULL,
-     },
-    },
-    {
-     "UNICODE (Full Width)",
-     {
-      "iso10646-1", NULL, NULL,
-     },
-    },
-    {
-     "UNICODE (Emoji)",
-     {
-      "iso10646-1", NULL, NULL,
-     },
-    },
-    {
-     "UNICODE (Hankaku Kana)",
-     {
-      "iso10646-1", NULL, NULL,
-     },
-    },
-    {
-     "UNICODE (Hebrew)",
-     {
-      "iso10646-1", NULL, NULL,
-     },
-    },
-    {
-     "UNICODE (Arabic)",
-     {
-      "iso10646-1", NULL, NULL,
-     },
-    },
-    {
-     "UNICODE (Hindi)",
-     {
-      "iso10646-1", NULL, NULL,
-     },
-    },
-    {
-     "UNICODE (Bengali)",
-     {
-      "iso10646-1", NULL, NULL,
-     },
-    },
-    {
-     "UNICODE (Punjabi)",
-     {
-      "iso10646-1", NULL, NULL,
-     },
-    },
-    {
-     "UNICODE (Gujarati)",
-     {
-      "iso10646-1", NULL, NULL,
-     },
-    },
-    {
-     "UNICODE (Oriya)",
-     {
-      "iso10646-1", NULL, NULL,
-     },
-    },
-    {
-     "UNICODE (Tamil)",
-     {
-      "iso10646-1", NULL, NULL,
-     },
-    },
-    {
-     "UNICODE (Telugu)",
-     {
-      "iso10646-1", NULL, NULL,
-     },
-    },
-    {
-     "UNICODE (Kannada)",
-     {
-      "iso10646-1", NULL, NULL,
-     },
-    },
-    {
-     "UNICODE (Malayalam)",
-     {
-      "iso10646-1", NULL, NULL,
-     },
-    },
+  /*
+   * UNICODE => ISO10646_UCS4_1 or U+XXXX-XXXX in get_correct_cs().
+   */
+  { "UNICODE", { "iso10646-1", NULL, NULL, }, },
+  { "UNICODE (Full Width)", { "iso10646-1", NULL, NULL, }, },
+  { "UNICODE (Emoji)", { "iso10646-1", NULL, NULL, }, },
+  { "UNICODE (Hankaku Kana)", { "iso10646-1", NULL, NULL, }, },
+  { "UNICODE (Hebrew)", { "iso10646-1", NULL, NULL, }, },
+  { "UNICODE (Arabic)", { "iso10646-1", NULL, NULL, }, },
+  { "UNICODE (Hindi)", { "iso10646-1", NULL, NULL, }, },
+  { "UNICODE (Bengali)", { "iso10646-1", NULL, NULL, }, },
+  { "UNICODE (Punjabi)", { "iso10646-1", NULL, NULL, }, },
+  { "UNICODE (Gujarati)", { "iso10646-1", NULL, NULL, }, },
+  { "UNICODE (Oriya)", { "iso10646-1", NULL, NULL, }, },
+  { "UNICODE (Tamil)", { "iso10646-1", NULL, NULL, }, },
+  { "UNICODE (Telugu)", { "iso10646-1", NULL, NULL, }, },
+  { "UNICODE (Kannada)", { "iso10646-1", NULL, NULL, }, },
+  { "UNICODE (Malayalam)", { "iso10646-1", NULL, NULL, }, },
 
-    {
-     "DEC_SPECIAL",
-     {
-      "iso8859-1", NULL, NULL,
-     },
-    },
-    {
-     "ISO8859_1",
-     {
-      "iso8859-1", NULL, NULL,
-     },
-    },
-    {
-     "ISO8859_2",
-     {
-      "iso8859-2", NULL, NULL,
-     },
-    },
-    {
-     "ISO8859_3",
-     {
-      "iso8859-3", NULL, NULL,
-     },
-    },
-    {
-     "ISO8859_4",
-     {
-      "iso8859-4", NULL, NULL,
-     },
-    },
-    {
-     "ISO8859_5",
-     {
-      "iso8859-5", NULL, NULL,
-     },
-    },
-    {
-     "ISO8859_6",
-     {
-      "iso8859-6", NULL, NULL,
-     },
-    },
-    {
-     "ISO8859_7",
-     {
-      "iso8859-7", NULL, NULL,
-     },
-    },
-    {
-     "ISO8859_8",
-     {
-      "iso8859-8", NULL, NULL,
-     },
-    },
-    {
-     "ISO8859_9",
-     {
-      "iso8859-9", NULL, NULL,
-     },
-    },
-    {
-     "ISO8859_10",
-     {
-      "iso8859-10", NULL, NULL,
-     },
-    },
-    {
-     "TIS620",
-     {
-      "tis620.2533-1", "tis620.2529-1", NULL,
-     },
-    },
-    {
-     "ISO8859_13",
-     {
-      "iso8859-13", NULL, NULL,
-     },
-    },
-    {
-     "ISO8859_14",
-     {
-      "iso8859-14", NULL, NULL,
-     },
-    },
-    {
-     "ISO8859_15",
-     {
-      "iso8859-15", NULL, NULL,
-     },
-    },
-    {
-     "ISO8859_16",
-     {
-      "iso8859-16", NULL, NULL,
-     },
-    },
+  { "DEC_SPECIAL", { "iso8859-1", NULL, NULL, }, },
+  { "ISO8859_1", { "iso8859-1", NULL, NULL, }, },
+  { "ISO8859_2", { "iso8859-2", NULL, NULL, }, },
+  { "ISO8859_3", { "iso8859-3", NULL, NULL, }, },
+  { "ISO8859_4", { "iso8859-4", NULL, NULL, }, },
+  { "ISO8859_5", { "iso8859-5", NULL, NULL, }, },
+  { "ISO8859_6", { "iso8859-6", NULL, NULL, }, },
+  { "ISO8859_7", { "iso8859-7", NULL, NULL, }, },
+  { "ISO8859_8", { "iso8859-8", NULL, NULL, }, },
+  { "ISO8859_9", { "iso8859-9", NULL, NULL, }, },
+  { "ISO8859_10", { "iso8859-10", NULL, NULL, }, },
+  { "TIS620", { "tis620.2533-1", "tis620.2529-1", NULL, }, },
+  { "ISO8859_13", { "iso8859-13", NULL, NULL, }, },
+  { "ISO8859_14", { "iso8859-14", NULL, NULL, }, },
+  { "ISO8859_15", { "iso8859-15", NULL, NULL, }, },
+  { "ISO8859_16", { "iso8859-16", NULL, NULL, }, },
 
-    /*
-     * XXX
-     * The encoding of TCVN font is iso8859-1 , and its font family is
-     * .VnTime or .VnTimeH ...
-     * How to deal with it ?
-     */
-    {
-     "TCVN5712",
-     {
-      NULL, NULL, NULL,
-     },
-    },
+  /*
+   * XXX
+   * The encoding of TCVN font is iso8859-1, and its font family is .VnTime or
+   * .VnTimeH... How to deal with it ?
+   */
+  { "TCVN5712", { NULL, NULL, NULL, }, },
 
-    {
-     "ISCII_ASSAMESE",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "ISCII_BENGALI",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "ISCII_GUJARATI",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "ISCII_HINDI",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "ISCII_KANNADA",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "ISCII_MALAYALAM",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "ISCII_ORIYA",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "ISCII_PUNJABI",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "ISCII_TAMIL",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "ISCII_TELUGU",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "VISCII",
-     {
-      "viscii-1", NULL, NULL,
-     },
-    },
-    {
-     "KOI8_R",
-     {
-      "koi8-r", NULL, NULL,
-     },
-    },
-    {
-     "KOI8_U",
-     {
-      "koi8-u", NULL, NULL,
-     },
-    },
+  { "ISCII_ASSAMESE", { NULL, NULL, NULL, }, },
+  { "ISCII_BENGALI", { NULL, NULL, NULL, }, },
+  { "ISCII_GUJARATI", { NULL, NULL, NULL, }, },
+  { "ISCII_HINDI", { NULL, NULL, NULL, }, },
+  { "ISCII_KANNADA", { NULL, NULL, NULL, }, },
+  { "ISCII_MALAYALAM", { NULL, NULL, NULL, }, },
+  { "ISCII_ORIYA", { NULL, NULL, NULL, }, },
+  { "ISCII_PUNJABI", { NULL, NULL, NULL, }, },
+  { "ISCII_TAMIL", { NULL, NULL, NULL, }, },
+  { "ISCII_TELUGU", { NULL, NULL, NULL, }, },
+  { "VISCII", { "viscii-1", NULL, NULL, }, },
+  { "KOI8_R", { "koi8-r", NULL, NULL, }, },
+  { "KOI8_U", { "koi8-u", NULL, NULL, }, },
 
 #if 0
-    /*
-     * XXX
-     * KOI8_T, GEORGIAN_PS and CP125X charset can be shown by unicode font only.
-     */
-    {
-     "KOI8_T",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "GEORGIAN_PS",
-     {
-      NULL, NULL, NULL,
-     },
-    },
+  /*
+   * XXX
+   * KOI8_T, GEORGIAN_PS and CP125X charset can be shown by unicode font only.
+   */
+  { "KOI8_T", { NULL, NULL, NULL, }, },
+  { "GEORGIAN_PS", { NULL, NULL, NULL, }, },
 #endif
 #ifdef USE_WIN32GUI
-    {
-     "CP1250",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "CP1251",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "CP1252",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "CP1253",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "CP1254",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "CP1255",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "CP1256",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "CP1257",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "CP1258",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "CP874",
-     {
-      NULL, NULL, NULL,
-     },
-    },
+  { "CP1250", { NULL, NULL, NULL, }, },
+  { "CP1251", { NULL, NULL, NULL, }, },
+  { "CP1252", { NULL, NULL, NULL, }, },
+  { "CP1253", { NULL, NULL, NULL, }, },
+  { "CP1254", { NULL, NULL, NULL, }, },
+  { "CP1255", { NULL, NULL, NULL, }, },
+  { "CP1256", { NULL, NULL, NULL, }, },
+  { "CP1257", { NULL, NULL, NULL, }, },
+  { "CP1258", { NULL, NULL, NULL, }, },
+  { "CP874", { NULL, NULL, NULL, }, },
 #endif
 
-    {
-     "JISX0201_KATA",
-     {
-      "jisx0201.1976-0", NULL, NULL,
-     },
-    },
-    {
-     "JISX0201_ROMAN",
-     {
-      "jisx0201.1976-0", NULL, NULL,
-     },
-    },
-    {
-     "JISX0208_1978",
-     {
-      "jisx0208.1978-0", "jisx0208.1983-0", NULL,
-     },
-    },
-    {
-     "JISX0208_1983",
-     {
-      "jisx0208.1983-0", "jisx0208.1990-0", NULL,
-     },
-    },
-    {
-     "JISX0208_1990",
-     {
-      "jisx0208.1990-0", "jisx0208.1983-0", NULL,
-     },
-    },
-    {
-     "JISX0212_1990",
-     {
-      "jisx0212.1990-0", NULL, NULL,
-     },
-    },
-    {
-     "JISX0213_2000_1",
-     {
-      "jisx0213.2000-1", "jisx0208.1983-0", NULL,
-     },
-    },
-    {
-     "JISX0213_2000_2",
-     {
-      "jisx0213.2000-2", NULL, NULL,
-     },
-    },
-    {
-     "KSX1001_1997",
-     {
-      "ksc5601.1987-0", "ksx1001.1997-0", NULL,
-     },
-    },
+  { "JISX0201_KATA", { "jisx0201.1976-0", NULL, NULL, }, },
+  { "JISX0201_ROMAN", { "jisx0201.1976-0", NULL, NULL, }, },
+  { "JISX0208_1978", { "jisx0208.1978-0", "jisx0208.1983-0", NULL, }, },
+  { "JISX0208_1983", { "jisx0208.1983-0", "jisx0208.1990-0", NULL, }, },
+  { "JISX0208_1990", { "jisx0208.1990-0", "jisx0208.1983-0", NULL, }, },
+  { "JISX0212_1990", { "jisx0212.1990-0", NULL, NULL, }, },
+  { "JISX0213_2000_1", { "jisx0213.2000-1", "jisx0208.1983-0", NULL, }, },
+  { "JISX0213_2000_2", { "jisx0213.2000-2", NULL, NULL, }, },
+  { "KSX1001_1997", { "ksc5601.1987-0", "ksx1001.1997-0", NULL, }, },
 
 #if 0
-    /*
-     * XXX
-     * UHC and JOHAB fonts are not used at the present time.
-     * see vt_vt100_parser.c:vt_parse_vt100_sequence().
-     */
-    {
-     "UHC",
-     {
-      NULL, NULL, NULL,
-     },
-    },
-    {
-     "JOHAB",
-     {
-      "johabsh-1", /* "johabs-1" , */ "johab-1", NULL,
-     },
-    },
+  /*
+   * XXX
+   * UHC and JOHAB fonts are not used at the present time.
+   * see vt_vt100_parser.c:vt_parse_vt100_sequence().
+   */
+  { "UHC", { NULL, NULL, NULL, }, },
+  { "JOHAB", { "johabsh-1", /* "johabs-1" , */ "johab-1", NULL, }, },
 #endif
 
-    {
-     "GB2312_80",
-     {
-      "gb2312.1980-0", NULL, NULL,
-     },
-    },
-    {
-     "GBK",
-     {
-      "gbk-0", NULL, NULL,
-     },
-    },
-    {
-     "BIG5",
-     {
-      "big5.eten-0", "big5.hku-0", NULL,
-     },
-    },
-    {
-     "HKSCS",
-     {
-      "big5hkscs-0", "big5-0", NULL,
-     },
-    },
-    {
-     "CNS11643_1992_1",
-     {
-      "cns11643.1992-1", "cns11643.1992.1-0", NULL,
-     },
-    },
-    {
-     "CNS11643_1992_2",
-     {
-      "cns11643.1992-2", "cns11643.1992.2-0", NULL,
-     },
-    },
-    {
-     "CNS11643_1992_3",
-     {
-      "cns11643.1992-3", "cns11643.1992.3-0", NULL,
-     },
-    },
-    {
-     "CNS11643_1992_4",
-     {
-      "cns11643.1992-4", "cns11643.1992.4-0", NULL,
-     },
-    },
-    {
-     "CNS11643_1992_5",
-     {
-      "cns11643.1992-5", "cns11643.1992.5-0", NULL,
-     },
-    },
-    {
-     "CNS11643_1992_6",
-     {
-      "cns11643.1992-6", "cns11643.1992.6-0", NULL,
-     },
-    },
-    {
-     "CNS11643_1992_7",
-     {
-      "cns11643.1992-7", "cns11643.1992.7-0", NULL,
-     },
-    },
-
+  { "GB2312_80", { "gb2312.1980-0", NULL, NULL, }, },
+  { "GBK", { "gbk-0", NULL, NULL, }, },
+  { "BIG5", { "big5.eten-0", "big5.hku-0", NULL, }, },
+  { "HKSCS", { "big5hkscs-0", "big5-0", NULL, }, },
+  { "CNS11643_1992_1", { "cns11643.1992-1", "cns11643.1992.1-0", NULL, }, },
+  { "CNS11643_1992_2", { "cns11643.1992-2", "cns11643.1992.2-0", NULL, }, },
+  { "CNS11643_1992_3", { "cns11643.1992-3", "cns11643.1992.3-0", NULL, }, },
+  { "CNS11643_1992_4", { "cns11643.1992-4", "cns11643.1992.4-0", NULL, }, },
+  { "CNS11643_1992_5", { "cns11643.1992-5", "cns11643.1992.5-0", NULL, }, },
+  { "CNS11643_1992_6", { "cns11643.1992-6", "cns11643.1992.6-0", NULL, }, },
+  { "CNS11643_1992_7", { "cns11643.1992-7", "cns11643.1992.7-0", NULL, }, },
 };
 
 static char *new_fontsize = NULL;

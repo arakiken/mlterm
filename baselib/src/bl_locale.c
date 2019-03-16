@@ -46,101 +46,40 @@ static char *sys_lang_country = NULL;
 
 #ifndef USE_WIN32API
 static lang_codeset_table_t lang_codeset_table[] = {
-    {
-     "en", "ISO8859-1",
-    },
-    {
-     "da", "ISO8859-1",
-    },
-    {
-     "de", "ISO8859-1",
-    },
-    {
-     "fi", "ISO8859-1",
-    },
-    {
-     "fr", "ISO8859-1",
-    },
-    {
-     "is", "ISO8859-1",
-    },
-    {
-     "it", "ISO8859-1",
-    },
-    {
-     "nl", "ISO8859-1",
-    },
-    {
-     "no", "ISO8859-1",
-    },
-    {
-     "pt", "ISO8859-1",
-    },
-    {
-     "sv", "ISO8859-1",
-    },
-    {
-     "cs", "ISO8859-2",
-    },
-    {
-     "hr", "ISO8859-2",
-    },
-    {
-     "hu", "ISO8859-2",
-    },
-    {
-     "la", "ISO8859-2",
-    },
-    {
-     "lt", "ISO8859-2",
-    },
-    {
-     "pl", "ISO8859-2",
-    },
-    {
-     "sl", "ISO8859-2",
-    },
-    {
-     "el", "ISO8859-7",
-    },
-    {
-     "ru", "KOI8-R",
-    },
-    {
-     "uk", "KOI8-U",
-    },
-    {
-     "vi", "VISCII",
-    },
-    {
-     "th", "TIS-620",
-    },
-    {
-     "ja", "eucJP",
-    },
-    {
-     "ko", "eucKR",
-    },
-    {
-     "zh_CN", "eucCN",
-    },
-    {
-     "zh_TW", "Big5",
-    },
-    {
-     "zh_HK", "Big5HKSCS",
-    },
-
+  { "en", "ISO8859-1", },
+  { "da", "ISO8859-1", },
+  { "de", "ISO8859-1", },
+  { "fi", "ISO8859-1", },
+  { "fr", "ISO8859-1", },
+  { "is", "ISO8859-1", },
+  { "it", "ISO8859-1", },
+  { "nl", "ISO8859-1", },
+  { "no", "ISO8859-1", },
+  { "pt", "ISO8859-1", },
+  { "sv", "ISO8859-1", },
+  { "cs", "ISO8859-2", },
+  { "hr", "ISO8859-2", },
+  { "hu", "ISO8859-2", },
+  { "la", "ISO8859-2", },
+  { "lt", "ISO8859-2", },
+  { "pl", "ISO8859-2", },
+  { "sl", "ISO8859-2", },
+  { "el", "ISO8859-7", },
+  { "ru", "KOI8-R", },
+  { "uk", "KOI8-U", },
+  { "vi", "VISCII", },
+  { "th", "TIS-620", },
+  { "ja", "eucJP", },
+  { "ko", "eucKR", },
+  { "zh_CN", "eucCN", },
+  { "zh_TW", "Big5", },
+  { "zh_HK", "Big5HKSCS", },
 };
 #endif
 
 static alias_codeset_table_t alias_codeset_table[] = {
-    {
-     "EUC", "ja_JP.EUC", "eucJP",
-    },
-    {
-     "EUC", "ko_KR.EUC", "eucKR",
-    },
+  { "EUC", "ja_JP.EUC", "eucJP", },
+  { "EUC", "ko_KR.EUC", "eucKR", },
 };
 
 /* --- global functions --- */
