@@ -137,9 +137,6 @@ static void sig_child(void *p, pid_t pid) {
   for (count = 0; count < num_terms; count++) {
     if (pid == vt_term_get_child_pid(terms[count])) {
       u_int idx;
-#ifdef __HAIKU__
-      int fd;
-#endif
 
 #ifdef DEBUG
       bl_debug_printf(BL_DEBUG_TAG " pty %d is dead.\n", count);
@@ -147,14 +144,6 @@ static void sig_child(void *p, pid_t pid) {
 
       idx = count / MTU;
       dead_mask[idx] |= (1 << (count - MTU * idx));
-
-#ifdef __HAIKU__
-      /* XXX select() in ui_event_source.c might not recognize closing pty. */
-      if ((fd = vt_term_get_slave_fd(terms[count])) >= 0) {
-        write(fd, "\xff", 1); /* XXX not async signal safe */
-        /* fsync(fd); */
-      }
-#endif
     }
   }
 }
@@ -546,3 +535,19 @@ char *vt_get_pty_list(void) {
 }
 
 void vt_term_manager_enable_zombie_pty(void) { zombie_pty = 1; }
+
+#ifdef __HAIKU__
+int vt_check_sig_child(void) {
+  if (num_terms > 0) {
+    int idx;
+
+    for (idx = (num_terms - 1) / MTU; idx >= 0; idx--) {
+      if (dead_mask[idx]) {
+        return 1;
+      }
+    }
+  }
+
+  return 0;
+}
+#endif

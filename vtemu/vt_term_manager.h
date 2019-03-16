@@ -41,4 +41,8 @@ char *vt_get_pty_list(void);
 
 void vt_term_manager_enable_zombie_pty(void);
 
+#ifdef __HAIKU__
+int vt_check_sig_child(void);
+#endif
+
 #endif

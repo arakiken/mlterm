@@ -250,7 +250,7 @@ MLView::MLView(BRect frame, const char *title, uint32 resizemode, uint32 flags)
 }
 
 void MLView::Draw(BRect update) {
-  if ((IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term)) {
+  if (!uiwindow || (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term)) {
     /* It has been already removed from ui_layout or term has been detached. */
     return;
   }
@@ -263,7 +263,7 @@ void MLView::Draw(BRect update) {
 }
 
 void MLView::KeyDown(const char *bytes, int32 numBytes) {
-  if (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term) {
+  if (!uiwindow || (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term)) {
     /* It has been already removed from ui_layout or term has been detached. */
     return;
   }
@@ -322,7 +322,7 @@ void MLView::KeyDown(const char *bytes, int32 numBytes) {
 }
 
 void MLView::MouseDown(BPoint where) {
-  if (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term) {
+  if (!uiwindow || (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term)) {
     /* It has been already removed from ui_layout or term has been detached. */
     return;
   }
@@ -368,7 +368,7 @@ void MLView::MouseDown(BPoint where) {
 }
 
 void MLView::MouseMoved(BPoint where, uint32 code, const BMessage *dragMessage) {
-  if (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term) {
+  if (!uiwindow || (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term)) {
     /* It has been already removed from ui_layout or term has been detached. */
     return;
   }
@@ -410,7 +410,7 @@ void MLView::MouseMoved(BPoint where, uint32 code, const BMessage *dragMessage) 
 }
 
 void MLView::MouseUp(BPoint where) {
-  if (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term) {
+  if (!uiwindow || (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term)) {
     /* It has been already removed from ui_layout or term has been detached. */
     return;
   }
