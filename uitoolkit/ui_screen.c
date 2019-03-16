@@ -2111,59 +2111,27 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
     if (screen->use_vertical_cursor) {
       if (vt_term_get_vertical_mode(screen->term) & VERT_RTL) {
         ksym_conv_t table[] = {
-            {
-             XK_Up, XK_Left,
-            },
-            {
-             XK_KP_Up, XK_KP_Left,
-            },
-            {
-             XK_Down, XK_Right,
-            },
-            {
-             XK_KP_Down, XK_KP_Right,
-            },
-            {
-             XK_Left, XK_Down,
-            },
-            {
-             XK_KP_Left, XK_KP_Down,
-            },
-            {
-             XK_Right, XK_Up,
-            },
-            {
-             XK_KP_Right, XK_KP_Up,
-            },
+          { XK_Up, XK_Left, },
+          { XK_KP_Up, XK_KP_Left, },
+          { XK_Down, XK_Right, },
+          { XK_KP_Down, XK_KP_Right, },
+          { XK_Left, XK_Down, },
+          { XK_KP_Left, XK_KP_Down, },
+          { XK_Right, XK_Up, },
+          { XK_KP_Right, XK_KP_Up, },
         };
 
         ksym = convert_ksym(ksym, table, sizeof(table) / sizeof(table[0]));
       } else if (vt_term_get_vertical_mode(screen->term) & VERT_LTR) {
         ksym_conv_t table[] = {
-            {
-             XK_Up, XK_Left,
-            },
-            {
-             XK_KP_Up, XK_KP_Left,
-            },
-            {
-             XK_Down, XK_Right,
-            },
-            {
-             XK_KP_Down, XK_KP_Right,
-            },
-            {
-             XK_Left, XK_Up,
-            },
-            {
-             XK_KP_Left, XK_KP_Up,
-            },
-            {
-             XK_Right, XK_Down,
-            },
-            {
-             XK_KP_Right, XK_KP_Down,
-            },
+          { XK_Up, XK_Left, },
+          { XK_KP_Up, XK_KP_Left, },
+          { XK_Down, XK_Right, },
+          { XK_KP_Down, XK_KP_Right, },
+          { XK_Left, XK_Up, },
+          { XK_KP_Left, XK_KP_Up, },
+          { XK_Right, XK_Down, },
+          { XK_KP_Right, XK_KP_Down, },
         };
 
         ksym = convert_ksym(ksym, table, sizeof(table) / sizeof(table[0]));

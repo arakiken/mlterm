@@ -27,51 +27,23 @@ static char *config_keys[MC_RADIOS] = {
 };
 
 static char *config_values[MC_RADIOS][4] = {
-    {
-     "none", "esc", "8bit", NULL,
-    },
-    {
-     "none", "sound", "visual", "sound|visual",
-    },
-    {
-     "none", "left", "right", "autohide",
-    },
-    {
-     "none", "cjk", "mongol", NULL,
-    },
-    {
-     "noconv", "unicode", "decsp", NULL,
-    },
-    {
-     "noconv", "unicode", "nounicode", NULL,
-    },
-    {
-     "no", "raw", "ttyrec",
-    },
+  { "none", "esc", "8bit", NULL, },
+  { "none", "sound", "visual", "sound|visual", },
+  { "none", "left", "right", "autohide", },
+  { "none", "cjk", "mongol", NULL, },
+  { "noconv", "unicode", "decsp", NULL, },
+  { "noconv", "unicode", "nounicode", NULL, },
+  { "no", "raw", "ttyrec", },
 };
 
 static char *labels[MC_RADIOS][5] = {
-    {
-     N_("Meta key outputs"), N_("None"), N_("Esc"), N_("8bit"), NULL,
-    },
-    {
-     N_("Bell mode"), N_("None"), N_("Sound"), N_("Visual"), N_("Both"),
-    },
-    {
-     N_("Position"), N_("None"), N_("Left"), N_("Right"), N_("Auto hide"),
-    },
-    {
-     N_("Vertical mode"), N_("None"), N_("CJK"), N_("Mongol"), NULL,
-    },
-    {
-     N_("Box drawing"), N_("As it is"), N_("Unicode"), N_("DEC Special"), NULL,
-    },
-    {
-     N_("Font policy"), N_("As it is"), N_("Always unicode"), N_("Never unicode"), NULL,
-    },
-    {
-     N_("Save log"), N_("No"), N_("Raw format"), N_("Ttyrec format"), NULL,
-    },
+  { N_("Meta key outputs"), N_("None"), N_("Esc"), N_("8bit"), NULL, },
+  { N_("Bell mode"), N_("None"), N_("Sound"), N_("Visual"), N_("Both"), },
+  { N_("Position"), N_("None"), N_("Left"), N_("Right"), N_("Auto hide"), },
+  { N_("Vertical mode"), N_("None"), N_("CJK"), N_("Mongol"), NULL, },
+  { N_("Box drawing"), N_("As it is"), N_("Unicode"), N_("DEC Special"), NULL, },
+  { N_("Font policy"), N_("As it is"), N_("Always unicode"), N_("Never unicode"), NULL, },
+  { N_("Save log"), N_("No"), N_("Raw format"), N_("Ttyrec format"), NULL, },
 };
 
 /* --- static functions --- */

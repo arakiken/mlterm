@@ -84,36 +84,16 @@ static ef_factory_table_t factories[] = {
     {"cp1257", ef_cp1250_parser_new, ef_cp1257_conv_new},
     {"cp1258", ef_cp1250_parser_new, ef_cp1258_conv_new},
     {"cp874", ef_cp874_parser_new, ef_cp874_conv_new},
-    {
-     "isciiassamese", ef_iscii_assamese_parser_new, ef_iscii_assamese_conv_new,
-    },
-    {
-     "isciibengali", ef_iscii_bengali_parser_new, ef_iscii_bengali_conv_new,
-    },
-    {
-     "isciigujarati", ef_iscii_gujarati_parser_new, ef_iscii_gujarati_conv_new,
-    },
-    {
-     "isciihindi", ef_iscii_hindi_parser_new, ef_iscii_hindi_conv_new,
-    },
-    {
-     "isciikannada", ef_iscii_kannada_parser_new, ef_iscii_kannada_conv_new,
-    },
-    {
-     "isciimalayalam", ef_iscii_malayalam_parser_new, ef_iscii_malayalam_conv_new,
-    },
-    {
-     "isciioriya", ef_iscii_oriya_parser_new, ef_iscii_oriya_conv_new,
-    },
-    {
-     "isciipunjabi", ef_iscii_punjabi_parser_new, ef_iscii_punjabi_conv_new,
-    },
-    {
-     "isciitamil", ef_iscii_tamil_parser_new, ef_iscii_tamil_conv_new,
-    },
-    {
-     "isciitelugu", ef_iscii_telugu_parser_new, ef_iscii_telugu_conv_new,
-    },
+    {"isciiassamese", ef_iscii_assamese_parser_new, ef_iscii_assamese_conv_new},
+    {"isciibengali", ef_iscii_bengali_parser_new, ef_iscii_bengali_conv_new},
+    {"isciigujarati", ef_iscii_gujarati_parser_new, ef_iscii_gujarati_conv_new},
+    {"isciihindi", ef_iscii_hindi_parser_new, ef_iscii_hindi_conv_new},
+    {"isciikannada", ef_iscii_kannada_parser_new, ef_iscii_kannada_conv_new},
+    {"isciimalayalam", ef_iscii_malayalam_parser_new, ef_iscii_malayalam_conv_new},
+    {"isciioriya", ef_iscii_oriya_parser_new, ef_iscii_oriya_conv_new},
+    {"isciipunjabi", ef_iscii_punjabi_parser_new, ef_iscii_punjabi_conv_new},
+    {"isciitamil", ef_iscii_tamil_parser_new, ef_iscii_tamil_conv_new},
+    {"isciitelugu", ef_iscii_telugu_parser_new, ef_iscii_telugu_conv_new},
     {"eucjp", ef_eucjp_parser_new, ef_eucjp_conv_new},
     {"eucjisx0213", ef_eucjisx0213_parser_new, ef_eucjisx0213_conv_new},
     {"sjis", ef_sjis_parser_new, ef_sjis_conv_new},

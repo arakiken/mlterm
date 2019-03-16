@@ -39,261 +39,96 @@ typedef struct cs_info {
 /* --- static variables --- */
 
 static wincs_info_t wincs_info_table[] = {
-    {
-     DEFAULT_CHARSET, VT_UNKNOWN_ENCODING,
-    },
-    {
-     SYMBOL_CHARSET, VT_UNKNOWN_ENCODING,
-    },
-    {
-     OEM_CHARSET, VT_UNKNOWN_ENCODING,
-    },
-    {
-     ANSI_CHARSET, VT_CP1252,
-    },
-    {
-     RUSSIAN_CHARSET, VT_CP1251,
-    },
-    {
-     GREEK_CHARSET, VT_CP1253,
-    },
-    {
-     TURKISH_CHARSET, VT_CP1254,
-    },
-    {
-     BALTIC_CHARSET, VT_CP1257,
-    },
-    {
-     HEBREW_CHARSET, VT_CP1255,
-    },
-    {
-     ARABIC_CHARSET, VT_CP1256,
-    },
-    {
-     SHIFTJIS_CHARSET, VT_SJIS,
-    },
-    {
-     HANGEUL_CHARSET, VT_UHC,
-    },
-    {
-     GB2312_CHARSET, VT_GBK,
-    },
-    {CHINESEBIG5_CHARSET, VT_BIG5},
-    {
-     JOHAB_CHARSET, VT_JOHAB,
-    },
-    {
-     THAI_CHARSET, VT_TIS620,
-    },
-    {
-     EASTEUROPE_CHARSET, VT_ISO8859_3,
-    },
-    {
-     MAC_CHARSET, VT_UNKNOWN_ENCODING,
-    },
+  { DEFAULT_CHARSET, VT_UNKNOWN_ENCODING, },
+  { SYMBOL_CHARSET, VT_UNKNOWN_ENCODING, },
+  { OEM_CHARSET, VT_UNKNOWN_ENCODING, },
+  { ANSI_CHARSET, VT_CP1252, },
+  { RUSSIAN_CHARSET, VT_CP1251, },
+  { GREEK_CHARSET, VT_CP1253, },
+  { TURKISH_CHARSET, VT_CP1254, },
+  { BALTIC_CHARSET, VT_CP1257, },
+  { HEBREW_CHARSET, VT_CP1255, },
+  { ARABIC_CHARSET, VT_CP1256, },
+  { SHIFTJIS_CHARSET, VT_SJIS, },
+  { HANGEUL_CHARSET, VT_UHC, },
+  { GB2312_CHARSET, VT_GBK, },
+  { CHINESEBIG5_CHARSET, VT_BIG5},
+  { JOHAB_CHARSET, VT_JOHAB, },
+  { THAI_CHARSET, VT_TIS620, },
+  { EASTEUROPE_CHARSET, VT_ISO8859_3, },
+  { MAC_CHARSET, VT_UNKNOWN_ENCODING, },
 };
 
 static cs_info_t cs_info_table[] = {
-    {
-     ISO10646_UCS4_1, DEFAULT_CHARSET,
-    },
-    {
-     ISO10646_UCS4_1_V, DEFAULT_CHARSET,
-    },
+  { ISO10646_UCS4_1, DEFAULT_CHARSET, },
+  { ISO10646_UCS4_1_V, DEFAULT_CHARSET, },
 
-    {
-     DEC_SPECIAL, SYMBOL_CHARSET,
-    },
-    {
-     ISO8859_1_R, ANSI_CHARSET,
-    },
-    {
-     ISO8859_2_R, DEFAULT_CHARSET,
-    },
-    {
-     ISO8859_3_R, EASTEUROPE_CHARSET,
-    },
-    {
-     ISO8859_4_R, DEFAULT_CHARSET,
-    },
-    {
-     ISO8859_5_R, RUSSIAN_CHARSET,
-    },
-    {
-     ISO8859_6_R, ARABIC_CHARSET,
-    },
-    {
-     ISO8859_7_R, GREEK_CHARSET,
-    },
-    {
-     ISO8859_8_R, HEBREW_CHARSET,
-    },
-    {
-     ISO8859_9_R, TURKISH_CHARSET,
-    },
-    {
-     ISO8859_10_R, DEFAULT_CHARSET,
-    },
-    {
-     TIS620_2533, THAI_CHARSET,
-    },
-    {
-     ISO8859_13_R, DEFAULT_CHARSET,
-    },
-    {
-     ISO8859_14_R, DEFAULT_CHARSET,
-    },
-    {
-     ISO8859_15_R, DEFAULT_CHARSET,
-    },
-    {
-     ISO8859_16_R, DEFAULT_CHARSET,
-    },
-    {
-     TCVN5712_3_1993, VIETNAMESE_CHARSET,
-    },
-    {
-     ISCII_ASSAMESE, DEFAULT_CHARSET,
-    },
-    {
-     ISCII_BENGALI, DEFAULT_CHARSET,
-    },
-    {
-     ISCII_GUJARATI, DEFAULT_CHARSET,
-    },
-    {
-     ISCII_HINDI, DEFAULT_CHARSET,
-    },
-    {
-     ISCII_KANNADA, DEFAULT_CHARSET,
-    },
-    {
-     ISCII_MALAYALAM, DEFAULT_CHARSET,
-    },
-    {
-     ISCII_ORIYA, DEFAULT_CHARSET,
-    },
-    {
-     ISCII_PUNJABI, DEFAULT_CHARSET,
-    },
-    {
-     ISCII_TAMIL, DEFAULT_CHARSET,
-    },
-    {
-     ISCII_TELUGU, DEFAULT_CHARSET,
-    },
-    {
-     VISCII, VIETNAMESE_CHARSET,
-    },
-    {
-     KOI8_R, RUSSIAN_CHARSET,
-    },
-    {
-     KOI8_U, RUSSIAN_CHARSET,
-    },
-    {
-     KOI8_T, RUSSIAN_CHARSET,
-    },
-    {
-     GEORGIAN_PS, DEFAULT_CHARSET,
-    },
-    {
-     CP1250, EASTEUROPE_CHARSET,
-    },
-    {
-     CP1251, RUSSIAN_CHARSET,
-    },
-    {
-     CP1252, ANSI_CHARSET,
-    },
-    {
-     CP1253, GREEK_CHARSET,
-    },
-    {
-     CP1254, TURKISH_CHARSET,
-    },
-    {
-     CP1255, HEBREW_CHARSET,
-    },
-    {
-     CP1256, ARABIC_CHARSET,
-    },
-    {
-     CP1257, BALTIC_CHARSET,
-    },
-    {
-     CP1258, VIETNAMESE_CHARSET,
-    },
+  { DEC_SPECIAL, SYMBOL_CHARSET, },
+  { ISO8859_1_R, ANSI_CHARSET, },
+  { ISO8859_2_R, DEFAULT_CHARSET, },
+  { ISO8859_3_R, EASTEUROPE_CHARSET, },
+  { ISO8859_4_R, DEFAULT_CHARSET, },
+  { ISO8859_5_R, RUSSIAN_CHARSET, },
+  { ISO8859_6_R, ARABIC_CHARSET, },
+  { ISO8859_7_R, GREEK_CHARSET, },
+  { ISO8859_8_R, HEBREW_CHARSET, },
+  { ISO8859_9_R, TURKISH_CHARSET, },
+  { ISO8859_10_R, DEFAULT_CHARSET, },
+  { TIS620_2533, THAI_CHARSET, },
+  { ISO8859_13_R, DEFAULT_CHARSET, },
+  { ISO8859_14_R, DEFAULT_CHARSET, },
+  { ISO8859_15_R, DEFAULT_CHARSET, },
+  { ISO8859_16_R, DEFAULT_CHARSET, },
+  { TCVN5712_3_1993, VIETNAMESE_CHARSET, },
+  { ISCII_ASSAMESE, DEFAULT_CHARSET, },
+  { ISCII_BENGALI, DEFAULT_CHARSET, },
+  { ISCII_GUJARATI, DEFAULT_CHARSET, },
+  { ISCII_HINDI, DEFAULT_CHARSET, },
+  { ISCII_KANNADA, DEFAULT_CHARSET, },
+  { ISCII_MALAYALAM, DEFAULT_CHARSET, },
+  { ISCII_ORIYA, DEFAULT_CHARSET, },
+  { ISCII_PUNJABI, DEFAULT_CHARSET, },
+  { ISCII_TAMIL, DEFAULT_CHARSET, },
+  { ISCII_TELUGU, DEFAULT_CHARSET, },
+  { VISCII, VIETNAMESE_CHARSET, },
+  { KOI8_R, RUSSIAN_CHARSET, },
+  { KOI8_U, RUSSIAN_CHARSET, },
+  { KOI8_T, RUSSIAN_CHARSET, },
+  { GEORGIAN_PS, DEFAULT_CHARSET, },
+  { CP1250, EASTEUROPE_CHARSET, },
+  { CP1251, RUSSIAN_CHARSET, },
+  { CP1252, ANSI_CHARSET, },
+  { CP1253, GREEK_CHARSET, },
+  { CP1254, TURKISH_CHARSET, },
+  { CP1255, HEBREW_CHARSET, },
+  { CP1256, ARABIC_CHARSET, },
+  { CP1257, BALTIC_CHARSET, },
+  { CP1258, VIETNAMESE_CHARSET, },
 
-    {
-     JISX0201_KATA, SHIFTJIS_CHARSET,
-    },
-    {
-     JISX0201_ROMAN, SHIFTJIS_CHARSET,
-    },
-    {
-     JISC6226_1978, SHIFTJIS_CHARSET,
-    },
-    {
-     JISX0208_1983, SHIFTJIS_CHARSET,
-    },
-    {
-     JISX0208_1990, SHIFTJIS_CHARSET,
-    },
-    {
-     JISX0212_1990, SHIFTJIS_CHARSET,
-    },
-    {
-     JISX0213_2000_1, SHIFTJIS_CHARSET,
-    },
-    {
-     JISX0213_2000_2, SHIFTJIS_CHARSET,
-    },
+  { JISX0201_KATA, SHIFTJIS_CHARSET, },
+  { JISX0201_ROMAN, SHIFTJIS_CHARSET, },
+  { JISC6226_1978, SHIFTJIS_CHARSET, },
+  { JISX0208_1983, SHIFTJIS_CHARSET, },
+  { JISX0208_1990, SHIFTJIS_CHARSET, },
+  { JISX0212_1990, SHIFTJIS_CHARSET, },
+  { JISX0213_2000_1, SHIFTJIS_CHARSET, },
+  { JISX0213_2000_2, SHIFTJIS_CHARSET, },
 
-    {
-     KSC5601_1987, HANGEUL_CHARSET,
-    },
-    {
-     UHC, HANGEUL_CHARSET,
-    },
-    {
-     JOHAB, JOHAB_CHARSET,
-    },
+  { KSC5601_1987, HANGEUL_CHARSET, },
+  { UHC, HANGEUL_CHARSET, },
+  { JOHAB, JOHAB_CHARSET, },
 
-    {
-     GB2312_80, GB2312_CHARSET,
-    },
-    {
-     GBK, GB2312_CHARSET,
-    },
-    {
-     BIG5, CHINESEBIG5_CHARSET,
-    },
-    {
-     HKSCS, DEFAULT_CHARSET,
-    },
-    {
-     CNS11643_1992_1, GB2312_CHARSET,
-    },
-    {
-     CNS11643_1992_2, GB2312_CHARSET,
-    },
-    {
-     CNS11643_1992_3, GB2312_CHARSET,
-    },
-    {
-     CNS11643_1992_4, GB2312_CHARSET,
-    },
-    {
-     CNS11643_1992_5, GB2312_CHARSET,
-    },
-    {
-     CNS11643_1992_6, GB2312_CHARSET,
-    },
-    {
-     CNS11643_1992_7, GB2312_CHARSET,
-    },
-
+  { GB2312_80, GB2312_CHARSET, },
+  { GBK, GB2312_CHARSET, },
+  { BIG5, CHINESEBIG5_CHARSET, },
+  { HKSCS, DEFAULT_CHARSET, },
+  { CNS11643_1992_1, GB2312_CHARSET, },
+  { CNS11643_1992_2, GB2312_CHARSET, },
+  { CNS11643_1992_3, GB2312_CHARSET, },
+  { CNS11643_1992_4, GB2312_CHARSET, },
+  { CNS11643_1992_5, GB2312_CHARSET, },
+  { CNS11643_1992_6, GB2312_CHARSET, },
+  { CNS11643_1992_7, GB2312_CHARSET, },
 };
 
 static GC display_gc;
@@ -394,44 +229,26 @@ static int parse_font_name(
           int is_italic;
 
         } styles[] = {
-            /*
-             * Portable styles.
-             */
-            /* slant */
-            {
-             "italic", 0, 1,
-            },
-            /* weight */
-            {
-             "bold", FW_BOLD, 0,
-            },
+          /*
+           * Portable styles.
+           */
+          /* slant */
+          { "italic", 0, 1, },
+          /* weight */
+          { "bold", FW_BOLD, 0, },
 
-            /*
-             * Hack for styles which can be returned by
-             * gtk_font_selection_dialog_get_font_name().
-             */
-            /* slant */
-            {
-             "oblique", /* XXX This style is ignored. */
-             0, 0,
-            },
-            /* weight */
-            {
-             "light", /* e.g. "Bookman Old Style Light" */
-             FW_LIGHT, 0,
-            },
-            {
-             "semi-bold", FW_SEMIBOLD, 0,
-            },
-            {
-             "heavy", /* e.g. "Arial Black Heavy" */
-             FW_HEAVY, 0,
-            },
-            /* other */
-            {
-             "semi-condensed", /* XXX This style is ignored. */
-             0, 0,
-            },
+          /*
+           * Hack for styles which can be returned by
+           * gtk_font_selection_dialog_get_font_name().
+           */
+          /* slant */
+          { "oblique", /* XXX This style is ignored. */ 0, 0, },
+          /* weight */
+          { "light", /* e.g. "Bookman Old Style Light" */ FW_LIGHT, 0, },
+          { "semi-bold", FW_SEMIBOLD, 0, },
+          { "heavy", /* e.g. "Arial Black Heavy" */ FW_HEAVY, 0, },
+          /* other */
+          { "semi-condensed", /* XXX This style is ignored. */ 0, 0, },
         };
 
         for (count = 0; count < sizeof(styles) / sizeof(styles[0]); count++) {

@@ -142,43 +142,26 @@ static int parse_fc_font_name(
           int slant;
 
         } styles[] = {
-            /*
-             * Portable styles.
-             */
-            /* slant */
-            {
-             "italic", 0, FC_SLANT_ITALIC,
-            },
-            /* weight */
-            {
-             "bold", FC_WEIGHT_BOLD, 0,
-            },
+          /*
+           * Portable styles.
+           */
+          /* slant */
+          { "italic", 0, FC_SLANT_ITALIC, },
+          /* weight */
+          { "bold", FC_WEIGHT_BOLD, 0, },
 
-            /*
-             * Hack for styles which can be returned by
-             * gtk_font_selection_dialog_get_font_name().
-             */
-            /* slant */
-            {
-             "oblique", 0, FC_SLANT_OBLIQUE,
-            },
-            /* weight */
-            {
-             "light", /* e.g. "Bookman Old Style Light" */
-             FC_WEIGHT_LIGHT, 0,
-            },
-            {
-             "semi-bold", FC_WEIGHT_DEMIBOLD, 0,
-            },
-            {
-             "heavy", /* e.g. "Arial Black Heavy" */
-             FC_WEIGHT_BLACK, 0,
-            },
-            /* other */
-            {
-             "semi-condensed", /* XXX This style is ignored. */
-             0, 0,
-            },
+          /*
+           * Hack for styles which can be returned by
+           * gtk_font_selection_dialog_get_font_name().
+           */
+          /* slant */
+          { "oblique", 0, FC_SLANT_OBLIQUE, },
+          /* weight */
+          { "light", /* e.g. "Bookman Old Style Light" */ FC_WEIGHT_LIGHT, 0, },
+          { "semi-bold", FC_WEIGHT_DEMIBOLD, 0, },
+          { "heavy", /* e.g. "Arial Black Heavy" */ FC_WEIGHT_BLACK, 0, },
+          /* other */
+          { "semi-condensed", /* XXX This style is ignored. */ 0, 0, },
         };
 
         for (count = 0; count < sizeof(styles) / sizeof(styles[0]); count++) {

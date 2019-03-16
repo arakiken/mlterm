@@ -40,68 +40,28 @@ static int button_mask = 0;
 /* --- static variables --- */
 
 static key_func_table_t key_func_table[] = {
-    {
-     "IM_HOTKEY", IM_HOTKEY,
-    },
-    {
-     "EXT_KBD", EXT_KBD,
-    },
-    {
-     "OPEN_SCREEN", OPEN_SCREEN,
-    },
-    {
-     "OPEN_PTY", OPEN_PTY,
-    },
-    {
-     "NEXT_PTY", NEXT_PTY,
-    },
-    {
-     "PREV_PTY", PREV_PTY,
-    },
-    {
-     "VSPLIT_SCREEN", VSPLIT_SCREEN,
-    },
-    {
-     "HSPLIT_SCREEN", HSPLIT_SCREEN,
-    },
-    {
-     "NEXT_SCREEN", NEXT_SCREEN,
-    },
-    {
-     "PREV_SCREEN", PREV_SCREEN,
-    },
-    {
-     "CLOSE_SCREEN", CLOSE_SCREEN,
-    },
-    {
-     "HEXPAND_SCREEN", HEXPAND_SCREEN,
-    },
-    {
-     "VEXPAND_SCREEN", VEXPAND_SCREEN,
-    },
-    {
-     "PAGE_UP", PAGE_UP,
-    },
-    {
-     "PAGE_DOWN", PAGE_DOWN,
-    },
-    {
-     "SCROLL_UP", SCROLL_UP,
-    },
-    {
-     "SCROLL_DOWN", SCROLL_DOWN,
-    },
-    {
-     "INSERT_SELECTION", INSERT_SELECTION,
-    },
-    {
-     "EXIT_PROGRAM", EXIT_PROGRAM,
-    },
+  { "IM_HOTKEY", IM_HOTKEY, },
+  { "EXT_KBD", EXT_KBD, },
+  { "OPEN_SCREEN", OPEN_SCREEN, },
+  { "OPEN_PTY", OPEN_PTY, },
+  { "NEXT_PTY", NEXT_PTY, },
+  { "PREV_PTY", PREV_PTY, },
+  { "VSPLIT_SCREEN", VSPLIT_SCREEN, },
+  { "HSPLIT_SCREEN", HSPLIT_SCREEN, },
+  { "NEXT_SCREEN", NEXT_SCREEN, },
+  { "PREV_SCREEN", PREV_SCREEN, },
+  { "CLOSE_SCREEN", CLOSE_SCREEN, },
+  { "HEXPAND_SCREEN", HEXPAND_SCREEN, },
+  { "VEXPAND_SCREEN", VEXPAND_SCREEN, },
+  { "PAGE_UP", PAGE_UP, },
+  { "PAGE_DOWN", PAGE_DOWN, },
+  { "SCROLL_UP", SCROLL_UP, },
+  { "SCROLL_DOWN", SCROLL_DOWN, },
+  { "INSERT_SELECTION", INSERT_SELECTION, },
+  { "EXIT_PROGRAM", EXIT_PROGRAM, },
 
-    /* obsoleted: alias of OPEN_SCREEN */
-    {
-     "NEW_PTY", OPEN_SCREEN,
-    },
+  /* obsoleted: alias of OPEN_SCREEN */
+  { "NEW_PTY", OPEN_SCREEN, },
 };
 
 /* --- static functions --- */
@@ -137,130 +97,83 @@ void ui_shortcut_init(ui_shortcut_t *shortcut) {
   char *rcpath;
 
   ui_key_t default_key_map[] = {
-      /* IM_HOTKEY */
-      {
-       0, 0, 0,
-      },
+    /* IM_HOTKEY */
+    { 0, 0, 0, },
 
-      /* EXT_KBD(obsolete) */
-      {
-       0, 0, 0,
-      },
+    /* EXT_KBD(obsolete) */
+    { 0, 0, 0, },
 
 #if defined(USE_QUARTZ) || (defined(USE_SDL2) && defined(__APPLE__))
-      /* OPEN_SCREEN */
-      {
-       XK_F1, CommandMask, 1,
-      },
+    /* OPEN_SCREEN */
+    { XK_F1, CommandMask, 1, },
 
-      /* OPEN_PTY */
-      {
-       XK_F2, CommandMask, 1,
-      },
+    /* OPEN_PTY */
+    { XK_F2, CommandMask, 1, },
 
-      /* NEXT_PTY */
-      {
-       XK_F3, CommandMask, 1,
-      },
+    /* NEXT_PTY */
+    { XK_F3, CommandMask, 1, },
 
-      /* PREV_PTY */
-      {
-       XK_F4, CommandMask, 1,
-      },
+    /* PREV_PTY */
+    { XK_F4, CommandMask, 1, },
 #else
-      /* OPEN_SCREEN */
-      {
-       XK_F1, ControlMask, 1,
-      },
+    /* OPEN_SCREEN */
+    { XK_F1, ControlMask, 1, },
 
-      /* OPEN_PTY */
-      {
-       XK_F2, ControlMask, 1,
-      },
+    /* OPEN_PTY */
+    { XK_F2, ControlMask, 1, },
 
-      /* NEXT_PTY */
-      {
-       XK_F3, ControlMask, 1,
-      },
+    /* NEXT_PTY */
+    { XK_F3, ControlMask, 1, },
 
-      /* PREV_PTY */
-      {
-       XK_F4, ControlMask, 1,
-      },
+    /* PREV_PTY */
+    { XK_F4, ControlMask, 1, },
 #endif
 
-      /* HSPLIT_SCREEN */
-      {
-       XK_F1, ShiftMask, 1,
-      },
+    /* HSPLIT_SCREEN */
+    { XK_F1, ShiftMask, 1, },
 
-      /* VSPLIT_SCREEN */
-      {
-       XK_F2, ShiftMask, 1,
-      },
+    /* VSPLIT_SCREEN */
+    { XK_F2, ShiftMask, 1, },
 
-      /* NEXT_SCREEN */
-      {
-       XK_F3, ShiftMask, 1,
-      },
+    /* NEXT_SCREEN */
+    { XK_F3, ShiftMask, 1, },
 
-      /* PREV_SCREEN */
-      {
-       XK_F4, ShiftMask, 1,
-      },
+    /* PREV_SCREEN */
+    { XK_F4, ShiftMask, 1, },
 
-      /* CLOSE_SCREEN */
-      {
-       XK_F5, ShiftMask, 1,
-      },
+    /* CLOSE_SCREEN */
+    { XK_F5, ShiftMask, 1, },
 
-      /* HEXPAND_SCREEN */
-      {
-       XK_F6, ShiftMask, 1,
-      },
+    /* HEXPAND_SCREEN */
+    { XK_F6, ShiftMask, 1, },
 
-      /* VEXPAND_SCREEN */
-      {
-       XK_F7, ShiftMask, 1,
-      },
+    /* VEXPAND_SCREEN */
+    { XK_F7, ShiftMask, 1, },
 
-      /* PAGE_UP(compatible with kterm) */
-      {
-       XK_Prior, ShiftMask, 1,
-      },
+    /* PAGE_UP(compatible with kterm) */
+    { XK_Prior, ShiftMask, 1, },
 
-      /* PAGE_DOWN(compatible with kterm) */
-      {
-       XK_Next, ShiftMask, 1,
-      },
+    /* PAGE_DOWN(compatible with kterm) */
+    { XK_Next, ShiftMask, 1, },
 
-      /* SCROLL_UP */
-      {
-       XK_Up, ShiftMask, 1,
-      },
+    /* SCROLL_UP */
+    { XK_Up, ShiftMask, 1, },
 
-      /* SCROLL_DOWN */
-      {
-       XK_Down, ShiftMask, 1,
-      },
-      /* INSERT_SELECTION */
-      {
+    /* SCROLL_DOWN */
+    { XK_Down, ShiftMask, 1, },
+
+    /* INSERT_SELECTION */
 #if defined(USE_QUARTZ) || (defined(USE_SDL2) && defined(__APPLE__))
-       'v', CommandMask, 1,
+    { 'v', CommandMask, 1, },
 #else
-       XK_Insert, ShiftMask, 1,
+    { XK_Insert, ShiftMask, 1, },
 #endif
-      },
 
 #ifdef DEBUG
-      /* EXIT PROGRAM(only for debug) */
-      {
-       XK_F1, ControlMask | ShiftMask, 1,
-      },
+    /* EXIT PROGRAM(only for debug) */
+    { XK_F1, ControlMask | ShiftMask, 1, },
 #else
-      {
-       0, 0, 0,
-      },
+    { 0, 0, 0, },
 #endif
   };
 

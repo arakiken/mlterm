@@ -60,233 +60,98 @@ typedef struct encoding_table {
  * also changed.
  */
 static encoding_table_t encoding_table[] = {
-    {
-     VT_ISO8859_1, "ISO88591", ef_iso8859_1_parser_new, ef_iso8859_1_conv_new,
-    },
-    {
-     VT_ISO8859_2, "ISO88592", ef_iso8859_2_parser_new, ef_iso8859_2_conv_new,
-    },
-    {
-     VT_ISO8859_3, "ISO88593", ef_iso8859_3_parser_new, ef_iso8859_3_conv_new,
-    },
-    {
-     VT_ISO8859_4, "ISO88594", ef_iso8859_4_parser_new, ef_iso8859_4_conv_new,
-    },
-    {
-     VT_ISO8859_5, "ISO88595", ef_iso8859_5_parser_new, ef_iso8859_5_conv_new,
-    },
-    {
-     VT_ISO8859_6, "ISO88596", ef_iso8859_6_parser_new, ef_iso8859_6_conv_new,
-    },
-    {
-     VT_ISO8859_7, "ISO88597", ef_iso8859_7_parser_new, ef_iso8859_7_conv_new,
-    },
-    {
-     VT_ISO8859_8, "ISO88598", ef_iso8859_8_parser_new, ef_iso8859_8_conv_new,
-    },
-    {
-     VT_ISO8859_9, "ISO88599", ef_iso8859_9_parser_new, ef_iso8859_9_conv_new,
-    },
-    {
-     VT_ISO8859_10, "ISO885910", ef_iso8859_10_parser_new, ef_iso8859_10_conv_new,
-    },
-    {
-     VT_TIS620, "ISO885911", ef_tis620_2533_parser_new, ef_tis620_2533_conv_new,
-    },
-    {
-     VT_ISO8859_13, "ISO885913", ef_iso8859_13_parser_new, ef_iso8859_13_conv_new,
-    },
-    {
-     VT_ISO8859_14, "ISO885914", ef_iso8859_14_parser_new, ef_iso8859_14_conv_new,
-    },
-    {
-     VT_ISO8859_15, "ISO885915", ef_iso8859_15_parser_new, ef_iso8859_15_conv_new,
-    },
-    {
-     VT_ISO8859_16, "ISO885916", ef_iso8859_16_parser_new, ef_iso8859_16_conv_new,
-    },
-    {
-     VT_TCVN5712, "TCVN5712", ef_tcvn5712_3_1993_parser_new, ef_tcvn5712_3_1993_conv_new,
-    },
+  { VT_ISO8859_1, "ISO88591", ef_iso8859_1_parser_new, ef_iso8859_1_conv_new, },
+  { VT_ISO8859_2, "ISO88592", ef_iso8859_2_parser_new, ef_iso8859_2_conv_new, },
+  { VT_ISO8859_3, "ISO88593", ef_iso8859_3_parser_new, ef_iso8859_3_conv_new, },
+  { VT_ISO8859_4, "ISO88594", ef_iso8859_4_parser_new, ef_iso8859_4_conv_new, },
+  { VT_ISO8859_5, "ISO88595", ef_iso8859_5_parser_new, ef_iso8859_5_conv_new, },
+  { VT_ISO8859_6, "ISO88596", ef_iso8859_6_parser_new, ef_iso8859_6_conv_new, },
+  { VT_ISO8859_7, "ISO88597", ef_iso8859_7_parser_new, ef_iso8859_7_conv_new, },
+  { VT_ISO8859_8, "ISO88598", ef_iso8859_8_parser_new, ef_iso8859_8_conv_new, },
+  { VT_ISO8859_9, "ISO88599", ef_iso8859_9_parser_new, ef_iso8859_9_conv_new, },
+  { VT_ISO8859_10, "ISO885910", ef_iso8859_10_parser_new, ef_iso8859_10_conv_new, },
+  { VT_TIS620, "ISO885911", ef_tis620_2533_parser_new, ef_tis620_2533_conv_new, },
+  { VT_ISO8859_13, "ISO885913", ef_iso8859_13_parser_new, ef_iso8859_13_conv_new, },
+  { VT_ISO8859_14, "ISO885914", ef_iso8859_14_parser_new, ef_iso8859_14_conv_new, },
+  { VT_ISO8859_15, "ISO885915", ef_iso8859_15_parser_new, ef_iso8859_15_conv_new, },
+  { VT_ISO8859_16, "ISO885916", ef_iso8859_16_parser_new, ef_iso8859_16_conv_new, },
+  { VT_TCVN5712, "TCVN5712", ef_tcvn5712_3_1993_parser_new, ef_tcvn5712_3_1993_conv_new, },
 
-    {
-     VT_ISCII_ASSAMESE, "ISCIIASSAMESE", ef_iscii_assamese_parser_new, ef_iscii_assamese_conv_new,
-    },
-    {
-     VT_ISCII_BENGALI, "ISCIIBENGALI", ef_iscii_bengali_parser_new, ef_iscii_bengali_conv_new,
-    },
-    {
-     VT_ISCII_GUJARATI, "ISCIIGUJARATI", ef_iscii_gujarati_parser_new, ef_iscii_gujarati_conv_new,
-    },
-    {
-     VT_ISCII_HINDI, "ISCIIHINDI", ef_iscii_hindi_parser_new, ef_iscii_hindi_conv_new,
-    },
-    {
-     VT_ISCII_KANNADA, "ISCIIKANNADA", ef_iscii_kannada_parser_new, ef_iscii_kannada_conv_new,
-    },
-    {
-     VT_ISCII_MALAYALAM, "ISCIIMALAYALAM", ef_iscii_malayalam_parser_new,
-     ef_iscii_malayalam_conv_new,
-    },
-    {
-     VT_ISCII_ORIYA, "ISCIIORIYA", ef_iscii_oriya_parser_new, ef_iscii_oriya_conv_new,
-    },
-    {
-     VT_ISCII_PUNJABI, "ISCIIPUNJABI", ef_iscii_punjabi_parser_new, ef_iscii_punjabi_conv_new,
-    },
-    {
-     VT_ISCII_TELUGU, "ISCIITELUGU", ef_iscii_telugu_parser_new, ef_iscii_telugu_conv_new,
-    },
-    {
-     VT_VISCII, "VISCII", ef_viscii_parser_new, ef_viscii_conv_new,
-    },
-    {
-     VT_KOI8_R, "KOI8R", ef_koi8_r_parser_new, ef_koi8_r_conv_new,
-    },
-    {
-     VT_KOI8_U, "KOI8U", ef_koi8_u_parser_new, ef_koi8_u_conv_new,
-    },
-    {
-     VT_KOI8_T, "KOI8T", ef_koi8_t_parser_new, ef_koi8_t_conv_new,
-    },
-    {
-     VT_GEORGIAN_PS, "GEORGIANPS", ef_georgian_ps_parser_new, ef_georgian_ps_conv_new,
-    },
-    {
-     VT_CP1250, "CP1250", ef_cp1250_parser_new, ef_cp1250_conv_new,
-    },
-    {
-     VT_CP1251, "CP1251", ef_cp1251_parser_new, ef_cp1251_conv_new,
-    },
-    {
-     VT_CP1252, "CP1252", ef_cp1252_parser_new, ef_cp1252_conv_new,
-    },
-    {
-     VT_CP1253, "CP1253", ef_cp1253_parser_new, ef_cp1253_conv_new,
-    },
-    {
-     VT_CP1254, "CP1254", ef_cp1254_parser_new, ef_cp1254_conv_new,
-    },
-    {
-     VT_CP1255, "CP1255", ef_cp1255_parser_new, ef_cp1255_conv_new,
-    },
-    {
-     VT_CP1256, "CP1256", ef_cp1256_parser_new, ef_cp1256_conv_new,
-    },
-    {
-     VT_CP1257, "CP1257", ef_cp1257_parser_new, ef_cp1257_conv_new,
-    },
-    {
-     VT_CP1258, "CP1258", ef_cp1258_parser_new, ef_cp1258_conv_new,
-    },
-    {
-     VT_CP874, "CP874", ef_cp874_parser_new, ef_cp874_conv_new,
-    },
+  { VT_ISCII_ASSAMESE, "ISCIIASSAMESE", ef_iscii_assamese_parser_new, ef_iscii_assamese_conv_new, },
+  { VT_ISCII_BENGALI, "ISCIIBENGALI", ef_iscii_bengali_parser_new, ef_iscii_bengali_conv_new, },
+  { VT_ISCII_GUJARATI, "ISCIIGUJARATI", ef_iscii_gujarati_parser_new, ef_iscii_gujarati_conv_new, },
+  { VT_ISCII_HINDI, "ISCIIHINDI", ef_iscii_hindi_parser_new, ef_iscii_hindi_conv_new, },
+  { VT_ISCII_KANNADA, "ISCIIKANNADA", ef_iscii_kannada_parser_new, ef_iscii_kannada_conv_new, },
+  { VT_ISCII_MALAYALAM, "ISCIIMALAYALAM", ef_iscii_malayalam_parser_new,
+    ef_iscii_malayalam_conv_new, },
+  { VT_ISCII_ORIYA, "ISCIIORIYA", ef_iscii_oriya_parser_new, ef_iscii_oriya_conv_new, },
+  { VT_ISCII_PUNJABI, "ISCIIPUNJABI", ef_iscii_punjabi_parser_new, ef_iscii_punjabi_conv_new, },
+  { VT_ISCII_TELUGU, "ISCIITELUGU", ef_iscii_telugu_parser_new, ef_iscii_telugu_conv_new, },
+  { VT_VISCII, "VISCII", ef_viscii_parser_new, ef_viscii_conv_new, },
+  { VT_KOI8_R, "KOI8R", ef_koi8_r_parser_new, ef_koi8_r_conv_new, },
+  { VT_KOI8_U, "KOI8U", ef_koi8_u_parser_new, ef_koi8_u_conv_new, },
+  { VT_KOI8_T, "KOI8T", ef_koi8_t_parser_new, ef_koi8_t_conv_new, },
+  { VT_GEORGIAN_PS, "GEORGIANPS", ef_georgian_ps_parser_new, ef_georgian_ps_conv_new, },
+  { VT_CP1250, "CP1250", ef_cp1250_parser_new, ef_cp1250_conv_new, },
+  { VT_CP1251, "CP1251", ef_cp1251_parser_new, ef_cp1251_conv_new, },
+  { VT_CP1252, "CP1252", ef_cp1252_parser_new, ef_cp1252_conv_new, },
+  { VT_CP1253, "CP1253", ef_cp1253_parser_new, ef_cp1253_conv_new, },
+  { VT_CP1254, "CP1254", ef_cp1254_parser_new, ef_cp1254_conv_new, },
+  { VT_CP1255, "CP1255", ef_cp1255_parser_new, ef_cp1255_conv_new, },
+  { VT_CP1256, "CP1256", ef_cp1256_parser_new, ef_cp1256_conv_new, },
+  { VT_CP1257, "CP1257", ef_cp1257_parser_new, ef_cp1257_conv_new, },
+  { VT_CP1258, "CP1258", ef_cp1258_parser_new, ef_cp1258_conv_new, },
+  { VT_CP874, "CP874", ef_cp874_parser_new, ef_cp874_conv_new, },
 
-    {
-     VT_UTF8, "UTF8", ef_utf8_parser_new, ef_utf8_conv_new,
-    },
+  { VT_UTF8, "UTF8", ef_utf8_parser_new, ef_utf8_conv_new, },
 
-    {
-     VT_EUCJP, "EUCJP", ef_eucjp_parser_new, ef_eucjp_conv_new,
-    },
-    {
-     VT_EUCJISX0213, "EUCJISX0213", ef_eucjisx0213_parser_new, ef_eucjisx0213_conv_new,
-    },
-    {
-     VT_ISO2022JP, "ISO2022JP", ef_iso2022jp_7_parser_new, ef_iso2022jp_7_conv_new,
-    },
-    {
-     VT_ISO2022JP2, "ISO2022JP2", ef_iso2022jp2_parser_new, ef_iso2022jp2_conv_new,
-    },
-    {
-     VT_ISO2022JP3, "ISO2022JP3", ef_iso2022jp3_parser_new, ef_iso2022jp3_conv_new,
-    },
-    {
-     VT_SJIS, "SJIS", ef_sjis_parser_new, ef_sjis_conv_new,
-    },
-    {
-     VT_SJISX0213, "SJISX0213", ef_sjisx0213_parser_new, ef_sjisx0213_conv_new,
-    },
+  { VT_EUCJP, "EUCJP", ef_eucjp_parser_new, ef_eucjp_conv_new, },
+  { VT_EUCJISX0213, "EUCJISX0213", ef_eucjisx0213_parser_new, ef_eucjisx0213_conv_new, },
+  { VT_ISO2022JP, "ISO2022JP", ef_iso2022jp_7_parser_new, ef_iso2022jp_7_conv_new, },
+  { VT_ISO2022JP2, "ISO2022JP2", ef_iso2022jp2_parser_new, ef_iso2022jp2_conv_new, },
+  { VT_ISO2022JP3, "ISO2022JP3", ef_iso2022jp3_parser_new, ef_iso2022jp3_conv_new, },
+  { VT_SJIS, "SJIS", ef_sjis_parser_new, ef_sjis_conv_new, },
+  { VT_SJISX0213, "SJISX0213", ef_sjisx0213_parser_new, ef_sjisx0213_conv_new, },
 
-    {
-     VT_EUCKR, "EUCKR", ef_euckr_parser_new, ef_euckr_conv_new,
-    },
-    {
-     VT_UHC, "UHC", ef_uhc_parser_new, ef_uhc_conv_new,
-    },
-    {
-     VT_JOHAB, "JOHAB", ef_johab_parser_new, ef_johab_conv_new,
-    },
-    {
-     VT_ISO2022KR, "ISO2022KR", ef_iso2022kr_parser_new, ef_iso2022kr_conv_new,
-    },
+  { VT_EUCKR, "EUCKR", ef_euckr_parser_new, ef_euckr_conv_new, },
+  { VT_UHC, "UHC", ef_uhc_parser_new, ef_uhc_conv_new, },
+  { VT_JOHAB, "JOHAB", ef_johab_parser_new, ef_johab_conv_new, },
+  { VT_ISO2022KR, "ISO2022KR", ef_iso2022kr_parser_new, ef_iso2022kr_conv_new, },
 
-    {
-     VT_BIG5, "BIG5", ef_big5_parser_new, ef_big5_conv_new,
-    },
-    {
-     VT_EUCTW, "EUCTW", ef_euctw_parser_new, ef_euctw_conv_new,
-    },
+  { VT_BIG5, "BIG5", ef_big5_parser_new, ef_big5_conv_new, },
+  { VT_EUCTW, "EUCTW", ef_euctw_parser_new, ef_euctw_conv_new, },
 
-    {
-     VT_BIG5HKSCS, "BIG5HKSCS", ef_big5hkscs_parser_new, ef_big5hkscs_conv_new,
-    },
+  { VT_BIG5HKSCS, "BIG5HKSCS", ef_big5hkscs_parser_new, ef_big5hkscs_conv_new, },
 
-    /* not listed in IANA. GB2312 is usually used instead. */
-    {
-     VT_EUCCN, "EUCCN", ef_euccn_parser_new, ef_euccn_conv_new,
-    },
-    {
-     VT_GBK, "GBK", ef_gbk_parser_new, ef_gbk_conv_new,
-    },
-    {
-     VT_GB18030, "GB18030", ef_gb18030_2000_parser_new, ef_gb18030_2000_conv_new,
-    },
-    {
-     VT_HZ, "HZ", ef_hz_parser_new, ef_hz_conv_new,
-    },
+  /* not listed in IANA. GB2312 is usually used instead. */
+  { VT_EUCCN, "EUCCN", ef_euccn_parser_new, ef_euccn_conv_new, },
+  { VT_GBK, "GBK", ef_gbk_parser_new, ef_gbk_conv_new, },
+  { VT_GB18030, "GB18030", ef_gb18030_2000_parser_new, ef_gb18030_2000_conv_new, },
+  { VT_HZ, "HZ", ef_hz_parser_new, ef_hz_conv_new, },
 
-    {
-     VT_ISO2022CN, "ISO2022CN", ef_iso2022cn_parser_new, ef_iso2022cn_conv_new,
-    },
+  { VT_ISO2022CN, "ISO2022CN", ef_iso2022cn_parser_new, ef_iso2022cn_conv_new, },
 
-    /*
-     * alternative names.
-     * these are not used in vt_{parser|conv}_new , so parser_new/parser_conv
-     * members are
-     * not necessary.
-     */
+  /*
+   * alternative names.
+   * these are not used in vt_{parser|conv}_new , so parser_new/parser_conv
+   * members are not necessary.
+   */
 
-    {
-     VT_TIS620, "TIS620",
-    },
+  { VT_TIS620, "TIS620", },
 
 #if 0
-    /* XXX necessary ? */
-    {
-     VT_EUCJP, "EXTENDEDUNIXCODEPACKEDFORMATFORJAPANESE",
-    }, /* MIME */
-    {
-     VT_EUCJP, "CSEUCPKDFMTJAPANESE",
-    }, /* MIME */
+  /* XXX necessary ? */
+  { VT_EUCJP, "EXTENDEDUNIXCODEPACKEDFORMATFORJAPANESE", }, /* MIME */
+  { VT_EUCJP, "CSEUCPKDFMTJAPANESE", }, /* MIME */
 #endif
-    {VT_EUCJP, "UJIS"},
-    {
-     VT_SJIS, "SHIFTJIS",
-    }, /* MIME */
+  { VT_EUCJP, "UJIS" },
+  { VT_SJIS, "SHIFTJIS", }, /* MIME */
 
-    {
-     VT_EUCKR, "KSC56011987",
-    }, /* for IIS error page(IIS bug?) */
+  { VT_EUCKR, "KSC56011987", }, /* for IIS error page(IIS bug?) */
 
-    {
-     VT_EUCCN, "GB2312",
-    },
+  { VT_EUCCN, "GB2312", },
 
-    {
-     VT_HZ, "HZGB2312",
-    },
+  { VT_HZ, "HZGB2312", },
 };
 
 /*
