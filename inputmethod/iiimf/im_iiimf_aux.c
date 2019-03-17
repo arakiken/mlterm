@@ -238,7 +238,7 @@ static int is_conf_file(char *file_name) {
  * module related functions
  */
 
-static aux_module_t *load_module(char *file_name) {
+static aux_module_t *load_module(char *filename) {
   aux_module_t *module = NULL;
   aux_info_t *aux_info;
   aux_dir_t *aux_dir;
@@ -254,19 +254,19 @@ static aux_module_t *load_module(char *file_name) {
   char *dirpath;
   size_t len;
 
-  if (!is_valid_path(file_name)) {
+  if (!is_valid_path(filename)) {
     return NULL;
   }
 
   /* eliminate leading "./" */
-  if (strncmp(file_name, "./", 2) == 0) {
-    file_name += 2;
+  if (strncmp(filename, "./", 2) == 0) {
+    filename += 2;
   }
 
   /*
    * TODO: bl_dirname()
    */
-  if (!(dirname = alloca(strlen(file_name) + 1)) ||
+  if (!(dirname = alloca(strlen(filename) + 1)) ||
       !(basename = strrchr(strcpy(dirname, filename), '/'))) {
     return NULL;
   }
@@ -324,7 +324,7 @@ static aux_module_t *load_module(char *file_name) {
     goto error;
   }
 
-  module->file_name = strdup(file_name);
+  module->file_name = strdup(filename);
   module->handle = dl_handle;
   module->entries = NULL;
   module->num_entries = 0;

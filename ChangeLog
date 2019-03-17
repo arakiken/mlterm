@@ -1,5 +1,13 @@
 2019-03-17  Araki Ken  <arakiken@users.sf.net>
 
+	* README.ja: Updated.
+
+	* im_iiimf_aux.c: Compiling error is fixed.
+
+	* bl_util.[ch]: bl_base64_encode() is removed.
+
+2019-03-17  Araki Ken  <arakiken@users.sf.net>
+
 	* beos.cpp: Conflicting Control+a with B_HOME etc is fixed.
 
 	* ui.h: 0xe0000 mask is set for XK_Home etc.

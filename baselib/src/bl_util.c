@@ -141,10 +141,6 @@ end:
   return d_pos;
 }
 
-size_t bl_base64_encode(char *encoded, const char *decoded, size_t d_len) {
-  /* XXX Not implemented */
-}
-
 void bl_hls_to_rgb(int *r, int *g, int *b,
                    int h /* 0-360 */, int l /* 0-100 */, int s /* 0-100 */) {
   if (s == 0) {
