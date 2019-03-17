@@ -61,4 +61,18 @@
 
 #define BL_SWAP(t, a, b) { t tmp; tmp = (a); (a) = (b); (b) = tmp; }
 
+size_t bl_hex_decode(char *decoded, const char *encoded, size_t e_len);
+
+size_t bl_hex_encode(char *encoded, const char *decoded, size_t d_len);
+
+size_t bl_base64_decode(char *decoded, const char *encoded, size_t e_len);
+
+size_t bl_base64_encode(char *encoded, const char *decoded, size_t d_len);
+
+void bl_hls_to_rgb(int *r, int *g, int *b, int h, int l, int s);
+
+void bl_rgb_to_hls(int *h, int *l, int *s, int r, int g, int b);
+
+const char *bl_get_user_name(void);
+
 #endif

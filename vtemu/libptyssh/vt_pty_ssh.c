@@ -13,6 +13,7 @@
 #include <pobl/bl_dialog.h>
 #include <pobl/bl_net.h>     /* getaddrinfo/socket/connect/sockaddr_un */
 #include <pobl/bl_conf_io.h> /* bl_get_user_rc_path */
+#include <pobl/bl_util.h> /* bl_get_user_name */
 
 #if !defined(USE_WIN32API) && defined(HAVE_PTHREAD)
 #include <pthread.h>
@@ -1877,17 +1878,6 @@ static void save_data_for_reconnect(ssh_session_t *session, const char *cmd_path
   }
 }
 
-static char *get_user_name(void) {
-  char *user;
-
-  /* USER/LOGNAME: unix , USERNAME: win32 */
-  if (!(user = getenv("USER")) && !(user = getenv("USERNAME"))) {
-    user = getenv("LOGNAME");
-  }
-
-  return user;
-}
-
 /* --- global functions --- */
 
 #ifdef USE_WIN32API
@@ -1917,7 +1907,7 @@ vt_pty_t *vt_pty_ssh_new(const char *cmd_path, /* can be NULL */
     return NULL;
   }
 
-  if (!user && !(user = get_user_name())) {
+  if (!user && !(user = bl_get_user_name())) {
     return NULL;
   }
 
@@ -1950,7 +1940,7 @@ void *vt_search_ssh_session(const char *host, const char *port, /* can be NULL *
                             ) {
   int count;
 
-  if (!user && !(user = get_user_name())) {
+  if (!user && !(user = bl_get_user_name())) {
     return NULL;
   }
 

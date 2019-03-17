@@ -568,9 +568,7 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
       }
     }
 
-    /* USER/LOGNAME: unix , USERNAME: win32 */
-    if (user || (user = getenv("USER")) || (user = getenv("USERNAME")) ||
-        (user = getenv("LOGNAME"))) {
+    if (user || (user = getenv("USERNAME"))) {
       cmd_argv[idx++] = "-l";
       cmd_argv[idx++] = user;
     }

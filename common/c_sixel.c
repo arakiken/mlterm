@@ -711,53 +711,14 @@ body:
       }
 
       if (n > 4) {
-        u_int8_t rgba[4];
+        int rgba[4]; /* The arguments of bl_hls_to_rgb() are 'int*' */
 
         rgba[3] = 255;
 
         if (params[1] == 1) {
           /* HLS */
-          int h;
-          u_int32_t l;
-          u_int32_t s;
-
-          h = BL_MIN(params[2], 360);
-          l = BL_MIN(params[3], 100);
-          s = BL_MIN(params[4], 100);
-
-          if (s == 0) {
-            rgba[0] = rgba[1] = rgba[2] = l * 255 / 100;
-          } else {
-            u_int32_t m1;
-            u_int32_t m2;
-            int count;
-
-            if (l < 50) {
-              m2 = l * (100 + s);
-            } else {
-              m2 = (l + s) * 100 - l * s;
-            }
-            m1 = l * 200 - m2;
-
-            for (count = 0; count < 3; count++) {
-              u_int32_t pc;
-
-              if (h < 60) {
-                pc = m1 + (m2 - m1) * h / 60;
-              } else if (h < 180) {
-                pc = m2;
-              } else if (h < 240) {
-                pc = m1 + (m2 - m1) * (240 - h) / 60;
-              } else {
-                pc = m1;
-              }
-              rgba[count] = pc * 255 / 10000;
-
-              if ((h -= 120) < 0) {
-                h += 360;
-              }
-            }
-          }
+          bl_hls_to_rgb(&rgba[0], &rgba[1], &rgba[2],
+                        BL_MIN(params[2], 360), BL_MIN(params[3], 100), BL_MIN(params[4], 100));
 
           if (n > 5 && params[5] < 100) {
             rgba[3] = params[5] * 255 / 100;

@@ -58,6 +58,7 @@
 #include <pobl/bl_str.h>  /* bl_str_sep/strdup/bl_snprintf */
 #include <pobl/bl_locale.h> /* bl_get_lang */
 #include <pobl/bl_debug.h>
+#include <pobl/bl_util.h> /* bl_get_user_name */
 #include <mef/ef_utf16_parser.h>
 #include <mef/ef_iso8859_conv.h>
 
@@ -1018,7 +1019,7 @@ static int create_handle(IIIMCF_attr attr) {
   if (iiimcf_create_handle(attr, &handle) != IIIMF_STATUS_SUCCESS) {
     const char *user;
 
-    if (env == NULL && ((user = getenv("USER")) || (user = getenv("LOGNAME"))) &&
+    if (env == NULL && (user = bl_get_user_name()) &&
         (env = alloca(12 + strlen(user) + 5 + 1))) {
       DIR *dir;
 

@@ -1,3 +1,25 @@
+2019-03-17  Araki Ken  <arakiken@users.sf.net>
+
+	* beos.cpp: Conflicting Control+a with B_HOME etc is fixed.
+
+	* ui.h: 0xe0000 mask is set for XK_Home etc.
+
+	* vt_util.[ch]: Removed.
+
+	* bl_util.c:
+	  - Added.
+	  - bl_hex_decode(), bl_hex_encode() and bl_base64_decode() are moved
+	    from vt_util.[ch].
+	  - bl_hls_to_rgb() is moved from c_sixel.c.
+	  ^ bl_rgb_to_hls() is moved from vt_parser.c (rgb_to_hls()).
+	  - bl_get_user_name() is added.
+
+	* bl_config.h.in: '#undef HAVE_GETPWUID' is added.
+
+	* src/Makefile.in: bl_util.o is added to COMOBJ.
+
+	* baselib/configure.in: The existence of getpwuid is checked.
+
 2019-03-16  Araki Ken  <arakiken@users.sf.net>
 
 	* bl_locale.c, mef.c, im_skk.c, im_wnn.c, mc_font.c, mc_radio.c,

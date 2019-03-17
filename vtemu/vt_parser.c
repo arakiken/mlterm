@@ -30,7 +30,6 @@
 #include "vt_iscii.h"
 #include "vt_str_parser.h"
 #include "vt_shape.h" /* vt_is_arabic_combining */
-#include "vt_util.h"
 
 #if defined(__CYGWIN__) || defined(__MSYS__)
 #include "cygfile.h"
@@ -1476,7 +1475,7 @@ static char *parse_title(vt_parser_t *vt_parser, char *src /* the caller should 
 
   len = strlen(src);
   if (vt_parser->set_title_using_hex) {
-    if (!(len = vt_hex_decode(src, src, len))) {
+    if (!(len = bl_hex_decode(src, src, len))) {
 #ifdef DEBUG
       bl_debug_printf("Failed to decode %s as hex string.\n", src);
 #endif
@@ -1717,7 +1716,7 @@ static void report_window_or_icon_name(vt_parser_t *vt_parser, int is_window) {
   strcpy(seq, pre);
 
   if (vt_parser->get_title_using_hex) {
-    len = vt_hex_encode(seq + 3, title, len);
+    len = bl_hex_encode(seq + 3, title, len);
   } else {
     memcpy(seq + 3, title, len);
   }
@@ -1837,67 +1836,6 @@ static void report_presentation_state(vt_parser_t *vt_parser, int ps) {
   }
 }
 
-static void rgb_to_hls(int *h, int *l, int *s, int r, int g, int b) {
-  int max;
-  int min;
-
-  if (r > g) {
-    if (g > b) {
-      /* r > g > b */
-      max = r;
-      min = b;
-    } else {
-      min = g;
-      if (r > b) {
-        /* r > b >= g */
-        max = r;
-      } else {
-        /* b >= r > g */
-        max = b;
-      }
-    }
-  } else if (b > g) {
-    /* b > g >= r */
-    max = b;
-    min = r;
-  } else {
-    max = g;
-    if (r > b) {
-      /* g >= r > b */
-      min = b;
-    } else {
-      /* g >= b >= r */
-      min = r;
-    }
-  }
-
-  *l = (max + min) * 100 / 255 / 2;
-
-  if (max == min) {
-    /* r == g == b */
-    *h = 0;
-    *s = 0;
-  } else {
-    if (max == r) {
-      *h = 60 * (g - b) / (max - min);
-    } else if (max == g) {
-      *h = 60 * (b - r) / (max - min) + 120;
-    } else /* if (max == b) */ {
-      *h = 60 * (r - g) / (max - min) + 240;
-    }
-
-    if (*h < 0) {
-      *h += 360;
-    }
-
-    if (max + min < 255) {
-      *s = (max - min) * 100 / (max + min);
-    } else {
-      *s = (max - min) * 100 / (510 - max - min);
-    }
-  }
-}
-
 static void report_color_table(vt_parser_t *vt_parser, int pu) {
   int color;
   u_int8_t r, g, b;
@@ -1918,7 +1856,7 @@ static void report_color_table(vt_parser_t *vt_parser, int pu) {
     int h, l, s;
     for (color = 0; color < 256; color++) {
       vt_get_color_rgba(color, &r, &g, &b, NULL);
-      rgb_to_hls(&h, &l, &s, r, g, b);
+      bl_rgb_to_hls(&h, &l, &s, r, g, b);
       sprintf(p, "%d;1;%d;%d;%d/", color, h, l, s);
       p += strlen(p);
     }
@@ -2641,7 +2579,7 @@ static void iterm2_proprietary_set(vt_parser_t *vt_parser, char *pt) {
 
         strcpy(path, "mlterm/");
 
-        d_len = vt_base64_decode(path + 7, beg, end - beg);
+        d_len = bl_base64_decode(path + 7, beg, end - beg);
         path[7 + d_len] = '\0';
         file = bl_basename(path);
         memmove(path + 7, file, strlen(file) + 1);
@@ -2700,7 +2638,7 @@ static void iterm2_proprietary_set(vt_parser_t *vt_parser, char *pt) {
       size_t d_len;
       FILE *fp;
 
-      if ((d_len = vt_base64_decode(decoded, encoded, e_len)) > 0 && (fp = fopen(path, "w"))) {
+      if ((d_len = bl_base64_decode(decoded, encoded, e_len)) > 0 && (fp = fopen(path, "w"))) {
         fwrite(decoded, 1, d_len, fp);
         fclose(fp);
 
@@ -3055,7 +2993,7 @@ static void set_selection(vt_parser_t *vt_parser, u_char *encoded) {
     }
 
     if ((e_len = strlen(encoded)) < 4 || !(decoded = alloca(e_len)) ||
-        (d_len = vt_base64_decode(decoded, encoded, e_len)) == 0 || !(str = vt_str_new(d_len))) {
+        (d_len = bl_base64_decode(decoded, encoded, e_len)) == 0 || !(str = vt_str_new(d_len))) {
       return;
     }
 
