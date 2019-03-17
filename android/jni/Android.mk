@@ -45,6 +45,7 @@ LOCAL_SRC_FILES := baselib/src/bl_map.c baselib/src/bl_args.c \
 		baselib/src/bl_locale.c baselib/src/bl_privilege.c baselib/src/bl_unistd.c \
 		baselib/src/bl_sig_child.c baselib/src/bl_dialog.c baselib/src/bl_pty_streams.c \
 		baselib/src/bl_utmp_none.c baselib/src/bl_dlfcn.c baselib/src/bl_dlfcn_dl.c \
+		baselib/src/bl_util.o \
 		encodefilter/src/ef_parser.c encodefilter/src/ef_iso2022_parser.c encodefilter/src/ef_iso8859_parser.c \
 		encodefilter/src/ef_xct_parser.c encodefilter/src/ef_eucjp_parser.c encodefilter/src/ef_euckr_parser.c \
 		encodefilter/src/ef_euccn_parser.c encodefilter/src/ef_iso2022jp_parser.c \

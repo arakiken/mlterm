@@ -23,7 +23,7 @@ LIBS = $(LIBS_LOCAL) @XPG4_LIBS@ @DL_LIBS@ @UTMP_LIBS@
 
 COMOBJ = bl_debug.o bl_map.o bl_args.o bl_mem.o bl_conf.o bl_file.o bl_path.o \
 	bl_conf_io.o bl_str.o bl_cycle_index.o bl_langinfo.o bl_time.o bl_locale.o \
-	bl_privilege.o bl_unistd.o bl_sig_child.o bl_dialog.o bl_dlfcn.o
+	bl_privilege.o bl_unistd.o bl_sig_child.o bl_dialog.o bl_dlfcn.o bl_util.o
 
 DEPOBJ = bl_pty_@PTY_NAME@.o bl_utmp_@UTMP_NAME@.o bl_dlfcn_@DL_LOADER@.o
 OBJ = $(COMOBJ) $(DEPOBJ)

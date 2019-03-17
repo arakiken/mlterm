@@ -53,6 +53,8 @@
 
 #undef HAVE_GETGID
 
+#undef HAVE_GETPWUID
+
 #undef HAVE_RECVMSG
 
 #undef HAVE_SETPGID

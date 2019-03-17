@@ -3,6 +3,8 @@
 #ifndef __BL_UNISTD_H__
 #define __BL_UNISTD_H__
 
+/* Wrapper functions of <unistd.h> */
+
 #include "bl_def.h"
 #include "bl_types.h"
 

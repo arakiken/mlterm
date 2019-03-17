@@ -290,22 +290,38 @@ void MLView::KeyDown(const char *bytes, int32 numBytes) {
       kev.keysym = *bytes;
 
       switch(kev.keysym) {
-      case B_LEFT_ARROW:
-      case B_RIGHT_ARROW:
-      case B_UP_ARROW:
-      case B_DOWN_ARROW:
-      case B_INSERT:
-      case B_DELETE:
-      case B_HOME:
-      case B_END:
-      case B_PAGE_UP:
-      case B_PAGE_DOWN:
+      case B_LEFT_ARROW:  /* 0x61 (raw key - jp106) */
+      case B_RIGHT_ARROW: /* 0x63 */
+      case B_UP_ARROW:    /* 0x57 */
+      case B_DOWN_ARROW:  /* 0x62 */
+      case B_INSERT:      /* 0x1f */
+      case B_DELETE:      /* 0x34 */
+      case B_HOME:        /* 0x20 */
+      case B_END:         /* 0x35 */
+      case B_PAGE_UP:     /* 0x21 */
+      case B_PAGE_DOWN:   /* 0x36 */
+        if (kev.state & ControlMask) {
+          int32 key;
+
+          Window()->CurrentMessage()->FindInt32((const char*)"key", &key); /* raw key */
+          if (key <= 0x1e || (0x22 <= key && key <= 0x33) || (0x37 <= key && key <= 0x56) ||
+              (0x58 <= key && key <= 0x60) || 0x64 <= key) {
+            kev.utf8 = bytes;
+            break;
+          }
+        }
+
+        kev.keysym |= 0xe000;
+        kev.utf8 = NULL;
+        break;
+
       case B_KATAKANA_HIRAGANA:
       case B_HANKAKU_ZENKAKU:
       case B_HANGUL:
       case B_HANGUL_HANJA:
         kev.utf8 = NULL;
         break;
+
       default:
         kev.utf8 = bytes;
         break;

@@ -249,23 +249,23 @@ typedef int XFontSet; /* dummy */
 #define XK_Meta_L 0xfff2 /* dummy */
 #define XK_Meta_R 0xfff1 /* dummy */
 
-#define XK_Pause B_PAUSE_KEY
+#define XK_Pause (B_PAUSE_KEY | 0xf000)
 #define XK_Shift_Lock 0xfff0 /* dummy */
 #define XK_Caps_Lock 0xffef  /* dummy */
 #define XK_Escape B_ESCAPE
-#define XK_Prior B_PAGE_UP
-#define XK_Next B_PAGE_DOWN
-#define XK_End B_END
-#define XK_Home B_HOME
-#define XK_Left B_LEFT_ARROW
-#define XK_Up B_UP_ARROW
-#define XK_Right B_RIGHT_ARROW
-#define XK_Down B_DOWN_ARROW
+#define XK_Prior (B_PAGE_UP | 0xe000)
+#define XK_Next (B_PAGE_DOWN | 0xe000)
+#define XK_End (B_END | 0xe000)
+#define XK_Home (B_HOME | 0xe000)
+#define XK_Left (B_LEFT_ARROW | 0xe000)
+#define XK_Up (B_UP_ARROW | 0xe000)
+#define XK_Right (B_RIGHT_ARROW | 0xe000)
+#define XK_Down (B_DOWN_ARROW | 0xe000)
 #define XK_Select 0xffee /* dummy */
-#define XK_Print B_PRINT_KEY
+#define XK_Print (B_PRINT_KEY | 0xf000)
 #define XK_Execute 0xffed /* dummy */
-#define XK_Insert B_INSERT
-#define XK_Delete B_DELETE
+#define XK_Insert (B_INSERT | 0xe000)
+#define XK_Delete (B_DELETE | 0xe000)
 #define XK_Help 0xffec /* dummy */
 #define XK_F1 (B_F1_KEY | 0xf000)
 #define XK_F2 (B_F2_KEY | 0xf000)
