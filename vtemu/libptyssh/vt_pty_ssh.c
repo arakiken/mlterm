@@ -530,7 +530,19 @@ static ssh_session_t *ssh_connect(const char *host, const char *port, const char
   }
 
   if (!(userauthlist = libssh2_userauth_list(session->obj, user, strlen(user)))) {
-    goto error4;
+#ifdef DEBUG
+    bl_debug_printf(BL_DEBUG_TAG " No authentication method.\n");
+#endif
+
+    if (libssh2_session_last_errno(session->obj) == 0) {
+#ifdef DEBUG
+    bl_debug_printf(BL_DEBUG_TAG " Skip authentication.\n");
+#endif
+
+      goto auth_end;
+    } else {
+      goto error4;
+    }
   }
 
 #ifdef __DEBUG
@@ -674,6 +686,7 @@ static ssh_session_t *ssh_connect(const char *host, const char *port, const char
 #endif
   }
 
+auth_end:
   {
     void *p;
 
