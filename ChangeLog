@@ -1,5 +1,8 @@
 2019-03-17  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_pty_ssh.c: If libssh2_userauth_list() returns NULL but no error
+	  happens, authentication is skipped.
+
 	* README.ja: Updated.
 
 	* im_iiimf_aux.c: Compiling error is fixed.
