@@ -135,10 +135,11 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
   o MSYS2 (Win32GDI or Console)
   o Android 3.x or later.
   o Java (SWT)
+  o Haiku (Compatible with BeOS R5)
 
   詳細は、doc/ja 内の README.fb, README.win32, Usage.win32 又は doc/en 内の
-  README.android, README.cocoa, README.console, README.wayland, README.sdl2 を参
-  照してください。
+  README.android, README.cocoa, README.console, README.wayland, README.sdl2,
+  README.beos を参照してください。
 
 * コンパイル方法
   $ ./configure
@@ -173,7 +174,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
     --with-gui
       GUI ライブラリとして xlib / win32 / fb / quartz / console / wayland / sdl2
-      のいずれを使用するか指定します。
+      / beos のいずれを使用するか指定します。
       (「対応プラットフォーム」の項目参照)
 
     --with-imagelib=(gdk-pixbuf)
