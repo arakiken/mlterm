@@ -286,7 +286,7 @@ vt_term_t *mlterm_open(char *host, char *pass, int cols, int rows, u_int log_siz
           (default_argv = malloc(sizeof(char *) * bl_count_char_in_str(value, ' ') + 2))) {
         int argc;
 
-        _bl_arg_str_to_array(default_argv, &argc, strdup(value));
+        bl_arg_str_to_array(default_argv, &argc, strdup(value));
         default_cmd_path = default_argv[0];
       }
 
