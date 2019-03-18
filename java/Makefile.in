@@ -3,8 +3,10 @@ JAVAC = javac # -source 1.5 -target 1.5
 CLASSPATH_win32 = .\;swt.jar
 CLASSPATH = .:swt.jar
 JAVA_HOME_win32 = /cygdrive/c/Program\ Files/Java/jdk1.7.0_02
-JAVA_HOME = /usr/lib/jvm/java-8-openjdk-i386
-SWT_JAR = /usr/lib/java/swt-gtk-4.3.2.jar
+JAVA_HOME = /usr/lib/jvm/java-11-openjdk
+#JAVA_HOME = /usr/lib/jvm/java-8-openjdk-i386
+SWT_JAR = /usr/share/java/swt.jar
+#SWT_JAR = /usr/lib/java/swt-gtk-4.3.2.jar
 
 # Don't edit anything below.
 prefix = @prefix@
@@ -95,8 +97,11 @@ manifest.mf : $(TARGET@WIN32TAG@)
 .c.o :
 	$(LIBTOOL_CC) -c $<
 
-MLTermPty.h: mlterm/MLTermPty.class
-	javah -jni mlterm.MLTermPty
+#MLTermPty.h: mlterm/MLTermPty.class
+#	javah -jni mlterm.MLTermPty
+MLTermPty.h:
+	javac -h . $(top_srcdir)/java/mlterm/MLTermPty.java
+	rm $(top_srcdir)/java/mlterm/MLTermPty.class
 
 clean :
 	rm -rf *.h $(OBJ) $(OBJ:.o=.lo) $(TARGET@WIN32TAG@) manifest.mf libMLTermPty.so \
