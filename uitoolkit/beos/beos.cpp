@@ -101,7 +101,7 @@ static void update_ime_text(ui_window_t *uiwindow, const char *preedit_text) {
   (*uiwindow->preedit)(uiwindow, preedit_text, NULL);
 }
 
-static void draw_screen(ui_window_t *uiwindow, BRect update) {
+static void draw_screen(ui_window_t *uiwindow, BRect update, int force_expose) {
   XExposeEvent ev;
 
   ev.type = UI_EXPOSE;
@@ -109,7 +109,7 @@ static void draw_screen(ui_window_t *uiwindow, BRect update) {
   ev.y = update.top;
   ev.width = update.right - update.left + 1.0;
   ev.height = update.bottom - update.top + 1.0;
-  ev.force_expose = 1;
+  ev.force_expose = force_expose;
 
   ui_window_receive_event(uiwindow, (XEvent *)&ev);
   uiwindow->update_window_flag = 0;
@@ -257,7 +257,7 @@ void MLView::Draw(BRect update) {
 
   view_lock(this);
 
-  draw_screen(uiwindow, update);
+  draw_screen(uiwindow, update, 0);
 
   beos_unlock();
 }
@@ -633,7 +633,7 @@ void view_dealloc(/* BView */ void *view) {
   win->UnlockLooper();
 }
 
-void view_update(/* BView */ void *view) {
+void view_update(/* BView */ void *view, int force_expose) {
   ui_window_t *uiwindow = ((MLView*)view)->uiwindow;
   int x;
   int y;
@@ -646,7 +646,7 @@ void view_update(/* BView */ void *view) {
   x += (uiwindow->hmargin);
   y += (uiwindow->vmargin);
 
-  draw_screen(uiwindow, BRect(x, y, x, y));
+  draw_screen(uiwindow, BRect(x, y, x, y), force_expose);
 }
 
 void view_set_clip(/* BView */ void *view, int x, int y, u_int width, u_int height) {
@@ -794,7 +794,7 @@ void view_visual_bell(/* BView */ void *view) {
   usleep(100000); /* 100 msec */
 
   draw_screen(((MLView*)view)->uiwindow,
-              BRect(0, 0, ACTUAL_WIDTH(win) - 1, ACTUAL_HEIGHT(win) - 1));
+              BRect(0, 0, ACTUAL_WIDTH(win) - 1, ACTUAL_HEIGHT(win) - 1), 1);
 }
 
 void view_set_input_focus(/* BView */ void *view) {

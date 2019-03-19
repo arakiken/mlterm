@@ -225,20 +225,18 @@ static void clear_margin_area(ui_window_t *win) {
 static void expose(ui_window_t *win, XExposeEvent *event) {
   int clear_margin;
 
-  if (win->update_window_flag) {
-    if (!event->force_expose) {
-      if (win->update_window) {
-        (*win->update_window)(win, win->update_window_flag);
-      }
-
-      return;
-    }
-
+  if (event->force_expose) {
     event->x = win->hmargin;
     event->y = win->vmargin;
     event->width = win->width;
     event->height = win->height;
     clear_margin = 1;
+  } else if (win->update_window_flag) {
+    if (win->update_window) {
+      (*win->update_window)(win, win->update_window_flag);
+    }
+
+    return;
   } else {
     clear_margin = 0;
 
@@ -384,12 +382,12 @@ int ui_window_set_wall_picture(ui_window_t *win, Pixmap pic, int do_expose) {
 #if 1
   if (win->my_window != None && do_expose) {
     if (win->parent) {
-      view_update(win->my_window);
+      view_update(win->my_window, 1);
     } else {
       void *view;
 
       if ((view = window_get_orphan(win->my_window, 0))) {
-        view_update(view);
+        view_update(view, 1);
       }
     }
   }
@@ -866,7 +864,7 @@ void ui_window_update(ui_window_t *win, int flag) {
   }
 
   win->update_window_flag |= flag;
-  view_update(view);
+  view_update(view, 0);
 }
 
 void ui_window_update_all(ui_window_t *win) {
@@ -879,7 +877,7 @@ void ui_window_update_all(ui_window_t *win) {
     return;
   }
 
-  view_update(view);
+  view_update(view, 1);
 
   for (count = 0; count < win->num_children; count++) {
     ui_window_update_all(win->children[count]);

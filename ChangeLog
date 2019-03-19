@@ -1,3 +1,14 @@
+2019-03-20  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_window.c: expose() exposes all screen even if
+	  win->update_window_flag is 0 and force_expose is 1.
+
+	* beos.cpp, beos.h:
+	  - force_expose is added to arguments of draw_screen().
+	  - force_expose is added to arguments of view_update().
+
+	* configure.in: "gui" => "$gui"
+
 2019-03-19  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_simple_sb_view.c: Drawing down side shade is fixed.
