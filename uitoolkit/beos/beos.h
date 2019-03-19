@@ -13,7 +13,7 @@ void view_alloc(ui_window_t *uiwindow, int x, int y, u_int width, u_int height);
 
 void view_dealloc(void *view);
 
-void view_update(void *view);
+void view_update(void *view, int force_expose);
 
 void view_set_clip(void *view, int x, int y, u_int width, u_int height);
 

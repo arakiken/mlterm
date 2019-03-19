@@ -1565,7 +1565,7 @@ fi
 for scrollbar in ${scrollbars} ; do
 case ${scrollbar} in
 sample)
-	if test "$gui" = "xlib" -o "gui" = "win32"; then
+	if test "$gui" = "xlib" -o "$gui" = "win32"; then
 		MAKE_DIRS="scrollbar/sample ${MAKE_DIRS}"
 		OUTPUT_FILES="scrollbar/sample/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != "xno" ; then
