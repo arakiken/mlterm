@@ -42,6 +42,10 @@ int __bl_usleep(u_int microseconds) {
 int __bl_setenv(const char *name, const char *value, int overwrite) {
   char *env;
 
+  if (!overwrite && getenv(name)) {
+    return 0;
+  }
+
   /* XXX Memory leaks. */
   if (!(env = malloc(strlen(name) + 1 + strlen(value) + 1))) {
     return -1;

@@ -175,7 +175,7 @@ static void draw_scrollbar(ui_sb_view_t *view, int bar_top_y, unsigned int bar_h
   ui_window_fill_with(view->win, &simple_sb->black, WIDTH - 1, bar_top_y, 1, bar_height);
 
   /* down side shade */
-  ui_window_fill_with(view->win, &simple_sb->black, 1, bar_top_y + bar_height - 1, WIDTH, 1);
+  ui_window_fill_with(view->win, &simple_sb->black, 1, bar_top_y + bar_height - 1, WIDTH - 1, 1);
 }
 
 static void draw_background(ui_sb_view_t *view, int y, unsigned int height) {
