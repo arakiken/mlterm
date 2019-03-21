@@ -113,6 +113,7 @@ typedef struct /* Same as definition in X11/X.h */ {
 #define UI_KEY_FOCUS_IN 10
 #define UI_SELECTION_NOTIFIED 11
 #define UI_POINTER_MOTION 12
+#define UI_RESIZE 13
 
 typedef struct { int type; } XEvent;
 

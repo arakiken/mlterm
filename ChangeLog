@@ -1,3 +1,13 @@
+2019-03-22  Araki Ken  <arakiken@users.sf.net>
+
+	* ui.h, ui_window.c:
+	  - UI_RESIZE event type is added.
+	  - If UI_RESIZE event is received, clear_margin_area() is called.
+
+	* beos.cpp: 'width' and 'height' of MLWindow::FrameResized(),
+	  MLWindow::ResizeTo() and MLView::ResizeTo() are treated as
+	  'right - left' and 'bottom - top'.
+
 2019-03-21  Araki Ken  <arakiken@users.sf.net>
 
 	* sdl2/ui_display.c: Compiling error is fixed.
