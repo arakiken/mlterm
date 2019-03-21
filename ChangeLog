@@ -1,5 +1,7 @@
 2019-03-22  Araki Ken  <arakiken@users.sf.net>
 
+	* configure.in: @UTMP_CFLAGS@ in vtemu/Makefile.in is replaced.
+
 	* ui.h, ui_window.c:
 	  - UI_RESIZE event type is added.
 	  - If UI_RESIZE event is received, clear_margin_area() is called.
