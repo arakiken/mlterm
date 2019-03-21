@@ -25551,6 +25551,8 @@ fi
 
 cat main/Makefile | sed "s/@INSTALL_OPT@/$INSTALL_OPT/" | sed "s/@UTMP_CFLAGS@/$UTMP_CFLAGS/" > main/Makefile.new
 mv main/Makefile.new main/Makefile
+cat vtemu/Makefile | sed "s/@UTMP_CFLAGS@/$UTMP_CFLAGS/" > vtemu/Makefile.new
+mv vtemu/Makefile.new vtemu/Makefile
 
 # dummy declarations.
 # Check whether --enable-pty_helper was given.
