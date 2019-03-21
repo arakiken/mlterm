@@ -930,7 +930,9 @@ end:
 #ifdef SIXEL_SHAREPALETTE
 error:
 #endif
-  free(pixels - CARD_HEAD_SIZE);
+  if (pixels) {
+    free(pixels - CARD_HEAD_SIZE);
+  }
 
   return NULL;
 }

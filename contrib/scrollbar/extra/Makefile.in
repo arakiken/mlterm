@@ -30,29 +30,29 @@ libathena.la: $(ATHENA_OBJ)
 	$(LIBTOOL_LINK) -o libathena.la $(ATHENA_OBJ:.o=.lo) \
 	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ \
-	@X_LIBS@ -lX11 @X_EXTRA_LIBS@
-#	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
+	@X_LIBS@ @X_EXTRA_LIBS@
+#	@X_LIBS@ @X_PRE_LIBS@ @X_EXTRA_LIBS@
 
 libmotif.la: $(MOTIF_OBJ)
 	$(LIBTOOL_LINK) -o libmotif.la $(MOTIF_OBJ:.o=.lo) \
 	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ \
-	@X_LIBS@ -lX11 @X_EXTRA_LIBS@
-#	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
+	@X_LIBS@ @X_EXTRA_LIBS@
+#	@X_LIBS@ @X_PRE_LIBS@ @X_EXTRA_LIBS@
 
 libmozmodern.la: $(MOZMODERN_OBJ)
 	$(LIBTOOL_LINK) -o libmozmodern.la $(MOZMODERN_OBJ:.o=.lo) \
 	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ \
-	@X_LIBS@ -lX11 @X_EXTRA_LIBS@
-#	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
+	@X_LIBS@ @X_EXTRA_LIBS@
+#	@X_LIBS@ @X_PRE_LIBS@ @X_EXTRA_LIBS@
 
 libnext.la: $(NEXT_OBJ)
 	$(LIBTOOL_LINK) -o libnext.la $(NEXT_OBJ:.o=.lo) \
 	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ \
-	@X_LIBS@ -lX11 @X_EXTRA_LIBS@
-#	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
+	@X_LIBS@ @X_EXTRA_LIBS@
+#	@X_LIBS@ @X_PRE_LIBS@ @X_EXTRA_LIBS@
 
 .c.o:
 	$(LIBTOOL_CC) -c $<

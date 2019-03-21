@@ -213,7 +213,12 @@ connected:
   close(STDERR_FILENO);
 
   tio = std_tio;
+#ifdef IMAXBEL
   tio.c_iflag &= ~(IXON | IXOFF | ICRNL | INLCR | IGNCR | IMAXBEL | ISTRIP);
+#else
+  /* IMAXBEL is not defined on HaikuOS */
+  tio.c_iflag &= ~(IXON | IXOFF | ICRNL | INLCR | IGNCR | ISTRIP);
+#endif
   tio.c_iflag |= IGNBRK;
   tio.c_oflag &= ~(OPOST | ONLCR | OCRNL | ONLRET);
 #ifdef ECHOPRT

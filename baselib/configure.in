@@ -82,7 +82,7 @@ AC_TYPE_SIZE_T
 # --- Platform dependent stuff ---
 #
 bl_cv_cygwin=no
-bl_cv_mingw32=no
+bl_cv_mingw=no
 bl_cv_win32=no
 case "${host_os}" in
 cygwin*)
@@ -97,7 +97,7 @@ cygwin*)
 	esac
 	;;
 mingw*)
-	bl_cv_mingw32=yes
+	bl_cv_mingw=yes
 	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
 		case "${lt_cv_path_LD}" in
 		*-msys*)
@@ -260,7 +260,7 @@ AC_CACHE_VAL(bl_cv_pty,
 	[
 	if test "$bl_cv_win32" = "yes" ; then
 		bl_cv_pty=none
-	elif test "$bl_cv_mingw32" = "yes" ; then
+	elif test "$bl_cv_mingw" = "yes" ; then
 		bl_cv_pty=streams
 	elif test "$host" = "$build" ; then
 		AC_CHECK_FUNC(posix_openpt,
@@ -310,7 +310,7 @@ AC_SUBST(PTY_NAME)
 #
 UTMP_NAME=
 UTMP_LIBS=
-if test "$bl_cv_pty" = helper -o "$bl_cv_mingw32" = yes -o "$bl_cv_cygwin" = yes -o "$host_os" = "haiku"; then
+if test "$bl_cv_pty" = helper -o "$bl_cv_mingw" = yes -o "$bl_cv_cygwin" = yes -o "$host_os" = "haiku"; then
 	UTMP_NAME=none
 	UTMP_LIBS=
 fi

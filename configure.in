@@ -116,6 +116,11 @@ AC_CHECK_LIB(socket,connect,SOCK_LIBS=-lsocket)
 AC_SUBST(SOCK_LIBS)
 
 AC_PATH_XTRA
+if test "$have_x" = "yes"; then
+	X_CFLAGS_AUX="-DHAVE_XLIB"
+	X_LIBS="$X_LIBS -lX11"
+	AC_SUBST(X_CFLAGS_AUX)
+fi
 
 AC_ARG_ENABLE(debug,
 	[  --enable-debug          debug @<:@default=disabled@:>@],
@@ -602,7 +607,6 @@ AC_SUBST(CTL_LIBS_FOR_VTE)
 AC_ARG_WITH(pthread,
 	[  --without-pthread       don't use pthread @<:@default=with@:>@])
 
-
 AC_ARG_ENABLE(dl-type,
 	[  --disable-dl-type       dynamic loading type engine library @<:@default=enable@:>@],
 	dl_type=$enable_dl_type, dl_type="yes")
@@ -955,50 +959,6 @@ AC_SUBST(VT_PTY_OBJ)
 AC_SUBST(MOSH_DIR)
 AC_SUBST(PROTOBUF_CFLAGS)
 AC_SUBST(PROTOBUF_LIBS)
-
-AC_ARG_ENABLE(utmp,
-	[  --disable-utmp          utmp @<:@default=enabled@:>@],
-	utmp=$enable_utmp,
-	[
-	case "${host_os}" in
-	*darwin*)
-		utmp="no"
-		;;
-	mingw*)
-		utmp="no"
-		;;
-	msys*)
-		utmp="no"
-		;;
-	cygwin*)
-		utmp="no"
-		;;
-	*)
-		utmp="yes"
-		;;
-	esac
-	])
-AC_ARG_ENABLE(pty_helper,
-	[  --enable-pty-helper     use pty helper @<:@default=disabled@:>@],
-	pty_helper=$enable_pty_helper)
-if test "$utmp" = "yes" -a "$pty_helper" != "yes" -a "$gui" != "beos"; then
-	UTMP_CFLAGS="-DUSE_UTMP"
-	has_utmp=`grep utmp /etc/group 2>/dev/null`
-	if test "$has_utmp" ; then
-		INSTALL_OPT="-m 2755 -g utmp"
-	else
-		INSTALL_OPT="-m 4755 -o root"
-	fi
-else
-	INSTALL_OPT="-m 755"
-fi
-
-if test "$gui" = "fb" ; then
-	INSTALL_OPT="-m 4755 -o root"
-fi
-
-AC_SUBST(UTMP_CFLAGS)
-AC_SUBST(INSTALL_OPT)
 
 if test "${have_gtk}" = "yes" ; then
 	if test "${gtk_version}" = "3.0" ; then
@@ -1730,8 +1690,10 @@ AC_ARG_ENABLE(brlapi,
 if test "$brlapi" = "yes" ; then
 	BRLAPI_CFLAGS='-DUSE_BRLAPI'
 	BRLAPI_LIBS='-lbrlapi'
-	# Overwrite INSTALL_OPT.
-	INSTALL_OPT="-m 4755 -o root"
+
+	if test "$host_os" != "haiku"; then
+		INSTALL_OPT="-m 4755 -o root"
+	fi
 fi
 AC_SUBST(BRLAPI_LIBS)
 AC_SUBST(BRLAPI_CFLAGS)
@@ -1745,6 +1707,48 @@ if test "${MAKE_DIRS}" != "" ; then
 fi
 
 AC_OUTPUT(${OUTPUT_FILES})
+
+# ./configure at subdirs finished.
+
+if test -d baselib; then
+	utmp_none_obj=`grep bl_utmp_none.o baselib/src/Makefile`
+elif test -d ../../baselib; then
+	utmp_none_obj=`grep bl_utmp_none.o ../../baselib/src/Makefile`
+fi
+
+if test "$utmp_none_obj" = ""; then
+	UTMP_CFLAGS="-DUSE_UTMP"
+fi
+
+if test "$INSTALL_OPT" = ""; then
+	if test "$utmp_none_obj" = ""; then
+		has_utmp=`grep utmp /etc/group 2>/dev/null`
+		if test "$has_utmp" ; then
+			INSTALL_OPT="-m 2755 -g utmp"
+		else
+			INSTALL_OPT="-m 4755 -o root"
+		fi
+	else
+		INSTALL_OPT="-m 755"
+	fi
+
+	if test "$gui" = "fb" ; then
+		INSTALL_OPT="-m 4755 -o root"
+	fi
+fi
+
+cat main/Makefile | sed "s/@INSTALL_OPT@/$INSTALL_OPT/" | sed "s/@UTMP_CFLAGS@/$UTMP_CFLAGS/" > main/Makefile.new
+mv main/Makefile.new main/Makefile
+
+# dummy declarations.
+AC_ARG_ENABLE(pty_helper,
+	[  --enable-pty-helper     use pty helper @<:@default=disabled@:>@])
+AC_ARG_WITH(map-table,
+	[  --without-map-table     mapping table @<:@default=with@:>@])
+AC_ARG_WITH(prop-table,
+	[  --without-prop-table    property table @<:@default=with@:>@])
+AC_ARG_ENABLE(dl-table,
+	[  --disable-dl-table      dynamic loading table @<:@default=enable@:>@])
 
 # configuration result
 

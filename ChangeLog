@@ -1,3 +1,20 @@
+2019-03-21  Araki Ken  <arakiken@users.sf.net>
+
+	* sdl2/ui_display.c: Compiling error is fixed.
+
+	* main-con.c, console/ui_display.c:
+	  Whether IMAXBEL is defined or not is checked.
+
+	* */Makefile.in: -lX11 is removed.
+
+	* configure.in:
+	  - "-lX11" is set to X_LIBS if X is found.
+	  - utmp is checked and INSTALL_OPT is set after executing ./configure
+	    at subdirs.
+
+	* c_sixel.c:
+	  Segfault in handling errors in load_sixel_from_data() is fixed.
+
 2019-03-20  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_window.c: expose() exposes all screen even if

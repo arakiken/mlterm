@@ -39,7 +39,7 @@
 
 /* --- static functions --- */
 
-#ifndef USE_WIN32GUI
+#ifdef HAVE_XLIB
 #define USE_XLIB /* Necessary to use closest_color_index(), lsb() and msb() */
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
