@@ -222,6 +222,16 @@ static void clear_margin_area(ui_window_t *win) {
   }
 }
 
+static void clear_margin_area_all(ui_window_t *win) {
+  u_int count;
+
+  clear_margin_area(win);
+
+  for (count = 0; count < win->num_children; count++) {
+    clear_margin_area_all(win->children[count]);
+  }
+}
+
 static void expose(ui_window_t *win, XExposeEvent *event) {
   int clear_margin;
 
@@ -1013,6 +1023,14 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
       if (win->window_destroyed) {
         (*win->window_destroyed)(win);
       }
+      break;
+
+    case UI_RESIZE:
+      if (win->window_resized) {
+        (*win->window_resized)(win);
+      }
+      clear_margin_area_all(win);
+
       break;
   }
 

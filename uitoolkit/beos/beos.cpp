@@ -188,14 +188,23 @@ void MLWindow::WindowActivated(bool active) {
   beos_unlock();
 }
 
+/*
+ * I don't know why but the value of 'width' or 'height' is 'right - left' or
+ * 'bottom - top'.
+ */
 void MLWindow::FrameResized(float width, float height) {
   window_lock(this);
 
-  uiwindow->width = width - uiwindow->hmargin * 2;
-  uiwindow->height = height - uiwindow->vmargin * 2;
+  /* MLWindow::ResizeTo() causes FrameResized() event. */
+  if (uiwindow->width != ((u_int)width) + 1 - uiwindow->hmargin * 2 ||
+      uiwindow->height != ((u_int)height) + 1 - uiwindow->vmargin * 2) {
+    uiwindow->width = width + 1 - uiwindow->hmargin * 2;
+    uiwindow->height = height + 1 - uiwindow->vmargin * 2;
 
-  if (uiwindow->window_resized) {
-    (*uiwindow->window_resized)(uiwindow);
+    XEvent ev;
+
+    ev.type = UI_RESIZE;
+    ui_window_receive_event(uiwindow, &ev);
   }
 
   beos_unlock();
@@ -812,7 +821,7 @@ void view_resize(/* BView */ void *view, u_int width, u_int height) {
     return;
   }
 
-  ((BView*)view)->ResizeTo((float)width, (float)height);
+  ((BView*)view)->ResizeTo((float)width - 1.0, (float)height - 1.0);
 
   ((BView*)view)->UnlockLooper();
 }
@@ -910,11 +919,11 @@ void window_resize(/* BWindow */ void *window, int width, int height) {
     return;
   }
 
-  ((BWindow*)window)->ResizeTo((float)width, (float)height);
+  ((BWindow*)window)->ResizeTo((float)width - 1.0, (float)height - 1.0);
 
   BView *view;
   if ((view = (BView*)window_get_orphan(window, 0))) {
-    ((BView*)view)->ResizeTo((float)width, (float)height);
+    ((BView*)view)->ResizeTo((float)width - 1.0, (float)height - 1.0);
   }
 
   ((BWindow*)window)->UnlockLooper();
