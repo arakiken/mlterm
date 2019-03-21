@@ -866,9 +866,10 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
 
 #ifdef MONITOR_PTY
     {
-      pty_cond = SDL_CreateCond();
+      SDL_Thread *thrd;
 
-      SDL_Thread *thrd = SDL_CreateThread(monitor_ptys, "pty_thread", NULL);
+      pty_cond = SDL_CreateCond();
+      thrd = SDL_CreateThread(monitor_ptys, "pty_thread", NULL);
       SDL_DetachThread(thrd);
     }
 #endif

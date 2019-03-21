@@ -735,8 +735,6 @@ TOOLS_CFLAGS
 VTE_ABI
 VTE_LIBS
 VTE_CFLAGS
-INSTALL_OPT
-UTMP_CFLAGS
 MOSH_DIR
 VT_PTY_OBJ
 SSH2_LIBS_FOR_PROG
@@ -810,6 +808,7 @@ WIN32TAG
 CYGPATHW
 OPT_CFLAGS
 DEB_CFLAGS
+X_CFLAGS_AUX
 X_EXTRA_LIBS
 X_LIBS
 X_PRE_LIBS
@@ -938,8 +937,6 @@ with_type_engines
 enable_otl
 enable_ssh2
 with_mosh
-enable_utmp
-enable_pty_helper
 with_tools
 enable_use_tools
 enable_dependency_tracking
@@ -961,6 +958,10 @@ enable_vt52
 enable_optimize_redrawing
 enable_ind
 enable_brlapi
+enable_pty_helper
+with_map_table
+with_prop_table
+enable_dl_table
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1657,8 +1658,6 @@ Optional Features:
   --disable-fontconfig    use fontconfig with freetype on framebuffer or wayland [default=enabled]
   --disable-otl           Open Type layout with the use of harfbuzz or libotf [default=enabled]
   --disable-ssh2          libssh2 [default=enabled]
-  --disable-utmp          utmp [default=enabled]
-  --enable-pty-helper     use pty helper [default=disabled]
   --disable-use-tools     don't build and use external tools [default=enabled]
   --enable-dependency-tracking
                           do not reject slow dependency extractors
@@ -1681,6 +1680,8 @@ Optional Features:
   --enable-optimize-redrawing    optimize redrawing a line [default=disabled]
   --disable-ind           libind [default=enabled]
   --enable-brlapi         libbrlapi [default=disabled]
+  --enable-pty-helper     use pty helper [default=disabled]
+  --disable-dl-table      dynamic loading table [default=enable]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1706,6 +1707,8 @@ Optional Packages:
   --with-tools[=ARG]      external tools [default=mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp,mlfc]
   --with-libltdl[=PREFIX] load modules with libltdl [default=without]
   --with-scrollbars[=ARG] scrollbar plugins (sample, extra, pixmap_engine) [default=sample,extra,pixmap_engine]
+  --without-map-table     mapping table [default=with]
+  --without-prop-table    property table [default=with]
 
 Some influential environment variables:
   CC          C compiler command
@@ -16640,6 +16643,11 @@ fi
 
 fi
 
+if test "$have_x" = "yes"; then
+	X_CFLAGS_AUX="-DHAVE_XLIB"
+	X_LIBS="$X_LIBS -lX11"
+
+fi
 
 # Check whether --enable-debug was given.
 if test "${enable_debug+set}" = set; then :
@@ -18252,7 +18260,6 @@ if test "${with_pthread+set}" = set; then :
 fi
 
 
-
 # Check whether --enable-dl-type was given.
 if test "${enable_dl_type+set}" = set; then :
   enableval=$enable_dl_type; dl_type=$enable_dl_type
@@ -19212,55 +19219,6 @@ fi
 
 
 
-
-
-
-
-# Check whether --enable-utmp was given.
-if test "${enable_utmp+set}" = set; then :
-  enableval=$enable_utmp; utmp=$enable_utmp
-else
-
-	case "${host_os}" in
-	*darwin*)
-		utmp="no"
-		;;
-	mingw*)
-		utmp="no"
-		;;
-	msys*)
-		utmp="no"
-		;;
-	cygwin*)
-		utmp="no"
-		;;
-	*)
-		utmp="yes"
-		;;
-	esac
-
-fi
-
-# Check whether --enable-pty_helper was given.
-if test "${enable_pty_helper+set}" = set; then :
-  enableval=$enable_pty_helper; pty_helper=$enable_pty_helper
-fi
-
-if test "$utmp" = "yes" -a "$pty_helper" != "yes" -a "$gui" != "beos"; then
-	UTMP_CFLAGS="-DUSE_UTMP"
-	has_utmp=`grep utmp /etc/group 2>/dev/null`
-	if test "$has_utmp" ; then
-		INSTALL_OPT="-m 2755 -g utmp"
-	else
-		INSTALL_OPT="-m 4755 -o root"
-	fi
-else
-	INSTALL_OPT="-m 755"
-fi
-
-if test "$gui" = "fb" ; then
-	INSTALL_OPT="-m 4755 -o root"
-fi
 
 
 
@@ -22838,8 +22796,10 @@ fi
 if test "$brlapi" = "yes" ; then
 	BRLAPI_CFLAGS='-DUSE_BRLAPI'
 	BRLAPI_LIBS='-lbrlapi'
-	# Overwrite INSTALL_OPT.
-	INSTALL_OPT="-m 4755 -o root"
+
+	if test "$host_os" != "haiku"; then
+		INSTALL_OPT="-m 4755 -o root"
+	fi
 fi
 
 
@@ -25557,6 +25517,62 @@ fi
 if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
+fi
+
+
+# ./configure at subdirs finished.
+
+if test -d baselib; then
+	utmp_none_obj=`grep bl_utmp_none.o baselib/src/Makefile`
+elif test -d ../../baselib; then
+	utmp_none_obj=`grep bl_utmp_none.o ../../baselib/src/Makefile`
+fi
+
+if test "$utmp_none_obj" = ""; then
+	UTMP_CFLAGS="-DUSE_UTMP"
+fi
+
+if test "$INSTALL_OPT" = ""; then
+	if test "$utmp_none_obj" = ""; then
+		has_utmp=`grep utmp /etc/group 2>/dev/null`
+		if test "$has_utmp" ; then
+			INSTALL_OPT="-m 2755 -g utmp"
+		else
+			INSTALL_OPT="-m 4755 -o root"
+		fi
+	else
+		INSTALL_OPT="-m 755"
+	fi
+
+	if test "$gui" = "fb" ; then
+		INSTALL_OPT="-m 4755 -o root"
+	fi
+fi
+
+cat main/Makefile | sed "s/@INSTALL_OPT@/$INSTALL_OPT/" | sed "s/@UTMP_CFLAGS@/$UTMP_CFLAGS/" > main/Makefile.new
+mv main/Makefile.new main/Makefile
+
+# dummy declarations.
+# Check whether --enable-pty_helper was given.
+if test "${enable_pty_helper+set}" = set; then :
+  enableval=$enable_pty_helper;
+fi
+
+
+# Check whether --with-map-table was given.
+if test "${with_map_table+set}" = set; then :
+  withval=$with_map_table;
+fi
+
+
+# Check whether --with-prop-table was given.
+if test "${with_prop_table+set}" = set; then :
+  withval=$with_prop_table;
+fi
+
+# Check whether --enable-dl-table was given.
+if test "${enable_dl_table+set}" = set; then :
+  enableval=$enable_dl_table;
 fi
 
 

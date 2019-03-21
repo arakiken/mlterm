@@ -23,7 +23,7 @@ Options for configure
   --without-prop-table
     Remove unicode character property table
 
-  --with-gui=(xlib|win32|fb|quartz|console|wayland|sdl2)
+  --with-gui=(xlib|win32|fb|quartz|console|wayland|sdl2|beos)
     Use specified gui library
     See "Supported platforms" below.
 
@@ -237,7 +237,7 @@ Supported platforms
   * iOS Simulator 7.1 / CocoaTouch (x86)
   * Android 4.0 (x86)
   * Java 1.8.0 / SWT (x86)
-  * Haiku R1 Beta1 (x86)
+  * Haiku R1 Beta1 / Interface Kit, SDL2 (x86)
 
   See README.fb, README.win32, README.android, README.cocoa, README.cocoatouch,
   README.console, README.wayland, README.sdl2 and README.beos in

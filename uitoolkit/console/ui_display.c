@@ -237,7 +237,12 @@ static ui_display_t *open_display_console(void) {
   init_console(fd);
 
   tio = orig_tm;
+#ifdef IMAXBEL
   tio.c_iflag &= ~(IXON | IXOFF | ICRNL | INLCR | IGNCR | IMAXBEL | ISTRIP);
+#else
+  /* IMAXBEL is not defined on HaikuOS */
+  tio.c_iflag &= ~(IXON | IXOFF | ICRNL | INLCR | IGNCR | ISTRIP);
+#endif
   tio.c_iflag |= IGNBRK;
   tio.c_oflag &= ~(OPOST | ONLCR | OCRNL | ONLRET);
 #ifdef ECHOPRT
