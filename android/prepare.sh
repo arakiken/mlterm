@@ -15,6 +15,7 @@ read
 
 mkdir -p ${PROJECT_PATH}
 cp build.sh ${PROJECT_PATH}/
+chmod 755 ${PROJECT_PATH}/build.sh
 cp *.xml ${PROJECT_PATH}/
 
 mkdir -p ${PROJECT_PATH}/jni/baselib/pobl ${PROJECT_PATH}/jni/baselib/src

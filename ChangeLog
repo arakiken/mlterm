@@ -1,5 +1,7 @@
 2019-03-23  Araki Ken  <arakiken@users.sf.net>
 
+	* Androkd.mk: Compiling error is fixed.
+
 	* main.c: main_loop_final() is always called at exit.
 
 	* bl_config.h.in: '#undef HAVE_STDINT_H' is added.
