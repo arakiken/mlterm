@@ -21,6 +21,8 @@
 
 #undef HAVE_ERRNO_H
 
+#undef HAVE_STDINT_H
+
 #undef WORDS_BIGENDIAN
 
 #undef HAVE_STRSEP

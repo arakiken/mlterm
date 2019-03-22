@@ -157,11 +157,11 @@ int main(int argc, char **argv)
 
   main_loop_start();
 
-#if defined(DEBUG) || defined(USE_WIN32GUI) || defined(__CYGWIN__) || defined(__MSYS__)
+  /*
+   * Stale utmp is left without this if the last window is closed and final()
+   * in vt_pty_unix.c is not called.
+   */
   main_loop_final();
-#else
-/* All resources are freed on exit. */
-#endif
 
 #if defined(USE_WIN32API) && defined(USE_LIBSSH2)
   WSACleanup();
