@@ -4,10 +4,13 @@
 #define __BL_DEF_H__
 
 #include <limits.h> /* PATH_MAX,SIZE_MAX */
-#include <stdint.h> /* SIZE_MAX on some platforms */
 
 /* various AC_DEFINEs are defined in bl_config.h */
 #include "bl_config.h"
+
+#ifdef HAVE_STDINT_H
+#include <stdint.h> /* SIZE_MAX on some platforms */
+#endif
 
 #ifndef PATH_MAX
 #ifndef _POSIX_PATH_MAX

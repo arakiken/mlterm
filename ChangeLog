@@ -1,3 +1,11 @@
+2019-03-23  Araki Ken  <arakiken@users.sf.net>
+
+	* main.c: main_loop_final() is always called at exit.
+
+	* bl_config.h.in: '#undef HAVE_STDINT_H' is added.
+
+	* baselib/configure.in: The existence of stdlib.h is checked.
+
 2019-03-22  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in: @UTMP_CFLAGS@ in vtemu/Makefile.in is replaced.
