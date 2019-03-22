@@ -45,7 +45,7 @@ LOCAL_SRC_FILES := baselib/src/bl_map.c baselib/src/bl_args.c \
 		baselib/src/bl_locale.c baselib/src/bl_privilege.c baselib/src/bl_unistd.c \
 		baselib/src/bl_sig_child.c baselib/src/bl_dialog.c baselib/src/bl_pty_streams.c \
 		baselib/src/bl_utmp_none.c baselib/src/bl_dlfcn.c baselib/src/bl_dlfcn_dl.c \
-		baselib/src/bl_util.o \
+		baselib/src/bl_util.c \
 		encodefilter/src/ef_parser.c encodefilter/src/ef_iso2022_parser.c encodefilter/src/ef_iso8859_parser.c \
 		encodefilter/src/ef_xct_parser.c encodefilter/src/ef_eucjp_parser.c encodefilter/src/ef_euckr_parser.c \
 		encodefilter/src/ef_euccn_parser.c encodefilter/src/ef_iso2022jp_parser.c \
@@ -63,7 +63,7 @@ LOCAL_SRC_FILES := baselib/src/bl_map.c baselib/src/bl_args.c \
 		encodefilter/src/ef_zh_tw_map.c encodefilter/src/ef_zh_hk_map.c encodefilter/src/ef_ko_kr_map.c \
 		encodefilter/src/ef_viet_map.c encodefilter/src/ef_ja_jp_map.c encodefilter/src/ef_ru_map.c \
 		encodefilter/src/ef_uk_map.c encodefilter/src/ef_tg_map.c encodefilter/src/ef_ucs_property.c \
-		encodefilter/src/ef_jisx0208_1983_property.c encodefilter/src/ef_jisx0213_2000_property.c \
+		encodefilter/src/ef_jis_property.c \
 		encodefilter/src/ef_char.c encodefilter/src/ef_sjis_env.c encodefilter/src/ef_tblfunc_loader.c \
 		encodefilter/src/ef_ucs4_iso8859.c encodefilter/src/ef_ucs4_viscii.c \
 		encodefilter/src/ef_ucs4_tcvn5712_1.c encodefilter/src/ef_ucs4_koi8.c encodefilter/src/ef_ucs4_georgian_ps.c \
@@ -78,7 +78,7 @@ LOCAL_SRC_FILES := baselib/src/bl_map.c baselib/src/bl_args.c \
 		vtemu/vt_edit_scroll.c vtemu/vt_cursor.c vtemu/vt_logical_visual.c \
 		vtemu/vt_logs.c vtemu/vt_screen.c vtemu/vt_shape.c vtemu/vt_str_parser.c \
 		vtemu/vt_term.c vtemu/vt_parser.c vtemu/vt_term_manager.c vtemu/vt_bidi.c \
-		vtemu/vt_config_menu.c vtemu/vt_config_proto.c vtemu/vt_util.c \
+		vtemu/vt_config_menu.c vtemu/vt_config_proto.c \
 		vtemu/vt_termcap.c vtemu/vt_pty.c vtemu/vt_pty_unix.c vtemu/vt_drcs.c \
 		libind/indian.c libind/lex.split.c vtemu/libctl/vt_iscii.c \
 		vtemu/libctl/vt_shape_iscii.c vtemu/libctl/vt_line_iscii.c \

@@ -14,9 +14,10 @@ Android support
   Place configuration files (see README.fb in detail) in /sdcard/.mlterm/.
 
 * Build
-  ./prepare.sh /foo/bar
-  cd /foo/bar
-  ./build.sh
+  $ ./prepare.sh /foo/bar
+  $ cd /foo/bar
+  (edit build.sh)
+  $ ./build.sh
   => Install bin/mlterm-release-unsigned.apk to Android.
 
 * Note
