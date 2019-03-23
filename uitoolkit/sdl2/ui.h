@@ -225,6 +225,7 @@ typedef int XFontSet; /* dummy */
 #define Button3Mask (1 << 10)
 #define Button4Mask (1 << 11)
 #define Button5Mask (1 << 12)
+#define CommandMask (1 << 13)
 #define Button1 1
 #define Button2 2
 #define Button3 3

@@ -586,6 +586,9 @@ static u_int get_mod_state(SDL_Keymod mod) {
   if (mod & KMOD_ALT) {
     state |= Mod1Mask;
   }
+  if (mod & KMOD_GUI) {
+    state |= CommandMask;
+  }
 
   return state;
 }
@@ -674,7 +677,8 @@ static void poll_event(void) {
     xev.xkey.state = get_mod_state(ev.key.keysym.mod);
 
     if (!cur_preedit_text &&
-        (xev.xkey.ksym < 0x20 || xev.xkey.ksym >= 0x7f || xev.xkey.state == ControlMask)) {
+        (xev.xkey.ksym < 0x20 || xev.xkey.ksym >= 0x7f || xev.xkey.state == ControlMask ||
+         xev.xkey.state == CommandMask)) {
       ui_window_receive_event(get_display(ev.key.windowID)->roots[0], &xev);
     }
 

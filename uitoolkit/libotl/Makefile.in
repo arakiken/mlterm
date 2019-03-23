@@ -37,8 +37,6 @@ TARGET_sdl2 = libotl.la
 
 TARGET = $(TARGET_@GUI@)
 
-INSTALL_OPT = -m 755
-
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
@@ -55,7 +53,7 @@ $(TARGET): $(OBJ)
 	$(LIBTOOL_CC) -c $<
 
 install : $(LIBDIR)
-	$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(TARGET) $(LIBDIR)
+	$(LIBTOOL_INSTALL) $(TARGET) $(LIBDIR)
 
 uninstall :
 	rm -f $(LIBDIR)/*otl*

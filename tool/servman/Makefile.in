@@ -21,8 +21,6 @@ LIBS = $(LIBS_LOCAL) -L/usr/local/lib -R/usr/local/lib -mwindows -lcomctl32
 
 PROG = servman
 
-INSTALL_OPT = @INSTALL_OPT@
-
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(CFLAGS_FOR_FEATURES)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
@@ -48,7 +46,7 @@ $(BINDIR):
 	mkdir -p $(BINDIR)
 
 install: $(BINDIR)
-	$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(PROG) $(BINDIR)
+	$(LIBTOOL_INSTALL) $(PROG) $(BINDIR)
 
 uninstall :
 	rm -f $(BINDIR)/$(PROG)
