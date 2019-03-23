@@ -33,8 +33,6 @@ XFT_LIBS = @XFT_LIBS@
 CAIRO_LIBS = @CAIRO_LIBS@
 LIBS = $(LIBS_LOCAL) $(LPOBL) -L/usr/local/lib -R/usr/local/lib
 
-INSTALL_OPT = -m 755
-
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
@@ -68,7 +66,7 @@ ui_font_ft.o: ui_font_ft.c
 
 install : $(LIBDIR)
 	if test "$(TYPE_LIBS)" != "" ; then \
-		$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(TYPE_LIBS) $(LIBDIR) ; \
+		$(LIBTOOL_INSTALL) $(TYPE_LIBS) $(LIBDIR) ; \
 	fi
 
 uninstall :
@@ -92,4 +90,4 @@ libfc_wrapper.la: fc_wrapper.o
 	-module -avoid-version `pkg-config freetype2 --libs`
 
 install_fc_wrapper : $(LIBDIR)
-	$(LIBTOOL_INSTALL) $(INSTALL_OPT) libfc_wrapper.la $(LIBDIR)
+	$(LIBTOOL_INSTALL) libfc_wrapper.la $(LIBDIR)

@@ -428,12 +428,14 @@ static int receive_mouse_event(void) {
   return 1;
 }
 
+/* http://kaworu.jpn.org/doc/FreeBSD/jman.ORG/man4/keyboard.4.php */
 static int receive_key_event(void) {
   u_char code;
 
   while (read(_display.fd, &code, 1) == 1) {
     XKeyEvent xev;
     int pressed;
+    int idx;
 
     if (code & 0x80) {
       pressed = 0;
@@ -460,15 +462,29 @@ static int receive_key_event(void) {
         xev.ksym = kcode + 0x200;
 
         goto send_event;
+      } else {
+        continue;
       }
-    } else if (!(keymap.key[code].spcl & 0x80)) {
+    }
+
+    if (_display.key_state) {
+      /* CommandMask is ignored. */
+
+      idx = (_display.key_state & ShiftMask);
+      if (_display.key_state & ControlMask) {
+        idx |= 2;
+      }
+      if (_display.key_state & ModMask) {
+        idx |= 4;
+      }
+    } else {
+      idx = 0;
+    }
+
+    if (!(keymap.key[code].spcl & (1 << (7 - idx)))) {
       /* Character keys */
 
       if (pressed) {
-        int idx;
-
-        idx = (_display.key_state & 0x7);
-
         if ((keymap.key[code].flgs & 1) && (_display.lock_state & CLKED)) {
           /* xor shift bit(1) */
           idx ^= 1;

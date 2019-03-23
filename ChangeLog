@@ -1,3 +1,17 @@
+2019-03-24  Araki Ken  <arakiken@users.sf.net>
+
+	* sdl2/ui_display.c:
+	  - KMOD_GUI => CommandMask in get_mod_state().
+	  - SDL_KEYDOWN event in poll_event() calls ui_window_receive_event()
+	    if state is CommandMask.
+
+	* sdl2/ui.h: CommandMask is added.
+
+	* ui_display_freebsd.c: All 8 bits of keymap.key[code].spcl are checked.
+
+	* servman/Makefile.in, libotl/Makefile.in, libtype/Makefile.in:
+	  INSTALL_OPT is removed.
+
 2019-03-23  Araki Ken  <arakiken@users.sf.net>
 
 	* Androkd.mk: Compiling error is fixed.
