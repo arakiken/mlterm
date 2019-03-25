@@ -127,14 +127,14 @@ static void client_connected(void) {
     goto error;
   }
 
-  if ((args = alloca(line_len)) == NULL) {
+  if ((args = alloca(line_len + 1)) == NULL) {
     bl_file_destroy(from);
 
     goto error;
   }
 
-  strncpy(args, line, line_len - 1);
-  args[line_len - 1] = '\0';
+  strncpy(args, line, line_len);
+  args[line_len] = '\0';
 
   bl_file_destroy(from);
 

@@ -1,4 +1,5 @@
 * Support Haiku OS. (Experimental)
+  (Execute ./configure with --with-gui=beos option.) (See doc/en/README.beos)
 * Support "[font family]:style=..." format in aafont or font-fb config file.
 * Support mosh. (Experimental) (See doc/en/README.mosh)
   (Don't distribute libptymosh in binary format.)
@@ -9,6 +10,9 @@
 * Remove libind_tamil.so because it is very buggy.
 * Change the default shortcut key of INSERT_SELECTION from Shift+Insert to
   Command+v on MacOSX and iOS.
+* Skip \r in configuration files.
+* Start scp by Shift+Drag&Drop on not only xlib and win32 but also wayland, sdl2
+  and cocoa. (Command+Drag&Drop on cocoa.)
 * Bug fixes:
   Fix https://sourceforge.net/p/mlterm/mailman/message/36472061/
   Fix https://sourceforge.net/p/mlterm/mailman/message/36513313/

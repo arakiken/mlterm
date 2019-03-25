@@ -102,6 +102,8 @@ typedef struct {
   u_int kbd_repeat_count;
 
   struct wl_data_offer *dnd_offer;
+  struct wl_surface *data_surface;
+  uint32_t dnd_action;
   struct wl_data_offer *sel_offer;
   struct wl_data_source *sel_source;
   int32_t sel_fd;

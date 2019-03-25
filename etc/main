@@ -127,7 +127,7 @@
 
 # emoji_path =
 
-# (Available for mlterm-fb or mlterm-wl)
+# (Available for mlterm-fb, mlterm-wl or mlterm-sdl2)
 # use_aafont = false
 
 # -- Appearance --

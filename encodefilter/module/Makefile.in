@@ -33,7 +33,8 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 all: $(TARGET)
 
 libmef_jajp.la: $(JAJP_TABLE_OBJ)
-	$(LIBTOOL_LINK) -o libmef_jajp.la $(JAJP_TABLE_OBJ:.o=.lo) @EF_CHAR_LO@ @EF_JIS_PROP_LO@ \
+	$(LIBTOOL_LINK) -o libmef_jajp.la $(JAJP_TABLE_OBJ:.o=.lo) @EF_CHAR_LO@ \
+	../src/ef_jis_property.lo \
 	-rpath $(libdir)/mef -module -avoid-version @NO_UNDEFINED_FLAG@
 
 libmef_kokr.la: $(KOKR_TABLE_OBJ)

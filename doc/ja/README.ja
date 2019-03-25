@@ -639,11 +639,12 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         絵文字表示に使用する画像のあるディレクトリ又は絵文字フォント
         (NotoColorEmoji.ttfなど)のパスを指定します。
 
-      o use_aafont (true/false) (mlterm-fb or mlterm-wl 用)
-        mlterm-fb 又は mlterm-wl で truetype フォントを使用する場合に、
-        ~/mlterm/*font-fb でなく ~/.mlterm/*aafont の設定を読み込み、fontconfig
-        を使ってフォントを探す。
-        mlterm-fb のデフォルト値は false、mlterm-wl のデフォルト値は true
+      o use_aafont (true/false) (mlterm-fb, mlterm-wl or mlterm-sdl2 用)
+        mlterm-fb、mlterm-wl 又は mlterm-sdl2 で truetype フォントを使用する場合
+        に、~/mlterm/*font-fb でなく ~/.mlterm/*aafont の設定を読み込み、
+        fontconfig を使ってフォントを探す。
+        mlterm-fb のデフォルト値は false、mlterm-wl 及び mlterm-sdl2 のデフォル
+        ト値は true
 
       -- Appearance 関連 --
       o use_transbg (true/*false*) (#)

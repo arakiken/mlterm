@@ -117,10 +117,11 @@ bl_conf_write_t *bl_conf_write_open(char *name /* can break in this function. */
       if (conf->num >= conf->scale * 128) {
         void *p;
 
-        if ((p = realloc(conf->lines, sizeof(char *) * 128 * (++conf->scale))) == NULL) {
+        if ((p = realloc(conf->lines, sizeof(char *) * 128 * (conf->scale + 1))) == NULL) {
           goto error;
         }
 
+        conf->scale++;
         conf->lines = p;
       }
 
@@ -128,7 +129,6 @@ bl_conf_write_t *bl_conf_write_open(char *name /* can break in this function. */
         break;
       }
 
-      line[len - 1] = '\0';
       conf->lines[conf->num++] = strdup(line);
     }
 
@@ -240,13 +240,10 @@ int bl_conf_io_read(bl_file_t *from, char **key, char **val) {
       return 0;
     }
 
-    if (*line == '#' || *line == '\n') {
-      /* comment out or empty line. */
-
+    if (len == 0 || *line == '#') {
+      /* empty line or comment out */
       continue;
     }
-
-    line[len - 1] = '\0';
 
     /*
      * finding key
@@ -256,7 +253,8 @@ int bl_conf_io_read(bl_file_t *from, char **key, char **val) {
       line++;
     }
 
-    if ((*key = bl_str_sep(&line, "=")) == NULL || line == NULL) {
+    *key = bl_str_sep(&line, "=");
+    if (line == NULL) {
       /* not a conf line */
 
       continue;

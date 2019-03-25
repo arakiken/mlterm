@@ -32,11 +32,13 @@ Android support
     https://github.com/github/gemoji/archive/master.zip to /sdcard/.mlterm/emoji/
     in advance.
   o mlterm-android-YYYYMMDD.apk contains the feature of rendering bidi and
-    indic (hindi and bengali) scripts.
-    Following steps are necessary to enable indic scripts.
-    - Install DVYG0ntt.ttf and BNDR0ntt.ttf.
-    - Add "ISCII_HINDI=.../DVYG0ntt.ttf" and "ISCII_BENGALI=.../BNDR0ntt.ttf"
-      to /sdcard/.mlterm/font-fb
+    hindi (ISCII).
+    Following steps are necessary to enable it.
+    - Install DVYG0ntt.ttf.
+    - Add "ISCII_HINDI=.../DVYG0ntt.ttf" to /sdcard/.mlterm/font-fb
+    If you want to show other scripts of ISCII, edit 'tables' in
+    vtemu/libctl/vt_iscii.c, install ISCII fonts and add it to
+    /sdcard/.mlterm/font-fb.
   o You can show a software keyboard if you double-click the left mouse
     button (Button1) at the lower right corner of the screen.
   o Context menu (copy&paste and configuration) pops up by long click at the

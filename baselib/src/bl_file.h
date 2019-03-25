@@ -6,11 +6,15 @@
 #include <stdio.h>
 
 #include "bl_types.h" /* size_t */
+#include "bl_def.h" /* HAVE_FGETLN */
 
 typedef struct bl_file {
   FILE* file;
   char *buffer;
+
+#ifndef HAVE_FGETLN
   size_t buf_size;
+#endif
 
 } bl_file_t;
 
