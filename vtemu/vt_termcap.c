@@ -188,21 +188,15 @@ static int read_conf(char *filename) {
   while ((line = bl_file_get_line(from, &len))) {
     void *p;
 
-    if (len < 2) /* skip empty(LF-only) line */
-    {
+    if (len == 0 || *line == '#') {
+      /* empty line or comment out */
       continue;
     }
-    if (*line == '#') {
-      continue;
-    }
-
-    line[len - 1] = '\0';
 
     while (*line == ' ' || *line == '\t') {
       line++;
+      len--;
     }
-
-    len = strlen(line);
 
     /* + 1 is for NULL terminator */
     if ((p = realloc(termcap_db, db_len + len + 1)) == NULL) {

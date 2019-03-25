@@ -32,18 +32,20 @@ struct vt_isciikey_state {
 
 /* for Android */
 
+#if 0
 #include <table/assamese.table>
 #include <table/bengali.table>
 #include <table/gujarati.table>
+#endif
 #include <table/hindi.table>
+#if 0
 #include <table/kannada.table>
 #include <table/malayalam.table>
 #include <table/oriya.table>
 #include <table/punjabi.table>
-#if 0
 #include <table/tamil.table>
-#endif
 #include <table/telugu.table>
+#endif
 
 /* --- static variables --- */
 
@@ -52,22 +54,35 @@ static struct {
   size_t size;
 
 } tables[] = {
+#if 0
   { iscii_assamese_table, sizeof(iscii_assamese_table) / sizeof(struct tabl), },
   { iscii_bengali_table, sizeof(iscii_bengali_table) / sizeof(struct tabl), },
   { iscii_gujarati_table, sizeof(iscii_gujarati_table) / sizeof(struct tabl), },
+#else
+  { NULL, 0, },
+  { NULL, 0, },
+  { NULL, 0, },
+#endif
   { iscii_hindi_table, sizeof(iscii_hindi_table) / sizeof(struct tabl), },
+#if 0
   { iscii_kannada_table, sizeof(iscii_kannada_table) / sizeof(struct tabl), },
   { iscii_malayalam_table, sizeof(iscii_malayalam_table) / sizeof(struct tabl), },
   { iscii_oriya_table, sizeof(iscii_oriya_table) / sizeof(struct tabl), },
   { iscii_punjabi_table, sizeof(iscii_punjabi_table) / sizeof(struct tabl), },
-#if 0
   { iscii_tamil_table, sizeof(iscii_tamil_table) / sizeof(struct tabl), },
-#else
-  { NULL, 0, },
-#endif
   { iscii_telugu_table, sizeof(iscii_telugu_table) / sizeof(struct tabl), },
   { iscii_bengali_table, sizeof(iscii_bengali_table) / sizeof(struct tabl), },
   { iscii_hindi_table, sizeof(iscii_hindi_table) / sizeof(struct tabl), },
+#else
+  { NULL, 0, },
+  { NULL, 0, },
+  { NULL, 0, },
+  { NULL, 0, },
+  { NULL, 0, },
+  { NULL, 0, },
+  { NULL, 0, },
+  { NULL, 0, },
+#endif
 };
 
 /* --- static functions --- */

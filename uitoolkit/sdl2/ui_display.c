@@ -819,6 +819,21 @@ static void poll_event(void) {
     }
     break;
 
+  case SDL_DROPFILE:
+    {
+      ui_window_t *win = get_display(ev.key.windowID)->roots[0];
+
+      if ((SDL_GetModState() & KMOD_SHIFT) && win->set_xdnd_config) {
+        (*win->set_xdnd_config)(win, NULL, "scp", ev.drop.file);
+      } else if (win->utf_selection_notified) {
+        (*win->utf_selection_notified)(win, ev.drop.file, strlen(ev.drop.file));
+      }
+
+      SDL_free(ev.drop.file);
+
+      break;
+    }
+
   default:
     if (ev.type == pty_event_type) {
 #ifdef MONITOR_PTY
@@ -865,6 +880,8 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
     pty_event_type = SDL_RegisterEvents(1);
 
     main_tid = SDL_GetThreadID(NULL);
+
+    SDL_EventState(SDL_DROPFILE, SDL_ENABLE);
 
     num_displays = 1;
 

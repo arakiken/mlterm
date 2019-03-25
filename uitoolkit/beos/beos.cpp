@@ -16,6 +16,8 @@
 #include <TextControl.h>
 #include <LayoutBuilder.h>
 #include <Button.h>
+#include <Entry.h>
+#include <Path.h>
 
 #include <pthread.h>
 
@@ -393,7 +395,7 @@ void MLView::MouseDown(BPoint where) {
 }
 
 void MLView::MouseMoved(BPoint where, uint32 code, const BMessage *dragMessage) {
-  if (!uiwindow || (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term)) {
+  if (dragMessage || !uiwindow || (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term)) {
     /* It has been already removed from ui_layout or term has been detached. */
     return;
   }
@@ -486,7 +488,23 @@ void MLView::SetFont(const BFont *font, uint32 mask) {
 }
 
 void MLView::MessageReceived(BMessage *message) {
-  if (message->what == B_INPUT_METHOD_EVENT) {
+  if (message->what == B_SIMPLE_DATA) {
+    int32 count = 0;
+    entry_ref ref;
+
+    while (message->FindRef("refs", count++, &ref) == B_OK) {
+      BPath path(&ref);
+
+      XSelectionNotifyEvent ev;
+      ev.type = UI_SELECTION_NOTIFIED;
+      ev.data = (char*)path.Path();
+      ev.len = strlen(ev.data);
+
+      view_lock(this);
+      ui_window_receive_event(uiwindow, (XEvent*)&ev);
+      beos_unlock();
+    }
+  } else if (message->what == B_INPUT_METHOD_EVENT) {
     if (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term) {
       /* It has been already removed from ui_layout or term has been detached. */
       return;

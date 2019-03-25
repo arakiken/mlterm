@@ -969,14 +969,14 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 
 - (NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender {
   NSPasteboard *pboard = [sender draggingPasteboard];
-  NSDragOperation sourceMask = [sender draggingSourceOperationMask];
 
   if ([[pboard types] containsObject:NSFilenamesPboardType]) {
-    if (sourceMask & NSDragOperationLink) {
-      return NSDragOperationLink;
-    } else if (sourceMask & NSDragOperationCopy) {
-      return NSDragOperationCopy;
-    }
+#ifdef __DEBUG
+    NSDragOperation sourceMask = [sender draggingSourceOperationMask];
+    bl_debug_printf("draggingEntered SourceMask %d\n", sourceMask);
+#endif
+
+    return NSDragOperationGeneric;
   }
 
   return NSDragOperationNone;
@@ -986,16 +986,28 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   NSPasteboard *pboard = [sender draggingPasteboard];
 
   if ([[pboard types] containsObject:NSFilenamesPboardType]) {
+    NSDragOperation sourceMask = [sender draggingSourceOperationMask];
     NSArray *files = [pboard propertyListForType:NSFilenamesPboardType];
     int count;
-    XSelectionNotifyEvent ev;
 
-    ev.type = UI_SELECTION_NOTIFIED;
-    for (count = 0; count < [files count]; count++) {
-      ev.data = [[files objectAtIndex:count] UTF8String];
-      ev.len = strlen(ev.data);
+#ifdef __DEBUG
+    bl_debug_printf("performDragOperation SourceMask %d\n", sourceMask);
+#endif
 
-      ui_window_receive_event(uiwindow, (XEvent *)&ev);
+    if (sourceMask == NSDragOperationGeneric /* Command */ && uiwindow->set_xdnd_config) {
+      for (count = 0; count < [files count]; count++) {
+        (*uiwindow->set_xdnd_config)(uiwindow, NULL, "scp",
+                                     [[files objectAtIndex:count] UTF8String]);
+      }
+    } else {
+      XSelectionNotifyEvent ev;
+
+      ev.type = UI_SELECTION_NOTIFIED;
+      for (count = 0; count < [files count]; count++) {
+        ev.data = [[files objectAtIndex:count] UTF8String];
+        ev.len = strlen(ev.data);
+        ui_window_receive_event(uiwindow, (XEvent *)&ev);
+      }
     }
   }
 

@@ -1,3 +1,24 @@
+2019-03-25  Araki Ken  <arakiken@users.sf.net>
+
+	* README.android, README.sdl2, doc/en/README.ssh, doc/ja/README.ssh,
+	  README.ja, etc/main, etc/main.ja, man/mlterm.1: Updated.
+
+	* beos.cpp, sdl2/ui_display.c: Drag&Drop is supported.
+
+	* cocoa.m: Command+Drag&Drop starts scp.
+
+	* wayland/ui.h, wayland/ui_display.c: Shift+Drag&Drop start scp.
+
+	* encodefilter/configure.in, encodefilter/module/Makefile.in:
+	  ef_jis_property.lo is forcibly linked to libmef_jajp.so
+
+	* bl_conf_io.c, im_iiimf_aux.c, daemon.c, vt_termcap.c: The return value
+	  of bl_file_get_line() is regarded as NULL-terminated string.
+
+	* bl_file.[ch]: bl_file_get_line() returns NULL-terminated string.
+
+	* libctl/vt_iscii.c: ISCII tables except hindi.table are excluded.
+
 2019-03-24  Araki Ken  <arakiken@users.sf.net>
 
 	* sdl2/ui_display.c:

@@ -8,7 +8,6 @@
 #include <errno.h>
 #include <sys/stat.h> /* stat */
 
-#include "bl_def.h" /* HAVE_FGETLN */
 #include "bl_mem.h" /* malloc */
 #include "bl_debug.h"
 
@@ -25,7 +24,9 @@ bl_file_t *bl_file_new(FILE* fp) {
 
   file->file = fp;
   file->buffer = NULL;
+#ifndef HAVE_FGETLN
   file->buf_size = 0;
+#endif
 
   return file;
 }
@@ -70,11 +71,6 @@ FILE* bl_fopen_with_mkdir(const char *file_path, const char *mode) {
 
 #ifdef HAVE_FGETLN
 
-/*
- * This is a wrapper function of fgetln().
- * If 'from' file doesn't end with '\n', '\0' is automatically appended to the
- * end of file.
- */
 char *bl_file_get_line(bl_file_t *from, size_t *len) {
   char *line;
 
@@ -82,14 +78,24 @@ char *bl_file_get_line(bl_file_t *from, size_t *len) {
     return NULL;
   }
 
-  if (line[*len - 1] != '\n') {
-    if ((from->buffer = realloc(from->buffer, *len + 1)) == NULL) {
+  if (line[*len - 1] == '\n') {
+    if (*len > 1 && line[*len - 2] == '\r') {
+      (*len) -= 2; /* \r\n -> \0\n */
+    } else {
+      (*len)--; /* \n -> \0 */
+    }
+  } else {
+    void *p;
+
+    /* If 'line' doesn't end with '\n', append '\0' to it. */
+    if ((p = realloc(from->buffer, *len + 1)) == NULL) {
       return NULL;
     }
-    memcpy(from->buffer, line, *len);
-    from->buffer[*len] = '\0';
-    from->buf_size = ++(*len);
+
+    line = memcpy((from->buffer = p), line, *len);
   }
+
+  line[*len] = '\0';
 
   return line;
 }
@@ -102,8 +108,6 @@ char *bl_file_get_line(bl_file_t *from, size_t *len) {
  * This returns the pointer to the beginning of line , and it becomes invalid
  * after the next bl_file_get_line() (whether successful or not) or as soon as
  * bl_file_close() is executed.
- * If 'from' file doesn't end with '\n', '\0' is automatically appended to the
- *end of file.
  */
 char *bl_file_get_line(bl_file_t *from, size_t *len) {
   size_t filled;
@@ -117,24 +121,31 @@ char *bl_file_get_line(bl_file_t *from, size_t *len) {
 
   while (1) {
     if (filled == from->buf_size) {
+      void *p;
+
+      if ((p = realloc(from->buffer, from->buf_size + BUF_UNIT_SIZE)) == NULL) {
+        return NULL;
+      }
+
+      from->buffer = p;
       from->buf_size += BUF_UNIT_SIZE;
-      from->buffer = realloc(from->buffer, from->buf_size);
     }
 
-    if (c < 0) {
-      from->buffer[filled++] = '\0';
+    if (c == '\n') {
+      if (filled > 0 && from->buffer[filled - 1] == '\r') {
+        filled--;
+      }
       break;
     } else {
       from->buffer[filled++] = c;
-
-      if (c == '\n') {
-        break;
-      }
     }
 
-    c = fgetc(from->file);
+    if ((c = fgetc(from->file)) < 0) {
+      break;
+    }
   }
 
+  from->buffer[filled] = '\0';
   *len = filled;
 
   return from->buffer;

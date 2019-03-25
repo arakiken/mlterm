@@ -8,6 +8,10 @@ Memo about ssh2
 
   See mlterm manual page for the options related to ssh connection.
 
+* Note
+  Drag and Drop files to the screen connecting to ssh server with pressing shift
+  key (command key on cocoa) does "scp" (secure copy) them.
+
 * libssh2 camellia branch
   https://bitbucket.org/arakiken/libssh2/branch/camellia
   https://bitbucket.org/arakiken/libssh2/get/camellia.tar.gz

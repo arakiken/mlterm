@@ -1221,9 +1221,13 @@ static void data_offer_source_action(void *data, struct wl_data_offer *data_offe
 
 static void data_offer_action(void *data, struct wl_data_offer *data_offer,
                               uint32_t dnd_action) {
+  ui_wlserv_t *wlserv = data;
+
 #ifdef __DEBUG
   bl_debug_printf("DND ACTION %d\n", dnd_action);
 #endif
+
+  wlserv->dnd_action = dnd_action;
 }
 
 static const struct wl_data_offer_listener data_offer_listener = {
@@ -1248,6 +1252,8 @@ static void data_device_enter(void *data, struct wl_data_device *data_device,
                               uint32_t serial, struct wl_surface *surface,
                               wl_fixed_t x_w, wl_fixed_t y_w,
                               struct wl_data_offer *offer) {
+  ui_wlserv_t *wlserv = data;
+
 #ifdef __DEBUG
   bl_debug_printf("DATA DEVICE ENTER %p\n", offer);
 #endif
@@ -1255,8 +1261,12 @@ static void data_device_enter(void *data, struct wl_data_device *data_device,
   wl_data_offer_accept(offer, serial, "text/uri-list");
 
   /* wl_data_device_manager_get_version() >= 3 */
-  wl_data_offer_set_actions(offer, WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY,
+  wl_data_offer_set_actions(offer,
+                            WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY|
+                            WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE,
                             WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY);
+
+  wlserv->data_surface = surface;
 }
 
 static void data_device_leave(void *data, struct wl_data_device *data_device) {
@@ -1274,34 +1284,75 @@ static void data_device_leave(void *data, struct wl_data_device *data_device) {
     wl_data_offer_destroy(wlserv->sel_offer);
     wlserv->sel_offer = NULL;
   }
+  wlserv->data_surface = NULL;
 }
 
 static void data_device_motion(void *data, struct wl_data_device *data_device,
                                uint32_t time, wl_fixed_t x_w, wl_fixed_t y_w) {
 }
 
+static int unescape(u_char *src) {
+  u_char *dst;
+  int c;
+
+  dst = src;
+
+  while (*src) {
+    if (*src == '%' && sscanf(src, "%%%2x", &c) == 1) {
+      *(dst++) = c;
+      src += 3;
+    } else {
+      *(dst++) = *(src++);
+    }
+  }
+  *dst = '\0';
+
+  return (src != dst);
+}
+
 static void receive_data(ui_wlserv_t *wlserv, struct wl_data_offer *offer, const char *mime) {
+  ui_display_t *disp;
   int fds[2];
+
+  if ((disp = surface_to_display(wlserv->data_surface)) == NULL) {
+    return;
+  }
+
   if (pipe(fds) == 0) {
     u_char buf[512];
     ssize_t len;
-    ui_display_t *disp = surface_to_display(wlserv->current_kbd_surface);
 
     wl_data_offer_receive(offer, mime, fds[1]);
     wl_display_flush(wlserv->display);
     close(fds[1]);
 
-    while ((len = read(fds[0], buf, sizeof(buf))) > 0) {
-#ifdef __DEBUG
-      if (len == sizeof(buf)) {
-        buf[len - 1] = '\0';
-      } else {
-        buf[len] = '\0';
+    while ((len = read(fds[0], buf, sizeof(buf) - 1)) > 0) {
+      char *str;
+
+      while (buf[len - 1] == '\n' || buf[len - 1] == '\r') {
+        len--;
       }
+      buf[len] = '\0';
+#ifdef __DEBUG
       bl_debug_printf("RECEIVE %d %s\n", len, buf);
 #endif
-      if (disp->roots[0]->utf_selection_notified) {
-        (*disp->roots[0]->utf_selection_notified)(disp->roots[0], buf, len);
+
+      if (strncmp(buf, "file://", 7) == 0) {
+        str = buf + 7;
+        len -= 7;
+      } else {
+        str = buf;
+      }
+      if (unescape(str)) {
+        len = strlen(str);
+      }
+
+      if (wlserv->dnd_action == WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE /* Shift+Drop */ &&
+          disp->roots[0]->set_xdnd_config) {
+        (*disp->roots[0]->set_xdnd_config)(disp->roots[0], NULL, "scp", str);
+        break;
+      } else if (disp->roots[0]->utf_selection_notified) {
+        (*disp->roots[0]->utf_selection_notified)(disp->roots[0], str, len);
       }
     }
     close(fds[0]);

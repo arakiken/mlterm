@@ -1382,17 +1382,17 @@ void aux_init(IIIMCF_handle iiimcf_handle, ui_im_export_syms_t *export_syms,
           char *aux_name;
           char *mod_name;
 
-          if (*line == '#' || *line == '\n') {
+          if (len == 0 || *line == '#') {
+            /* empty line or comment out */
             continue;
           }
-
-          line[ len - 1] = '\0';
 
           while (*line == ' ' || *line == '\t') {
             line ++;
           }
+
           aux_name = bl_str_sep(&line, " ");
-          if (!aux_name || !line) {
+          if (!line) {
             continue;
           }
 

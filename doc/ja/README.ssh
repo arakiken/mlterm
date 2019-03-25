@@ -10,6 +10,10 @@ ssh2 対応に関するメモ
   ssh2 サーバに接続する際の挙動に関する各種オプションについては、
   doc/ja/README.ja を参照。
 
+* 留意事項
+  ssh 接続中の画面に、Shift キー(cocoa 版では Command キー)を押しながらドロップ
+  した場合は、リモートホストに scp します。
+
 * libssh2 camellia branch
   https://bitbucket.org/arakiken/libssh2/branch/camellia
   https://bitbucket.org/arakiken/libssh2/get/camellia.tar.gz
