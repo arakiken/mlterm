@@ -83,7 +83,7 @@
 # -- Font --
 # fontsize = 16
 
-# font_size_range = 6-30
+# font_size_range = 1-100
 
 # step_in_changing_font_size = 1
 

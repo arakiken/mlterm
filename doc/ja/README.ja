@@ -535,7 +535,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         指定した場合には、fontsize オプションを変更しても、フォントサイズは(上記
         例では 14 pixel のまま)変わらなくなるため、注意してください。
 
-      o font_size_range  (*6-30*)
+      o font_size_range  (*1-100*)
         変更可能なフォントサイズの範囲
 
         フォーマットは以下のとおり。
@@ -543,7 +543,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
         e.g.)
         font_size_range = 10-24
-        10 から 24 ポイントまで変更できるようになります。
+        10 から 24 pixel まで変更できるようになります。
 
       o step_in_changing_font_size (*1*)
         larger,smaller ボタンでのフォントサイズの変化量(*1*)
@@ -611,7 +611,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         イタリックフォントを使用する。
 
       o leftward_double_drawing (true/*false*)
-        medium フォントを重ね打ちする場合の開始位置を1ピクセル左(デフォルトは右)
+        medium フォントを重ね打ちする場合の開始位置を 1 pixel 左(デフォルトは右)
         からとする。
 
       o unicode_full_width_areas (#)

@@ -13,6 +13,7 @@
 * Skip \r in configuration files.
 * Start scp by Shift+Drag&Drop on not only xlib and win32 but also wayland, sdl2
   and cocoa. (Command+Drag&Drop on cocoa.)
+* Change the default value of "font_size_range" option from 6-30 to 1-100.
 * Bug fixes:
   Fix https://sourceforge.net/p/mlterm/mailman/message/36472061/
   Fix https://sourceforge.net/p/mlterm/mailman/message/36513313/

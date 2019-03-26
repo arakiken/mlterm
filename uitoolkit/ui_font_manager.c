@@ -72,13 +72,8 @@ static encoding_to_cs_table_t usascii_font_cs_table[] = {
 
 };
 
-#ifdef __ANDROID__
-static u_int min_font_size = 10;
-static u_int max_font_size = 50;
-#else
-static u_int min_font_size = 6;
-static u_int max_font_size = 30;
-#endif
+static u_int min_font_size = 1;
+static u_int max_font_size = 100;
 
 /* --- static functions --- */
 

@@ -9,6 +9,7 @@
 #endif
 
 #include <sys/select.h>
+#include <errno.h>
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>
 #include <pobl/bl_file.h>
@@ -32,7 +33,7 @@ void ui_event_source_init(void) {}
 void ui_event_source_final(void) {}
 
 int ui_event_source_process(void) {
-  static int ret;
+  static int ret = -1;
   static fd_set read_fds;
   static int maxfd;
   static int is_cont_read;
@@ -98,12 +99,15 @@ int ui_event_source_process(void) {
     tval.tv_sec = 0;
 
 #ifdef COCOA_TOUCH
-    if (vt_check_sig_child() ||
-        (maxfd >= 0 && (ret = select(maxfd + 1, &read_fds, NULL, NULL, &tval)) < 0)) {
+    if (vt_check_sig_child() || maxfd == -1 ||
+        ((ret = select(maxfd + 1, &read_fds, NULL, NULL, &tval)) < 0 &&
+         errno != EAGAIN && errno != EINTR)) {
       break;
     }
 #else
-    if (maxfd == -1 || (ret = select(maxfd + 1, &read_fds, NULL, NULL, &tval)) < 0) {
+    if (maxfd == -1 ||
+        ((ret = select(maxfd + 1, &read_fds, NULL, NULL, &tval)) < 0 &&
+         errno != EAGAIN && errno != EINTR)) {
       break;
     }
 #endif

@@ -188,7 +188,7 @@ int main_loop_init(int argc, char **argv) {
   bl_conf_add_opt(conf, 'h', "help", 1, "help", "show this help message");
   bl_conf_add_opt(conf, 'v', "version", 1, "version", "show version message");
   bl_conf_add_opt(conf, 'R', "fsrange", 0, "font_size_range",
-                  "font size range for GUI configurator [6-30]");
+                  "font size range for GUI configurator [1-100]");
 #ifdef COMPOSE_DECSP_FONT
   bl_conf_add_opt(conf, 'Y', "decsp", 1, "compose_dec_special_font",
                   "compose dec special font [false]");
