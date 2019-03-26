@@ -1,3 +1,18 @@
+2019-03-26  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja, etc/main, etc/main.ja: Updated.
+
+	* ui_font_manager.c:
+	  - The default value of min_font_size is changed from 6 to 1.
+	  - The default value of max_font_size is changed from 30 to 100.
+
+	* vt_pty_mosh.cpp: If select() in watch_ptys() fails, loop continues.
+
+	* ui_event_source.c: Whether errno of select() is EINTR is checked.
+
+	* ui_event_source-cocoa.m: Whether errno of select() is EAGAIN or EINTR
+	  is checked.
+
 2019-03-25  Araki Ken  <arakiken@users.sf.net>
 
 	* README.android, README.sdl2, doc/en/README.ssh, doc/ja/README.ssh,

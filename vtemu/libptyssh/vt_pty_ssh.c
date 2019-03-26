@@ -736,7 +736,6 @@ static int ssh_disconnect(ssh_session_t *session) {
   u_int count;
 
   if (session->num_ptys > 0) {
-    /* In case this function is called from vt_pty_new. */
     libssh2_session_set_blocking(session->obj, 0);
 
     return 0;

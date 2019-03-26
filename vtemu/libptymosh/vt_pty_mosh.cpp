@@ -538,9 +538,13 @@ static void *watch_ptys(void *arg) {
     tv.tv_usec = timeout * 1000;
     tv.tv_sec = 0;
     int sel_result = select(maxfd + 1, &fds, NULL, NULL, &tv);
-    if (sel_result < 0) {
+#if 0
+    if (sel_result < 0 && errno != EINTR) {
       break;
     }
+#else
+    /* Loop continues until num_ptys becomes 0 even if select() returns -1. */
+#endif
     freeze_timestamp();
 
     bool ready = false;
