@@ -1,3 +1,10 @@
+2019-03-28  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/ui_font.c: xfont->height is calculated by face->height instead of
+	  face->max_advance_height.
+
+	* sdl2/ui_display.c: SDL_WINDOWEVENT_EXPOSED is processed.
+
 2019-03-26  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, README.ja, etc/main, etc/main.ja: Updated.

@@ -748,11 +748,12 @@ face_found:
   if (force_height) {
     xfont->height = force_height;
   } else {
-    xfont->height = (face->max_advance_height * face->size->metrics.y_ppem +
+    /* XXX face->max_advance_height might be unexpectedly big. (e.g. NotoSansCJKjp-Reguar.otf) */
+    xfont->height = (face->height * face->size->metrics.y_ppem +
                      face->units_per_EM - 1) / face->units_per_EM;
 #ifdef __DEBUG
-    bl_debug_printf("maxh %d ppem %d units %d => h %d\n",
-                    face->max_advance_height, face->size->metrics.y_ppem,
+    bl_debug_printf("height %d (max height %d) ppem %d units %d => h %d\n",
+                    face->height, face->max_advance_height, face->size->metrics.y_ppem,
                     face->units_per_EM, xfont->height);
 #endif
   }
