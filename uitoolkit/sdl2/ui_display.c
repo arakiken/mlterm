@@ -767,6 +767,11 @@ static void poll_event(void) {
 
     receive_mouse_event(disp, &xev.xmotion);
 
+#if 0 /* defined(__HAIKU__) */
+    /* If mouse cursor moves, garbage is left on HaikuOS, so damaged = 1 to redraw screen. */
+    disp->display->damaged = 1;
+#endif
+
     break;
 
   case SDL_WINDOWEVENT:
@@ -816,7 +821,10 @@ static void poll_event(void) {
         xev.type = FocusOut;
         ui_window_receive_event(win, &xev);
       }
+    } else if (ev.window.event == SDL_WINDOWEVENT_EXPOSED) {
+      get_display(ev.window.windowID)->display->damaged = 1;
     }
+
     break;
 
   case SDL_DROPFILE:
