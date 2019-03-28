@@ -613,6 +613,29 @@ void MLView::MessageReceived(BMessage *message) {
 
   end:
     beos_unlock();
+  } else if (message->what == B_MOUSE_WHEEL_CHANGED) {
+    int64 when; /* microsec */
+    float y;
+    XButtonEvent bev;
+
+    message->FindFloat("be:wheel_delta_y", &y);
+    message->FindInt64("be:when", &when);
+
+    bev.type = UI_BUTTON_PRESS;
+    bev.time = when / 1000; /* msec */
+    bev.x = 0;
+    bev.y = 0;
+    bev.state = 0;
+    bev.click_count = 1;
+    if (y < 0) {
+      bev.button = 4;
+    } else {
+      bev.button = 5;
+    }
+
+    view_lock(this);
+    ui_window_receive_event(uiwindow, (XEvent *)&bev);
+    beos_unlock();
   }
 }
 

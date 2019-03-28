@@ -1,3 +1,7 @@
+2019-03-29  Araki Ken  <arakiken@users.sf.net>
+
+	* beos.cpp, sdl2/ui_display.c: Wheel mouse is supported.
+
 2019-03-28  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/ui_font.c: xfont->height is calculated by face->height instead of
