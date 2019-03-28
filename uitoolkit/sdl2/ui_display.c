@@ -746,6 +746,25 @@ static void poll_event(void) {
  
     break;
 
+  case SDL_MOUSEWHEEL:
+    if (ev.wheel.y) {
+      disp = get_display(ev.window.windowID);
+
+      xev.xbutton.type = ButtonPress;
+      xev.xbutton.time = ev.button.timestamp;
+      SDL_GetMouseState(&xev.xbutton.x, &xev.xbutton.y);
+      xev.xbutton.state = get_mod_state(SDL_GetModState());
+
+      if (ev.wheel.y > 0) {
+        xev.xbutton.button = 4;
+      } else {
+        xev.xbutton.button = 5;
+      }
+
+      receive_mouse_event(disp, &xev.xbutton);
+    }
+    break;
+
   case SDL_MOUSEMOTION:
     disp = get_display(ev.window.windowID);
 
