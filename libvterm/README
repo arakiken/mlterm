@@ -54,3 +54,8 @@ How to build & install libvterm compatible library using mlterm engine.
     - vterm_screen_is_eol
     - vterm_scroll_rect
     - vterm_copy_cells
+
+* Tested environment
+ o Arch Linux
+   libvterm 0.1.git3.7a3913a-1.0
+   neovim 0.3.4-2.0

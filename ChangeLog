@@ -1,3 +1,13 @@
+2019-03-31  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/README, libvterm/README: Updated.
+
+	* vte.c:
+	  - vte_terminal_set_colors() resets fg or bg color if 'foreground'
+	    or 'background' argument is NULL and palette_size is 0.
+	  - vte_set_test_flags(), vte_terminal_get_color_background_for_draw()
+	    and vte_regex_substitute() symbols are added.
+
 2019-03-29  Araki Ken  <arakiken@users.sf.net>
 
 	* beos.cpp, sdl2/ui_display.c: Wheel mouse is supported.
