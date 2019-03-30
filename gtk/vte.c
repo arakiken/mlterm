@@ -3158,10 +3158,29 @@ void vte_terminal_set_colors(VteTerminal *terminal, const GdkColor *foreground,
     if (background == NULL) {
       background = &palette[0];
     }
-
-    vte_terminal_set_color_foreground(terminal, foreground);
-    vte_terminal_set_color_background(terminal, background);
   }
+
+  if (foreground) {
+    vte_terminal_set_color_foreground(terminal, foreground);
+  } else {
+    GdkColor color = { 0xc000, 0xc000, 0xc000 };
+
+    vte_terminal_set_color_foreground(terminal, &color);
+  }
+
+  if (background) {
+    vte_terminal_set_color_background(terminal, background);
+  } else {
+    GdkColor color = { 0, 0, 0 };
+
+    vte_terminal_set_color_background(terminal, &color);
+  }
+
+  /*
+   * XXX
+   * VTE_BOLD_FG, VTE_DIM_BG, VTE_DEF_HL and VTE_CUR_BG should be reset.
+   * (See vte_terminal_set_colors() in vte-0.xx.xx/src/vte.c)
+   */
 }
 
 #if GTK_CHECK_VERSION(2, 99, 0)
@@ -3236,10 +3255,31 @@ void vte_terminal_set_colors_rgba(VteTerminal *terminal, const GdkRGBA *foregrou
     if (background == NULL) {
       background = &palette[0];
     }
-
-    vte_terminal_set_color_foreground_rgba(terminal, foreground);
-    vte_terminal_set_color_background_rgba(terminal, background);
   }
+
+  if (foreground) {
+    vte_terminal_set_color_foreground_rgba(terminal, foreground);
+  } else {
+    /* 192 = 0xc0 */
+    GdkRGBA color = { 192.0 / 255.0, 192.0 / 255.0, 192.0 / 255.0, 1.0 };
+
+    vte_terminal_set_color_foreground_rgba(terminal, &color);
+  }
+
+  if (background) {
+    vte_terminal_set_color_background_rgba(terminal, background);
+  } else {
+    GdkRGBA color = { 0.0, 0.0, 0.0, 1.0 };
+
+    vte_terminal_set_color_background_rgba(terminal, &color);
+  }
+
+  /*
+   * XXX
+   * VTE_BOLD_FG, VTE_HIGHLIGHT_BG, VTE_HIGHLIGHT_FG, VTE_CURSOR_BG and VTE_CURSOR_FG
+   * should be reset.
+   * (see Terminal::set_colors in vte-0.xx.xx/src/vte.cc)
+   */
 }
 #endif /* GTK_CHECK_VERSION(2,99,0) */
 
@@ -4489,5 +4529,18 @@ void vte_terminal_set_text_blink_mode(VteTerminal *terminal,
 
 VteTextBlinkMode vte_terminal_get_text_blink_mode(VteTerminal *terminal) {
   return VTE_TEXT_BLINK_FOCUSED;
+}
+#endif
+
+#if VTE_CHECK_VERSION(0, 54, 0)
+void vte_set_test_flags(guint64 flags) {}
+
+void vte_terminal_get_color_background_for_draw(VteTerminal* terminal, GdkRGBA* color) {}
+#endif
+
+#if VTE_CHECK_VERSION(0, 56, 0)
+char *vte_regex_substitute(VteRegex *regex, const char *subject, const char *replacement,
+                           guint32 flags, GError **error) {
+  return NULL;
 }
 #endif

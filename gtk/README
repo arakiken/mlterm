@@ -9,7 +9,7 @@ How to build & install libvte compatible library using mlterm engine.
     (gnome-terminal, roxterm, synaptic or etc)
 
 * Supported API
-  vte 0.52.0
+  vte 0.56.0
 
 * Build
   $ ./configure (--with-type-engine=cairo --with-imagelib=gdk-pixbuf --enable-pty-helper \
@@ -112,6 +112,21 @@ How to build & install libvte compatible library using mlterm engine.
     - vte_terminal_set_geometry_hints
     - vte_pty_new_foreign_sync
     - vte_pty_close
+    - vte_terminal_set_input_enabled
+    - vte_terminal_get_current_directory_uri
+    - vte_terminal_get_current_file_uri
+    - vte_regex_jit
+    - vte_terminal_match_add_regex
+    - vte_terminal_event_check_regex_simple
+    - vte_terminal_set_allow_hyperlink
+    - vte_terminal_hyperlink_check_event
+    - vte_terminal_set_bold_is_bright
+    - vte_terminal_set_cell_width_scale
+    - vte_terminal_set_cell_height_scale
+    - vte_terminal_set_text_blink_mode
+    - vte_set_test_flags
+    - vte_terminal_get_color_background_for_draw
+    - vte_regex_substitute
 
   o Unsupported vte signals and properties
     - signals
@@ -165,12 +180,15 @@ How to build & install libvte compatible library using mlterm engine.
       "visible-bell"
 
 * Tested terminals using vte.
-  o gnome-terminal 3.28.2 on Arch Linux ... OK except transparency
+  o gnome-terminal 3.30.2 on Arch Linux ... OK except transparency
   o gnome-terminal 2.16.0 on CentOS 5   ... OK
   o roxterm 3.3.2 on Arch Linux         ... OK
+  o lxterminal 0.3.2 on Arch Linux      ... OK
+  o sakura 3.6.0 on Arch Linux          ... OK
 
   Following platforms are not actually tested by developers, but were tested
   in the past.
+  o gnome-terminal 3.28.2 on Arch Linux ... OK except transparency
   o gnome-terminal 3.26.2 on Arch Linux ... OK except transparency
   o gnome-terminal 3.24.2 on Arch Linux ... OK except transparency
   o gnome-terminal 3.16.2 on Ubuntu 15.10
