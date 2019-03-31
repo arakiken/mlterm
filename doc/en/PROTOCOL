@@ -1,7 +1,7 @@
 comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
 mlterm configuration protocol
-version 20181021
+version 20190331
 
 * Protocol
   exec             = "\x1b]5379;" <command> "\x07"
@@ -11,12 +11,12 @@ version 20181021
   set&save         = "\x1b]5383;" <challenge> ( ";" ( "/dev/..." ":" ) <key> "=" <value> )* "\x07"
 
   set font         = "\x1b]5379;" <font filename> ":" <key> "=" <value> "\x07"
-  get(pty)	   = "\x1b]5380;" (<challenge> ";") <font filename> ":" <key> "\x07"
+  get(pty)         = "\x1b]5380;" (<challenge> ";") <font filename> ":" <key> "\x07"
   get(GUI menu)	   = "\x1b]5381;" <font filename> ":" <key> "\x07"
   set&save         = "\x1b]5383;" <challenge> ";" <font filename> ":" <key> "=" <value> "\x07"
 
   set color        = "\x1b]5379;color:" <key> "=" <value> "\x07"
-  get(pty)	   = "\x1b]5380;" (<challenge> ";color:") <key> "\x07"
+  get(pty)         = "\x1b]5380;" (<challenge> ";color:") <key> "\x07"
   get(GUI menu)	   = "\x1b]5381;color:" <key> "\x07"
   set&save         = "\x1b]5383;" <challenge> ";color:" <key> "=" <value> "\x07"
 

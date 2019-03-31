@@ -2,7 +2,6 @@
 
 #include "ui_screen.h"
 
-#include <signal.h>
 #include <stdio.h>  /* sprintf */
 #include <unistd.h> /* fork/execvp */
 #include <stdlib.h> /* abs */
