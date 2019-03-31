@@ -1,5 +1,16 @@
 2019-03-31  Araki Ken  <arakiken@users.sf.net>
 
+	* 3.8.8 released.
+	  (tag "rel-3_8_8")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  mlterm.c, android/jni/version.h:
+	  updated for 3.8.8.
+
+	* doc/en/PROTOCOL, man/mlterm.1: Updated.
+
+2019-03-31  Araki Ken  <arakiken@users.sf.net>
+
 	* gtk/README, libvterm/README: Updated.
 
 	* vte.c:

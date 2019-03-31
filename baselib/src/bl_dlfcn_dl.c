@@ -19,6 +19,10 @@ bl_dl_handle_t bl_dl_open(const char *dirpath, const char *name) {
     return NULL;
   }
 
+#ifdef DEBUG
+  bl_debug_printf("Loading %slib%s.so\n", dirpath, name);
+#endif
+
   /*
    * libfoo.so --> foo.so --> libfoo.sl --> foo.sl
    */
