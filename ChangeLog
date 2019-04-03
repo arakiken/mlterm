@@ -1,3 +1,16 @@
+2019-04-03  Araki Ken  <arakiken@users.sf.net>
+
+	* baselib/configure.in: Check for $host_os = msys is added.
+
+	* cocoatouch.m:
+	  - IS_OPAQUE is always 1.
+	  - clearsContextBeforeDrawing = NO.
+
+	* winrs.rs, servman.rc:
+	  The width of buttons of 'Protocol' groupbox is fixed.
+
+	* version.h: 3.8.8 -> 3.8.8post
+
 2019-03-31  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.8.8 released.

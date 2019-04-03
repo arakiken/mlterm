@@ -47,6 +47,7 @@ iOS/Cocoa Touch support (Experimental)
   o Input method plugin is not supported.
   o Scroll upward or downward by flick gesture. If you want to select characters
     instead of scrolling, touch screen for more than 0.5 sec.
+  o Scrollbar is not available.
 
 * Executable binaries
   http://mlterm.sf.net/bin.html

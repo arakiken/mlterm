@@ -81,7 +81,7 @@ rm -rf $RPM_BUILD_ROOT
 %{datadir}/locale/*/LC_MESSAGES/mlconfig.mo
 
 %changelog
-* Sun Mar 31 2018 Araki Ken <arakiken@users.sf.net>
+* Sun Mar 31 2019 Araki Ken <arakiken@users.sf.net>
 - Source version 3.8.8
 
 * Sat Oct 27 2018 Araki Ken <arakiken@users.sf.net>

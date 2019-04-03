@@ -102,9 +102,13 @@ static u_int key_mod;
                            (((color)->pixel >> 8) & 0xff) / 255.0,       \
                            ((color)->pixel & 0xff) / 255.0, 1.0);
 
+#if 0
 #define IS_OPAQUE                                          \
   ((uiwindow->bg_color.pixel & 0xff000000) == 0xff000000 || \
    ui_window_has_wall_picture(uiwindow))
+#else
+#define IS_OPAQUE 1
+#endif
 
 #ifdef DEBUG
 int main_loop_final(void);
@@ -426,6 +430,8 @@ int cocoa_dialog_alert(const char *msg);
 
   uiwindow->my_window = (UIView *)self;
   forceExpose = 1;
+
+  self.clearsContextBeforeDrawing = NO;
 
   [super initWithFrame:frame];
 

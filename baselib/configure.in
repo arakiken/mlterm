@@ -226,7 +226,7 @@ if test "$DL_LOADER" = none ; then
 
 	# cygwin hack
 	# (AC_LIBTOOL_DLOPEN tell lt_cv_dlopen == dlopen but use bl_dlcfn_win32.c.)
-	if test "$bl_cv_cygwin" = "yes" ; then
+	if test "$bl_cv_cygwin" = "yes" -o "$host_os" = "msys" ; then
 		DL_LOADER=win32
 	fi
 fi
@@ -310,7 +310,7 @@ AC_SUBST(PTY_NAME)
 #
 UTMP_NAME=
 UTMP_LIBS=
-if test "$bl_cv_pty" = helper -o "$bl_cv_mingw" = yes -o "$bl_cv_cygwin" = yes -o "$host_os" = "haiku"; then
+if test "$bl_cv_pty" = helper -o "$bl_cv_mingw" = yes -o "$bl_cv_cygwin" = yes -o "$host_os" = "msys" -o "$host_os" = "haiku"; then
 	UTMP_NAME=none
 	UTMP_LIBS=
 fi
