@@ -1,5 +1,8 @@
 2019-04-03  Araki Ken  <arakiken@users.sf.net>
 
+	* win32/ui_connect_dialog.c: "Mosh" checkbox of connect dialog
+	  is disabled if NO_DYNAMIC_LOAD_SSH is defined.
+
 	* baselib/configure.in: Check for $host_os = msys is added.
 
 	* cocoatouch.m:

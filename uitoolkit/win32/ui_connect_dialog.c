@@ -216,6 +216,9 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
 #ifdef USE_LIBSSH2
       EnableWindow(GetDlgItem(dlgwin, IDD_TELNET), FALSE);
       EnableWindow(GetDlgItem(dlgwin, IDD_RLOGIN), FALSE);
+#ifdef NO_DYNAMIC_LOAD_SSH
+      EnableWindow(GetDlgItem(dlgwin, IDD_MOSH), FALSE);
+#endif
 #endif
       CheckRadioButton(dlgwin, IDD_SSH, IDD_RLOGIN, selected_proto);
 
