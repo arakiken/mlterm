@@ -105,7 +105,11 @@ unsigned int* drcs_sixel_from_data(const char *sixel, /* DCS P1;P2;P3;q...ST */ 
   int x;
   int y;
   unsigned int *buf;
-  char seq[24 + 4 /*%dx2*/ + 2 /*%cx2*/ + 1]; /* \x1b[?8800h\x1bP1;0;0;%d;1;3;%d;%c{ %c */
+  /*
+   * \x1b[?8800h\x1bP1;0;0;%d;1;3;%d;%d{ %c
+   *                       2      2  1   1
+   */
+  char seq[24 + 2 + 2 + 1 + 1 + 1];
 
   if (sixel_p[0] == '\x1b' && sixel_p[1] == 'P') {
     sixel_p += 2;
@@ -114,7 +118,7 @@ unsigned int* drcs_sixel_from_data(const char *sixel, /* DCS P1;P2;P3;q...ST */ 
   while ('0' <= *sixel_p && *sixel_p <= ';') { sixel_p++; }
 
   if (*sixel_p != 'q') {
-    return 0;
+    return NULL;
   }
   sixel_p ++;
 

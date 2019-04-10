@@ -8,7 +8,8 @@ Memo about mosh
 * Build
   cd /foo/mosh-x.x.x
   ./configure ...
-  (If you want to build with MinGW, use http://bitbucket.org/arakiken/mosh/get/winsock.tar.gz
+  (If you want to build with MinGW or use sixel graphics, use
+   http://bitbucket.org/arakiken/mosh/get/sixel-winsock.tar.gz
    which works on winsock2 instead of *nix.)
 
   cd /bar/mlterm-x.x.x
@@ -40,4 +41,7 @@ Memo about mosh
   o Unsupported platforms are as follows.
     - Java/SWT
     - Android
-
+  o http://bitbucket.org/arakiken/mosh/get/sixel-winsock.tar.gz utilizes
+    DRCS-Sixel to show sixel graphics.
+    mlterm 3.8.5 or later and RLogin 2.23.1 or later suport it.
+    (DRCS-Sixel: https://qiita.com/arakiken/items/626b02cd857d20c12fbc)

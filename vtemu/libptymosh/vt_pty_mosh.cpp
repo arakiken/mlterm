@@ -102,6 +102,7 @@ static pthread_mutex_t event_mutex = PTHREAD_MUTEX_INITIALIZER;
 /* --- static functions --- */
 
 #ifdef USE_WIN32API
+
 int wcwidth(wchar_t ch) {
   ef_property_t prop = ef_get_ucs_property(ch);
 
@@ -121,183 +122,6 @@ int wcwidth(wchar_t ch) {
     return 0;
   } else {
     return 1;
-  }
-}
-
-/*
- * Return value
- * -1: utf8_ch is invalid.
- * -2: utf8_ch is insufficient.
- */
-size_t convert_utf8_to_ucs(u_int32_t *ucs_ch, u_char *utf8_ch, size_t len) {
-  if ((utf8_ch[0] & 0xc0) == 0x80) {
-    return (size_t) -1;
-  } else if ((utf8_ch[0] & 0x80) == 0) {
-    *ucs_ch = utf8_ch[0];
-
-    return 1;
-  } else if ((utf8_ch[0] & 0xe0) == 0xc0) {
-    if (len < 2) {
-      return (size_t) -2;
-    }
-
-    if (utf8_ch[1] < 0x80) {
-      return (size_t) -1;
-    }
-
-    *ucs_ch = (((utf8_ch[0] & 0x1f) << 6) & 0xffffffc0) | (utf8_ch[1] & 0x3f);
-
-    if (*ucs_ch < 0x80) {
-      return (size_t) -1;
-    }
-
-    return 2;
-  } else if ((utf8_ch[0] & 0xf0) == 0xe0) {
-    if (len < 3) {
-      return (size_t) -2;
-    }
-
-    if (utf8_ch[1] < 0x80 || utf8_ch[2] < 0x80) {
-      return (size_t) -1;
-    }
-
-    *ucs_ch = (((utf8_ch[0] & 0x0f) << 12) & 0xffff000) |
-              (((utf8_ch[1] & 0x3f) << 6) & 0xffffffc0) | (utf8_ch[2] & 0x3f);
-
-    if (*ucs_ch < 0x800) {
-      return (size_t) -1;
-    }
-
-    return 3;
-  } else if ((utf8_ch[0] & 0xf8) == 0xf0) {
-    if (len < 4) {
-      return (size_t) -2;
-    }
-
-    if (utf8_ch[1] < 0x80 || utf8_ch[2] < 0x80 || utf8_ch[3] < 0x80) {
-      return (size_t) -1;
-    }
-
-    *ucs_ch = (((utf8_ch[0] & 0x07) << 18) & 0xfffc0000) |
-              (((utf8_ch[1] & 0x3f) << 12) & 0xffff000) |
-              (((utf8_ch[2] & 0x3f) << 6) & 0xffffffc0) | (utf8_ch[3] & 0x3f);
-
-    if (*ucs_ch < 0x10000) {
-      return (size_t) -1;
-    }
-
-    return 4;
-  } else if ((utf8_ch[0] & 0xfc) == 0xf8) {
-    if (len < 5) {
-      return (size_t) -2;
-    }
-
-    if (utf8_ch[1] < 0x80 || utf8_ch[2] < 0x80 || utf8_ch[3] < 0x80 || utf8_ch[4] < 0x80) {
-      return (size_t) -1;
-    }
-
-    *ucs_ch = (((utf8_ch[0] & 0x03) << 24) & 0xff000000) |
-              (((utf8_ch[1] & 0x3f) << 18) & 0xfffc0000) |
-              (((utf8_ch[2] & 0x3f) << 12) & 0xffff000) |
-              (((utf8_ch[3] & 0x3f) << 6) & 0xffffffc0) | (utf8_ch[4] & 0x3f);
-
-    if (*ucs_ch < 0x200000) {
-      return (size_t) -1;
-    }
-
-    return 5;
-  } else if ((utf8_ch[0] & 0xfe) == 0xfc) {
-    if (len < 6) {
-      return (size_t) -2;
-    }
-
-    if (utf8_ch[1] < 0x80 || utf8_ch[2] < 0x80 || utf8_ch[3] < 0x80 || utf8_ch[4] < 0x80 ||
-        utf8_ch[5] < 0x80) {
-      return (size_t) -1;
-    }
-
-    *ucs_ch =
-        (((utf8_ch[0] & 0x01 << 30) & 0xc0000000)) | (((utf8_ch[1] & 0x3f) << 24) & 0xff000000) |
-        (((utf8_ch[2] & 0x3f) << 18) & 0xfffc0000) | (((utf8_ch[3] & 0x3f) << 12) & 0xffff000) |
-        (((utf8_ch[4] & 0x3f) << 6) & 0xffffffc0) | (utf8_ch[4] & 0x3f);
-
-    if (*ucs_ch < 0x4000000) {
-      return (size_t) -1;
-    }
-
-    return 6;
-  } else {
-    return (size_t) -1;
-  }
-}
-
-/*
- * Return value
- * -1: ucs_ch is invalid.
- * -2: utf8_ch is insufficient.
- */
-size_t convert_ucs_to_utf8(u_char *utf8, size_t len, u_int32_t ucs_ch) {
-  if (/* 0x00 <= ucs_ch && */ ucs_ch <= 0x7f) {
-    utf8[0] = ucs_ch;
-
-    return 1;
-  } else if (ucs_ch <= 0x07ff) {
-    if (len < 2) {
-      return (size_t) -2;
-    }
-
-    utf8[0] = ((ucs_ch >> 6) & 0xff) | 0xc0;
-    utf8[1] = (ucs_ch & 0x3f) | 0x80;
-
-    return 2;
-  } else if (ucs_ch <= 0xffff) {
-    if (len < 3) {
-      return (size_t) -2;
-    }
-
-    utf8[0] = ((ucs_ch >> 12) & 0x0f) | 0xe0;
-    utf8[1] = ((ucs_ch >> 6) & 0x3f) | 0x80;
-    utf8[2] = (ucs_ch & 0x3f) | 0x80;
-
-    return 3;
-  } else if (ucs_ch <= 0x1fffff) {
-    if (len < 4) {
-      return (size_t) -2;
-    }
-
-    utf8[0] = ((ucs_ch >> 18) & 0x07) | 0xf0;
-    utf8[1] = ((ucs_ch >> 12) & 0x3f) | 0x80;
-    utf8[2] = ((ucs_ch >> 6) & 0x3f) | 0x80;
-    utf8[3] = (ucs_ch & 0x3f) | 0x80;
-
-    return 4;
-  } else if (ucs_ch <= 0x03ffffff) {
-    if (len < 5) {
-      return (size_t) -2;
-    }
-
-    utf8[0] = ((ucs_ch >> 24) & 0x03) | 0xf8;
-    utf8[1] = ((ucs_ch >> 18) & 0x3f) | 0x80;
-    utf8[2] = ((ucs_ch >> 12) & 0x3f) | 0x80;
-    utf8[4] = ((ucs_ch >> 6) & 0x3f) | 0x80;
-    utf8[5] = (ucs_ch & 0x3f) | 0x80;
-
-    return 5;
-  } else if (ucs_ch <= 0x7fffffff) {
-    if (len < 6) {
-      return (size_t) -2;
-    }
-
-    utf8[0] = ((ucs_ch >> 30) & 0x01) | 0xfc;
-    utf8[1] = ((ucs_ch >> 24) & 0x3f) | 0x80;
-    utf8[2] = ((ucs_ch >> 18) & 0x3f) | 0x80;
-    utf8[3] = ((ucs_ch >> 12) & 0x3f) | 0x80;
-    utf8[4] = ((ucs_ch >> 6) & 0x3f) | 0x80;
-    utf8[5] = (ucs_ch & 0x3f) | 0x80;
-
-    return 6;
-  } else {
-    return (size_t) -1;
   }
 }
 
@@ -715,8 +539,14 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
                   pty_mosh->network->get_sent_state_acked_timestamp());
 #endif
 
-  size_t prev_len;
-  if ((prev_len = min(pty_mosh->buf_len, len)) > 0) {
+  size_t prev_len = min(pty_mosh->buf_len, len);
+
+  if (pty_mosh->buf_len > 0) {
+    /*
+     * Even if pty_mosh->buf_len > 0, prev_len may be 0 because len may be 0.
+     * In this case, it is necessary to enter this block not to change
+     * pty_mosh->buf_len.
+     */
     memcpy(buf, pty_mosh->buf, prev_len);
     buf += prev_len;
     len -= prev_len;
@@ -754,6 +584,34 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
       len -= init_str.length();
     }
   }
+
+#ifdef MOSH_SIXEL /* defined in parser.h */
+  char *drcs = sixel_get_drcs();
+
+  if (drcs) {
+    /* XXX in case len < 8 */
+    if (len >= 8) {
+      memcpy(buf, "\x1b[?8800h", 8);
+      len -= 8;
+
+      size_t drcs_len = strlen(drcs);
+
+      memcpy(buf + 8, drcs, min(drcs_len, len));
+      if (drcs_len > len) {
+        if ((pty_mosh->buf = (char*)malloc(drcs_len - len))) {
+          pty_mosh->buf_len = drcs_len - len;
+          memcpy(pty_mosh->buf, drcs + len, pty_mosh->buf_len);
+        }
+      } else {
+        len = drcs_len;
+      }
+
+      sixel_reset_drcs();
+
+      return len + 8 + prev_len;
+    }
+  }
+#endif
 
   pthread_mutex_lock(&event_mutex);
   Terminal::Framebuffer framebuffer = pty_mosh->network->get_latest_remote_state().state.get_fb();
