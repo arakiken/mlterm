@@ -1,3 +1,12 @@
+2019-04-11  Araki Ken  <arakiken@users.sf.net>
+
+	* README.mosh: Updated.
+
+	* vt_pty_mosh.cpp:
+	  - convert_utf8_to_ucs() and convert_ucs_to_utf8() are removed.
+	    (moved to https://bitbucket.org/arakiken/mosh/src/tip/src/terminal/parser.cc?at=sixel-winsock)
+	  - read_pty() uses sixel_get_drcs().
+
 2019-04-03  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/ui_connect_dialog.c: "Mosh" checkbox of connect dialog
