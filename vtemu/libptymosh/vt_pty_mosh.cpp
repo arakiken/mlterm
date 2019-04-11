@@ -678,9 +678,12 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
 
   if (strcmp(host, ip) != 0) {
     char *new_uri;
+
     if ((new_uri = (char*)alloca(strlen(uri) - strlen(host) + strlen(ip) + 1))) {
-      strcpy(new_uri, uri);
-      uri = bl_str_replace(new_uri, host, ip);
+      const char *p = strstr(uri, host);
+      memcpy(new_uri, uri, p - uri);
+      strcpy(new_uri + (p - uri), ip);
+      uri = strcat(new_uri, uri + (p - uri + strlen(host)));
     }
   }
 
@@ -899,6 +902,8 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
 #ifdef TEST_BY_SSH
   close(fds[0]);
 #else
+  /* See vt_pty_destroy() in vt_pty.c */
+  free(ssh->cmd_line);
   (*ssh->final)(ssh);
   free(ssh);
 #endif
