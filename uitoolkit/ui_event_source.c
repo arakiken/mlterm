@@ -8,7 +8,6 @@
 #include <string.h>       /* memset/memcpy */
 #include <sys/time.h>     /* timeval */
 #include <unistd.h>       /* select */
-#include <errno.h>
 #include <pobl/bl_file.h> /* bl_file_set_cloexec */
 #endif
 
@@ -169,16 +168,14 @@ static void receive_next_event(void) {
 #endif
     if ((ret = select(maxfd + 1, &read_fds, NULL, NULL, &tval)) != 0) {
       if (ret < 0) {
-        if (errno != EINTR) {
 #ifdef DEBUG
-          bl_debug_printf(BL_DEBUG_TAG " error happened in select.\n");
+        bl_debug_printf(BL_DEBUG_TAG " error happened in select.\n");
 #endif
 
-          return;
-        }
-      } else {
-        break;
+        return;
       }
+
+      break;
     }
 
 #ifdef KEY_REPEAT_BY_MYSELF
