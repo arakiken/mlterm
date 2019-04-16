@@ -404,8 +404,12 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   u_int cols;
   wincs_info_t *wincsinfo;
   char *font_family;
+  wchar_t *w_font_family;
+  int wlen;
   int weight;
   int is_italic;
+  int width;
+  int height;
   double fontsize_d;
   u_int percent;
 
@@ -506,28 +510,53 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     font_family = "Courier New";
   }
 
+  wlen = MultiByteToWideChar(CP_UTF8, 0, font_family, -1, NULL, 0);
+  if ((w_font_family = alloca(wlen)) == NULL) {
+    free(font);
+
+    return NULL;
+  }
+  MultiByteToWideChar(CP_UTF8, 0, font_family, -1, w_font_family, wlen);
+
   if (!display_gc) {
     display_gc = CreateIC("Display", NULL, NULL, NULL);
   }
 
-  font->xfont->fid =
-      CreateFont(use_point_size ? /* Height */
-                     -MulDiv((int)fontsize_d, GetDeviceCaps(display_gc, LOGPIXELSY), 72)
-                                : (int)fontsize_d,
+  height = fontsize_d;
 #if 0
-                 col_width ? (font->is_vertical ? col_width / 2 : col_width) : (int)fontsize_d / 2,
+  if (col_width > 0) {
+    if (size_attr == DOUBLE_WIDTH) {
+      width = fontsize_d;
+    } else {
+      width = (font->is_vertical ? col_width / 2 : col_width);
+    }
+  }
 #else
-                 size_attr == DOUBLE_WIDTH ? (use_point_size ? -MulDiv((int)fontsize_d, GetDeviceCaps(display_gc, LOGPIXELSX), 72) : (int)fontsize_d) : 0, /* Width (0=auto) */
+  if (size_attr == DOUBLE_WIDTH) {
+    width = fontsize_d;
+  }
 #endif
-                 0,         /* text angle */
-                 0,         /* char angle */
-                 weight,    /* weight */
-                 is_italic, /* italic */
-                 FALSE,     /* underline */
-                 FALSE,     /* eraseline */
-                 wincsinfo->cs, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                 (font_present & FONT_AA) ? ANTIALIASED_QUALITY : PROOF_QUALITY,
-                 FIXED_PITCH | FF_MODERN, font_family);
+  else {
+    width = 0;
+  }
+  if (use_point_size) {
+    height = -MulDiv(height, GetDeviceCaps(display_gc, LOGPIXELSY), 72);
+    width = -MulDiv(width, GetDeviceCaps(display_gc, LOGPIXELSX), 72);
+  }
+
+  font->xfont->fid =
+      CreateFontW(height, /* Height */
+                  width,  /* Width (0=auto) */
+                  0,      /* text angle */
+                  0,      /* char angle */
+                  weight, /* weight */
+                  is_italic, /* italic */
+                  FALSE,  /* underline */
+                  FALSE,  /* eraseline */
+                  DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+                  (font_present & FONT_AA) ? ANTIALIASED_QUALITY :
+                                             DEFAULT_QUALITY /* PROOF_QUALITY */,
+                  FIXED_PITCH | FF_DONTCARE, w_font_family);
 
   if (!font->xfont->fid) {
 #ifdef DEBUG
@@ -556,10 +585,10 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
 #if 0
     bl_debug_printf(
-        "Family %s Size %d CS %x => AveCharWidth %d Maui.harWidth %d 'w' width "
+        "Family %s Size %d CS %x => AveCharWidth %d MaxCharWidth %d 'w' width "
         "%d 'l' width %d Height %d Ascent %d ExLeading %d InLeading %d "
         "Pitch&Family %d Weight %d\n",
-        font_family, fontsize, wincsinfo->cs, tm.tmAveCharWidth, tm.tmMaui.harWidth, w_sz.cx,
+        font_family, fontsize, wincsinfo->cs, tm.tmAveCharWidth, tm.tmMaxCharWidth, w_sz.cx,
         l_sz.cx, tm.tmHeight, tm.tmAscent, tm.tmExternalLeading, tm.tmInternalLeading,
         tm.tmPitchAndFamily, tm.tmWeight);
 #endif
@@ -608,6 +637,10 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
         ch_width = fontsize * percent / 100;
       } else {
         ch_width = fontsize * percent / 200;
+      }
+
+      if (use_point_size) {
+        ch_width = -MulDiv(ch_width, GetDeviceCaps(display_gc, LOGPIXELSX), 72);
       }
 
       if (!font->is_var_col_width && font->width != ch_width) {

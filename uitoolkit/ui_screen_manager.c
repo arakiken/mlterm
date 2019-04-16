@@ -234,7 +234,9 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
 #endif
     if (!ui_connect_dialog(&uri, &pass, &exec_cmd, &privkey, &x11_fwd, display, window,
                            main_config.default_server)) {
-      bl_msg_printf("Connect dialog is canceled.\n");
+#ifdef DEBUG
+      bl_debug_printf(BL_DEBUG_TAG " Connect dialog is canceled.\n");
+#endif
       if (vt_get_all_terms(NULL) > 1) {
         return 0;
       }
