@@ -226,7 +226,8 @@ if test "$DL_LOADER" = none ; then
 
 	# cygwin hack
 	# (AC_LIBTOOL_DLOPEN tell lt_cv_dlopen == dlopen but use bl_dlcfn_win32.c.)
-	if test "$bl_cv_cygwin" = "yes" -o "$host_os" = "msys" ; then
+	# On msys2, use dlopen because bl_dlfcn_win32 doesn't work correctly.
+	if test "$bl_cv_cygwin" = "yes"; then
 		DL_LOADER=win32
 	fi
 fi

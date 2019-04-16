@@ -105,7 +105,7 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, '9', "crfg", 0, "cursor_fg_color", "cursor foreground color");
   bl_conf_add_opt(conf, '0', "crbg", 0, "cursor_bg_color", "cursor background color");
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO) || \
-  defined(USE_FREETYPE)
+  defined(USE_FREETYPE) || defined(USE_WIN32GUI)
   bl_conf_add_opt(conf, 'A', "aa", 1, "use_anti_alias",
                   "forcibly use anti alias font by using Xft or cairo");
 #endif
@@ -337,7 +337,7 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
 
 void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int argc, char **argv) {
   char *value;
-  char *invalid_msg = "%s %s is not valid.\n";
+  char *invalid_msg = "%s=%s is invalid.\n";
 
   memset(main_config, 0, sizeof(ui_main_config_t));
 
@@ -361,7 +361,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   if ((value = bl_conf_get_value(conf, "fontsize")) == NULL) {
     main_config->font_size = 16;
   } else if (!bl_str_to_uint(&main_config->font_size, value)) {
-    bl_msg_printf(invalid_msg, "font size", value);
+    bl_msg_printf(invalid_msg, "fontsize", value);
 
     /* default value is used. */
     main_config->font_size = 16;
@@ -449,7 +449,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (bl_str_to_uint(&size, value)) {
       main_config->step_in_changing_font_size = size;
     } else {
-      bl_msg_printf(invalid_msg, "step in changing font size", value);
+      bl_msg_printf(invalid_msg, "step_in_changing_font_size", value);
     }
   }
 
@@ -470,7 +470,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
 #endif
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO) || \
-  defined(USE_FREETYPE)
+  defined(USE_FREETYPE) || defined(USE_WIN32GUI)
   if ((value = bl_conf_get_value(conf, "use_anti_alias"))) {
     if (strcmp(value, "true") == 0) {
       main_config->font_present |= FONT_AA;
@@ -628,7 +628,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (bl_str_to_int(&size, value)) {
       main_config->line_space = size;
     } else {
-      bl_msg_printf(invalid_msg, "line space", value);
+      bl_msg_printf(invalid_msg, "line_space", value);
     }
   }
 
@@ -638,7 +638,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (bl_str_to_uint(&size, value)) {
       main_config->letter_space = size;
     } else {
-      bl_msg_printf(invalid_msg, "letter space", value);
+      bl_msg_printf(invalid_msg, "letter_space", value);
     }
   }
 
@@ -653,7 +653,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     } else if (bl_str_to_uint(&size, value)) {
       main_config->num_log_lines = size;
     } else {
-      bl_msg_printf(invalid_msg, "log size", value);
+      bl_msg_printf(invalid_msg, "logsize", value);
     }
   }
 
@@ -665,7 +665,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (bl_str_to_uint(&size, value)) {
       main_config->tab_size = size;
     } else {
-      bl_msg_printf(invalid_msg, "tab size", value);
+      bl_msg_printf(invalid_msg, "tabsize", value);
     }
   }
 
@@ -793,7 +793,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (bl_str_to_uint(&col_size_of_width_a, value)) {
       main_config->col_size_of_width_a = col_size_of_width_a;
     } else {
-      bl_msg_printf(invalid_msg, "col size of width a", value);
+      bl_msg_printf(invalid_msg, "col_size_of_width_a", value);
     }
   }
 
@@ -826,7 +826,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (bl_str_to_uint(&brightness, value)) {
       main_config->brightness = brightness;
     } else {
-      bl_msg_printf(invalid_msg, "shade ratio", value);
+      bl_msg_printf(invalid_msg, "brightness", value);
     }
   }
 
@@ -838,7 +838,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (bl_str_to_uint(&contrast, value)) {
       main_config->contrast = contrast;
     } else {
-      bl_msg_printf(invalid_msg, "contrast ratio", value);
+      bl_msg_printf(invalid_msg, "contrast", value);
     }
   }
 
@@ -850,7 +850,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (bl_str_to_uint(&gamma, value)) {
       main_config->gamma = gamma;
     } else {
-      bl_msg_printf(invalid_msg, "gamma ratio", value);
+      bl_msg_printf(invalid_msg, "gamma", value);
     }
   }
 
@@ -874,7 +874,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (bl_str_to_uint(&fade_ratio, value) && fade_ratio <= 100) {
       main_config->fade_ratio = fade_ratio;
     } else {
-      bl_msg_printf(invalid_msg, "fade ratio", value);
+      bl_msg_printf(invalid_msg, "fade_ratio", value);
     }
   }
 
@@ -1053,7 +1053,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (bl_str_to_uint(&parent_window, value)) {
       main_config->parent_window = parent_window;
     } else {
-      bl_msg_printf(invalid_msg, "parent window", value);
+      bl_msg_printf(invalid_msg, "parent_window", value);
     }
   }
 
@@ -1169,7 +1169,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (bl_str_to_int(&size, value)) {
       main_config->underline_offset = size;
     } else {
-      bl_msg_printf(invalid_msg, "underline offset", value);
+      bl_msg_printf(invalid_msg, "underline_offset", value);
     }
   }
 
@@ -1179,7 +1179,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (bl_str_to_int(&size, value)) {
       main_config->baseline_offset = size;
     } else {
-      bl_msg_printf(invalid_msg, "baseline offset", value);
+      bl_msg_printf(invalid_msg, "baseline_offset", value);
     }
   }
 

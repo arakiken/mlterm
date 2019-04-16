@@ -1,3 +1,28 @@
+2019-04-16  Araki Ken  <arakiken@users.sf.net>
+
+	* README.mosh, README.console, README.win32: Updated.
+
+	* win32/ui_font.c: ui_font_new() supports UTF8 encoding for 'fontname'
+	  argument.
+
+	* ui_main_config.c: "use_anti_alias" option is revived on win32gdi.
+
+	* vt_char_encoding.c: The size of msb_set_cs_table[] is shrinked.
+
+	* ui_font_manager.c: The size of usascii_font_cs_table[] is shrinked.
+
+	* ef_jis_property.c: The size of jisx0213_2000_1_property_table[]
+	  is shrinked.
+
+	* baselib/configure.in: bl_dlfcn_dl.c instead of bl_dlfcn_win32.c is
+	  used by default on msys2.
+
+	* ui_screen.c:
+	  - The returned value of draw_cursor(), flush_scroll_cache(),
+	    redraw_screen(), highlight_cursor(), unhighlight_cursor() and
+	    set_icon() is changed from int to void.
+	  - screen->blink_wait is reset to -1 whenever key_pressed() is called.
+
 2019-04-12  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_pty_mosh.cpp: Memory leaks are fixed.

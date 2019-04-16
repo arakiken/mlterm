@@ -149,7 +149,7 @@ WIN32 native GUI 対応に関するメモ
     が継承されず、新しい console window が表示されてしまう問題が生じ
     ることがあります。
 
-  o DEC SPECIAL 文字を表示するには、Tera Term (http://teraterm.sourceforge.jp)
+  o DEC SPECIAL 文字を表示するには、Tera Term (https://ja.osdn.net/projects/ttssh2/)
     に含まれている "Tera Special" フォント (TSPECIAL1.TTF) をインストールする
     必要があります。
 

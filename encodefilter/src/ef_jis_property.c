@@ -11,7 +11,7 @@
 
 /* --- static variables --- */
 
-static ef_property_t jisx0213_2000_1_property_table[] = {
+static u_int8_t jisx0213_2000_1_property_table[] = {
     /* 0x2b52 */
     EF_COMBINING,             /* COMBINING DOUBLE INVERTED BREVE */
     0, 0, 0, 0, EF_COMBINING, /* COMBINING BREVE */

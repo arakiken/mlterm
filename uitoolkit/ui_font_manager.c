@@ -12,8 +12,8 @@
 #endif
 
 typedef struct encoding_to_cs_table {
-  vt_char_encoding_t encoding;
-  ef_charset_t cs;
+  u_int16_t encoding; /* vt_char_encoding_t */
+  u_int16_t cs; /* ef_charset_t */
 
 } encoding_to_cs_table_t;
 

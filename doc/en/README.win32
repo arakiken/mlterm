@@ -94,7 +94,7 @@ Memo about WIN32 native GUI.
     ~/.mlterm/key in MinGW.
   o In order to show DEC SPECIAL characters, it is necessary to install
     "Tera Special" font (TSPECIAL1.TTF) which is a part of Tera Term
-    (http://teraterm.sourceforge.jp/).
+    (https://ja.osdn.net/projects/ttssh2/).
   o Cygwin/X 1.17 or later doesn't listen tcp connection (127.0.0.1:6000) by default.
     Start X server as follows to enable mlterm (built with MinGW) to connect to
     X server.

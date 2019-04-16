@@ -416,7 +416,7 @@ static int xterm_im_is_active(void *p);
  * Don't call this function directly.
  * Call this function via highlight_cursor.
  */
-static int draw_cursor(ui_screen_t *screen) {
+static void draw_cursor(ui_screen_t *screen) {
   int row;
   int x;
   int y;
@@ -431,15 +431,15 @@ static int draw_cursor(ui_screen_t *screen) {
 #endif
 
   if (screen->is_preediting) {
-    return 1;
+    return;
   }
 
   if (!vt_term_is_visible_cursor(screen->term)) {
-    return 1;
+    return;
   }
 
   if ((row = vt_term_cursor_row_in_screen(screen->term)) == -1) {
-    return 0;
+    return;
   }
 
   y = convert_row_to_y(screen, row);
@@ -449,7 +449,7 @@ static int draw_cursor(ui_screen_t *screen) {
     bl_warn_printf(BL_DEBUG_TAG " cursor line doesn't exist.\n");
 #endif
 
-    return 0;
+    return;
   }
 
   orig = vt_line_shape(line);
@@ -468,7 +468,7 @@ static int draw_cursor(ui_screen_t *screen) {
       vt_line_unshape(line, orig);
     }
 
-    return 0;
+    return;
   }
 #endif
 
@@ -563,16 +563,14 @@ static int draw_cursor(ui_screen_t *screen) {
   if (orig) {
     vt_line_unshape(line, orig);
   }
-
-  return 1;
 }
 
-static int flush_scroll_cache(ui_screen_t *screen, int scroll_actual_screen) {
+static void flush_scroll_cache(ui_screen_t *screen, int scroll_actual_screen) {
   int scroll_cache_rows;
   int scroll_region_rows;
 
   if (!screen->scroll_cache_rows) {
-    return 0;
+    return;
   }
 
   /*
@@ -601,7 +599,7 @@ static int flush_scroll_cache(ui_screen_t *screen, int scroll_actual_screen) {
 
   if (scroll_cache_rows >= (scroll_region_rows = screen->scroll_cache_boundary_end -
                                                  screen->scroll_cache_boundary_start + 1)) {
-    return 1;
+    return;
   }
 
   if (scroll_actual_screen && ui_window_is_scrollable(&screen->window)) {
@@ -687,8 +685,6 @@ static int flush_scroll_cache(ui_screen_t *screen, int scroll_actual_screen) {
       }
     }
   }
-
-  return 1;
 }
 
 static void set_scroll_boundary(ui_screen_t *screen, int boundary_start, int boundary_end) {
@@ -707,7 +703,7 @@ static void set_scroll_boundary(ui_screen_t *screen, int boundary_start, int bou
  * Don't call this function except from window_exposed or update_window.
  * Call this function via ui_window_update.
  */
-static int redraw_screen(ui_screen_t *screen) {
+static void redraw_screen(ui_screen_t *screen) {
   int count;
   vt_line_t *line;
   int y;
@@ -726,7 +722,7 @@ static int redraw_screen(ui_screen_t *screen) {
       bl_debug_printf(BL_DEBUG_TAG " nothing is redrawn.\n");
 #endif
 
-      return 1;
+      return;
     }
 
     if (vt_line_is_modified(line)) {
@@ -772,26 +768,22 @@ static int redraw_screen(ui_screen_t *screen) {
   if (screen->im) {
     ui_im_redraw_preedit(screen->im, screen->window.is_focused);
   }
-
-  return 1;
 }
 
 /*
  * Don't call this function except from window_exposed or update_window.
  * Call this function via ui_window_update.
  */
-static int highlight_cursor(ui_screen_t *screen) {
+static void highlight_cursor(ui_screen_t *screen) {
   flush_scroll_cache(screen, 1);
 
   draw_cursor(screen);
 
   ui_xic_set_spot(&screen->window);
-
-  return 1;
 }
 
-static int unhighlight_cursor(ui_screen_t *screen, int revert_visual) {
-  return vt_term_unhighlight_cursor(screen->term, revert_visual);
+static void unhighlight_cursor(ui_screen_t *screen, int revert_visual) {
+  vt_term_unhighlight_cursor(screen->term, revert_visual);
 }
 
 /*
@@ -1019,14 +1011,14 @@ static int set_wall_picture(ui_screen_t *screen) {
   return 1;
 }
 
-static int set_icon(ui_screen_t *screen) {
+static void set_icon(ui_screen_t *screen) {
   ui_icon_picture_t *icon;
   char *path;
 
   if ((path = vt_term_icon_path(screen->term))) {
     if (screen->icon && strcmp(path, screen->icon->file_path) == 0) {
       /* Not changed. */
-      return 0;
+      return;
     }
 
     if ((icon = ui_acquire_icon_picture(screen->window.disp, path))) {
@@ -1037,7 +1029,7 @@ static int set_icon(ui_screen_t *screen) {
   } else {
     if (screen->icon == NULL) {
       /* Not changed. */
-      return 0;
+      return;
     }
 
     icon = NULL;
@@ -1049,8 +1041,6 @@ static int set_icon(ui_screen_t *screen) {
   }
 
   screen->icon = icon;
-
-  return 1;
 }
 
 /* referred in update_special_visual. */
@@ -1986,6 +1976,8 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
   u_int masked_state;
 
   screen = (ui_screen_t *)win;
+
+  screen->blink_wait = -1;
 
   masked_state = event->state & screen->mod_ignore_mask;
 
