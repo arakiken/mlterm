@@ -4836,10 +4836,7 @@ inline static int parse_vt100_escape_sequence(
         } else if (*str_p == 'p') {
           /* "CSI > p" pointer mode */
 
-          if (HAS_XTERM_LISTENER(vt_parser, hide_cursor)) {
-            (*vt_parser->xterm_listener->hide_cursor)(vt_parser->xterm_listener->self,
-                                                         ps[0] == 2 ? 1 : 0);
-          }
+          vt_parser->hide_pointer_mode = ps[0];
         } else if (*str_p == 't') {
           /* "CSI > t" */
 
@@ -6751,6 +6748,7 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
   vt_parser->unicode_policy = policy;
   vt_parser->cursor_style = cursor_style;
   vt_parser->is_visible_cursor = 1;
+  vt_parser->hide_pointer_mode = 2; /* Compatible with xterm 344 */
 
   if ((vt_parser->cc_conv = vt_char_encoding_conv_new(encoding)) == NULL) {
     goto error;

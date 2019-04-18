@@ -236,6 +236,8 @@ void ui_window_add_event_mask(ui_window_t *win, long event_mask);
 
 void ui_window_remove_event_mask(ui_window_t *win, long event_mask);
 
+#define ui_window_check_event_mask(win, mask) ((win)->event_mask & (mask))
+
 /* int  ui_window_grab_pointer( ui_window_t *  win) ; */
 
 void ui_window_ungrab_pointer(ui_window_t *win);

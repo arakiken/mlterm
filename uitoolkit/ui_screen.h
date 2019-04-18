@@ -152,6 +152,7 @@ typedef struct ui_screen {
   int8_t baseline_offset;
   int8_t processing_vtseq;
   int8_t anim_wait;
+  int8_t hide_pointer;
 
 } ui_screen_t;
 

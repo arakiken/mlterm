@@ -135,7 +135,6 @@ typedef struct vt_xterm_event_listener {
 #ifdef ENABLE_OSC5379PICTURE
   void (*add_frame_to_animation)(void *, char *, int *, int *);/* called in logical context. */
 #endif
-  void (*hide_cursor)(void *, int);                            /* called in logical context. */
   int (*check_iscii_font)(void *, ef_charset_t);               /* called in logical context. */
   void (*lock_keyboard)(void *, int);                          /* called in logical context. */
 
@@ -179,8 +178,8 @@ typedef struct vt_storable_states {
   int last_column_flag : 1;
 
   /* vt_line_style_t */ int line_style : 7;
-  vt_color_t fg_color;
-  vt_color_t bg_color;
+  /* vt_color_t */ u_int16_t fg_color;
+  /* vt_color_t */ u_int16_t bg_color;
   ef_charset_t cs;
 
 } vt_storable_states_t;
@@ -210,12 +209,11 @@ typedef struct vt_parser {
 
   ef_parser_t *cc_parser; /* char code parser */
   ef_conv_t *cc_conv;     /* char code converter */
-  vt_char_encoding_t encoding;
+  /* vt_char_encoding_t */ u_int16_t encoding;
+  /* ef_charset_t */ u_int16_t cs;
 
-  vt_color_t fg_color;
-  vt_color_t bg_color;
-
-  ef_charset_t cs;
+  /* vt_color_t */ u_int16_t fg_color;
+  /* vt_color_t */ u_int16_t bg_color;
 
   vt_xterm_event_listener_t *xterm_listener;
   vt_config_event_listener_t *config_listener;
@@ -270,10 +268,12 @@ typedef struct vt_parser {
   int8_t modify_other_keys;
   u_char prev_local_echo_char;
 
+  u_int8_t hide_pointer_mode;
+
   /* Used for non iso2022 encoding */
-  ef_charset_t gl;
-  ef_charset_t g0;
-  ef_charset_t g1;
+  /* ef_charset_t */ u_int16_t gl;
+  /* ef_charset_t */ u_int16_t g0;
+  /* ef_charset_t */ u_int16_t g1;
 
   /* XXX Use (vt_parser->xxxxx ? 1 : 0) in copying these flags to int, otherwise int is -1. */
   int is_so : 1;
@@ -451,5 +451,7 @@ void vt_parser_report_mouse_tracking(vt_parser_t *vt_parser, int col, int row,
 #define vt_parser_is_visible_cursor(vt_parser) ((vt_parser)->is_visible_cursor)
 
 #define vt_parser_get_cursor_style(vt_parser) ((vt_parser)->cursor_style)
+
+#define vt_parser_get_hide_pointer_mode(vt_parser) ((vt_parser)->hide_pointer_mode)
 
 #endif
