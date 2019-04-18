@@ -349,4 +349,6 @@ int vt_term_set_config(vt_term_t *term, char *key, char *value);
 
 #define vt_term_get_cursor_style(term) vt_parser_get_cursor_style((term)->parser)
 
+#define vt_term_get_hide_pointer_mode(term) vt_parser_get_hide_pointer_mode((term)->parser)
+
 #endif

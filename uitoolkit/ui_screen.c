@@ -1977,6 +1977,19 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
 
   screen = (ui_screen_t *)win;
 
+  if (!screen->hide_pointer &&
+      (vt_term_get_hide_pointer_mode(screen->term) >= 2 ||
+       (vt_term_get_hide_pointer_mode(screen->term) == 1 &&
+        !vt_term_get_mouse_report_mode(screen->term)))) {
+    ui_window_set_cursor(win, XC_nil);
+    if (ui_window_check_event_mask(win, PointerMotionMask)) {
+      screen->hide_pointer = 1;
+    } else {
+      ui_window_add_event_mask(win, PointerMotionMask);
+      screen->hide_pointer = 2;
+    }
+  }
+
   screen->blink_wait = -1;
 
   masked_state = event->state & screen->mod_ignore_mask;
@@ -2997,6 +3010,14 @@ static void pointer_motion(ui_window_t *win, XMotionEvent *event) {
   ui_screen_t *screen;
 
   screen = (ui_screen_t *)win;
+
+  if (screen->hide_pointer) {
+    ui_window_set_cursor(win, XC_xterm);
+    if (screen->hide_pointer == 2) {
+      ui_window_remove_event_mask(win, PointerMotionMask);
+    }
+    screen->hide_pointer = 0;
+  }
 
   if (!(event->state & (ShiftMask | ControlMask)) &&
       vt_term_get_mouse_report_mode(screen->term) >= ANY_EVENT_MOUSE_REPORT) {
@@ -5778,18 +5799,6 @@ static void xterm_add_frame_to_animation(void *p, char *file_path, int *num_cols
 #define xterm_add_frame_to_animation NULL
 #endif /* NO_IMAGE */
 
-static void xterm_hide_cursor(void *p, int hide) {
-  ui_screen_t *screen;
-
-  screen = p;
-
-  if (hide) {
-    ui_window_set_cursor(&screen->window, XC_nil);
-  } else {
-    ui_window_set_cursor(&screen->window, XC_xterm);
-  }
-}
-
 static int xterm_check_iscii_font(void *p, ef_charset_t cs) {
   return ui_font_cache_get_font(((ui_screen_t *)p)->font_man->font_cache,
                                 NORMAL_FONT_OF(cs)) != NULL;
@@ -6029,7 +6038,6 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
 #ifdef ENABLE_OSC5379PICTURE
   screen->xterm_listener.add_frame_to_animation = xterm_add_frame_to_animation;
 #endif
-  screen->xterm_listener.hide_cursor = xterm_hide_cursor;
   screen->xterm_listener.check_iscii_font = xterm_check_iscii_font;
   screen->xterm_listener.lock_keyboard = xterm_lock_keyboard;
 
