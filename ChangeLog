@@ -1,3 +1,10 @@
+2019-04-20  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/ui_display.c: Not only "nil2" font but also "fixed" is loaded
+	  for XC_nil.
+
+	* win32/ui_window.c: ui_window_set_cursor() supports XC_nil.
+
 2019-04-19  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.[ch]:

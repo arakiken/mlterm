@@ -74,6 +74,7 @@ static ef_parser_t *m_cp_parser;
 static LONG decorate_width;
 static LONG decorate_height; /* Height of Title bar etc. */
 static int use_urgent_bell;
+static int pointer_hidden;
 
 /* --- static functions --- */
 
@@ -904,6 +905,20 @@ int ui_window_set_transparent(ui_window_t *win, ui_picture_modifier_t *pic_mod) 
 int ui_window_unset_transparent(ui_window_t *win) { return 0; }
 
 void ui_window_set_cursor(ui_window_t *win, u_int cursor_shape) {
+  if (win->my_window != None) {
+    if (cursor_shape == XC_nil) {
+      if (!pointer_hidden) {
+        ShowCursor(FALSE);
+        pointer_hidden = 1;
+      }
+    } else if (win->cursor_shape == XC_nil) {
+      if (pointer_hidden) {
+        ShowCursor(TRUE);
+        pointer_hidden = 0;
+      }
+    }
+  }
+
   win->cursor_shape = cursor_shape;
 }
 
@@ -1958,6 +1973,11 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
       return 1;
 
     case WM_MOUSEMOVE:
+      if (pointer_hidden) {
+        ShowCursor(TRUE);
+        pointer_hidden = 0;
+      }
+
       if (win->button_is_pressing ||
           ((win->event_mask & PointerMotionMask) && win->pointer_motion)) {
         XMotionEvent mev;
