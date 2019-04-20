@@ -1,3 +1,4 @@
+* Hide the mouse cursor in inputting keys by default on xlib and win32.
 * ~/.mlterm/font accepts UTF-8 on windows.
 * Bug fixes:
   Fix memory leaks of libptymosh.so

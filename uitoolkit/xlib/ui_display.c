@@ -526,7 +526,8 @@ Cursor ui_display_get_cursor(ui_display_t *disp, u_int shape) {
       XFontStruct *font;
       XColor dummy;
 
-      if (!(font = XLoadQueryFont(disp->display, "nil2"))) {
+      if (!(font = XLoadQueryFont(disp->display, "nil2")) &&
+          !(font = XLoadQueryFont(disp->display, "fixed"))) {
         return None;
       }
 
