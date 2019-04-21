@@ -1,3 +1,13 @@
+2019-04-21  Araki Ken  <arakiken@users.sf.net>
+
+	* MLTermPty.java, MLTermPty.c:
+	  waitForReading() returns 0, 1, or -1 instead of JNI_TRUE or JNI_FALSE.
+
+	* MLTermPty.c:
+	  vt_term_manager apis are enclosed by pthread_mutex_{un}lock().
+
+	* java/Makefile.in: mlterm.o is compiled before compiling MLTermPty.so.
+
 2019-04-20  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/ui_display.c: Not only "nil2" font but also "fixed" is loaded

@@ -193,7 +193,7 @@ public class MLTermPty {
     nativeSetListener(nativeObj, listener);
   }
 
-  public native static boolean waitForReading();
+  public native static int waitForReading();
 
   private native boolean nativeIsActive(long obj);
   public boolean isActive() {

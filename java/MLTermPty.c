@@ -7,6 +7,11 @@
 
 #include "mlterm_MLTermPty.h"
 
+#if !defined(USE_WIN32API) || defined(USE_LIBSSH2)
+#define WAIT_FOR_READING_WORKS
+#include <pthread.h>
+#endif
+
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h> /* alloca */
 #include <pobl/bl_unistd.h> /* bl_setenv */
@@ -48,6 +53,14 @@ typedef struct native_obj {
 static ef_parser_t *str_parser;
 static ef_parser_t *utf8_parser;
 static ef_conv_t *utf16_conv;
+
+#ifdef WAIT_FOR_READING_WORKS
+/*
+ * mutex for the main thread and startPtyWather thread in MLTerm.java
+ * Enclose vt_term_manager apis by lock/unlock.
+ */
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 #if defined(USE_WIN32API) && !defined(USE_LIBSSH2)
 static char *plink;
@@ -465,9 +478,17 @@ Java_mlterm_MLTermPty_nativeOpen(JNIEnv *env, jobject obj, jstring jstr_host,
   env_for_dialog = env;
 #endif
 
+#ifdef WAIT_FOR_READING_WORKS
+  pthread_mutex_lock(&mutex);
+#endif
+
   nativeObj->term = mlterm_open(host, pass, cols, rows, 0, encoding_str, argv,
                                 &nativeObj->xterm_listener, &nativeObj->config_listener,
                                 &nativeObj->screen_listener, &nativeObj->pty_listener, 1);
+
+#ifdef WAIT_FOR_READING_WORKS
+  pthread_mutex_unlock(&mutex);
+#endif
 
 #ifdef USE_LIBSSH2
   env_for_dialog = NULL;
@@ -528,9 +549,9 @@ Java_mlterm_MLTermPty_nativeSetListener(JNIEnv *env, jobject obj, jlong nobj, jo
   }
 }
 
-JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_waitForReading(JNIEnv *env, jclass class) {
-#if defined(USE_WIN32API) && !defined(USE_LIBSSH2)
-  return JNI_FALSE;
+JNIEXPORT jint JNICALL Java_mlterm_MLTermPty_waitForReading(JNIEnv *env, jclass class) {
+#ifndef WAIT_FOR_READING_WORKS
+  return 0;
 #else
   u_int count;
   vt_term_t **terms;
@@ -538,73 +559,90 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_waitForReading(JNIEnv *env, jcl
   int maxfd;
   int ptyfd;
   fd_set read_fds;
-#ifdef USE_LIBSSH2
   struct timeval tval;
+#ifdef USE_LIBSSH2
   int *xssh_fds;
   u_int num_xssh_fds;
   static u_int keepalive_msec_left;
 #endif
 
+  pthread_mutex_lock(&mutex);
+
   vt_close_dead_terms();
   num_terms = vt_get_all_terms(&terms);
 
   if (num_terms == 0) {
-    return JNI_FALSE;
+    pthread_mutex_unlock(&mutex);
+
+    return 0;
   }
 
 #ifdef USE_LIBSSH2
   num_xssh_fds = vt_pty_ssh_get_x11_fds(&xssh_fds);
 #endif
 
-  while (1) {
 #ifdef USE_LIBSSH2
-    if (vt_pty_ssh_poll(&read_fds) > 0) {
-      return JNI_TRUE;
-    }
+  if (vt_pty_ssh_poll(&read_fds) > 0) {
+    pthread_mutex_unlock(&mutex);
+
+    return 1;
+  }
 #endif
 
-    maxfd = 0;
-    FD_ZERO(&read_fds);
+  maxfd = 0;
+  FD_ZERO(&read_fds);
 
-    for (count = 0; count < num_terms; count++) {
-      ptyfd = vt_term_get_master_fd(terms[count]);
-      FD_SET(ptyfd, &read_fds);
+  for (count = 0; count < num_terms; count++) {
+    ptyfd = vt_term_get_master_fd(terms[count]);
+    FD_SET(ptyfd, &read_fds);
 
-      if (ptyfd > maxfd) {
-        maxfd = ptyfd;
-      }
-    }
-
-#ifdef USE_LIBSSH2
-    for (count = 0; count < num_xssh_fds; count++) {
-      FD_SET(xssh_fds[count], &read_fds);
-
-      if (xssh_fds[count] > maxfd) {
-        maxfd = xssh_fds[count];
-      }
-    }
-
-    tval.tv_sec = (keepalive_msec_left + 999) / 1000;
-    tval.tv_usec = 0;
-
-    if (select(maxfd + 1, &read_fds, NULL, NULL, tval.tv_sec > 0 ? &tval : NULL) == 0) {
-      keepalive_msec_left = vt_pty_ssh_keepalive(tval.tv_sec * 1000);
-    } else
-#else
-    select(maxfd + 1, &read_fds, NULL, NULL, NULL);
-#endif
-    {
-      break;
+    if (ptyfd > maxfd) {
+      maxfd = ptyfd;
     }
   }
 
-  return JNI_TRUE;
+#ifdef USE_LIBSSH2
+  for (count = 0; count < num_xssh_fds; count++) {
+    FD_SET(xssh_fds[count], &read_fds);
+
+    if (xssh_fds[count] > maxfd) {
+      maxfd = xssh_fds[count];
+    }
+  }
+#endif
+
+  pthread_mutex_unlock(&mutex);
+
+  tval.tv_sec = 1;
+  tval.tv_usec = 0;
+
+  /*
+   * If 5th argument is NULL instead of &tval, startPtyWather thread in
+   * MLTerm.java might not exit because select() might not return.
+   */
+  if (select(maxfd + 1, &read_fds, NULL, NULL, &tval) == 0) {
+#ifdef USE_LIBSSH2
+    keepalive_msec_left = vt_pty_ssh_keepalive(tval.tv_sec * 1000);
+#endif
+
+    return -1;
+  }
+
+  return 1;
 #endif
 }
 
 JNIEXPORT jboolean JNICALL
 Java_mlterm_MLTermPty_nativeIsActive(JNIEnv *env, jobject obj, jlong nativeObj) {
+#ifdef WAIT_FOR_READING_WORKS
+  pthread_mutex_lock(&mutex);
+#endif
+
   vt_close_dead_terms();
+
+#ifdef WAIT_FOR_READING_WORKS
+  pthread_mutex_unlock(&mutex);
+#endif
 
   if (nativeObj && ((native_obj_t *)nativeObj)->term) {
     return JNI_TRUE;
