@@ -862,11 +862,12 @@ public class MLTerm extends StyledText {
           }
 
           /* block until pty is ready to be read. */
-          if (!MLTermPty.waitForReading()) {
+          int ret = MLTermPty.waitForReading();
+          if (ret == 0) {
             break;
+          } else if (ret == 1) {
+            readyReadPty = true;
           }
-
-          readyReadPty = true;
         }
       }
     })).start();

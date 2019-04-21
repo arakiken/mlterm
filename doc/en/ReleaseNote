@@ -3,6 +3,7 @@
 * Bug fixes:
   Fix memory leaks of libptymosh.so
   Fix https://sourceforge.net/p/mlterm/mailman/message/36633222/ (Enbugged at 3.8.8)
+  Fix segfault of mlterm for java by race condition.
 
 ver 3.8.8
 * Support Haiku OS. (Experimental)

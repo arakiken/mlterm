@@ -71,6 +71,7 @@ $(TARGET_win32) : MLTermPty.h
 	(rm -f ../vtemu/vt_term.o)
 
 $(TARGET) : $(CLASS) MLTermPty.h $(OBJ)
+	(cd ../vtemu;make mlterm.o)
 	$(LIBTOOL_LINK) -o $(TARGET) -s $(OBJ:.o=.lo) -rpath $(libdir) \
 	-avoid-version ../vtemu/*.lo ../baselib/src/libpobl.la ../encodefilter/src/libmef.la \
 	@SSH2_LIBS_FOR_PROG@
