@@ -4,8 +4,13 @@
 #include <windowsx.h>
 #include <commctrl.h>
 #include <stdio.h>
-#include <dirent.h> /* mkdir on win32 */
 #include <errno.h>
+#if defined(__CYGWIN__) || defined(__MSYS__)
+#include <sys/stat.h> /* mkdir */
+#define mkdir(dir) mkdir((dir), 0700)
+#else
+#include <dirent.h> /* mkdir on win32 */
+#endif
 
 #define ID_SERVMAN 100
 
