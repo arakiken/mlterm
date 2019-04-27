@@ -59,6 +59,7 @@ mlcc exec next_screen
 mlcc exec vsplit_screen 50%
 mlcc exec hsplit_screen 50%
 
+LC_CTYPE=en_US.UTF-8
 set_config `expr $dev_num - 1` "input_method=none"
 set_config `expr $dev_num - 1` "col_size_of_width_a=1"
 set_config $dev_num "encoding=eucjp"

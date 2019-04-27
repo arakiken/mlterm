@@ -73,7 +73,7 @@ static encoding_to_cs_table_t usascii_font_cs_table[] = {
 };
 
 static u_int min_font_size = 1;
-static u_int max_font_size = 100;
+static u_int max_font_size = 10000;
 
 /* --- static functions --- */
 

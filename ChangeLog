@@ -1,3 +1,14 @@
+2019-04-27  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1: Updated.
+
+	* ui_font_manager.c:
+	  The default value of max_font_size is changed from 100 to 10000.
+
+	* vt_pty_mosh.cpp:
+	  - sixel_get_drcs() => pass_seq_get()
+	  - sixel_reset_drcs() => pass_seq_reset()
+
 2019-04-21  Araki Ken  <arakiken@users.sf.net>
 
 	* MLTermPty.java, MLTermPty.c:
