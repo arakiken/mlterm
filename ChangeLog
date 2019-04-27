@@ -1,5 +1,9 @@
 2019-04-27  Araki Ken  <arakiken@users.sf.net>
 
+	* tool/servman/main.c: Compiling error is fixed.
+
+2019-04-27  Araki Ken  <arakiken@users.sf.net>
+
 	* man/mlterm.1: Updated.
 
 	* ui_font_manager.c:
