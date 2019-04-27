@@ -535,7 +535,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         指定した場合には、fontsize オプションを変更しても、フォントサイズは(上記
         例では 14 pixel のまま)変わらなくなるため、注意してください。
 
-      o font_size_range  (*1-100*)
+      o font_size_range  (*1-10000*)
         変更可能なフォントサイズの範囲
 
         フォーマットは以下のとおり。

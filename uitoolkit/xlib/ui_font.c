@@ -965,7 +965,7 @@ end:
   font->size_attr = size_attr;
 
   if (font->is_proportional && !font->is_var_col_width) {
-    bl_msg_printf("Characters (cs %x) are drawn *one by one *to arrange column width.\n",
+    bl_msg_printf("Characters (cs %x) are drawn *one by one* to arrange column width.\n",
                   FONT_CS(font->id));
   }
 

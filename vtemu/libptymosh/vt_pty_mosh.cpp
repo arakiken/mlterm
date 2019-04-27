@@ -586,27 +586,26 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   }
 
 #ifdef MOSH_SIXEL /* defined in parser.h */
-  char *drcs = sixel_get_drcs();
+  size_t seq_len;
+  char *seq = pass_seq_get(&seq_len);
 
-  if (drcs) {
+  if (seq) {
     /* XXX in case len < 8 */
     if (len >= 8) {
-      memcpy(buf, "\x1b[?8800h", 8);
+      memcpy(buf, "\x1b[?8800h", 8); /* for DRCS-Sixel */
       len -= 8;
 
-      size_t drcs_len = strlen(drcs);
-
-      memcpy(buf + 8, drcs, min(drcs_len, len));
-      if (drcs_len > len) {
-        if ((pty_mosh->buf = (char*)malloc(drcs_len - len))) {
-          pty_mosh->buf_len = drcs_len - len;
-          memcpy(pty_mosh->buf, drcs + len, pty_mosh->buf_len);
+      memcpy(buf + 8, seq, min(seq_len, len));
+      if (seq_len > len) {
+        if ((pty_mosh->buf = (char*)malloc(seq_len - len))) {
+          pty_mosh->buf_len = seq_len - len;
+          memcpy(pty_mosh->buf, seq + len, pty_mosh->buf_len);
         }
       } else {
-        len = drcs_len;
+        len = seq_len;
       }
 
-      sixel_reset_drcs();
+      pass_seq_reset();
 
       return len + 8 + prev_len;
     }

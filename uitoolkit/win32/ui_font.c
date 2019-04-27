@@ -723,7 +723,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   }
 
   if (font->is_proportional && !font->is_var_col_width) {
-    bl_msg_printf("Characters (cs %x) are drawn *one by one *to arrange column width.\n",
+    bl_msg_printf("Characters (cs %x) are drawn *one by one* to arrange column width.\n",
                   FONT_CS(font->id));
   }
 
