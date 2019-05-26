@@ -28,7 +28,7 @@ OBJ = vt_char_encoding.o vt_color.o vt_edit.o vt_edit_util.o vt_edit_scroll.o \
 	vt_cursor.o vt_logical_visual.o vt_logs.o vt_screen.o vt_shape.o \
 	vt_str_parser.o vt_term.o vt_parser.o vt_term_manager.o \
 	vt_bidi.o vt_iscii.o vt_config_menu.o vt_config_proto.o vt_drcs.o \
-	vt_pty.o vt_termcap.o vt_line_shape.o cygfile.o @VT_PTY_OBJ@
+	vt_pty.o vt_termcap.o vt_line_shape.o cygfile.o vt_transfer.o @VT_PTY_OBJ@
 
 LIBNAME = libmlterm
 
@@ -37,7 +37,7 @@ LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 
-all : @LMLTERM_CORE@ $(LIBNAME).a
+all : @LMLTERM_CORE@ $(LIBNAME).a libzmodem.la
 
 debug : @LMLTERM_CORE@ $(LIBNAME).a
 
@@ -55,10 +55,15 @@ $(LIBNAME)_coreotl.la : $(OBJ_CORE)
 	$(LIBTOOL_LINK) -o $(LIBNAME)_coreotl.la $(OBJ_CORE:.o=.lo) \
 	@NO_UNDEFINED_FLAG@ -rpath $(libdir) -avoid-version @LPOBL@ $(LIBS)
 
+libzmodem.la : zmodem.o
+	$(LIBTOOL_LINK) -o libzmodem.la zmodem.lo \
+	@NO_UNDEFINED_FLAG@ -rpath $(libdir) -avoid-version
+
 install : $(LIBDIR)
 	if test "`echo @LMLTERM_CORE@|grep .la`" != "" ; then \
 		$(LIBTOOL_INSTALL) @LMLTERM_CORE@ $(LIBDIR) ; \
 	fi
+	$(LIBTOOL_INSTALL) libzmodem.la $(LIBDIR)/mlterm
 
 uninstall :
 	rm -f $(LIBDIR)/*mlterm_core*.*
@@ -67,7 +72,8 @@ $(LIBDIR) :
 	mkdir -p $(LIBDIR)
 
 clean :
-	rm -rf $(OBJ) $(OBJ:.o=.lo) $(OBJ_CORE) $(OBJ_CORE:.o=.lo) mlterm.o mlterm.lo .libs *.a *.la
+	rm -rf $(OBJ) $(OBJ:.o=.lo) $(OBJ_CORE) $(OBJ_CORE:.o=.lo) mlterm.o mlterm.lo \
+		 zmodem.o zmodem.lo .libs *.a *.la
 
 distclean: clean
 	rm -f Makefile

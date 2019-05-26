@@ -149,6 +149,10 @@ static void receive_next_event(void) {
           maxfd = ptyfd;
         }
       }
+
+      if (vt_term_transfer_data(terms[count])) {
+        tval.tv_usec = 0;
+      }
     }
 
     for (count = 0; count < num_additional_fds; count++) {
