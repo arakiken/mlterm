@@ -30,6 +30,7 @@
 #include "vt_iscii.h"
 #include "vt_str_parser.h"
 #include "vt_shape.h" /* vt_is_arabic_combining */
+#include "vt_transfer.h"
 
 #if defined(__CYGWIN__) || defined(__MSYS__)
 #include "cygfile.h"
@@ -232,6 +233,9 @@ static int use_scp_full;
 #endif
 
 static u_int8_t alt_color_idxs[] = { 0, 1, 2, 4, 8, 3, 5, 9, 6, 10, 12, 7, 11, 13, 14, 15, } ;
+
+static char *transfer_file;
+static char *transfer_save_dir;
 
 /* --- static functions --- */
 
@@ -6659,6 +6663,31 @@ static int write_loopback(vt_parser_t *vt_parser, const u_char *buf, size_t len,
   return 1;
 }
 
+static void transfer_data(vt_parser_t *vt_parser) {
+  u_char input[4096];
+  u_char output[(2 * (1024 + 4 + 1)) + 1];
+  u_int len = 0;
+  size_t copy_len;
+
+  if ((copy_len = vt_parser->r_buf.left) > sizeof(input) - 1) {
+    copy_len = sizeof(input) - 1;
+  }
+
+  memcpy(input, CURRENT_STR_P(vt_parser), copy_len);
+  input[copy_len] = '\0';
+
+  vt_parser->r_buf.left -= copy_len;
+  memmove(vt_parser->r_buf.chars, CURRENT_STR_P(vt_parser), vt_parser->r_buf.left);
+  vt_parser->r_buf.filled_len = vt_parser->r_buf.left;
+
+  vt_transfer_data(input, copy_len, output, &len, sizeof(output));
+
+  if (len > 0) {
+    vt_write_to_pty(vt_parser->pty, output, len);
+  }
+}
+
+
 /* --- global functions --- */
 
 void vt_set_use_alt_buffer(int use) { use_alt_buffer = use; }
@@ -6846,12 +6875,12 @@ void vt_parser_set_pty(vt_parser_t *vt_parser, vt_pty_t *pty) {
 }
 
 void vt_parser_set_xterm_listener(vt_parser_t *vt_parser,
-                                        vt_xterm_event_listener_t *xterm_listener) {
+                                  vt_xterm_event_listener_t *xterm_listener) {
   vt_parser->xterm_listener = xterm_listener;
 }
 
 void vt_parser_set_config_listener(vt_parser_t *vt_parser,
-                                         vt_config_event_listener_t *config_listener) {
+                                   vt_config_event_listener_t *config_listener) {
   vt_parser->config_listener = config_listener;
 }
 
@@ -6864,6 +6893,10 @@ int vt_parse_vt100_sequence(vt_parser_t *vt_parser) {
 
   if (!vt_parser->pty || receive_bytes(vt_parser) == 0) {
     return 0;
+  }
+
+  if (vt_parser_transfer_data(vt_parser)) {
+    return 1;
   }
 
   beg = clock();
@@ -6886,6 +6919,63 @@ int vt_parse_vt100_sequence(vt_parser_t *vt_parser) {
     ;
 
   stop_vt100_cmd(vt_parser, 1);
+
+  return 1;
+}
+
+int vt_parser_transfer_data(vt_parser_t *vt_parser) {
+  if (!vt_parser->transferring_data) {
+    return 0;
+  }
+
+  int progress;
+  int processing = vt_transfer_is_processing(&progress);
+
+  if (processing == 0) {
+    return 0;
+  }
+
+  if (processing > 0) {
+    int count;
+    vt_char_t bar[22];
+
+    start_vt100_cmd(vt_parser, 1);
+
+    if (progress == 0) {
+      vt_screen_line_feed(vt_parser->screen);
+    }
+
+    vt_screen_goto_beg_of_line(vt_parser->screen);
+    vt_screen_clear_line_to_right(vt_parser->screen);
+
+    vt_str_init(bar, 22);
+    vt_char_set(bar, '|', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
+
+    for (count = 0; count < progress; count++) {
+      vt_char_set(bar + 1 + count, '*', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
+    }
+    for (; count < 20; count++) {
+      vt_char_set(bar + 1 + count, ' ', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
+    }
+    vt_char_set(bar + 21, '|', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
+
+    vt_screen_overwrite_chars(vt_parser->screen, bar, 22);
+
+    if (processing == 1) {
+      vt_screen_line_feed(vt_parser->screen);
+      vt_screen_goto_beg_of_line(vt_parser->screen);
+
+      stop_vt100_cmd(vt_parser, 1);
+
+      vt_parser->transferring_data = 0;
+
+      return 0;
+    }
+
+    stop_vt100_cmd(vt_parser, 1);
+  }
+
+  transfer_data(vt_parser);
 
   return 1;
 }
@@ -7618,6 +7708,18 @@ int vt_parser_get_config(
     } else {
       value = "false";
     }
+  } else if (strcmp(key, "transfer_file") == 0) {
+    if (transfer_file) {
+      value = transfer_file;
+    } else {
+      value = "";
+    }
+  } else if (strcmp(key, "transfer_save_dir") == 0) {
+    if (transfer_save_dir) {
+      value = transfer_save_dir;
+    } else {
+      value = "";
+    }
   } else if (strcmp(key, "local_echo_wait") == 0) {
     sprintf(digit, "%d", local_echo_wait_msec);
     value = digit;
@@ -7795,11 +7897,27 @@ int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
     if ((flag = true_or_false(value)) != -1) {
       old_drcs_sixel = flag;
     }
-  } else  if (strcmp(key, "local_echo_wait") == 0) {
+  } else if (strcmp(key, "local_echo_wait") == 0) {
     u_int msec;
 
     if (bl_str_to_uint(&msec, value)) {
       local_echo_wait_msec = msec;
+    }
+  } else if (strcmp(key, "transfer_file") == 0) {
+    if (strstr(value, "..")) {
+      /* insecure file name */
+      bl_msg_printf("%s is insecure file name.\n", value);
+    } else {
+      free(transfer_file);
+      transfer_file = strdup(value);
+    }
+  } else if (strcmp(key, "transfer_save_dir") == 0) {
+    if (strstr(value, "..")) {
+      /* insecure dir name */
+      bl_msg_printf("%s is insecure dir name.\n", value);
+    } else {
+      free(transfer_save_dir);
+      transfer_save_dir = strdup(value);
     }
   } else {
     /* Continue to process it in x_screen.c */
@@ -7844,6 +7962,27 @@ int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd) {
         snapshot(vt_parser, encoding, file, WCA_ALL);
       }
     }
+  } else if (strcmp(cmd, "zmodem_recv") == 0) {
+    if (transfer_save_dir || (transfer_save_dir = bl_get_user_rc_path("mlterm"))) {
+      if (vt_transfer_start(NULL, transfer_save_dir, 0)) {
+        vt_parser->transferring_data = 1;
+        vt_parser->r_buf.left = 0;
+        transfer_data(vt_parser);
+      }
+    }
+  } else if (strcmp(cmd, "zmodem_send") == 0) {
+    if (!transfer_file || !vt_transfer_start(transfer_file, transfer_save_dir, 0)) {
+      vt_write_to_pty(vt_parser->pty,
+                      "**\x18\x18\x18\x18\x18\x18\x18\x18"
+                      "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08", 20);
+      free(transfer_file);
+    } else {
+      vt_parser->transferring_data = 1;
+      vt_parser->r_buf.left = 0;
+      transfer_data(vt_parser);
+      /* transfer_file is freed in vt_transfer_data() */
+    }
+    transfer_file = NULL;
   }
 #if !defined(NO_IMAGE) && defined(ENABLE_OSC5379PICTURE)
   else if (strncmp(cmd, "show_picture ", 13) == 0 || strncmp(cmd, "add_frame ", 10) == 0) {

@@ -30,7 +30,8 @@ version 20190331
                      gen_proto_challenge | mlclient "<prefix options>" "<options>" |
                      mlclientx "<prefix options>" "<options>" |
                      search_prev <pattern> | search_next <pattern> | update_all | mlconfig |
-                     set_shortcut <key>=<operation> (*) | autoscroll <count>
+                     set_shortcut <key>=<operation> (*) | autoscroll <count> |
+                     zmodem_send | zmodem_recv |
                      scp "(local:|remote:)<src file name>" "(local:|remote:)<dst directory name>"
                      "(<encoding name>)"
   set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize |
@@ -53,7 +54,8 @@ version 20190331
                      use_ot_layout | ot_script | ot_features | regard_uri_as_word | vt_color_mode |
                      console_encoding | console_sixel_colors | borderless | underline_offset |
                      baseline_offset | trim_trailing_newline_in_pasting | use_vertical_cursor |
-                     click_interval | emoji_path | use_local_echo | local_echo_wait
+                     click_interval | emoji_path | use_local_echo | local_echo_wait |
+                     transfer_file | transfer_save_dir
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
@@ -74,7 +76,7 @@ version 20190331
                      ot_features | regard_uri_as_word | borderless | use_aafont | underline_offset |
                      baseline_offset | trim_trailing_newline_in_pasting | fontconfig |
                      use_vertical_cursor | click_interval | emoji_path | use_local_echo |
-                     local_echo_wait
+                     local_echo_wait | transfer_file | transfer_save_dir
 
                    (*): Works in "proto:xxxx" in ~/.mlterm/key.
 
@@ -146,6 +148,8 @@ version 20190331
   scrollbar_view_name = <name>
   stataic_backscroll_mode = true | false | switch
   tabsize = <any ASCII decimal digit>
+  transfer_file = <file path>
+  transfer_save_dir = <directory path>
   trim_trailing_newline_in_pasting = true | false | switch
   type_engine = xcore | xft | cairo
   ul_color = <color name> | <color rgb>

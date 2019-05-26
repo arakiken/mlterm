@@ -592,10 +592,14 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   if (seq) {
     /* XXX in case len < 8 */
     if (len >= 8) {
-      memcpy(buf, "\x1b[?8800h", 8); /* for DRCS-Sixel */
-      len -= 8;
+      if (memcmp(seq, "\x1bP", 2) == 0) {
+        memcpy(buf, "\x1b[?8800h", 8); /* for DRCS-Sixel */
+        len -= 8;
+        memcpy(buf + 8, seq, min(seq_len, len));
+      } else {
+        memcpy(buf, seq, min(seq_len, len));
+      }
 
-      memcpy(buf + 8, seq, min(seq_len, len));
       if (seq_len > len) {
         if ((pty_mosh->buf = (char*)malloc(seq_len - len))) {
           pty_mosh->buf_len = seq_len - len;

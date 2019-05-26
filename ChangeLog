@@ -1,3 +1,23 @@
+2019-05-26  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_pty_mosh.cpp: CSI?8800h is output only if pass_seq_get() returns
+	  "\x1bP..." sequence.
+
+	* ui_event_source.c: receive_next_event() calls vt_term_transfer_data()
+	  in select(2) loop.
+
+	* vtemu/Makefile.in:
+	  - vt_transfer.o is added to OBJ.
+	  - libzmodem.la is built from zmodem.c
+
+	* vt_term.h: vt_term_transfer_data() is added.
+
+	* vt_parser.c:
+	  - zmodem is supported.
+	  - vt_parser_transfer_data() is added.
+
+	* vt_transfer.[ch], zmodem.[ch]: Added.
+
 2019-04-27  Araki Ken  <arakiken@users.sf.net>
 
 	* tool/servman/main.c: Compiling error is fixed.
