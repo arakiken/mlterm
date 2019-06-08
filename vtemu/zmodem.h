@@ -89,10 +89,11 @@ extern void zmodem(unsigned char * input, const unsigned int input_n,
  * pathname is ignored.  If false, this is a download: file_list must be NULL
  * and pathname will be used.
  * @param in_flavor the type of Zmodem transfer to perform
+ * @param progress_len the length of progress bar.
  * @return true if successful
  */
 extern Q_BOOL zmodem_start(struct file_info * file_list, const char * pathname,
-                           const Q_BOOL send, const ZMODEM_FLAVOR in_flavor);
+                           const Q_BOOL send, const ZMODEM_FLAVOR in_flavor, int progress_len);
 
 /**
  * Stop the file transfer.  Note that this function is only called in
@@ -103,7 +104,7 @@ extern Q_BOOL zmodem_start(struct file_info * file_list, const char * pathname,
  */
 extern void zmodem_stop(const Q_BOOL save_partial);
 
-extern Q_BOOL zmodem_is_processing(int *progress);
+extern Q_BOOL zmodem_is_processing(int *progress_cur, int *progress_len);
 
 #ifdef __cplusplus
 }

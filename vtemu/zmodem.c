@@ -665,6 +665,8 @@ typedef enum {
 /* The ZCHALLENGE value we asked for */
 static uint32_t zchallenge_value;
 
+static int progress_length;
+
 /* CRC16 CODE ------------------------------------------------------------- */
 
 /*
@@ -5667,7 +5669,7 @@ void zmodem(unsigned char * input, const unsigned int input_n,
  * @return true if successful
  */
 Q_BOOL zmodem_start(struct file_info * file_list, const char * pathname,
-                    const Q_BOOL send, const ZMODEM_FLAVOR in_flavor) {
+                    const Q_BOOL send, const ZMODEM_FLAVOR in_flavor, int progress_len) {
 
     int i;
 
@@ -5773,6 +5775,8 @@ Q_BOOL zmodem_start(struct file_info * file_list, const char * pathname,
      */
     setup_encode_byte_map();
 
+    progress_length = progress_len;
+
     DLOG(("ZMODEM: START OK\n"));
     return Q_TRUE;
 }
@@ -5819,23 +5823,24 @@ void zmodem_stop(const Q_BOOL save_partial) {
 
 }
 
-Q_BOOL zmodem_is_processing(int *progress) {
+Q_BOOL zmodem_is_processing(int *progress_cur, int *progress_len) {
+    *progress_len = progress_length;
+
     if (status.state == COMPLETE) {
-        *progress = 20;
+        *progress_cur = progress_length;
 
         return Q_FALSE;
     }
 
     if (status.file_size > 0 && status.file_position < status.file_size) {
-        *progress = status.file_position * 20 / status.file_size;
+        *progress_cur = status.file_position * progress_length / status.file_size;
     } else {
-        *progress = 0;
+        *progress_cur = 0;
     }
 
     if (status.state == ABORT) {
         return Q_FALSE;
     } else {
-
         return Q_TRUE;
     }
 }

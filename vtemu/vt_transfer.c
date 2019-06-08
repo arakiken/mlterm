@@ -22,8 +22,8 @@ static struct file_info zmodem_info[2];
 static void (*dl_zmodem)(unsigned char *, const unsigned int, unsigned char *, unsigned int *,
                       const unsigned int);
 static Q_BOOL (*dl_zmodem_start)(struct file_info *, const char *, const Q_BOOL,
-                                 const ZMODEM_FLAVOR);
-static Q_BOOL (*dl_zmodem_is_processing)(int *);
+                                 const ZMODEM_FLAVOR, int);
+static Q_BOOL (*dl_zmodem_is_processing)(int *, int *);
 
 static int is_tried;
 #ifndef NO_DYNAMIC_LOAD_TRANSFER
@@ -60,7 +60,7 @@ static int load_library(void) {
 
 int vt_transfer_start(/* vt_transfer_type_t type, */
                       char *send_file /* allocated by the caller */,
-                      const char *save_dir, int is_crc32) {
+                      const char *save_dir, int is_crc32, int progress_len) {
   Q_BOOL ret;
 
   if (zmodem_mode || (is_tried ? (dl_zmodem_start == NULL) : !load_library())) {
@@ -71,9 +71,10 @@ int vt_transfer_start(/* vt_transfer_type_t type, */
     zmodem_info[0].name = send_file;
     stat(send_file, &zmodem_info[0].fstats);
 
-    ret = (*dl_zmodem_start)(zmodem_info, save_dir, Q_TRUE, is_crc32 ? Z_CRC32 : Z_CRC16);
+    ret = (*dl_zmodem_start)(zmodem_info, save_dir, Q_TRUE, is_crc32 ? Z_CRC32 : Z_CRC16,
+                             progress_len);
   } else {
-    ret = (*dl_zmodem_start)(NULL, save_dir, Q_FALSE, is_crc32 ? Z_CRC32 : Z_CRC16);
+    ret = (*dl_zmodem_start)(NULL, save_dir, Q_FALSE, is_crc32 ? Z_CRC32 : Z_CRC16, progress_len);
   }
 
   if (ret) {
@@ -118,12 +119,12 @@ void vt_transfer_data(u_char *input, const u_int input_n, u_char *output, u_int 
 #endif
 }
 
-int vt_transfer_get_state(int *progress) {
-  static int prev_progress = -1;
+int vt_transfer_get_state(int *progress_cur, int *progress_len) {
+  static int progress_prev = -1;
 
-  if ((*dl_zmodem_is_processing)(progress)) {
-    if (prev_progress < *progress) {
-      prev_progress = *progress;
+  if ((*dl_zmodem_is_processing)(progress_cur, progress_len)) {
+    if (progress_prev < *progress_cur) {
+      progress_prev = *progress_cur;
 
       return 1;
     } else {
@@ -133,7 +134,7 @@ int vt_transfer_get_state(int *progress) {
     zmodem_mode = 0;
     free(zmodem_info[0].name);
     zmodem_info[0].name = NULL;
-    prev_progress = -1;
+    progress_prev = -1;
 
     return 0;
   }
