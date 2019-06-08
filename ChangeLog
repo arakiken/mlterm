@@ -1,5 +1,20 @@
 2019-06-08  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_parser.c: The length of progress bar of transferring data via
+	  zmodem is vt_screen_get_cols() / 2 + 1.
+
+	* zmodem.[ch]:
+	  - 'progress_len' is added to arguments of zmodem_start().
+	  - 'progress' argument of zmodem_is_processing() is changed to
+	    'progress_cur' and 'progress_len'.
+
+	* vt_transfer.[ch]:
+	  - 'progress_len' is added to arguments of vt_transfer_start().
+	  - 'progress' argument of vt_transfer_get_state() is changed to
+	    'progress_cur' and 'progress_len'.
+
+2019-06-08  Araki Ken  <arakiken@users.sf.net>
+
 	* doc/en/PROTOCOL: Updated.
 
 	* android/jni/ui_event_source.c, gtk/vte.c, java/MLTermPty.c,

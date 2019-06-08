@@ -6664,34 +6664,37 @@ static int write_loopback(vt_parser_t *vt_parser, const u_char *buf, size_t len,
 }
 
 static int is_transferring_data(vt_parser_t *vt_parser) {
-  int progress;
+  int progress_cur;
+  int progress_len;
   int state;
+  vt_char_t *bar;
 
-  if ((state = vt_transfer_get_state(&progress)) >= 0) {
+  if ((state = vt_transfer_get_state(&progress_cur, &progress_len)) >= 0 &&
+      (bar = alloca(sizeof(vt_char_t) * (progress_len + 2)))) {
     int count;
-    vt_char_t bar[22];
 
     start_vt100_cmd(vt_parser, 1);
 
-    if (progress == 0) {
+    if (progress_cur == 0) {
       vt_screen_line_feed(vt_parser->screen);
     }
 
     vt_screen_goto_beg_of_line(vt_parser->screen);
     vt_screen_clear_line_to_right(vt_parser->screen);
 
-    vt_str_init(bar, 22);
+    vt_str_init(bar, progress_len + 2);
     vt_char_set(bar, '|', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
 
-    for (count = 0; count < progress; count++) {
+    for (count = 0; count < progress_cur; count++) {
       vt_char_set(bar + 1 + count, '*', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
     }
-    for (; count < 20; count++) {
+    for (; count < progress_len; count++) {
       vt_char_set(bar + 1 + count, ' ', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
     }
-    vt_char_set(bar + 21, '|', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
+    vt_char_set(bar + 1 + progress_len, '|', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR,
+                0, 0, 0, 0, 0);
 
-    vt_screen_overwrite_chars(vt_parser->screen, bar, 22);
+    vt_screen_overwrite_chars(vt_parser->screen, bar, progress_len + 2);
 
     if (state == 0) {
       vt_screen_line_feed(vt_parser->screen);
@@ -7963,7 +7966,7 @@ int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd) {
   } else if (strcmp(cmd, "zmodem_recv") == 0) {
     if ((recv_dir == NULL &&
          (recv_dir = bl_get_user_rc_path("mlterm")) == NULL) ||
-        !vt_transfer_start(NULL, recv_dir, 0)) {
+        !vt_transfer_start(NULL, recv_dir, 0, vt_screen_get_cols(vt_parser->screen) / 2 + 1)) {
       vt_write_to_pty(vt_parser->pty,
                       "**\x18\x18\x18\x18\x18\x18\x18\x18"
                       "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08", 20);
@@ -7973,7 +7976,8 @@ int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd) {
       transfer_data(vt_parser);
     }
   } else if (strcmp(cmd, "zmodem_send") == 0) {
-    if (!send_file || !vt_transfer_start(send_file, recv_dir, 0)) {
+    if (!send_file || !vt_transfer_start(send_file, recv_dir, 0,
+                                         vt_screen_get_cols(vt_parser->screen) / 2 + 1)) {
       vt_write_to_pty(vt_parser->pty,
                       "**\x18\x18\x18\x18\x18\x18\x18\x18"
                       "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08", 20);
