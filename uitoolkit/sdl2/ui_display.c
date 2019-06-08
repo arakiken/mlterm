@@ -1032,7 +1032,10 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
     disp->display->width = disp->width;
     disp->display->height = disp->height;
   }
-  init_display(disp->display, root->app_name, x, y, hint);
+
+  if (!init_display(disp->display, root->app_name, x, y, hint)) {
+    return 0;
+  }
 
   ui_window_show(root, hint);
 
@@ -1364,7 +1367,6 @@ void ui_display_set_title(ui_display_t *disp, const u_char *name) {
   SDL_SetWindowTitle(disp->display->window, name);
 }
 
-#ifdef USE_WIN32API
 void ui_display_trigger_pty_read(void) {
   SDL_Event ev;
 
@@ -1372,7 +1374,6 @@ void ui_display_trigger_pty_read(void) {
   ev.type = pty_event_type;
   SDL_PushEvent(&ev);
 }
-#endif
 
 #ifdef USE_BG_TEXTURE
 void ui_display_set_bg_color(ui_display_t *disp, u_long bg) {

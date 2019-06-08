@@ -37,8 +37,12 @@ int ui_event_source_process(void) {
   static fd_set read_fds;
   static int maxfd;
   static int is_cont_read;
+  static struct timeval tval;
 
   for (;;) {
+    tval.tv_usec = 100000; /* 0.1 sec */
+    tval.tv_sec = 0;
+
     dispatch_sync(dispatch_get_main_queue(), ^{
         vt_close_dead_terms();
 
@@ -80,6 +84,11 @@ int ui_event_source_process(void) {
             if (ptyfd > maxfd) {
               maxfd = ptyfd;
             }
+
+            if (vt_term_is_sending_data(terms[count])) {
+              tval.tv_usec = 0;
+              vt_term_parse_vt100_sequence(terms[count]);
+            }
           }
         }
 
@@ -93,10 +102,6 @@ int ui_event_source_process(void) {
           }
         }
       });
-
-    struct timeval tval;
-    tval.tv_usec = 100000; /* 0.1 sec */
-    tval.tv_sec = 0;
 
     if (maxfd == -1 ||
         ((ret = select(maxfd + 1, &read_fds, NULL, NULL, &tval)) < 0 &&

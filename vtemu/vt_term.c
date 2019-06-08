@@ -551,7 +551,7 @@ pid_t vt_term_get_pty_mode(vt_term_t *term) {
 }
 
 size_t vt_term_write(vt_term_t *term, u_char *buf, size_t len) {
-  if (term->pty == NULL) {
+  if (term->pty == NULL || vt_parser_is_transferring_data(term->parser)) {
     return 0;
   }
 

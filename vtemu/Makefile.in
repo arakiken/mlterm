@@ -57,7 +57,7 @@ $(LIBNAME)_coreotl.la : $(OBJ_CORE)
 
 libzmodem.la : zmodem.o
 	$(LIBTOOL_LINK) -o libzmodem.la zmodem.lo \
-	@NO_UNDEFINED_FLAG@ -rpath $(libdir) -avoid-version
+	@NO_UNDEFINED_FLAG@ -rpath $(libdir)/mlterm -module -avoid-version
 
 install : $(LIBDIR)
 	if test "`echo @LMLTERM_CORE@|grep .la`" != "" ; then \

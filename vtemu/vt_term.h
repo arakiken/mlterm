@@ -92,7 +92,7 @@ int vt_term_detach(vt_term_t *term);
 
 #define vt_term_is_attached(term) ((term)->is_attached)
 
-#define vt_term_transfer_data(term) vt_parser_transfer_data((term)->parser)
+#define vt_term_is_sending_data(term) vt_parser_is_sending_data((term)->parser)
 
 #define vt_term_parse_vt100_sequence(term) vt_parse_vt100_sequence((term)->parser)
 

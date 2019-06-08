@@ -480,6 +480,20 @@ static void catch_child_exited(VteReaper *reaper, int pid, int status, VteTermin
   g_timeout_add_full(G_PRIORITY_HIGH, 0, close_dead_terms, NULL, NULL);
 }
 
+static int is_sending_data;
+
+static gboolean transfer_data(gpointer data) {
+  vt_term_parse_vt100_sequence((vt_term_t*)data);
+
+  if (!vt_term_is_sending_data((vt_term_t*)data)) {
+    is_sending_data = 0;
+
+    return FALSE; /* disable this timeout function */
+  } else {
+    return TRUE;
+  }
+}
+
 /*
  * This handler works even if VteTerminal widget is not realized and vt_term_t
  * is not
@@ -489,9 +503,17 @@ static void catch_child_exited(VteReaper *reaper, int pid, int status, VteTermin
  * vte_terminal_realized).
  */
 static gboolean vte_terminal_io(GIOChannel *source, GIOCondition conditon,
-                                gpointer data /* vt_term_t */
-                                ) {
+                                gpointer data /* vt_term_t */) {
   vt_term_parse_vt100_sequence((vt_term_t *)data);
+
+  if (!is_sending_data && vt_term_is_sending_data((vt_term_t *)data)) {
+#if GTK_CHECK_VERSION(2, 12, 0)
+    gdk_threads_add_timeout(1, transfer_data, data);
+#else
+    g_timeout_add(1, transfer_data, data);
+#endif
+    is_sending_data = 1;
+  }
 
   vt_close_dead_terms();
 
