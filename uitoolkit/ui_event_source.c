@@ -53,6 +53,7 @@ static void receive_next_event(void) {
   int ret;
   fd_set read_fds;
   struct timeval tval;
+  int is_sending_data = 0;
   ui_display_t **displays;
   u_int num_displays;
 #ifdef USE_LIBSSH2
@@ -62,6 +63,10 @@ static void receive_next_event(void) {
   num_xssh_fds = vt_pty_ssh_get_x11_fds(&xssh_fds);
 #endif
   num_terms = vt_get_all_terms(&terms);
+
+#ifdef USE_BEOS
+  beos_lock();
+#endif
 
   while (1) {
 /* on Linux tv_usec,tv_sec members are zero cleared after select() */
@@ -148,10 +153,12 @@ static void receive_next_event(void) {
         if (ptyfd > maxfd) {
           maxfd = ptyfd;
         }
-      }
 
-      if (vt_term_transfer_data(terms[count])) {
-        tval.tv_usec = 0;
+        if (vt_term_is_sending_data(terms[count])) {
+          tval.tv_usec = 0;
+          is_sending_data = 1;
+          vt_term_parse_vt100_sequence(terms[count]);
+        }
       }
     }
 
@@ -164,6 +171,10 @@ static void receive_next_event(void) {
         }
       }
     }
+
+#ifdef USE_BEOS
+    beos_unlock();
+#endif
 
 #ifdef __HAIKU__
     if (vt_check_sig_child()) {
@@ -182,16 +193,24 @@ static void receive_next_event(void) {
       break;
     }
 
+#ifdef USE_BEOS
+    /* UI thread might create a new vt_term by pressing Ctrl+F1 key and so on. */
+    num_terms = vt_get_all_terms(&terms);
+    beos_lock();
+#endif
+
+    if (is_sending_data) {
+      is_sending_data = 0;
+
+      continue;
+    }
+
 #ifdef KEY_REPEAT_BY_MYSELF
     /* ui_display_idling() is called every 0.1 sec. */
     if (--display_idling_wait > 0) {
       goto additional_minus_fds;
     }
     display_idling_wait = 4;
-#endif
-
-#ifdef USE_BEOS
-    beos_lock();
 #endif
 
     for (count = 0; count < num_displays; count++) {
@@ -210,16 +229,11 @@ static void receive_next_event(void) {
         (*additional_fds[count].handler)();
       }
     }
-
-#ifdef USE_BEOS
-    beos_unlock();
-
-    /* UI thread might create a new vt_term by pressing Ctrl+F1 key and so on. */
-    num_terms = vt_get_all_terms(&terms);
-#endif
   }
 
 #ifdef USE_BEOS
+  /* UI thread might create a new vt_term by pressing Ctrl+F1 key and so on. */
+  num_terms = vt_get_all_terms(&terms);
   beos_lock();
 #endif
 
@@ -325,6 +339,9 @@ int ui_event_source_process(void) {
 
   for (count = 0; count < num_terms; count++) {
     vt_term_parse_vt100_sequence(terms[count]);
+    if (vt_term_is_sending_data(terms[count])) {
+      ui_display_trigger_pty_read();
+    }
   }
 
 #ifndef USE_WIN32API

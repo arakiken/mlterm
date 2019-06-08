@@ -17,6 +17,9 @@
 #define UIWINDOW_OF(term) \
   ((term)->parser->xterm_listener ? (term)->parser->xterm_listener->self : NULL)
 
+/* msec */
+#define TIMEOUT 100
+
 /* --- static variables --- */
 
 static ef_parser_t *utf8_parser;
@@ -181,6 +184,7 @@ void ui_event_source_final(void) {}
 
 int ui_event_source_process(void) {
   ALooper *looper;
+  int timeout = TIMEOUT;
   int ident;
   int events;
   struct android_poll_source *source;
@@ -207,6 +211,9 @@ int ui_event_source_process(void) {
     for (count = 0; count < num_terms; count++) {
       fds[count] = vt_term_get_master_fd(terms[count]);
       ALooper_addFd(looper, fds[count], 1000 + fds[count], ALOOPER_EVENT_INPUT, NULL, NULL);
+      if (vt_term_is_sending_data(terms[count])) {
+        timeout = 0;
+      }
     }
   }
 
@@ -217,7 +224,7 @@ int ui_event_source_process(void) {
    * Don't block ALooper_pollAll because commit_text or preedit_text can
    * be changed from main thread.
    */
-  ident = ALooper_pollAll(100, /* milisec. -1 blocks forever waiting for events */
+  ident = ALooper_pollAll(timeout, /* milisec. -1 blocks forever waiting for events */
                           NULL, &events, (void **)&source);
 
   pthread_mutex_lock(&mutex);
@@ -265,14 +272,18 @@ int ui_event_source_process(void) {
     if (clock_gettime(CLOCK_MONOTONIC, &tm) == 0) {
       u_int32_t now_msec = tm.tv_sec * 1000 + tm.tv_nsec / 1000000;
 
-      if (now_msec < prev_msec || now_msec > prev_msec + 100) {
+      if (now_msec < prev_msec || now_msec > prev_msec + TIMEOUT) {
         ui_display_idling(NULL);
         prev_msec = now_msec;
       }
     }
-  } else {
+  } else if (timeout == 0) {
+    for (count = 0; count < num_terms; count++) {
+      vt_term_parse_vt100_sequence(terms[count]);
+    }
+  } else /* if (timeout == TIMEOUT) */ {
     ui_display_idling(NULL);
-    prev_msec += 100;
+    prev_msec += timeout;
   }
 
   if (num_terms > 0) {

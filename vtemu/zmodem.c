@@ -60,6 +60,8 @@
 #include <utime.h>
 #include "zmodem.h"
 
+#include <pobl/bl_def.h> /* USE_WIN32API */
+
 typedef unsigned int uint32_t;
 
 /**
@@ -2563,7 +2565,11 @@ static Q_BOOL receive_zchallenge(unsigned char * output,
          * /dev/random isn't here, or isn't readable.  Use random() instead,
          * even though it probably sucks.
          */
+#ifdef USE_WIN32API
+        zchallenge_value = rand();
+#else
         zchallenge_value = random();
+#endif
     } else {
         fread(&zchallenge_value, sizeof(uint32_t), 1, dev_random);
         fclose(dev_random);

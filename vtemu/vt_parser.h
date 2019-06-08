@@ -310,7 +310,7 @@ typedef struct vt_parser {
   int auto_cr : 1;
   int bold_affects_bg : 1;
   int use_ansi_colors : 1;
-  int transferring_data : 1;
+  int is_transferring_data : 2; /* 0x1=send 0x2=recv */
 
 #ifdef USE_VT52
   int is_vt52_mode : 1;
@@ -365,7 +365,9 @@ void vt_parser_set_xterm_listener(vt_parser_t *vt_parser,
 void vt_parser_set_config_listener(vt_parser_t *vt_parser,
                                          vt_config_event_listener_t *config_listener);
 
-int vt_parser_transfer_data(vt_parser_t *vt_parser);
+#define vt_parser_is_sending_data(parser) ((parser)->is_transferring_data & 0x1)
+
+#define vt_parser_is_transferring_data(parser) ((parser)->is_transferring_data)
 
 int vt_parse_vt100_sequence(vt_parser_t *vt_parser);
 

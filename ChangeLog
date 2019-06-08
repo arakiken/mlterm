@@ -1,3 +1,35 @@
+2019-06-08  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/PROTOCOL: Updated.
+
+	* android/jni/ui_event_source.c, gtk/vte.c, java/MLTermPty.c,
+	  ui_event_source-cocoa.m:
+	  Seding data via zmodem is supported.
+
+	* ui_event_source.c:
+	  - Lock is added for HaikuOS.
+	  - Sending data via zmodem is improved.
+
+	* vt_term.[ch]:
+	  - vt_term_write() does nothing if vt_parser_is_transferring_data() is true.
+	  - vt_term_transfer_data() is removed.
+	  - vt_term_is_sending_data() is added.
+
+	* vt_parser.[ch]:
+	  - vt_parser_transfer_data() is removed.
+	  - vt_parser_is_sending_data() and vt_parser_is_transferring_data() are added.
+
+	* vt_transfer.[ch]:
+	  - NO_DYNAMIC_LOAD_TRANFER macro is added.
+	  - vt_transfer_is_processing() -> vt_transfer_get_state()
+
+	* zmodem.c: Win32 is supported.
+
+	* sdl2/ui_display.c: The returned value of init_display() is checked in
+	  ui_display_show_root().
+
+	* ui_main_config.c: Invalidation of --mdi=false option is fixed.
+
 2019-05-26  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_pty_mosh.cpp: CSI?8800h is output only if pass_seq_get() returns

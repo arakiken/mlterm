@@ -192,7 +192,7 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
       if (!output_msg) {
         bl_debug_printf("mlterm is built without USE_BG_TEXTURE, "
                         "so screen is corrupt with -otl option.\n");
-        outupt_msg = 1;
+        output_msg = 1;
       }
     }
 #endif

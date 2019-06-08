@@ -101,7 +101,7 @@ manifest.mf : $(TARGET@WIN32TAG@)
 #MLTermPty.h: mlterm/MLTermPty.class
 #	javah -jni mlterm.MLTermPty
 MLTermPty.h:
-	javac -h . $(top_srcdir)/java/mlterm/MLTermPty.java
+	javac -h . `$(CYGPATHW) $(top_srcdir)/java/mlterm/MLTermPty.java`
 	rm $(top_srcdir)/java/mlterm/MLTermPty.class
 
 clean :

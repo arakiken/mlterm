@@ -599,6 +599,12 @@ JNIEXPORT jint JNICALL Java_mlterm_MLTermPty_waitForReading(JNIEnv *env, jclass 
     if (ptyfd > maxfd) {
       maxfd = ptyfd;
     }
+
+    if (vt_term_is_sending_data(terms[count])) {
+      pthread_mutex_unlock(&mutex);
+
+      return 1;
+    }
   }
 
 #ifdef USE_LIBSSH2

@@ -26,13 +26,16 @@ static Q_BOOL (*dl_zmodem_start)(struct file_info *, const char *, const Q_BOOL,
 static Q_BOOL (*dl_zmodem_is_processing)(int *);
 
 static int is_tried;
+#ifndef NO_DYNAMIC_LOAD_TRANSFER
 static bl_dl_handle_t handle;
+#endif
 
 /* --- static functions --- */
 
 static int load_library(void) {
   is_tried = 1;
 
+#ifndef NO_DYNAMIC_LOAD_TRANSFER
   if (!(handle = bl_dl_open(TRANSFERLIB_DIR, "zmodem")) && !(handle = bl_dl_open("", "zmodem"))) {
     bl_error_printf("ZMODEM: Could not load.\n");
 
@@ -44,6 +47,11 @@ static int load_library(void) {
   dl_zmodem = bl_dl_func_symbol(handle, "zmodem");
   dl_zmodem_start = bl_dl_func_symbol(handle, "zmodem_start");
   dl_zmodem_is_processing = bl_dl_func_symbol(handle, "zmodem_is_processing");
+#else
+  dl_zmodem = zmodem;
+  dl_zmodem_start = zmodem_start;
+  dl_zmodem_is_processing = zmodem_is_processing;
+#endif
 
   return 1;
 }
@@ -110,27 +118,23 @@ void vt_transfer_data(u_char *input, const u_int input_n, u_char *output, u_int 
 #endif
 }
 
-int vt_transfer_is_processing(int *progress) {
+int vt_transfer_get_state(int *progress) {
   static int prev_progress = -1;
 
-  if (zmodem_mode) {
-    if ((*dl_zmodem_is_processing)(progress)) {
-      if (prev_progress < *progress) {
-        prev_progress = *progress;
-
-        return 2;
-      } else {
-        return -1;
-      }
-    } else {
-      zmodem_mode = 0;
-      free(zmodem_info[0].name);
-      zmodem_info[0].name = NULL;
-      prev_progress = -1;
+  if ((*dl_zmodem_is_processing)(progress)) {
+    if (prev_progress < *progress) {
+      prev_progress = *progress;
 
       return 1;
+    } else {
+      return -1;
     }
-  }
+  } else {
+    zmodem_mode = 0;
+    free(zmodem_info[0].name);
+    zmodem_info[0].name = NULL;
+    prev_progress = -1;
 
-  return 0;
+    return 0;
+  }
 }

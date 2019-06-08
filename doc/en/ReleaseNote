@@ -1,5 +1,5 @@
 * Support zmodem.
-  (Add "transfer_file", "transfer_save_dir", "zmodem_send" and "zmodem_recv" to OSC 5379.)
+  (Add "send_file", "recv_dir", "zmodem_send", "zmodem_recv" and "zmodem_cancel" to OSC 5379.)
 * Hide the mouse cursor in inputting keys by default on xlib and win32.
 * ~/.mlterm/font accepts UTF-8 on windows.
 * Change the default value of "font_size_range" option from 1-100 to 1-10000.
@@ -7,6 +7,7 @@
   Fix memory leaks of libptymosh.so
   Fix https://sourceforge.net/p/mlterm/mailman/message/36633222/ (Enbugged at 3.8.8)
   Fix segfault of mlterm for java by race condition.
+  Fix unexpected invalidation of --mdi=false option. (Enbugged at 3.8.8)
 
 ver 3.8.8
 * Support Haiku OS. (Experimental)
