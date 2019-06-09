@@ -57,6 +57,8 @@ typedef struct vt_edit {
 
 } vt_edit_t;
 
+void vt_set_scroll_on_resizing(int flag);
+
 int vt_edit_init(vt_edit_t *edit, vt_edit_scroll_event_listener_t *scroll_listener,
                  u_int num_cols, u_int num_rows, u_int tab_size, int is_logging, int use_bce);
 

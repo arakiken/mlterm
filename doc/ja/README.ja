@@ -1030,6 +1030,10 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         壁紙のみ Graphic VRAM ではなく Text VRAM に描画し、スクロール測度を改善
         する。
 
+      o scroll_on_resizing (true/*false*)
+        画面を小さくリサイズした時に、画面に表示されている文字を全てスクロールア
+        ウトする。
+
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)
         起動時に XIM を open するという機能でしたが、インプットメソッド関連
