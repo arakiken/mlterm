@@ -95,11 +95,10 @@ int vt_model_resize(vt_model_t *model, u_int *slide, u_int num_cols, u_int num_r
   /* updating existing lines. */
   for (new_row = 0; new_row < copy_rows; new_row++) {
     vt_line_init(&lines_p[new_row], num_cols);
-
     vt_line_copy(&lines_p[new_row], vt_model_get_line(model, old_row));
     old_row++;
-
     vt_line_set_modified_all(&lines_p[new_row]);
+    lines_p[new_row].is_modified = 2; /* XXX See set_real_modified() in vt_line.c */
   }
 
   /* freeing old data. */

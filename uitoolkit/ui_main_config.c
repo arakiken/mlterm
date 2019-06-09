@@ -328,6 +328,8 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "emoji directory or file path [~/.mlterm/emoji]");
   bl_conf_add_opt(conf, '\0', "lew", 0, "local_echo_wait",
                   "time (msec) to keep local echo mode [250]");
+  bl_conf_add_opt(conf, '\0', "sr", 1, "scroll_on_resizing",
+                  "scroll screen on resizing [false]");
 #ifdef USE_IM_CURSOR_COLOR
   bl_conf_add_opt(conf, '\0', "imcolor", 0, "im_cursor_color",
                   "cursor color when input method is activated. [false]");
@@ -682,7 +684,11 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   }
 
   if ((value = bl_conf_get_value(conf, "big5_buggy"))) {
-    ui_set_big5_selection_buggy(strcmp(value, "true") == 0);
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      ui_set_big5_selection_buggy(flag);
+    }
   }
 
   main_config->use_mdi = 1;
@@ -957,7 +963,11 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   }
 
   if ((value = bl_conf_get_value(conf, "use_urgent_bell"))) {
-    ui_set_use_urgent_bell(strcmp(value, "true") == 0);
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      ui_set_use_urgent_bell(flag);
+    }
   }
 
   main_config->use_vertical_cursor = 1;
@@ -990,11 +1000,19 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   }
 
   if ((value = bl_conf_get_value(conf, "exit_backscroll_by_pty"))) {
-    ui_exit_backscroll_by_pty(strcmp(value, "true") == 0);
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      ui_exit_backscroll_by_pty(flag);
+    }
   }
 
   if ((value = bl_conf_get_value(conf, "allow_change_shortcut"))) {
-    ui_allow_change_shortcut(strcmp(value, "true") == 0);
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      ui_allow_change_shortcut(flag);
+    }
   }
 
   if ((value = bl_conf_get_value(conf, "icon_path"))) {
@@ -1083,15 +1101,25 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   }
 
   if ((value = bl_conf_get_value(conf, "ssh_x11_forwarding"))) {
-    main_config->use_x11_forwarding = (strcmp(value, "true") == 0);
+    if (strcmp(value, "true") == 0) {
+      main_config->use_x11_forwarding = 1;
+    }
   }
 
   if ((value = bl_conf_get_value(conf, "allow_scp"))) {
-    vt_set_use_scp_full(strcmp(value, "true") == 0);
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      vt_set_use_scp_full(flag);
+    }
   }
 
   if ((value = bl_conf_get_value(conf, "ssh_auto_reconnect"))) {
-    vt_pty_ssh_set_use_auto_reconnect(strcmp(value, "true") == 0);
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      vt_pty_ssh_set_use_auto_reconnect(flag);
+    }
   }
 #endif
 
@@ -1188,11 +1216,19 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   }
 
   if ((value = bl_conf_get_value(conf, "regard_uri_as_word"))) {
-    vt_set_regard_uri_as_word(strcmp(value, "true") == 0);
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      vt_set_regard_uri_as_word(flag);
+    }
   }
 
   if ((value = bl_conf_get_value(conf, "use_clipboard"))) {
-    ui_set_use_clipboard_selection(strcmp(value, "true") == 0);
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      ui_set_use_clipboard_selection(flag);
+    }
   }
 
 #ifndef __ANDROID__
@@ -1225,7 +1261,11 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   }
 
   if ((value = bl_conf_get_value(conf, "use_alt_buffer"))) {
-    vt_set_use_alt_buffer(strcmp(value, "true") == 0);
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      vt_set_use_alt_buffer(flag);
+    }
   }
 
   main_config->use_ansi_colors = 1;
@@ -1249,7 +1289,11 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   }
 
   if ((value = bl_conf_get_value(conf, "leftward_double_drawing"))) {
-    ui_set_use_leftward_double_drawing(strcmp(value, "true") == 0);
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      ui_set_use_leftward_double_drawing(flag);
+    }
   }
 
   if ((value = bl_conf_get_value(conf, "working_directory"))) {
@@ -1297,8 +1341,11 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
 #ifdef USE_GRF
   if ((value = bl_conf_get_value(conf, "separate_wall_picture"))) {
     extern int separate_wall_picture;
+    int flag = true_or_false(value);
 
-    separate_wall_picture = (strcmp(value, "true") == 0 ? 1 : 0);
+    if (flag != -1) {
+      separate_wall_picture = flag;
+    }
   }
 #endif
 
@@ -1310,19 +1357,27 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
 
 #if defined(__ANDROID__) && defined(USE_LIBSSH2)
   if ((value = bl_conf_get_value(conf, "start_with_local_pty"))) {
-    start_with_local_pty = (strcmp(value, "true") == 0);
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      start_with_local_pty = flag;
+    }
   }
 #endif
 
   if ((value = bl_conf_get_value(conf, "trim_trailing_newline_in_pasting"))) {
-    if (strcmp(value, "true") == 0) {
-      ui_set_trim_trailing_newline_in_pasting(1);
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      ui_set_trim_trailing_newline_in_pasting(flag);
     }
   }
 
   if ((value = bl_conf_get_value(conf, "broadcast"))) {
-    if (strcmp(value, "true") == 0) {
-      vt_set_broadcasting(1);
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      vt_set_broadcasting(flag);
     }
   }
 
@@ -1334,6 +1389,14 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
 
   if ((value = bl_conf_get_value(conf, "emoji_path"))) {
     ui_emoji_set_path(value);
+  }
+
+  if ((value = bl_conf_get_value(conf, "scroll_on_resizing"))) {
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      vt_set_scroll_on_resizing(flag);
+    }
   }
 
 #ifdef USE_IM_CURSOR_COLOR

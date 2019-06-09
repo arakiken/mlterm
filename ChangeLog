@@ -1,3 +1,11 @@
+2019-06-09  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_main_config.c: --sr / scroll_on_resizing option is added.
+
+	* vt_edit.[ch]: vt_set_scroll_on_resizing() is added.
+
+	* vt_model.c: vt_model_resize() sets vt_line_t::is_modified = 2.
+
 2019-06-08  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: The length of progress bar of transferring data via

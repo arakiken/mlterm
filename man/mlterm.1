@@ -770,6 +770,10 @@ The default is \fBfalse\fR.
 Whether to start mlterm with local pty instead of ssh connection.
 The default is \fBfalse\fR.
 .TP
+\fB\-\-sr\fR(=\fIbool\fR)
+Whether to scroll out all lines on resizing.
+The default is \fBfalse\fR.
+.TP
 \fB\-\-trim\fR(=\fIbool\fR)
 Whether to trim new line characters at the end in pasting text.
 The default is \fBfalse\fR.
@@ -1658,6 +1662,9 @@ Foreground color for scrollbar.
 .TP
 \fBscreen_width_ratio=\fIvalue\fR (\fB\-1\fR, \fB\-\-wscr\fR)
 Specify actual screen width (screen height in vertical mode).
+.TP
+\fBscroll_on_resizing=\fIbool\fR (\fB\-\-sr\fR)
+Scroll out all lines on resizing.
 .TP
 \fBscrollbar_mode=\fImode\fR (\fB\-O\fR, \fB\-\-sbmod\fR)
 Specify scrollbar position.

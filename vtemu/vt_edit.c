@@ -45,6 +45,10 @@
 #define CURSOR_IS_INSIDE_VMARGIN(edit) \
   ((edit)->vmargin_beg <= (edit)->cursor.row && (edit)->cursor.row <= (edit)->vmargin_end)
 
+/* --- static variables --- */
+
+static int scroll_on_resizing;
+
 /* --- static functions --- */
 
 /*
@@ -489,6 +493,10 @@ static int apply_relative_origin(vt_edit_t *edit, int *col, int *row, u_int *num
 
 /* --- global functions --- */
 
+void vt_set_scroll_on_resizing(int flag) {
+  scroll_on_resizing = flag;
+}
+
 int vt_edit_init(vt_edit_t *edit, vt_edit_scroll_event_listener_t *scroll_listener,
                  u_int num_cols, u_int num_rows, u_int tab_size, int is_logging,
                  int use_bce) {
@@ -591,11 +599,13 @@ int vt_edit_resize(vt_edit_t *edit, u_int num_cols, u_int num_rows) {
     u_int old_filled_rows = vt_model_get_num_filled_rows(&edit->model);
     int scroll_all = 0;
 
-    for (count = 0; count < old_filled_rows; count++) {
-      vt_line_t *line = vt_model_get_line(&edit->model, count);
-      if (vt_str_cols(line->chars, vt_line_get_num_filled_chars_except_sp(line)) > num_cols) {
-        scroll_all = 1;
-        break;
+    if (scroll_on_resizing) {
+      for (count = 0; count < old_filled_rows; count++) {
+        vt_line_t *line = vt_model_get_line(&edit->model, count);
+        if (vt_str_cols(line->chars, vt_line_get_num_filled_chars_except_sp(line)) > num_cols) {
+          scroll_all = 1;
+          break;
+        }
       }
     }
 
