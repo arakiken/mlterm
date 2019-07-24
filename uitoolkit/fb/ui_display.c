@@ -214,7 +214,7 @@ static inline ui_window_t *get_window(int x, /* X in display */
 }
 
 static inline u_char *get_fb(int x, int y) {
-  return _display.fb + (_display.yoffset + y) * _display.line_length +
+  return _display.fb_base + (_display.yoffset + y) * _display.line_length +
          (_display.xoffset + x) * _display.bytes_per_pixel / _display.pixels_per_byte;
 }
 
