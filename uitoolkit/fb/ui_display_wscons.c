@@ -324,12 +324,7 @@ static int open_display(u_int depth /* used on luna68k alone. */
   if (ioctl(_display.fb_fd, WSDISPLAYIO_GET_FBINFO, &vinfo2) == 0) {
     vinfo.width = vinfo2.fbi_width;
     vinfo.height = vinfo2.fbi_height;
-    if (vinfo2.fbi_bitsperpixel == 32 &&
-        vinfo2.fbi_subtype.fbi_rgbmasks.alpha_size == 0) {
-      vinfo.depth = 24;
-    } else {
-      vinfo.depth = vinfo2.fbi_bitsperpixel;
-    }
+    vinfo.depth = vinfo2.fbi_bitsperpixel;
     vinfo.cmsize = vinfo2.fbi_subtype.fbi_cmapinfo.cmap_entries;
 
     fboffset = vinfo2.fbi_fboffset;
