@@ -88,6 +88,10 @@ static vt_pty_mosh_t **ptys;
 static u_int num_ptys;
 static Network::Transport<Network::UserStream, Terminal::Complete> *dead_network;
 
+#ifdef MOSH_SIXEL
+static Network::Transport<Network::UserStream, Terminal::Complete> *cur_network;
+#endif
+
 #ifdef USE_WIN32API
 static int full_width_prop = -1;
 
@@ -100,6 +104,16 @@ static pthread_cond_t event_cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t event_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* --- static functions --- */
+
+#ifdef MOSH_SIXEL
+void establish_tcp_connection(int port) {
+  if (port <= 0 || cur_network->tcp_sock >= 0) {
+    return;
+  }
+
+  cur_network->tcp_sock = tcp_connect(cur_network->get_remote_addr().sin.sin_addr.s_addr, port);
+}
+#endif
 
 #ifdef USE_WIN32API
 
@@ -331,6 +345,10 @@ static void *watch_ptys(void *arg) {
   pthread_detach(pthread_self());
 
   int total_timeout = 0;
+#ifdef MOSH_SIXEL
+  int tcp_sock_reading_pass_seq = -2;
+#endif
+
   while (num_ptys > 0) {
     int timeout = 100;
     int maxfd = 0;
@@ -342,19 +360,35 @@ static void *watch_ptys(void *arg) {
     u_int count;
     u_int prev_num_ptys = num_ptys;
     for (count = 0; count < num_ptys; count++) {
-      std::vector<int> fd_list(ptys[count]->network->fds());
-      for (std::vector<int>::const_iterator it = fd_list.begin();
-           it != fd_list.end(); it++) {
-        FD_SET(*it, &fds);
-        if (*it > maxfd) {
-          maxfd = *it;
+#ifdef MOSH_SIXEL
+      if (tcp_sock_reading_pass_seq != ptys[count]->network->tcp_sock)
+#endif
+      {
+        std::vector<int> fd_list(ptys[count]->network->fds());
+        for (std::vector<int>::const_iterator it = fd_list.begin();
+             it != fd_list.end(); it++) {
+          FD_SET(*it, &fds);
+          if (*it > maxfd) {
+            maxfd = *it;
+          }
+        }
+
+        int wait = ptys[count]->network->wait_time();
+        if (timeout > wait) {
+          timeout = wait;
         }
       }
 
-      int wait = ptys[count]->network->wait_time();
-      if (timeout > wait) {
-        timeout = wait;
+#ifdef MOSH_SIXEL
+      int fd = ptys[count]->network->tcp_sock;
+      if (fd >= 0 &&
+          (tcp_sock_reading_pass_seq == -2 || tcp_sock_reading_pass_seq == fd)) {
+        FD_SET(fd, &fds);
+        if (fd > maxfd) {
+          maxfd = fd;
+        }
       }
+#endif
     }
     pthread_mutex_unlock(&event_mutex);
 
@@ -378,9 +412,43 @@ static void *watch_ptys(void *arg) {
       for (count = 0; count < num_ptys; count++) {
         if (sel_result > 0) {
           std::vector<int> fd_list(ptys[count]->network->fds());
+
+#ifdef MOSH_SIXEL
+          static int num_skip_udp = 0;
+          int fd = ptys[count]->network->tcp_sock;
+
+          if (fd >= 0 &&
+              (tcp_sock_reading_pass_seq == -2 || tcp_sock_reading_pass_seq == fd)) {
+            if (FD_ISSET(fd, &fds)) {
+              num_skip_udp = 0;
+              if (!tcp_recv(fd)) {
+                closesocket(fd);
+                ptys[count]->network->tcp_sock = -1;
+              } else {
+                if (pass_seq_parsing()) {
+                  tcp_sock_reading_pass_seq = fd;
+                } else {
+                  tcp_sock_reading_pass_seq = -2;
+                }
+                ptys[count]->ready = ready = true;
+              }
+
+              goto skip_udp;
+            } else if (tcp_sock_reading_pass_seq >= 0) {
+              if (++num_skip_udp <= 20) { /* 100*1000*20 usec = 20 sec */
+                bl_error_printf("pass sequence is divided.\n");
+                goto skip_udp;
+              }
+            }
+          }
+#endif
+
           for (std::vector<int>::const_iterator it = fd_list.begin();
                it != fd_list.end(); it++) {
             if (FD_ISSET(*it, &fds)) {
+#ifdef MOSH_SIXEL
+              cur_network = ptys[count]->network;
+#endif
               ptys[count]->network->recv();
               give_hint_to_overlay(ptys[count]);
               ptys[count]->ready = ready = true;
@@ -388,8 +456,17 @@ static void *watch_ptys(void *arg) {
               break;
             }
           }
+
+        skip_udp:
+          ;
         }
+#ifdef MOSH_SIXEL
+        change_pass_seq_buf(1, false);
+#endif
         ptys[count]->network->tick();
+#ifdef MOSH_SIXEL
+        change_pass_seq_buf(0, false);
+#endif
       }
     } else if (dead_network) {
       delete dead_network;
@@ -427,6 +504,11 @@ static void *watch_ptys(void *arg) {
       fsync(event_fds[1]);
 #endif
     }
+  }
+
+  if (dead_network) {
+    delete dead_network;
+    dead_network = NULL;
   }
 
 #ifndef USE_WIN32API
@@ -477,7 +559,13 @@ static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
   pthread_mutex_lock(&event_mutex);
 
   pty_mosh->network->get_current_state().push_back(Parser::Resize(cols, rows));
+#ifdef MOSH_SIXEL
+  change_pass_seq_buf(1, false);
+#endif
   pty_mosh->network->tick();
+#ifdef MOSH_SIXEL
+  change_pass_seq_buf(0, false);
+#endif
 
   pty_mosh->overlay->get_prediction_engine().reset();
 
@@ -491,6 +579,10 @@ static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
 
   pthread_mutex_lock(&event_mutex);
 
+#ifdef MOSH_SIXEL
+  change_pass_seq_buf(1, false);
+#endif
+
   pty_mosh->overlay->get_prediction_engine().set_local_frame_sent(
     pty_mosh->network->get_sent_state_last());
 
@@ -498,7 +590,17 @@ static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
     pty_mosh->overlay->get_prediction_engine().new_user_byte(buf[count], pty_mosh->framebuffer);
     pty_mosh->network->get_current_state().push_back(Parser::UserByte(buf[count]));
   }
-  pty_mosh->network->tick();
+
+#ifdef MOSH_SIXEL
+  change_pass_seq_buf(0, true /* clear pass sequence generated by overlay */);
+  change_pass_seq_buf(1, false);
+#endif
+
+  pty_mosh->network->tick(); /* send UserByte(buf) above to the server */
+
+#ifdef MOSH_SIXEL
+  change_pass_seq_buf(0, false);
+#endif
 
   pthread_mutex_unlock(&event_mutex);
 
@@ -588,16 +690,21 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
 #ifdef MOSH_SIXEL /* defined in parser.h */
   size_t seq_len;
   char *seq = pass_seq_get(&seq_len);
+  bool has_zmodem = pass_seq_has_zmodem();
 
   if (seq) {
     /* XXX in case len < 8 */
     if (len >= 8) {
-      if (memcmp(seq, "\x1bP", 2) == 0) {
+      size_t prepend;
+
+      if (!has_zmodem && memcmp(seq, "\x1bP", 2) == 0) {
         memcpy(buf, "\x1b[?8800h", 8); /* for DRCS-Sixel */
         len -= 8;
         memcpy(buf + 8, seq, min(seq_len, len));
+        prepend = 8;
       } else {
         memcpy(buf, seq, min(seq_len, len));
+        prepend = 0;
       }
 
       if (seq_len > len) {
@@ -611,8 +718,10 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
 
       pass_seq_reset();
 
-      return len + 8 + prev_len;
+      return len + prepend + prev_len;
     }
+  } else if (has_zmodem) {
+    return prev_len;
   }
 #endif
 
