@@ -25554,6 +25554,20 @@ mv main/Makefile.new main/Makefile
 cat vtemu/Makefile | sed "s/@UTMP_CFLAGS@/$UTMP_CFLAGS/" > vtemu/Makefile.new
 mv vtemu/Makefile.new vtemu/Makefile
 
+# Remove 'as_fn_exit 0'
+sed '$d' ${CONFIG_STATUS} > ${CONFIG_STATUS}.new
+mv ${CONFIG_STATUS}.new ${CONFIG_STATUS}
+chmod 755 ${CONFIG_STATUS}
+
+cat >>$CONFIG_STATUS <<EOF
+cat main/Makefile | sed "s/@INSTALL_OPT@/$INSTALL_OPT/" | sed "s/@UTMP_CFLAGS@/$UTMP_CFLAGS/" > main/Makefile.new
+mv main/Makefile.new main/Makefile
+cat vtemu/Makefile | sed "s/@UTMP_CFLAGS@/$UTMP_CFLAGS/" > vtemu/Makefile.new
+mv vtemu/Makefile.new vtemu/Makefile
+
+as_fn_exit 0
+EOF
+
 # dummy declarations.
 # Check whether --enable-pty_helper was given.
 if test "${enable_pty_helper+set}" = set; then :

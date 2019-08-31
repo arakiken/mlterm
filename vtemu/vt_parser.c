@@ -805,7 +805,8 @@ static int receive_bytes(vt_parser_t *vt_parser) {
 end:
   vt_parser->r_buf.filled_len = (vt_parser->r_buf.left += vt_parser->r_buf.new_len);
 
-  if (vt_parser->r_buf.filled_len <= PTY_RD_BUFFER_SIZE) {
+  if (vt_parser->r_buf.filled_len <= PTY_RD_BUFFER_SIZE &&
+      vt_parser->r_buf.len > PTY_RD_BUFFER_SIZE) {
     /* Shrink buffer */
     change_read_buffer_size(&vt_parser->r_buf, PTY_RD_BUFFER_SIZE);
   }

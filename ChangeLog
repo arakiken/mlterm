@@ -1,3 +1,12 @@
+2019-09-01  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_pty_mosh.cpp: Pass through sequence via tcp connection is supported.
+
+	* vt_parser.c: Minor improvement.
+
+	* configure.in: Script to replace @UTMP_CFLAGS@ and @INSTALL_OPT@
+	  is added to config.status.
+
 2019-06-09  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_main_config.c: --sr / scroll_on_resizing option is added.
