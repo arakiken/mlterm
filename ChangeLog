@@ -1,5 +1,9 @@
 2019-09-01  Araki Ken  <arakiken@users.sf.net>
 
+	* gdiplus.cpp: Uninitialized memory access in gdiplus.cpp is fixed.
+
+2019-09-01  Araki Ken  <arakiken@users.sf.net>
+
 	* vt_pty_mosh.cpp: Pass through sequence via tcp connection is supported.
 
 	* vt_parser.c: Minor improvement.

@@ -79,7 +79,7 @@ static u_int32_t *create_cardinals_from_file(const char *path, u_int width, u_in
   HMODULE module;
   IBindCtx *ctx;
   IMoniker *moniker;
-  IStream *stream;
+  IStream *stream = NULL;
   Gdiplus::Bitmap *bitmap;
 
   if (cardinal) {
