@@ -10,6 +10,7 @@
   Fix https://sourceforge.net/p/mlterm/mailman/message/36633222/ (Enbugged at 3.8.8)
   Fix segfault of mlterm for java by race condition.
   Fix unexpected invalidation of --mdi=false option. (Enbugged at 3.8.8)
+  Fix uninitialized memory access of mlimgloader.exe for win32.
 
 ver 3.8.8
 * Support Haiku OS. (Experimental)
