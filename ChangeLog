@@ -1,3 +1,8 @@
+2019-09-21  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_im_candidate_screen.c: ui_im_candidate_t::filled_len = 0
+	  in case it is not 0.
+
 2019-09-19  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/PROTOCOL: Updated.

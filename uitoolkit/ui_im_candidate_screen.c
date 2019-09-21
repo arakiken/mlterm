@@ -677,6 +677,7 @@ static int set_candidate(ui_im_candidate_screen_t *cand_screen, ef_parser_t *par
   if (cand_screen->candidates[index].chars) {
     vt_str_destroy(cand_screen->candidates[index].chars,
                    cand_screen->candidates[index].num_chars);
+    cand_screen->candidates[index].filled_len = 0;
   }
 
   if (!(cand_screen->candidates[index].chars = vt_str_new(count))) {
@@ -685,7 +686,6 @@ static int set_candidate(ui_im_candidate_screen_t *cand_screen, ef_parser_t *par
 #endif
 
     cand_screen->candidates[index].num_chars = 0;
-    cand_screen->candidates[index].filled_len = 0;
 
     return 0;
   }
