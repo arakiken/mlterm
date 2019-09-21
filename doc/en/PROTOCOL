@@ -31,7 +31,7 @@ version 20190331
                      mlclientx "<prefix options>" "<options>" |
                      search_prev <pattern> | search_next <pattern> | update_all | mlconfig |
                      set_shortcut <key>=<operation> (*) | autoscroll <count> |
-                     zmodem_send | zmodem_recv | zmodem_cancel |
+                     zmodem_start | zmodem_cancel |
                      scp "(local:|remote:)<src file name>" "(local:|remote:)<dst directory name>"
                      "(<encoding name>)"
   set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize |

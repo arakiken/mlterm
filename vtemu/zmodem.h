@@ -104,6 +104,8 @@ extern Q_BOOL zmodem_start(struct file_info * file_list, const char * pathname,
  */
 extern void zmodem_stop(const Q_BOOL save_partial);
 
+extern void zmodem_cancel(void);
+
 extern Q_BOOL zmodem_is_processing(int *progress_cur, int *progress_len);
 
 #ifdef __cplusplus

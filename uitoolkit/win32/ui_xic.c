@@ -168,7 +168,7 @@ size_t ui_xic_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parser_t
       /* For modifyOtherKeys */
       goto zero_return;
     } else if (event->ch == '^') {
-      event->ch = 0x1d;
+      event->ch = 0x1e;
     } else if (event->ch == '_' || event->ch == '/') {
       event->ch = 0x1f;
     }
