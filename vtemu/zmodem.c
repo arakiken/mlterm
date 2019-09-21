@@ -5820,7 +5820,31 @@ void zmodem_stop(const Q_BOOL save_partial) {
         Xfree(download_path, __FILE__, __LINE__);
     }
     download_path = NULL;
+}
 
+void zmodem_cancel(void) {
+    /* See stop_file_transfer() */
+    zmodem_stop(Q_FALSE);
+    q_transfer_stats.state = Q_TRANSFER_STATE_ABORT;
+    time(&q_transfer_stats.end_time);
+    q_screen_dirty = Q_TRUE;
+
+#if 0
+    set_transfer_stats_last_message(_("USER CANCELS"));
+#endif
+
+    status.state = ABORT;
+
+    /* for zmodem_is_processing */
+    status.file_size = 0;
+    status.file_position = 0;
+
+    /*
+     * This flag is not cleared and used at the next zmodem_start(), and
+     * zmodem() waits for ACK unexpectedly. (This results in unexpected
+     * delay in transferring data.)
+     */
+    status.waiting_for_ack = Q_FALSE;
 }
 
 Q_BOOL zmodem_is_processing(int *progress_cur, int *progress_len) {

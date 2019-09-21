@@ -80,6 +80,10 @@ typedef struct vt_pty_mosh {
   size_t buf_len;
   bool ready;
 
+  bool quit_sequence_started;
+  bool lf_entered;
+  /* bool escape_requires_lf; */
+
 } vt_pty_mosh_t;
 
 /* --- static variables --- */
@@ -103,6 +107,17 @@ static int event_in_pipe;
 static pthread_cond_t event_cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t event_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+static int escape_key = 0x1e;
+static int escape_pass_key = '^';
+static int escape_pass_key2 = '^';
+static std::wstring escape_key_help =
+#ifdef MOSH_SIXEL
+  L"Commands: \".\" quits, \",\" resets, \"^\" gives literal Ctrl-^";
+#else
+  L"Commands: \".\" quits, \"^\" gives literal Ctrl-^";
+#endif
+static bool escape_requires_lf = false;
+
 /* --- static functions --- */
 
 #ifdef MOSH_SIXEL
@@ -112,6 +127,9 @@ void establish_tcp_connection(int port) {
   }
 
   cur_network->tcp_sock = tcp_connect(cur_network->get_remote_addr().sin.sin_addr.s_addr, port);
+  if (cur_network->tcp_sock < 0) {
+    bl_error_printf("Failed to connect to mosh server via tcp to send/recv zmodem packets.\n");
+  }
 }
 #endif
 
@@ -341,13 +359,14 @@ static void give_hint_to_overlay(vt_pty_mosh_t *pty_mosh) {
     pty_mosh->network->get_latest_remote_state().state.get_echo_ack());
 }
 
+#ifdef MOSH_SIXEL
+static int zmodem_on_tcp = -2;
+#endif
+
 static void *watch_ptys(void *arg) {
   pthread_detach(pthread_self());
 
   int total_timeout = 0;
-#ifdef MOSH_SIXEL
-  int tcp_sock_reading_pass_seq = -2;
-#endif
 
   while (num_ptys > 0) {
     int timeout = 100;
@@ -361,7 +380,7 @@ static void *watch_ptys(void *arg) {
     u_int prev_num_ptys = num_ptys;
     for (count = 0; count < num_ptys; count++) {
 #ifdef MOSH_SIXEL
-      if (tcp_sock_reading_pass_seq != ptys[count]->network->tcp_sock)
+      if (zmodem_on_tcp != ptys[count]->network->tcp_sock)
 #endif
       {
         std::vector<int> fd_list(ptys[count]->network->fds());
@@ -382,7 +401,7 @@ static void *watch_ptys(void *arg) {
 #ifdef MOSH_SIXEL
       int fd = ptys[count]->network->tcp_sock;
       if (fd >= 0 &&
-          (tcp_sock_reading_pass_seq == -2 || tcp_sock_reading_pass_seq == fd)) {
+          (zmodem_on_tcp == -2 || zmodem_on_tcp == fd)) {
         FD_SET(fd, &fds);
         if (fd > maxfd) {
           maxfd = fd;
@@ -414,31 +433,36 @@ static void *watch_ptys(void *arg) {
           std::vector<int> fd_list(ptys[count]->network->fds());
 
 #ifdef MOSH_SIXEL
-          static int num_skip_udp = 0;
           int fd = ptys[count]->network->tcp_sock;
 
           if (fd >= 0 &&
-              (tcp_sock_reading_pass_seq == -2 || tcp_sock_reading_pass_seq == fd)) {
+              (zmodem_on_tcp == -2 || zmodem_on_tcp == fd)) {
             if (FD_ISSET(fd, &fds)) {
-              num_skip_udp = 0;
-              if (!tcp_recv(fd)) {
+              bool close_socket = !tcp_recv_from_server(fd);
+
+              if (zmodem_processing()) {
+                zmodem_on_tcp = fd;
+              } else if (zmodem_on_tcp >= 0) {
+                zmodem_on_tcp = -2;
+                close_socket = true;
+              }
+
+              if (close_socket) {
                 closesocket(fd);
                 ptys[count]->network->tcp_sock = -1;
-              } else {
-                if (pass_seq_parsing()) {
-                  tcp_sock_reading_pass_seq = fd;
-                } else {
-                  tcp_sock_reading_pass_seq = -2;
-                }
-                ptys[count]->ready = ready = true;
+              }
+
+              ptys[count]->ready = ready = true;
+
+              goto skip_udp;
+            } else if (zmodem_on_tcp == fd) {
+              if (!zmodem_processing()) {
+                zmodem_on_tcp = -2;
+                closesocket(fd);
+                ptys[count]->network->tcp_sock = -1;
               }
 
               goto skip_udp;
-            } else if (tcp_sock_reading_pass_seq >= 0) {
-              if (++num_skip_udp <= 20) { /* 100*1000*20 usec = 20 sec */
-                bl_error_printf("pass sequence is divided.\n");
-                goto skip_udp;
-              }
             }
           }
 #endif
@@ -457,15 +481,17 @@ static void *watch_ptys(void *arg) {
             }
           }
 
+#ifdef MOSH_SIXEL
         skip_udp:
           ;
+#endif
         }
 #ifdef MOSH_SIXEL
-        change_pass_seq_buf(1, false);
+        pass_seq_change_buf(1, false);
 #endif
         ptys[count]->network->tick();
 #ifdef MOSH_SIXEL
-        change_pass_seq_buf(0, false);
+        pass_seq_change_buf(0, false);
 #endif
       }
     } else if (dead_network) {
@@ -540,11 +566,20 @@ static int final(vt_pty_t *pty) {
   if (dead_network) {
     delete dead_network; /* XXX */
   }
+
   /*
    * If delete pty_mosh->network here, watch_ptys() might fall into infinite loop.
    * (in select()?)
    */
   dead_network = pty_mosh->network;
+#ifdef MOSH_SIXEL
+  if (dead_network >= 0) {
+    closesocket(dead_network->tcp_sock);
+    dead_network->tcp_sock = -1; /* for dead_network->tick() not to send via tcp_sock */
+  }
+#endif
+  dead_network->start_shutdown();
+  dead_network->tick();
 
   delete pty_mosh->overlay;
 
@@ -559,12 +594,13 @@ static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
   pthread_mutex_lock(&event_mutex);
 
   pty_mosh->network->get_current_state().push_back(Parser::Resize(cols, rows));
+
 #ifdef MOSH_SIXEL
-  change_pass_seq_buf(1, false);
+  pass_seq_change_buf(1, false);
 #endif
   pty_mosh->network->tick();
 #ifdef MOSH_SIXEL
-  change_pass_seq_buf(0, false);
+  pass_seq_change_buf(0, false);
 #endif
 
   pty_mosh->overlay->get_prediction_engine().reset();
@@ -580,7 +616,33 @@ static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   pthread_mutex_lock(&event_mutex);
 
 #ifdef MOSH_SIXEL
-  change_pass_seq_buf(1, false);
+  bool zmodem_cancel = (strcmp((char*)buf, "**\x18\x18\x18\x18\x18\x18\x18\x18"
+                                           "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08") == 0);
+
+  if (pty_mosh->network->tcp_sock >= 0 &&
+      tcp_send(pty_mosh->network->tcp_sock, (char*)buf, len)) {
+    if (zmodem_cancel) {
+      pass_seq_full_reset();
+
+      if (zmodem_on_tcp == pty_mosh->network->tcp_sock) {
+        zmodem_on_tcp = -2;
+      }
+      closesocket(pty_mosh->network->tcp_sock);
+      pty_mosh->network->tcp_sock = -1;
+    }
+
+    pass_seq_change_buf(1, false);
+    pty_mosh->network->tick();
+    pass_seq_change_buf(0, false);
+
+    goto end;
+  } else {
+    if (zmodem_cancel) {
+      pass_seq_full_reset();
+    }
+  }
+
+  pass_seq_change_buf(1, false);
 #endif
 
   pty_mosh->overlay->get_prediction_engine().set_local_frame_sent(
@@ -588,18 +650,88 @@ static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
 
   for (size_t count = 0; count < len; count++) {
     pty_mosh->overlay->get_prediction_engine().new_user_byte(buf[count], pty_mosh->framebuffer);
+
+#ifdef MOSH_SIXEL
+    if (pass_seq_has_zmodem() || zmodem_processing()) {
+      goto skip;
+    }
+#endif
+
+    if (pty_mosh->quit_sequence_started) {
+      if (buf[count] == '.') {
+        /* Quit sequence is Ctrl-^ . */
+        if (pty_mosh->network->has_remote_addr()) {
+          pty_mosh->overlay->get_notification_engine().set_notification_string(
+            wstring( L"Exiting on user request..." ), true);
+          bl_trigger_sig_child(pty->child_pid);
+        }
+
+        pthread_mutex_unlock(&event_mutex);
+
+        return -1;
+      }
+#ifdef MOSH_SIXEL
+      else if (buf[count] == ',') {
+        /* Reset */
+        pass_seq_full_reset();
+      }
+#endif
+      else if (buf[count] == 0x1a) {
+        /* Suspend sequence is escape_key Ctrl-Z */
+      } else if ((buf[count] == escape_pass_key) || (buf[count] == escape_pass_key2)) {
+        /* Emulation sequence to type escape_key is escape_key +
+           escape_pass_key (that is escape key without Ctrl) */
+        pty_mosh->network->get_current_state().push_back(Parser::UserByte(escape_key));
+      } else {
+        /* Escape key followed by anything other than . and ^ gets sent literally */
+        pty_mosh->network->get_current_state().push_back(Parser::UserByte(escape_key));
+        pty_mosh->network->get_current_state().push_back(Parser::UserByte(buf[count]));
+      }
+
+      pty_mosh->quit_sequence_started = false;
+
+      if (pty_mosh->overlay->get_notification_engine().get_notification_string() ==
+          escape_key_help) {
+        pty_mosh->overlay->get_notification_engine().set_notification_string(L"");
+      }
+
+      continue;
+    }
+
+    pty_mosh->quit_sequence_started = (escape_key > 0) && (buf[count] == escape_key) &&
+                                      (pty_mosh->lf_entered || !escape_requires_lf) ;
+
+    if (pty_mosh->quit_sequence_started) {
+      pty_mosh->lf_entered = false;
+      pty_mosh->overlay->get_notification_engine().set_notification_string(escape_key_help,
+                                                                           true, false);
+
+      continue;
+    }
+
+    /* LineFeed, Ctrl-J, '\n' or CarriageReturn, Ctrl-M, '\r' */
+    pty_mosh->lf_entered = (buf[count] == 0x0A || buf[count] == 0x0D);
+
+    /* XXX */
+#if 0
+    if (buf[count] == 0x0C) { /* Ctrl-L */
+      /* Repaint is requested */
+    }
+#endif
+
+  skip:
     pty_mosh->network->get_current_state().push_back(Parser::UserByte(buf[count]));
   }
 
 #ifdef MOSH_SIXEL
-  change_pass_seq_buf(0, true /* clear pass sequence generated by overlay */);
-  change_pass_seq_buf(1, false);
+  pass_seq_change_buf(0, true /* clear pass sequence generated by overlay */);
+  pass_seq_change_buf(1, false);
 #endif
-
   pty_mosh->network->tick(); /* send UserByte(buf) above to the server */
-
 #ifdef MOSH_SIXEL
-  change_pass_seq_buf(0, false);
+  pass_seq_change_buf(0, false);
+
+end:
 #endif
 
   pthread_mutex_unlock(&event_mutex);
@@ -629,7 +761,7 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   } else if (((int64_t)pty_mosh->network->get_remote_state_num()) < 0) {
     bl_trigger_sig_child(pty->child_pid);
 
-    return -1;
+    return 0;
   }
 
 #if 0
@@ -688,16 +820,17 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   }
 
 #ifdef MOSH_SIXEL /* defined in parser.h */
+  pthread_mutex_lock(&event_mutex);
+
   size_t seq_len;
   char *seq = pass_seq_get(&seq_len);
-  bool has_zmodem = pass_seq_has_zmodem();
 
   if (seq) {
     /* XXX in case len < 8 */
     if (len >= 8) {
       size_t prepend;
 
-      if (!has_zmodem && memcmp(seq, "\x1bP", 2) == 0) {
+      if (!pass_seq_has_zmodem() && memcmp(seq, "\x1bP", 2) == 0) {
         memcpy(buf, "\x1b[?8800h", 8); /* for DRCS-Sixel */
         len -= 8;
         memcpy(buf + 8, seq, min(seq_len, len));
@@ -718,11 +851,17 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
 
       pass_seq_reset();
 
+      pthread_mutex_unlock(&event_mutex);
+
       return len + prepend + prev_len;
     }
-  } else if (has_zmodem) {
+  } else if (zmodem_processing()) {
+    pthread_mutex_unlock(&event_mutex);
+
     return prev_len;
   }
+
+  pthread_mutex_unlock(&event_mutex);
 #endif
 
   pthread_mutex_lock(&event_mutex);
@@ -872,6 +1011,12 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
     while (cmd_argv[argv_count++]);
   }
 
+#ifdef MOSH_SIXEL
+  if (getenv("MOSH_NO_TCP")) {
+    argv_count++;
+  }
+#endif
+
   u_int env_count = 0;
   if (env) {
     while (env[env_count++]);
@@ -879,9 +1024,15 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
 
   char **argv;
   if (argv_count + env_count > 0 &&
-      (argv = (char**)alloca(sizeof(base_argv) + sizeof(char*) * (argv_count + env_count * 2 + 8)))) {
+      (argv = (char**)alloca(sizeof(base_argv) + sizeof(char*) * (argv_count + env_count * 2)))) {
     memcpy(argv, base_argv, sizeof(base_argv));
     char **argv_p = argv + sizeof(base_argv) / sizeof(base_argv[0]) - 1;
+
+#ifdef MOSH_SIXEL
+    if (getenv("MOSH_NO_TCP")) {
+      *(argv_p++) = "-t";
+    }
+#endif
 
     for (env_count = 0; env[env_count]; env_count++) {
       /* "COLORFGBG=default;default" breaks following environmental variables. */

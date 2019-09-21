@@ -23,12 +23,14 @@ static void (*dl_zmodem)(unsigned char *, const unsigned int, unsigned char *, u
                       const unsigned int);
 static Q_BOOL (*dl_zmodem_start)(struct file_info *, const char *, const Q_BOOL,
                                  const ZMODEM_FLAVOR, int);
+static Q_BOOL (*dl_zmodem_cancel)(void);
 static Q_BOOL (*dl_zmodem_is_processing)(int *, int *);
 
 static int is_tried;
 #ifndef NO_DYNAMIC_LOAD_TRANSFER
 static bl_dl_handle_t handle;
 #endif
+static int progress_prev = -1;
 
 /* --- static functions --- */
 
@@ -46,6 +48,7 @@ static int load_library(void) {
 
   dl_zmodem = bl_dl_func_symbol(handle, "zmodem");
   dl_zmodem_start = bl_dl_func_symbol(handle, "zmodem_start");
+  dl_zmodem_cancel = bl_dl_func_symbol(handle, "zmodem_cancel");
   dl_zmodem_is_processing = bl_dl_func_symbol(handle, "zmodem_is_processing");
 #else
   dl_zmodem = zmodem;
@@ -54,6 +57,13 @@ static int load_library(void) {
 #endif
 
   return 1;
+}
+
+static void reset(void) {
+  zmodem_mode = 0;
+  free(zmodem_info[0].name);
+  zmodem_info[0].name = NULL;
+  progress_prev = -1;
 }
 
 /* --- global functions --- */
@@ -82,8 +92,16 @@ int vt_transfer_start(/* vt_transfer_type_t type, */
 
     return 1;
   } else {
+    free(zmodem_info[0].name);
+    zmodem_info[0].name = NULL;
+
     return 0;
   }
+}
+
+void vt_transfer_cancel(void) {
+  (*dl_zmodem_cancel)();
+  reset();
 }
 
 void vt_transfer_data(u_char *input, const u_int input_n, u_char *output, u_int *output_n,
@@ -120,8 +138,6 @@ void vt_transfer_data(u_char *input, const u_int input_n, u_char *output, u_int 
 }
 
 int vt_transfer_get_state(int *progress_cur, int *progress_len) {
-  static int progress_prev = -1;
-
   if ((*dl_zmodem_is_processing)(progress_cur, progress_len)) {
     if (progress_prev < *progress_cur) {
       progress_prev = *progress_cur;
@@ -131,10 +147,7 @@ int vt_transfer_get_state(int *progress_cur, int *progress_len) {
       return -1;
     }
   } else {
-    zmodem_mode = 0;
-    free(zmodem_info[0].name);
-    zmodem_info[0].name = NULL;
-    progress_prev = -1;
+    reset();
 
     return 0;
   }

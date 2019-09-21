@@ -1,3 +1,25 @@
+2019-09-19  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/PROTOCOL: Updated.
+
+	* win32/ui_xic.c:
+	  Ctrl-^ is converted to 0x1e instead of 0x1d.
+
+	* vt_parser.c:
+	  "zmodem_send" and "zmodem_recv" are integrated to "zmodem_start"
+	  and "zmodem_cancel" is added in vt_parser_exec_cmd().
+
+	* vt_transfer.[ch]:
+	  vt_transfer_cancel() is added.
+
+	* zmodem.[ch]:
+	  zmodem_cancel() is added.
+
+	* vt_pty_mosh.cpp:
+	  - Only zmodem packets are transferred via tcp connection.
+	  - If MOSH_NO_TCP environmental variable is set, tcp connection is disabled.
+	  - Ctrl-^ commands (Ctrl-. (quit) and Ctrl-, (reset)) are supported.
+
 2019-09-01  Araki Ken  <arakiken@users.sf.net>
 
 	* gdiplus.cpp: Uninitialized memory access in gdiplus.cpp is fixed.

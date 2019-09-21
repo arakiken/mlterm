@@ -6744,6 +6744,17 @@ static void transfer_data(vt_parser_t *vt_parser) {
   } while (is_transferring_data(vt_parser) && receive_bytes(vt_parser) > 0);
 }
 
+static void transfer_cancel(vt_parser_t *vt_parser) {
+  if (vt_parser->is_transferring_data) {
+    vt_parser->is_transferring_data = 0;
+    vt_parser->r_buf.left = 0;
+    vt_transfer_cancel();
+  }
+  vt_write_to_pty(vt_parser->pty,
+                  "**\x18\x18\x18\x18\x18\x18\x18\x18"
+                  "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08", 20);
+}
+
 /* --- global functions --- */
 
 void vt_set_use_alt_buffer(int use) { use_alt_buffer = use; }
@@ -7964,36 +7975,19 @@ int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd) {
         snapshot(vt_parser, encoding, file, WCA_ALL);
       }
     }
-  } else if (strcmp(cmd, "zmodem_recv") == 0) {
-    if ((recv_dir == NULL &&
-         (recv_dir = bl_get_user_rc_path("mlterm")) == NULL) ||
-        !vt_transfer_start(NULL, recv_dir, 0, vt_screen_get_cols(vt_parser->screen) / 2 + 1)) {
-      vt_write_to_pty(vt_parser->pty,
-                      "**\x18\x18\x18\x18\x18\x18\x18\x18"
-                      "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08", 20);
-    } else {
-      vt_parser->is_transferring_data = 0x2;
+  } else if (strcmp(cmd, "zmodem_start") == 0) {
+    if ((send_file || recv_dir || (recv_dir = bl_get_user_rc_path("mlterm"))) &&
+        vt_transfer_start(send_file, recv_dir, 0, vt_screen_get_cols(vt_parser->screen) / 2 + 1)) {
+      vt_parser->is_transferring_data = (send_file ? 0x1 : 0x2);
       vt_parser->r_buf.left = 0;
       transfer_data(vt_parser);
-    }
-  } else if (strcmp(cmd, "zmodem_send") == 0) {
-    if (!send_file || !vt_transfer_start(send_file, recv_dir, 0,
-                                         vt_screen_get_cols(vt_parser->screen) / 2 + 1)) {
-      vt_write_to_pty(vt_parser->pty,
-                      "**\x18\x18\x18\x18\x18\x18\x18\x18"
-                      "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08", 20);
-      free(send_file);
     } else {
-      vt_parser->is_transferring_data = 0x1;
-      vt_parser->r_buf.left = 0;
-      transfer_data(vt_parser);
-      /* send_file is freed in vt_transfer_data() */
+      transfer_cancel(vt_parser);
+      /* send_file is freed in vt_transfer_start() */
     }
     send_file = NULL;
   } else if (strcmp(cmd, "zmodem_cancel") == 0) {
-    vt_write_to_pty(vt_parser->pty,
-                    "**\x18\x18\x18\x18\x18\x18\x18\x18"
-                    "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08", 20);
+    transfer_cancel(vt_parser);
   }
 #if !defined(NO_IMAGE) && defined(ENABLE_OSC5379PICTURE)
   else if (strncmp(cmd, "show_picture ", 13) == 0 || strncmp(cmd, "add_frame ", 10) == 0) {
