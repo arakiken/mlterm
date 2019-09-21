@@ -173,7 +173,7 @@ static int open_display(u_int depth) {
 
   _display.smem_len = vinfo.gd_fbsize + vinfo.gd_regsize;
 
-  if ((_display.fb = mmap(NULL, _display.smem_len, PROT_WRITE | PROT_READ, MAP_FILE | MAP_SHARED,
+  if ((_display.fb = _display.fb_base = mmap(NULL, _display.smem_len, PROT_WRITE | PROT_READ, MAP_FILE | MAP_SHARED,
                           _display.fb_fd, (off_t)0)) == MAP_FAILED) {
     bl_error_printf("Retry another mode of resolution and depth.\n");
 
@@ -339,7 +339,7 @@ error:
   if (_display.fb) {
     setup_reg(reg, &orig_reg);
     munmap(_display.fb, _display.smem_len);
-    _display.fb = NULL;
+    _display.fb = _display.fb_base = NULL;
   }
 
   close(_display.fb_fd);
