@@ -1,3 +1,7 @@
+2019-09-23  Araki Ken  <arakiken@users.sf.net>
+
+	* zmodem.c: q_screen_dirty is removed.
+
 2019-09-22  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_display_wscons.c:
