@@ -5,8 +5,9 @@
 * Change the default value of "font_size_range" option from 1-100 to 1-10000.
 * Clear a window and scroll out all lines on resizing only if
   the value of --sr / "scroll_on_resizing" option is true.
-* Merge pull requests:
+* Merge patches:
   https://bitbucket.org/arakiken/mlterm/pull-requests/5/fix-for-wscons-framebuffer/diff
+  https://sourceforge.net/p/mlterm/patches/24/
 * Bug fixes:
   Fix memory leaks of libptymosh.so
   Fix https://sourceforge.net/p/mlterm/mailman/message/36633222/ (Enbugged at 3.8.8)

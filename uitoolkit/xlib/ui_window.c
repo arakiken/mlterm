@@ -11,6 +11,7 @@
 
 #include <stdlib.h>    /* abs */
 #include <string.h>    /* memset/memcpy */
+#include <unistd.h>    /* getpid */
 #include <X11/Xutil.h> /* for XSizeHints */
 #include <X11/Xatom.h>
 #include <pobl/bl_debug.h>
@@ -56,6 +57,7 @@
  * Extended Window Manager Hint support
  */
 #define XA_NET_WM_ICON(display) (XInternAtom(display, "_NET_WM_ICON", False))
+#define XA_NET_WM_PID(display) (XInternAtom(display, "_NET_WM_PID", False))
 
 /*
  * Motif Window Manager Hint (for borderless window)
@@ -1321,6 +1323,7 @@ int ui_window_show(ui_window_t *win, int hint) {
         "mlterm", NULL,
     };
     Atom protocols[2];
+    XID pid;
 
     win->event_mask |= StructureNotifyMask;
 
@@ -1400,6 +1403,11 @@ int ui_window_show(ui_window_t *win, int hint) {
     protocols[1] = XA_TAKE_FOCUS(win->disp->display);
 
     XSetWMProtocols(win->disp->display, win->my_window, protocols, 2);
+
+    pid = getpid();
+    XChangeProperty(win->disp->display, win->my_window,
+                    XA_NET_WM_PID(win->disp->display), XA_CARDINAL,
+                    32, PropModeReplace, (unsigned char *)&pid, 1);
   }
 
   if (win->parent && !win->parent->is_transparent && win->parent->wall_picture_is_set) {
