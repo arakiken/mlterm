@@ -182,8 +182,6 @@ struct q_transfer_stats_struct q_transfer_stats = {
  */
 #define DIALOG_MESSAGE_SIZE     128
 
-static Q_BOOL q_screen_dirty = Q_TRUE;
-
 /* Members of q_status in qodem.h */
 static Q_BOOL zmodem_escape_ctrl = Q_FALSE;
 static Q_BOOL zmodem_zchallenge = Q_FALSE;
@@ -252,7 +250,6 @@ static void stop_file_transfer(const Q_TRANSFER_STATE new_state) {
     zmodem_stop(Q_TRUE);
 
     q_transfer_stats.state = new_state;
-    q_screen_dirty = Q_TRUE;
     time(&q_transfer_stats.end_time);
 }
 
@@ -321,11 +318,6 @@ static void set_transfer_stats_last_message(const char * format, ...) {
         Xfree(q_transfer_stats.last_message, __FILE__, __LINE__);
     }
     q_transfer_stats.last_message = Xstrdup(outbuf, __FILE__, __LINE__);
-
-    /*
-     * Report the message immediately
-     */
-    q_screen_dirty = Q_TRUE;
 #endif
 }
 
@@ -880,7 +872,6 @@ static void stats_new_file(const char * filename, const int filesize) {
     Xfree(dirname_arg, __FILE__, __LINE__);
 
     q_transfer_stats.state = Q_TRANSFER_STATE_TRANSFER;
-    q_screen_dirty = Q_TRUE;
     time(&q_transfer_stats.file_start_time);
 }
 
@@ -893,8 +884,6 @@ static void stats_increment_blocks() {
     if ((status.file_position % ZMODEM_BLOCK_SIZE) > 0) {
         q_transfer_stats.blocks_transfer++;
     }
-
-    q_screen_dirty = Q_TRUE;
 
     status.consecutive_errors = 0;
 
@@ -984,7 +973,6 @@ static Q_BOOL setup_for_next_file() {
          */
         q_transfer_stats.batch_bytes_transfer =
             q_transfer_stats.batch_bytes_total;
-        q_screen_dirty = Q_TRUE;
 
         /*
          * We're done
@@ -5827,7 +5815,6 @@ void zmodem_cancel(void) {
     zmodem_stop(Q_FALSE);
     q_transfer_stats.state = Q_TRANSFER_STATE_ABORT;
     time(&q_transfer_stats.end_time);
-    q_screen_dirty = Q_TRUE;
 
 #if 0
     set_transfer_stats_last_message(_("USER CANCELS"));
