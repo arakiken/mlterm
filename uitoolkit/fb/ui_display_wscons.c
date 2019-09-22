@@ -411,7 +411,7 @@ static int open_display(u_int depth /* used on luna68k alone. */
   if (wstype == WSDISPLAY_TYPE_LUNA && (_disp.depth == 4 || _disp.depth == 8)) {
     u_int plane;
 
-    _display.smem_len = (fboffset + 0x40000) * _disp.depth;
+    _display.smem_len = fboffset + 0x40000 * _disp.depth;
 
     for (plane = 0; plane < _disp.depth; plane++) {
       _display.plane_offset[plane] = 0x40000 * plane;
