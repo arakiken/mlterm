@@ -179,7 +179,7 @@ Don't use input method.
 .RE
 .TP
 \fB\-N\fR, \fB\-\-name\fR=\fIname\fR
-Specify application name.
+Specify application name. (WM_CLASS property)
 The default is "\fBmlterm\fR".
 .TP
 \fB\-O\fR, \fB\-\-sbmod\fR=\fIvalue\fR
@@ -1437,7 +1437,7 @@ Allow dynamic change of shortcut keys by OSC 5379 set_shortcut sequence.
 Alpha in pseudo or true transparent.
 .TP
 \fBapp_name=\fIname\fR (\fB\-N\fR, \fB\-\-name\fR)
-Application name.
+Application name. (WM_CLASS property)
 \fBauto_restart=\fIbool\fR (\fB\-\-restart\fR)
 Restart mlterm with all opened ptys except ssh if SIGSEGV, SIGBUS, SIGFPE or
 SIGILL is received.
