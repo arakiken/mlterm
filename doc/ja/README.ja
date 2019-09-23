@@ -376,6 +376,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
       o app_name (*mlterm*)
         アプリケーション名
+        (xlib版では WM_CLASS プロパティにセットされます)
 
       o title (*mlterm*)
         タイトル名

@@ -1,5 +1,13 @@
 2019-09-23  Araki Ken  <arakiken@users.sf.net>
 
+	* xlib/ui_window.c: class_hint (WM_CLASS property) is passed to
+	  XmbSetWMProperties() in ui_window_show().
+
+	* vt_pty_mosh.cpp: Pass through sequence state of each Network::Transport
+	  is saved in pass_seq_t.
+
+2019-09-23  Araki Ken  <arakiken@users.sf.net>
+
 	* xlib/ui_window.c: _NET_WM_PID is set.
 	  (https://sourceforge.net/p/mlterm/patches/24/)
 
