@@ -278,6 +278,16 @@ static const struct wl_seat_listener seat_listener = {
   seat_name,
 };
 
+#ifdef XDG_SHELL_V6
+static void xdg_shell_ping(void *data, struct zxdg_shell_v6 *xdg_shell, uint32_t serial) {
+  zxdg_shell_v6_pong(xdg_shell, serial);
+}
+
+static const struct zxdg_shell_v6_listener xdg_shell_listener = {
+  xdg_shell_ping
+};
+#endif
+
 static void registry_global(void *data, struct wl_registry *registry, uint32_t name,
                             const char *interface, uint32_t version) {
   ui_wlserv_t *wlserv = data;
@@ -289,19 +299,41 @@ static void registry_global(void *data, struct wl_registry *registry, uint32_t n
   else if (strcmp(interface, "wl_subcompositor") == 0) {
     wlserv->subcompositor = wl_registry_bind(registry, name, &wl_subcompositor_interface, 1);
   }
+  /* For sway 1.0 which doesn't support wl_surface. (supports only xdg-shell) */
+  else if (strcmp(interface, "wl_shell") == 0) {
+    wlserv->is_xdg_shell = -1; /* not xdg_shell */
+  } else if (strcmp(interface, "zxdg_shell_v6") == 0) {
+    if (wlserv->is_xdg_shell == 0) {
+      wlserv->is_xdg_shell = 1;
+    }
+  }
 #else
-  else if(strcmp(interface, "wl_shell") == 0) {
-    wlserv->shell = wl_registry_bind(registry, name,
-                                     &wl_shell_interface, 1);
+  else if (strcmp(interface, "wl_shell") == 0) {
+    wlserv->shell = wl_registry_bind(registry, name, &wl_shell_interface, 1);
+
+#ifdef XDG_SHELL_V6
+    if (wlserv->xdg_shell) {
+      zxdg_shell_v6_destroy(wlserv->xdg_shell);
+      wlserv->xdg_shell = NULL;
+    }
+#endif
+  }
+#ifdef XDG_SHELL_V6
+  else if (strcmp(interface, "zxdg_shell_v6") == 0) {
+    if (wlserv->shell == NULL) {
+      wlserv->xdg_shell = wl_registry_bind(registry, name, &zxdg_shell_v6_interface, 1);
+      zxdg_shell_v6_add_listener(wlserv->xdg_shell, &xdg_shell_listener, NULL);
+    }
   }
 #endif
-  else if(strcmp(interface, "wl_shm") == 0) {
+#endif
+  else if (strcmp(interface, "wl_shm") == 0) {
     wlserv->shm = wl_registry_bind(registry, name, &wl_shm_interface, 1);
-  } else if(strcmp(interface, "wl_seat") == 0) {
+  } else if (strcmp(interface, "wl_seat") == 0) {
     wlserv->seat = wl_registry_bind(registry, name,
                                     &wl_seat_interface, 4); /* 4 is for keyboard_repeat_info */
     wl_seat_add_listener(wlserv->seat, &seat_listener, wlserv);
-  } else if(strcmp(interface, "wl_output") == 0) {
+  } else if (strcmp(interface, "wl_output") == 0) {
     wlserv->output = wl_registry_bind(registry, name, &wl_output_interface, 1);
   } else if (strcmp(interface, "wl_data_device_manager") == 0) {
     wlserv->data_device_manager = wl_registry_bind(registry, name,
@@ -751,10 +783,25 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
         int state = get_edge_state(disp->display->width, disp->display->height, ev.x, ev.y);
         if (state > 0) {
           if (state == 11) {
-            wl_shell_surface_move(disp->display->shell_surface, wlserv->seat, serial);
+#ifdef XDG_SHELL_V6
+            if (disp->display->xdg_toplevel) {
+              zxdg_toplevel_v6_move(disp->display->xdg_toplevel, wlserv->seat, serial);
+            } else
+#endif
+            {
+              wl_shell_surface_move(disp->display->shell_surface, wlserv->seat, serial);
+            }
           } else {
             disp->display->is_resizing = 1;
-            wl_shell_surface_resize(disp->display->shell_surface, wlserv->seat, serial, state);
+
+#ifdef XDG_SHELL_V6
+            if (disp->display->xdg_toplevel) {
+              zxdg_toplevel_v6_resize(disp->display->xdg_toplevel, wlserv->seat, serial, state);
+            } else
+#endif
+            {
+              wl_shell_surface_resize(disp->display->shell_surface, wlserv->seat, serial, state);
+            }
           }
 
           return;
@@ -948,7 +995,7 @@ static int create_shm_buffer(Display *display) {
 
 #ifdef __DEBUG
   bl_debug_printf("Buffer w %d h %d bpp %d\n",
-                  display->width, display->height, display->bytes_per_pixel);
+                  display->width, display->height, display->bytes_per_pixel * 8);
 #endif
 
   display->line_length = display->width * display->bytes_per_pixel;
@@ -968,7 +1015,15 @@ static int create_shm_buffer(Display *display) {
   wl_shm_pool_destroy(pool);
   close(fd);
 
-  wl_surface_attach(display->surface, display->buffer, 0, 0);
+#if defined(COMPAT_LIBVTE)
+  if (display->wlserv->is_xdg_shell != 1)
+#elif defined(XDG_SHELL_V6)
+  /* wl_surface_attach() must be called after xdg_surface_configure() on xdg-shell. */
+  if (display->xdg_surface == NULL)
+#endif
+  {
+    wl_surface_attach(display->surface, display->buffer, 0, 0);
+  }
 
   return 1;
 }
@@ -1204,6 +1259,98 @@ static const struct wl_shell_surface_listener shell_surface_listener = {
   shell_surface_configure,
   shell_surface_popup_done
 };
+
+#ifdef XDG_SHELL_V6
+static void xdg_surface_configure(void *data, struct zxdg_surface_v6 *xdg_surface,
+                                  uint32_t serial) {
+  ui_display_t *disp = data;
+
+#ifdef __DEBUG
+  bl_debug_printf("xdg_surface_configure\n");
+#endif
+
+  zxdg_surface_v6_ack_configure(xdg_surface, serial);
+
+  disp->display->xdg_surface_configured = 1;
+
+  /* See flush_damage() */
+#if 0
+  wl_surface_attach(disp->display->surface, disp->display->buffer, 0, 0);
+  wl_surface_damage(disp->display->surface, 0, 0, disp->display->width, disp->display->height);
+  wl_surface_commit(disp->display->surface);
+#endif
+}
+
+static const struct zxdg_surface_v6_listener xdg_surface_listener = {
+  xdg_surface_configure
+};
+
+static void xdg_toplevel_configure(void *data, struct zxdg_toplevel_v6 *xdg_toplevel,
+                                   int32_t width, int32_t height, struct wl_array *states) {
+  ui_display_t *disp = data;
+  uint32_t *ps;
+
+#ifdef __DEBUG
+  bl_debug_printf("xdg_toplevel_configure: w %d, h %d / states: ", width, height);
+  wl_array_for_each(ps, states) {
+  switch(*ps) {
+    case ZXDG_TOPLEVEL_V6_STATE_MAXIMIZED:
+      bl_msg_printf("MAXIMIZED ");
+      break;
+    case ZXDG_TOPLEVEL_V6_STATE_FULLSCREEN:
+      bl_msg_printf("FULLSCREEN ");
+      break;
+    case ZXDG_TOPLEVEL_V6_STATE_RESIZING:
+      bl_msg_printf("RESIZING ");
+      break;
+    case ZXDG_TOPLEVEL_V6_STATE_ACTIVATED:
+      bl_msg_printf("ACTIVATED ");
+      break;
+    }
+  }
+  bl_msg_printf("\n");
+#endif
+
+#ifdef __DEBUG
+  bl_debug_printf("Configuring size from w %d h %d to w %d h %d.\n",
+                  disp->display->width, disp->display->height, width, height);
+#endif
+
+  if (width == 0) {
+    width = disp->display->width;
+  }
+  if (height == 0) {
+    height = disp->display->height;
+  }
+
+  if (check_resize(disp->display->width, disp->display->height, &width, &height,
+                   total_min_width(disp->roots[0]), total_min_height(disp->roots[0]),
+                   total_width_inc(disp->roots[0]), total_height_inc(disp->roots[0]),
+                   disp->display->is_resizing)) {
+#ifdef __DEBUG
+    bl_msg_printf("-> modified size w %d h %d\n", width, height);
+#endif
+
+    if (rotate_display) {
+      resize_display(disp, height, width, 0);
+    } else {
+      resize_display(disp, width, height, 0);
+    }
+
+    ui_window_resize_with_margin(disp->roots[0], disp->width, disp->height, NOTIFY_TO_MYSELF);
+  }
+}
+
+static void xdg_toplevel_close(void *data, struct zxdg_toplevel_v6 *toplevel) {
+  ui_display_t *disp = data;
+
+  ui_display_close(disp);
+}
+
+const struct zxdg_toplevel_v6_listener xdg_toplevel_listener = {
+  xdg_toplevel_configure, xdg_toplevel_close
+};
+#endif
 #endif
 
 static void data_offer_offer(void *data, struct wl_data_offer *offer, const char *type) {
@@ -1543,7 +1690,19 @@ static void close_wl_display(ui_wlserv_t *wlserv) {
 
 #ifdef COMPAT_LIBVTE
   wl_subcompositor_destroy(wlserv->subcompositor);
+#else
+#ifdef XDG_SHELL_V6
+  if (wlserv->xdg_shell) {
+    zxdg_shell_v6_destroy(wlserv->xdg_shell);
+    wlserv->xdg_shell = NULL;
+  } else if (wlserv->shell)
 #endif
+  {
+    wl_shell_destroy(wlserv->shell);
+    wlserv->shell = NULL;
+  }
+#endif
+
   wl_output_destroy(wlserv->output);
   wl_compositor_destroy(wlserv->compositor);
 #ifndef COMPAT_LIBVTE
@@ -1611,6 +1770,15 @@ static void close_display(ui_display_t *disp) {
     wl_surface_destroy(disp->display->surface);
   }
 #else
+#ifdef XDG_SHELL_V6
+  if (disp->display->xdg_surface) {
+    destroy_shm_buffer(disp->display);
+    disp->display->buffer = NULL;
+    zxdg_toplevel_v6_destroy(disp->display->xdg_toplevel);
+    zxdg_surface_v6_destroy(disp->display->xdg_surface);
+    wl_surface_destroy(disp->display->surface);
+  } else
+#endif
   if (disp->display->shell_surface) {
     destroy_shm_buffer(disp->display);
     disp->display->buffer = NULL;
@@ -1643,8 +1811,27 @@ static void close_display(ui_display_t *disp) {
 
 static int flush_damage(Display *display) {
   if (display->damage_height > 0) {
+    /*
+     * xdg_shell seems to require calling wl_surface_attach() every time
+     * differently from wl_shell.
+     */
+#if defined(COMPAT_LIBVTE)
+    if (display->wlserv->is_xdg_shell == 1) {
+      wl_surface_attach(display->surface, display->buffer, 0, 0);
+    } else
+#elif defined(XDG_SHELL_V6)
+    if (display->xdg_surface) {
+      if (display->xdg_surface_configured) {
+        wl_surface_attach(display->surface, display->buffer, 0, 0);
+      } else {
+        return 0;
+      }
+    }
+#endif
+
     wl_surface_damage(display->surface, display->damage_x, display->damage_y,
                       display->damage_width, display->damage_height);
+
     display->damage_x = display->damage_y = display->damage_width = display->damage_height = 0;
 
     return 1;
@@ -1731,16 +1918,27 @@ static void create_surface(ui_display_t *disp, u_int width, u_int height, char *
   display->subsurface = wl_subcompositor_get_subsurface(wlserv->subcompositor, display->surface,
                                                         display->parent_surface);
 #else
-  display->shell_surface = wl_shell_get_shell_surface(wlserv->shell, display->surface);
-  wl_shell_surface_set_class(display->shell_surface, app_name);
+#ifdef XDG_SHELL_V6
+  if (wlserv->xdg_shell) {
+    display->xdg_surface = zxdg_shell_v6_get_xdg_surface(wlserv->xdg_shell, display->surface);
+    zxdg_surface_v6_add_listener(display->xdg_surface, &xdg_surface_listener, disp);
+    display->xdg_toplevel = zxdg_surface_v6_get_toplevel(display->xdg_surface);
+    zxdg_toplevel_v6_add_listener(display->xdg_toplevel, &xdg_toplevel_listener, disp);
+    wl_surface_commit(display->surface);
+  } else
+#endif
+  {
+    display->shell_surface = wl_shell_get_shell_surface(wlserv->shell, display->surface);
+    wl_shell_surface_set_class(display->shell_surface, app_name);
 
-  if (!display->parent) {
-    /* Not input method */
+    if (!display->parent) {
+      /* Not input method */
 
-    wl_surface_add_listener(display->surface, &surface_listener, wlserv);
-    wl_shell_surface_add_listener(display->shell_surface, &shell_surface_listener, disp);
-    wl_shell_surface_set_toplevel(display->shell_surface);
-    wl_shell_surface_set_title(display->shell_surface, app_name);
+      wl_surface_add_listener(display->surface, &surface_listener, wlserv);
+      wl_shell_surface_add_listener(display->shell_surface, &shell_surface_listener, disp);
+      wl_shell_surface_set_toplevel(display->shell_surface);
+      wl_shell_surface_set_title(display->shell_surface, app_name);
+    }
   }
 #endif
 
@@ -2175,6 +2373,12 @@ int ui_display_move(ui_display_t *disp, int x, int y) {
     }
   }
 #else
+#ifdef XDG_SHELL_V6
+  if (display->xdg_surface) {
+    /* XXX */
+    bl_warn_printf("It is impossible to move windows on xdg_shell for now.\n");
+  } else
+#endif
   if (display->parent) {
     /* input method window */
 #ifdef __DEBUG
@@ -2404,14 +2608,28 @@ void ui_display_logical_to_physical_coordinates(ui_display_t *disp, int *x, int 
 void ui_display_set_maximized(ui_display_t *disp, int flag) {
 #ifndef COMPAT_LIBVTE
   if (flag) {
-    wl_shell_surface_set_maximized(disp->display->shell_surface, disp->display->wlserv->output);
+#ifdef XDG_SHELL_V6
+    if (disp->display->xdg_toplevel) {
+      zxdg_toplevel_v6_set_maximized(disp->display->xdg_toplevel);
+    } else
+#endif
+    {
+      wl_shell_surface_set_maximized(disp->display->shell_surface, disp->display->wlserv->output);
+    }
   }
 #endif
 }
 
 void ui_display_set_title(ui_display_t *disp, const u_char *name) {
 #ifndef COMPAT_LIBVTE
-  wl_shell_surface_set_title(disp->display->shell_surface, name);
+#ifdef XDG_SHELL_V6
+  if (disp->display->xdg_toplevel) {
+    zxdg_toplevel_v6_set_title(disp->display->xdg_toplevel, name);
+  } else
+#endif
+  {
+    wl_shell_surface_set_title(disp->display->shell_surface, name);
+  }
 #endif
 }
 
