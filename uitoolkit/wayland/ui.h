@@ -3,6 +3,13 @@
 #ifndef ___UI_H__
 #define ___UI_H__
 
+#ifndef COMPAT_LIBVTE
+#define XDG_SHELL_V6
+#endif
+
+#ifdef XDG_SHELL_V6
+#include "xdg-shell-unstable-v6-client-protocol.h"
+#endif
 #include <wayland-client.h>
 #include <wayland-client-protocol.h>
 #include <wayland-cursor.h>
@@ -111,12 +118,20 @@ typedef struct {
 
   int ref_count;
 
+  /*
+   * These members should be placed at the end of this structure because
+   * ui_*.c except ui_display.c refers this structure correctly
+   * if COMPAT_LIBVTE is defined or not.
+   */
 #ifdef COMPAT_LIBVTE
   struct wl_subcompositor *subcompositor;
+  int is_xdg_shell; /* for sway 1.0 */
 #else
   struct wl_shell *shell;
+#ifdef XDG_SHELL_V6
+  struct zxdg_shell_v6 *xdg_shell;
 #endif
-
+#endif
 } ui_wlserv_t;
 
 typedef struct {
@@ -152,6 +167,11 @@ typedef struct {
 
   struct ui_display *parent;
 
+  /*
+   * These members should be placed at the end of this structure because
+   * ui_*.c except ui_display.c refers this structure correctly
+   * if COMPAT_LIBVTE is defined or not.
+   */
 #ifdef COMPAT_LIBVTE
   struct wl_surface *parent_surface;
   struct wl_subsurface *subsurface;
@@ -159,6 +179,11 @@ typedef struct {
   int y;
 #else
   struct wl_shell_surface *shell_surface;
+#ifdef XDG_SHELL_V6
+  struct zxdg_surface_v6 *xdg_surface;
+  struct zxdg_toplevel_v6 *xdg_toplevel;
+  int xdg_surface_configured;
+#endif
 #endif
 
 } Display;

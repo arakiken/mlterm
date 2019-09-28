@@ -37,7 +37,8 @@ OBJ2_quartz = ui.o @COCOAOBJ@ ui_event_source-cocoa.o ui_im_status_screen-cocoa.
 
 OBJ2_console = ui.o ui_event_source.o ui_im_status_screen.o
 
-OBJ2_wayland = ui.o ui_event_source.o ui_decsp_font.o ui_im_status_screen.o
+OBJ2_wayland = ui.o ui_event_source.o ui_decsp_font.o ui_im_status_screen.o \
+						 xdg-shell-unstable-v6-client-protocol.o
 
 OBJ2_sdl2 = ui.o ui_event_source.o ui_decsp_font.o ui_im_status_screen.o syswminfo.o
 

@@ -1,5 +1,6 @@
 * Support zmodem.
   (Add "send_file", "recv_dir", "zmodem_start" and "zmodem_cancel" to OSC 5379.)
+* Support xdg-shell-v6 (unstable) on wayland.
 * Hide the mouse cursor in inputting keys by default on xlib and win32.
 * ~/.mlterm/font accepts UTF-8 on windows.
 * Change the default value of "font_size_range" option from 1-100 to 1-10000.

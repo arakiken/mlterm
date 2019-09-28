@@ -61,7 +61,8 @@ $(TARGET).la: $(OBJ) $(UI_DISPLAY_OBJ_@GUI@)
 	sed 's/..\/uitoolkit\/ui_connect_dialog.lo//g' | \
 	sed 's/..\/uitoolkit\/ui_simple_sb_view.lo//g' | \
 	sed 's/..\/uitoolkit\/ui_screen_manager.lo//g' | \
-	sed 's/..\/uitoolkit\/ui_event_source.lo//g'` \
+	sed 's/..\/uitoolkit\/ui_event_source.lo//g' | \
+	sed 's/..\/uitoolkit\/xdg-shell-unstable-v6-client-protocol.o//g'` \
 	$(LIBS) -rpath $(libdir) -version-info $(LIB_VERSION)
 	if test "$(UI_DISPLAY_OBJ_@GUI@)" != ""; then rm -f ../uitoolkit/$(UI_DISPLAY_OBJ_@GUI@) ../uitoolkit/libuitoolkit.a; fi
 
