@@ -1,5 +1,7 @@
 2019-09-29  Araki Ken  <arakiken@users.sf.net>
 
+	* wayland/ui_display.c: Copy&paste from other applications to mlerm-wl works.
+
 	* wayland/ui_display.c: ui_display_show_root() calls wl_display_dispatch().
 	  (Fix for 1) in https://sourceforge.net/p/mlterm/discussion/130836/thread/bc008c18db/#bb38)
 

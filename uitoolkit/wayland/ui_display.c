@@ -1457,20 +1457,15 @@ static int unescape(u_char *src) {
   return (src != dst);
 }
 
-static void receive_data(ui_wlserv_t *wlserv, struct wl_data_offer *offer, const char *mime) {
-  ui_display_t *disp;
+static void receive_data(ui_display_t *disp, struct wl_data_offer *offer, const char *mime) {
   int fds[2];
-
-  if ((disp = surface_to_display(wlserv->data_surface)) == NULL) {
-    return;
-  }
 
   if (pipe(fds) == 0) {
     u_char buf[512];
     ssize_t len;
 
     wl_data_offer_receive(offer, mime, fds[1]);
-    wl_display_flush(wlserv->display);
+    wl_display_flush(disp->display->wlserv->display);
     close(fds[1]);
 
     while ((len = read(fds[0], buf, sizeof(buf) - 1)) > 0) {
@@ -1494,7 +1489,8 @@ static void receive_data(ui_wlserv_t *wlserv, struct wl_data_offer *offer, const
         len = strlen(str);
       }
 
-      if (wlserv->dnd_action == WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE /* Shift+Drop */ &&
+      if (disp->display->wlserv->dnd_action ==
+          WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE /* Shift+Drop */ &&
           disp->roots[0]->set_xdnd_config) {
         (*disp->roots[0]->set_xdnd_config)(disp->roots[0], NULL, "scp", str);
         break;
@@ -1508,12 +1504,15 @@ static void receive_data(ui_wlserv_t *wlserv, struct wl_data_offer *offer, const
 
 static void data_device_drop(void *data, struct wl_data_device *data_device) {
   ui_wlserv_t *wlserv = data;
+  ui_display_t *disp;
 
 #ifdef  __DEBUG
   bl_debug_printf("DROPPED\n");
 #endif
 
-  receive_data(data, wlserv->dnd_offer, "text/uri-list");
+  if ((disp = surface_to_display(wlserv->data_surface))) {
+    receive_data(disp, wlserv->dnd_offer, "text/uri-list");
+  }
 }
 
 static void data_device_selection(void *data, struct wl_data_device *wl_data_device,
@@ -2564,7 +2563,7 @@ void ui_display_request_text_selection(ui_display_t *disp) {
       (*disp->selection_owner->utf_selection_requested)(disp->selection_owner, &ev, 0);
     }
   } else if (disp->display->wlserv->sel_offer) {
-    receive_data(disp->display->wlserv, disp->display->wlserv->sel_offer, "UTF8_STRING");
+    receive_data(disp, disp->display->wlserv->sel_offer, "UTF8_STRING");
   }
 }
 
