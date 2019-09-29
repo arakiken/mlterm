@@ -9,7 +9,7 @@ How to build & install libvte compatible library using mlterm engine.
     (gnome-terminal, roxterm, synaptic or etc)
 
 * Supported API
-  vte 0.56.0
+  vte 0.56.3
 
 * Build
   $ ./configure (--with-type-engine=cairo --with-imagelib=gdk-pixbuf --enable-pty-helper \
@@ -180,7 +180,7 @@ How to build & install libvte compatible library using mlterm engine.
       "visible-bell"
 
 * Tested terminals using vte.
-  o gnome-terminal 3.30.2 on Arch Linux ... OK except transparency
+  o gnome-terminal 3.32.2 on Arch Linux ... OK except transparency
   o gnome-terminal 2.16.0 on CentOS 5   ... OK
   o roxterm 3.3.2 on Arch Linux         ... OK
   o lxterminal 0.3.2 on Arch Linux      ... OK
@@ -188,6 +188,7 @@ How to build & install libvte compatible library using mlterm engine.
 
   Following platforms are not actually tested by developers, but were tested
   in the past.
+  o gnome-terminal 3.30.2 on Arch Linux ... OK except transparency
   o gnome-terminal 3.28.2 on Arch Linux ... OK except transparency
   o gnome-terminal 3.26.2 on Arch Linux ... OK except transparency
   o gnome-terminal 3.24.2 on Arch Linux ... OK except transparency

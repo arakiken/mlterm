@@ -1,3 +1,10 @@
+2019-09-29  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_display.c: ui_display_show_root() calls wl_display_dispatch().
+	  (Fix for 1) in https://sourceforge.net/p/mlterm/discussion/130836/thread/bc008c18db/#bb38)
+
+	* mlconfig/po/Makefile.in: config.status is never called.
+
 2019-09-28  Araki Ken  <arakiken@users.sf.net>
 
 	* wayland/ui.h, wayland/ui_display.c: xdg-shell is supported.

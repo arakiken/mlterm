@@ -2140,6 +2140,9 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
     ui_window_show(root, hint);
   }
 
+  /* XXX mlterm -sbmod=none on sway 1.0 stops without calling wl_display_dispatch() here. */
+  wl_display_dispatch(disp->display->wlserv->display);
+
   return 1;
 }
 
