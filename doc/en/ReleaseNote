@@ -8,7 +8,7 @@
   the value of --sr / "scroll_on_resizing" option is true.
 * Set _NET_WM_PID property.
 * Revive -N/"app_name" option which sets WM_CLASS property.
-	(WM_CLASS was disabled at 3.8.6)
+  (WM_CLASS was disabled at 3.8.6)
 * Merge patches:
   https://bitbucket.org/arakiken/mlterm/pull-requests/5/fix-for-wscons-framebuffer/diff
   https://sourceforge.net/p/mlterm/patches/24/
