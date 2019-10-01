@@ -47,7 +47,7 @@ void ui_display_request_text_selection(ui_display_t *disp);
 void ui_display_send_text_selection(ui_display_t *disp, XSelectionRequestEvent *ev,
                                     u_char *sel_data, size_t sel_len);
 
-u_char ui_display_get_char(KeySym ksym);
+size_t ui_display_get_utf8(char *utf8, KeySym ksym);
 
 void ui_display_set_title(ui_display_t *disp, const u_char *name);
 

@@ -145,6 +145,7 @@ typedef struct _XFontStruct {
   int32_t glyph_width_bytes;
 
   unsigned char width;
+  /* Width of full width characters or max width of half width characters. */
   unsigned char width_full;
   unsigned char height;
   unsigned char ascent;
