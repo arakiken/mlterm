@@ -765,7 +765,7 @@ face_found:
     xfont->width_full = (face->max_advance_width * face->size->metrics.x_ppem +
                          face->units_per_EM - 1) / face->units_per_EM;
 #ifdef __DEBUG
-    bl_debug_printf("maxw %d ppem %d units %d => w %d\n",
+    bl_debug_printf("maxw %d ppem %d units %d => xfont->width_full %d\n",
                     face->max_advance_width, face->size->metrics.x_ppem,
                     face->units_per_EM, xfont->width_full);
 #endif
@@ -783,6 +783,22 @@ face_found:
       int descent = face->glyph->bitmap.rows - face->glyph->bitmap_top;
       if (descent > xfont->height - xfont->ascent) {
         xfont->height = xfont->ascent + descent;
+      }
+    }
+
+    if (load_glyph(face, format, get_glyph_index(face, 'W'), is_aa)) {
+      u_int w;
+      if (is_aa) {
+        w = face->glyph->bitmap.width / 3;
+      } else {
+        w = face->glyph->bitmap.width;
+      }
+
+      if (xfont->width_full < w) {
+#ifdef __DEBUG
+        bl_debug_printf("Modify xfont->width_full to %d\n", w);
+#endif
+        xfont->width_full = w;
       }
     }
   }

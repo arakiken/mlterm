@@ -1,3 +1,13 @@
+2019-10-01  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_window.c: ui_window_get_str() converts keysym to utf8 string
+	  with the use of ui_display_get_utf8().
+
+	* wayland/ui_display.[ch]: ui_display_get_char() => ui_display_get_utf8()
+
+	* ui_font.c: If the width of 'W' glyph is larger than face->max_advance_width,
+	  xfont->width_full = the width 'W' glyph.
+
 2019-09-29  Araki Ken  <arakiken@users.sf.net>
 
 	* wayland/ui_display.c: Copy&paste from other applications to mlerm-wl works.

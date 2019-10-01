@@ -196,7 +196,8 @@ typedef struct _XFontStruct {
   int32_t glyph_width_bytes;
 
   unsigned char width;
-  unsigned char width_full; /* If it doesn't contain full width glyphs, width_full == width */
+  /* Width of full width characters or max width of half width characters. */
+  unsigned char width_full;
   unsigned char height;
   unsigned char ascent;
 

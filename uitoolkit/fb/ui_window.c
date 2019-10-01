@@ -7,6 +7,9 @@
 #include <pobl/bl_mem.h>
 #include <pobl/bl_unistd.h> /* bl_usleep */
 #include <mef/ef_ucs4_map.h>
+#ifdef USE_WAYLAND
+#include <mef/ef_utf8_parser.h>
+#endif
 
 #include "ui_display.h"
 #include "ui_font.h"
@@ -1908,8 +1911,28 @@ size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parse
 
 #ifdef USE_WAYLAND
   *keysym = event->ksym;
-  if ((ch = ui_display_get_char(event->ksym)) == '\0') {
-    return 0;
+  {
+    char buf[7]; /* UTF_MAX_SIZE + 1 */
+    size_t len = ui_display_get_utf8(buf, event->ksym);
+
+    if (len > 2) {
+      if (seq_len >= len) {
+        static ef_parser_t *utf8_parser;
+
+        if (utf8_parser == NULL) {
+          utf8_parser = ef_utf8_parser_new(); /* XXX leaked */
+        }
+
+        *parser = utf8_parser;
+        memcpy(seq, buf, len);
+      }
+
+      return len;
+    } else if (len == 0) {
+      return 0;
+    } else {
+      ch = buf[0];
+    }
   }
 #else
 #ifdef USE_SDL2

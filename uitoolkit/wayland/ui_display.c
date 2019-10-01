@@ -2578,15 +2578,9 @@ void ui_display_send_text_selection(ui_display_t *disp, XSelectionRequestEvent *
   }
 }
 
-u_char ui_display_get_char(KeySym ksym) {
-  char buf[10];
-  int len;
-
-  if ((len = xkb_keysym_to_utf8(ksym, buf, sizeof(buf))) > 0) {
-    return buf[0];
-  } else {
-    return 0;
-  }
+size_t ui_display_get_utf8(char *utf8 /* 7 bytes (UTF_MAX_SIZE + 1) */, KeySym ksym) {
+  /* xkb_keysym_to_utf8() appends '\0' to utf8 bytes. */
+  return xkb_keysym_to_utf8(ksym, utf8, 7);
 }
 
 void ui_display_logical_to_physical_coordinates(ui_display_t *disp, int *x, int *y) {
