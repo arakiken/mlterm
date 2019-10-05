@@ -1,3 +1,11 @@
+2019-10-05  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_display.c, wayland/ui.h:
+	  - xdg_toplevel_close() invokes window_destroyed event.
+	  - Primary selection is supported with the use of gtk-primary-selection.[ch].
+
+	* wayland/gtk-primary-selection.[ch]: Added
+
 2019-10-01  Araki Ken  <arakiken@users.sf.net>
 
 	* wayland/ui_window.c: ui_window_get_str() converts keysym to utf8 string
