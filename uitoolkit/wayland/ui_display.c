@@ -19,7 +19,7 @@
 #include "../ui_picture.h"
 #include "../ui_imagelib.h"
 
-#if 1
+#if 0
 #define __DEBUG
 #endif
 
