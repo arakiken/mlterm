@@ -7,14 +7,15 @@
 #define XDG_SHELL_V6
 #endif
 
-#ifdef XDG_SHELL_V6
-#include "xdg-shell-unstable-v6-client-protocol.h"
-#endif
 #include <wayland-client.h>
 #include <wayland-client-protocol.h>
 #include <wayland-cursor.h>
 #include <wayland-egl.h>
 #include <xkbcommon/xkbcommon.h>
+#include "gtk-primary-selection.h"
+#ifdef XDG_SHELL_V6
+#include "xdg-shell-unstable-v6-client-protocol.h"
+#endif
 
 #ifdef USE_FREETYPE
 #include <pobl/bl_types.h> /* u_int32_t etc */
@@ -81,9 +82,6 @@ typedef struct {
   struct wl_keyboard *keyboard;
   struct wl_pointer *pointer;
 
-  struct wl_data_device_manager *data_device_manager;
-  struct wl_data_device *data_device;
-
   struct ui_xkb {
     struct xkb_context *ctx;
     struct xkb_keymap *keymap;
@@ -108,11 +106,19 @@ typedef struct {
   XKeyEvent prev_kev;
   u_int kbd_repeat_count;
 
+  struct wl_data_device_manager *data_device_manager;
+  struct wl_data_device *data_device;
   struct wl_data_offer *dnd_offer;
   struct wl_surface *data_surface;
   uint32_t dnd_action;
   struct wl_data_offer *sel_offer;
   struct wl_data_source *sel_source;
+
+  struct gtk_primary_selection_device_manager *xsel_device_manager;
+  struct gtk_primary_selection_device *xsel_device;
+  struct gtk_primary_selection_offer *xsel_offer;
+  struct gtk_primary_selection_source *xsel_source;
+
   int32_t sel_fd;
   uint32_t serial;
 
@@ -132,6 +138,7 @@ typedef struct {
   struct zxdg_shell_v6 *xdg_shell;
 #endif
 #endif
+
 } ui_wlserv_t;
 
 typedef struct {

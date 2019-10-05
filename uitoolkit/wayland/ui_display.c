@@ -19,7 +19,7 @@
 #include "../ui_picture.h"
 #include "../ui_imagelib.h"
 
-#if 0
+#if 1
 #define __DEBUG
 #endif
 
@@ -269,7 +269,7 @@ static void seat_capabilities(void *data, struct wl_seat *seat, enum wl_seat_cap
 
 static void seat_name(void *data, struct wl_seat *seat, const char *name) {
 #ifdef __DEBUG
-  bl_debug_printf("SEAT name %s\n", name);
+  bl_debug_printf("seat_name %s\n", name);
 #endif
 }
 
@@ -338,6 +338,9 @@ static void registry_global(void *data, struct wl_registry *registry, uint32_t n
   } else if (strcmp(interface, "wl_data_device_manager") == 0) {
     wlserv->data_device_manager = wl_registry_bind(registry, name,
                                                    &wl_data_device_manager_interface, 3);
+  } else if (strcmp(interface, "gtk_primary_selection_device_manager") == 0) {
+    wlserv->xsel_device_manager =
+      wl_registry_bind(registry, name, &gtk_primary_selection_device_manager_interface, 1);
   }
 #ifdef __DEBUG
   else {
@@ -444,7 +447,7 @@ static void keyboard_enter(void *data, struct wl_keyboard *keyboard,
   wlserv->current_kbd_surface = surface;
 
 #ifdef __DEBUG
-  bl_debug_printf("KBD ENTER %p\n", surface);
+  bl_debug_printf("keyboard_enter %p\n", surface);
 #endif
 
   if ((win = search_inputtable_window(NULL, disp->roots[0]))) {
@@ -465,7 +468,7 @@ static void keyboard_leave(void *data, struct wl_keyboard *keyboard,
   ui_window_t *win;
 
 #ifdef __DEBUG
-  bl_debug_printf("KBD LEAVE %p\n", surface);
+  bl_debug_printf("keyboard_leave %p\n", surface);
 #endif
 
 #if 0
@@ -527,7 +530,7 @@ static void keyboard_key(void *data, struct wl_keyboard *keyboard,
     wlserv->prev_kev = ev;
 
 #ifdef __DEBUG
-    bl_debug_printf("Receive key %x %x at %d\n", ev.ksym, wlserv->xkb->mods, time);
+    bl_debug_printf("key pressed %x %x at %d\n", ev.ksym, wlserv->xkb->mods, time);
 #endif
   } else if (state_w == WL_KEYBOARD_KEY_STATE_RELEASED) {
 #if 0
@@ -620,7 +623,7 @@ static void pointer_enter(void *data, struct wl_pointer *pointer,
   ui_wlserv_t *wlserv = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("POINTER ENTER %p\n", surface);
+  bl_debug_printf("pointer_enter %p\n", surface);
 #endif
 
   wlserv->current_pointer_surface = surface;
@@ -646,7 +649,7 @@ static void pointer_leave(void *data, struct wl_pointer *pointer,
   }
 
 #ifdef __DEBUG
-  bl_debug_printf("POINTER LEAVE %p\n", surface);
+  bl_debug_printf("pointer_leave %p\n", surface);
 #endif
 }
 
@@ -693,7 +696,7 @@ static void pointer_motion(void *data, struct wl_pointer *pointer,
   ui_display_t *disp;
 
 #ifdef ____DEBUG
-  bl_debug_printf("Pointer motion at %d\n", time);
+  bl_debug_printf("pointer_motion (time: %d)\n", time);
 #endif
   disp = surface_to_display(wlserv->current_pointer_surface);
 
@@ -765,7 +768,7 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
   ui_display_t *disp;
 
 #ifdef __DEBUG
-  bl_debug_printf("Pointer button at %d\n", time);
+  bl_debug_printf("pointer_button (time: %d)\n", time);
 #endif
   disp = surface_to_display(wlserv->current_pointer_surface);
 
@@ -863,7 +866,7 @@ static void pointer_axis(void *data, struct wl_pointer *pointer,
   ui_display_t *disp;
 
 #ifdef __DEBUG
-  bl_debug_printf("Pointer axis at %d\n", time);
+  bl_debug_printf("pointer_axis (time: %d)\n", time);
 #endif
   disp = surface_to_display(wlserv->current_pointer_surface);
 
@@ -964,7 +967,7 @@ static void surface_enter(void *data, struct wl_surface *surface, struct wl_outp
   ui_wlserv_t *wlserv = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("SURFACE ENTER %p\n", surface);
+  bl_debug_printf("surface_enter %p\n", surface);
 #endif
 
   wlserv->current_kbd_surface = surface;
@@ -974,7 +977,7 @@ static void surface_leave(void *data, struct wl_surface *surface, struct wl_outp
   ui_wlserv_t *wlserv = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("SURFACE LEAVE %p\n", surface);
+  bl_debug_printf("surface_leave %p\n", surface);
 #endif
 
   if (wlserv->current_kbd_surface == surface) {
@@ -1229,7 +1232,7 @@ static void shell_surface_configure(void *data, struct wl_shell_surface *shell_s
   ui_display_t *disp = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("Configuring size from w %d h %d to w %d h %d.\n",
+  bl_debug_printf("shell_surface_configure\nConfiguring size from w %d h %d to w %d h %d.\n",
                   disp->display->width, disp->display->height, width, height);
 #endif
 
@@ -1344,7 +1347,9 @@ static void xdg_toplevel_configure(void *data, struct zxdg_toplevel_v6 *xdg_topl
 static void xdg_toplevel_close(void *data, struct zxdg_toplevel_v6 *toplevel) {
   ui_display_t *disp = data;
 
-  ui_display_close(disp);
+  if (disp->roots[0]->window_destroyed) {
+    (*disp->roots[0]->window_destroyed)(disp->roots[0]);
+  }
 }
 
 const struct zxdg_toplevel_v6_listener xdg_toplevel_listener = {
@@ -1355,14 +1360,14 @@ const struct zxdg_toplevel_v6_listener xdg_toplevel_listener = {
 
 static void data_offer_offer(void *data, struct wl_data_offer *offer, const char *type) {
 #ifdef __DEBUG
-  bl_debug_printf("DATA OFFER %s\n", type);
+  bl_debug_printf("data_offer_offer %s\n", type);
 #endif
 }
 
 static void data_offer_source_action(void *data, struct wl_data_offer *data_offer,
                                      uint32_t source_actions) {
 #ifdef __DEBUG
-  bl_debug_printf("SOURCE ACTION %d\n", source_actions);
+  bl_debug_printf("DND: source_action %d\n", source_actions);
 #endif
 }
 
@@ -1371,7 +1376,7 @@ static void data_offer_action(void *data, struct wl_data_offer *data_offer,
   ui_wlserv_t *wlserv = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("DND ACTION %d\n", dnd_action);
+  bl_debug_printf("DND: action %d\n", dnd_action);
 #endif
 
   wlserv->dnd_action = dnd_action;
@@ -1388,7 +1393,7 @@ static void data_device_data_offer(void *data, struct wl_data_device *data_devic
   ui_wlserv_t *wlserv = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("DND OFFER %p\n", offer);
+  bl_debug_printf("DND: offer %p\n", offer);
 #endif
 
   wl_data_offer_add_listener(offer, &data_offer_listener, wlserv);
@@ -1402,7 +1407,7 @@ static void data_device_enter(void *data, struct wl_data_device *data_device,
   ui_wlserv_t *wlserv = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("DATA DEVICE ENTER %p\n", offer);
+  bl_debug_printf("DND: enter %p\n", offer);
 #endif
 
   wl_data_offer_accept(offer, serial, "text/uri-list");
@@ -1420,7 +1425,7 @@ static void data_device_leave(void *data, struct wl_data_device *data_device) {
   ui_wlserv_t *wlserv = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("DATA DEVICE LEAVE\n");
+  bl_debug_printf("DND: leave\n");
 #endif
 
   if (wlserv->dnd_offer) {
@@ -1457,14 +1462,19 @@ static int unescape(u_char *src) {
   return (src != dst);
 }
 
-static void receive_data(ui_display_t *disp, struct wl_data_offer *offer, const char *mime) {
+static void receive_data(ui_display_t *disp, void *offer, const char *mime, int clipboard) {
   int fds[2];
 
   if (pipe(fds) == 0) {
     u_char buf[512];
     ssize_t len;
 
-    wl_data_offer_receive(offer, mime, fds[1]);
+    if (clipboard) {
+      wl_data_offer_receive(offer, mime, fds[1]);
+    } else {
+      gtk_primary_selection_offer_receive(offer, mime, fds[1]);
+    }
+
     wl_display_flush(disp->display->wlserv->display);
     close(fds[1]);
 
@@ -1476,7 +1486,7 @@ static void receive_data(ui_display_t *disp, struct wl_data_offer *offer, const 
       }
       buf[len] = '\0';
 #ifdef __DEBUG
-      bl_debug_printf("RECEIVE %d %s\n", len, buf);
+      bl_debug_printf("Receive data (len %d): %s\n", len, buf);
 #endif
 
       if (strncmp(buf, "file://", 7) == 0) {
@@ -1507,25 +1517,28 @@ static void data_device_drop(void *data, struct wl_data_device *data_device) {
   ui_display_t *disp;
 
 #ifdef  __DEBUG
-  bl_debug_printf("DROPPED\n");
+  bl_debug_printf("DND: drop\n");
 #endif
 
   if ((disp = surface_to_display(wlserv->data_surface))) {
-    receive_data(disp, wlserv->dnd_offer, "text/uri-list");
+    receive_data(disp, wlserv->dnd_offer, "text/uri-list", 1);
   }
 }
 
-static void data_device_selection(void *data, struct wl_data_device *wl_data_device,
+static void data_device_selection(void *data, struct wl_data_device *data_device,
                                   struct wl_data_offer *offer) {
   ui_wlserv_t *wlserv = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("SELECTION OFFER %p\n", offer);
+  bl_debug_printf("data_device_selection %p -> %p\n", wlserv->sel_offer, offer);
 #endif
+
+  if (wlserv->sel_source) {
+    return;
+  }
 
   if (wlserv->sel_offer) {
     wl_data_offer_destroy(wlserv->sel_offer);
-    wlserv->sel_offer = NULL;
   }
   wlserv->sel_offer = offer;
 }
@@ -1548,7 +1561,7 @@ static void data_source_send(void *data, struct wl_data_source *source, const ch
   disp->display->wlserv->sel_fd = fd;
 
 #ifdef __DEBUG
-  bl_debug_printf("SOURCE SEND %s\n", mime);
+  bl_debug_printf("data_source_send %s\n", mime);
 #endif
 
   if (disp->selection_owner->utf_selection_requested) {
@@ -1567,7 +1580,7 @@ static void data_source_cancelled(void *data, struct wl_data_source *source) {
   ui_wlserv_t *wlserv = disp->display->wlserv;
 
 #ifdef __DEBUG
-  bl_debug_printf("SOURCE CANCEL %p %p\n", source, wlserv->sel_source);
+  bl_debug_printf("data_source_cancelled %p %p\n", source, wlserv->sel_source);
 #endif
 
 #ifdef COMPAT_LIBVTE
@@ -1600,6 +1613,95 @@ static const struct wl_data_source_listener data_source_listener = {
   data_source_dnd_drop_performed,
   data_source_dnd_finished,
   data_source_action,
+};
+
+static void xsel_offer_offer(void *data, struct gtk_primary_selection_offer *offer,
+                                  const char *type) {
+#ifdef __DEBUG
+  bl_debug_printf("xsel_offer_offer %s\n", type);
+#endif
+}
+
+static const struct gtk_primary_selection_offer_listener xsel_offer_listener = {
+  xsel_offer_offer,
+};
+
+static void xsel_device_data_offer(void *data,
+                                  struct gtk_primary_selection_device *device,
+                                  struct gtk_primary_selection_offer *offer) {
+  ui_wlserv_t *wlserv = data;
+
+#ifdef __DEBUG
+  bl_debug_printf("gtk_device_data_offer %p\n", offer);
+#endif
+
+  gtk_primary_selection_offer_add_listener(offer, &xsel_offer_listener, wlserv);
+}
+
+static void xsel_device_selection(void *data,
+                                 struct gtk_primary_selection_device *device,
+                                 struct gtk_primary_selection_offer *offer) {
+  ui_wlserv_t *wlserv = data;
+
+#ifdef __DEBUG
+  bl_debug_printf("gtk_device_selection %p -> %p\n", wlserv->xsel_offer, offer);
+#endif
+
+  if (wlserv->xsel_source) {
+    return;
+  }
+
+  if (wlserv->xsel_offer) {
+    gtk_primary_selection_offer_destroy(wlserv->xsel_offer);
+  }
+  wlserv->xsel_offer = offer;
+}
+
+static const struct gtk_primary_selection_device_listener xsel_device_listener = {
+  xsel_device_data_offer,
+  xsel_device_selection
+};
+
+static void xsel_source_send(void *data, struct gtk_primary_selection_source *source,
+                             const char *mime, int32_t fd) {
+  ui_display_t *disp = data;
+  disp->display->wlserv->sel_fd = fd;
+
+#ifdef __DEBUG
+  bl_debug_printf("xsel_source_send %s\n", mime);
+#endif
+
+  if (disp->selection_owner->utf_selection_requested) {
+    /* utf_selection_requested() calls ui_display_send_text_selection() */
+    (*disp->selection_owner->utf_selection_requested)(disp->selection_owner, NULL, 0);
+  }
+}
+
+static void xsel_source_cancelled(void *data, struct gtk_primary_selection_source *source) {
+  ui_display_t *disp = data;
+  ui_wlserv_t *wlserv = disp->display->wlserv;
+
+#ifdef __DEBUG
+  bl_debug_printf("xsel_source_cancelled %p %p\n", source, wlserv->xsel_source);
+#endif
+
+#ifdef COMPAT_LIBVTE
+  if (deadline_ignoring_source_cancelled_event != 0 &&
+      deadline_ignoring_source_cancelled_event > g_get_monotonic_time()) {
+  } else {
+    deadline_ignoring_source_cancelled_event = 0;
+#endif
+    if (source == wlserv->xsel_source) {
+      ui_display_clear_selection(disp, disp->selection_owner);
+    }
+#ifdef COMPAT_LIBVTE
+  }
+#endif
+}
+
+static const struct gtk_primary_selection_source_listener xsel_source_listener = {
+  xsel_source_send,
+  xsel_source_cancelled,
 };
 
 static ui_wlserv_t *open_wl_display(char *name) {
@@ -1658,9 +1760,19 @@ static ui_wlserv_t *open_wl_display(char *name) {
     }
   }
 
-  wlserv->data_device = wl_data_device_manager_get_data_device(wlserv->data_device_manager,
-                                                               wlserv->seat);
-  wl_data_device_add_listener(wlserv->data_device, &data_device_listener, wlserv);
+  if (wlserv->data_device_manager) {
+    wlserv->data_device = wl_data_device_manager_get_data_device(wlserv->data_device_manager,
+                                                                 wlserv->seat);
+    wl_data_device_add_listener(wlserv->data_device, &data_device_listener, wlserv);
+  }
+
+  if (wlserv->xsel_device_manager) {
+    wlserv->xsel_device =
+      gtk_primary_selection_device_manager_get_device(wlserv->xsel_device_manager,
+                                                      wlserv->seat);
+    gtk_primary_selection_device_add_listener(wlserv->xsel_device,
+                                              &xsel_device_listener, wlserv);
+  }
 
   wlserv->sel_fd = -1;
 
@@ -1685,6 +1797,10 @@ static void close_wl_display(ui_wlserv_t *wlserv) {
   if (wlserv->sel_source) {
     wl_data_source_destroy(wlserv->sel_source);
     wlserv->sel_source = NULL;
+  }
+  if (wlserv->xsel_source) {
+    gtk_primary_selection_source_destroy(wlserv->xsel_source);
+    wlserv->xsel_source = NULL;
   }
 
 #ifdef COMPAT_LIBVTE
@@ -2035,7 +2151,7 @@ void ui_display_close(ui_display_t *disp) {
         displays[count] = displays[num_displays];
       }
 
-#ifdef DEBUG
+#ifdef __DEBUG
       bl_debug_printf("wayland display connection closed.\n");
 #endif
 
@@ -2291,11 +2407,37 @@ int ui_display_own_selection(ui_display_t *disp, ui_window_t *win) {
     }
   }
 
-  wlserv->sel_source = wl_data_device_manager_create_data_source(wlserv->data_device_manager);
-  wl_data_source_add_listener(wlserv->sel_source, &data_source_listener, disp);
-  wl_data_source_offer(wlserv->sel_source, "UTF8_STRING");
-  wl_data_device_set_selection(wlserv->data_device,
-                               wlserv->sel_source, wlserv->serial);
+  if (wlserv->xsel_device_manager) {
+    wlserv->xsel_source =
+      gtk_primary_selection_device_manager_create_source(wlserv->xsel_device_manager);
+    gtk_primary_selection_source_offer(wlserv->xsel_source, "UTF8_STRING");
+    /* gtk_primary_selection_source_offer(wlserv->xsel_source, "COMPOUND_TEXT"); */
+    gtk_primary_selection_source_offer(wlserv->xsel_source, "TEXT");
+    gtk_primary_selection_source_offer(wlserv->xsel_source, "STRING");
+    gtk_primary_selection_source_offer(wlserv->xsel_source, "text/plain;charset=utf-8");
+    gtk_primary_selection_source_offer(wlserv->xsel_source, "text/plain");
+    gtk_primary_selection_source_add_listener(wlserv->xsel_source,
+                                              &xsel_source_listener, disp);
+    gtk_primary_selection_device_set_selection(wlserv->xsel_device,
+                                               wlserv->xsel_source, wlserv->serial);
+  }
+
+  if (wlserv->data_device_manager) {
+    wlserv->sel_source = wl_data_device_manager_create_data_source(wlserv->data_device_manager);
+    wl_data_source_offer(wlserv->sel_source, "UTF8_STRING");
+    /* wl_data_source_offer(wlserv->sel_source, "COMPOUND_TEXT"); */
+    wl_data_source_offer(wlserv->sel_source, "TEXT");
+    wl_data_source_offer(wlserv->sel_source, "STRING");
+    wl_data_source_offer(wlserv->sel_source, "text/plain;charset=utf-8");
+    wl_data_source_offer(wlserv->sel_source, "text/plain");
+    wl_data_source_add_listener(wlserv->sel_source, &data_source_listener, disp);
+    wl_data_device_set_selection(wlserv->data_device,
+                                 wlserv->sel_source, wlserv->serial);
+  }
+
+#ifdef __DEBUG
+  bl_debug_printf("set_selection\n");
+#endif
 
   return 1;
 }
@@ -2311,6 +2453,10 @@ int ui_display_clear_selection(ui_display_t *disp, /* NULL means all selection o
       if (displays[count]->display->wlserv->sel_source) {
         wl_data_source_destroy(displays[count]->display->wlserv->sel_source);
         displays[count]->display->wlserv->sel_source = NULL;
+      }
+      if (displays[count]->display->wlserv->xsel_source) {
+        gtk_primary_selection_source_destroy(displays[count]->display->wlserv->xsel_source);
+        displays[count]->display->wlserv->xsel_source = NULL;
       }
     }
   }
@@ -2563,7 +2709,9 @@ void ui_display_request_text_selection(ui_display_t *disp) {
       (*disp->selection_owner->utf_selection_requested)(disp->selection_owner, &ev, 0);
     }
   } else if (disp->display->wlserv->sel_offer) {
-    receive_data(disp, disp->display->wlserv->sel_offer, "UTF8_STRING");
+    receive_data(disp, disp->display->wlserv->sel_offer, "UTF8_STRING", 1);
+  } else if (disp->display->wlserv->xsel_offer) {
+    receive_data(disp, disp->display->wlserv->xsel_offer, "text/plain;charset=utf-8", 0);
   }
 }
 
@@ -2649,9 +2797,19 @@ void ui_display_init_wlserv(ui_wlserv_t *wlserv) {
   wl_pointer_add_listener(wlserv->pointer, &pointer_listener, wlserv);
 #endif
 
-  wlserv->data_device = wl_data_device_manager_get_data_device(wlserv->data_device_manager,
-                                                               wlserv->seat);
-  wl_data_device_add_listener(wlserv->data_device, &data_device_listener, wlserv);
+  if (wlserv->data_device_manager) {
+    wlserv->data_device = wl_data_device_manager_get_data_device(wlserv->data_device_manager,
+                                                                 wlserv->seat);
+    wl_data_device_add_listener(wlserv->data_device, &data_device_listener, wlserv);
+  }
+
+  if (wlserv->xsel_device_manager) {
+    wlserv->xsel_device =
+      gtk_primary_selection_device_manager_get_device(wlserv->xsel_device_manager,
+                                                      wlserv->seat);
+    gtk_primary_selection_device_add_listener(wlserv->xsel_device,
+                                              &xsel_device_listener, wlserv);
+  }
 
   if ((wlserv->cursor_theme = wl_cursor_theme_load(NULL, 32, wlserv->shm))) {
     wlserv->cursor[0] = wl_cursor_theme_get_cursor(wlserv->cursor_theme, "xterm");

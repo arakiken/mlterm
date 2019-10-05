@@ -51,6 +51,7 @@ Wayland support
     ("rotate_display = right" or "rotate_display = left" in ~/.mlterm/main is
      also available.)
   o The default value of "input_method" option is "ibus".
+  o The position of a candidate window might be incorrect with xdg-shell.
 
 * Unsupported features
   o geometry option
