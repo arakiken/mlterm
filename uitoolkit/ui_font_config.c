@@ -207,6 +207,11 @@ static vt_font_t parse_key(const char *key) {
   key_len = strlen(key);
 
   if (key_len >= 7 && strncmp(key, "DEFAULT", 7) == 0) {
+    if (key_len >= 8) {
+      bl_warn_printf("Illegal charset for font: %s.\n", key);
+      return UNKNOWN_CS;
+    }
+
     font = DEFAULT_FONT;
 
     goto check_style;

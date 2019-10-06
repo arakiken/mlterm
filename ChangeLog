@@ -1,3 +1,14 @@
+2019-10-06  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui.h, wayland/ui_display.c:
+	  Whether "text/plain;charset=utf-8" or "UTF8_STRING" is supported or not
+	  is checked in data_offer_offer() and xsel_offer_offer().
+
+	* wayland/ui_font.c: If the font name contains "bold" or "italic",
+	  FT_Outline_Embolden() or FT_Outline_Transform() is not applied.
+
+	* ui_font_config.c: Warning is output for invalid "DEFAULT_BOLD" etc.
+
 2019-10-05  Araki Ken  <arakiken@users.sf.net>
 
 	* wayland/ui_display.c, wayland/ui.h:
