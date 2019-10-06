@@ -1291,9 +1291,9 @@ static const struct zxdg_surface_v6_listener xdg_surface_listener = {
 static void xdg_toplevel_configure(void *data, struct zxdg_toplevel_v6 *xdg_toplevel,
                                    int32_t width, int32_t height, struct wl_array *states) {
   ui_display_t *disp = data;
+#ifdef __DEBUG
   uint32_t *ps;
 
-#ifdef __DEBUG
   bl_debug_printf("xdg_toplevel_configure: w %d, h %d / states: ", width, height);
   wl_array_for_each(ps, states) {
   switch(*ps) {
@@ -1358,10 +1358,22 @@ const struct zxdg_toplevel_v6_listener xdg_toplevel_listener = {
 #endif
 #endif
 
+static void update_mime(char **mime, char *new_mime) {
+  if (strcmp(new_mime, "text/plain;charset=utf-8") == 0) {
+    *mime = "text/plain;charset=utf-8";
+  } else if (*mime == NULL && strcmp(new_mime, "UTF8_STRING") == 0) {
+    *mime = "UTF8_STRING";
+  }
+}
+
 static void data_offer_offer(void *data, struct wl_data_offer *offer, const char *type) {
+  ui_wlserv_t *wlserv = data;
+
 #ifdef __DEBUG
   bl_debug_printf("data_offer_offer %s\n", type);
 #endif
+
+  update_mime(&wlserv->sel_offer_mime, type);
 }
 
 static void data_offer_source_action(void *data, struct wl_data_offer *data_offer,
@@ -1393,11 +1405,12 @@ static void data_device_data_offer(void *data, struct wl_data_device *data_devic
   ui_wlserv_t *wlserv = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("DND: offer %p\n", offer);
+  bl_debug_printf("data_device_data_offer %p\n", offer);
 #endif
 
   wl_data_offer_add_listener(offer, &data_offer_listener, wlserv);
   wlserv->dnd_offer = offer;
+  wlserv->sel_offer_mime = NULL;
 }
 
 static void data_device_enter(void *data, struct wl_data_device *data_device,
@@ -1443,8 +1456,8 @@ static void data_device_motion(void *data, struct wl_data_device *data_device,
                                uint32_t time, wl_fixed_t x_w, wl_fixed_t y_w) {
 }
 
-static int unescape(u_char *src) {
-  u_char *dst;
+static int unescape(char *src) {
+  char *dst;
   int c;
 
   dst = src;
@@ -1466,7 +1479,7 @@ static void receive_data(ui_display_t *disp, void *offer, const char *mime, int 
   int fds[2];
 
   if (pipe(fds) == 0) {
-    u_char buf[512];
+    char buf[512];
     ssize_t len;
 
     if (clipboard) {
@@ -1479,33 +1492,46 @@ static void receive_data(ui_display_t *disp, void *offer, const char *mime, int 
     close(fds[1]);
 
     while ((len = read(fds[0], buf, sizeof(buf) - 1)) > 0) {
-      char *str;
+      if (strcmp(mime, "text/uri-list") == 0) {
+        char *p;
 
-      while (buf[len - 1] == '\n' || buf[len - 1] == '\r') {
-        len--;
+        while (buf[len - 1] == '\n' || buf[len - 1] == '\r') {
+          len--;
+        }
+        buf[len] = '\0';
+
+        for (p = buf; *p; p++) {
+          if (*p == 'f') {
+            if (strncmp(p + 1, "ile://", 6) == 0) {
+              memmove(p, p + 7, len - 7 + 1);
+              bl_debug_printf("%s\n", p);
+              p += 6;
+              len -= 7;
+            }
+          } else if (*p == '\r' || *p == '\n') {
+            *p = ' ';
+          }
+        }
+
+        if (unescape(buf)) {
+          len = strlen(buf);
+        }
       }
-      buf[len] = '\0';
 #ifdef __DEBUG
-      bl_debug_printf("Receive data (len %d): %s\n", len, buf);
-#endif
+      else {
+        buf[len] = '\0';
+      }
 
-      if (strncmp(buf, "file://", 7) == 0) {
-        str = buf + 7;
-        len -= 7;
-      } else {
-        str = buf;
-      }
-      if (unescape(str)) {
-        len = strlen(str);
-      }
+      bl_debug_printf("Receive data (len %d, mime %s): %s\n", len, mime, buf);
+#endif
 
       if (disp->display->wlserv->dnd_action ==
           WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE /* Shift+Drop */ &&
           disp->roots[0]->set_xdnd_config) {
-        (*disp->roots[0]->set_xdnd_config)(disp->roots[0], NULL, "scp", str);
+        (*disp->roots[0]->set_xdnd_config)(disp->roots[0], NULL, "scp", buf);
         break;
       } else if (disp->roots[0]->utf_selection_notified) {
-        (*disp->roots[0]->utf_selection_notified)(disp->roots[0], str, len);
+        (*disp->roots[0]->utf_selection_notified)(disp->roots[0], buf, len);
       }
     }
     close(fds[0]);
@@ -1617,9 +1643,13 @@ static const struct wl_data_source_listener data_source_listener = {
 
 static void xsel_offer_offer(void *data, struct gtk_primary_selection_offer *offer,
                                   const char *type) {
+  ui_wlserv_t *wlserv = data;
+
 #ifdef __DEBUG
   bl_debug_printf("xsel_offer_offer %s\n", type);
 #endif
+
+  update_mime(&wlserv->xsel_offer_mime, type);
 }
 
 static const struct gtk_primary_selection_offer_listener xsel_offer_listener = {
@@ -1636,6 +1666,7 @@ static void xsel_device_data_offer(void *data,
 #endif
 
   gtk_primary_selection_offer_add_listener(offer, &xsel_offer_listener, wlserv);
+  wlserv->xsel_offer_mime = NULL;
 }
 
 static void xsel_device_selection(void *data,
@@ -2702,16 +2733,21 @@ void ui_display_copy_lines(ui_display_t *disp, int src_x, int src_y, int dst_x, 
 void ui_display_request_text_selection(ui_display_t *disp) {
   if (disp->selection_owner) {
     XSelectionRequestEvent ev;
+
     ev.type = 0;
     ev.target = disp->roots[0];
     if (disp->selection_owner->utf_selection_requested) {
       /* utf_selection_requested() calls ui_display_send_text_selection() */
       (*disp->selection_owner->utf_selection_requested)(disp->selection_owner, &ev, 0);
     }
-  } else if (disp->display->wlserv->sel_offer) {
-    receive_data(disp, disp->display->wlserv->sel_offer, "UTF8_STRING", 1);
-  } else if (disp->display->wlserv->xsel_offer) {
-    receive_data(disp, disp->display->wlserv->xsel_offer, "text/plain;charset=utf-8", 0);
+  } else {
+    ui_wlserv_t *wlserv = disp->display->wlserv;
+
+    if (wlserv->xsel_offer && wlserv->xsel_offer_mime) {
+      receive_data(disp, wlserv->xsel_offer, wlserv->xsel_offer_mime, 0);
+    } else if (wlserv->sel_offer && wlserv->sel_offer_mime) {
+      receive_data(disp, wlserv->sel_offer, wlserv->sel_offer_mime, 1);
+    }
   }
 }
 

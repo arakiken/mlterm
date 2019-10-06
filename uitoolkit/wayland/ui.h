@@ -112,11 +112,13 @@ typedef struct {
   struct wl_surface *data_surface;
   uint32_t dnd_action;
   struct wl_data_offer *sel_offer;
+  char *sel_offer_mime;
   struct wl_data_source *sel_source;
 
   struct gtk_primary_selection_device_manager *xsel_device_manager;
   struct gtk_primary_selection_device *xsel_device;
   struct gtk_primary_selection_offer *xsel_offer;
+  char *xsel_offer_mime;
   struct gtk_primary_selection_source *xsel_source;
 
   int32_t sel_fd;

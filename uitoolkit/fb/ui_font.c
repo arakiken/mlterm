@@ -1,5 +1,7 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
+#define _GNU_SOURCE /* strcasestr */
+
 #include "ui_font.h"
 
 #include <stdio.h>
@@ -782,6 +784,9 @@ face_found:
     if (load_glyph(face, format, get_glyph_index(face, 'j'), is_aa)) {
       int descent = face->glyph->bitmap.rows - face->glyph->bitmap_top;
       if (descent > xfont->height - xfont->ascent) {
+#ifdef __DEBUG
+        bl_debug_printf("Modify xfont->height to %d\n", xfont->ascent + descent);
+#endif
         xfont->height = xfont->ascent + descent;
       }
     }
@@ -1794,6 +1799,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     FcValue val;
     int is_bold;
     int is_italic;
+    char *p;
 
 #ifdef USE_WIN32API
     init_fontconfig();
@@ -1801,13 +1807,6 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
     if (!(pattern = parse_font_name(fontname, &is_bold, &is_italic, &percent, cs))) {
       return NULL;
-    }
-
-    if (is_bold) {
-      id |= FONT_BOLD;
-    }
-    if (is_italic) {
-      id |= FONT_ITALIC;
     }
 
     if (FcPatternGet(pattern, FC_FILE, 0, &val) != FcResultMatch) {
@@ -1818,6 +1817,20 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
     if ((font_file = alloca(strlen(val.u.s) + 1))) {
       strcpy(font_file, val.u.s);
+    }
+
+    /* For 'format = fontsize | (id & (FONT_BOLD | FONT_ITALIC))' below */
+    if ((p = strcasestr(font_file, "bold")) &&
+        strchr(p, '/') == NULL && strchr(p, '\\') == NULL) {
+      id &= ~FONT_BOLD; /* XXX e.g. Inconsolata-Bold.ttf => Don't call FT_Outline_Embolden(). */
+    } else if (is_bold) {
+      id |= FONT_BOLD;
+    }
+    if ((p = strcasestr(font_file, "italic")) &&
+        strchr(p, '/') == NULL && strchr(p, '\\') == NULL) {
+      id &= ~FONT_ITALIC; /* XXX */
+    } else if (is_italic) {
+      id |= FONT_ITALIC;
     }
 
     FcPatternDestroy(pattern);
@@ -2248,9 +2261,9 @@ xfont_loaded:
     font->ascent = fontsize;
   }
 
+  bl_msg_printf("Load %s (id %x)\n", font->xfont->file, font->id);
 #ifdef DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " %s font is loaded. => CURRENT NUM OF XFONTS %d\n",
-                  font->xfont->file, num_xfonts);
+  bl_debug_printf(" => CURRENT NUM OF XFONTS %d\n", num_xfonts);
 #endif
 
 #ifdef DEBUG
