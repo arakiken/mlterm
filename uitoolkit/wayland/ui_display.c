@@ -1073,7 +1073,7 @@ static u_int total_min_height(ui_window_t *win) {
   return min_height;
 }
 
-static u_int total_width_inc(ui_window_t *win) {
+static u_int max_width_inc(ui_window_t *win) {
   u_int count;
   u_int width_inc;
 
@@ -1087,7 +1087,7 @@ static u_int total_width_inc(ui_window_t *win) {
        * XXX
        * we should calculate least common multiple of width_inc and sub_inc.
        */
-      if ((sub_inc = total_width_inc(win->children[count])) > width_inc) {
+      if ((sub_inc = max_width_inc(win->children[count])) > width_inc) {
         width_inc = sub_inc;
       }
     }
@@ -1096,7 +1096,7 @@ static u_int total_width_inc(ui_window_t *win) {
   return width_inc;
 }
 
-static u_int total_height_inc(ui_window_t *win) {
+static u_int max_height_inc(ui_window_t *win) {
   u_int count;
   u_int height_inc;
 
@@ -1110,7 +1110,7 @@ static u_int total_height_inc(ui_window_t *win) {
        * XXX
        * we should calculate least common multiple of width_inc and sub_inc.
        */
-      if ((sub_inc = total_height_inc(win->children[count])) > height_inc) {
+      if ((sub_inc = max_height_inc(win->children[count])) > height_inc) {
         height_inc = sub_inc;
       }
     }
@@ -1238,7 +1238,7 @@ static void shell_surface_configure(void *data, struct wl_shell_surface *shell_s
 
   if (check_resize(disp->display->width, disp->display->height, &width, &height,
                    total_min_width(disp->roots[0]), total_min_height(disp->roots[0]),
-                   total_width_inc(disp->roots[0]), total_height_inc(disp->roots[0]),
+                   max_width_inc(disp->roots[0]), max_height_inc(disp->roots[0]),
                    disp->display->is_resizing)) {
 #ifdef __DEBUG
     bl_msg_printf("-> modified size w %d h %d\n", width, height);
@@ -1328,7 +1328,7 @@ static void xdg_toplevel_configure(void *data, struct zxdg_toplevel_v6 *xdg_topl
 
   if (check_resize(disp->display->width, disp->display->height, &width, &height,
                    total_min_width(disp->roots[0]), total_min_height(disp->roots[0]),
-                   total_width_inc(disp->roots[0]), total_height_inc(disp->roots[0]),
+                   max_width_inc(disp->roots[0]), max_height_inc(disp->roots[0]),
                    disp->display->is_resizing)) {
 #ifdef __DEBUG
     bl_msg_printf("-> modified size w %d h %d\n", width, height);
@@ -2262,6 +2262,14 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
   } else
 #endif
   {
+#if 0 /* def XDG_SHELL_V6 */
+    if (disp->display->xdg_surface && disp->display->parent == NULL &&
+        (hint & (XValue | YValue))) {
+      zxdg_surface_v6_set_window_geometry(disp->display->xdg_surface,
+                                          x, y, ACTUAL_WIDTH(root), ACTUAL_HEIGHT(root));
+    }
+#endif
+
     create_shm_buffer(disp->display);
 
 #ifndef COMPAT_LIBVTE

@@ -504,7 +504,7 @@ void main_loop_final(void) {
 }
 
 int main_loop_start(void) {
-  if (ui_screen_manager_startup() == 0) {
+  if (ui_screen_manager_startup() == 0 && !is_genuine_daemon) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " open_screen_intern() failed.\n");
 #endif

@@ -211,7 +211,7 @@ static u_int total_min_height(ui_window_t *win) {
   return min_height;
 }
 
-static u_int total_width_inc(ui_window_t *win) {
+static u_int max_width_inc(ui_window_t *win) {
   u_int count;
   u_int width_inc;
 
@@ -225,7 +225,7 @@ static u_int total_width_inc(ui_window_t *win) {
        * XXX
        * we should calculate least common multiple of width_inc and sub_inc.
        */
-      if ((sub_inc = total_width_inc(win->children[count])) > width_inc) {
+      if ((sub_inc = max_width_inc(win->children[count])) > width_inc) {
         width_inc = sub_inc;
       }
     }
@@ -234,7 +234,7 @@ static u_int total_width_inc(ui_window_t *win) {
   return width_inc;
 }
 
-static u_int total_height_inc(ui_window_t *win) {
+static u_int max_height_inc(ui_window_t *win) {
   u_int count;
   u_int height_inc;
 
@@ -248,7 +248,7 @@ static u_int total_height_inc(ui_window_t *win) {
        * XXX
        * we should calculate least common multiple of width_inc and sub_inc.
        */
-      if ((sub_inc = total_height_inc(win->children[count])) > height_inc) {
+      if ((sub_inc = max_height_inc(win->children[count])) > height_inc) {
         height_inc = sub_inc;
       }
     }
@@ -803,7 +803,7 @@ static void poll_event(void) {
 #if 0
       if (modify_resize(disp->display->width, disp->display->height, &width, &height,
                         total_min_width(disp->roots[0]), total_min_height(disp->roots[0]),
-                        total_width_inc(disp->roots[0]), total_height_inc(disp->roots[0]), 1)) {
+                        max_width_inc(disp->roots[0]), max_height_inc(disp->roots[0]), 1)) {
         SDL_SetWindowSize(disp->display->window, width, height);
       } else
 #endif

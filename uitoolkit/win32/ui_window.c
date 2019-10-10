@@ -389,7 +389,7 @@ static u_int total_min_height(ui_window_t *win) {
   return min_height;
 }
 
-static u_int total_width_inc(ui_window_t *win) {
+static u_int max_width_inc(ui_window_t *win) {
   u_int count;
   u_int width_inc;
 
@@ -404,7 +404,7 @@ static u_int total_width_inc(ui_window_t *win) {
        * XXX
        * we should calculate least common multiple of width_inc and sub_inc.
        */
-      if ((sub_inc = total_width_inc(win->children[count])) > width_inc) {
+      if ((sub_inc = max_width_inc(win->children[count])) > width_inc) {
         width_inc = sub_inc;
       }
     }
@@ -413,7 +413,7 @@ static u_int total_width_inc(ui_window_t *win) {
   return width_inc;
 }
 
-static u_int total_height_inc(ui_window_t *win) {
+static u_int max_height_inc(ui_window_t *win) {
   u_int count;
   u_int height_inc;
 
@@ -428,7 +428,7 @@ static u_int total_height_inc(ui_window_t *win) {
        * XXX
        * we should calculate least common multiple of width_inc and sub_inc.
        */
-      if ((sub_inc = total_height_inc(win->children[count])) > height_inc) {
+      if ((sub_inc = max_height_inc(win->children[count])) > height_inc) {
         height_inc = sub_inc;
       }
     }
@@ -2139,8 +2139,8 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
           if (IsZoomed(ui_get_root_window(win)->my_window)) {
             width_surplus = height_surplus = 0;
           } else {
-            width_surplus = (width - min_width - win->hmargin * 2) % total_width_inc(win);
-            height_surplus = (height - min_height - win->vmargin * 2) % total_height_inc(win);
+            width_surplus = (width - min_width - win->hmargin * 2) % max_width_inc(win);
+            height_surplus = (height - min_height - win->vmargin * 2) % max_height_inc(win);
           }
 
           win->width = width - win->hmargin * 2;

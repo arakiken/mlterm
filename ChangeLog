@@ -1,3 +1,21 @@
+2019-10-10  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/ui_font.c: If face->glyph->bitmap_left is less than 0,
+	  bitmap at retreated area is skipped in get_ft_bitmap_intern().
+
+	* xlib/ui_window.c: XSizeHints::base_{width|height} is fixed.
+
+	* */ui_window.c, */ui_display.c:
+	  total_{width|height}_inc() => max_{width|height}_inc()
+
+	* ui_main_config.c: If DISPLAY environment variable doesn't exist,
+	  DISPLAY=:0 is set.
+
+	* main_loop.c: 'mlterm -j genuine' starts if X server is down.
+
+	* win32/ui.c: XParseGeometry() doesn't change argument variables in
+	  error of parsing.
+
 2019-10-06  Araki Ken  <arakiken@users.sf.net>
 
 	* wayland/ui.h, wayland/ui_display.c:

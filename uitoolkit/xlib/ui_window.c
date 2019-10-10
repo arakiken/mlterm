@@ -499,15 +499,7 @@ static u_int total_width_inc(ui_window_t *win) {
   for (count = 0; count < win->num_children; count++) {
     if (win->children[count]->is_mapped &&
         (win->children[count]->sizehint_flag & SIZEHINT_WIDTH)) {
-      u_int sub_inc;
-
-      /*
-       * XXX
-       * we should calculate least common multiple of width_inc and sub_inc.
-       */
-      if ((sub_inc = total_width_inc(win->children[count])) > width_inc) {
-        width_inc = sub_inc;
-      }
+      width_inc += total_width_inc(win->children[count]);
     }
   }
 
@@ -523,13 +515,53 @@ static u_int total_height_inc(ui_window_t *win) {
   for (count = 0; count < win->num_children; count++) {
     if (win->children[count]->is_mapped &&
         (win->children[count]->sizehint_flag & SIZEHINT_HEIGHT)) {
+      height_inc += total_height_inc(win->children[count]);
+    }
+  }
+
+  return height_inc;
+}
+
+static u_int max_width_inc(ui_window_t *win) {
+  u_int count;
+  u_int width_inc;
+
+  width_inc = win->width_inc;
+
+  for (count = 0; count < win->num_children; count++) {
+    if (win->children[count]->is_mapped &&
+        (win->children[count]->sizehint_flag & SIZEHINT_WIDTH)) {
       u_int sub_inc;
 
       /*
        * XXX
        * we should calculate least common multiple of width_inc and sub_inc.
        */
-      if ((sub_inc = total_height_inc(win->children[count])) > height_inc) {
+      if ((sub_inc = total_width_inc(win->children[count])) > width_inc) {
+        width_inc = sub_inc;
+      }
+    }
+  }
+
+  return width_inc;
+}
+
+static u_int max_height_inc(ui_window_t *win) {
+  u_int count;
+  u_int height_inc;
+
+  height_inc = win->height_inc;
+
+  for (count = 0; count < win->num_children; count++) {
+    if (win->children[count]->is_mapped &&
+        (win->children[count]->sizehint_flag & SIZEHINT_HEIGHT)) {
+      u_int sub_inc;
+
+      /*
+       * XXX
+       * we should calculate least common multiple of width_inc and sub_inc.
+       */
+      if ((sub_inc = max_height_inc(win->children[count])) > height_inc) {
         height_inc = sub_inc;
       }
     }
@@ -1316,6 +1348,7 @@ int ui_window_show(ui_window_t *win, int hint) {
     /* Root window */
 
     XSizeHints size_hints;
+    int total;
     XClassHint class_hint;
     XWMHints wm_hints;
     int argc = 1;
@@ -1336,16 +1369,16 @@ int ui_window_show(ui_window_t *win, int hint) {
     size_hints.width = ACTUAL_WIDTH(win);
     size_hints.height = ACTUAL_HEIGHT(win);
 
-    size_hints.width_inc = total_width_inc(win);
-    size_hints.height_inc = total_height_inc(win);
+    size_hints.width_inc = max_width_inc(win);
+    size_hints.height_inc = max_height_inc(win);
     size_hints.min_width = total_min_width(win);
     size_hints.min_height = total_min_height(win);
-    size_hints.base_width = (size_hints.width_inc > 0 &&
-                             size_hints.min_width > size_hints.width_inc) ?
-                            size_hints.min_width % size_hints.width_inc : 0;
-    size_hints.base_height = (size_hints.height_inc > 0 &&
-                              size_hints.min_height > size_hints.height_inc) ?
-                             size_hints.min_height % size_hints.height_inc : 0;
+    total = total_width_inc(win);
+    size_hints.base_width = (size_hints.min_width > total) ?
+                             size_hints.min_width - total : 0;
+    total = total_height_inc(win);
+    size_hints.base_height = (size_hints.min_height > total) ?
+                              size_hints.min_height - total : 0;
 
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " Size hints => w %d h %d wi %d hi %d mw %d mh %d bw %d bh %d\n",
@@ -1576,6 +1609,7 @@ void ui_window_set_maximize_flag(ui_window_t *win, ui_maximize_flag_t flag) {
 void ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_height,
                                 u_int width_inc, u_int height_inc) {
   XSizeHints size_hints;
+  int total;
   ui_window_t *root;
 
   win->min_width = min_width;
@@ -1588,16 +1622,16 @@ void ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_hei
   /*
    * these hints must be set at the same time !
    */
-  size_hints.width_inc = total_width_inc(root);
-  size_hints.height_inc = total_height_inc(root);
+  size_hints.width_inc = max_width_inc(root);
+  size_hints.height_inc = max_height_inc(root);
   size_hints.min_width = total_min_width(root);
   size_hints.min_height = total_min_height(root);
-  size_hints.base_width = (size_hints.width_inc > 0 &&
-                           size_hints.min_width > size_hints.width_inc) ?
-                          size_hints.min_width % size_hints.width_inc : 0;
-  size_hints.base_height = (size_hints.height_inc > 0 &&
-                            size_hints.min_height > size_hints.height_inc) ?
-                           size_hints.min_height % size_hints.height_inc : 0;
+  total = total_width_inc(win);
+  size_hints.base_width = (size_hints.min_width > total) ?
+                           size_hints.min_width - total : 0;
+  total = total_height_inc(win);
+  size_hints.base_height = (size_hints.min_height > total) ?
+                            size_hints.min_height - total : 0;
   size_hints.flags = PMinSize | PResizeInc | PBaseSize;
 
 #ifdef DEBUG

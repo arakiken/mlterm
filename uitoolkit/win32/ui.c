@@ -99,12 +99,25 @@ static struct {
 
 /* --- global functions --- */
 
-int XParseGeometry(char *str, int *x, int *y, unsigned int *width, unsigned int *height) {
-  if (sscanf(str, "%ux%u+%d+%d", width, height, x, y) == 4) {
+int XParseGeometry(char *str, int *xpos, int *ypos, unsigned int *width, unsigned int *height) {
+  int x, y, w, h;
+
+  if (sscanf(str, "%ux%u+%d+%d", &w, &h, &x, &y) == 4) {
+    *xpos = x;
+    *ypos = y;
+    *width = w;
+    *height = h;
+
     return XValue | YValue | WidthValue | HeightValue;
-  } else if (sscanf(str, "%ux%u", width, height) == 2) {
+  } else if (sscanf(str, "%ux%u", &w, &h) == 2) {
+    *width = w;
+    *height = h;
+
     return WidthValue | HeightValue;
-  } else if (sscanf(str, "+%d+%d", x, y) == 2) {
+  } else if (sscanf(str, "+%d+%d", &x, &y) == 2) {
+    *xpos = x;
+    *ypos = y;
+
     return XValue | YValue;
   } else {
     return 0;

@@ -8,6 +8,7 @@
 #include <pobl/bl_locale.h> /* bl_get_lang */
 #include <pobl/bl_args.h>
 #include <pobl/bl_util.h>   /* BL_INT_TO_STR */
+#include <pobl/bl_unistd.h> /* bl_setenv */
 
 #include <vt_term_manager.h>
 #include "ui_selection_encoding.h"
@@ -358,6 +359,12 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
 #endif
   {
     main_config->disp_name = default_display;
+#ifdef USE_XLIB
+    /* In case of starting mlterm with "-j genuine" option without X server. */
+    if (getenv("DISPLAY") == NULL) {
+      bl_setenv("DISPLAY", ":0", 0);
+    }
+#endif
   }
 
   if ((value = bl_conf_get_value(conf, "fontsize")) == NULL) {
