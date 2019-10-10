@@ -19,6 +19,7 @@
   Fix segfault of mlterm for java by race condition.
   Fix unexpected invalidation of --mdi=false option. (Enbugged at 3.8.8)
   Fix uninitialized memory access of mlimgloader.exe for win32.
+  Fix broken images of some sixel graphics. (Enbugged at 3.8.5)
 
 ver 3.8.8
 * Support Haiku OS. (Experimental)

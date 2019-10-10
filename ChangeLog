@@ -1,3 +1,8 @@
+2019-10-11  Araki Ken  <arakiken@users.sf.net>
+
+	* c_sixel.c: Illegal copy in the case of
+	  new_stride * new_height <= cur_stride * cur_height is fixed.
+
 2019-10-10  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/ui_font.c: If face->glyph->bitmap_left is less than 0,

@@ -146,6 +146,8 @@ static char *read_sixel_file(const char *path) {
 static int realloc_pixels_intern(u_char **pixels, size_t new_stride, int new_height,
                                  size_t cur_stride, int cur_height, int n_copy_rows) {
   u_char *p;
+  u_char *src;
+  u_char *dst;
   int y;
 
   if (new_stride < cur_stride) {
@@ -165,8 +167,9 @@ static int realloc_pixels_intern(u_char **pixels, size_t new_stride, int new_hei
                       cur_stride, cur_height, new_stride, new_height);
 #endif
 
+      dst = src = *pixels;
       for (y = 1; y < n_copy_rows; y++) {
-        memmove(*pixels + (y * new_stride), *pixels + (y * cur_stride), new_stride);
+        memmove((dst += new_stride), (src += cur_stride), new_stride);
       }
 
       return 1;
@@ -203,16 +206,18 @@ static int realloc_pixels_intern(u_char **pixels, size_t new_stride, int new_hei
 
     memset(p + cur_stride * cur_height, 0, new_stride * (new_height - cur_height));
   } else if (new_stride * new_height <= cur_stride * cur_height) {
-    /* cur_stride < new_stride, but cur_stride > new_height */
+    /* cur_stride < new_stride, but cur_height > new_height */
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG
-                    " Sixel data: %d bytes %d rows -> calloc %d bytes %d rows (No alloc)\n",
+                    " Sixel data: %d bytes %d rows -> %d bytes %d rows (No alloc)\n",
                     cur_stride, cur_height, new_stride, new_height);
 #endif
 
+    src = (*pixels) + n_copy_rows * cur_stride;
+    dst = (*pixels) + n_copy_rows * new_stride;
     for (y = 1; y < n_copy_rows; y++) {
-      memmove(*pixels + (y * new_stride), *pixels + (y * cur_stride), cur_stride);
-      memset(*pixels + (y * new_stride) + cur_stride, 0, new_stride - cur_stride);
+      memmove((dst -= new_stride), (src -= cur_stride), cur_stride);
+      memset(dst + cur_stride, 0, new_stride - cur_stride);
     }
 
     return 1;
