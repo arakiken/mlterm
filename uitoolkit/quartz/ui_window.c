@@ -99,7 +99,7 @@ static void notify_move_to_children(ui_window_t *win) {
   }
 }
 
-static u_int total_width_inc(ui_window_t *win) {
+static u_int max_width_inc(ui_window_t *win) {
   u_int count;
   u_int width_inc;
 
@@ -114,7 +114,7 @@ static u_int total_width_inc(ui_window_t *win) {
        * XXX
        * we should calculate least common multiple of width_inc and sub_inc.
        */
-      if ((sub_inc = total_width_inc(win->children[count])) > width_inc) {
+      if ((sub_inc = max_width_inc(win->children[count])) > width_inc) {
         width_inc = sub_inc;
       }
     }
@@ -123,7 +123,7 @@ static u_int total_width_inc(ui_window_t *win) {
   return width_inc;
 }
 
-static u_int total_height_inc(ui_window_t *win) {
+static u_int max_height_inc(ui_window_t *win) {
   u_int count;
   u_int height_inc;
 
@@ -138,7 +138,7 @@ static u_int total_height_inc(ui_window_t *win) {
        * XXX
        * we should calculate least common multiple of width_inc and sub_inc.
        */
-      if ((sub_inc = total_height_inc(win->children[count])) > height_inc) {
+      if ((sub_inc = max_height_inc(win->children[count])) > height_inc) {
         height_inc = sub_inc;
       }
     }
@@ -727,7 +727,7 @@ void ui_window_set_normal_hints(ui_window_t *win, u_int min_width, u_int min_hei
   /* root is always ui_layout_t (use_mdi is always true) on macosx/cocoa. */
   root = ui_get_root_window(win);
 
-  window_set_normal_hints(root->my_window, total_width_inc(root), total_height_inc(root));
+  window_set_normal_hints(root->my_window, max_width_inc(root), max_height_inc(root));
 }
 
 void ui_window_set_override_redirect(ui_window_t *win, int flag) {}

@@ -1140,11 +1140,30 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
           dst += (glyph[2] * 3);
         }
       } else {
-        for (y = 0; y < rows; y++) {
-          memcpy(dst + left_pitch, src, pitch);
+        if (face->glyph->bitmap_left < 0 && left_pitch == 0 &&
+            xfont->width * 3 < face->glyph->bitmap.width /* pitch? */) {
+          /* For 'A' and 'W' (bitmap_left can be -1) of Incosnolata font */
+          int left_pitch_minus = face->glyph->bitmap_left * 3;
 
-          src += face->glyph->bitmap.pitch;
-          dst += xfont->glyph_width_bytes;
+          if (pitch + left_pitch_minus < 0) {
+            left_pitch_minus = -pitch;
+          }
+
+          src -= left_pitch_minus;
+          for (y = 0; y < rows - 1; y++) {
+            memcpy(dst, src, pitch);
+
+            src += face->glyph->bitmap.pitch;
+            dst += xfont->glyph_width_bytes;
+          }
+          memcpy(dst, src, pitch + left_pitch_minus);
+        } else {
+          for (y = 0; y < rows; y++) {
+            memcpy(dst + left_pitch, src, pitch);
+
+            src += face->glyph->bitmap.pitch;
+            dst += xfont->glyph_width_bytes;
+          }
         }
       }
     } else {
@@ -1161,6 +1180,7 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
           dst += xfont->glyph_width_bytes;
         }
       } else {
+        /* XXX TODO: Support face->glyph->bitmap_left < 0 */
         int count;
         for (y = 0; y < rows; y++) {
           dst[0] = (src[0] >> left_pitch);
@@ -1666,7 +1686,7 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
             *compl_xfont = compl;
           }
 #ifdef __DEBUG
-          bl_debug_printf("Use %s font to show U+%x\n", (*compl_xfont)->file, ch);
+          bl_debug_printf("Use %s font to show U+%x\n", compl->file, ch);
 #endif
 
           return bitmap;
