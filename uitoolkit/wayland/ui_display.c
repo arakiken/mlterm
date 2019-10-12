@@ -406,7 +406,9 @@ static void auto_repeat(void) {
   u_int count;
 
   for (count = 0; count < num_wlservs; count++) {
-    if (wlservs[count]->prev_kev.type && --wlservs[count]->kbd_repeat_wait == 0) {
+    /* If prev_kev.type > 0, kbd_repeat_wait is always greater than 0. */
+    if (wlservs[count]->prev_kev.type && /* wlservs[count]->kbd_repeat_wait > 0 && */
+        --wlservs[count]->kbd_repeat_wait == 0) {
       if (wlservs[count]->kbd_repeat_count++ == 2) {
         /*
          * Selecting next candidate of ibus lookup table by repeating space key
@@ -418,7 +420,11 @@ static void auto_repeat(void) {
 
       wlservs[count]->prev_kev.time += kbd_repeat_N;
       receive_key_event(wlservs[count], &wlservs[count]->prev_kev);
-      wlservs[count]->kbd_repeat_wait = (kbd_repeat_N + KEY_REPEAT_UNIT / 2) / KEY_REPEAT_UNIT;
+      if (kbd_repeat_N < KEY_REPEAT_UNIT / 2) {
+        wlservs[count]->kbd_repeat_wait = 1;
+      } else {
+        wlservs[count]->kbd_repeat_wait = (kbd_repeat_N + KEY_REPEAT_UNIT / 2) / KEY_REPEAT_UNIT;
+      }
     }
   }
 }
@@ -526,8 +532,19 @@ static void keyboard_key(void *data, struct wl_keyboard *keyboard,
     ev.state = wlserv->xkb->mods;
     ev.time = time;
 
-    wlserv->kbd_repeat_wait = (kbd_repeat_1 + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT;
-    wlserv->prev_kev = ev;
+    if (kbd_repeat_N == 0) {
+      /* disable key repeating */
+      wlserv->kbd_repeat_wait = 0;
+      wlserv->prev_kev.type = 0;
+    } else {
+      if (kbd_repeat_1 == 0) {
+        wlserv->kbd_repeat_wait = 1;
+      } else {
+        wlserv->kbd_repeat_wait = (kbd_repeat_1 + KEY_REPEAT_UNIT - 1) / KEY_REPEAT_UNIT;
+      }
+
+      wlserv->prev_kev = ev;
+    }
 
 #ifdef __DEBUG
     bl_debug_printf("key pressed %x %x at %d\n", ev.ksym, wlserv->xkb->mods, time);
@@ -586,11 +603,13 @@ static void keyboard_repeat_info(void *data, struct wl_keyboard *keyboard,
   bl_debug_printf("Repeat info rate %d delay %d.\n", rate, delay);
 #endif
   kbd_repeat_1 = delay;
-#ifdef COMPAT_LIBVTE
-  kbd_repeat_N = (1000 / rate); /* XXX 1000 / rate is too late. */
-#else
-  kbd_repeat_N = (500 / rate); /* XXX 1000 / rate is too late. */
-#endif
+
+  /* The rate of repeating keys in characters per second. 0 disables any repeating. */
+  if (rate == 0) {
+    kbd_repeat_N = 0;
+  } else {
+    kbd_repeat_N = 1000 / rate;
+  }
 }
 
 static const struct wl_keyboard_listener keyboard_listener = {
@@ -2069,6 +2088,7 @@ static void create_surface(ui_display_t *disp, u_int width, u_int height, char *
     display->xdg_surface = zxdg_shell_v6_get_xdg_surface(wlserv->xdg_shell, display->surface);
     zxdg_surface_v6_add_listener(display->xdg_surface, &xdg_surface_listener, disp);
     display->xdg_toplevel = zxdg_surface_v6_get_toplevel(display->xdg_surface);
+    zxdg_toplevel_v6_set_app_id(display->xdg_toplevel, app_name);
     zxdg_toplevel_v6_add_listener(display->xdg_toplevel, &xdg_toplevel_listener, disp);
     wl_surface_commit(display->surface);
   } else
