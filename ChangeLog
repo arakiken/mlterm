@@ -1,3 +1,10 @@
+2019-10-12  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_display.c:
+	  - If kbd_repeat_N is 0, prev_kev.type = 0 and kbd_repeat_wait = 0.
+	  - If kbd_repeat_N is less than KEY_REPEAT_UNIT / 2, kbd_repeat_wait = 1.
+	  - zxdg_toplevel_v6_set_app_id() is called.
+
 2019-10-11  Araki Ken  <arakiken@users.sf.net>
 
 	* c_sixel.c: Illegal copy in the case of
