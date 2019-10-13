@@ -20,6 +20,8 @@ void bl_cycle_index_destroy(bl_cycle_index_t *cycle);
 
 void bl_cycle_index_reset(bl_cycle_index_t *cycle);
 
+void bl_cycle_index_rollback(bl_cycle_index_t *cycle, u_int num);
+
 void bl_cycle_index_change_size(bl_cycle_index_t *cycle, u_int new_size);
 
 u_int bl_get_cycle_index_size(bl_cycle_index_t *cycle);

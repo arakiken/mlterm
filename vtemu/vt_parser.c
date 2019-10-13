@@ -1366,7 +1366,7 @@ static void resize(vt_parser_t *vt_parser, int width, int height, int by_char) {
       }
 
     do_resize:
-      vt_screen_resize(vt_parser->screen, width, height);
+      vt_screen_resize(vt_parser->screen, width, height, 0);
 
       /*
        * xterm_listener::resize(0,0) means that screen should be

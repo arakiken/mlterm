@@ -105,7 +105,7 @@ int vt_screen_destroy(vt_screen_t *screen);
 void vt_screen_set_listener(vt_screen_t *screen, vt_screen_event_listener_t *screen_listener);
 
 /* This considers status line */
-int vt_screen_resize(vt_screen_t *screen, u_int cols, u_int rows);
+int vt_screen_resize(vt_screen_t *screen, u_int cols, u_int rows, int pack);
 
 #define vt_screen_set_use_bce(screen, use) \
   vt_edit_set_use_bce(&(screen)->alt_edit, vt_edit_set_use_bce(&(screen)->normal_edit, use))

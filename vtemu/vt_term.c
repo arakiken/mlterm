@@ -564,8 +564,10 @@ size_t vt_term_write(vt_term_t *term, u_char *buf, size_t len) {
 
 /* The caller should swap width_pix and height_pix in vertical mode. */
 int vt_term_resize(vt_term_t *term, u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
+  int ret;
+
   vt_screen_logical(term->screen);
-  vt_screen_resize(term->screen, cols, rows);
+  ret = vt_screen_resize(term->screen, cols, rows, 1);
   vt_screen_render(term->screen);
   vt_screen_visual(term->screen);
 
@@ -575,7 +577,7 @@ int vt_term_resize(vt_term_t *term, u_int cols, u_int rows, u_int width_pix, u_i
                        vt_screen_get_logical_rows(term->screen), width_pix, height_pix);
   }
 
-  return 1;
+  return ret;
 }
 
 int vt_term_unhighlight_cursor(vt_term_t *term, int revert_visual) {
