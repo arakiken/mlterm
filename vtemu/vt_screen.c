@@ -843,11 +843,13 @@ int vt_screen_resize(vt_screen_t *screen, u_int cols, u_int rows, int pack) {
       vt_edit_scroll_downward(&screen->normal_edit, n_scroll);
 
       for (count = 0; count < n_scroll; count++) {
-        vt_line_t *line = vt_log_get(&screen->logs,
-                                     vt_get_num_logged_lines(&screen->logs) - n_scroll + count);
+        vt_line_t *src = vt_log_get(&screen->logs,
+                                    vt_get_num_logged_lines(&screen->logs) - n_scroll + count);
+        vt_line_t *dst = vt_edit_get_line(&screen->normal_edit, count);
         /* vt_screen_resize() is always called in logical context. */
-        vt_line_ctl_logical(line);
-        vt_line_copy(vt_edit_get_line(&screen->normal_edit, count), line);
+        vt_line_ctl_logical(src);
+        vt_line_copy(dst, src);
+        vt_line_set_modified_all(dst);
 
         vt_edit_go_downward(&screen->normal_edit, 0);
       }
