@@ -1,5 +1,10 @@
 2019-10-13  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_screen.c: vt_screen_resize() sets modified flag to lines
+	  reverted from backlog to the main screen.
+
+2019-10-13  Araki Ken  <arakiken@users.sf.net>
+
 	* vt_screen.c: 'pack' is added to arguments of vt_screen_resize().
 
 	* vt_logs.h: vt_log_rollback_index() is added.
