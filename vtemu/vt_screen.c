@@ -803,8 +803,10 @@ void vt_screen_set_listener(vt_screen_t *screen, vt_screen_event_listener_t *scr
   screen->screen_listener = screen_listener;
 }
 
-/* This considers status line ('row' contains status line) */
-int vt_screen_resize(vt_screen_t *screen, u_int cols, u_int rows) {
+/* This considers status line ('rows' contains status line) */
+int vt_screen_resize(vt_screen_t *screen, u_int cols, u_int rows, int pack) {
+  u_int old_rows = vt_edit_get_rows(&screen->normal_edit);
+
   if (screen->status_edit) {
     vt_edit_resize(screen->status_edit, cols, 1);
 
@@ -825,6 +827,34 @@ int vt_screen_resize(vt_screen_t *screen, u_int cols, u_int rows) {
 
     for (count = 0; count < MAX_PAGE_ID; count++) {
       vt_edit_resize(screen->page_edits + count, cols, rows);
+    }
+  }
+
+  if (pack && rows > old_rows) {
+    u_int n_scroll = vt_get_num_logged_lines(&screen->logs);
+
+    if (n_scroll > 0) {
+      u_int count;
+
+      if (n_scroll > rows - old_rows) {
+        n_scroll = rows - old_rows;
+      }
+
+      vt_edit_scroll_downward(&screen->normal_edit, n_scroll);
+
+      for (count = 0; count < n_scroll; count++) {
+        vt_line_t *line = vt_log_get(&screen->logs,
+                                     vt_get_num_logged_lines(&screen->logs) - n_scroll + count);
+        /* vt_screen_resize() is always called in logical context. */
+        vt_line_ctl_logical(line);
+        vt_line_copy(vt_edit_get_line(&screen->normal_edit, count), line);
+
+        vt_edit_go_downward(&screen->normal_edit, 0);
+      }
+
+      vt_log_rollback_index(&screen->logs, n_scroll);
+
+      return 2;
     }
   }
 
@@ -2137,14 +2167,14 @@ void vt_screen_set_use_status_line(vt_screen_t *screen, int use) {
 #endif
 
       vt_screen_resize(screen, vt_edit_get_cols(screen->main_edit),
-                       vt_edit_get_rows(screen->main_edit));
+                       vt_edit_get_rows(screen->main_edit), 0);
     }
   } else {
     if (vt_screen_has_status_line(screen)) {
       screen->has_status_line = 0;
 
       vt_screen_resize(screen, vt_edit_get_cols(screen->main_edit),
-                       vt_edit_get_rows(screen->main_edit) + 1);
+                       vt_edit_get_rows(screen->main_edit) + 1, 0);
       screen->main_edit = NULL;
     }
   }

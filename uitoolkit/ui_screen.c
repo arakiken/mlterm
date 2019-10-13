@@ -1351,7 +1351,14 @@ static void window_resized(ui_window_t *win) {
     rows = height / ui_line_height(screen);
   }
 
-  vt_term_resize(screen->term, cols, rows, width, height);
+  if (vt_term_resize(screen->term, cols, rows, width, height) == 2) {
+    /* vt_screen_resize() reverts some scrolled out lines to the main screen. */
+    if (HAS_SCROLL_LISTENER(screen, term_changed)) {
+      (*screen->screen_scroll_listener->term_changed)(screen->screen_scroll_listener->self,
+                                                      vt_term_get_log_size(screen->term),
+                                                      vt_term_get_num_logged_lines(screen->term));
+    }
+  }
 
   screen->width = screen_width(screen);
   screen->height = screen_height(screen);

@@ -632,7 +632,7 @@ static void line_scrolled_out(void *p /* must be ui_screen_t(, or child of ui_la
   if ((term = search_term(&layout->term, p))) {
     if (vt_term_log_size_is_unlimited(((ui_screen_t *)p)->term)) {
       ui_scrollbar_set_num_log_lines(&term->scrollbar,
-                                        vt_term_get_log_size(((ui_screen_t *)p)->term));
+                                     vt_term_get_log_size(((ui_screen_t *)p)->term));
     }
 
     ui_scrollbar_line_is_added(&term->scrollbar);

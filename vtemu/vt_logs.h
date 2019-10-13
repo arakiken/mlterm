@@ -34,6 +34,8 @@ vt_line_t *vt_log_get(vt_logs_t *logs, int at);
 
 u_int vt_get_num_logged_lines(vt_logs_t *logs);
 
+#define vt_log_rollback_index(logs, num) bl_cycle_index_rollback((logs)->index, num)
+
 #define vt_get_log_size(logs) ((logs)->num_rows)
 
 #endif

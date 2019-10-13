@@ -91,7 +91,7 @@ int vt_change_log_size(vt_logs_t *logs, u_int new_num_rows) {
     logs->num_rows = 0;
 
     return 1;
-  } else if (new_num_rows > logs->num_rows) {
+  } else if (new_num_rows > logs->num_rows && bl_cycle_index_of(logs->index, 0) == 0) {
     vt_line_t *new_lines;
 
     if (sizeof(vt_line_t) * new_num_rows < sizeof(vt_line_t) * logs->num_rows) {
@@ -111,7 +111,7 @@ int vt_change_log_size(vt_logs_t *logs, u_int new_num_rows) {
            sizeof(vt_line_t) * (new_num_rows - logs->num_rows));
 
     logs->lines = new_lines;
-  } else if (new_num_rows < logs->num_rows) {
+  } else {
     vt_line_t *new_lines;
     vt_line_t *line;
     int count;
@@ -168,6 +168,10 @@ int vt_change_log_size(vt_logs_t *logs, u_int new_num_rows) {
     bl_cycle_index_change_size(logs->index, new_num_rows);
   } else {
     if ((logs->index = bl_cycle_index_new(new_num_rows)) == NULL) {
+      free(logs->lines);
+      logs->lines = NULL;
+      logs->num_rows = 0;
+
       return 0;
     }
   }
@@ -234,6 +238,7 @@ u_int vt_get_num_logged_lines(vt_logs_t *logs) {
   }
 }
 
+#if 0
 int vt_log_reverse_color(vt_logs_t *logs, int char_index, int row) {
   vt_line_t *line;
 
@@ -261,3 +266,4 @@ int vt_log_restore_color(vt_logs_t *logs, int char_index, int row) {
 
   return 1;
 }
+#endif

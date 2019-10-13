@@ -44,6 +44,18 @@ void bl_cycle_index_reset(bl_cycle_index_t *cycle) {
   cycle->is_init = 1;
 }
 
+void bl_cycle_index_rollback(bl_cycle_index_t *cycle, u_int num) {
+  if (bl_get_filled_cycle_index(cycle) <= num) {
+    cycle->is_init = 1;
+    cycle->next = cycle->start;
+  } else {
+    if (cycle->next < num) {
+      cycle->next += cycle->size;
+    }
+    cycle->next -= num;
+  }
+}
+
 /*
  * !! Notice !!
  * this resets the "start" member 0.
@@ -73,10 +85,12 @@ u_int bl_get_cycle_index_size(bl_cycle_index_t *cycle) { return cycle->size; }
 u_int bl_get_filled_cycle_index(bl_cycle_index_t *cycle) {
   if (cycle->is_init) {
     return 0;
+  } else if (cycle->next == cycle->start) {
+    return cycle->size;
   } else if (cycle->next > cycle->start) {
     return cycle->next - cycle->start;
   } else {
-    return cycle->size;
+    return cycle->next + cycle->size - cycle->start;
   }
 }
 

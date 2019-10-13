@@ -1,3 +1,16 @@
+2019-10-13  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_screen.c: 'pack' is added to arguments of vt_screen_resize().
+
+	* vt_logs.h: vt_log_rollback_index() is added.
+
+	* ui_screen.c: ui_screen_scroll_event_listener_t::term_changed() is called
+	  if vt_term_resize() returns 2.
+
+	* baselib/src/Makefile.in: MAJOR.MINOR 2.0 -> 2.1
+
+	* bl_cycle_index.[ch]: bl_cycle_index_rollback() is added.
+
 2019-10-12  Araki Ken  <arakiken@users.sf.net>
 
 	* wayland/ui_display.c:
