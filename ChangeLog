@@ -1,3 +1,9 @@
+2019-10-14  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_transfer.c: Fix for android.
+
+	* ui_font.c: Fix for win32.
+
 2019-10-13  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_screen.c: vt_screen_resize() sets modified flag to lines

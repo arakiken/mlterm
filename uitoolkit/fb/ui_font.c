@@ -26,6 +26,7 @@
 #ifdef USE_WIN32API
 #define mmap(a, b, c, d, e, f) (NULL)
 #define munmap(a, b) (0)
+#define strcasestr(a, b) strstr(a, b)
 #else
 #include <sys/mman.h> /* mmap */
 #endif

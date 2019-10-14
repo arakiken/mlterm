@@ -53,6 +53,7 @@ static int load_library(void) {
 #else
   dl_zmodem = zmodem;
   dl_zmodem_start = zmodem_start;
+  dl_zmodem_cancel = zmodem_cancel;
   dl_zmodem_is_processing = zmodem_is_processing;
 #endif
 
