@@ -1073,9 +1073,9 @@ static int prev_screen(void *self, ui_screen_t *screen) {
   }
 }
 
-static int resize_screen(void *self, ui_screen_t *screen, int horizontal, int step) {
+static int resize_screen(void *self, ui_screen_t *screen, int horizontal, const char *size) {
   if (UI_SCREEN_TO_LAYOUT(screen)) {
-    return ui_layout_resize(UI_SCREEN_TO_LAYOUT(screen), screen, horizontal, step);
+    return ui_layout_resize(UI_SCREEN_TO_LAYOUT(screen), screen, horizontal, size);
   } else {
     return 0;
   }

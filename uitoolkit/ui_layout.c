@@ -1650,54 +1650,94 @@ int ui_layout_switch_screen(ui_layout_t *layout, int prev) {
   return 1;
 }
 
-int ui_layout_resize(ui_layout_t *layout, ui_screen_t *screen, int horizontal, int step) {
+int ui_layout_resize(ui_layout_t *layout, ui_screen_t *screen, int horizontal,
+                     const char *size_str /* "N", "+N", "-N" or "N%" */) {
   struct terminal *term;
   struct terminal *child = NULL;
+  int size;
+  int is_percent;
+  char *p;
 
-  if (step == 0) {
-    return 0;
+  if ((p = strchr(size_str, '%'))) {
+    if (!bl_str_n_to_int(&size, size_str, p - size_str) || size <= 0) {
+      return 0;
+    }
+    is_percent = 1;
+  } else {
+    if (!bl_str_to_int(&size, *size_str == '+' ? size_str + 1: size_str) || size == 0) {
+      return 0;
+    }
+    is_percent = 0;
   }
 
-  if (!(term = get_current_term(&layout->term))) {
+  if (!(term = search_term(&layout->term, screen))) {
     term = &layout->term;
   }
 
   if (horizontal) {
-    while (term->separator_x == 0) {
-      if (!(term = search_parent_term(&layout->term, (child = term)))) {
+    if (is_percent) {
+      if (term->separator_x > 0) {
+        term->separator_x = total_width(term) * size / 100;
+      }
+    } else {
+      int step;
+
+      if (*size_str == '+' || *size_str == '-') {
+        step = size;
+      } else {
+        step = size - vt_term_get_cols(screen->term);
+      }
+
+      while (term->separator_x == 0) {
+        if (!(term = search_parent_term(&layout->term, (child = term)))) {
+          return 0;
+        }
+      }
+
+      if (term->next[0] == child) {
+        step = -step;
+      }
+
+      step *= ui_col_width(term->screen);
+
+      if (step < 0 && term->separator_x < abs(step)) {
         return 0;
       }
+
+      term->separator_x += step;
     }
-
-    if (term->next[0] == child) {
-      step = -step;
-    }
-
-    step *= ui_col_width(term->screen);
-
-    if (step < 0 && term->separator_x < abs(step)) {
-      return 0;
-    }
-
-    term->separator_x += step;
   } else {
-    while (term->separator_y == 0) {
-      if (!(term = search_parent_term(&layout->term, (child = term)))) {
+    if (is_percent) {
+      if (term->separator_y > 0) {
+        term->separator_y = total_height(term) * size / 100;
+      }
+    } else {
+      int step;
+
+      if (*size_str == '+' || *size_str == '-') {
+        step = size;
+      } else {
+        step = size - vt_term_get_rows(screen->term);
+      }
+
+      while (term->separator_y == 0) {
+        if (!(term = search_parent_term(&layout->term, (child = term)))) {
+          return 0;
+        }
+      }
+
+      if (term->next[1] == child) {
+        step = -step;
+      }
+
+      step *= ui_line_height(term->screen);
+
+      if (step < 0 && term->separator_y < abs(step)) {
         return 0;
       }
+
+      term->separator_y += step;
     }
-
-    if (term->next[1] == child) {
-      step = -step;
-    }
-
-    step *= ui_line_height(term->screen);
-
-    if (step < 0 && term->separator_y < abs(step)) {
-      return 0;
-    }
-
-    term->separator_y += step;
   }
 
   reset_layout(&layout->term, 0, 0, layout->window.width, layout->window.height);

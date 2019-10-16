@@ -1635,12 +1635,12 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
   } else if (ui_shortcut_match(screen->shortcut, HEXPAND_SCREEN, ksym, state) &&
              HAS_SYSTEM_LISTENER(screen, resize_screen) &&
              (*screen->system_listener->resize_screen)(screen->system_listener->self, screen, 1,
-                                                       1)) {
+                                                       "+1")) {
     return 1;
   } else if (ui_shortcut_match(screen->shortcut, VEXPAND_SCREEN, ksym, state) &&
              HAS_SYSTEM_LISTENER(screen, resize_screen) &&
              (*screen->system_listener->resize_screen)(screen->system_listener->self, screen, 0,
-                                                       1)) {
+                                                       "+1")) {
     return 1;
   }
   /* for backward compatibility */
@@ -6469,12 +6469,8 @@ int ui_screen_exec_cmd(ui_screen_t *screen, char *cmd) {
     }
   } else if (strcmp(cmd + 1, "resize_screen") == 0) {
     if (HAS_SYSTEM_LISTENER(screen, resize_screen)) {
-      int step;
-
-      if (bl_str_to_int(&step, arg + (*arg == '+' ? 1 : 0))) {
-        (*screen->system_listener->resize_screen)(screen->system_listener->self, screen,
-                                                  *cmd == 'h', step);
-      }
+      (*screen->system_listener->resize_screen)(screen->system_listener->self, screen,
+                                                *cmd == 'h', arg);
     }
   } else if (strcmp(cmd, "next_screen") == 0) {
     if (HAS_SYSTEM_LISTENER(screen, next_screen)) {
