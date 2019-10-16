@@ -53,7 +53,7 @@ int ui_layout_remove_child(ui_layout_t *layout, ui_screen_t *screen);
 
 int ui_layout_switch_screen(ui_layout_t *layout, int prev);
 
-int ui_layout_resize(ui_layout_t *layout, ui_screen_t *screen, int horizontal, int step);
+int ui_layout_resize(ui_layout_t *layout, ui_screen_t *screen, int horizontal, const char *size);
 
 #define ui_layout_has_one_child(layout) \
   ((layout)->term.next[0] == NULL && ((layout)->term.next[1]) == NULL)

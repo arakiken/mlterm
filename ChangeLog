@@ -1,3 +1,10 @@
+2019-10-16  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.[ch], ui_screen_manager.c: Fixes for the change of ui_layout_resize().
+
+	* ui_layout.[ch]: size_str whose values are N, +N, -N or N% is added to
+	  arguments of ui_layout_resize().
+
 2019-10-14  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_transfer.c: Fix for android.

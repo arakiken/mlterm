@@ -26,7 +26,7 @@ typedef struct ui_system_event_listener {
   int (*close_screen)(void *, ui_screen_ptr_t, int);
   int (*next_screen)(void *, ui_screen_ptr_t);
   int (*prev_screen)(void *, ui_screen_ptr_t);
-  int (*resize_screen)(void *, ui_screen_ptr_t, int, int);
+  int (*resize_screen)(void *, ui_screen_ptr_t, int, const char *);
   void (*open_pty)(void *, ui_screen_ptr_t, char *);
   void (*next_pty)(void *, ui_screen_ptr_t);
   void (*prev_pty)(void *, ui_screen_ptr_t);
