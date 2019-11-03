@@ -322,8 +322,23 @@ static int use_loopback(vt_pty_t *pty) {
 }
 
 static int unuse_loopback(vt_pty_t *pty) {
+  char buf[128];
+  ssize_t len;
+
   if (!pty->stored || --(pty->stored->ref_count) > 0) {
     return 0;
+  }
+
+  while ((len = (*pty->read)(pty, (u_char*)buf, sizeof(buf))) > 0) {
+    char *p;
+
+    if (!(p = (char*)realloc(((vt_pty_mosh_t *)pty)->buf, ((vt_pty_mosh_t *)pty)->buf_len + len))) {
+      break;
+    }
+
+    memcpy(p + ((vt_pty_mosh_t *)pty)->buf_len, buf, len);
+    ((vt_pty_mosh_t *)pty)->buf = p;
+    ((vt_pty_mosh_t *)pty)->buf_len += len;
   }
 
 #ifdef USE_WIN32API
@@ -797,6 +812,7 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
 
     if ((pty_mosh->buf_len -= prev_len) == 0) {
       free(pty_mosh->buf);
+      pty_mosh->buf = NULL;
     } else {
       memmove(pty_mosh->buf, pty_mosh->buf + prev_len, pty_mosh->buf_len);
 

@@ -286,9 +286,11 @@ public class MLActivity extends NativeActivity {
   private final int MENU_PREVPTY_ID = 7;
   private final int MENU_UPDATESCREEN_ID = 8;
   private final int MENU_CLOSESCREEN_ID = 9;
-  private final int MENU_SCP_ID = 10;
-  private final int MENU_CONFIG_ID = 11;
-  private final int MENU_CANCEL_ID = 12;
+  private final int MENU_ZMODEM_START_ID = 10;
+  private final int MENU_RESET_ID = 11;
+  private final int MENU_SCP_ID = 12;
+  private final int MENU_CONFIG_ID = 13;
+  private final int MENU_CANCEL_ID = 14;
 
   @Override
   public void onCreateContextMenu(ContextMenu menu, View view,
@@ -308,6 +310,8 @@ public class MLActivity extends NativeActivity {
     menu.add(0, MENU_PREVPTY_ID, 0, "Previous pty");
     menu.add(0, MENU_UPDATESCREEN_ID, 0, "Update screen");
     menu.add(0, MENU_CLOSESCREEN_ID, 0, "Close splitted screen");
+    menu.add(0, MENU_ZMODEM_START_ID, 0, "Start zmodem");
+    menu.add(0, MENU_RESET_ID, 0, "Reset terminal");
     menu.add(0, MENU_CONFIG_ID, 0, "Configuration");
     menu.add(0, MENU_CANCEL_ID, 0, "Cancel");
   }
@@ -344,6 +348,12 @@ public class MLActivity extends NativeActivity {
         return true;
       case MENU_CLOSESCREEN_ID:
         execCommand("close_screen");
+        return true;
+      case MENU_ZMODEM_START_ID:
+        execCommand("zmodem_start");
+        return true;
+      case MENU_RESET_ID:
+        execCommand("full_reset");
         return true;
       case MENU_SCP_ID:
         showDialog(2); /* SCP dialog */

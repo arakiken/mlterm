@@ -7,6 +7,7 @@
 	"UTF-8"		"encoding=UTF-8"
 }
 "Full Reset"	"full_reset"
+"Zmodem"	"zmodem_start"
 "Font" {
 	"Kochi Gothic"	"aafont:DEFAULT=Kochi Gothic"
 	"Kochi Mincho"	"aafont:DEFAULT=Kochi Mincho"

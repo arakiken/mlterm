@@ -1,3 +1,58 @@
+2019-11-03  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.transfer: Added.
+
+	* doc/en/PROTOCOL: Updated.
+
+	* MLActivity.java: "Start zmodem" and "Reset terminal" are added to
+	  the menu.
+
+	* mlterm-menu/menu, mlmenu/menu-simple: "Zmodem" is added.
+
+	* ui_main_config.c: --recvdir / "receive_directory" option is added.
+
+	* ui_screen.c: If 'rz' command is executed on a remote host,
+	  Shift+DnD invokes "zmodem_start" command instead of "scp".
+
+	* ui_screen.c, ui_shortcut.[ch]: "RESET" shortcut key is added.
+
+	* ui_dnd.c: Shift+DnD forces "scp" command instead of pasting a file path
+	  even if its property is not "text/uri-list".
+
+	* vt_parser.[ch]:
+	  - If \x18B01 is received, vt_parser_t::is_zmodem_ready flag is set.
+	  - "Send ..." or "Save in ..." message is output in starting zmodem.
+	  - "recv_dir" => "receive_directory" (OSC 5380)
+	  - The default "receive_directory" is changed from ~/.mlterm to ~/.mlterm/recv.
+	  - "send_file_utf8" is added to OSC 5379 for internal use.
+	  - "recv_dir" is removed from OSC 5379.
+	  - "zmodem_start" works only if vt_pty_is_loopback() is false.
+	  - vt_parser_reset() and vt_parser_has_pending_sequence() are added.
+	  - vt_reset_pending_vt100_sequence() is removed.
+
+	* vt_pty_ssh.c, vt_pty.h:
+	  - The default directory where received files via scp are saved
+	    is changed from ~/.mlterm/scp to ~/.mlterm/recv.
+	  - recv_dir and progress_len are added to arguments of vt_pty_ssh_scp().
+
+	* libptyssh/vt_pty_ssh.c:
+	  - write(pty->slave) (write_loopback()) is called instead of
+	    vt_write_to_pty() to output message directly to the screen.
+	  - libssh2_scp_recv2() is used instead of libssh2_scp_recv().
+	  - scp_thread() sets ssh_session_t::suspended = 2.
+
+	* vt_pty_mosh.cpp: Text output from mlconfig or mlterm-menu etc when it
+	  dies is stored.
+
+	* vt_transfer.c: mkdir(savedir)
+
+	* gtk/vte.c: vte_terminal_{set|get}_enable_bidi() and
+	  vte_terminal_{set|get}_enable_shaping() (which are since 0.58) are added.
+
+	* bl_config.h.in: _FILE_OFFSET_BITS and _LARGE_FILES macros are added.
+
+	* baselib/configure.in: AC_SYS_LARGEFILE is added.
+
 2019-10-16  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.[ch], ui_screen_manager.c: Fixes for the change of ui_layout_resize().

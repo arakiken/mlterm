@@ -311,6 +311,7 @@ typedef struct vt_parser {
   int bold_affects_bg : 1;
   int use_ansi_colors : 1;
   int is_transferring_data : 2; /* 0x1=send 0x2=recv */
+  int is_zmodem_ready : 1;
 
 #ifdef USE_VT52
   int is_vt52_mode : 1;
@@ -333,6 +334,8 @@ void vt_set_use_scp_full(int use);
 #else
 #define vt_set_use_scp_full(use) (0)
 #endif
+
+void vt_set_recv_dir(const char *dir);
 
 void vt_set_timeout_read_pty(u_long timeout);
 
@@ -369,9 +372,12 @@ void vt_parser_set_config_listener(vt_parser_t *vt_parser,
 
 #define vt_parser_is_transferring_data(parser) ((parser)->is_transferring_data)
 
+#define vt_parser_is_zmodem_ready(parser) ((parser)->is_zmodem_ready)
+
 int vt_parse_vt100_sequence(vt_parser_t *vt_parser);
 
-void vt_reset_pending_vt100_sequence(vt_parser_t *vt_parser);
+#define vt_parser_has_pending_sequence(vt_parser) \
+  ((vt_parser)->r_buf.left > 0 || (vt_parser)->is_transferring_data)
 
 int vt_parser_write_modified_key(vt_parser_t *vt_parser, int key, int modcode);
 
@@ -448,6 +454,8 @@ int vt_parser_get_config(vt_parser_t *vt_parser, vt_pty_t *output, char *key,
 int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *val);
 
 int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd);
+
+void vt_parser_reset(vt_parser_t *vt_parser, int level);
 
 void vt_parser_report_mouse_tracking(vt_parser_t *vt_parser, int col, int row,
                                      int button, int is_released, int key_state,

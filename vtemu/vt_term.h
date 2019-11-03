@@ -94,19 +94,14 @@ int vt_term_detach(vt_term_t *term);
 
 #define vt_term_is_sending_data(term) vt_parser_is_sending_data((term)->parser)
 
+#define vt_term_is_zmodem_ready(term) vt_parser_is_zmodem_ready((term)->parser)
+
 #define vt_term_parse_vt100_sequence(term) vt_parse_vt100_sequence((term)->parser)
 
 #define vt_term_reset_pending_vt100_sequence(term) vt_reset_pending_vt100_sequence((term)->parser)
 
 #define vt_term_response_config(term, key, value, to_menu) \
   vt_response_config((term)->pty, key, value, to_menu)
-
-#ifdef USE_LIBSSH2
-#define vt_term_scp(term, dst_path, src_path, path_encoding) \
-  vt_pty_ssh_scp((term)->pty, vt_term_get_encoding(term), path_encoding, dst_path, src_path, 1)
-#else
-#define vt_term_scp(term, dst_path, src_path, path_encoding) (0)
-#endif
 
 #define vt_term_change_encoding(term, encoding) \
   vt_parser_change_encoding((term)->parser, encoding)
@@ -312,14 +307,17 @@ void vt_term_set_bidi_separators(vt_term_t *term, const char *bidi_separators);
 #define vt_term_get_cmd_line(term) vt_pty_get_cmd_line((term)->pty)
 
 #define vt_term_start_config_menu(term, cmd_path, x, y, display) \
-  vt_reset_pending_vt100_sequence((term)->parser);               \
   vt_start_config_menu((term)->pty, cmd_path, x, y, display)
+
+#define vt_term_has_pending_sequence(term) vt_parser_has_pending_sequence((term)->parser)
 
 int vt_term_get_config(vt_term_t *term, vt_term_t *output, char *key, int to_menu, int *flag);
 
 int vt_term_set_config(vt_term_t *term, char *key, char *value);
 
 #define vt_term_exec_cmd(term, cmd) vt_parser_exec_cmd((term)->parser, cmd)
+
+#define vt_term_reset(term, level) vt_parser_reset((term)->parser, level)
 
 #define vt_term_report_mouse_tracking(term, col, row, button, is_released, key_state,             \
                                       button_state)                                               \

@@ -31,8 +31,7 @@ version 20190331
                      gen_proto_challenge | mlclient "<prefix options>" "<options>" |
                      mlclientx "<prefix options>" "<options>" |
                      search_prev <pattern> | search_next <pattern> | update_all | mlconfig |
-                     set_shortcut <key>=<operation> (*) | autoscroll <count> |
-                     zmodem_start | zmodem_cancel |
+                     set_shortcut <key>=<operation> (*) | autoscroll <count> | zmodem_start |
                      scp "(local:|remote:)<src file name>" "(local:|remote:)<dst directory name>"
                      "(<encoding name>)"
   set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize |
@@ -55,8 +54,7 @@ version 20190331
                      use_ot_layout | ot_script | ot_features | regard_uri_as_word | vt_color_mode |
                      console_encoding | console_sixel_colors | borderless | underline_offset |
                      baseline_offset | trim_trailing_newline_in_pasting | use_vertical_cursor |
-                     click_interval | emoji_path | use_local_echo | local_echo_wait |
-                     send_file | recv_dir
+                     click_interval | emoji_path | use_local_echo | local_echo_wait | send_file
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
@@ -77,7 +75,7 @@ version 20190331
                      ot_features | regard_uri_as_word | borderless | use_aafont | underline_offset |
                      baseline_offset | trim_trailing_newline_in_pasting | fontconfig |
                      use_vertical_cursor | click_interval | emoji_path | use_local_echo |
-                     local_echo_wait | send_file | recv_dir
+                     local_echo_wait | send_file | receive_directory
 
                    (*): Works in "proto:xxxx" in ~/.mlterm/key.
 
@@ -137,11 +135,11 @@ version 20190331
   pty_list = (<pty dev>:<active flag>;)*
   pty_name = <pty dev> | <pty title>
   pwd = <current working directory>
+  receive_directory = <directory path>
   receive_string_via_ucs = true | false | switch
   regard_uri_as_word = true | false | switch
   rows = <any ASCII decimal digit>
   rv_color = <color name> | <color rgb>
-  recv_dir = <directory path>
   send_file = <file path>
   sb_bg_color = <color name> | <color rgb>
   sb_fg_color = <color name> | <color rgb>
@@ -207,28 +205,8 @@ version 20190331
   o "selected_text(:encoding)" command returns selected text in which NL is
     replaced to CR.
   o "paste" command works like INSERT_SELECTION.
-  o "scp" command works as follows. ("foo.bar" is a remote host.)
-    If the destination directory is an absolute path, scp isn't executed unless
-    "allow_scp = true".
-    If the destination directory is a relative path, the target file is stored
-    in $HOME/.mlterm/scp/... (mkdir $HOME/.mlterm/scp in advance.)
-    e.g.)
-     \x1b]5379;scp /bin/ls .\x07
-       => scp localhost:/bin/ls foo.bar:$HOME/.mlterm/scp/./ls
-     \x1b]5379;scp remote:/bin/ls .\x07
-       => scp foo.bar:/bin/ls localhost:$HOME/.mlterm/scp/./ls
-     \x1b]5379;scp \"$HOME/my text.txt\" ""\x07
-       => scp "localhost:$HOME/my text.txt" "foo.bar:$HOME/.mlterm/scp/my text.txt"
-     \x1b]5379;scp c:\\users\\text.txt .\x07
-       => scp localhost:c:\users\text.txt foo.bar:$HOME/.mlterm/scp/./text.txt
-          ("\" is available as a separator only in win32.)
-     \x1b]5379;scp remote:/bin/ls /usr/bin\x07
-       => scp foo.bar:/bin/ls localhost:/usr/bin/ls
-     \x1b]5379;scp local:$PWD/hosts remote:/etc\x07
-       => scp localhost:$PWD/hosts foo.bar:/etc/hosts
-  o Source and destination file names of "scp" command are convered to system
-    locale encoding and terminal encoding respectively.
   o "\x1b]5379;fontconfig\x07" shows current font settings.
+  o See doc/en/README.transfer for "scp" command.
 
 * Note about color configuration
   If you specify "" as <value>, previous setting of <key> color is cleared.

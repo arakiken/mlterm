@@ -3,10 +3,10 @@
 #ifndef __BL_DEF_H__
 #define __BL_DEF_H__
 
-#include <limits.h> /* PATH_MAX,SIZE_MAX */
-
 /* various AC_DEFINEs are defined in bl_config.h */
 #include "bl_config.h"
+
+#include <limits.h> /* PATH_MAX,SIZE_MAX */
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h> /* SIZE_MAX on some platforms */

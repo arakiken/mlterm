@@ -859,23 +859,13 @@ static int flush_buffer(vt_parser_t *vt_parser) {
 
     bl_msg_printf("\nflushing chars(%d)...==>", buffer->filled_len);
     for (count = 0; count < buffer->filled_len; count++) {
-      char *bytes;
+      u_int code = vt_char_code(&buffer->chars[count]);
 
-      bytes = vt_char_code(&buffer->chars[count]);
-
-      if (vt_char_size(&buffer->chars[count]) == 2) {
 #ifdef DUMP_HEX
-        bl_msg_printf("%x%x", bytes[0] | 0x80, bytes[1] | 0x80);
+      bl_msg_printf("%x", code);
 #else
-        bl_msg_printf("%c%c", bytes[0] | 0x80, bytes[1] | 0x80);
+      bl_msg_printf("%c", code);
 #endif
-      } else {
-#ifdef DUMP_HEX
-        bl_msg_printf("%x", bytes[0]);
-#else
-        bl_msg_printf("%c", bytes[0]);
-#endif
-      }
     }
 
     bl_msg_printf("<===\n");
@@ -1871,7 +1861,6 @@ static void report_color_table(vt_parser_t *vt_parser, int pu) {
 
   strcpy(p - 1, "\x1b\\");
 
-  bl_debug_printf("%s\n", seq);
   vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
 }
 
@@ -6472,6 +6461,19 @@ inline static int parse_vt100_escape_sequence(
     }
   } else if (*str_p == 0x90) {
     goto parse_dcs;
+  } else if (*str_p == 0x18) {
+    if (vt_parser->r_buf.left < 3) {
+      return 0;
+    }
+
+    if (memcmp(str_p + 1, "B01", 3) == 0) {
+      vt_parser->is_zmodem_ready = 1; /* rz */
+    }
+#if 0
+    else if (memcmp(str_p + 1, "B00", 3) == 0) {
+      vt_parser->is_zmodem_ready = 2; /* sz */
+    }
+#endif
   } else {
     /* not VT100 control sequence */
 
@@ -6677,6 +6679,29 @@ static int is_transferring_data(vt_parser_t *vt_parser) {
     start_vt100_cmd(vt_parser, 1);
 
     if (progress_cur == 0) {
+      char *msg;
+      char *p1;
+      char *p2;
+      size_t len;
+      size_t pre_len;
+
+      if (vt_parser->is_transferring_data == 0x1) {
+        pre_len = 5;
+        p1 = "Send ";
+        p2 = send_file ? send_file : "";
+      } else {
+        pre_len = 8;
+        p1 = "Save in ";
+        p2 = recv_dir ? recv_dir : "~/.mlterm/recv";
+      }
+
+      len = 10 + pre_len + strlen(p2);
+      if ((msg = alloca(len + 1))) {
+        memcpy(msg, "\r\nZMODEM: ", 10);
+        memcpy(msg + 10, p1, pre_len);
+        strcpy(msg + 10 + pre_len, p2);
+      }
+      write_loopback(vt_parser, msg, len, 0, 0);
       vt_screen_line_feed(vt_parser->screen);
     }
 
@@ -6731,28 +6756,66 @@ static void transfer_data(vt_parser_t *vt_parser) {
     memcpy(input, CURRENT_STR_P(vt_parser), copy_len);
     input[copy_len] = '\0';
 
-    vt_parser->r_buf.left -= copy_len;
-    memmove(vt_parser->r_buf.chars, CURRENT_STR_P(vt_parser), vt_parser->r_buf.left);
-    vt_parser->r_buf.filled_len = vt_parser->r_buf.left;
+    if ((vt_parser->r_buf.left -= copy_len) > 0) {
+      memmove(vt_parser->r_buf.chars, CURRENT_STR_P(vt_parser), vt_parser->r_buf.left);
+      vt_parser->r_buf.filled_len = vt_parser->r_buf.left;
+    }
 
     vt_transfer_data(input, copy_len, output, &len, sizeof(output));
 
     if (len > 0) {
       vt_write_to_pty(vt_parser->pty, output, len);
     }
-
   } while (is_transferring_data(vt_parser) && receive_bytes(vt_parser) > 0);
 }
 
-static void transfer_cancel(vt_parser_t *vt_parser) {
+/* This function assumes vt_pty_is_loopback(vt_parser->pty) is false if do_zcan is true. */
+static void transfer_cancel(vt_parser_t *vt_parser, int do_zcan) {
   if (vt_parser->is_transferring_data) {
     vt_parser->is_transferring_data = 0;
     vt_parser->r_buf.left = 0;
     vt_transfer_cancel();
   }
-  vt_write_to_pty(vt_parser->pty,
-                  "**\x18\x18\x18\x18\x18\x18\x18\x18"
-                  "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08", 20);
+#if 0
+  else if (vt_parser->is_zmodem_ready == 0) {
+    return;
+  }
+#endif
+
+  vt_parser->is_zmodem_ready = 0;
+
+  if (do_zcan) {
+    vt_write_to_pty(vt_parser->pty,
+                    "**\x18\x18\x18\x18\x18\x18\x18\x18"
+                    "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08", 20);
+  }
+}
+
+static char *convert_to_locale_encoding(char *str, ef_parser_t *parser,
+                                        vt_char_encoding_t encoding) {
+  vt_char_encoding_t locale_encoding;
+  char *new_str;
+  size_t len = strlen(str);
+
+  if ((locale_encoding = vt_get_char_encoding(bl_get_codeset())) == VT_UNKNOWN_ENCODING) {
+    locale_encoding = encoding;
+  }
+
+  if (locale_encoding == encoding || (new_str = alloca(len * 2 + 1)) == NULL) {
+    new_str = str;
+  } else {
+    if (parser) {
+      (*parser->init)(parser);
+      (*parser->set_str)(parser, str, len);
+      new_str[vt_char_encoding_convert_with_parser(new_str, len * 2, locale_encoding,
+                                                   parser)] = '\0';
+    } else {
+      new_str[vt_char_encoding_convert(new_str, len * 2, locale_encoding,
+                                       str, len - 5, encoding)] = '\0';
+    }
+  }
+
+  return strdup(new_str);
 }
 
 /* --- global functions --- */
@@ -6777,6 +6840,16 @@ void vt_set_use_ttyrec_format(int use) { use_ttyrec_format = use; }
 #ifdef USE_LIBSSH2
 void vt_set_use_scp_full(int use) { use_scp_full = use; }
 #endif
+
+void vt_set_recv_dir(const char *dir) {
+  if (strstr(dir, "..")) {
+    /* insecure dir name */
+    bl_msg_printf("%s is insecure dir name.\n", dir);
+  } else {
+    free(recv_dir);
+    recv_dir = strdup(dir);
+  }
+}
 
 void vt_set_timeout_read_pty(u_long timeout) { timeout_read_pty = timeout; }
 
@@ -6983,6 +7056,7 @@ int vt_parse_vt100_sequence(vt_parser_t *vt_parser) {
    */
 
   while (parse_vt100_sequence(vt_parser) &&
+         !vt_parser->is_transferring_data &&
          /* (PTY_RD_BUFFER_SIZE / 2) is baseless. */
          vt_parser->r_buf.filled_len >= (PTY_RD_BUFFER_SIZE / 2) &&
          clock() - beg < timeout_read_pty && receive_bytes(vt_parser))
@@ -6991,13 +7065,6 @@ int vt_parse_vt100_sequence(vt_parser_t *vt_parser) {
   stop_vt100_cmd(vt_parser, 1);
 
   return 1;
-}
-
-void vt_reset_pending_vt100_sequence(vt_parser_t *vt_parser) {
-  if (vt_parser->r_buf.left >= 2 && is_dcs_or_osc(CURRENT_STR_P(vt_parser))) {
-    /* Reset DCS or OSC */
-    vt_parser->r_buf.left = 0;
-  }
 }
 
 int vt_parser_write_modified_key(vt_parser_t *vt_parser,
@@ -7727,7 +7794,7 @@ int vt_parser_get_config(
     } else {
       value = "";
     }
-  } else if (strcmp(key, "recv_dir") == 0) {
+  } else if (strcmp(key, "receive_directory") == 0) {
     if (recv_dir) {
       value = recv_dir;
     } else {
@@ -7766,6 +7833,7 @@ int vt_parser_get_config(
   return 1;
 }
 
+/* Called in visual context */
 int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
   if (strcmp(key, "encoding") == 0) {
     if (strcmp(value, "auto") == 0) {
@@ -7916,21 +7984,19 @@ int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
     if (bl_str_to_uint(&msec, value)) {
       local_echo_wait_msec = msec;
     }
-  } else if (strcmp(key, "send_file") == 0) {
+  } else if (strncmp(key, "send_file", 9) == 0) {
     if (strstr(value, "..")) {
       /* insecure file name */
       bl_msg_printf("%s is insecure file name.\n", value);
     } else {
-      free(send_file);
-      send_file = strdup(value);
-    }
-  } else if (strcmp(key, "recv_dir") == 0) {
-    if (strstr(value, "..")) {
-      /* insecure dir name */
-      bl_msg_printf("%s is insecure dir name.\n", value);
-    } else {
-      free(recv_dir);
-      recv_dir = strdup(value);
+      if (key[9] == '\0') {
+        free(send_file);
+        send_file = convert_to_locale_encoding(value, vt_parser->cc_parser, vt_parser->encoding);
+      } else if (strcmp(key + 9, "_utf8") == 0) {
+        /* Hack for set_xdnd_config() in ui_screen.c */
+        free(send_file);
+        send_file = convert_to_locale_encoding(value, NULL, VT_UTF8);
+      }
     }
   } else {
     /* Continue to process it in x_screen.c */
@@ -7940,13 +8006,12 @@ int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
   return 1;
 }
 
+/* Called in visual context */
 int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd) {
   if (strcmp(cmd, "gen_proto_challenge") == 0) {
     vt_gen_proto_challenge();
   } else if (strcmp(cmd, "full_reset") == 0) {
-    soft_reset(vt_parser);
-    vt_reset_pending_vt100_sequence(vt_parser);
-    vt_parser->sixel_scrolling = 1;
+    vt_parser_reset(vt_parser, 0);
   } else if (strncmp(cmd, "snapshot", 8) == 0) {
     char **argv;
     int argc;
@@ -7976,18 +8041,34 @@ int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd) {
       }
     }
   } else if (strcmp(cmd, "zmodem_start") == 0) {
-    if ((send_file || recv_dir || (recv_dir = bl_get_user_rc_path("mlterm"))) &&
-        vt_transfer_start(send_file, recv_dir, 0, vt_screen_get_cols(vt_parser->screen) / 2 + 1)) {
-      vt_parser->is_transferring_data = (send_file ? 0x1 : 0x2);
-      vt_parser->r_buf.left = 0;
-      transfer_data(vt_parser);
-    } else {
-      transfer_cancel(vt_parser);
-      /* send_file is freed in vt_transfer_start() */
+    int count = 0;
+
+    while (1) {
+      if (!vt_pty_is_loopback(vt_parser->pty)) {
+        if ((send_file || recv_dir || (recv_dir = bl_get_user_rc_path("mlterm/recv"))) &&
+            vt_transfer_start(send_file, recv_dir, 0,
+                              vt_screen_get_cols(vt_parser->screen) / 2 + 1)) {
+          vt_parser->is_zmodem_ready = 0;
+          vt_parser->is_transferring_data = (send_file ? 0x1 : 0x2);
+          vt_parser->r_buf.left = 0;
+          transfer_data(vt_parser);
+        } else {
+          transfer_cancel(vt_parser, 1);
+          /* send_file is freed in vt_transfer_start() */
+        }
+        send_file = NULL;
+
+        break;
+      }
+
+      if (++count == 10) {
+        bl_msg_printf("Retry zmodem_start.\n");
+
+        break;
+      }
+
+      bl_usleep(100000);
     }
-    send_file = NULL;
-  } else if (strcmp(cmd, "zmodem_cancel") == 0) {
-    transfer_cancel(vt_parser);
   }
 #if !defined(NO_IMAGE) && defined(ENABLE_OSC5379PICTURE)
   else if (strncmp(cmd, "show_picture ", 13) == 0 || strncmp(cmd, "add_frame ", 10) == 0) {
@@ -8043,7 +8124,7 @@ int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd) {
       }
 
       vt_pty_ssh_scp(vt_parser->pty, vt_parser->encoding, encoding, argv[2], argv[1],
-                     use_scp_full);
+                     use_scp_full, recv_dir, vt_screen_get_cols(vt_parser->screen) / 2 + 1);
     }
   }
 #endif
@@ -8052,6 +8133,28 @@ int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd) {
   }
 
   return 1;
+}
+
+/*
+ * level=1: Unuse loopback, Output ZCAN.
+ */
+void vt_parser_reset(vt_parser_t *vt_parser, int level) {
+#ifdef USE_LIBSSH2
+  if (level >= 1) {
+    if (vt_pty_is_loopback(vt_parser->pty)) {
+      if (vt_pty_get_mode(vt_parser->pty) == PTY_MOSH) {
+        vt_pty_mosh_set_use_loopback(vt_parser->pty, 0);
+      } else {
+        vt_pty_ssh_set_use_loopback(vt_parser->pty, 0);
+      }
+    }
+  }
+#endif
+
+  soft_reset(vt_parser);
+  vt_parser->r_buf.left = 0; /* Reset DCS or OSC etc sequence */
+  vt_parser->sixel_scrolling = 1;
+  transfer_cancel(vt_parser, level >= 1);
 }
 
 #define MOUSE_POS_LIMIT (0xff - 0x20)

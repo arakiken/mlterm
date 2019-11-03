@@ -331,6 +331,8 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "time (msec) to keep local echo mode [250]");
   bl_conf_add_opt(conf, '\0', "sr", 1, "scroll_on_resizing",
                   "scroll screen on resizing [false]");
+  bl_conf_add_opt(conf, '\0', "recvdir", 0, "receive_directory",
+                  "directory to save received files [~/.mlterm/recv]");
 #ifdef USE_IM_CURSOR_COLOR
   bl_conf_add_opt(conf, '\0', "imcolor", 0, "im_cursor_color",
                   "cursor color when input method is activated. [false]");
@@ -1404,6 +1406,10 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (flag != -1) {
       vt_set_scroll_on_resizing(flag);
     }
+  }
+
+  if ((value = bl_conf_get_value(conf, "receive_directory"))) {
+    vt_set_recv_dir(value);
   }
 
 #ifdef USE_IM_CURSOR_COLOR

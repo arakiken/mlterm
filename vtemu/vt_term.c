@@ -966,6 +966,7 @@ int vt_term_get_config(vt_term_t *term, vt_term_t *output, /* if term == output,
   return 1;
 }
 
+/* Called in visual context */
 int vt_term_set_config(vt_term_t *term, char *key, char *value) {
   if (vt_parser_set_config(term->parser, key, value)) {
     /* do nothing */

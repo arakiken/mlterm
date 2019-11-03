@@ -1,9 +1,11 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
+#include <pobl/bl_def.h> /* _FILE_OFFSET_BITS for the size of struct stat (libssh2_struct_stat) */
+
 #include "../vt_pty_intern.h"
 
 #include <libssh2.h>
-#include <pobl/bl_def.h>
+#include <errno.h>
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>
 #include <pobl/bl_str.h>
@@ -32,14 +34,6 @@
 
 #ifndef USE_WIN32API
 #define closesocket(sock) close(sock)
-#endif
-
-#ifndef NO_DYNAMIC_LOAD_SSH
-/*
- * If NO_DYNAMIC_LOAD_SSH is defined, mlterm/libptyssh/vt_pty_ssh.c is included
- * from mlterm/vt_pty_ssh.c.
- */
-#define vt_write_to_pty(pty, buf, len) (*(pty)->write)(pty, buf, len)
 #endif
 
 #ifndef LIBSSH2_FLAG_COMPRESS
@@ -85,6 +79,8 @@ typedef struct ssh_session {
   LIBSSH2_CHANNEL **x11_channels;
   u_int num_x11;
 
+  int lo_buf_pending;
+
 } ssh_session_t;
 
 typedef struct vt_pty_ssh {
@@ -105,6 +101,7 @@ typedef struct scp {
   int local;
   int src_is_remote;
   size_t src_size;
+  u_int progress_len;
 
   vt_pty_ssh_t *pty_ssh;
 
@@ -824,12 +821,17 @@ static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
   return 1;
 }
 
+/* use_loopback() should be called before this. */
+static void write_loopback(vt_pty_t *pty, const char *buf, size_t len) {
+  while (write(pty->slave, buf, len) < 0 && errno == EAGAIN);
+}
+
 static int reconnect(vt_pty_ssh_t *pty);
 static int use_loopback(vt_pty_t *pty);
 
 static int zombie(vt_pty_ssh_t *pty) {
   if (use_loopback(&pty->pty)) {
-    vt_write_to_pty(&pty->pty, "=== Press any key to exit ===", 29);
+    write_loopback(&pty->pty, "=== Press any key to exit ===", 29);
     pty->is_eof = 1;
 
     /*
@@ -1119,6 +1121,8 @@ static int unuse_loopback(vt_pty_t *pty) {
     memcpy(p + ((vt_pty_ssh_t *)pty)->lo_size, buf, len);
     ((vt_pty_ssh_t *)pty)->lo_buf = p;
     ((vt_pty_ssh_t *)pty)->lo_size += len;
+
+    ((vt_pty_ssh_t *)pty)->session->lo_buf_pending = 1;
   }
 
 #ifdef USE_WIN32API
@@ -1156,7 +1160,7 @@ static void *
   char buf[8192];
   int progress;
   char msg1[] = "\x1b[?25l\r\nTransferring data.\r\n|";
-  char msg2[] = "**************************************************|\x1b[?25h\r\n";
+  char *msg2;
   char err_msg[] = "\r\nInterrupted.\x1b[?25h\r\n";
 
 #if !defined(USE_WIN32API) && defined(HAVE_PTHREAD)
@@ -1165,12 +1169,22 @@ static void *
 
   scp = p;
 
+  /* suspended is 1 before calling scp_thread() (See vt_pty_ssh_scp_intern()) */
+  scp->pty_ssh->session->suspended = 2;
+
+#define MSG2_LEN (scp->progress_len + 9)
+  if ((msg2 = alloca(MSG2_LEN + 1))) {
+    memset(msg2, ' ', scp->progress_len);
+    strcpy(msg2 + scp->progress_len, "|\x1b[?25h\r\n");
+  }
+
   rd_len = 0;
   progress = 0;
 
-  vt_write_to_pty(&scp->pty_ssh->pty, msg1, sizeof(msg1) - 1);
+  write_loopback(&scp->pty_ssh->pty, msg1, sizeof(msg1) - 1);
 
-  while (rd_len < scp->src_size && scp->pty_ssh->session->suspended > 0) {
+  while (rd_len < scp->src_size &&
+         scp->pty_ssh->session->suspended > 0 /* scp_stop() sets suspended = -1*/) {
     int new_progress;
     ssize_t len;
 
@@ -1197,20 +1211,14 @@ static void *
 
     rd_len += len;
 
-    new_progress = 50 * rd_len / scp->src_size;
+    new_progress = scp->progress_len * rd_len / scp->src_size;
 
-    if (progress < new_progress && new_progress < 50) {
-      int count;
+    if (progress < new_progress && new_progress < scp->progress_len) {
+      memset(msg2 + progress, '*', new_progress - progress);
+      write_loopback(&scp->pty_ssh->pty, msg2, scp->progress_len);
+      write_loopback(&scp->pty_ssh->pty, "|\r|", 3);
 
       progress = new_progress;
-
-      for (count = 0; count < new_progress; count++) {
-        vt_write_to_pty(&scp->pty_ssh->pty, "*", 1);
-      }
-      for (; count < 50; count++) {
-        vt_write_to_pty(&scp->pty_ssh->pty, " ", 1);
-      }
-      vt_write_to_pty(&scp->pty_ssh->pty, "|\r|", 3);
 
 #ifdef USE_WIN32API
       /* Exit GetMessage() in x_display_receive_next_event(). */
@@ -1220,9 +1228,13 @@ static void *
   }
 
   if (scp->pty_ssh->session->suspended > 0) {
-    vt_write_to_pty(&scp->pty_ssh->pty, msg2, sizeof(msg2) - 1);
+    memset(msg2, '*', scp->progress_len);
+    write_loopback(&scp->pty_ssh->pty, msg2, MSG2_LEN);
+
+    /* Revert from 2 to 1 */
+    scp->pty_ssh->session->suspended = 1;
   } else {
-    vt_write_to_pty(&scp->pty_ssh->pty, err_msg, sizeof(err_msg) - 1);
+    write_loopback(&scp->pty_ssh->pty, err_msg, sizeof(err_msg) - 1);
   }
 
 #if 1
@@ -1984,9 +1996,14 @@ int vt_pty_ssh_set_use_loopback(vt_pty_t *pty, int use) {
   }
 }
 
-int vt_pty_ssh_scp_intern(vt_pty_t *pty, int src_is_remote, char *dst_path, char *src_path) {
+int vt_pty_ssh_scp_intern(vt_pty_t *pty, int src_is_remote, char *dst_path, char *src_path,
+                          u_int progress_len /* > 0 */) {
   scp_t *scp;
+#if LIBSSH2_VERSION_NUM >= 0x010700
+  libssh2_struct_stat st;
+#else
   struct stat st;
+#endif
   char *msg;
 
   /* Note that session is non-block mode in this context. */
@@ -1996,7 +2013,8 @@ int vt_pty_ssh_scp_intern(vt_pty_t *pty, int src_is_remote, char *dst_path, char
     return 0;
   }
 
-  if (((vt_pty_ssh_t *)pty)->session->suspended) {
+  /* 2: Processing scp_thread() (See scp_thread()) */
+  if (((vt_pty_ssh_t *)pty)->session->suspended == 2) {
     bl_msg_printf("SCP: Another scp process is working.\n");
 
     return 0;
@@ -2009,10 +2027,18 @@ int vt_pty_ssh_scp_intern(vt_pty_t *pty, int src_is_remote, char *dst_path, char
 
   scp->pty_ssh->session->suspended = 1;
 
+  scp->progress_len = progress_len;
+
   if (src_is_remote) {
-    while (!(scp->remote = libssh2_scp_recv(scp->pty_ssh->session->obj, src_path, &st)) &&
-           libssh2_session_last_errno(scp->pty_ssh->session->obj) == LIBSSH2_ERROR_EAGAIN)
+    while (
+#if LIBSSH2_VERSION_NUM >= 0x010700
+           !(scp->remote = libssh2_scp_recv2(scp->pty_ssh->session->obj, src_path, &st))
+#else
+           !(scp->remote = libssh2_scp_recv(scp->pty_ssh->session->obj, src_path, &st))
+#endif
+           && libssh2_session_last_errno(scp->pty_ssh->session->obj) == LIBSSH2_ERROR_EAGAIN)
       ;
+
     if (!scp->remote) {
       bl_msg_printf("SCP: Failed to open remote:%s.\n", src_path);
 
@@ -2079,7 +2105,7 @@ int vt_pty_ssh_scp_intern(vt_pty_t *pty, int src_is_remote, char *dst_path, char
   if ((msg = alloca(24 + strlen(src_path) + strlen(dst_path) + 1))) {
     sprintf(msg, "\r\nSCP: %s%s => %s%s", src_is_remote ? "remote:" : "local:", src_path,
             src_is_remote ? "local:" : "remote:", dst_path);
-    vt_write_to_pty(pty, msg, strlen(msg));
+    write_loopback(pty, msg, strlen(msg));
   }
 
 #if defined(USE_WIN32API)
@@ -2158,6 +2184,10 @@ int vt_pty_ssh_poll(void *p) {
 
     for (idx = 0; idx < sessions[count]->num_ptys; idx++) {
       if (libssh2_poll_channel_read(sessions[count]->pty_channels[idx], 0)) {
+        goto found;
+      } else if (sessions[count]->lo_buf_pending) {
+        sessions[count]->lo_buf_pending = 0;
+
         goto found;
       }
     }

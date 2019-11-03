@@ -6,6 +6,9 @@
 #include <string.h> /* strlen */
 
 #include "bl_mem.h" /* alloca() */
+#ifdef DEBUG
+#include "bl_debug.h"
+#endif
 
 #include <dlfcn.h>
 

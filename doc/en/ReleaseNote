@@ -1,5 +1,6 @@
-* Support zmodem.
-  (Add "send_file", "recv_dir", "zmodem_start" and "zmodem_cancel" to OSC 5379.)
+* Support zmodem. (See doc/en/README.tarnsfer)
+* Add "send_file" and "zmodem_start" to OSC 5379.
+* Add receive_directory / --recvdir option.
 * Support xdg-shell-v6 (unstable) on wayland.
 * Support copy&paste via X11 primary selection on wayland.
 * Hide the mouse cursor in inputting keys by default on xlib and win32.
@@ -12,6 +13,8 @@
   (WM_CLASS was disabled at 3.8.6)
 * Add a percent or number argument without '+' and '-' to "vresize_screen" and
   "hresize_screen" of OSC 5379.
+* Add "RESET" (which resets the parser of mlterm) as a shortcut key.
+* Add vte 0.58 API symbols to libvte compatible library.
 * Merge patches:
   https://bitbucket.org/arakiken/mlterm/pull-requests/5/fix-for-wscons-framebuffer/diff
   https://sourceforge.net/p/mlterm/patches/24/

@@ -431,6 +431,10 @@ static int parse(ui_window_t *win, u_char *src, int len) {
 
   if (!(win->dnd->waiting_atom)) return FAILURE;
 
+  if (win->dnd->action == XInternAtom(win->disp->display, "XdndActionMove", False)) {
+    return parse_text_uri_list(win, src, len);
+  }
+
   for (proc_entry = dnd_parsers; proc_entry->atomname; proc_entry++) {
     if ((win->dnd->waiting_atom) == XInternAtom(win->disp->display, proc_entry->atomname, False))
       break;

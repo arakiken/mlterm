@@ -13,6 +13,7 @@
 # Shift+Prior=PAGE_UP
 # Shift+Up=SCROLL_UP
 # Shift+Insert=INSERT_SELECTION
+# Pause=RESET
 # UNUSED=SWITCH_OSC52
 # UNUSED=EXIT_PROGRAM
 # Control+Button1="menu:mlterm-menu"

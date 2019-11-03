@@ -23,7 +23,12 @@
 
 #undef HAVE_STDINT_H
 
+/* AC_C_BIGENDIAN */
 #undef WORDS_BIGENDIAN
+
+/* AC_SYS_LARGEFILE */
+#undef _FILE_OFFSET_BITS
+#undef _LARGE_FILES
 
 #undef HAVE_STRSEP
 

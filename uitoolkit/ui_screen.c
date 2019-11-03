@@ -1796,6 +1796,8 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
     /* do nothing */
   } else if (ui_shortcut_match(screen->shortcut, INSERT_SELECTION, ksym, state)) {
     yank_event_received(screen, CurrentTime);
+  } else if (ui_shortcut_match(screen->shortcut, RESET, ksym, state)) {
+    vt_term_reset(screen->term, 1);
   } else {
     return 0;
   }
@@ -1810,6 +1812,12 @@ const char *cocoa_get_bundle_path(void);
 static void start_menu(ui_screen_t *screen, char *str, int x, int y) {
   int global_x;
   int global_y;
+
+  if (vt_term_has_pending_sequence(screen->term)) {
+    bl_msg_printf("Restart %s after a while.\n", str);
+
+    return;
+  }
 
   ui_window_translate_coordinates(&screen->window, x, y, &global_x, &global_y);
 
@@ -2219,17 +2227,10 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
     } else if (size > 0) {
       /* do nothing */
     }
-/*
- * following ksym is processed only if no key string is received
- * (size == 0)
- */
-#if 1
-    else if (ksym == XK_Pause) {
-      if (modcode == 0) {
-        vt_term_reset_pending_vt100_sequence(screen->term);
-      }
-    }
-#endif
+    /*
+     * following ksym is processed only if no key string is received
+     * (size == 0)
+     */
     else if (ksym == XK_Up) {
       spkey = SPKEY_UP;
     } else if (ksym == XK_Down) {
@@ -2596,9 +2597,16 @@ static void set_xdnd_config(ui_window_t *win, char *dev, char *key, char *value)
   screen = (ui_screen_t *)win;
 
   if (strcmp(key, "scp") == 0) {
-    if (vt_term_get_pty_mode(screen->term) == PTY_SSH) {
-      /* value is always UTF-8 */
-      vt_term_scp(screen->term, ".", value, VT_UTF8);
+    /* value is always UTF-8 */
+    if (vt_term_is_zmodem_ready(screen->term)) {
+      vt_term_set_config(screen->term, "send_file_utf8", value);
+      vt_term_exec_cmd(screen->term, "zmodem_start");
+    } else if (vt_term_get_pty_mode(screen->term) == PTY_SSH) {
+      char *cmd;
+      if ((cmd = alloca(13 + strlen(value) + 1))) {
+        sprintf(cmd, "scp \"%s\" . utf8", value);
+        vt_term_exec_cmd(screen->term, cmd);
+      }
     }
   } else {
     ui_screen_set_config(screen, dev, key, value);
