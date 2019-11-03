@@ -128,6 +128,8 @@ int vt_start_config_menu(vt_pty_t *pty, char *cmd_path, int x, int y, char *disp
 
 #define vt_pty_get_mode(pty) ((pty)->mode)
 
+#define vt_pty_is_loopback(pty) ((pty)->stored != NULL)
+
 #ifdef USE_LIBSSH2
 #ifndef USE_MOSH
 void *vt_search_ssh_session(const char *host, const char *port, const char *user);
@@ -136,7 +138,7 @@ int vt_pty_ssh_set_use_loopback(vt_pty_t *pty, int use);
 
 int vt_pty_ssh_scp(vt_pty_t *pty, vt_char_encoding_t pty_encoding,
                    vt_char_encoding_t path_encoding, char *dst_path, char *src_path,
-                   int use_scp_full);
+                   int use_scp_full, const char *recv_dir, u_int progress_len);
 
 void vt_pty_ssh_set_cipher_list(const char *list);
 

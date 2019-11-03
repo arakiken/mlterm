@@ -11,5 +11,6 @@ Font size Smaller	fontsize=smaller
 Encoding auto		encoding=auto
 Encoding UTF-8		encoding=UTF-8
 Full Reset		full_reset
+Zmodem			zmodem_start
 pty_list
 New PTY			open_pty

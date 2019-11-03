@@ -5,6 +5,7 @@
 #include <pobl/bl_str.h>
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>
+#include <pobl/bl_file.h>
 
 #include "zmodem.h"
 
@@ -85,6 +86,15 @@ int vt_transfer_start(/* vt_transfer_type_t type, */
     ret = (*dl_zmodem_start)(zmodem_info, save_dir, Q_TRUE, is_crc32 ? Z_CRC32 : Z_CRC16,
                              progress_len);
   } else {
+    char *p;
+    size_t len = strlen(save_dir);
+
+    if ((p = alloca(len + 2))) {
+      memcpy(p, save_dir, len);
+      strcpy(p + len, "/");
+      bl_mkdir_for_file(p, 0700);
+    }
+
     ret = (*dl_zmodem_start)(NULL, save_dir, Q_FALSE, is_crc32 ? Z_CRC32 : Z_CRC16, progress_len);
   }
 

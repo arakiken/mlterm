@@ -971,7 +971,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         なお、このオプションを動的に変更するには、"proto:allow_scp=switch"
         ショートカットキーを使用する必要があります。
 
-        false の場合でも、転送先ホストの "." (~/.mlterm/scp) ディレクトリ以下に
+        false の場合でも、転送先ホストの "." (~/.mlterm/recv) ディレクトリ以下に
         保存することは可能です。
 
       o ssh_auto_reconnect (true/*false*)
@@ -1295,6 +1295,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         スクロールダウン
       o INSERT_SELECTION(Shift+Insert)
         セレクションのペースト
+      o RESET(Pause)
+        端末をリセット
       o "" で囲まれた文字列
         文字列の出力
 

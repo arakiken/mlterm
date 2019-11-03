@@ -1,0 +1,73 @@
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
+
+How to transfer data from/to remote hosts.
+
+* SCP
+  If you connect to a remote host via ssh with the use of --serv option,
+  you can use "scp" command of OSC 5379 (see doc/en/PROOTCOL) to transfer files.
+
+  Drag and Drop a file to the screen connecting to a ssh server with
+  pressing shift key (command key on cocoa) invokes "scp" command.
+
+  "scp" command works as follows. ("foo.bar" is a remote host.)
+
+  o Unless "allow_scp = true" in ~/.mlterm/main, files are saved in ~/.mlterm/recv.
+    (The destination directory you specify is ignored.)
+
+  o If the destination directory is a relative path, the target file is stored
+    in $HOME/.mlterm/recv/... (mkdir $HOME/.mlterm/recv in advance.)
+    e.g.)
+     \x1b]5379;scp /bin/ls .\x07
+       => scp localhost:/bin/ls foo.bar:$HOME/.mlterm/scp/./ls
+     \x1b]5379;scp remote:/bin/ls .\x07
+       => scp foo.bar:/bin/ls localhost:$HOME/.mlterm/scp/./ls
+     \x1b]5379;scp \"$HOME/my text.txt\" ""\x07
+       => scp "localhost:$HOME/my text.txt" "foo.bar:$HOME/.mlterm/scp/my text.txt"
+     \x1b]5379;scp c:\\users\\text.txt .\x07
+       => scp localhost:c:\users\text.txt foo.bar:$HOME/.mlterm/scp/./text.txt
+          ("\" is available as a separator only in win32.)
+     \x1b]5379;scp remote:/bin/ls /usr/bin\x07
+       => scp foo.bar:/bin/ls localhost:/usr/bin/ls
+     \x1b]5379;scp local:$PWD/hosts remote:/etc\x07
+       => scp localhost:$PWD/hosts foo.bar:/etc/hosts
+
+  o Source and destination file names of "scp" command are convered to system
+    locale encoding and terminal encoding respectively.
+
+* ZMODEM
+  You can use zmodem protocol to transfer files if you connect to a remote host
+  where (l)rz and (l)sz commands are installed.
+
+  If you want to use zmodem with mosh, build and install
+  http://bitbucket.org/arakiken/mosh/get/sixel-winsock.tar.gz which supports zmodem.
+
+  Pressing pause key (which can be configured by RESET in ~/.mlterm/key) stops
+  (l)sz or (l)rz.
+
+  o Receive a file from a remote host.
+    $ sz foo/bar/file
+    **B00000000000000
+    (Invoke "zmodem_start" of OSC 5379) (*)
+    ZMODEM: Save in /home/.../.mlterm/recv
+    |***************                           |
+
+    (*) The way to invoke "zmodem_start" of OSC 5379.
+     1) Control+Left button => Show "mlterm-menu" => Select "Zmodem"
+     2) Add a following line to ~/.mlterm/key, and press F1 key.
+        F1="proto:zmodem_start"
+
+  o Send a file to a remote host.
+    $ mlcc send_file /foo/bar/file
+    $ rz
+    rz waiting to receive. **B0100000023be50
+    (Invoke "zmodem_start" of OSC 5379) (*)
+    ZMODEM: Send /foo/bar/file
+    |***************                           |
+
+    If you execute rz and Shift+DnD, "mlcc send_file /foo/bar/file" and
+    "zmodem_start" are automatically executed.
+    $ rz
+    rz waiting to receive. **B0100000023be50
+    (Shift+DnD /foo/bar/file)
+    ZMODEM: Send /foo/bar/file
+    |***************                           |

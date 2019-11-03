@@ -3695,7 +3695,7 @@ void vte_terminal_set_delete_binding(VteTerminal *terminal, VteEraseBinding bind
 
 void vte_terminal_set_mouse_autohide(VteTerminal *terminal, gboolean setting) {}
 
-gboolean vte_terminal_get_mouse_autohide(VteTerminal *terminal) { return FALSE; }
+gboolean vte_terminal_get_mouse_autohide(VteTerminal *terminal) { return TRUE; }
 
 void vte_terminal_reset(VteTerminal *terminal, gboolean full, gboolean clear_history) {
   if (GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
@@ -4564,5 +4564,30 @@ void vte_terminal_get_color_background_for_draw(VteTerminal* terminal, GdkRGBA* 
 char *vte_regex_substitute(VteRegex *regex, const char *subject, const char *replacement,
                            guint32 flags, GError **error) {
   return NULL;
+}
+#endif
+
+#if VTE_CHECK_VERSION(0, 58, 0)
+void vte_terminal_set_enable_bidi(VteTerminal *terminal, gboolean enable_bidi) {
+  /* Prefer setting in ~/.mlterm/main. */
+#if 0
+  if (PVT(terminal)->screen->term) {
+    ui_screen_set_config(PVT(terminal)->screen, NULL, "use_ctl", enable_bidi ? "true" : "false");
+  }
+#endif
+}
+
+gboolean vte_terminal_get_enable_bidi(VteTerminal *terminal) {
+  if (vt_term_is_using_ctl(PVT(terminal)->screen->term)) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+void vte_terminal_set_enable_shaping(VteTerminal *terminal, gboolean enable_shaping) {}
+
+gboolean vte_terminal_get_enable_shaping(VteTerminal *terminal) {
+  return vte_terminal_get_enable_bidi(terminal);
 }
 #endif

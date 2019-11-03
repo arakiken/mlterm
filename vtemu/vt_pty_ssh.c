@@ -33,7 +33,7 @@ static vt_pty_t *(*ssh_new)(const char *, char **, char **, const char *, const 
                             const char *, const char *, u_int, u_int, u_int, u_int);
 static void *(*search_ssh_session)(const char *, const char *, const char *);
 static int (*ssh_set_use_loopback)(vt_pty_t *, int);
-static int (*ssh_scp)(vt_pty_t *, int, char *, char *);
+static int (*ssh_scp)(vt_pty_t *, int, char *, char *, u_int);
 static void (*ssh_set_cipher_list)(const char *);
 static void (*ssh_set_keepalive_interval)(u_int);
 static u_int (*ssh_keepalive)(u_int);
@@ -227,12 +227,13 @@ void vt_pty_ssh_set_pty_read_trigger(void (*func)(void)) {
 
 int vt_pty_ssh_scp(vt_pty_t *pty, vt_char_encoding_t pty_encoding, /* Not VT_UNKNOWN_ENCODING */
                    vt_char_encoding_t path_encoding,                  /* Not VT_UNKNOWN_ENCODING */
-                   char *dst_path, char *src_path, int use_scp_full) {
+                   char *dst_path, char *src_path, int use_scp_full,
+                   const char *recv_dir, u_int progress_len) {
   int dst_is_remote;
   int src_is_remote;
   char *file;
-  char* _dst_path;
-  char* _src_path;
+  char *_dst_path;
+  char *_src_path;
   size_t len;
   char *p;
   vt_char_encoding_t locale_encoding;
@@ -271,36 +272,32 @@ int vt_pty_ssh_scp(vt_pty_t *pty, vt_char_encoding_t pty_encoding, /* Not VT_UNK
     return 0;
   }
 
-  if (pty->stored /* using loopback */ || use_scp_full) {
+  if (vt_pty_is_loopback(pty) /* using loopback (mlconfig etc) */ || use_scp_full) {
     /* do nothing */
-  } else if (IS_RELATIVE_PATH_UNIX(dst_path)) /* dst_path is always unix style. */
-  {
-    char *prefix;
-
-    if (strstr(dst_path, "..")) {
-      /* insecure file name */
-      return 0;
-    }
-
-    prefix = bl_get_home_dir();
-
-    if (!(p = alloca(strlen(prefix) + 13 + strlen(dst_path) + 1))) {
-      return 0;
-    }
-
+  } else {
     if (!dst_is_remote) {
-#ifdef USE_WIN32API
-      sprintf(p, "%s\\mlterm\\scp\\%s", prefix, dst_path);
-#else
-      sprintf(p, "%s/.mlterm/scp/%s", prefix, dst_path);
-#endif
-      bl_mkdir_for_file(p, 0700);
-    } else {
-      /* mkdir ~/.mlterm/scp in advance. */
-      sprintf(p, ".mlterm/scp/%s", dst_path);
-    }
+      if (recv_dir) {
+        dst_path = recv_dir;
+      } else {
+        char *prefix = bl_get_home_dir();
 
-    dst_path = p;
+        if (!(p = alloca(strlen(prefix) + 13 + 1))) {
+          return 0;
+        }
+
+#ifdef USE_WIN32API
+        sprintf(p, "%s\\mlterm\\recv", prefix);
+#else
+        sprintf(p, "%s/.mlterm/recv", prefix);
+#endif
+        dst_path = p;
+      }
+
+      bl_mkdir_for_file(dst_path, 0700);
+    } else {
+      /* mkdir ~/.mlterm/scp in advance on the remote host. */
+      dst_path = ".mlterm/recv";
+    }
   }
 
   /* scp /tmp/TEST /home/user => scp /tmp/TEST /home/user/TEST */
@@ -372,9 +369,9 @@ int vt_pty_ssh_scp(vt_pty_t *pty, vt_char_encoding_t pty_encoding, /* Not VT_UNK
   }
 
 #ifdef NO_DYNAMIC_LOAD_SSH
-  if (vt_pty_ssh_scp_intern(pty, src_is_remote, dst_path, src_path))
+  if (vt_pty_ssh_scp_intern(pty, src_is_remote, dst_path, src_path, progress_len))
 #else
-  if (ssh_scp && (*ssh_scp)(pty, src_is_remote, dst_path, src_path))
+  if (ssh_scp && (*ssh_scp)(pty, src_is_remote, dst_path, src_path, progress_len))
 #endif
   {
     return 1;

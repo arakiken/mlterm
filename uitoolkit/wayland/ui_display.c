@@ -1523,7 +1523,6 @@ static void receive_data(ui_display_t *disp, void *offer, const char *mime, int 
           if (*p == 'f') {
             if (strncmp(p + 1, "ile://", 6) == 0) {
               memmove(p, p + 7, len - 7 + 1);
-              bl_debug_printf("%s\n", p);
               p += 6;
               len -= 7;
             }
