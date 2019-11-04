@@ -823,7 +823,11 @@ static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
 
 /* use_loopback() should be called before this. */
 static void write_loopback(vt_pty_t *pty, const char *buf, size_t len) {
+#ifdef USE_WIN32API
+  while (send(pty->slave, buf, len, 0) < 0 && errno == EAGAIN);
+#else
   while (write(pty->slave, buf, len) < 0 && errno == EAGAIN);
+#endif
 }
 
 static int reconnect(vt_pty_ssh_t *pty);
