@@ -17,6 +17,7 @@ static struct {
   KeySym /* WORD */ ksym; /* 16bit */
 
 } keysym_table[] = {
+    {"0", '0'},
     {"1", '1'},
     {"2", '2'},
     {"3", '3'},
@@ -26,7 +27,6 @@ static struct {
     {"7", '7'},
     {"8", '8'},
     {"9", '9'},
-    {"0", '0'},
     {"BackSpace", XK_BackSpace},
     {"Delete", XK_Delete},
     {"Down", XK_Down},
@@ -190,27 +190,30 @@ KeySym XStringToKeysym(char *str) {
   return NoSymbol;
 }
 
-#ifdef SELF_TEST
+#ifdef BL_DEBUG
 
-int main() {
+#include <assert.h>
+
+void TEST_xstringtokeysym(void) {
   size_t count;
+  struct {
+    char *str;
+    KeySym ksym;
+  } array[] =
+  {
+    { "a", 'a' },
+    { "hoge", NoSymbol },
+    { "zzzz", NoSymbol }
+  };
 
   for (count = 0; count < TABLE_SIZE; count++) {
-    fprintf(stderr, "%x %x\n", XStringToKeysym(keysym_table[count].str), keysym_table[count].ksym);
-    /*
-     * stderr isn't flushed without fflush() if
-     * XStringToKeysym() falls to infinite-loop.
-     */
-    fflush(stderr);
+    assert(XStringToKeysym(keysym_table[count].str) == keysym_table[count].ksym);
   }
 
-  fprintf(stderr, "%x\n", XStringToKeysym("a"));
-  fflush(stderr);
-  fprintf(stderr, "%x\n", XStringToKeysym("hoge"));
-  fflush(stderr);
-  fprintf(stderr, "%x\n", XStringToKeysym("zzzz"));
-  fflush(stderr);
+  for (count = 0; count < sizeof(array) / sizeof(array[0]); count++) {
+    assert(XStringToKeysym(array[count].str) == array[count].ksym);
+  }
 
-  return 1;
+  bl_msg_printf("PASS XStringToKeysym() test.\n");
 }
 #endif

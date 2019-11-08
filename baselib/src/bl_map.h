@@ -99,7 +99,7 @@
     }                                                                          \
                                                                                \
     if (0 && __pair_p) {                                                       \
-      printf("Found key in %d times\n", (map)->filled_size - filled_size + 1); \
+      bl_msg_printf("Found key in %d times\n", (map)->filled_size - filled_size + 1); \
     }                                                                          \
   }
 

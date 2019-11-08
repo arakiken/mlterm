@@ -18,10 +18,6 @@
 #include <mef/ef_utf8_conv.h>
 #include <mef/ef_utf16_parser.h>
 
-#if 0
-#define SELF_TEST
-#endif
-
 #define SUCCESS 0
 #define FAILURE -1
 
@@ -811,8 +807,7 @@ static void TEST_parse_text_uri_list(ui_display_t *disp) {
   int count;
 
   memset(&win, 0, sizeof(win));
-  /* disp is used in l.231: XInternAtom( win->disp->display, "XdndActionMove",
-   * False) */
+  /* disp is used for XInternAtom(win->disp->display, "XdndActionMove", False) */
   win.disp = disp;
   win.utf_selection_notified = TEST_parse_text_uri_list_utf_selection_notified;
   memset(&dnd, 0, sizeof(dnd));
@@ -824,7 +819,11 @@ static void TEST_parse_text_uri_list(ui_display_t *disp) {
   }
 }
 
-static void TEST_dnd(ui_display_t *disp) { TEST_parse_text_uri_list(disp); }
+static void TEST_dnd(ui_display_t *disp) {
+  TEST_parse_text_uri_list(disp);
+
+  bl_msg_printf("PASS X DnD test.\n");
+}
 
 #endif
 

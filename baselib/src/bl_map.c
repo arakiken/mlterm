@@ -39,13 +39,9 @@ int bl_map_compare_str_nocase(char *key1, char *key2) { return (strcasecmp(key1,
 
 int bl_map_compare_int(int key1, int key2) { return (key1 == key2); }
 
-#ifdef __DEBUG
+#ifdef BL_DEBUG
 
-#include <stdio.h> /* printf */
-
-/* Macros in bl_map.h use bl_error_printf and bl_debug_printf. */
-#define bl_error_printf printf
-#define bl_debug_printf printf
+#include <assert.h>
 
 #undef DEFAULT_MAP_SIZE
 #define DEFAULT_MAP_SIZE 4
@@ -54,7 +50,7 @@ int bl_map_compare_int(int key1, int key2) { return (key1 == key2); }
 
 BL_MAP_TYPEDEF(test, int, char *);
 
-int main(void) {
+void TEST_bl_map(void) {
   BL_MAP(test) map;
   BL_PAIR(test) pair;
   BL_PAIR(test) * array;
@@ -71,44 +67,41 @@ int main(void) {
     bl_map_set(result, map, key * 3, table[key]);
   }
 
-  printf("MAP SIZE %d / FILLED %d\n", map->map_size, map->filled_size);
+  assert(map->map_size ==
+         ((sizeof(table) / sizeof(table[0]) + MAP_MARGIN_SIZE + DEFAULT_MAP_SIZE - 1)
+          / DEFAULT_MAP_SIZE) * DEFAULT_MAP_SIZE); /* 16 */
+  assert(map->filled_size == sizeof(table) / sizeof(table[0]));
 
   for (key = 0; key < sizeof(table) / sizeof(table[0]); key++) {
     bl_map_get(map, key * 3, pair);
-    if (pair) {
-      printf("%d %s\n", key * 3, pair->value);
-    } else {
-      printf("The value of the key %d is not found\n", key * 3);
-    }
+    assert(strcmp(table[key], pair->value) == 0);
   }
 
   for (key = 0; key < sizeof(table) / sizeof(table[0]) - 2; key++) {
-    printf("KEY %d is erased.\n", key * 3);
     bl_map_erase(result, map, key * 3);
   }
 
-  printf("MAP SIZE %d / FILLED %d\n", map->map_size, map->filled_size);
+  assert(map->map_size == 8);
+  assert(map->filled_size == 2);
 
   for (key = 0; key < sizeof(table) / sizeof(table[0]); key++) {
     bl_map_get(map, key * 3, pair);
-    if (pair) {
-      printf("%d %s\n", key * 3, pair->value);
+    if (key >= sizeof(table) / sizeof(table[0]) - 2) {
+      assert(strcmp(table[key], pair->value) == 0);
     } else {
-      printf("The value of the key %d is not found\n", key * 3);
+      assert(pair == NULL);
     }
   }
-
-  printf("---\n");
 
   bl_map_get_pairs_array(map, array, size);
 
   for (key = 0; key < size; key++) {
-    printf("%d %s\n", array[key]->key, array[key]->value);
+    assert(strcmp(table[key + sizeof(table) / sizeof(table[0]) - 2], array[key]->value) == 0);
   }
 
   bl_map_destroy(map);
 
-  return 1;
+  bl_msg_printf("PASS bl_map test.\n");
 }
 
 #endif

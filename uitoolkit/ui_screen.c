@@ -6529,7 +6529,13 @@ int ui_screen_exec_cmd(ui_screen_t *screen, char *cmd) {
     } else {
       screen->autoscroll_count = atoi(arg);
     }
-  } else {
+  }
+#ifdef BL_DEBUG
+  else if (strcmp(cmd, "test") == 0) {
+    test();
+  }
+#endif
+  else {
     if (arg) {
       *(cmd + strlen(cmd)) = ' ';
     }
