@@ -138,11 +138,11 @@ parse_end:
   return 1;
 }
 
-#ifdef __DEBUG
+#ifdef BL_DEBUG
 
-#include <stdio.h> /* printf */
+#include <assert.h>
 
-int main(void) {
+void TEST_bl_args(void) {
   int argc;
   char **argv;
   char args[] = "mlclient -l \"hoge fuga \\\" \" \' a b c \' \\\' \\\" a\\ b \"a\\ b\"";
@@ -152,18 +152,11 @@ int main(void) {
   argv = bl_argv_alloca(args);
   bl_arg_str_to_array(argv, &argc, args);
 
-  printf("%d\n", argc);
   for (count = 0; count < argc; count++) {
-    if (strcmp(argv_correct[count], argv[count]) != 0) {
-      printf("CORRECT %s <=> WRONG %s\n", argv_correct[count], argv[count]);
-
-      return 1;
-    }
+    assert(strcmp(argv_correct[count], argv[count]) == 0);
   }
 
-  printf("PASS bl_args test.\n");
-
-  return 0;
+  bl_msg_printf("PASS bl_args test.\n");
 }
 
 #endif

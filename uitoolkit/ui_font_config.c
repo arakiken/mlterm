@@ -170,10 +170,6 @@ static u_int num_customs;
 
 /* --- static functions --- */
 
-#ifdef BL_DEBUG
-static void TEST_font_config(void);
-#endif
-
 static BL_PAIR(ui_font_name) get_font_name_pair(BL_MAP(ui_font_name) table, vt_font_t font) {
   BL_PAIR(ui_font_name) pair;
 
@@ -749,8 +745,6 @@ ui_font_config_t *ui_acquire_font_config(ui_type_engine_t type_engine,
   ui_font_config_t *font_config;
   void *p;
 
-  BL_TESTIT_ONCE(font_config, ());
-
   if ((font_config = find_font_config(type_engine, font_present))) {
     font_config->ref_count++;
 
@@ -1282,7 +1276,7 @@ char *ui_get_charset_name(ef_charset_t cs) {
 
 #include <assert.h>
 
-static void TEST_font_config(void) {
+void TEST_ui_font_config(void) {
 #ifdef USE_XLIB
   ui_font_config_t *font_config;
   char *value;
@@ -1303,6 +1297,8 @@ static void TEST_font_config(void) {
   free(value);
 
   ui_font_config_destroy(font_config);
+
+  bl_msg_printf("PASS ui_font_config test.\n");
 #endif
 }
 

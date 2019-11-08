@@ -346,36 +346,49 @@ int bl_conv_to_posix_path(const char *winpath, char *path, size_t len) {
 
 #endif
 
-#if (defined(__CYGWIN__) || defined(__MSYS__)) && defined(__DEBUG)
+#ifdef BL_DEBUG
+#include <assert.h>
+
+#if defined(__CYGWIN__) || defined(__MSYS__)
 #include <windef.h>
-void main(void) {
+static void TEST_bl_path_win32(void) {
   char path[MAX_PATH];
 
   bl_conv_to_win32_path("/foo/bar", path, sizeof(path));
-  bl_debug_printf("/foo/bar -> %s\n", path);
-  bl_conv_to_win32_path(
+#if defined(__CYGWIN__)
+  assert(strcasecmp(path, "c:\\cygwin64\\foo\\bar") == 0 ||
+         strcasecmp(path, "c:\\cygwin\\foo\\bar") == 0);
+#else /* if defined(__MSYS__) */
+  assert(strcasecmp(path, "c:\\msys64\\foo\\bar") == 0);
+#endif
+
+  assert(bl_conv_to_win32_path(
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      path, sizeof(path));
+      path, sizeof(path)) < 0);
 
   bl_conv_to_posix_path("c:\\cygwin\\foo\\bar", path, sizeof(path));
-  bl_debug_printf("c:\\cygwin\\foo\\bar -> %s\n", path);
-  bl_conv_to_posix_path(
+#if defined(__CYGWIN__)
+  assert(strcasecmp(path, "/cygdrive/c/cygwin/foo/bar") == 0);
+#else /* if defined(__MSYS__) */
+  assert(strcasecmp(path, "/c/cygwin/foo/bar") == 0);
+#endif
+
+  assert(bl_conv_to_posix_path(
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      path, sizeof(path));
+      path, sizeof(path)) < 0);
 }
 #endif
 
-#ifdef __DEBUG
-int main(void) {
+static void TEST_bl_path_common(void) {
   char uri1[] = "ssh://ken@localhost.localdomain:22";
   char uri2[] = "ken@localhost.localdomain:22";
-  char uri3[] = "ken@localhost.localdomain:22";
+  char uri3[] = "ken@localhost.localdomain:22:utf8";
   char uri4[] = "ken@localhost.localdomain";
   char uri5[] = "ssh://localhost.localdomain";
   char uri6[] = "telnet://ken@localhost.localdomain:22:eucjp/usr/local/";
@@ -389,27 +402,81 @@ int main(void) {
   char *path;
 
   bl_parse_uri(&proto, &user, &host, &port, &path, &encoding, uri1);
-  printf("%s %s %s %s %s %s\n", proto, user, host, port, path, encoding);
+  assert(strcmp(proto, "ssh") == 0);
+  assert(strcmp(user, "ken") == 0);
+  assert(strcmp(host, "localhost.localdomain") == 0);
+  assert(strcmp(port, "22") == 0);
+  assert(path == NULL);
+  assert(encoding == NULL);
+
   bl_parse_uri(&proto, &user, &host, &port, &path, &encoding, uri2);
-  printf("%s %s %s %s %s %s\n", proto, user, host, port, path, encoding);
+  assert(proto == NULL);
+  assert(strcmp(user, "ken") == 0);
+  assert(strcmp(host, "localhost.localdomain") == 0);
+  assert(strcmp(port, "22") == 0);
+  assert(path == NULL);
+  assert(encoding == NULL);
+
   bl_parse_uri(&proto, &user, &host, &port, &path, &encoding, uri3);
-  printf("%s %s %s %s %s %s\n", proto, user, host, port, path, encoding);
+  assert(proto == NULL);
+  assert(strcmp(user, "ken") == 0);
+  assert(strcmp(host, "localhost.localdomain") == 0);
+  assert(strcmp(port, "22") == 0);
+  assert(path == NULL);
+  assert(strcmp(encoding, "utf8") == 0);
+
   bl_parse_uri(&proto, &user, &host, &port, &path, &encoding, uri4);
-  printf("%s %s %s %s %s %s\n", proto, user, host, port, path, encoding);
+  assert(proto == NULL);
+  assert(strcmp(user, "ken") == 0);
+  assert(strcmp(host, "localhost.localdomain") == 0);
+  assert(port == NULL);
+  assert(path == NULL);
+  assert(encoding == NULL);
+
   bl_parse_uri(&proto, &user, &host, &port, &path, &encoding, uri5);
-  printf("%s %s %s %s %s %s\n", proto, user, host, port, path, encoding);
+  assert(strcmp(proto, "ssh") == 0);
+  assert(user == NULL);
+  assert(strcmp(host, "localhost.localdomain") == 0);
+  assert(port == NULL);
+  assert(path == NULL);
+  assert(encoding == NULL);
+
   bl_parse_uri(&proto, &user, &host, &port, &path, &encoding, uri6);
-  printf("%s %s %s %s %s %s\n", proto, user, host, port, path, encoding);
+  assert(strcmp(proto, "telnet") == 0);
+  assert(strcmp(user, "ken") == 0);
+  assert(strcmp(host, "localhost.localdomain") == 0);
+  assert(strcmp(port, "22") == 0);
+  assert(strcmp(path, "usr/local/") == 0);
+  assert(strcmp(encoding, "eucjp") == 0);
+
   bl_parse_uri(&proto, &user, &host, &port, &path, &encoding, uri7);
-  printf("%s %s %s %s %s %s\n", proto, user, host, port, path, encoding);
+  assert(strcmp(proto, "ssh") == 0);
+  assert(strcmp(user, "ken") == 0);
+  assert(strcmp(host, "localhost.localdomain") == 0);
+  assert(strcmp(port, "22") == 0);
+  assert(path == NULL);
+  assert(strcmp(encoding, "eucjp") == 0);
+
   bl_parse_uri(&proto, &user, &host, &port, &path, &encoding, uri8);
-  printf("%s %s %s %s %s %s\n", proto, user, host, port, path, encoding);
-
-  return 0;
+  assert(strcmp(proto, "ssh") == 0);
+  assert(user == NULL);
+  assert(strcmp(host, "localhost") == 0);
+  assert(port == NULL);
+  assert(strcmp(path, "usr/local") == 0);
+  assert(strcmp(encoding, "eucjp") == 0);
 }
-#endif
 
-#ifdef __DEBUG2
+void TEST_bl_path(void) {
+#if defined(__CYGWIN__) || defined(__MSYS__)
+  TEST_bl_path_win32();
+#endif
+  TEST_bl_path_common();
+
+  bl_msg_printf("PASS bl_path test.\n");
+}
+#endif /* BL_DEBUG */
+
+#ifdef __DEBUG
 int main(int argc, char **argv) {
   printf("%s\n", __bl_basename(argv[1]));
 

@@ -1,3 +1,25 @@
+2019-11-09  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/ui_dnd.c: TEST_dnd() outputs "PASS X DnD test".
+
+	* ui_screen.c: "test" is added to OSC 5379 if BL_DEBUG is defined.
+
+	* test.c: Added.
+
+	* win32/ui.c:
+	  - The order of keysym_table is fixed.
+	  - main() -> TEST_xstringtokeysym().
+
+	* ui_font_config.c:
+	  - TEST_font_config() -> TEST_ui_font_config()
+	  - ui_acquire_font_config() never calls BL_TESTIT_ONCE().
+
+	* bl_path.c: main() -> TEST_bl_path().
+
+	* bl_map.c: main() -> TEST_bl_map().
+
+	* bl_args.c: main() -> TEST_bl_args().
+
 2019-11-04  Araki Ken  <arakiken@users.sf.net>
 
 	* libptyssh/vt_pty_ssh.c: write() => send() on win32.
