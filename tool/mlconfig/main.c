@@ -309,7 +309,7 @@ static gint ssh_scp_clicked(GtkWidget *widget, gpointer data) {
     gtk_main_quit();
 
     return FALSE;
-  } else /* if( res == MY_RESPONSE_RETURN) */
+  } else /* if (res == MY_RESPONSE_RETURN) */
   {
     gtk_widget_destroy(dialog);
     gtk_widget_show_all(gtk_widget_get_toplevel(widget));

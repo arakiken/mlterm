@@ -114,7 +114,7 @@ static void monitor_pty(void) {
 #endif
 
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-      ui_event_source_process();
+      ui_event_source_process(); /* See ui_event_source-cocoa.m */
       dispatch_sync(dispatch_get_main_queue(), ^{
           exit_program();
         });
