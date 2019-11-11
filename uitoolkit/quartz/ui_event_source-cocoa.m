@@ -105,7 +105,8 @@ int ui_event_source_process(void) {
 
     if (maxfd == -1 ||
         ((ret = select(maxfd + 1, &read_fds, NULL, NULL, &tval)) < 0 &&
-         errno != EAGAIN && errno != EINTR)) {
+         errno != EAGAIN && errno != EINTR &&
+         errno != EBADF /* vt_pty_{ssh|mosh}_set_use_loopback() can cause EBADF */)) {
       break;
     }
   }

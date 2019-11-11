@@ -1,3 +1,10 @@
+2019-11-11  Araki Ken  <arakiken@users.sf.net>
+
+	* cocoa.m: EBADF of select() is ignored because
+	  vt_pty_{ssh|mosh}_set_use_loopback() can cause it even if it's normal.
+
+	* Android.mk: uitoolkit/test.c is added to LOCAL_SRC_FILES.
+
 2019-11-09  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/ui_dnd.c: TEST_dnd() outputs "PASS X DnD test".
