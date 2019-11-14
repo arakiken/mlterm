@@ -237,9 +237,22 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
 #ifdef DEBUG
       bl_debug_printf(BL_DEBUG_TAG " Connect dialog is canceled.\n");
 #endif
+
+      /*
+       * open_screen_intern() calls close_screen_intern() if this fuction
+       * returns 0, then this thread will be terminated on Haiku.
+       * (If mlclient --serv ... is executed and the connect dialog is cancelled,
+       *  the screen where mlclient is executed also exits.)
+       * So don't return 0 even if the connect dialog is cancelled.
+       *
+       * (vt_term_open_pty() below never returns 0 because OPEN_PTY_ASYNC
+       *  is defined on Haiku.)
+       */
+#ifndef USE_BEOS
       if (vt_get_all_terms(NULL) > 1) {
         return 0;
       }
+#endif
     } else if ((uri_dup = alloca(strlen(uri) + 1))) {
       bl_parse_uri(NULL, &user, &host, &port, NULL, &encoding, strcpy(uri_dup, uri));
 
