@@ -61,8 +61,11 @@
 #include "zmodem.h"
 
 #include <pobl/bl_def.h> /* USE_WIN32API */
+#include <pobl/bl_types.h> /* u_int32_t */
 
-typedef unsigned int uint32_t;
+#ifndef uint32_t
+#define uint32_t u_int32_t
+#endif
 
 /**
  * The supported download protocols.
