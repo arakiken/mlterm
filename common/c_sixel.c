@@ -156,11 +156,11 @@ static int realloc_pixels_intern(u_char **pixels, size_t new_stride, int new_hei
 #ifdef DEBUG
       bl_error_printf(BL_DEBUG_TAG
                       " Sixel width bytes is shrunk (%d->%d) but height is lengthen (%d->%d)\n",
-                      cur_stride, cur_height, new_stride, new_height);
+                      cur_stride, new_stride, cur_height, new_height);
 #endif
 
       return 0;
-    } else /* if( new_height < cur_height) */ {
+    } else /* if (new_height < cur_height) */ {
 #ifdef DEBUG
       bl_debug_printf(BL_DEBUG_TAG
                       " Sixel data: %d bytes %d rows -> shrink %d bytes %d rows (No alloc)\n",
@@ -215,9 +215,15 @@ static int realloc_pixels_intern(u_char **pixels, size_t new_stride, int new_hei
 
     src = (*pixels) + n_copy_rows * cur_stride;
     dst = (*pixels) + n_copy_rows * new_stride;
-    for (y = 1; y < n_copy_rows; y++) {
-      memmove((dst -= new_stride), (src -= cur_stride), cur_stride);
-      memset(dst + cur_stride, 0, new_stride - cur_stride);
+    y = 1;
+    while (1) {
+      memset((dst -= new_stride) + cur_stride, 0, new_stride - cur_stride);
+
+      if (y++ >= n_copy_rows) {
+        break;
+      }
+
+      memmove(dst, (src -= cur_stride), cur_stride);
     }
 
     return 1;
@@ -965,6 +971,108 @@ pixel_t *ui_set_custom_sixel_palette(pixel_t *palette /* NULL -> Create new pale
   }
 
   return (custom_palette = palette);
+}
+
+#endif
+
+#if defined(BL_DEBUG) && !defined(TEST_SIXEL)
+
+#include <assert.h>
+
+#define TEST_SIXEL /* Don't define TEST_sixel_realloc_pixels twice */
+#define PIXEL_DATA(b1, b2, b4) \
+  (sizeof(pixel_t) == 1 ? (b1) : (sizeof(pixel_t) == 2 ? (b2) : /* sizeof(pixel_t) == 4 */ (b4)))
+
+void TEST_sixel_realloc_pixels(void) {
+  pixel_t *pixels = NULL;
+  int x;
+  int y;
+
+  /* 0 0 -> 100 100 */
+  realloc_pixels(&pixels, 100, 100, 0, 0, 0);
+  memset(pixels, 0x1, 100 * 100 * sizeof(pixel_t));
+
+  /* 100 100 -> 80 125 (Not supported) */
+  assert(realloc_pixels(&pixels, 80, 125, 100, 100, 0) == 0);
+
+  /* 100 100 -> 50 100 */
+  realloc_pixels(&pixels, 50, 100, 100, 100, 100);
+
+  for (y = 0; y < 100; y++) {
+    for (x = 0; x < 50; x++) {
+      assert(pixels[y * 50 + x] == PIXEL_DATA(0x1, 0x0101, 0x01010101));
+    }
+  }
+
+  /* 50 100 -> 50 200 */
+  realloc_pixels(&pixels, 50, 200, 50, 100, 100);
+  memset(pixels + 50 * 100, 0x2, 50 * 100 * sizeof(pixel_t));
+
+  for (y = 0; y < 100; y++) {
+    for (x = 0; x < 50; x++) {
+      assert(pixels[y * 50 + x] == PIXEL_DATA(0x1, 0x0101, 0x01010101));
+    }
+  }
+
+  for (;y < 200; y++) {
+    for (x = 0; x < 50; x++) {
+      assert(pixels[y * 50 + x] == PIXEL_DATA(0x2, 0x0202, 0x02020202));
+    }
+  }
+
+  /* 50 200 -> 80 120 */
+  realloc_pixels(&pixels, 80, 120, 50, 200, 120);
+
+  for (y = 0; y < 100; y++) {
+    for (x = 0; x < 50; x++) {
+      assert(pixels[y * 80 + x] == PIXEL_DATA(0x1, 0x0101, 0x01010101));
+    }
+
+    for (; x < 80; x++) {
+      assert(pixels[y * 80 + x] == 0x0);
+    }
+  }
+
+  for (;y < 120; y++) {
+    for (x = 0; x < 50; x++) {
+      assert(pixels[y * 80 + x] == PIXEL_DATA(0x2, 0x0202, 0x02020202));
+    }
+
+    for (; x < 80; x++) {
+      assert(pixels[y * 80 + x] == 0x0);
+    }
+  }
+
+  /* 80 120 -> 200 180 */
+  realloc_pixels(&pixels, 200, 180, 80, 120, 150);
+
+  for (y = 0; y < 100; y++) {
+    for (x = 0; x < 50; x++) {
+      assert(pixels[y * 200 + x] == PIXEL_DATA(0x1, 0x0101, 0x01010101));
+    }
+
+    for (; x < 200; x++) {
+      assert(pixels[y * 200 + x] == 0x0);
+    }
+  }
+
+  for (;y < 120; y++) {
+    for (x = 0; x < 50; x++) {
+      assert(pixels[y * 200 + x] == PIXEL_DATA(0x2, 0x0202, 0x02020202));
+    }
+
+    for (; x < 200; x++) {
+      assert(pixels[y * 200 + x] == 0x0);
+    }
+  }
+
+  for (; y < 180; y++) {
+    for (; x < 200; x++) {
+      assert(pixels[y * 200 + x] == 0x0);
+    }
+  }
+
+  bl_msg_printf("PASS realloc_pixels test\n");
 }
 
 #endif
