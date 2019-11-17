@@ -77,7 +77,8 @@ Options for configure
     (Usage: mlterm(mlclient) --serv ssh://user@xxx.xxx.xxx)
     If you want to use camellia or SSH agent forwarding, install alternative
     libssh2 of camellia branch at https://bitbucket.org/arakiken/libssh2/downloads.
-    (see http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.ssh)
+    (see http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.ssh and
+         http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.transfer)
 
   --with-mosh=(mosh source directory)
     Enable mosh and specify its source directory, where ./configure script should

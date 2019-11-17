@@ -13,6 +13,7 @@ ssh2 対応に関するメモ
 * 留意事項
   ssh 接続中の画面に、Shift キー(cocoa 版では Command キー)を押しながらドロップ
   した場合は、リモートホストに scp します。
+  その他、scp については、doc/en/README.transfer を参照してください。
 
 * libssh2 camellia branch
   https://bitbucket.org/arakiken/libssh2/branch/camellia

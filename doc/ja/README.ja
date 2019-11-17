@@ -92,7 +92,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
     https://bitbucket.org/arakiken/libssh2/downloads から、camellia branch の
     libssh2 をインストールしてください。
     (例 mlterm(mlclient) --serv ssh://user@host:22)
-    (see doc/ja/README.ssh)
+    (see doc/ja/README.ssh, doc/en/README.transfer)
 
   o auto-restart
     バグ等により mlterm が実行不能となった場合でも、(できるだけ)その中で動いてい
@@ -1035,6 +1035,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         画面を小さくリサイズした時に、画面に表示されている文字を全てスクロールア
         ウトする。
 
+      o receive_directory (~/.mlterm/recv)
+        zmodem や scp で受信したファイルを保存するディレクトリ
+
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)
         起動時に XIM を open するという機能でしたが、インプットメソッド関連
@@ -1514,6 +1517,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
        --bc(=bool)     : broadcast
        --ibc(=bool)    : ignore_broadcasted_chars
        --emoji=value   : emoji_path
+       --recvdir=value : receive_directory
 
     -e ... : 指定したコマンドを起動
 
