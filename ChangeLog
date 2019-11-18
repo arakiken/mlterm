@@ -1,3 +1,14 @@
+2019-11-17  Araki Ken  <arakiken@users.sf.net>
+
+	* README, README.ja, README.fb, doc/ja/README.ssh: Updated.
+
+	* test.c:
+	  TEST_sixel_realloc_pixels() is added.
+
+	* c_sixel.c:
+	  - realloc_pixels_intern() is fixed.
+	  - TEST_sixel_realloc_pixels() is added.
+
 2019-11-16  Araki Ken  <arakiken@users.sf.net>
 
 	* zmodem.c: Compiling error on FreeBSD/pc98 is fixed.
