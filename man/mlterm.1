@@ -1,5 +1,5 @@
 .\" mlterm.1   -*- nroff -*-
-.TH MLTERM 1 "2019-03-31"
+.TH MLTERM 1 "2019-11-22"
 .SH NAME
 mlterm \- Multi Lingual TERMinal emulator on X
 .SH SYNOPSIS
@@ -688,7 +688,7 @@ The default is \fB\\x1b\fR.
 \fB\-\-multivram\fR(=\fIbool\fR) (Available for mlterm-fb on NetBSD/x68k)
 Whether to draw the wall picture on Text VRAM instead of Graphic VRAM to improve
 the performance of scrolling.
-The default is \fBfalse\fR.
+The default is \fBtrue\fR.
 .TP
 \fB\-\-noul\fR(=\fIbool\fR)
 Don't draw underline.
@@ -733,6 +733,10 @@ The default is \fB~/.ssh/id_rsa\fR(\fB%HOMEPATH%\mlterm\id_rsa\fR in win32).
 \fB\-\-rcn\fR(=\fIbool\fR)
 Reconnect to ssh server automatically in unexpected disconnection.
 The default is \fBfalse\fR.
+.TP
+\fB\-\-recvdir\fR=\fIvalue\fR
+Specify the directory to save received files via zmodem or scp.
+The default is \fB~/.mlterm/recv\fR.
 .TP
 \fB\-\-restart\fR=\fIvalue\fR
 Whether to restart mlterm with all opened ptys except ssh if SIGSEGV, SIGBUS, SIGFPE
@@ -1639,6 +1643,9 @@ Specify parent Window ID.
 .TP
 \fBprimary_da=\fIvalue\fR (\fB\-\-da1\fR)
 Specify primary device attributes string.
+.TP
+\fBreceive_directory=\fIvalue\fR (\fB\-\-recvdir\fR)
+Specify the directory to save received files via zmodem or scp.
 .TP
 \fBreceive_string_via_ucs=\fIbool\fR (\fB\-U\fR, \fB\-\-viaucs\fR)
 If the received selection (i.e., copy-and-paste strings) or strings received

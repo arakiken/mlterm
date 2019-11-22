@@ -408,6 +408,9 @@ scrollbar_view_name = sample
 # broadcast オプションが true の場合でも、ブロードキャストを受け付けない。
 # ignore_broadcasted_chars = false
 
+# zmodem や scp で受信したファイルを保存するディレクトリ
+# receive_directory =
+
 # default_server オプションが指定されていない場合に、起動時の SSH 接続ダイ
 # アログを表示しないようにする。
 # (mlterm-fb on NetBSD/x68k or OpenBSD 用)

@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 3.8.8
+%define version 3.8.9
 %define release 1
 %define prefix /usr
 %define bindir /usr/bin
@@ -19,7 +19,7 @@ Group:	     User Interface/X
 URL:         http://mlterm.sourceforge.net/
 Source0:     http://prdownloads.sourceforge.net/mlterm/mlterm-%{version}.tar.gz
 Packager:    The mlterm team
-Requires:    gtk+
+Requires:    gtk3
 BuildRoot:   /var/tmp/%{name}-%{version}-root
 
 %description
@@ -68,7 +68,7 @@ rm -rf $RPM_BUILD_ROOT
 %{bindir}/mlfc
 %{libdir}/libpobl.*
 %{libdir}/libmef.*
-%{libdir}/libmlterm_core.*
+#%{libdir}/libmlterm_core.*
 %{libdir}/libmlterm_coreotl.*
 %{libdir}/mef/
 %{libdir}/mlterm/
@@ -79,8 +79,12 @@ rm -rf $RPM_BUILD_ROOT
 %{mandir}/man1/mlcc.1*
 %{pixmapdir}/mlterm*
 %{datadir}/locale/*/LC_MESSAGES/mlconfig.mo
+%{datadir}/mlterm/scrollbars/sample3/
 
 %changelog
+* Fri Nov 22 2019 Araki Ken <arakiken@users.sf.net>
+- Source version 3.8.9
+
 * Sun Mar 31 2019 Araki Ken <arakiken@users.sf.net>
 - Source version 3.8.8
 
@@ -153,7 +157,7 @@ rm -rf $RPM_BUILD_ROOT
 * Tue Oct 28 2014 Araki Ken <arakiken@users.sf.net>
 - Source version 3.4.0
 
-* Sun Aug 16 2014 Araki Ken <arakiken@users.sf.net>
+* Sat Aug 16 2014 Araki Ken <arakiken@users.sf.net>
 - Source version 3.3.8
 
 * Sun Jul 06 2014 Araki Ken <arakiken@users.sf.net>
@@ -240,7 +244,7 @@ rm -rf $RPM_BUILD_ROOT
 * Sat Jun 04 2011 Araki Ken <arakiken@users.sf.net>
 - Source version 3.0.5
 
-* Sat May 29 2011 Araki Ken <arakiken@users.sf.net>
+* Sun May 29 2011 Araki Ken <arakiken@users.sf.net>
 - Source version 3.0.4
 
 * Sun Mar 20 2011 Araki Ken <arakiken@users.sf.net>
@@ -261,7 +265,7 @@ rm -rf $RPM_BUILD_ROOT
 * Sun May 07 2006 Seiichi SATO <me@seiichisato.jp>
 - Source version 2.9.3
 
-* Sat Mar 04 2005 Seiichi SATO <ssato@sh.rim.or.jp>
+* Fri Mar 04 2005 Seiichi SATO <ssato@sh.rim.or.jp>
 - Source version 2.9.2
 
 * Sun Nov 28 2004 Seiichi SATO <ssato@sh.rim.or.jp>
@@ -283,7 +287,7 @@ rm -rf $RPM_BUILD_ROOT
 * Sun Jan 12 2003 Araki Ken <arakiken@users.sf.net>
 - Source version 2.6.3
 
-* Thu Oct 1 2002 Araki Ken <arakiken@users.sf.net>
+* Tue Oct 1 2002 Araki Ken <arakiken@users.sf.net>
 - Source version 2.6.2
 
 * Thu Sep 12 2002 Araki Ken <arakiken@users.sf.net>
