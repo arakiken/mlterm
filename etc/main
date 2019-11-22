@@ -280,6 +280,8 @@
 
 # ignore_broadcasted_chars = false
 
+# receive_directory =
+
 # (Available for Android)
 # start_with_local_pty = false
 

@@ -1027,7 +1027,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o fb_resolution (mlterm-fb on NetBSD/x68k or OpenBSD 用)
         768x512x4 のような形式で解像度を指定する。
 
-      o separate_wall_picture (true/*false*) (mlterm-fb on NetBSD/x68k 用)
+      o separate_wall_picture (*true*/false) (mlterm-fb on NetBSD/x68k 用)
         壁紙のみ Graphic VRAM ではなく Text VRAM に描画し、スクロール測度を改善
         する。
 
@@ -1385,10 +1385,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         デフォルトでは、無効
 
   o 引数オプション
-    (X) のついているオプションは、mlclient からは指定できません。
-
-    -h/--help(=bool)   : ヘルプ (X)
-    -v/--version(=bool) : バージョン情報(あまり信用できない:D) (X)
+    -h/--help(=bool)   : ヘルプ
+    -v/--version(=bool) : バージョン情報(あまり信用できない:D)
 
     -#/--initstr=value : init_str
     -%/--logseq        : logging_vt_seq
@@ -1405,7 +1403,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
     -7/--bel=value     : bel_mode
     -8/--88591(=bool)  : iso88591_font_for_usascii
     -9/--crfg=value    : cursor_fg_color
-    -@/--screens=value : startup_screens (X)
+    -@/--screens=value : startup_screens
     -A/--aa(=bool)     : use_anti_alias
     -B/--sbbg=value    : sb_bg_color
     -C/--ctl(=bool)    : use_ctl
@@ -1422,23 +1420,23 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
     -O/--sbmod=value   : scrollbar_mode
     -P/--clip(=bool)   : use_clipboard
     -Q/--vcur(=bool)   : use_vertical_cursor
-    -R/--fsrange=value : font_size_range (X)
+    -R/--fsrange=value : font_size_range
     -S/--sbview=value  : scrollbar_view_name
     -T/--title=value   : title
     -U/--viaucs=value  : receive_string_via_ucs
     -V/--varwidth(=bool): use_variable_column_width
-    -W/--sep=value     : word_separators (X)
+    -W/--sep=value     : word_separators
     -X/--alpha=value   : alpha
-    -Y/--decsp(=bool)  : compose_dec_special_font (X)
+    -Y/--decsp(=bool)  : compose_dec_special_font
     -Z/--multicol(=bool): use_multi_column_char
     -a/--ac=value      : col_size_of_width_a
     -b/--bg=value      : bg_color
-    -c/--cp932(=bool)  : use_cp932_ucs_for_xft (X)
+    -c/--cp932(=bool)  : use_cp932_ucs_for_xft
     -d/--display       : display
     -f/--fg=value      : fg_color
     -g/--geometry=value : geometry
-    -i/--xim(=bool)    : use_xim (X)
-    -j/--daemon=value  : daemon_mode (X)
+    -i/--xim(=bool)    : use_xim
+    -j/--daemon=value  : daemon_mode
     -k/--meta=value  : mod_meta_mode
     -l/--sl=value      : logsize
     -m/--comb(=bool)   : use_combining
@@ -1506,18 +1504,21 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
        --da1=value     : primary_da
        --da2=value     : secondary_da
        --deffont=value : DEFAULT in ~/.mlterm/*font
-       --depth=value   : depth (X)
-       --maxptys=value : max_ptys (X)
-       --keepalive=value: ssh_keepalive_interval (X)
-       --metaprefix    : mod_meta_prefix (X)
-       --ckm=value     : console_encoding
-       --csc=value     : console_sixel_colors
-       --csz=value     : default_cell_size (X)
+       --depth=value   : depth
+       --maxptys=value : max_ptys
+       --keepalive=value: ssh_keepalive_interval
+       --metaprefix    : mod_meta_prefix
+       --ckm=value     : console_encoding (mlterm-con 用)
+       --csc=value     : console_sixel_colors (mlterm-con 用)
+       --csz=value     : default_cell_size (mlterm-con 用)
        --trim(=bool)   : trim_trailing_newline_in_pasting
        --bc(=bool)     : broadcast
        --ibc(=bool)    : ignore_broadcasted_chars
        --emoji=value   : emoji_path
        --recvdir=value : receive_directory
+       --aafont(=bool) : use_aafont (mlterm-fb, mlterm-wl or mlterm-sdl2 用)
+       --multivram(=bool) : separate_wall_picture (mlterm-fb on NetBSD/x68k 用)
+       --slp(=bool)    : start_with_local_pty (Android 用)
 
     -e ... : 指定したコマンドを起動
 
@@ -1546,6 +1547,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       --dyncomb=false
       --dyncomb true
       --dyncomb false
+
+    o 上記オプションのうち mlclient や mlclientx からは指定できないものがあります。
+      詳しくは mlclient(1) を参照してください。
 
 * 操作方法
   o キーボード
