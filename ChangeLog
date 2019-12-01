@@ -1,3 +1,10 @@
+2019-12-01  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c: Not only "CSI>4;2m" but also "CSI>4;1m" (modifyOtherKeys)
+	  is supported.
+
+	* version.h: 3.8.9 -> 3.8.9post
+
 2019-11-22  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.8.9 released.
