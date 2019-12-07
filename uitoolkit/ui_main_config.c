@@ -540,7 +540,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   }
 
   if ((value = bl_conf_get_value(conf, "bl_color"))) {
-    main_config->ul_color = strdup(value);
+    main_config->bl_color = strdup(value);
     main_config->alt_color_mode |= ALT_COLOR_BLINKING;
   }
 
@@ -555,7 +555,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   }
 
   if ((value = bl_conf_get_value(conf, "co_color"))) {
-    main_config->ul_color = strdup(value);
+    main_config->co_color = strdup(value);
     main_config->alt_color_mode |= ALT_COLOR_CROSSED_OUT;
   }
 
