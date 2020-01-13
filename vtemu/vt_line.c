@@ -142,6 +142,16 @@ static int vt_line_set_use_iscii(vt_line_t *line, int flag) {
   return (*func)(line, flag);
 }
 
+static int vt_line_iscii_convert_visual_char_index_to_logical(vt_line_t *line, int char_index) {
+  int (*func)(vt_line_t *, int);
+
+  if (!(func = vt_load_ctl_iscii_func(VT_LINE_ISCII_CONVERT_VISUAL_CHAR_INDEX_TO_LOGICAL))) {
+    return char_index;
+  }
+
+  return (*func)(line, char_index);
+}
+
 static int vt_iscii_copy(vt_iscii_state_t dst, vt_iscii_state_t src, int optimize_ctl_info) {
   int (*func)(vt_iscii_state_t, vt_iscii_state_t, int);
 
@@ -221,6 +231,7 @@ int vt_line_bidi_logical(vt_line_t *line);
 
 #ifndef USE_IND
 #define vt_line_set_use_iscii(line, flag) (0)
+#define vt_line_iscii_convert_visual_char_index_to_logical(line, char_index) (char_index)
 #define vt_iscii_copy(dst, src, optimize) (0)
 #define vt_iscii_reset(state) (0)
 #define vt_line_iscii_render(line) (0)
@@ -229,6 +240,7 @@ int vt_line_bidi_logical(vt_line_t *line);
 #else
 /* Link functions in libctl/vt_*iscii.c */
 int vt_line_set_use_iscii(vt_line_t *line, int flag);
+int vt_line_iscii_convert_visual_char_index_to_logical(vt_line_t *line, int visual_char_index);
 int vt_iscii_copy(vt_iscii_state_t dst, vt_iscii_state_t src, int optimize);
 int vt_iscii_reset(vt_iscii_state_t state);
 int vt_line_iscii_convert_logical_char_index_to_visual(vt_line_t *line, int logical_char_index);
@@ -441,13 +453,41 @@ static int vt_line_ot_layout_convert_logical_char_index_to_visual(vt_line_t *lin
 
   for (visual_char_index = 0; visual_char_index < line->ctl_info.ot_layout->size;
        visual_char_index++) {
-    if (logical_char_index == 0 ||
-        (logical_char_index -= line->ctl_info.ot_layout->num_chars_array[visual_char_index]) < 0) {
+    if ((logical_char_index -= line->ctl_info.ot_layout->num_chars_array[visual_char_index]) < 0) {
       break;
     }
   }
 
   return visual_char_index;
+}
+
+/* The caller should check vt_line_is_using_ot_layout() in advance. */
+static int vt_line_ot_layout_convert_visual_char_index_to_logical(vt_line_t *line,
+                                                                  int visual_char_index) {
+  int logical_char_index;
+  int count;
+
+  if (vt_line_is_empty(line)) {
+    return 0;
+  }
+
+  if (line->ctl_info.ot_layout->size == 0 || !line->ctl_info.ot_layout->substituted) {
+#ifdef __DEBUG
+    bl_debug_printf(BL_DEBUG_TAG " visual char_index is same as logical one.\n");
+#endif
+    return visual_char_index;
+  }
+
+  if (line->ctl_info.ot_layout->size - 1 < visual_char_index) {
+    visual_char_index = line->ctl_info.ot_layout->size - 1;
+  }
+
+  logical_char_index = 0;
+  for (count = 0; count < visual_char_index; count++) {
+    logical_char_index += line->ctl_info.ot_layout->num_chars_array[count];
+  }
+
+  return logical_char_index;
 }
 
 /* The caller should check vt_line_is_using_ot_layout() in advance. */
@@ -479,6 +519,10 @@ static int vt_line_ot_layout_render(vt_line_t *line, /* is always modified */
     line->ctl_info.ot_layout->term = term;
 
     if ((ret = vt_ot_layout(line->ctl_info.ot_layout, line->chars, line->num_filled_chars)) <= 0) {
+      if (complex_shape || has_var_width_char) {
+        vt_line_set_modified_all(line);
+      }
+
       return ret;
     }
 
@@ -1411,6 +1455,10 @@ void vt_line_set_size_attr(vt_line_t *line, int size_attr) {
 int vt_line_convert_visual_char_index_to_logical(vt_line_t *line, int char_index) {
   if (vt_line_is_using_bidi(line)) {
     return vt_line_bidi_convert_visual_char_index_to_logical(line, char_index);
+  } else if (vt_line_is_using_ot_layout(line)) {
+    return vt_line_ot_layout_convert_visual_char_index_to_logical(line, char_index);
+  } else if (vt_line_is_using_iscii(line)) {
+    return vt_line_iscii_convert_visual_char_index_to_logical(line, char_index);
   } else {
     return char_index;
   }

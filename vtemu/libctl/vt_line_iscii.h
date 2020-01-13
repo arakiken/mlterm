@@ -17,4 +17,6 @@ int vt_line_iscii_logical(vt_line_t *line);
 
 int vt_line_iscii_convert_logical_char_index_to_visual(vt_line_t *line, int logical_char_index);
 
+int vt_line_iscii_convert_visual_char_index_to_logical(vt_line_t *line, int visual_char_index);
+
 #endif

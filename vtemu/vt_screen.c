@@ -1703,9 +1703,10 @@ vt_char_t *vt_screen_get_n_prev_char(vt_screen_t *screen, int n) {
 }
 
 int vt_screen_combine_with_prev_char(vt_screen_t *screen, u_int32_t code, ef_charset_t cs,
-                                     int is_fullwidth, int is_comb, vt_color_t fg_color,
-                                     vt_color_t bg_color, int is_bold, int is_italic,
-                                     int line_style, int is_blinking, int is_protected) {
+                                     int is_fullwidth, int is_awidth, int is_comb,
+                                     vt_color_t fg_color, vt_color_t bg_color, int is_bold,
+                                     int is_italic, int line_style, int is_blinking,
+                                     int is_protected) {
   int char_index;
   int row;
   vt_char_t *ch;
@@ -1723,8 +1724,8 @@ int vt_screen_combine_with_prev_char(vt_screen_t *screen, u_int32_t code, ef_cha
     return 0;
   }
 
-  if (!vt_char_combine(ch, code, cs, is_fullwidth, is_comb, fg_color, bg_color, is_bold, is_italic,
-                       line_style, is_blinking, is_protected)) {
+  if (!vt_char_combine(ch, code, cs, is_fullwidth, is_awidth, is_comb, fg_color, bg_color, is_bold,
+                       is_italic, line_style, is_blinking, is_protected)) {
     return 0;
   }
 
@@ -2025,6 +2026,7 @@ int vt_screen_write_content(vt_screen_t *screen, int fd, ef_conv_t *conv, int cl
   int beg;
   int end;
   vt_char_t *buf;
+  u_int buf_len;
   u_int num;
   u_char conv_buf[512];
   ef_parser_t *vt_str_parser;
@@ -2047,23 +2049,25 @@ int vt_screen_write_content(vt_screen_t *screen, int fd, ef_conv_t *conv, int cl
   }
 
   /* WCA_CURSOR_LINE may cause num == 0. */
-  if ((num = vt_screen_get_region_size(screen, 0, beg, 0, end, 0)) == 0) {
+  if ((buf_len = vt_screen_get_region_size(screen, 0, beg, 0, end, 0)) == 0) {
     return 0;
   }
 
-  if ((buf = vt_str_alloca(num)) == NULL) {
+  /* buf_len could become huge size which gets alloca() to fail. */
+  if ((buf = vt_str_new(buf_len)) == NULL) {
     return 0;
   }
-  vt_str_init(buf, num);
 
-  vt_screen_copy_region(screen, buf, num, 0, beg, 0, end, 0);
+  vt_screen_copy_region(screen, buf, buf_len, 0, beg, 0, end, 0);
 
   if (!(vt_str_parser = vt_str_parser_new())) {
+    vt_str_destroy(buf, buf_len);
+
     return 0;
   }
 
   (*vt_str_parser->init)(vt_str_parser);
-  vt_str_parser_set_str(vt_str_parser, buf, num);
+  vt_str_parser_set_str(vt_str_parser, buf, buf_len);
   (*conv->init)(conv);
 
   while (!vt_str_parser->is_eos &&
@@ -2076,6 +2080,7 @@ int vt_screen_write_content(vt_screen_t *screen, int fd, ef_conv_t *conv, int cl
   }
 
   (*vt_str_parser->destroy)(vt_str_parser);
+  vt_str_destroy(buf, buf_len);
 
   return 1;
 }

@@ -10,7 +10,6 @@
 #include <pobl/bl_str.h>    /* bl_str_sep/bl_str_to_int */
 #include <pobl/bl_locale.h> /* bl_get_lang() */
 #include <mef/ef_ucs4_map.h>
-#include <mef/ef_ucs_property.h>
 #include <vt_char_encoding.h> /* ui_convert_to_xft_ucs4 */
 
 #ifdef USE_OT_LAYOUT
@@ -583,7 +582,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     GetTextExtentPoint32A(display_gc, "w", 1, &w_sz);
     GetTextExtentPoint32A(display_gc, "l", 1, &l_sz);
 
-#if 0
+#ifdef DEBUG
     bl_debug_printf(
         "Family %s Size %d CS %x => AveCharWidth %d MaxCharWidth %d 'w' width "
         "%d 'l' width %d Height %d Ascent %d ExLeading %d InLeading %d "
@@ -756,11 +755,6 @@ void ui_font_destroy(ui_font_t *font) {
 #ifdef USE_OT_LAYOUT
 int ui_font_has_ot_layout_table(ui_font_t *font) {
   if (!font->ot_font) {
-    u_char buf[4];
-    void *font_data;
-    u_int size;
-    int is_ttc;
-
     if (font->ot_font_not_found) {
       return 0;
     }
@@ -775,27 +769,7 @@ int ui_font_has_ot_layout_table(ui_font_t *font) {
 
     SelectObject(display_gc, font->xfont->fid);
 
-#define TTC_TAG ('t' << 0) + ('t' << 8) + ('c' << 16) + ('f' << 24)
-
-    if (GetFontData(display_gc, TTC_TAG, 0, &buf, 1) == 1) {
-      is_ttc = 1;
-      size = GetFontData(display_gc, TTC_TAG, 0, NULL, 0);
-    } else {
-      is_ttc = 0;
-      size = GetFontData(display_gc, 0, 0, NULL, 0);
-    }
-
-    if (!(font_data = malloc(size))) {
-      font->ot_font = NULL;
-    } else {
-      if (is_ttc) {
-        GetFontData(display_gc, TTC_TAG, 0, font_data, size);
-      } else {
-        GetFontData(display_gc, 0, 0, font_data, size);
-      }
-
-      font->ot_font = otl_open(font_data, size);
-    }
+    font->ot_font = otl_open(display_gc);
 
     if (!font->ot_font) {
       font->ot_font_not_found = 1;
@@ -807,10 +781,10 @@ int ui_font_has_ot_layout_table(ui_font_t *font) {
   return 1;
 }
 
-u_int ui_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, u_int shaped_len,
-                                int8_t *offsets, u_int8_t *widths, u_int32_t *cmapped,
-                                u_int32_t *src, u_int src_len, const char *script,
-                                const char *features) {
+u_int ui_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shape_glyphs, u_int num_shape_glyphs,
+                                int8_t *xoffsets, int8_t *yoffsets, u_int8_t *advances,
+                                u_int32_t *noshape_glyphs, u_int32_t *src, u_int src_len,
+                                const char *script, const char *features) {
   u_int size;
 
   if (use_point_size) {
@@ -823,38 +797,32 @@ u_int ui_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, u_int shaped
     size = font->xfont->size;
   }
 
-  return otl_convert_text_to_glyphs(font->ot_font, shaped, shaped_len, offsets, widths, cmapped,
+  return otl_convert_text_to_glyphs(font->ot_font, shape_glyphs, num_shape_glyphs,
+                                    xoffsets, yoffsets, advances, noshape_glyphs,
                                     src, src_len, script, features,
                                     size * (font->size_attr >= DOUBLE_WIDTH ? 2 : 1));
 }
 #endif /* USE_OT_LAYOUT */
 
-u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, int *draw_alone) {
+u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, int is_awidth,
+                              int *draw_alone) {
   if (draw_alone) {
     *draw_alone = 0;
   }
 
   if (font->is_proportional) {
     if (font->is_var_col_width) {
-      u_int width;
-
-      return width = calculate_char_width(font, ch, cs);
+      return calculate_char_width(font, ch, cs);
     }
 
     if (draw_alone) {
       *draw_alone = 1;
     }
   } else if (draw_alone &&
-             /* ISO10646_UCS4_1_V is always proportional */
-             cs == ISO10646_UCS4_1
-#ifdef USE_OT_LAYOUT
-             && (!font->use_ot_layout /* || ! font->ot_font */)
-#endif
-                 ) {
-    if (ef_get_ucs_property(ch) & EF_AWIDTH) {
-      if (calculate_char_width(font, ch, cs) != font->width) {
-        *draw_alone = 1;
-      }
+             cs == ISO10646_UCS4_1 /* ISO10646_UCS4_1_V is always proportional */ &&
+             is_awidth) {
+    if (calculate_char_width(font, ch, cs) != font->width) {
+      *draw_alone = 1;
     }
   }
 
@@ -864,31 +832,21 @@ u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, in
 void ui_font_use_point_size(int use) { use_point_size = use; }
 
 /* Return written size */
-size_t ui_convert_ucs4_to_utf16(u_char *dst, /* 4 bytes. Little endian. */
+size_t ui_convert_ucs4_to_utf16(u_char *dst, /* 4 bytes. Little endian. 16bit aligned. */
                                 u_int32_t src) {
+  u_int16_t *dst16 = (u_int16_t*)dst;
+
   if (src < 0x10000) {
-    dst[1] = (src >> 8) & 0xff;
-    dst[0] = src & 0xff;
+    *dst16 = src;
 
     return 2;
   } else if (src < 0x110000) {
     /* surrogate pair */
 
-    u_char c;
-
     src -= 0x10000;
-    c = (u_char)(src / (0x100 * 0x400));
-    src -= (c * 0x100 * 0x400);
-    dst[1] = c + 0xd8;
 
-    c = (u_char)(src / 0x400);
-    src -= (c * 0x400);
-    dst[0] = c;
-
-    c = (u_char)(src / 0x100);
-    src -= (c * 0x100);
-    dst[3] = c + 0xdc;
-    dst[2] = (u_char)src;
+    dst16[0] = ((src & 0xfffc0000) >> 10) + 0xd800 + ((src & 0x3fc00) >> 10);
+    dst16[1] = (src & 0x300) + 0xdc00 + (src & 0xff);
 
     return 4;
   }

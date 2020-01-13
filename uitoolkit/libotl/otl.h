@@ -9,6 +9,8 @@
 
 #ifdef USE_HARFBUZZ
 #include "hb.c"
+#elif defined(USE_UNISCRIBE)
+#include "uniscribe.c"
 #else
 #include "otf.c"
 #endif
@@ -35,14 +37,14 @@
 
 /* --- static variables --- */
 
-static void *(*open_sym)(void *, u_int);
+static void *(*open_sym)(void *);
 static void (*close_sym)(void *);
-static u_int (*convert_sym)(void *, u_int32_t *, u_int, int8_t *, u_int8_t *, u_int32_t *,
+static u_int (*convert_sym)(void *, u_int32_t *, u_int, int8_t *, int8_t *, u_int8_t *, u_int32_t *,
                             u_int32_t *, u_int, const char *, const char *, u_int);
 
 /* --- static functions --- */
 
-static void *otl_open(void *obj, u_int size) {
+static void *otl_open(void *obj) {
   static int is_tried;
 
   if (!is_tried) {
@@ -66,17 +68,17 @@ static void *otl_open(void *obj, u_int size) {
     return NULL;
   }
 
-  return (*open_sym)(obj, size);
+  return (*open_sym)(obj);
 }
 
 static void otl_close(void *otf) { (*close_sym)(otf); }
 
-static u_int otl_convert_text_to_glyphs(void *otf, u_int32_t *shaped, u_int shaped_len,
-                                        int8_t *offsets, u_int8_t *widths, u_int32_t *cmapped,
-                                        u_int32_t *src, u_int src_len, const char *script,
-                                        const char *features, u_int fontsize) {
-  return (*convert_sym)(otf, shaped, shaped_len, offsets, widths, cmapped, src, src_len, script,
-                        features, fontsize);
+static u_int otl_convert_text_to_glyphs(void *otf, u_int32_t *shape_glyphs, u_int num_shape_glyphs,
+                                        int8_t *xoffsets, int8_t *yoffsets, u_int8_t *advances,
+                                        u_int32_t *cmapped, u_int32_t *src, u_int src_len,
+                                        const char *script, const char *features, u_int fontsize) {
+  return (*convert_sym)(otf, shape_glyphs, num_shape_glyphs, xoffsets, yoffsets, advances, cmapped,
+                        src, src_len, script, features, fontsize);
 }
 
 #endif

@@ -774,8 +774,12 @@ static int cairo_compl_font_open(ui_font_t *font, int num_compl_fonts, FcPattern
       break;
     }
 
+#ifdef DEBUG
+    FcPatternGet(match, FC_FAMILY, 0, &val);
+    bl_debug_printf("Fall back to \"%s\" font.\n", val.u.s);
 #if 0
     FcPatternPrint(match);
+#endif
 #endif
 
     if (!(cairo = cairo_create(cairo_xlib_surface_create(
@@ -1242,7 +1246,7 @@ void xft_unset_font(ui_font_t *font) {
 
 int xft_set_ot_font(ui_font_t *font) {
 #ifdef USE_OT_LAYOUT
-  font->ot_font = otl_open(XftLockFace(font->xft_font), 0);
+  font->ot_font = otl_open(XftLockFace(font->xft_font));
   XftUnlockFace(font->xft_font);
 
   return (font->ot_font != NULL);
@@ -1361,7 +1365,7 @@ void cairo_unset_font(ui_font_t *font) {
 
 int cairo_set_ot_font(ui_font_t *font) {
 #ifdef USE_OT_LAYOUT
-  font->ot_font = otl_open(cairo_ft_scaled_font_lock_face(font->cairo_font), 0);
+  font->ot_font = otl_open(cairo_ft_scaled_font_lock_face(font->cairo_font));
   cairo_ft_scaled_font_unlock_face(font->cairo_font);
 
   return (font->ot_font != NULL);
@@ -1461,12 +1465,12 @@ u_int cairo_calculate_char_width(ui_font_t *font, u_int32_t ch) {
 #endif
 
 u_int ft_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, u_int shaped_len,
-                                int8_t *offsets, u_int8_t *widths, u_int32_t *cmapped,
-                                u_int32_t *src, u_int src_len, const char *script,
-                                const char *features) {
+                                int8_t *xoffsets, int8_t *yoffsets, u_int8_t *advances,
+                                u_int32_t *cmapped, u_int32_t *src, u_int src_len,
+                                const char *script, const char *features) {
 #ifdef USE_OT_LAYOUT
-  return otl_convert_text_to_glyphs(font->ot_font, shaped, shaped_len, offsets, widths, cmapped,
-                                    src, src_len, script, features, 0);
+  return otl_convert_text_to_glyphs(font->ot_font, shaped, shaped_len, xoffsets, yoffsets,
+                                    advances, cmapped, src, src_len, script, features, 0);
 #else
   return 0;
 #endif

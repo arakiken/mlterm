@@ -1,3 +1,68 @@
+2020-01-13  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in: If harfbuzz is not found on win32, OT_LAYOUT_OBJ=uniscribe.o
+
+	* libotl/uniscribe.c: Added.
+
+	* */ui_font.c, ui_font.h:
+	  - 'int is_awidth' is added to arguments of ui_calculate_char_width().
+	  - 'int8_t *yoffsets' is added to arguments of ui_convert_text_to_glyphs().
+
+	* win32/ui_font.c:
+	  ui_font_has_ot_layout_table() doesn't call GetFontData() but delegates
+	  it to libotl.
+
+	* libotl/hb.c, libotl/otf.c, libotl/otl.h:
+	  - 'int8_t *yoffsets' is added to arguments of otl_convert_text_to_glyphs().
+	  - 'obj' argument of otl_open() is changed from font data to HDC on win32.
+
+	* ui_draw_str.c:
+	  - fc_draw_combining_chars() and xcore_draw_combining_chars() considers
+	    vt_char_get_yoffset().
+	  - ui_draw_str_to_eol() clears background before drawing text in TYPE_XCORE.
+
+	* vt_char.[ch]:
+	  - 'attr' bits are changed.
+	  - 'is_awidth' is added to arguments of vt_char_set() and vt_char_combine().
+	  - vt_char_is_awidth() is added.
+	  - vt_char_get_offset() is renamed to vt_char_get_xoffset().
+	  - vt_char_get_width() is renamed to vt_char_get_advance().
+	  - vt_char_get_yoffset() is added.
+	  - 'yoffset' is added to arguments of vt_char_set_position().
+
+	* vt_screen.[ch]:
+	  - 'is_awidth' is added to arguments of vt_screen_combine_with_prev_char().
+	  - vt_screen_write_content() uses vt_str_new() instead of vt_str_alloca()
+	    because log size might be too huge to succeed vt_str_alloca().
+	  - vt_screen_write_content() calls vt_str_destroy().
+	  - report_mouse_tracking() calls vt_line_convert_visual_char_index_to_logical()
+	    if vt_line_is_using_ctl() is true.
+
+	* vt_line.c:
+	  - If vt_ot_layout() <= 0 and complex_shape or has_var_width_char was true,
+	    the line is redrawn completely.
+	  - vt_line_convert_visual_char_index_to_logical() supports ISCII and
+	    OpenType Layout.
+
+	* vt_logs.[ch]: vt_unlimit_log_size() calls vt_change_log_size() because
+	  (logs)->unlimit = 1 after vt_change_log_size(0) didn't work.
+
+	* vt_shape.[ch]: vt_shape_ot_layout() uses cached glyph info which
+	  vt_ot_layout stores.
+
+	* vt_ot_layout.[ch]:
+	  - glyphs, xoffsets, yoffsets, advances and num_glyphs which store
+	    the result of shape_func are added.
+	  - The number of calling vt_ot_layout_shape() is decreased.
+	  - OTL_IS_COMB() is added to determine whether shaped glyph should be
+	    combined or not.
+
+	* vt_term.c:
+	  #ifdef USE_HARFBUZZ => #if defined(USE_HARFBUZZ) || defined(USE_UNISCRIBE)
+
+	* vt_functbl_iscii.c, vt_line_iscii.[ch], vt_ctl_loader.h:
+	  vt_line_iscii_convert_visual_char_index_to_logical() is added.
+
 2019-12-07  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_main_config.c: Configuring bl_color and co_color is fixed.

@@ -246,6 +246,35 @@ int vt_line_iscii_convert_logical_char_index_to_visual(vt_line_t *line, int logi
   return visual_char_index;
 }
 
+/* The caller should check vt_line_is_using_iscii() in advance. */
+int vt_line_iscii_convert_visual_char_index_to_logical(vt_line_t *line,
+                                                       int visual_char_index) {
+  int logical_char_index;
+  int count;
+
+  if (vt_line_is_empty(line)) {
+    return 0;
+  }
+
+  if (line->ctl_info.iscii->size == 0 || !line->ctl_info.iscii->has_iscii) {
+#ifdef __DEBUG
+    bl_debug_printf(BL_DEBUG_TAG " visual char_index is same as logical one.\n");
+#endif
+    return visual_char_index;
+  }
+
+  if (line->ctl_info.iscii->size - 1 < visual_char_index) {
+    visual_char_index = line->ctl_info.iscii->size - 1;
+  }
+
+  logical_char_index = 0;
+  for (count = 0; count < visual_char_index; count++) {
+    logical_char_index += line->ctl_info.iscii->num_chars_array[count];
+  }
+
+  return logical_char_index;
+}
+
 int vt_line_iscii_need_shape(vt_line_t *line) {
   return line->ctl_info.iscii->size > 0 && line->ctl_info.iscii->has_iscii;
 }

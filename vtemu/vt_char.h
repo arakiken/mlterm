@@ -60,8 +60,10 @@ typedef struct vt_char {
 /*
  * attr member contents.
  * Total 23 bit
- * 4 bit : vt_char_attr_line_style_t
- * 1 bit : is_blinking(0 or 1)
+ * 4 bit : vt_char_attr_line_style_t                     -+
+ * 1 bit : is_blinking(0 or 1)                            |__\ or advance (for OT Layout)
+ * 1 bit : is_reversed(0 or 1)	... used for X Selection  |
+ * 1 bit : is_protected(0 or 1)                          -+
  * 1 bit : is unicode area cs(0 or 1)
  * 1 bit : is_italic(0 or 1)       -+
  * 1 bit : is_bold(0 or 1)          |__\ vt_font_t
@@ -69,8 +71,6 @@ typedef struct vt_char {
  * 9 bit : charset(0x0 - 0x1ff) or -+
  *         1 bit: CS_REVISION_1(ISO10646_UCS4_1_V(*))
  *         8 bit: unicode area id
- * 1 bit : is_reversed(0 or 1)	... used for X Selection
- * 1 bit : is_protected(0 or 1)
  * 1 bit : is_comb(0 or 1)
  * 1 bit : is_comb_trailing(0 or 1)
  * ---
@@ -81,7 +81,7 @@ typedef struct vt_char {
  *
  * attr2 member contents.
  * Total 2 bit
- * 1 bit : unused
+ * 1 bit : is_awidth(0 or 1)
  * 1 bit : is_zerowidth(0 or 1)
  */
 #ifdef WORDS_BIGENDIAN
@@ -121,9 +121,9 @@ void vt_char_init(vt_char_t *ch);
 
 void vt_char_final(vt_char_t *ch);
 
-void vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth, int is_comb,
-                 vt_color_t fg_color, vt_color_t bg_color, int is_bold, int is_italic,
-                 int line_style, int is_blinking, int is_protected);
+void vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth,
+                 int is_awidth, int is_comb, vt_color_t fg_color, vt_color_t bg_color,
+                 int is_bold, int is_italic, int line_style, int is_blinking, int is_protected);
 
 void vt_char_change_attr(vt_char_t *ch, int is_bold, int is_italic, int underline_style,
                          int is_blinking, int is_reversed, int crossed_out, int is_overlined);
@@ -132,12 +132,13 @@ void vt_char_reverse_attr(vt_char_t *ch, int bold, int italic, int underline_sty
                           int blinking, int reversed, int crossed_out, int overlined);
 
 vt_char_t *vt_char_combine(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth,
-                           int is_comb, vt_color_t fg_color, vt_color_t bg_color, int is_bold,
-                           int is_italic, int line_style, int is_blinking, int is_protected);
+                           int is_awidth, int is_comb, vt_color_t fg_color, vt_color_t bg_color,
+                           int is_bold, int is_italic, int line_style, int is_blinking,
+                           int is_protected);
 
 /* set both fg and bg colors for reversing. */
 #define vt_char_combine_picture(ch, id, pos) \
-  vt_char_combine(ch, pos, PICTURE_CHARSET, 0, 0, id, id, 0, 0, 0, 0, 0)
+  vt_char_combine(ch, pos, PICTURE_CHARSET, 0, 0, 0, id, id, 0, 0, 0, 0, 0)
 
 vt_char_t *vt_char_combine_simple(vt_char_t *ch, vt_char_t *comb);
 
@@ -174,6 +175,8 @@ int vt_char_is_fullwidth(vt_char_t *ch);
 
 int vt_char_is_zerowidth(vt_char_t *ch);
 
+int vt_char_is_awidth(vt_char_t *ch);
+
 vt_color_t vt_char_fg_color(vt_char_t *ch);
 
 void vt_char_set_fg_color(vt_char_t *ch, vt_color_t color);
@@ -185,11 +188,13 @@ vt_color_t vt_char_bg_color(vt_char_t *ch);
 
 void vt_char_set_bg_color(vt_char_t *ch, vt_color_t color);
 
-int vt_char_get_offset(vt_char_t *ch);
+int vt_char_get_xoffset(vt_char_t *ch);
 
-u_int vt_char_get_width(vt_char_t *ch);
+int vt_char_get_yoffset(vt_char_t *ch);
 
-int vt_char_set_position(vt_char_t *ch, u_int8_t offset, u_int8_t width);
+u_int vt_char_get_advance(vt_char_t *ch);
+
+int vt_char_set_position(vt_char_t *ch, u_int8_t xoffset, u_int8_t yoffset, u_int8_t advance);
 
 int vt_char_line_style(vt_char_t *ch);
 

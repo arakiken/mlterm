@@ -107,14 +107,15 @@ int ui_font_load_xft_font(ui_font_t *font, char *fontname, u_int fontsize, u_int
 int ui_font_load_xfont(ui_font_t *font, char *fontname, u_int fontsize, u_int col_width,
                        int use_medium_for_bold);
 
-u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, int *draw_alone);
+u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, int is_awidth,
+                              int *draw_alone);
 
 int ui_font_has_ot_layout_table(ui_font_t *font);
 
-u_int ui_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, u_int shaped_len,
-                                int8_t *offsets, u_int8_t *widths, u_int32_t *cmapped,
-                                u_int32_t *src, u_int src_len, const char *script,
-                                const char *features);
+u_int ui_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shape_glyphs, u_int num_shape_glyphs,
+                                int8_t *xoffsets, int8_t *yoffsets, u_int8_t *advances,
+                                u_int32_t *noshape_glyphs, u_int32_t *src, u_int src_len,
+                                const char *script, const char *features);
 
 #ifdef USE_XLIB
 char **ui_font_get_encoding_names(ef_charset_t cs);

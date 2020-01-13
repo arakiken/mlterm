@@ -385,7 +385,7 @@ int ui_font_has_ot_layout_table(ui_font_t *font) {
       return 0;
     }
 
-    font->ot_font = otl_open(font->xfont->cg_font, 0);
+    font->ot_font = otl_open(font->xfont->cg_font);
 #else
     char *path;
 
@@ -393,7 +393,7 @@ int ui_font_has_ot_layout_table(ui_font_t *font) {
       return 0;
     }
 
-    font->ot_font = otl_open(path, 0);
+    font->ot_font = otl_open(path);
 
     free(path);
 #endif
@@ -408,17 +408,19 @@ int ui_font_has_ot_layout_table(ui_font_t *font) {
   return 1;
 }
 
-u_int ui_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, u_int shaped_len,
-                                int8_t *offsets, u_int8_t *widths, u_int32_t *cmapped,
-                                u_int32_t *src, u_int src_len, const char *script,
-                                const char *features) {
-  return otl_convert_text_to_glyphs(font->ot_font, shaped, shaped_len, offsets, widths, cmapped,
+u_int ui_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shape_glyphs, u_int num_shape_glyphs,
+                                int8_t *xoffsets, int8_t *yoffsets, u_int8_t *advances,
+                                u_int32_t *noshape_glyphs, u_int32_t *src, u_int src_len,
+                                const char *script, const char *features) {
+  return otl_convert_text_to_glyphs(font->ot_font, shape_glyphs, num_shape_glyphs,
+                                    xoffsets, yoffsets, advances, noshape_glyphs,
                                     src, src_len, script, features,
                                     font->xfont->size * (font->size_attr >= DOUBLE_WIDTH ? 2 : 1));
 }
 #endif /* USE_OT_LAYOUT */
 
-u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, int *draw_alone) {
+u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, int is_awidth,
+                              int *draw_alone) {
   if (draw_alone) {
     *draw_alone = 0;
   }

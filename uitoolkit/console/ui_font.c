@@ -188,7 +188,8 @@ void ui_font_destroy(ui_font_t *font) {
   free(font);
 }
 
-u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, int *draw_alone) {
+u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, int is_awidth,
+                              int *draw_alone) {
   if (draw_alone) {
     *draw_alone = 0;
   }
