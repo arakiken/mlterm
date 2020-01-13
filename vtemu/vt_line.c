@@ -1455,9 +1455,13 @@ void vt_line_set_size_attr(vt_line_t *line, int size_attr) {
 int vt_line_convert_visual_char_index_to_logical(vt_line_t *line, int char_index) {
   if (vt_line_is_using_bidi(line)) {
     return vt_line_bidi_convert_visual_char_index_to_logical(line, char_index);
-  } else if (vt_line_is_using_ot_layout(line)) {
+  }
+#ifdef USE_OT_LAYOUT
+  else if (vt_line_is_using_ot_layout(line)) {
     return vt_line_ot_layout_convert_visual_char_index_to_logical(line, char_index);
-  } else if (vt_line_is_using_iscii(line)) {
+  }
+#endif
+  else if (vt_line_is_using_iscii(line)) {
     return vt_line_iscii_convert_visual_char_index_to_logical(line, char_index);
   } else {
     return char_index;
