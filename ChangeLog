@@ -1,5 +1,10 @@
 2020-01-13  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_parser.c: 'buf' is declared at the beginning of the function
+	  in vt_parser_write_modified_key().
+
+2020-01-13  Araki Ken  <arakiken@users.sf.net>
+
 	* vt_line.c: Compiling error in the case of disabling OpenType Layout
 	  is fixed.
 

@@ -7075,6 +7075,8 @@ int vt_parse_vt100_sequence(vt_parser_t *vt_parser) {
 int vt_parser_write_modified_key(vt_parser_t *vt_parser,
                                  int key, /* should be less than 0x80 */
                                  int modcode) {
+  char *buf;
+
   if (vt_parser->modify_other_keys == 1) {
     if ((modcode == 5 /* Control */ || modcode == 6 /* Shift+Control */) &&
         (('@' <= key && key <= 0x7e) || ('2' <= key && key <= '8') || key == '/' || key == ' ')) {
@@ -7083,8 +7085,6 @@ int vt_parser_write_modified_key(vt_parser_t *vt_parser,
   } else if (vt_parser->modify_other_keys != 2) {
     return 0;
   }
-
-  char *buf;
 
   if (!((modcode - 1) == 1 /* is shift */ &&
         (('!' <= key && key < 'A') || ('Z' < key && key < 'a') || ('z' < key && key <= '~'))) &&
