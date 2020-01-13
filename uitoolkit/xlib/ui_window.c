@@ -2748,7 +2748,11 @@ void ui_window_draw_decsp_image_string(ui_window_t *win, ui_font_t *font, ui_col
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 void ui_window_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
                            u_char *str, u_int len) {
-  /* Removing trailing spaces. */
+  /*
+   * Removing trailing spaces.
+   *
+   * XXX Ignore USE_OT_LAYOUT because OpenTyep layout never works on xcore.
+   */
   while (1) {
     if (len == 0) {
       return;

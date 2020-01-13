@@ -1,5 +1,12 @@
 2020-01-13  Araki Ken  <arakiken@users.sf.net>
 
+	* configure.in: uniscrible.o is preferred to otf.o on win32.
+
+	* ui_window_cairo.c, ui_window_xft.c, win32/ui_window.c:
+	  Trailing spaces aren't removed in drawing text if use_ot_layout is true.
+
+2020-01-13  Araki Ken  <arakiken@users.sf.net>
+
 	* configure.in: If harfbuzz is not found on win32, OT_LAYOUT_OBJ=uniscribe.o
 
 	* libotl/uniscribe.c: Added.
