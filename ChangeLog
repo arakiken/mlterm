@@ -1,5 +1,10 @@
 2020-01-13  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_line.c: Compiling error in the case of disabling OpenType Layout
+	  is fixed.
+
+2020-01-13  Araki Ken  <arakiken@users.sf.net>
+
 	* configure.in: uniscrible.o is preferred to otf.o on win32.
 
 	* ui_window_cairo.c, ui_window_xft.c, win32/ui_window.c:
