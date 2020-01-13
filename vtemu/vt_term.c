@@ -263,7 +263,7 @@ vt_term_t *vt_term_new(const char *term_type, u_int cols, u_int rows, u_int tab_
   term->use_ot_layout = use_ot_layout;
 
 #ifndef NOT_CONVERT_TO_ISCII
-#ifdef USE_HARFBUZZ
+#if defined(USE_HARFBUZZ) || defined(USE_UNISCRIBE)
   if (!term->use_ot_layout)
 #endif
   {
@@ -485,7 +485,7 @@ int vt_term_detach(vt_term_t *term) {
 }
 
 void vt_term_set_use_ot_layout(vt_term_t *term, int flag) {
-#if defined(USE_HARFBUZZ) && !defined(NOT_CONVERT_TO_ISCII)
+#if (defined(USE_HARFBUZZ) || defined(USE_UNISCRIBE)) && !defined(NOT_CONVERT_TO_ISCII)
   vt_unicode_policy_t policy;
 
   policy = vt_parser_get_unicode_policy(term->parser);

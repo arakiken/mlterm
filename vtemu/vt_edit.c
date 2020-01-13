@@ -1783,7 +1783,7 @@ void vt_edit_fill_area(vt_edit_t *edit, int code /* Unicode */, int is_protected
   vt_char_init(&ch);
   vt_char_set(&ch, code,
               code <= 0x7f ? US_ASCII : ISO10646_UCS4_1, /* XXX biwidth is not supported. */
-              0, 0,
+              0, 0, 0,
               /*
                * xterm-332 and Tera Term 4.95 don't use BCE for DECALN(ESC#8), but use for DECFRA.
                * rlogin-2.23.1 use BCE for both of them.

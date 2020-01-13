@@ -7,10 +7,17 @@
 #include <hb-ft.h>
 #endif
 #include <hb-ot.h> /* hb_ot_layout_has_substitution */
+#ifdef USE_WIN32GUI
+#include <windows.h>
+#endif
 #include <ctype.h> /* isalpha */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>
 #include <pobl/bl_str.h>
+
+#if 0
+#define __DEBUG
+#endif
 
 #ifndef HB_VERSION_ATLEAST
 #define HB_VERSION_ATLEAST(a,b,c) !HB_VERSION_CHECK(a,b,c)
@@ -54,14 +61,14 @@ static hb_feature_t *get_hb_features(const char *features, u_int *num) {
   return hbfeatures;
 }
 
-static u_int convert_text_to_glyphs(void *hbfont, u_int32_t *shaped /* never NULL */,
-                                    u_int shaped_len, int8_t *offsets, u_int8_t *widths,
-                                    u_int32_t *cmapped, u_int32_t *src /* never NULL */,
+static u_int convert_text_to_glyphs(void *hbfont, u_int32_t *shape_glyphs /* never NULL */,
+                                    u_int num_shape_glyphs, int8_t *xoffsets, int8_t *yoffsets,
+                                    u_int8_t *advances,
+                                    u_int32_t *src /* never NULL */,
                                     u_int src_len, hb_script_t hbscript,
                                     hb_feature_t *hbfeatures, u_int hbfeatures_num) {
   static hb_buffer_t *buf;
   hb_glyph_info_t *info;
-  hb_glyph_position_t *pos;
   u_int count;
   u_int num;
 
@@ -84,71 +91,33 @@ static u_int convert_text_to_glyphs(void *hbfont, u_int32_t *shaped /* never NUL
   hb_shape(hbfont, buf, hbfeatures, hbfeatures_num);
 
   info = hb_buffer_get_glyph_infos(buf, &num);
-  pos = hb_buffer_get_glyph_positions(buf, &num);
 
-  if (!cmapped) {
-    /* src -> shaped (called from vt_shape.c) */
+  if (num > num_shape_glyphs) {
+    num = num_shape_glyphs;
+  }
 
-    int32_t prev_offset;
+  if (xoffsets /* && yoffsets && advances */) {
+    hb_glyph_position_t *pos = hb_buffer_get_glyph_positions(buf, &num);
 
-    prev_offset = 0;
-    shaped[0] = info[0].codepoint;
-#if 0
-    if (offsets && widths)
+    for (count = 0; count < num; count++) {
+      shape_glyphs[count] = info[count].codepoint;
+      xoffsets[count] = pos[count].x_offset / 64;
+      yoffsets[count] = pos[count].y_offset / 64;
+      advances[count] = pos[count].x_advance / 64;
+
+#ifdef __DEBUG
+      bl_msg_printf("glyph %x xoffset %d (%d/64) yoffset %d (%d/64) "
+                    "xadvance %d (%d/64) yadvance %d (%d/64)\n",
+                    shape_glyphs[count], (int)xoffsets[count], pos[count].x_offset,
+                    (int)yoffsets[count], pos[count].y_offset,
+                    (int)advances[count], pos[count].x_advance,
+                    pos[count].y_advance / 64, pos[count].y_advance);
 #endif
-    {
-      offsets[0] = widths[0] = 0;
-    }
-
-    for (count = 1; count < num; count++) {
-      shaped[count] = info[count].codepoint;
-
-#if 0
-      if (!offsets || !widths) {
-        /* do nothing */
-      } else
-#endif
-      {
-        if (abs(pos[count].x_offset) >= 64) {
-          int32_t offset;
-
-          prev_offset = offset = pos[count].x_offset + pos[count - 1].x_advance + prev_offset;
-
-          if (offset >= 0) {
-            offset = ((offset >> 6) & 0x7f);
-          } else {
-            offset = ((offset >> 6) | 0x80);
-          }
-
-          offsets[count] = offset;
-          widths[count] = ((pos[count].x_advance >> 6) & 0xff);
-
-          if (offsets[count] == 0 && widths[count] == 0) {
-            offsets[count] = -1; /* XXX */
-          }
-        } else {
-          offsets[count] = widths[count] = 0;
-          prev_offset = 0;
-        }
-      }
     }
   } else {
-    /*
-     * cmapped -> shaped (called from vt_ot_layout.c)
-     * (offsets and widths are not set)
-     */
-
-    u_int minus = 0;
-
-    shaped[0] = info[0].codepoint;
-    for (count = 1; count < num; count++) {
-      if (abs(pos[count].x_offset) >= 64) {
-        minus++;
-      }
-      shaped[count] = info[count].codepoint;
+    for (count = 0; count < num; count++) {
+      shape_glyphs[count] = info[count].codepoint;
     }
-
-    num -= minus;
   }
 
 #if 0
@@ -186,20 +155,45 @@ static void done_ft_face(void *p) {
 #ifdef NO_DYNAMIC_LOAD_OTL
 static
 #endif
-void *otl_open(void *obj, u_int size) {
+void *otl_open(void *obj) {
 #if defined(USE_WIN32GUI)
 
+  HDC hdc = obj;
+  u_char buf[4];
+  void *font_data;
+  u_int size;
+  int is_ttc;
   FT_Face face;
+
+#define TTC_TAG ('t' << 0) + ('t' << 8) + ('c' << 16) + ('f' << 24)
+
+  if (GetFontData(hdc, TTC_TAG, 0, &buf, 1) == 1) {
+    is_ttc = 1;
+    size = GetFontData(hdc, TTC_TAG, 0, NULL, 0);
+  } else {
+    is_ttc = 0;
+    size = GetFontData(hdc, 0, 0, NULL, 0);
+  }
+
+  if (!(font_data = malloc(size))) {
+    return NULL;
+  }
+
+  if (is_ttc) {
+    GetFontData(hdc, TTC_TAG, 0, font_data, size);
+  } else {
+    GetFontData(hdc, 0, 0, font_data, size);
+  }
 
   if (!ftlib) {
     if (FT_Init_FreeType(&ftlib) != 0) {
-      free(obj);
+      free(font_data);
 
       return NULL;
     }
   }
 
-  if (FT_New_Memory_Face(ftlib, obj, size, 0, &face) == 0) {
+  if (FT_New_Memory_Face(ftlib, font_data, size, 0, &face) == 0) {
     hb_font_t *hbfont;
 
     if ((hbfont = hb_ft_font_create(face, done_ft_face))) {
@@ -207,7 +201,7 @@ void *otl_open(void *obj, u_int size) {
       if (hb_ot_layout_has_substitution(hb_font_get_face(hbfont)))
 #endif
       {
-        face->generic.data = obj;
+        face->generic.data = font_data;
         ref_count++;
 
         return hbfont;
@@ -219,7 +213,7 @@ void *otl_open(void *obj, u_int size) {
     FT_Done_Face(face);
   }
 
-  free(obj);
+  free(font_data);
 
   if (ref_count == 0) {
     FT_Done_FreeType(ftlib);
@@ -429,16 +423,33 @@ static hb_script_t get_hb_script(u_int32_t code, int *is_rtl, hb_script_t defaul
   return hbscript;
 }
 
+/*
+ * shape_glyphs != NULL && noshape_glyphs != NULL && src != NULL:
+ *   noshape_glyphs -> shape_glyphs (called from vt_ot_layout.c)
+ * shape_glyphs == NULL: src -> noshape_glyphs (called from vt_ot_layout.c)
+ * cmaped == NULL: src -> shape_glyphs (Not used for now)
+ *
+ * num_shape_glyphs should be greater than src_len.
+ */
 #ifdef NO_DYNAMIC_LOAD_OTL
 static
 #endif
-u_int
-otl_convert_text_to_glyphs(void *hbfont, u_int32_t *shaped, u_int shaped_len, int8_t *offsets,
-                           u_int8_t *widths, u_int32_t *cmapped, u_int32_t *src, u_int src_len,
-                           const char *script, const char *features, u_int fontsize) {
-  if (src && cmapped) {
-    if (cmapped != src) {
-      memcpy(cmapped, src, sizeof(*src) * src_len);
+u_int otl_convert_text_to_glyphs(void *hbfont, u_int32_t *shape_glyphs, u_int num_shape_glyphs,
+                                 int8_t *xoffsets, int8_t *yoffsets, u_int8_t *advances,
+                                 u_int32_t *noshape_glyphs, u_int32_t *src, u_int src_len,
+                                 const char *script, const char *features, u_int fontsize) {
+  u_int count;
+
+  if (shape_glyphs == NULL) {
+    hb_codepoint_t g;
+
+    for (count = 0; count < src_len; count++) {
+#if HB_VERSION_ATLEAST(1,2,3)
+      hb_font_get_nominal_glyph(hbfont, src[count], &g);
+#else
+      hb_font_get_glyph(hbfont, src[count], 0, &g);
+#endif
+      noshape_glyphs[count] = g;
     }
 
     return src_len;
@@ -451,12 +462,7 @@ otl_convert_text_to_glyphs(void *hbfont, u_int32_t *shaped, u_int shaped_len, in
     int is_cur_rtl;
     hb_feature_t *hbfeatures;
     u_int hbfeatures_num;
-    u_int count;
     u_int num = 0;
-
-    if (cmapped) {
-      src = cmapped;
-    }
 
     if (fontsize > 0) {
       u_int scale = fontsize << 6; /* fontsize x 64 */
@@ -514,15 +520,16 @@ otl_convert_text_to_glyphs(void *hbfont, u_int32_t *shaped, u_int shaped_len, in
           }
         }
 
-        n = convert_text_to_glyphs(hbfont, shaped, shaped_len, offsets, widths, cmapped,
-                                   src, count, cur_hbscript, hbfeatures, hbfeatures_num);
-        shaped += n;
-        shaped_len -= n;
-        offsets += n;
-        widths += n;
+        n = convert_text_to_glyphs(hbfont, shape_glyphs, num_shape_glyphs, xoffsets, yoffsets,
+                                   advances, src, count, cur_hbscript, hbfeatures, hbfeatures_num);
+        shape_glyphs += n;
+        num_shape_glyphs -= n;
+        xoffsets += n;
+        yoffsets += n;
+        advances += n;
         num += n;
-        if (cmapped) {
-          cmapped += count;
+        if (noshape_glyphs) {
+          noshape_glyphs += count;
         }
         src += count;
         src_len -= count;
@@ -533,8 +540,8 @@ otl_convert_text_to_glyphs(void *hbfont, u_int32_t *shaped, u_int shaped_len, in
       }
     }
 
-    num += convert_text_to_glyphs(hbfont, shaped, shaped_len, offsets, widths, cmapped,
-                                  src, count, cur_hbscript, hbfeatures, hbfeatures_num);
+    num += convert_text_to_glyphs(hbfont, shape_glyphs, num_shape_glyphs, xoffsets, yoffsets,
+                                  advances, src, count, cur_hbscript, hbfeatures, hbfeatures_num);
 
     return num;
   }

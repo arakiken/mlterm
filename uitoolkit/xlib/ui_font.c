@@ -9,7 +9,6 @@
 #include <pobl/bl_util.h>   /* DIGIT_STR_LEN */
 #include <pobl/bl_locale.h> /* bl_get_lang() */
 #include <mef/ef_ucs4_map.h>
-#include <mef/ef_ucs_property.h>
 #include <vt_char_encoding.h> /* vt_is_msb_set */
 
 #include "ui_type_loader.h"
@@ -703,19 +702,20 @@ static int xft_set_ot_font(ui_font_t *font) {
   return (*func)(font);
 }
 
-static u_int xft_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, u_int shaped_len,
-                                        int8_t *offsets, u_int8_t *widths, u_int32_t *cmapped,
-                                        u_int32_t *src, u_int src_len, const char *script,
-                                        const char *features) {
-  int (*func)(ui_font_t *, u_int32_t *, u_int, int8_t *, u_int8_t *, u_int32_t *, u_int32_t *,
-              u_int, const char *, const char *);
+static u_int xft_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shape_glyphs,
+                                        u_int num_shape_glyphs, int8_t *xoffsets,
+                                        int8_t *yoffsets, u_int8_t *advances,
+                                        u_int32_t *noshape_glyphs, u_int32_t *src, u_int src_len,
+                                        const char *script, const char *features) {
+  int (*func)(ui_font_t *, u_int32_t *, u_int, int8_t *, int8_t *, u_int8_t *, u_int32_t *,
+              u_int32_t *, u_int, const char *, const char *);
 
   if (!(func = ui_load_type_xft_func(UI_CONVERT_TEXT_TO_GLYPHS))) {
     return 0;
   }
 
-  return (*func)(font, shaped, shaped_len, offsets, widths, cmapped, src, src_len, script,
-                 features);
+  return (*func)(font, shape_glyphs, num_shape_glyphs, xoffsets, yoffsets, advances,
+                 noshape_glyphs, src, src_len, script, features);
 }
 
 #elif defined(USE_TYPE_XFT)
@@ -723,12 +723,13 @@ u_int xft_calculate_char_width(ui_font_t *font, u_int32_t ch);
 int xft_set_font(ui_font_t *font, const char *fontname, u_int fontsize, u_int col_width,
                  u_int letter_space, int aa_opt, int use_point_size, double dpi);
 int xft_set_ot_font(ui_font_t *font);
-#define xft_convert_text_to_glyphs(font, shaped, shaped_len, offsets, widths, cmapped, src,   \
-                                   src_len, script, features)                                 \
-  ft_convert_text_to_glyphs(font, shaped, shaped_len, offsets, widths, cmapped, src, src_len, \
-                            script, features)
-u_int ft_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, int8_t *, u_int8_t *,
-                                u_int shaped_len, u_int32_t *cmapped, u_int32_t *src, u_int src_len,
+#define xft_convert_text_to_glyphs(font, shape_glyphs, num_shape_glyphs, xoffsets, yoffsets, \
+                                   advances, noshape_glyphs, src, src_len, script, features) \
+  ft_convert_text_to_glyphs(font, shape_glyphs, num_shape_glyphs, xoffsets, yoffsets, advances, \
+                            noshape_glyphs, src, src_len, script, features)
+u_int ft_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shape_glyphs, int8_t *xoffsets,
+                                int8_t *yoffsets, u_int8_t *advances, u_int num_shape_glyphs,
+                                u_int32_t *noshape_glyphs, u_int32_t *src, u_int src_len,
                                 const char *script, const char *features);
 #endif
 
@@ -769,19 +770,20 @@ static int cairo_set_ot_font(ui_font_t *font) {
   return (*func)(font);
 }
 
-static u_int cairo_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, u_int shaped_len,
-                                          int8_t *offsets, u_int8_t *widths, u_int32_t *cmapped,
-                                          u_int32_t *src, u_int src_len, const char *script,
-                                          const char *features) {
-  int (*func)(ui_font_t *, u_int32_t *, u_int, int8_t *, u_int8_t *, u_int32_t *, u_int32_t *,
-              u_int, const char *, const char *);
+static u_int cairo_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shape_glyphs,
+                                          u_int num_shape_glyphs, int8_t *xoffsets,
+                                          int8_t *yoffsets, u_int8_t *advances,
+                                          u_int32_t *noshape_glyphs, u_int32_t *src, u_int src_len,
+                                          const char *script, const char *features) {
+  int (*func)(ui_font_t *, u_int32_t *, u_int, int8_t *, int8_t *, u_int8_t *, u_int32_t *,
+              u_int32_t *, u_int, const char *, const char *);
 
   if (!(func = ui_load_type_cairo_func(UI_CONVERT_TEXT_TO_GLYPHS))) {
     return 0;
   }
 
-  return (*func)(font, shaped, shaped_len, offsets, widths, cmapped, src, src_len, script,
-                 features);
+  return (*func)(font, shape_glyphs, num_shape_glyphs, xoffsets, yoffsets, advances,
+                 noshape_glyphs, src, src_len, script, features);
 }
 
 #elif defined(USE_TYPE_CAIRO)
@@ -789,15 +791,15 @@ u_int cairo_calculate_char_width(ui_font_t *font, u_int32_t ch);
 int cairo_set_font(ui_font_t *font, const char *fontname, u_int fontsize, u_int col_width,
                    u_int letter_space, int aa_opt, int use_point_size, double dpi);
 int cairo_set_ot_font(ui_font_t *font);
-#define cairo_convert_text_to_glyphs(font, shaped, shaped_len, offsets, widths, cmapped, src, \
-                                     src_len, script, features)                               \
-  ft_convert_text_to_glyphs(font, shaped, shaped_len, offsets, widths, cmapped, src, src_len, \
-                            script, features)
+#define cairo_convert_text_to_glyphs(font, shape_glyphs, num_shape_glyphs, xoffsets, yoffsets, \
+                                     advances, noshape_glyphs, src, src_len, script, features) \
+  ft_convert_text_to_glyphs(font, shape_glyphs, num_shape_glyphs, xoffsets, yoffsets, advances, \
+                            noshape_glyphs, src, src_len, script, features)
 #ifndef USE_TYPE_XFT
-u_int ft_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shaped, int8_t *offsets,
-                                u_int8_t *widths, u_int shaped_len, u_int32_t *cmapped,
-                                u_int32_t *src, u_int src_len, const char *script,
-                                const char *features);
+u_int ft_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shape_glyphs, int8_t *xoffsets,
+                                int8_t *yoffsets, u_int8_t *advances, u_int num_shape_glyphs,
+                                u_int32_t *noshape_glyphs, u_int32_t *src, u_int src_len,
+                                const char *script, const char *features);
 #endif
 #endif
 
@@ -1004,7 +1006,8 @@ void ui_font_destroy(ui_font_t *font) {
   free(font);
 }
 
-u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, int *draw_alone) {
+u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, int is_awidth,
+                              int *draw_alone) {
   if (draw_alone) {
     *draw_alone = 0;
   }
@@ -1018,17 +1021,14 @@ u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, in
     if (draw_alone) {
       *draw_alone = 1;
     }
-  } else if (draw_alone && cs == ISO10646_UCS4_1 /* ISO10646_UCS4_1_V is always proportional */
-#ifdef USE_OT_LAYOUT
-             && (!font->use_ot_layout /* || ! font->ot_font */)
-#endif
-                 ) {
-    if (((ef_get_ucs_property(ch) & EF_AWIDTH) ||
-         /*
-          * The width of U+2590 and U+2591 is narrow in EastAsianWidth-6.3.0
-          * but the glyphs in GNU Unifont are full-width unexpectedly.
-          */
-         ch == 0x2590 || ch == 0x2591)) {
+  } else if (draw_alone &&
+             cs == ISO10646_UCS4_1 /* ISO10646_UCS4_1_V is always proportional */) {
+    if (is_awidth ||
+        /*
+         * The width of U+2590 and U+2591 is narrow in EastAsianWidth-6.3.0
+         * but the glyphs in GNU Unifont are full-width unexpectedly.
+         */
+        ch == 0x2590 || ch == 0x2591) {
       if (calculate_char_width(font, ch, cs) != font->width) {
         *draw_alone = 1;
       }
@@ -1094,19 +1094,20 @@ int ui_font_has_ot_layout_table(ui_font_t *font) {
 }
 
 u_int ui_convert_text_to_glyphs(ui_font_t *font, /* always has ot_font */
-                                u_int32_t *shaped, u_int shaped_len, int8_t *offsets,
-                                u_int8_t *widths, u_int32_t *cmapped, u_int32_t *src, u_int src_len,
+                                u_int32_t *shape_glyphs, u_int num_shape_glyphs, int8_t *xoffsets,
+                                int8_t *yoffsets, u_int8_t *advances, u_int32_t *noshape_glyphs,
+                                u_int32_t *src, u_int src_len,
                                 const char *script, const char *features) {
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
   if (font->cairo_font) {
-    return cairo_convert_text_to_glyphs(font, shaped, shaped_len, offsets, widths, cmapped, src,
-                                        src_len, script, features);
+    return cairo_convert_text_to_glyphs(font, shape_glyphs, num_shape_glyphs, xoffsets, yoffsets,
+                                        advances, noshape_glyphs, src, src_len, script, features);
   }
 #endif
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
   if (font->xft_font) {
-    return xft_convert_text_to_glyphs(font, shaped, shaped_len, offsets, widths, cmapped, src,
-                                      src_len, script, features);
+    return xft_convert_text_to_glyphs(font, shape_glyphs, num_shape_glyphs, xoffsets, yoffsets,
+                                      advances, noshape_glyphs, src, src_len, script, features);
   }
 #endif
 

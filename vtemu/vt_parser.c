@@ -426,8 +426,6 @@ static inline ef_property_t modify_ucs_property(u_int32_t code, int col_size_of_
     char *env;
 #endif
 
-    prop &= ~EF_AWIDTH;
-
     if (col_size_of_width_a == 2) {
       prop |= EF_FULLWIDTH;
     }
@@ -570,7 +568,7 @@ static int parse_string(ef_parser_t *cc_parser, u_char *str, size_t len) {
       }
     } else if (ch.size > 1) {
       if (ch.cs == ISO10646_UCS4_1) {
-        if (ret == 1 && ch.property == EF_FULLWIDTH) {
+        if (ret == 1 && (ch.property & EF_FULLWIDTH)) {
           ret = 2;
         }
       } else {
@@ -891,6 +889,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
   vt_color_t fg_color;
   vt_color_t bg_color;
   int is_fullwidth;
+  int is_awidth;
   int is_comb;
   int is_bold;
   int is_italic;
@@ -911,6 +910,12 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
     is_fullwidth = 1;
   } else {
     is_fullwidth = 0;
+  }
+
+  if (prop & EF_AWIDTH) {
+    is_awidth = 1;
+  } else {
+    is_awidth = 0;
   }
 
 #ifdef __DEBUG
@@ -1012,14 +1017,14 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
        * vt_line_set_modified() is done in vt_screen_combine_with_prev_char()
        * internally.
        */
-      if (vt_screen_combine_with_prev_char(vt_parser->screen, ch, cs, is_fullwidth, is_comb,
-                                           fg_color, bg_color, is_bold, is_italic, line_style,
-                                           is_blinking, is_protected)) {
+      if (vt_screen_combine_with_prev_char(vt_parser->screen, ch, cs, is_fullwidth, is_awidth,
+                                           is_comb, fg_color, bg_color, is_bold, is_italic,
+                                           line_style, is_blinking, is_protected)) {
         return;
       }
     } else {
       if (vt_char_combine(&vt_parser->w_buf.chars[vt_parser->w_buf.filled_len - 1], ch, cs,
-                          is_fullwidth, is_comb, fg_color, bg_color, is_bold, is_italic,
+                          is_fullwidth, is_awidth, is_comb, fg_color, bg_color, is_bold, is_italic,
                           line_style, is_blinking, is_protected)) {
         return;
       }
@@ -1052,8 +1057,8 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
 #endif
 
   vt_char_set(&vt_parser->w_buf.chars[vt_parser->w_buf.filled_len++], ch, cs, is_fullwidth,
-              is_comb, fg_color, bg_color, is_bold, is_italic, line_style, is_blinking,
-              is_protected);
+              is_awidth, is_comb, fg_color, bg_color, is_bold, is_italic, line_style,
+              is_blinking, is_protected);
 
   if (cs != ISO10646_UCS4_1) {
     return;
@@ -1094,16 +1099,16 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
       if (emoji2) {
         /* Base char: emoji1, Comb1: picture, Comb2: emoji2 */
         if (emoji2 == emoji1 + 1) {
-          vt_char_combine(emoji1, ch, cs, is_fullwidth, is_comb, fg_color, bg_color, is_bold,
-                          is_italic, line_style, is_blinking, is_protected);
+          vt_char_combine(emoji1, ch, cs, is_fullwidth, is_awidth, is_comb, fg_color, bg_color,
+                          is_bold, is_italic, line_style, is_blinking, is_protected);
         } else {
           /*
            * vt_line_set_modified() is done in
            * vt_screen_combine_with_prev_char() internally.
            */
-          vt_screen_combine_with_prev_char(vt_parser->screen, ch, cs, is_fullwidth, is_comb,
-                                           fg_color, bg_color, is_bold, is_italic, line_style,
-                                           is_blinking, is_protected);
+          vt_screen_combine_with_prev_char(vt_parser->screen, ch, cs, is_fullwidth, is_awidth,
+                                           is_comb, fg_color, bg_color, is_bold, is_italic,
+                                           line_style, is_blinking, is_protected);
         }
         vt_parser->w_buf.filled_len--;
       }
@@ -1144,8 +1149,8 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
 
     if (IS_ARABIC_CHAR(ch) && vt_is_arabic_combining(prev2, prev, cur)) {
       if (vt_parser->w_buf.filled_len >= 2) {
-        if (vt_char_combine(prev, ch, cs, is_fullwidth, is_comb, fg_color, bg_color, is_bold,
-                            is_italic, line_style, is_blinking, is_protected)) {
+        if (vt_char_combine(prev, ch, cs, is_fullwidth, is_awidth, is_comb, fg_color, bg_color,
+                            is_bold, is_italic, line_style, is_blinking, is_protected)) {
           vt_parser->w_buf.filled_len--;
         }
       } else {
@@ -1153,8 +1158,8 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
          * vt_line_set_modified() is done in
          * vt_screen_combine_with_prev_char() internally.
          */
-        if (vt_screen_combine_with_prev_char(vt_parser->screen, ch, cs, is_fullwidth, is_comb,
-                                             fg_color, bg_color, is_bold, is_italic,
+        if (vt_screen_combine_with_prev_char(vt_parser->screen, ch, cs, is_fullwidth, is_awidth,
+                                             is_comb, fg_color, bg_color, is_bold, is_italic,
                                              line_style, is_blinking, is_protected)) {
           vt_parser->w_buf.filled_len--;
         }
@@ -2994,7 +2999,7 @@ static void set_selection(vt_parser_t *vt_parser, u_char *encoded) {
     str_len = 0;
     (*vt_parser->cc_parser->set_str)(vt_parser->cc_parser, decoded, d_len);
     while ((*vt_parser->cc_parser->next_char)(vt_parser->cc_parser, &ch)) {
-      vt_char_set(&str[str_len++], ef_char_to_int(&ch), ch.cs, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      vt_char_set(&str[str_len++], ef_char_to_int(&ch), ch.cs, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
 
 /*
@@ -6709,15 +6714,15 @@ static int is_transferring_data(vt_parser_t *vt_parser) {
     vt_screen_clear_line_to_right(vt_parser->screen);
 
     vt_str_init(bar, progress_len + 2);
-    vt_char_set(bar, '|', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
+    vt_char_set(bar, '|', US_ASCII, 0, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
 
     for (count = 0; count < progress_cur; count++) {
-      vt_char_set(bar + 1 + count, '*', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
+      vt_char_set(bar + 1 + count, '*', US_ASCII, 0, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
     }
     for (; count < progress_len; count++) {
-      vt_char_set(bar + 1 + count, ' ', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
+      vt_char_set(bar + 1 + count, ' ', US_ASCII, 0, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
     }
-    vt_char_set(bar + 1 + progress_len, '|', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR,
+    vt_char_set(bar + 1 + progress_len, '|', US_ASCII, 0, 0, 0, VT_FG_COLOR, VT_BG_COLOR,
                 0, 0, 0, 0, 0);
 
     vt_screen_overwrite_chars(vt_parser->screen, bar, progress_len + 2);

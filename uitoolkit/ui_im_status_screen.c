@@ -116,9 +116,9 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
       } else {
         u_int ch_width;
 
-        ch_width = ui_calculate_char_width(
-            ui_get_font(stat_screen->font_man, vt_char_font(&stat_screen->chars[i])),
-            vt_char_code(&stat_screen->chars[i]), vt_char_cs(&stat_screen->chars[i]), NULL);
+        ch_width = ui_calculate_vtchar_width(ui_get_font(stat_screen->font_man,
+                                                         vt_char_font(&stat_screen->chars[i])),
+                                             &stat_screen->chars[i], NULL);
 
         if (width + ch_width > max_width) {
           if (rows == 1 || tmp_max_width < width) {
@@ -277,6 +277,7 @@ static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, u_char *
 
   while ((*parser->next_char)(parser, &ch)) {
     int is_fullwidth = 0;
+    int is_awidth = 0;
     int is_comb = 0;
 
     /* -1 (== control sequence) is permitted for \n. */
@@ -288,12 +289,12 @@ static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, u_char *
       is_fullwidth = 1;
     } else if (ch.property & EF_AWIDTH) {
       /* TODO: check col_size_of_width_a */
-      is_fullwidth = 1;
+      is_fullwidth = is_awidth = 1;
     }
 
     if (is_comb) {
-      if (vt_char_combine(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_FG_COLOR,
-                          VT_BG_COLOR, 0, 0, 0, 0, 0)) {
+      if (vt_char_combine(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_awidth, is_comb,
+                          VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0)) {
         continue;
       }
 
@@ -306,8 +307,8 @@ static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, u_char *
       SET_MSB(ch.ch[0]);
     }
 
-    vt_char_set(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_FG_COLOR, VT_BG_COLOR, 0,
-                0, 0, 0, 0);
+    vt_char_set(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_awidth, is_comb,
+                VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
 
     p++;
     stat_screen->filled_len++;

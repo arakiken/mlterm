@@ -24,7 +24,7 @@ void vt_log_final(vt_logs_t *logs);
 
 int vt_change_log_size(vt_logs_t *logs, u_int num_rows);
 
-#define vt_unlimit_log_size(logs) ((logs)->unlimited = 1)
+#define vt_unlimit_log_size(logs) vt_change_log_size(logs, 0x10000)
 
 #define vt_log_size_is_unlimited(logs) ((logs)->unlimited)
 

@@ -1676,7 +1676,7 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
     vt_str_init(str, 0x5e);
     ch = ' ';
     for (count = 0; count < 0x5e; count++) {
-      vt_char_set(str + count, ch, US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
+      vt_char_set(str + count, ch, US_ASCII, 0, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
       ch++;
     }
 
@@ -2707,8 +2707,7 @@ static void report_mouse_tracking(ui_screen_t *screen, int x, int y, int button,
     }
 
     char_index = convert_x_to_char_index_with_shape(screen, line, &ui_rest, x);
-    if (vt_line_is_rtl(line)) {
-      /* XXX */
+    if (vt_line_is_using_ctl(line)) {
       char_index = vt_line_convert_visual_char_index_to_logical(line, char_index);
     }
 
@@ -2716,8 +2715,7 @@ static void report_mouse_tracking(ui_screen_t *screen, int x, int y, int button,
 
     ui_font_manager_set_attr(screen->font_man, line->size_attr,
                              vt_line_has_ot_substitute_glyphs(line));
-    width = ui_calculate_char_width(ui_get_font(screen->font_man, vt_char_font(vt_sp_ch())),
-                                    vt_char_code(vt_sp_ch()), US_ASCII, NULL);
+    width = ui_calculate_vtchar_width(ui_get_font(screen->font_man, US_ASCII), vt_sp_ch(), NULL);
     if (ui_rest > width) {
       if ((col += ui_rest / width) >= vt_term_get_cols(screen->term)) {
         col = vt_term_get_cols(screen->term) - 1;

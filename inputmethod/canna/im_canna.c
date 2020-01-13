@@ -150,7 +150,8 @@ static void preedit(im_canna_t *canna, char *preedit,             /* eucjp(null 
       if (ch.property & EF_COMBINING) {
         is_comb = 1;
 
-        if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb,
+        if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth,
+                                     (ch.property & EF_AWIDTH) ? 1 : 0, is_comb,
                                      VT_FG_COLOR, VT_BG_COLOR, 0, 0, LS_UNDERLINE_SINGLE, 0, 0)) {
           continue;
         }
@@ -164,10 +165,12 @@ static void preedit(im_canna_t *canna, char *preedit,             /* eucjp(null 
 
       if (canna->im.preedit.cursor_offset <= canna->im.preedit.filled_len &&
           canna->im.preedit.filled_len < canna->im.preedit.cursor_offset + rev_len) {
-        (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_BG_COLOR,
+        (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth,
+                             (ch.property & EF_AWIDTH) ? 1 : 0, is_comb, VT_BG_COLOR,
                              VT_FG_COLOR, 0, 0, LS_UNDERLINE_SINGLE, 0, 0);
       } else {
-        (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_FG_COLOR,
+        (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth,
+                             (ch.property & EF_AWIDTH) ? 1 : 0, is_comb, VT_FG_COLOR,
                              VT_BG_COLOR, 0, 0, LS_UNDERLINE_SINGLE, 0, 0);
       }
 

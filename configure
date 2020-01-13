@@ -18939,6 +18939,10 @@ fi
 			OT_LAYOUT_CFLAGS="`libotf-config --cflags` -DUSE_OT_LAYOUT"
 			OT_LAYOUT_LIBS="`libotf-config --libs`"
 			OT_LAYOUT_OBJ=otf.o
+		elif test "$gui" = "win32" ; then
+			OT_LAYOUT_CFLAGS="-DUSE_OT_LAYOUT -DUSE_UNISCRIBE"
+			OT_LAYOUT_OBJ=uniscribe.o
+			OT_LAYOUT_LIBS="-lusp10"
 		fi
 	fi
 
@@ -19195,7 +19199,7 @@ fi
 			esac
 		fi
 
-		VT_PTY_OBJ="vt_pty_ssh.o ${VT_PTY_OBJ}"
+		VT_PTY_OBJ="vt_pty_ssh.o vt_pty_mosh.o ${VT_PTY_OBJ}"
 
 		if test "$enable_shared" = "no" ; then
 			SSH2_CFLAGS="$SSH2_CFLAGS -DNO_DYNAMIC_LOAD_SSH"
@@ -19205,8 +19209,6 @@ fi
 			# dlopen libptyssh
 			MAKE_DIRS="vtemu/libptyssh ${MAKE_DIRS}"
 			OUTPUT_FILES="vtemu/libptyssh/Makefile ${OUTPUT_FILES}"
-
-			VT_PTY_OBJ="${VT_PTY_OBJ} vt_pty_mosh.o"
 
 			if test -d "$with_mosh"; then
 				MAKE_DIRS="${MAKE_DIRS} vtemu/libptymosh"
@@ -25609,6 +25611,8 @@ if test "$OT_LAYOUT_OBJ" = "hb.o"; then
 	echo "OpenType Layout                   : yes (harfbuzz)"
 elif test "$OT_LAYOUT_OBJ" = "otf.o"; then
 	echo "OpenType Layout                   : yes (libotf)"
+elif test "$OT_LAYOUT_OBJ" = "uniscribe.o"; then
+	echo "OpenType Layout                   : yes (uniscribe)"
 else
 	echo "OpenType Layout                   : no"
 fi

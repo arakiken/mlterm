@@ -2,9 +2,10 @@
 
 #include "vt_pty_intern.h"
 
+#include <stdio.h> /* NULL */
+
 #ifndef NO_DYNAMIC_LOAD_SSH
 
-#include <stdio.h> /* NULL */
 #include <pobl/bl_dlfcn.h>
 #include <pobl/bl_debug.h>
 

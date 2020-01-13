@@ -88,8 +88,7 @@ static u_int candidate_width(ui_font_manager_t *font_man, ui_im_candidate_t *can
 
     font = ui_get_font(font_man, vt_char_font(&candidate->chars[i]));
 
-    width += ui_calculate_char_width(font, vt_char_code(&candidate->chars[i]),
-                                     vt_char_cs(&candidate->chars[i]), NULL);
+    width += ui_calculate_vtchar_width(font, &candidate->chars[i], NULL);
   }
 
   return width;
@@ -306,7 +305,7 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
     p = digit_str;
     for (j = 0; j < num_digits + 1; j++) {
       vt_char_init(p);
-      vt_char_set(p++, digit[j], US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
+      vt_char_set(p++, digit[j], US_ASCII, 0, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
     }
 
     draw_str(cand_screen, digit_str, num_digits + 1, 0, i - top, font->height, font->ascent,
@@ -375,7 +374,7 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
     p = navi_str;
     for (i = 0; i < len; i++) {
       vt_char_init(p);
-      vt_char_set(p++, navi[i], US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
+      vt_char_set(p++, navi[i], US_ASCII, 0, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
     }
 
     draw_str(cand_screen, navi_str, len, x, cand_screen->num_per_window, font->height,
@@ -462,7 +461,7 @@ static void draw_screen_horizontal(ui_im_candidate_screen_t *cand_screen, u_int 
     p = digit_str;
     for (j = 0; j < num_digits + 1; j++) {
       vt_char_init(p);
-      vt_char_set(p++, digit[j], US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
+      vt_char_set(p++, digit[j], US_ASCII, 0, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
     }
 
     if (draw_index != INVALID_INDEX) {
@@ -705,6 +704,7 @@ static int set_candidate(ui_im_candidate_screen_t *cand_screen, ef_parser_t *par
 
   while ((*parser->next_char)(parser, &ch)) {
     int is_fullwidth = 0;
+    int is_awidth = 0;
     int is_comb = 0;
 
     if (vt_convert_to_internal_ch(cand_screen->vtparser, &ch) <= 0) {
@@ -715,14 +715,14 @@ static int set_candidate(ui_im_candidate_screen_t *cand_screen, ef_parser_t *par
       is_fullwidth = 1;
     } else if (ch.property & EF_AWIDTH) {
       /* TODO: check col_size_of_width_a */
-      is_fullwidth = 1;
+      is_fullwidth = is_awidth = 1;
     }
 
     if (ch.property & EF_COMBINING) {
       is_comb = 1;
 
-      if (vt_char_combine(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_FG_COLOR,
-                          VT_BG_COLOR, 0, 0, 0, 0, 0)) {
+      if (vt_char_combine(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_awidth, is_comb,
+                          VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0)) {
         continue;
       }
 
@@ -731,8 +731,8 @@ static int set_candidate(ui_im_candidate_screen_t *cand_screen, ef_parser_t *par
        */
     }
 
-    vt_char_set(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_comb, VT_FG_COLOR, VT_BG_COLOR, 0,
-                0, 0, 0, 0);
+    vt_char_set(p, ef_char_to_int(&ch), ch.cs, is_fullwidth, is_awidth, is_comb,
+                VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
 
     p++;
     cand_screen->candidates[index].filled_len++;

@@ -6,6 +6,9 @@
 #include <pobl/bl_mem.h> /* malloc */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_util.h>
+#ifdef DEBUG
+#include <stdlib.h> /* abort */
+#endif
 
 #if 0
 #define __DEBUG
@@ -20,7 +23,7 @@ int vt_log_init(vt_logs_t *logs, u_int num_rows) {
 
   /* Over 65535 is regarded as unlimited. */
   if (num_rows > 0xffff) {
-    vt_unlimit_log_size(logs);
+    logs->unlimited = 1;
     num_rows = VT_LOG_SIZE_UNIT;
   } else if (num_rows == 0) {
     return 1;
@@ -70,18 +73,36 @@ int vt_change_log_size(vt_logs_t *logs, u_int new_num_rows) {
 
   /* Over 65535 is regarded as unlimited. */
   if (new_num_rows > 0xffff) {
-    vt_unlimit_log_size(logs);
+    logs->unlimited = 1;
 
-    return 1;
+    if (logs->num_rows >= VT_LOG_SIZE_UNIT) {
+      return 1;
+    } else {
+      new_num_rows = VT_LOG_SIZE_UNIT;
+    }
+  } else {
+    logs->unlimited = 0;
   }
-
-  logs->unlimited = 0;
 
   num_filled_rows = vt_get_num_logged_lines(logs);
 
   if (new_num_rows == logs->num_rows) {
     return 1;
   } else if (new_num_rows == 0) {
+    u_int count;
+    vt_line_t *line;
+
+    for (count = 0; count < num_filled_rows; count++) {
+      if ((line = vt_log_get(logs, count))) {
+        vt_line_final(line);
+      }
+#ifdef DEBUG
+      else {
+        abort();
+      }
+#endif
+    }
+
     free(logs->lines);
     logs->lines = NULL;
 
@@ -91,7 +112,8 @@ int vt_change_log_size(vt_logs_t *logs, u_int new_num_rows) {
     logs->num_rows = 0;
 
     return 1;
-  } else if (new_num_rows > logs->num_rows && bl_cycle_index_of(logs->index, 0) == 0) {
+  } else if (new_num_rows > logs->num_rows &&
+             (logs->index == NULL || bl_cycle_index_of(logs->index, 0) == 0)) {
     vt_line_t *new_lines;
 
     if (sizeof(vt_line_t) * new_num_rows < sizeof(vt_line_t) * logs->num_rows) {
@@ -137,15 +159,14 @@ int vt_change_log_size(vt_logs_t *logs, u_int new_num_rows) {
      * freeing excess lines.
      */
     for (count = 0; count < start; count++) {
-      if ((line = vt_log_get(logs, count)) == NULL) {
-#ifdef DEBUG
-        bl_warn_printf(BL_DEBUG_TAG " this is impossible.\n");
-#endif
-
-        return 0;
+      if ((line = vt_log_get(logs, count))) {
+        vt_line_final(line);
       }
-
-      vt_line_final(line);
+#ifdef DEBUG
+      else {
+        abort();
+      }
+#endif
     }
 
     /*

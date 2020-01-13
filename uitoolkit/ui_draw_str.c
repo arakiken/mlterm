@@ -18,14 +18,14 @@
 
 /* --- static functions --- */
 
-static u_int calculate_char_width(ui_font_t *font, u_int code, ef_charset_t cs, vt_char_t *comb,
-                                  u_int comb_size, int *draw_alone) {
+static u_int calculate_char_width(ui_font_t *font, u_int code, ef_charset_t cs, int is_awidth,
+                                  vt_char_t *comb, u_int comb_size, int *draw_alone) {
   u_int width;
 
-  width = ui_calculate_char_width(font, code, cs, draw_alone);
+  width = ui_calculate_char_width(font, code, cs, is_awidth, draw_alone);
 
   if (cs == ISO10646_UCS4_1_V) {
-    int w;
+    u_int w;
 
     for (; comb_size > 0; comb_size--, comb++) {
 #ifdef DEBUG
@@ -38,7 +38,7 @@ static u_int calculate_char_width(ui_font_t *font, u_int code, ef_charset_t cs, 
       }
 #endif
 
-      if ((w = vt_char_get_offset(comb) + (int)vt_char_get_width(comb)) > (int)width) {
+      if ((w = vt_char_get_advance(comb)) > width) {
         width = w;
       }
     }
@@ -452,8 +452,8 @@ static void fc_draw_combining_chars(ui_window_t *window, ui_font_manager_t *font
       /* FcChar32 */ u_int32_t ucs4;
 
       if (ch_cs == ISO10646_UCS4_1_V) {
-        ui_window_ft_draw_string32(window, uifont, xcolor, x + vt_char_get_offset(&chars[count]), y,
-                                   &ch_code, 1);
+        ui_window_ft_draw_string32(window, uifont, xcolor, x + vt_char_get_xoffset(&chars[count]),
+                                   y - vt_char_get_yoffset(&chars[count]), &ch_code, 1);
       } else if ((ucs4 = ui_convert_to_xft_ucs4(ch_code, ch_cs))) {
         ui_window_ft_draw_string32(window, uifont, xcolor, x, y, &ucs4, 1);
       }
@@ -529,7 +529,8 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   ch_cs = FONT_CS(font);
   comb_chars = vt_get_combining_chars(&chars[count], &comb_size);
 
-  ch_width = calculate_char_width(uifont, ch_code, ch_cs, comb_chars, comb_size, &draw_alone);
+  ch_width = calculate_char_width(uifont, ch_code, ch_cs, vt_char_is_awidth(&chars[count]),
+                                  comb_chars, comb_size, &draw_alone);
 
   if ((current_width = x + ch_width) > window->width || y + height > window->height) {
 #ifdef DEBUG
@@ -604,7 +605,8 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       next_bg_color = vt_char_bg_color(&chars[count]);
       next_line_style = vt_char_line_style(&chars[count]);
       next_comb_chars = vt_get_combining_chars(&chars[count], &next_comb_size);
-      next_ch_width = calculate_char_width(next_uifont, ch_code, ch_cs, next_comb_chars,
+      next_ch_width = calculate_char_width(next_uifont, ch_code, ch_cs,
+                                           vt_char_is_awidth(&chars[count]), next_comb_chars,
                                            next_comb_size, &next_draw_alone);
 
       if ((next_state = get_state(ch_cs, ch_code, next_comb_chars, &pic_glyph, &drcs_glyph,
@@ -685,8 +687,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
         ui_window_draw_decsp_string(window, uifont, fg_xcolor, x, y + ascent, str8, str_len);
       } else if (state == 2) {
         ui_window_ft_draw_string32(window, uifont, fg_xcolor, x, y + ascent, str32, str_len);
-      } else /* if( state == 3) */
-      {
+      } else /* if (state == 3) */ {
         draw_drcs(window, drcs_glyphs, str_len, x, y, ch_width, height, fg_xcolor,
                   font_man->size_attr);
       }
@@ -775,6 +776,7 @@ static int xcore_draw_combining_chars(ui_window_t *window, ui_font_manager_t *fo
   ef_charset_t ch_cs;
   ui_font_t *uifont;
   int x_off;
+  int y_off;
 
   for (count = 0; count < size; count++) {
     if (vt_char_is_zerowidth(&chars[count])) {
@@ -792,16 +794,17 @@ static int xcore_draw_combining_chars(ui_window_t *window, ui_font_manager_t *fo
       ui_window_draw_decsp_string(window, uifont, xcolor, x, y, &c, 1);
     } else {
       if (ch_cs == ISO10646_UCS4_1_V) {
-        x_off = vt_char_get_offset(&chars[count]);
+        x_off = vt_char_get_xoffset(&chars[count]);
+        y_off = vt_char_get_yoffset(&chars[count]);
       } else {
-        x_off = 0;
+        x_off = y_off = 0;
       }
 
       if (ch_code < 0x100) {
         u_char c;
 
         c = ch_code;
-        ui_window_draw_string(window, uifont, xcolor, x + x_off, y, &c, 1);
+        ui_window_draw_string(window, uifont, xcolor, x + x_off, y - y_off, &c, 1);
       } else {
         /* UCS4 */
 
@@ -819,7 +822,7 @@ static int xcore_draw_combining_chars(ui_window_t *window, ui_font_manager_t *fo
           len = 1;
         }
 
-        ui_window_draw_string16(window, uifont, xcolor, x, y, xch, len);
+        ui_window_draw_string16(window, uifont, xcolor, x + x_off, y - y_off, xch, len);
       }
     }
   }
@@ -894,7 +897,8 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   ch_cs = FONT_CS(font);
   comb_chars = vt_get_combining_chars(&chars[count], &comb_size);
 
-  ch_width = calculate_char_width(uifont, ch_code, ch_cs, comb_chars, comb_size, &draw_alone);
+  ch_width = calculate_char_width(uifont, ch_code, ch_cs, vt_char_is_awidth(&chars[count]),
+                                  comb_chars, comb_size, &draw_alone);
 
   if ((current_width = x + ch_width) > window->width || y + height > window->height) {
 #ifdef DEBUG
@@ -964,7 +968,8 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       next_bg_color = vt_char_bg_color(&chars[count]);
       next_line_style = vt_char_line_style(&chars[count]);
       next_comb_chars = vt_get_combining_chars(&chars[count], &next_comb_size);
-      next_ch_width = calculate_char_width(next_uifont, ch_code, ch_cs, next_comb_chars,
+      next_ch_width = calculate_char_width(next_uifont, ch_code, ch_cs,
+                                           vt_char_is_awidth(&chars[count]), next_comb_chars,
                                            next_comb_size, &next_draw_alone);
 
       if ((next_state = get_state(ch_cs, ch_code, next_comb_chars, &pic_glyph, &drcs_glyph,
@@ -1060,8 +1065,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
         } else if (state == 1) {
           ui_window_console_draw_decsp_string(window, uifont, fg_xcolor, bg_xcolor, x, y + ascent,
                                               str, str_len, line_style);
-        } else /* if( state == 0) */
-        {
+        } else /* if (state == 0) */ {
           ui_window_console_draw_string(window, uifont, fg_xcolor, bg_xcolor, x, y + ascent, str,
                                         str_len, line_style);
         }
@@ -1071,7 +1075,9 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       if (uifont->height != height || state == 3 ||
           (uifont->is_proportional && ui_window_has_wall_picture(window))) {
         if (bg_color == VT_BG_COLOR) {
-          ui_window_clear(window, x, y, current_width - x, height);
+          if (updated_width) {
+            ui_window_clear(window, x, y, current_width - x, height);
+          }
         } else {
           ui_window_fill_with(window, bg_xcolor, x, y, current_width - x, height);
         }
@@ -1086,7 +1092,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       } else if(state == 0) {
         ui_window_draw_image_string(window, uifont, fg_xcolor, bg_xcolor, x, y + ascent, str,
                                     str_len);
-      } else /* if( state == 3) */ {
+      } else /* if (state == 3) */ {
         draw_drcs(window, drcs_glyphs, str_len, x, y, ch_width, height, fg_xcolor,
                   font_man->size_attr);
       }
@@ -1103,21 +1109,15 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 #endif
           /* draw_alone || */       /* draw_alone is always false on framebuffer. */
 #else /* DRAW_SCREEN_IN_PIXELS */
-#if defined(USE_WIN32GUI) && defined(USE_OT_LAYOUT)
-          /*
-           * U+2022 is ambiguous and should be drawn one by one, but
-           * ui_calculate_char_width() can't tell it as ambigous if
-           * use_ot_layout is true because ch_code is glyph index.
-           */
-          (uifont->use_ot_layout /* && uifont->ot_font */) ||
-#endif
           (ui_window_has_wall_picture(window) && bg_color == VT_BG_COLOR) || draw_alone ||
 #endif /* DRAW_SCREEN_IN_PIXELS */
           uifont->height != height || state == 3)
 #endif /* NO_DRAW_IMAGE_STRING */
       {
         if (bg_color == VT_BG_COLOR) {
-          ui_window_clear(window, x, y, current_width - x, height);
+          if (updated_width) {
+            ui_window_clear(window, x, y, current_width - x, height);
+          }
         } else {
           ui_window_fill_with(window, bg_xcolor, x, y, current_width - x, height);
         }
@@ -1130,8 +1130,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
           ui_window_draw_decsp_string(window, uifont, fg_xcolor, x, y + ascent, str, str_len);
         } else if (state == 0) {
           ui_window_draw_string(window, uifont, fg_xcolor, x, y + ascent, str, str_len);
-        } else /* if( state == 3) */
-        {
+        } else /* if (state == 3) */ {
           draw_drcs(window, drcs_glyphs, str_len, x, y, ch_width, height, fg_xcolor,
                     font_man->size_attr);
         }
@@ -1144,8 +1143,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
         } else if (state == 1) {
           ui_window_draw_decsp_image_string(window, uifont, fg_xcolor, bg_xcolor, x, y + ascent, str,
                                             str_len);
-        } else /* if( state == 0) */
-        {
+        } else /* if (state == 0) */ {
           ui_window_draw_image_string(window, uifont, fg_xcolor, bg_xcolor, x, y + ascent, str,
                                       str_len);
         }
@@ -1308,22 +1306,33 @@ int ui_draw_str_to_eol(ui_window_t *window, ui_font_manager_t *font_man,
     case TYPE_CAIRO:
       ui_window_clear(window, x, y, window->width - x, height);
 
-      ret = fc_draw_str(
-          window, font_man, color_man, NULL /* NULL disables ui_window_clear() in fc_draw_str() */,
-          chars, num_chars, x, y, height, ascent, top_margin, hide_underline,
-          underline_offset);
+      ret = fc_draw_str(window, font_man, color_man,
+                        NULL /* NULL disables ui_window_clear() in fc_draw_str() */,
+                        chars, num_chars, x, y, height, ascent, top_margin, hide_underline,
+                        underline_offset);
 
       break;
 #endif
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
     case TYPE_XCORE:
-      ret = xcore_draw_str(window, font_man, color_man, &updated_width, chars, num_chars, x, y,
-                           height, ascent, top_margin, hide_underline, underline_offset);
+#ifndef USE_XLIB
+      /* This shows indic scripts correctly. */
 
+      ui_window_clear(window, x, y, window->width - x, height);
+
+      ret = xcore_draw_str(window, font_man, color_man,
+                           NULL /* NULL disables ui_window_clear() in fc_draw_str() */,
+                           chars, num_chars, x, y, height, ascent, top_margin, hide_underline,
+                           underline_offset);
+#else
+      ret = xcore_draw_str(window, font_man, color_man, &updated_width,
+                           chars, num_chars, x, y, height, ascent, top_margin, hide_underline,
+                           underline_offset);
       if (updated_width < window->width) {
         ui_window_clear(window, updated_width, y, window->width - updated_width, height);
       }
+#endif
 
       break;
 #endif
@@ -1348,5 +1357,6 @@ u_int ui_calculate_vtchar_width(ui_font_t *font, vt_char_t *ch, int *draw_alone)
     comb_size = 0;
   }
 
-  return calculate_char_width(font, vt_char_code(ch), cs, comb, comb_size, draw_alone);
+  return calculate_char_width(font, vt_char_code(ch), cs, vt_char_is_awidth(ch),
+                              comb, comb_size, draw_alone);
 }

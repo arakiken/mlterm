@@ -8,28 +8,31 @@
 
 #define LINE_STYLE(attr) (((attr) >> 19) & 0xf)
 
-#define IS_UNICODE_AREA_CS(attr) ((attr) & (0x1 << 17))
+#define IS_BLINKING(attr) ((attr) & (0x1 << 18))
 
-/* Combination of IS_ITALIC, IS_BOLD, IS_FULLWIDTH, CS_REVISION_1 and
- * CHARSET(UNICODE AREA) */
+#define IS_REVERSED(attr) ((attr) & (0x1 << 17))
+#define REVERSE_COLOR(attr) ((attr) |= (0x1 << 17))
+#define RESTORE_COLOR(attr) ((attr) &= ~(0x1 << 17))
+
+#define IS_PROTECTED(attr) ((attr) & (0x1 << 16))
+
+#define IS_UNICODE_AREA_CS(attr) ((attr) & (0x1 << 15))
+
+/* for vt_char_set_cs() */
+#define CS_SHIFT 3
+
+/* Combination of IS_ITALIC, IS_BOLD, IS_FULLWIDTH, CS_REVISION_1 and CHARSET(UNICODE AREA) */
 #define VTFONT(attr)                                                            \
   IS_UNICODE_AREA_CS(attr)                                                      \
-      ? ((((attr) >> 5) & 0xf00) | ISO10646_UCS4_1 | (((attr) << 7) & 0xff000)) \
-      : (((attr) >> 5) & 0xfff)
+    ? ((((attr) >> 3) & 0xf00) | ISO10646_UCS4_1 | (((attr) << 9) & 0xff000)) \
+    : (((attr) >> 3) & 0xfff)
 
-#define IS_BLINKING(attr) ((attr) & (0x1 << 18))
-#define IS_ITALIC(attr) ((attr) & (0x1 << 16))
-#define IS_BOLD(attr) ((attr) & (0x1 << 15))
-#define IS_FULLWIDTH(attr) ((attr) & (0x1 << 14))
-#define COLUMNS(attr) ((((attr) >> 14) & 0x1) + 1);
+#define IS_ITALIC(attr) ((attr) & (0x1 << 14))
+#define IS_BOLD(attr) ((attr) & (0x1 << 13))
+#define IS_FULLWIDTH(attr) ((attr) & (0x1 << 12))
+#define COLUMNS(attr) ((((attr) >> 12) & 0x1) + 1);
 #define CHARSET(attr) \
-  IS_UNICODE_AREA_CS(attr) ? (ISO10646_UCS4_1 | (((attr) >> 5) & 0x100)) : (((attr) >> 5) & 0x1ff)
-
-#define IS_REVERSED(attr) ((attr) & (0x1 << 4))
-#define REVERSE_COLOR(attr) ((attr) |= (0x1 << 4))
-#define RESTORE_COLOR(attr) ((attr) &= ~(0x1 << 4))
-
-#define IS_PROTECTED(attr) ((attr) & (0x1 << 3))
+  IS_UNICODE_AREA_CS(attr) ? (ISO10646_UCS4_1 | (((attr) >> 3) & 0x100)) : (((attr) >> 3) & 0x1ff)
 
 #define IS_COMB(attr) ((attr) & (0x1 << 2))
 
@@ -37,17 +40,21 @@
 #define SET_COMB_TRAILING(attr) ((attr) |= (0x1 << 1))
 #define UNSET_COMB_TRAILING(attr) ((attr) &= 0xfffffd)
 
-#define IS_SINGLE_CH(attr) ((attr)&0x1)
+#define IS_SINGLE_CH(attr) ((attr) & 0x1)
 #define USE_MULTI_CH(attr) ((attr) &= 0xfffffe)
 #define UNUSE_MULTI_CH(attr) ((attr) |= 0x1)
 
 #define COMPOUND_ATTR(charset, is_fullwidth, is_bold, is_italic, is_unicode_area_cs, \
                       line_style, is_blinking, is_protected, is_comb) \
-  (((line_style) << 19) | ((is_blinking) << 18) | ((is_unicode_area_cs) << 17) | \
-   ((is_italic) << 16) | ((is_bold) << 15) | ((is_fullwidth) << 14) | ((charset) << 5) | \
-   ((is_protected) << 3) | ((is_comb) << 2) | 0x1)
+  (((line_style) << 19) | ((is_blinking) << 18) | ((is_protected) << 16) | \
+   ((is_unicode_area_cs) << 15) | ((is_italic) << 14) | ((is_bold) << 13) | \
+   ((is_fullwidth) << 12) | ((charset) << 3) | ((is_comb) << 2) | 0x1)
 
-#define IS_ZEROWIDTH(c) ((c)->u.ch.attr2)
+#define ADVANCE(attr) (((attr) >> 16) & 0x7f)
+#define CHANGE_ADVANCE(attr, advance) (((attr) & 0xffff) | (((u_int)(advance)) << 16))
+
+#define IS_AWIDTH(c) ((c)->u.ch.attr2 & 0x2) /* Ambiguous width */
+#define IS_ZEROWIDTH(c) ((c)->u.ch.attr2 & 0x1)
 
 /* --- static variables --- */
 
@@ -274,10 +281,11 @@ void vt_char_final(vt_char_t *ch) {
   }
 }
 
-void vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth, int is_comb,
-                 vt_color_t fg_color, vt_color_t bg_color, int is_bold, int is_italic,
-                 int line_style, int is_blinking, int is_protected) {
+void vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth,
+                 int is_awidth, int is_comb, vt_color_t fg_color, vt_color_t bg_color,
+                 int is_bold, int is_italic, int line_style, int is_blinking, int is_protected) {
   u_int idx;
+  int is_zerowidth;
 
   vt_char_final(ch);
 
@@ -320,12 +328,13 @@ void vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidt
    */
   if ((code & ~0x2f) == 0x2000 /* 0x2000-0x2000f or 0x2020-0x202f */ && cs == ISO10646_UCS4_1 &&
       ((0x200c <= code && code <= 0x200f) || (0x202a <= code && code <= 0x202e))) {
-    ch->u.ch.attr2 = 1; /* is zerowidth */
-  } else
-#endif
-  {
-    ch->u.ch.attr2 = 0;
+    is_zerowidth = 1;
+  } else {
+    is_zerowidth = 0;
   }
+#endif
+
+  ch->u.ch.attr2 = (is_awidth ? 2 : 0) | is_zerowidth;
 
   ch->u.ch.attr = COMPOUND_ATTR(cs, is_fullwidth != 0, is_bold != 0, is_italic != 0, idx > 0,
                                 line_style, is_blinking != 0, is_protected != 0, is_comb != 0);
@@ -429,8 +438,9 @@ void vt_char_reverse_attr(vt_char_t *ch, int bold, int italic, int underline_sty
 }
 
 vt_char_t *vt_char_combine(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidth,
-                           int is_comb, vt_color_t fg_color, vt_color_t bg_color, int is_bold,
-                           int is_italic, int line_style, int is_blinking, int is_protected) {
+                           int is_awidth, int is_comb, vt_color_t fg_color, vt_color_t bg_color,
+                           int is_bold, int is_italic, int line_style, int is_blinking,
+                           int is_protected) {
   vt_char_t *comb;
   u_int comb_size;
 
@@ -456,8 +466,8 @@ vt_char_t *vt_char_combine(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int i
   }
 
   vt_char_init(comb);
-  vt_char_set(comb, code, cs, is_fullwidth, is_comb, fg_color, bg_color, is_bold, is_italic,
-              line_style, is_blinking, is_protected);
+  vt_char_set(comb, code, cs, is_fullwidth, is_awidth, is_comb, fg_color, bg_color,
+              is_bold, is_italic, line_style, is_blinking, is_protected);
 
 #ifdef USE_NORMALIZE
   normalize(ch, comb_size);
@@ -589,6 +599,7 @@ u_int32_t vt_char_code(vt_char_t *ch) {
   }
 }
 
+/* is_fullwidth, is_zerowidth and is_awidth are not changed. */
 void vt_char_set_code(vt_char_t *ch, u_int32_t code) {
   if (IS_SINGLE_CH(ch->u.ch.attr)) {
     ch->u.ch.code = code;
@@ -609,14 +620,14 @@ int vt_char_set_cs(vt_char_t *ch, ef_charset_t cs) {
   if (IS_SINGLE_CH(ch->u.ch.attr)) {
     if (IS_UNICODE_AREA_CS(ch->u.ch.attr)) {
       if (cs == ISO10646_UCS4_1_V) {
-        ch->u.ch.attr |= (0x100 << 5);
+        ch->u.ch.attr |= (0x100 << CS_SHIFT);
       } else /* if( cs == ISO10646_UCS4_1) */
       {
-        ch->u.ch.attr &= ~(0x100 << 5);
+        ch->u.ch.attr &= ~(0x100 << CS_SHIFT);
       }
     } else {
-      ch->u.ch.attr &= ~(MAX_CHARSET << 5); /* ~0x1ff (vt_font.h) */
-      ch->u.ch.attr |= (cs << 5);
+      ch->u.ch.attr &= ~(MAX_CHARSET << CS_SHIFT); /* ~0x1ff (vt_font.h) */
+      ch->u.ch.attr |= (cs << CS_SHIFT);
     }
   } else {
     vt_char_set_cs(ch->u.multi_ch, cs);
@@ -670,6 +681,14 @@ int vt_char_is_zerowidth(vt_char_t *ch) {
     return IS_ZEROWIDTH(ch);
   } else {
     return vt_char_is_zerowidth(ch->u.multi_ch);
+  }
+}
+
+int vt_char_is_awidth(vt_char_t *ch) {
+  if (IS_SINGLE_CH(ch->u.ch.attr)) {
+    return IS_AWIDTH(ch);
+  } else {
+    return vt_char_is_awidth(ch->u.multi_ch);
   }
 }
 
@@ -749,21 +768,20 @@ void vt_char_set_bg_color(vt_char_t *ch, vt_color_t color) {
   }
 }
 
-int vt_char_get_offset(vt_char_t *ch) {
+int vt_char_get_xoffset(vt_char_t *ch) {
   u_int attr;
 
   attr = ch->u.ch.attr;
 
   if (IS_SINGLE_CH(attr) && CHARSET(attr) == ISO10646_UCS4_1_V) {
-    int8_t offset;
+    int8_t xoffset;
 
-    offset = ch->u.ch.bg_color; /* unsigned -> signed */
+    xoffset = ch->u.ch.bg_color; /* unsigned -> signed */
 
-    return offset;
+    return xoffset;
   } else {
 #ifdef DEBUG
-    bl_debug_printf(BL_DEBUG_TAG
-                    " vt_char_get_position() accepts "
+    bl_debug_printf(BL_DEBUG_TAG " vt_char_get_xoffset() accepts "
                     "ISO10646_UCS4_1_V char alone, but received %x charset.\n",
                     vt_char_cs(ch));
 #endif
@@ -772,17 +790,20 @@ int vt_char_get_offset(vt_char_t *ch) {
   }
 }
 
-u_int vt_char_get_width(vt_char_t *ch) {
+int vt_char_get_yoffset(vt_char_t *ch) {
   u_int attr;
 
   attr = ch->u.ch.attr;
 
   if (IS_SINGLE_CH(attr) && CHARSET(attr) == ISO10646_UCS4_1_V) {
-    return ch->u.ch.fg_color;
+    int8_t yoffset;
+
+    yoffset = ch->u.ch.fg_color; /* unsigned -> signed */
+
+    return yoffset;
   } else {
 #ifdef DEBUG
-    bl_debug_printf(BL_DEBUG_TAG
-                    " vt_char_get_width() accepts "
+    bl_debug_printf(BL_DEBUG_TAG " vt_char_get_yoffset() accepts "
                     "ISO10646_UCS4_1_V char alone, but received %x charset.\n",
                     vt_char_cs(ch));
 #endif
@@ -791,21 +812,40 @@ u_int vt_char_get_width(vt_char_t *ch) {
   }
 }
 
-int vt_char_set_position(vt_char_t *ch, u_int8_t offset, /* signed -> unsigned */
-                         u_int8_t width) {
+u_int vt_char_get_advance(vt_char_t *ch) {
   u_int attr;
 
   attr = ch->u.ch.attr;
 
   if (IS_SINGLE_CH(attr) && CHARSET(attr) == ISO10646_UCS4_1_V) {
-    ch->u.ch.bg_color = offset;
-    ch->u.ch.fg_color = width;
+    return ADVANCE(attr);
+  } else {
+#ifdef DEBUG
+    bl_debug_printf(BL_DEBUG_TAG " vt_char_get_advance() accepts "
+                    "ISO10646_UCS4_1_V char alone, but received %x charset.\n",
+                    vt_char_cs(ch));
+#endif
+
+    return 0;
+  }
+}
+
+int vt_char_set_position(vt_char_t *ch, u_int8_t xoffset, /* signed -> unsigned */
+                         u_int8_t yoffset, /* signed -> unsigned */
+                         u_int8_t advance) {
+  u_int attr;
+
+  attr = ch->u.ch.attr;
+
+  if (IS_SINGLE_CH(attr) && CHARSET(attr) == ISO10646_UCS4_1_V) {
+    ch->u.ch.bg_color = xoffset;
+    ch->u.ch.fg_color = yoffset;
+    ch->u.ch.attr = CHANGE_ADVANCE(attr, advance);
 
     return 1;
   } else {
 #ifdef DEBUG
-    bl_debug_printf(BL_DEBUG_TAG
-                    " vt_char_set_position() accepts "
+    bl_debug_printf(BL_DEBUG_TAG " vt_char_set_position() accepts "
                     "ISO10646_UCS4_1_V char alone, but received %x charset.\n",
                     vt_char_cs(ch));
 #endif
@@ -949,7 +989,7 @@ vt_char_t *vt_sp_ch(void) {
 
   if (sp_ch.u.ch.attr == 0) {
     vt_char_init(&sp_ch);
-    vt_char_set(&sp_ch, ' ', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
+    vt_char_set(&sp_ch, ' ', US_ASCII, 0, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
   }
 
   return &sp_ch;
@@ -960,7 +1000,7 @@ vt_char_t *vt_nl_ch(void) {
 
   if (nl_ch.u.ch.attr == 0) {
     vt_char_init(&nl_ch);
-    vt_char_set(&nl_ch, '\n', US_ASCII, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
+    vt_char_set(&nl_ch, '\n', US_ASCII, 0, 0, 0, VT_FG_COLOR, VT_BG_COLOR, 0, 0, 0, 0, 0);
   }
 
   return &nl_ch;
