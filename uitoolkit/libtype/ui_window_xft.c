@@ -77,16 +77,21 @@ void ui_window_xft_draw_string8(ui_window_t *win, ui_font_t *font, ui_color_t *f
 
     XftUnlockFace(font->xft_font);
   } else {
-    /* Removing trailing spaces. */
-    while (1) {
-      if (len == 0) {
-        return;
-      }
+#ifdef USE_OT_LAYOUT
+    if (!font->use_ot_layout /* || font->ot_font == NULL */)
+#endif
+    {
+      /* Removing trailing spaces. */
+      while (1) {
+        if (len == 0) {
+          return;
+        }
 
-      if (*(str + len - 1) == ' ') {
-        len--;
-      } else {
-        break;
+        if (*(str + len - 1) == ' ') {
+          len--;
+        } else {
+          break;
+        }
       }
     }
 

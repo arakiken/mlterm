@@ -18897,6 +18897,10 @@ fi
 		elif test "$gui" != "quartz" -a "$have_ft" = "yes"; then
 			OT_LAYOUT_CFLAGS="$OT_LAYOUT_CFLAGS $FT_CFLAGS_ORIGINAL"
 		fi
+	elif test "$gui" = "win32" ; then
+		OT_LAYOUT_CFLAGS="-DUSE_OT_LAYOUT -DUSE_UNISCRIBE"
+		OT_LAYOUT_OBJ=uniscribe.o
+		OT_LAYOUT_LIBS="-lusp10"
 	else
 		# Extract the first word of "libotf-config", so it can be a program name with args.
 set dummy libotf-config; ac_word=$2
@@ -18939,10 +18943,6 @@ fi
 			OT_LAYOUT_CFLAGS="`libotf-config --cflags` -DUSE_OT_LAYOUT"
 			OT_LAYOUT_LIBS="`libotf-config --libs`"
 			OT_LAYOUT_OBJ=otf.o
-		elif test "$gui" = "win32" ; then
-			OT_LAYOUT_CFLAGS="-DUSE_OT_LAYOUT -DUSE_UNISCRIBE"
-			OT_LAYOUT_OBJ=uniscribe.o
-			OT_LAYOUT_LIBS="-lusp10"
 		fi
 	fi
 
