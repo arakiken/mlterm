@@ -686,6 +686,7 @@ int vt_line_init(vt_line_t *line, u_int num_chars) {
   return 1;
 }
 
+/* For vt_log_add() */
 int vt_line_clone(vt_line_t *clone, vt_line_t *orig, u_int num_chars) {
   if (vt_line_init(clone, num_chars)) {
     copy_line(clone, orig, 1 /* clone->ctl_info can be uncopied. */);

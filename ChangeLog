@@ -1,3 +1,15 @@
+2020-01-18  Araki Ken  <arakiken@users.sf.net>
+
+	* uniscribe.o:
+	  - Tab -> 2 spaces.
+	  - glyphs = alloca(sizeof(WORD) * src_len)
+	          -> alloca(sizeof(WORD) * num_shape_glyphs)
+	  - if (num_filled_glyphs + range[0] <= num_shape_glyphs)
+	    -> if (num_filled_glyphs + range[0] > num_shape_glyphs)
+
+	* vt_ot_layout.c: vt_ot_layout_copy() which unexpectedly didn't set
+	  dst->num_glyphs is fixed.
+
 2020-01-13  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: 'buf' is declared at the beginning of the function
