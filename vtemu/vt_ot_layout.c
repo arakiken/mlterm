@@ -516,13 +516,10 @@ error:
 }
 
 int vt_ot_layout_copy(vt_ot_layout_state_t dst, vt_ot_layout_state_t src, int optimize) {
-  u_int8_t *n;
-  u_int32_t *g;
-  int8_t *x;
-  int8_t *y;
-  u_int8_t *a;
+  void *p;
 
   if (optimize && !src->substituted) {
+    /* for vt_line_clone() and vt_log_add() */
     vt_ot_layout_destroy(dst); /* dst = NULL ? XXX */
 
     return -1;
@@ -530,62 +527,70 @@ int vt_ot_layout_copy(vt_ot_layout_state_t dst, vt_ot_layout_state_t src, int op
 
   if (src->size == 0) {
     free(dst->num_chars_array);
-    n = NULL;
-  } else if ((n = realloc(dst->num_chars_array, sizeof(u_int8_t) * src->size))) {
-    memcpy(n, src->num_chars_array, sizeof(*n) * src->size);
+    dst->num_chars_array = NULL;
+  } else if ((p = realloc(dst->num_chars_array, sizeof(u_int8_t) * src->size))) {
+    dst->num_chars_array = memcpy(p, src->num_chars_array,
+                                  sizeof(*dst->num_chars_array) * src->size);
   } else {
-    return 0;
+    goto error;
   }
+
+  dst->size = src->size;
 
   if (src->num_glyphs == 0) {
     free(dst->glyphs);
     free(dst->xoffsets);
     free(dst->yoffsets);
     free(dst->advances);
-    g = NULL;
-    x = NULL;
-    y = NULL;
-    a = NULL;
+    dst->glyphs = NULL;
+    dst->xoffsets = NULL;
+    dst->yoffsets = NULL;
+    dst->advances = NULL;
+
+    src->substituted = 0;
   } else {
-    x = y = NULL;
-    if ((g = realloc(dst->glyphs, sizeof(*g) * src->num_glyphs)) == NULL ||
-        (x = realloc(dst->xoffsets, sizeof(*x) * src->num_glyphs)) == NULL ||
-        (y = realloc(dst->yoffsets, sizeof(*y) * src->num_glyphs)) == NULL ||
-        (a = realloc(dst->advances, sizeof(*a) * src->num_glyphs)) == NULL) {
-      if (n != dst->num_chars_array) {
-        free(n);
-      }
-      if (g != dst->glyphs) {
-        free(g);
-      }
-      if (x != dst->xoffsets) {
-        free(x);
-      }
-      if (y != dst->yoffsets) {
-        free(y);
-      }
-      /* free(a) is unnecessary. */
-
-      return 0;
+    if ((p = realloc(dst->glyphs, sizeof(*dst->glyphs) * src->num_glyphs)) == NULL) {
+      goto error;
     }
+    dst->glyphs = p;
 
-    memcpy(g, src->glyphs, sizeof(*g) * src->num_glyphs);
-    memcpy(x, src->xoffsets, sizeof(*x) * src->num_glyphs);
-    memcpy(y, src->yoffsets, sizeof(*y) * src->num_glyphs);
-    memcpy(a, src->advances, sizeof(*a) * src->num_glyphs);
+    if ((p = realloc(dst->xoffsets, sizeof(*dst->xoffsets) * src->num_glyphs)) == NULL) {
+      goto error;
+    }
+    dst->xoffsets = p;
+
+    if ((p = realloc(dst->yoffsets, sizeof(*dst->yoffsets) * src->num_glyphs)) == NULL) {
+      goto error;
+    }
+    dst->yoffsets = p;
+
+    if ((p = realloc(dst->advances, sizeof(*dst->advances) * src->num_glyphs)) == NULL) {
+      goto error;
+    }
+    dst->advances = p;
+
+    memcpy(dst->glyphs, src->glyphs, sizeof(*dst->glyphs) * src->num_glyphs);
+    memcpy(dst->xoffsets, src->xoffsets, sizeof(*dst->xoffsets) * src->num_glyphs);
+    memcpy(dst->yoffsets, src->yoffsets, sizeof(*dst->yoffsets) * src->num_glyphs);
+    memcpy(dst->advances, src->advances, sizeof(*dst->advances) * src->num_glyphs);
+
+    dst->substituted = src->substituted;
   }
 
-  dst->num_chars_array = n;
-  dst->term = src->term;
-  dst->size = src->size;
-  dst->substituted = src->substituted;
+  dst->num_glyphs = src->num_glyphs;
 
-  dst->glyphs = g;
-  dst->xoffsets = x;
-  dst->yoffsets = y;
-  dst->advances = a;
+  dst->term = src->term;
 
   return 1;
+
+error:
+  dst->substituted = 0;
+  dst->size = 0;
+  dst->complex_shape = 0;
+  dst->has_var_width_char = 0;
+  dst->num_glyphs = 0;
+
+  return 0;
 }
 
 void vt_ot_layout_reset(vt_ot_layout_state_t state) {
