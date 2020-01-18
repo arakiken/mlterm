@@ -588,6 +588,7 @@ static int is_pcf(const char *file_path) {
 #define HAS_POSITION_INFO_BY_GLYPH(xfont) \
   ((xfont)->glyph_size == (xfont)->glyph_width_bytes * (xfont)->height + 3)
 #define FONT_ROTATED (FONT_ITALIC << 1)
+#define FONTSIZE_IN_FORMAT(format) ((format) & ~(FONT_BOLD | FONT_ITALIC | FONT_ROTATED))
 
 /* --- static variables --- */
 
@@ -702,12 +703,12 @@ static int load_ft(XFontStruct *xfont, const char *file_path, int32_t format, in
 #endif
   }
 
-  fontsize = (format & ~(FONT_BOLD | FONT_ITALIC | FONT_ROTATED));
+  fontsize = FONTSIZE_IN_FORMAT(format);
 
   for (count = 0; count < num_xfonts; count++) {
     if (strcmp(xfonts[count]->file, file_path) == 0 &&
         /* The same face is used for normal, italic and bold. */
-        (xfonts[count]->format & ~(FONT_BOLD | FONT_ITALIC | FONT_ROTATED)) == fontsize) {
+        FONTSIZE_IN_FORMAT(xfonts[count]->format) == fontsize) {
       face = xfonts[count]->face;
 
       goto face_found;
@@ -2339,10 +2340,15 @@ u_int ui_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shape_glyphs, u_int 
                                 int8_t *xoffsets, int8_t *yoffsets, u_int8_t *advances,
                                 u_int32_t *noshape_glyphs, u_int32_t *src, u_int src_len,
                                 const char *script, const char *features) {
+#ifdef USE_FREETYPE
   return otl_convert_text_to_glyphs(font->ot_font, shape_glyphs, num_shape_glyphs,
                                     xoffsets, yoffsets, advances, noshape_glyphs,
                                     src, src_len, script, features,
-                                    size * (font->size_attr >= DOUBLE_WIDTH ? 2 : 1));
+                                    FONTSIZE_IN_FORMAT(font->xfont->format) *
+                                    (font->size_attr >= DOUBLE_WIDTH ? 2 : 1));
+#else
+  return 0;
+#endif
 }
 #endif
 
