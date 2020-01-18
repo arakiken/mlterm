@@ -1,5 +1,17 @@
 2020-01-18  Araki Ken  <arakiken@users.sf.net>
 
+	* im_canna.c, ui_window_cairo.c:
+	  https://sourceforge.net/p/mlterm/bugs/78/ is merged.
+
+	* beos/ui.h, beos/ui_font.c: 'unsigned int size' is added to XFontStruct.
+
+	* libotl/Makefile.in: 'TARGET_beos = libotl.la' is added.
+
+	* mlclient/main.c:
+	  https://sourceforge.net/p/mlterm/patches/25/attachment/typos.diff is merged.
+
+2020-01-18  Araki Ken  <arakiken@users.sf.net>
+
 	* uniscribe.o:
 	  - Tab -> 2 spaces.
 	  - glyphs = alloca(sizeof(WORD) * src_len)

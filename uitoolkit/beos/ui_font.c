@@ -259,6 +259,8 @@ load_bfont:
     }
   }
 
+  font->xfont->size = fontsize;
+
   {
     u_int width;
     u_int height;

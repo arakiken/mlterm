@@ -54,9 +54,9 @@ static void adjust_glyphs(ui_font_t *font, cairo_glyph_t *glyphs, int num_glyphs
 
 static void flush_glyphs(cairo_t *cr) {
   if (num_glyph_buf > 0) {
-    u_long pixel = cairo_get_user_data(cr, 2);
+    u_long pixel = cairo_get_user_data(cr, (cairo_user_data_key_t*)2);
 
-    cairo_set_scaled_font(cr, cairo_get_user_data(cr, 1));
+    cairo_set_scaled_font(cr, cairo_get_user_data(cr, (cairo_user_data_key_t*)1));
     cairo_set_source_rgba(cr,
                           (double)((pixel >> 16) & 0xff) / 255.0,
                           (double)((pixel >> 8) & 0xff) / 255.0,
@@ -95,22 +95,22 @@ static int show_iscii(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font,
   FT_Face face;
   int drawn_x;
 
-  if (cairo_get_user_data(cr, 1) != xfont) {
+  if (cairo_get_user_data(cr, (cairo_user_data_key_t*)1) != xfont) {
     flush_glyphs(cr);
-    cairo_set_user_data(cr, 1, xfont, NULL);
+    cairo_set_user_data(cr, (cairo_user_data_key_t*)1, xfont, NULL);
   }
 
   /*
    * If cairo_get_user_data() returns NULL, it means that source rgb value is
    * default one (black == 0).
    */
-  if ((u_long)cairo_get_user_data(cr, 2) !=
+  if ((u_long)cairo_get_user_data(cr, (cairo_user_data_key_t*)2) !=
       (u_long)((fg_color->red << 16) | (fg_color->green << 8) |
                (fg_color->blue) | (fg_color->alpha << 24))) {
     flush_glyphs(cr);
-    cairo_set_user_data(cr, 2,
-                        (u_long)((fg_color->red << 16) | (fg_color->green << 8) |
-                                 (fg_color->blue) | (fg_color->alpha << 24)),
+    cairo_set_user_data(cr, (cairo_user_data_key_t*)2,
+                        (void*)((fg_color->red << 16) | (fg_color->green << 8) |
+                                (fg_color->blue) | (fg_color->alpha << 24)),
                         NULL);
   }
 
@@ -170,7 +170,7 @@ static int show_text(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font,
 #endif
 
 #if CAIRO_VERSION_ENCODE(1, 4, 0) <= CAIRO_VERSION
-  if (cairo_get_user_data(cr, 1) != xfont)
+  if (cairo_get_user_data(cr, (cairo_user_data_key_t*)1) != xfont)
 #endif
   {
 #if CAIRO_VERSION_ENCODE(1, 8, 0) > CAIRO_VERSION
@@ -179,7 +179,7 @@ static int show_text(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font,
     flush_glyphs(cr);
 #endif
 #if CAIRO_VERSION_ENCODE(1, 4, 0) <= CAIRO_VERSION
-    cairo_set_user_data(cr, 1, xfont, NULL);
+    cairo_set_user_data(cr, (cairo_user_data_key_t*)1, xfont, NULL);
 #endif
   }
 
@@ -188,7 +188,7 @@ static int show_text(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font,
    * If cairo_get_user_data() returns NULL, it means that source rgb value is
    * default one (black == 0).
    */
-  if ((u_long)cairo_get_user_data(cr, 2) !=
+  if ((u_long)cairo_get_user_data(cr, (cairo_user_data_key_t*)2) !=
       (u_long)((fg_color->red << 16) | (fg_color->green << 8) |
                (fg_color->blue) | (fg_color->alpha << 24)))
 #endif
@@ -201,9 +201,9 @@ static int show_text(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font,
 #endif
 
 #if CAIRO_VERSION_ENCODE(1, 4, 0) <= CAIRO_VERSION
-    cairo_set_user_data(cr, 2,
-                        (u_long)((fg_color->red << 16) | (fg_color->green << 8) |
-                                 (fg_color->blue) | (fg_color->alpha << 24)),
+    cairo_set_user_data(cr, (cairo_user_data_key_t*)2,
+                        (void*)((fg_color->red << 16) | (fg_color->green << 8) |
+                                (fg_color->blue) | (fg_color->alpha << 24)),
                         NULL);
 #endif
   }

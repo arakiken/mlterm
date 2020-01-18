@@ -1,5 +1,8 @@
 * Support CSI>4;1m.
 * Support uniscribe for libotl.
+* Merge patches:
+  https://sourceforge.net/p/mlterm/bugs/78/
+  https://sourceforge.net/p/mlterm/patches/25/attachment/typos.diff
 * Bug fixes:
   Fix a bug which disabled to change the value of "logsize" option from "0" to "unlimited".
   Fix segfault when "snapshot" command of OSC 5379 is executed.

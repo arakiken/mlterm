@@ -28,7 +28,7 @@ static void help(int is_mlclientx) {
   int count;
 
   printf("mlclient(x) [prefix options] [options]\n\n");
-  printf("prefix optioins:\n");
+  printf("prefix options:\n");
   printf("  /dev/...: specify pty with which a new window is opened.\n\n");
   printf("options:\n");
   printf("  -P/--ptylist: print pty list.\n");
