@@ -308,7 +308,7 @@ static int switch_mode(ui_im_t *im) {
 
   if ((canna->is_enabled = (!canna->is_enabled))) {
     preedit(canna, NULL, 0, 0, canna->key_status.mode);
-    jrKanjiControl(0, KC_SETWIDTH, 60);
+    jrKanjiControl(0, KC_SETWIDTH, (char*)60);
   } else {
     preedit(canna, "", 0, 0, "");
   }

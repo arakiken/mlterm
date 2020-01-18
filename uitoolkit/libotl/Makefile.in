@@ -36,6 +36,7 @@ TARGET_fb = libotl.la
 TARGET_console = libotl.la
 TARGET_wayland = libotl.la
 TARGET_sdl2 = libotl.la
+TARGET_beos = libotl.la
 
 TARGET = $(TARGET_@GUI@)
 

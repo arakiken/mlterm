@@ -173,6 +173,7 @@ typedef struct {
 
 typedef struct {
   Font fid;
+  unsigned int size;
 
 } XFontStruct;
 
