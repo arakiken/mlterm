@@ -20,16 +20,16 @@ void TEST_xstringtokeysym(void);
 /* -- global functions --- */
 
 void test(void) {
-	TEST_bl_args();
-	TEST_bl_map();
-	TEST_bl_path();
-	TEST_ui_font_config();
+  TEST_bl_args();
+  TEST_bl_map();
+  TEST_bl_path();
+  TEST_ui_font_config();
 #ifndef NO_IMAGE
   TEST_sixel_realloc_pixels();
 #endif
 
 #ifndef USE_XLIB
-	TEST_xstringtokeysym();
+  TEST_xstringtokeysym();
 #endif
 }
 

@@ -719,7 +719,7 @@ int ui_dnd_filter_event(XEvent *event, ui_window_t *win) {
   BL_TESTIT_ONCE(dnd, (win->disp));
 
   switch (event->type) {
-    /*	case CreateNotify:*/
+    /* case CreateNotify: */
     case MapNotify:
       /* CreateNotifyEvent seems to be lost somewhere... */
       awareness(win, 5);

@@ -290,9 +290,8 @@ static int set_transparent(ui_window_t *win) {
   /*
    * It is not necessary to set ParentRelative more than once, so
    * this function should be used as follows.
-   * if( ! IS_INHERIT_TRANSPARENT(win) || ! win->wall_picture_is_set)
-   * {
-   *	set_transparent( win) ;
+   * if (!IS_INHERIT_TRANSPARENT(win) || !win->wall_picture_is_set) {
+   *   set_transparent(win);
    * }
    */
 

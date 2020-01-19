@@ -217,7 +217,7 @@ typedef LPLOGFONT XFontSet;
 #define XK_Shift_Lock 0xfff7 /* dummy */
 #define XK_Caps_Lock VK_CAPITAL
 #define XK_Escape VK_ESCAPE
-/* #define XXX	VK_SPACE */
+/* #define XXX VK_SPACE */
 #define XK_Prior VK_PRIOR
 #define XK_Next VK_NEXT
 #define XK_End VK_END
@@ -229,7 +229,7 @@ typedef LPLOGFONT XFontSet;
 #define XK_Select VK_SELECT
 #define XK_Print VK_PRINT
 #define XK_Execute VK_EXECUTE
-/* #define XXX	VK_SNAPSHOT  ... PrintScreen key */
+/* #define XXX VK_SNAPSHOT  ... PrintScreen key */
 #define XK_Insert VK_INSERT
 #define XK_Delete VK_DELETE
 #define XK_Help VK_HELP
@@ -266,8 +266,8 @@ typedef LPLOGFONT XFontSet;
 #define XK_Muhenkan VK_NONCONVERT
 #define XK_Henkan_Mode 0xe5
 #define XK_Zenkaku_Hankaku 0xe5
-/* #define XXX	VK_PLAY */
-/* #define XXX	VK_ZOOM */
+/* #define XXX VK_PLAY */
+/* #define XXX VK_ZOOM */
 
 #define XK_KP_Prior 0xffe8                      /* dummy */
 #define XK_KP_Next 0xffe7                       /* dummy */

@@ -172,11 +172,10 @@ u_int vt_iscii_shape(ef_charset_t cs, u_char *dst, size_t dst_size, u_char *src)
   /*
    * XXX
    * iscii2font() expects dst to be terminated by zero.
-   * int iscii2font(struct tabl table[MAXLEN], char *input, char *output, int
-   *sz) {
-   *	...
-   *	bzero(output,strlen(output));
-   *	...          ^^^^^^^^^^^^^^
+   * int iscii2font(struct tabl table[MAXLEN], char *input, char *output, int sz) {
+   *   ...
+   *   bzero(output,strlen(output));
+   *   ...          ^^^^^^^^^^^^^^
    * }
    */
   dst[0] = '\0';

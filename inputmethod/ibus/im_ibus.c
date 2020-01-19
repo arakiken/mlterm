@@ -702,7 +702,10 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
 }
 
 static void set_engine(IBusInputContext *context, gchar *name) {
-  bl_msg_printf("iBus engine is %s\n", name);
+#ifdef DEBUG
+  bl_msg_printf("iBus engine %s -> %s\n",
+                ibus_engine_desc_get_name(ibus_input_context_get_engine(context)), name);
+#endif
   ibus_input_context_set_engine(context, name);
 }
 
@@ -853,9 +856,16 @@ static IBusInputContext *context_new(im_ibus_t *ibus, char *engine) {
     set_engine(context, engine);
   }
 #if (defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)) && IBUS_CHECK_VERSION(1, 5, 0)
-  else {
+  else /* if (strcmp(ibus_engine_desc_get_name(ibus_input_context_get_engine(context)),
+                     "dummy") == 0) */ {
+    /* Input method engine might not be changed from "dummy" without X server. */
     next_engine(context);
   }
+#endif
+
+#ifdef DEBUG
+  bl_debug_printf("Engine is %s in context_new()\n",
+                  ibus_engine_desc_get_name(ibus_input_context_get_engine(context)));
 #endif
 
   return context;

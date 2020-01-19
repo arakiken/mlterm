@@ -186,8 +186,7 @@ static int calculate_current_row(ui_scrollbar_t *sb) {
     return 0;
   } else {
     /*
-     * sb->bar_top_y / (sb->num_filled_log_lines /
-     *	(MAX_BAR_HEIGHT(sb) - sb->bar_height))
+     * sb->bar_top_y / (sb->num_filled_log_lines / (MAX_BAR_HEIGHT(sb) - sb->bar_height))
      * => (sb->num_filled_log_lines / (MAX_BAR_HEIGHT(sb) - sb->bar_height))
      *    = pixel per line
      */

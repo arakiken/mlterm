@@ -1,5 +1,9 @@
 2020-01-19  Araki Ken  <arakiken@users.sf.net>
 
+	* vte.c, vtetypebuiltins.c, test.c, ui_scrollbar.c, win32/ui.h,
+	  xlib/ui_dnd.c, xlib/ui_window.c, vt_iscii.c, vt_char.h:
+	  Tab -> 2 spaces.
+
 	* fb/ui_font.c:
 	  - FONTSIZE_IN_FORMAT() macro is added.
 	  - FONTSIZE_IN_FORMAT(font->xfont->format) is passed to
