@@ -791,6 +791,15 @@ face_found:
 #endif
         xfont->height = xfont->ascent + descent;
       }
+
+      if (face->glyph->bitmap_top > xfont->ascent) {
+        /* Pragmata Pro Mono: bitmap_top of 'i' and 'j' > xfont->ascent. */
+#ifdef __DEBUG
+        bl_debug_printf("Modify xfont->ascent to %d\n", face->glyph->bitmap_top);
+#endif
+        xfont->height += (face->glyph->bitmap_top - xfont->ascent);
+        xfont->ascent = face->glyph->bitmap_top;
+      }
     }
 
     if (load_glyph(face, format, get_glyph_index(face, 'W'), is_aa)) {
@@ -1035,6 +1044,11 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
       if (xfont->ascent > face->glyph->bitmap_top) {
         y = xfont->ascent - face->glyph->bitmap_top;
       } else {
+        /*
+         * XXX
+         * If face->glyph->bitmap.rows > xfont->height, 'y = 0' causes unarraynged baseline.
+         * Try to adjust xfont->ascent in load_ft().
+         */
         y = 0;
       }
 
