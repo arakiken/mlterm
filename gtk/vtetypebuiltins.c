@@ -166,7 +166,7 @@ vte_text_blink_mode_get_type (void)
 }
 #endif
 
-#else	/* VTE_CHECK_VERSION(0,38,0) */
+#else /* VTE_CHECK_VERSION(0,38,0) */
 
 /*
  * Following is based on vtetypebuiltins.h of vte-0.24.0.
@@ -332,6 +332,6 @@ vte_terminal_anti_alias_get_type (void)
   return g_define_type_id__volatile;
 }
 
-#endif	/* VTE_CHECK_VERSION(0,38,0) */
+#endif /* VTE_CHECK_VERSION(0,38,0) */
 
 /* Generated data ends here */

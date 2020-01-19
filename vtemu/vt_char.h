@@ -62,7 +62,7 @@ typedef struct vt_char {
  * Total 23 bit
  * 4 bit : vt_char_attr_line_style_t                     -+
  * 1 bit : is_blinking(0 or 1)                            |__\ or advance (for OT Layout)
- * 1 bit : is_reversed(0 or 1)	... used for X Selection  |
+ * 1 bit : is_reversed(0 or 1) ... used for X Selection   |
  * 1 bit : is_protected(0 or 1)                          -+
  * 1 bit : is unicode area cs(0 or 1)
  * 1 bit : is_italic(0 or 1)       -+

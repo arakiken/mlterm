@@ -1753,14 +1753,14 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
   ui_shortcut_parse(&shortcut, "Button3", "\"none\"");
   ui_shortcut_parse(&shortcut, "UNUSED", "OPEN_SCREEN");
   ui_shortcut_parse(&shortcut, "UNUSED", "OPEN_PTY");
-	ui_shortcut_parse(&shortcut, "UNUSED", "NEXT_PTY");
-	ui_shortcut_parse(&shortcut, "UNUSED", "PREV_PTY");
-	ui_shortcut_parse(&shortcut, "UNUSED", "HSPLIT_SCREEN");
-	ui_shortcut_parse(&shortcut, "UNUSED", "VSPLIT_SCREEN");
-	ui_shortcut_parse(&shortcut, "UNUSED", "NEXT_SCREEN");
-	ui_shortcut_parse(&shortcut, "UNUSED", "CLOSE_SCREEN");
-	ui_shortcut_parse(&shortcut, "UNUSED", "HEXPAND_SCREEN");
-	ui_shortcut_parse(&shortcut, "UNUSED", "VEXPAND_SCREEN");
+  ui_shortcut_parse(&shortcut, "UNUSED", "NEXT_PTY");
+  ui_shortcut_parse(&shortcut, "UNUSED", "PREV_PTY");
+  ui_shortcut_parse(&shortcut, "UNUSED", "HSPLIT_SCREEN");
+  ui_shortcut_parse(&shortcut, "UNUSED", "VSPLIT_SCREEN");
+  ui_shortcut_parse(&shortcut, "UNUSED", "NEXT_SCREEN");
+  ui_shortcut_parse(&shortcut, "UNUSED", "CLOSE_SCREEN");
+  ui_shortcut_parse(&shortcut, "UNUSED", "HEXPAND_SCREEN");
+  ui_shortcut_parse(&shortcut, "UNUSED", "VEXPAND_SCREEN");
 
 #ifdef USE_XLIB
   ui_xim_init(1);
@@ -3036,12 +3036,10 @@ void vte_terminal_unselect_all(VteTerminal *terminal) {
 
 void
 #if VTE_CHECK_VERSION(0, 38, 0)
-vte_terminal_select_none(
+vte_terminal_select_none(VteTerminal *terminal)
 #else
-vte_terminal_unselect_all(
+vte_terminal_unselect_all(VteTerminal *terminal)
 #endif
-	VteTerminal *  terminal
-	)
 {
   if (!GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
     return;
@@ -4124,13 +4122,10 @@ vte_terminal_get_pty_object(
 
 void
 #if VTE_CHECK_VERSION(0, 38, 0)
-vte_terminal_set_pty(
+vte_terminal_set_pty(VteTerminal *terminal, VtePty *pty)
 #else
-vte_terminal_set_pty_object(
+vte_terminal_set_pty_object(VteTerminal *terminal, VtePty *pty)
 #endif
-	VteTerminal *  terminal ,
-	VtePty *  pty
-	)
 {
   pid_t pid;
 
