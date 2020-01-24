@@ -6,7 +6,7 @@
 #include "bl_file.h"
 
 typedef struct bl_conf_write {
-  FILE *to;
+  char *path;
   char **lines;
   u_int scale;
   u_int num;
@@ -19,7 +19,7 @@ char *bl_get_sys_rc_path(const char *rcfile);
 
 char *bl_get_user_rc_path(const char *rcfile);
 
-bl_conf_write_t *bl_conf_write_open(char *name);
+bl_conf_write_t *bl_conf_write_open(const char *path);
 
 int bl_conf_io_write(bl_conf_write_t *conf, const char *key, const char *val);
 

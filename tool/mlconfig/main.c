@@ -368,8 +368,12 @@ static GtkWidget *apply_cancel_button(void) {
   gtk_widget_show(hbox);
 
   addbutton(_("Save&Exit"), saveexit_clicked, hbox);
-  addbutton(_("Apply&Exit"), applyexit_clicked, hbox);
-  addbutton(_("Apply"), apply_clicked, hbox);
+
+  if (mc_io_is_pty()) {
+    addbutton(_("Apply&Exit"), applyexit_clicked, hbox);
+    addbutton(_("Apply"), apply_clicked, hbox);
+  }
+
   addbutton(_("Cancel"), cancel_clicked, hbox);
 
   return hbox;

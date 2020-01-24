@@ -34,8 +34,10 @@ int bl_snprintf(char *str, size_t size, const char *format, ...);
 
 char *__bl_str_dup(const char *str, const char *file, int line, const char *func);
 
+#ifndef REMOVE_FUNCS_MLTERM_UNUSE
 size_t bl_str_tabify(u_char *dst, size_t dst_len, const u_char *src, size_t src_len,
                      size_t tab_len);
+#endif
 
 char *bl_str_chop_spaces(char *str);
 

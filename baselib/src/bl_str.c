@@ -82,6 +82,7 @@ char *__bl_str_dup(const char *str, const char *file /* should be allocated memo
   return new_str;
 }
 
+#ifndef REMOVE_FUNCS_MLTERM_UNUSE
 /*
  * XXX
  * this doesn't concern about ISO2022 sequences or so.
@@ -172,6 +173,7 @@ size_t bl_str_tabify(u_char *dst, size_t dst_len, const u_char *src, size_t src_
 
   return dst_pos;
 }
+#endif
 
 char *bl_str_chop_spaces(char *str) {
   size_t pos;

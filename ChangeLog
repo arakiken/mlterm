@@ -1,3 +1,32 @@
+2020-01-24  Araki Ken  <arakiken@users.sf.net>
+
+	* mc_color.c: Color names like "white", "back" and so on are converted
+	  to RGB in mc_color_config_widget_new().
+
+	* mlconfig/main.c: "Apply&Exit" and "Apply" buttons are hidden if
+	  mc_io_is_pty() is false.
+
+	* mlconfig/Makefile.in: mc_io_file.o and mc_io_pty.o are added to OBJ.
+
+	* mc_io_file.c, mc_io_pty.c: Added.
+
+	* mc_io.[ch];
+	  - mc_io_is_pty() is added.
+	  - Functions of mc_io_file.c and those of mc_io_pty.c are switched
+	    according to the result of mc_io_is_pty().
+
+	* README.ja, doc/en/PROTOCOL, gtk/README: Updated.
+
+	* mlcc/main.c, w3mmlconfig/section/appearance:
+	  "screen_height_ratio" is removed.
+
+	* bl_str.[ch]:
+	  bl_str_tabify() is enclosed by #ifndef REMOVE_FUNCS_MLTERM_UNUSE.
+
+	* bl_conf_io.[ch]:
+	  bl_fopen_with_mkdir() is not called from bl_conf_write_open() but
+	  from bl_conf_write_close().
+
 2020-01-19  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/ui_font.c: xfont->ascent is modified. (for Pragmata Pro Mono)
