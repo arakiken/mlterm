@@ -12,7 +12,7 @@
 /* --- static variables --- */
 
 static char *message;
-static const char *gui;
+static const char *gui; /* XXX leaked */
 
 /* --- static functions --- */
 
@@ -81,36 +81,45 @@ static char *get_value(const char *key, mc_io_t io) {
 
 /* --- global functions --- */
 
-int mc_exec(const char *cmd) {
+void mc_exec_pty(const char *cmd) {
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " %s\n", cmd);
 #endif
 
   printf("\x1b]%d;%s\x07", mc_io_exec, cmd);
   fflush(stdout);
-
-  return 1;
 }
 
-int mc_set_str_value(const char *key, const char *value) {
+void mc_set_str_value_pty(const char *key, const char *value) {
   if (value == NULL) {
-    return 0;
+    return;
   }
 
   if (strcmp(key, "font_policy") == 0) {
     if (strcmp(value, "unicode") == 0) {
-      return mc_set_flag_value("only_use_unicode_font", 1);
+      mc_set_flag_value("only_use_unicode_font", 1);
+
+      return;
     } else if (strcmp(value, "nounicode") == 0) {
-      return mc_set_flag_value("not_use_unicode_font", 1);
+      mc_set_flag_value("not_use_unicode_font", 1);
+
+      return;
     } else {
-      return mc_set_flag_value("only_use_unicode_font", 0) &&
-             mc_set_flag_value("not_use_unicode_font", 0);
+      mc_set_flag_value("only_use_unicode_font", 0);
+      mc_set_flag_value("not_use_unicode_font", 0);
+
+      return;
     }
   } else if (strcmp(key, "logging_vt_seq") == 0) {
     if (strcmp(key, "no") == 0) {
-      return mc_set_flag_value("logging_vt_seq", 0);
+      mc_set_flag_value("logging_vt_seq", 0);
+
+      return;
     } else {
-      return mc_set_flag_value("logging_vt_seq", 1) && mc_set_str_value("vt_seq_format", value);
+      mc_set_flag_value("logging_vt_seq", 1);
+      mc_set_str_value("vt_seq_format", value);
+
+      return;
     }
   }
 
@@ -118,22 +127,22 @@ int mc_set_str_value(const char *key, const char *value) {
   bl_debug_printf(BL_DEBUG_TAG " %s=%s\n", key, value);
 #endif
 
-  return append_value(key, value);
+  append_value(key, value);
 }
 
-int mc_set_flag_value(const char *key, int flag_val) {
+void mc_set_flag_value_pty(const char *key, int flag_val) {
 #ifdef __DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " %s=%s\n", key, value);
+  bl_debug_printf(BL_DEBUG_TAG " %s=%s\n", key, flag_val ? "true" : "false");
 #endif
 
-  return append_value(key, (flag_val ? "true" : "false"));
+  append_value(key, (flag_val ? "true" : "false"));
 }
 
-int mc_flush(mc_io_t io) {
+void mc_flush_pty(mc_io_t io) {
   char *chal;
 
   if (message == NULL) {
-    return 1;
+    return;
   }
 
   if (io == mc_io_set_save && (chal = get_value("challenge", mc_io_get))) {
@@ -150,11 +159,9 @@ int mc_flush(mc_io_t io) {
 
   free(message);
   message = NULL;
-
-  return 1;
 }
 
-char *mc_get_str_value(const char *key) {
+char *mc_get_str_value_pty(const char *key) {
   char *value;
 
   if (strcmp(key, "font_policy") == 0) {
@@ -180,7 +187,7 @@ char *mc_get_str_value(const char *key) {
   }
 }
 
-int mc_get_flag_value(const char *key) {
+int mc_get_flag_value_pty(const char *key) {
   char *value;
 
   if ((value = get_value(key, mc_io_get)) == NULL) {
@@ -198,7 +205,7 @@ int mc_get_flag_value(const char *key) {
   }
 }
 
-const char *mc_get_gui(void) {
+const char *mc_get_gui_pty(void) {
   if (!gui && !(gui = get_value("gui", mc_io_get))) {
     return "xlib";
   }
@@ -206,7 +213,7 @@ const char *mc_get_gui(void) {
   return gui;
 }
 
-int mc_set_font_name(mc_io_t io, const char *file, const char *cs, const char *font_name) {
+void mc_set_font_name_pty(mc_io_t io, const char *file, const char *cs, const char *font_name) {
   char *chal;
 
   if (io == mc_io_set_save_font && (chal = get_value("challenge", mc_io_get))) {
@@ -216,11 +223,9 @@ int mc_set_font_name(mc_io_t io, const char *file, const char *cs, const char *f
   }
 
   fflush(stdout);
-
-  return 1;
 }
 
-char *mc_get_font_name(const char *file, const char *cs) {
+char *mc_get_font_name_pty(const char *file, const char *cs) {
   size_t len;
   char *value;
   char *key;
@@ -241,7 +246,7 @@ char *mc_get_font_name(const char *file, const char *cs) {
   return strdup("error");
 }
 
-int mc_set_color_name(mc_io_t io, const char *color, const char *value) {
+void mc_set_color_name_pty(mc_io_t io, const char *color, const char *value) {
   char *chal;
 
   if (io == mc_io_set_save_font && (chal = get_value("challenge", mc_io_get))) {
@@ -251,11 +256,9 @@ int mc_set_color_name(mc_io_t io, const char *color, const char *value) {
   }
 
   fflush(stdout);
-
-  return 1;
 }
 
-char *mc_get_color_name(const char *color) {
+char *mc_get_color_name_pty(const char *color) {
   char *key;
   char *value;
 

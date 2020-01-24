@@ -90,8 +90,7 @@ end:
   return dotrcpath;
 }
 
-bl_conf_write_t *bl_conf_write_open(char *name /* can break in this function. */
-                                    ) {
+bl_conf_write_t *bl_conf_write_open(const char *path) {
   bl_conf_write_t *conf;
   bl_file_t *from;
 
@@ -108,7 +107,7 @@ bl_conf_write_t *bl_conf_write_open(char *name /* can break in this function. */
   conf->num = 0;
   conf->scale = 1;
 
-  from = bl_file_open(name, "r");
+  from = bl_file_open(path, "r");
   if (from) {
     while (1) {
       char *line;
@@ -135,21 +134,20 @@ bl_conf_write_t *bl_conf_write_open(char *name /* can break in this function. */
     bl_file_close(from);
   }
 
-  if ((conf->to = bl_fopen_with_mkdir(name, "w")) == NULL) {
+  if ((conf->path = strdup(path)) == NULL) {
     goto error;
   }
 
-  bl_file_lock(fileno(conf->to));
-
   return conf;
 
-error : {
-  u_int count;
+error:
+  {
+    u_int count;
 
-  for (count = 0; count < conf->num; count++) {
-    free(conf->lines[count]);
+    for (count = 0; count < conf->num; count++) {
+      free(conf->lines[count]);
+    }
   }
-}
 
   free(conf->lines);
   free(conf);
@@ -216,17 +214,20 @@ int bl_conf_io_write(bl_conf_write_t *conf, const char *key, const char *val) {
 }
 
 void bl_conf_write_close(bl_conf_write_t *conf) {
-  u_int count;
+  FILE *fp;
 
-  for (count = 0; count < conf->num; count++) {
-    fprintf(conf->to, "%s\n", conf->lines[count]);
-    free(conf->lines[count]);
+  if ((fp = bl_fopen_with_mkdir(conf->path, "w"))) {
+    u_int count;
+
+    for (count = 0; count < conf->num; count++) {
+      fprintf(fp, "%s\n", conf->lines[count]);
+      free(conf->lines[count]);
+    }
+
+    fclose(fp);
   }
 
-  bl_file_unlock(fileno(conf->to));
-
-  fclose(conf->to);
-
+  free(conf->path);
   free(conf->lines);
   free(conf);
 }

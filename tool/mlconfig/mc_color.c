@@ -94,6 +94,13 @@ GtkWidget *mc_color_config_widget_new(int id) {
   GdkColor color;
 
   value = mc_get_str_value(configname[id]);
+  if (*value != '\0' && *value != '#' && strncmp(value, "rgb", 3) != 0) {
+    char *rgb = mc_get_color_name(value);
+
+    free(value);
+    value = rgb;
+  }
+
   color_strncpy(new_color[id], value);
   color_strncpy(old_color[id], value);
 

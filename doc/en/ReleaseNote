@@ -1,5 +1,5 @@
 * Support CSI>4;1m.
-* Support uniscribe for libotl.
+* Support uniscribe for libotl on win32.
 * Merge patches:
   https://sourceforge.net/p/mlterm/bugs/78/
   https://sourceforge.net/p/mlterm/patches/25/attachment/typos.diff

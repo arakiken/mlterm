@@ -359,79 +359,28 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       ** で囲まれている方のがデフォルト値です。
       (#) のついているオプションは、設定画面からの動的変更が可能です。
 
-      -- Window 関連 --
-      o display
-        X の DISPLAY を指定
-
-      o depth
-        Visual の深さ (8, 16, 24, 32)
-        なお、depth が 32 の場合、--alpha オプション又は背景色として
-        "rgba:RR/GG/BB/AA" と指定することで、半透明にすることができます。
-
-      o parent_window (*0*)
-        親 Window の Window ID を指定
-
-      o geometry
-        表示位置を指定
-
-      o app_name (*mlterm*)
-        アプリケーション名
-        (xlib版では WM_CLASS プロパティにセットされます)
-
-      o title (*mlterm*)
-        タイトル名
-
-      o icon_name (*mlterm*)
-        アイコン名
-
-      o icon_path
-        アイコン画像のファイル名
-
-      o screen_width_ratio (*100*) (#)
-        実スクリーンの横幅(百分率)
-        縦書きモードの場合は縦幅
-
-      o inner_border (*2*)
-        Window の inner border (0-224)
-
-        "H,V"形式で値を指定すると、横方向と縦方向で別々に inner border の値を指
-        定できます。
-
-      o layout_inner_border (*0*)
-        Layout Manager の inner border (0-224)
-
-        "H,V"形式で値を指定すると、横方向と縦方向で別々に inner border の値を指
-        定できます。
-
-      -- Terminal 関連 --
-      o use_login_shell  (true/*false*)
-        ログインシェルを使うかどうか
-
-      o termtype (*xterm*)
-        端末タイプ
-
-      o max_ptys (*32*)
-        同時に立ち上げることができる pty の最大数 (32の倍数で指定)
-
-      o startup_screens (*1*)
-        起動時に立ち上げるウィンドウの数
-
-      o default_cell_size (*8,16*) (mlterm-con 用)
-        mlterm-con がセルの幅と高さのピクセル数を取得できなかった場合に使用する
-        デフォルトの幅と高さ
-
-      o console_sixel_colors (16/256/full) (mlterm-con 用)
-        mlterm-con が動作するコンソールがサポートしている Sixel Graphics の色数
-        16, 256, full のいずれかを指定します。
-        XTCOLREG(CSI?Pi;Pa;PvS)により、16か256のいずれか適当な方を判定します。
-
-      o primary_da (*63;1;2;3;4;7;29*)
-        CSI c に対する応答文字列
-
-      o secondary_da (*24;279;0*)
-        CSI > c に対する応答文字列
-
       -- Encoding 関連 --
+      o auto_detect_encodings (#)
+        文字コードを自動判定する場合の候補とするエンコーディング
+        (カンマで区切って複数指定可)
+
+      o bidi_mode  (*normal*/left/right)
+        left 又は right を指定すると、全ての行を左寄せ又は右寄せで表示する。
+
+      o bidi_separators (#)
+        BiDi レンダリングを行う範囲を区切る文字を指定する。
+        ('\x'から始まる16進数の使用も可。指定できる文字は \x00-\xff)
+
+      o big5_buggy  (true/*false*)
+        Big5 CTEXT のバグ (XFree86 4.1.0 以前) に対応する
+
+      o col_size_of_width_a  (1/2) (#)
+        UNICODE の EastAsianWidth.txt の A プロパティのコラム数
+        デフォルト値は、ja_XX.XX locale 環境では 2 , その他の環境では 1 です。.
+
+      o console_encoding (*auto*) (mlterm-con 用)
+        mlterm-con が動作するコンソールのエンコーディング
+
       o encoding  (*auto*) (#)
         エンコーディングの指定
 
@@ -459,322 +408,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         o AUTO を指定した場合、nl_langinfo -> LC_ALL -> LC_CTYPE -> LANGを順番に
           調べ、適当なエンコーディングを選択します。
           ENCODING 指定を行なわなかった場合も同様です。
-
-      o use_ctl  (*true*/false) (#)
-        BiDi 及び インド諸語 のレンダリングを行う。
-        (必要ない場合は false に設定することを推奨します。)
-
-      o bidi_mode  (*normal*/left/right)
-        left 又は right を指定すると、全ての行を左寄せ又は右寄せで表示する。
-
-      o bidi_separators (#)
-        BiDi レンダリングを行う範囲を区切る文字を指定する。
-        ('\x'から始まる16進数の使用も可。指定できる文字は \x00-\xff)
-
-      o use_combining  (*true*/false) (#)
-        結合文字を処理する(直前の基底文字に結合する)
-
-        なお、use_dynamic_comb が true の場合は、自動的に false になります。
-
-      o use_dynamic_comb  (true/*false*) (#)
-        結合文字について、1カラム分占有するが、直前の基底文字に結合して表示する。
-
-        端末アプリケーションが結合文字をサポートしていない場合でも、結合文字を正
-        しく表示できるようにします。
-
-      o big5_buggy  (true/*false*)
-        Big5 CTEXT のバグ (XFree86 4.1.0 以前) に対応する
-
-      o col_size_of_width_a  (1/2) (#)
-        UNICODE の EastAsianWidth.txt の A プロパティのコラム数
-        デフォルト値は、ja_XX.XX locale 環境では 2 , その他の環境では 1 です。.
-
-      o vertical_mode  (*none*/cjk/mongol) (#)
-        縦表示のスタイルを指定
-
-        cjk は、右から左の縦表示、mongol は、左から右の縦表示です。
-
-      o use_vertical_cursor (*true*/false)
-        縦書き用カーソル
-
-        十字カーソルキーを、cjk 縦表示の場合であれば、
-        右 => 下
-        左 => 上
-        上 => 右
-        下 => 左
-        に割当て直します。
-
-      o use_multi_column_char  (*true*/false)  (#)
-        1 文字で複数コラムを占有する文字の処理を行なう
-
-        いわゆる全角文字を処理するかどうかを指定します。 w3m-m17n を縦表示で使
-        用する場合には、このオプションを無効にしてください。
-
-      o receive_string_via_ucs  (true/*false*) (#)
-        copy and paste で受け取った XCOMPOUND TEXT や、XIM から入力された文字列
-        を、一旦 UNICODE を経由してから端末エンコーディングに変換する
-
-      o auto_detect_encodings (#)
-        文字コードを自動判定する場合の候補とするエンコーディング
-        (カンマで区切って複数指定可)
-
-      o use_auto_detect (#)
-        文字コードの自動判定を行う
-
-        あらかじめ、auto_detect_encodings オプションで候補とするエンコーディング
-        を指定しておく必要があります。
-
-      o console_encoding (*auto*) (mlterm-con 用)
-        mlterm-con が動作するコンソールのエンコーディング
-
-      -- Font 関連 --
-      o fontsize  (*16*) (#)
-        フォントサイズ
-        なお、例えば、(tv)font 設定ファイルで、
-        DEFAULT=-kochi-mincho-medium-*--14-*-
-        のように、特定のサイズ(上記例では 14 pixel)のフォントをデフォルトとして
-        指定した場合には、fontsize オプションを変更しても、フォントサイズは(上記
-        例では 14 pixel のまま)変わらなくなるため、注意してください。
-
-      o font_size_range  (*1-10000*)
-        変更可能なフォントサイズの範囲
-
-        フォーマットは以下のとおり。
-        [min]-[max]
-
-        e.g.)
-        font_size_range = 10-24
-        10 から 24 pixel まで変更できるようになります。
-
-      o step_in_changing_font_size (*1*)
-        larger,smaller ボタンでのフォントサイズの変化量(*1*)
-
-      o use_point_size (true/*false*)
-        fontsizeオプションで指定した数値をピクセルでなくポイントとして扱う。
-        (cairo、xft又はwin32の場合のみ有効)
-
-      o use_variable_column_width  (true/*false*) (#)
-        可変長コラム幅を使用する
-
-        なお、vertical_mode が cjk 又は mongol に設定されている場合は、
-        自動的に false に設定されます。
-
-      o type_engine (xcore/xft/*cairo*) (#)
-        xcore, xft 又は cairoのいずれによりフォントを描画するかを指定する。
-        なお、use_anti_alias = true にした場合は、自動的に type_engine = cairo と
-        なります。
-
-      o use_anti_alias (true/false/*default*) (#)
-        アンチエイリアスフォントを強制的に使用する。
-        なお、このオプションを指定しなかった場合又は use_anti_alias = default
-        にした場合、アンチエイリアスするかどうかは、システムの設定によります。
-
-      o use_cp932_ucs_for_xft (*true*/false)
-        Xft 又は cairo 使用時、JISX0208 の Unicode 変換に CP932 の変換テーブル
-        を使う
-
-        多くの Unicode フォント(東風、Dynalab フォント)は、CP932 の変換テーブ
-        ルを元に、JISX0208 用のフォントを格納しています。「〜」などが表示され
-        ないという場合は、このオプションを有効にしてください。
-
-      o not_use_unicode_font  (true/*false*) (#)
-        UNICODE を適当な文字集合にmapして、UNICODE フォントを使わずに表示する
-        なお、文字幅及び結合文字の属性は、UNICODE の属性を使用します。
-
-      o unicode_noconv_areas (#)
-        not_use_unicode_font を true とした場合でも、このオプションで指定した範
-        囲の文字は、常に UNICODE のまま表示する。
-        範囲の指定方法は次のとおり。
-
-        e.g.) U+1234-5678,U+0123-4567
-
-      o only_use_unicode_font (true/*false*) (#)
-        すべての文字を UNICODE フォントだけを使って表示する
-        なお、文字幅の属性は、UNICODE の属性は使いません。
-
-      o iso88591_font_for_usascii (true/*false*)
-        US_ASCII の表示には、必ず ISO8859-1 フォントを使用する
-
-      o box_drawing_font (unicode/decsp/*noconv*) (#)
-        罫線文字について、常に Unicode フォント又は DEC Special フォントで表示す
-        る。
-
-      o compose_dec_special_font (true/*false*)
-        DEC special (特殊文字を除く) のグリフを動的に合成
-
-        このオプションが指定された場合、"font" ファイルで DEC_SPECIAL として
-        指定したフォントは無視されます。
-
-      o use_bold_font (*true*/false)
-        ボールドフォントを使用する。
-
-      o use_italic_font (*true*/false)
-        イタリックフォントを使用する。
-
-      o leftward_double_drawing (true/*false*)
-        medium フォントを重ね打ちする場合の開始位置を 1 pixel 左(デフォルトは右)
-        からとする。
-
-      o unicode_full_width_areas (#)
-        EastAsianWidth.txt に関わらず、このオプションで指定した範囲の文字は、常
-        に全角幅とする。範囲の指定方法は、unicode_noconv_areas オプション参照
-
-      o unicode_half_width_areas (#)
-        EastAsianWidth.txt に関わらず、このオプションで指定した範囲の文字は、常
-        に半角幅とする。範囲の指定方法は、unicode_noconv_areas オプション参照
-
-      o use_ot_layout (true/*false*) (#)
-        Open Type フォントの置換グリフ等を使ってテキストを表示します。
-        use_ctl オプションを有効にしておく必要があります。
-        なお、use_ot_layout=true の場合、置換グリフ等を使ってテキストを表示して
-        いる行においては、cairo on xlib 及び freetype+fontconfig on
-        framebuffer/wayland/sdl2 における代替グリフ検索による自動フォント補完機
-        能は無効となります。
-
-      o ot_script (latn) (#)
-        グリフ置換を行う場合の script を指定します。
-
-      o ot_features (liga,clig,dlig,hlig,rlig) (#)
-        グリフ置換を行う場合の feature を指定します。
-
-      o emoji_path (~/.mlterm/emoji)
-        絵文字表示に使用する画像のあるディレクトリ又は絵文字フォント
-        (NotoColorEmoji.ttfなど)のパスを指定します。
-
-      o use_aafont (true/false) (mlterm-fb, mlterm-wl or mlterm-sdl2 用)
-        mlterm-fb、mlterm-wl 又は mlterm-sdl2 で truetype フォントを使用する場合
-        に、~/mlterm/*font-fb でなく ~/.mlterm/*aafont の設定を読み込み、
-        fontconfig を使ってフォントを探す。
-        mlterm-fb のデフォルト値は false、mlterm-wl 及び mlterm-sdl2 のデフォル
-        ト値は true
-
-      -- Appearance 関連 --
-      o use_transbg (true/*false*) (#)
-        擬似的な背景透過を行う。
-
-      o use_mdi (*true*/false)
-        スクロールバー及び画面分割を有効にする。
-
-        scrollbar_mode , scrollbar_view_name オプションは、これが true の場合の
-        み有効です。
-
-      o scrollbar_mode (none/*left*/right/autohide) (#)
-        スクロールバーのつけ方
-        autohide の場合、マウスカーソルを画面の右端に近づけたときだけ一時的にスク
-        ロールバーを表示します。
-
-      o scrollbar_view_name (*simple*/sample/sample2/sample3/next/motif/athena/mozmodern) (#)
-        使いたいスクロールバーの名前
-
-      o fg_color  (*black*) (#)
-        端末画面の前景色
-
-        fg_color,bg_colorに指定できる値は、rgb.txt で定義された色名、#RRGGBB、
-        #RRGGBBAA、rgb:RR/GG/BB 又は rgba:RR/GG/BB/AA 形式の色指定です。
-
-        e.g.)
-        fg_color = blue
-        fg_color = #aabbcc
-
-      o bg_color  (*white*) (#)
-        同背景色
-
-      o sb_fg_color (#)
-        スクロールバーの前景色
-
-      o sb_bg_color (#)
-        同背景色
-
-      o cursor_fg_color (#)
-        カーソルの前景色
-
-      o cursor_bg_color (#)
-        同背景色
-
-      o bd_color (#)
-        ボールドの代わりに文字に色を付けるのに使用する色
-
-      o ul_color (#)
-        アンダーラインの代わりに文字に色を付けるのに使用する色
-
-      o bl_color (#)
-        点滅の代わりに文字に色を付けるのに使用する色
-
-      o rv_color (#)
-        反転の代わりに文字に色を付けるのに使用する色
-
-      o it_color (#)
-        イタリックの代わりに文字に色を付けるのに使用する色
-
-      o co_color (#)
-        打ち消し線の代わりに文字に色を付けるのに使用する色
-
-      o vt_color_mode (256/*high*/true)
-        CSI 38;2;r;g;b m 又は CSI 48;2;r;g;b m で指定された RGB により表示される
-        色について、256色からの近似値とするか、high color 又は true color で表示
-        するかを指定する。
-
-      o hide_underline (true/*false*)
-        アンダーラインを描画しない。
-
-      o underline_offset (0) (#)
-        アンダーラインの位置(フォントのベースラインからの相対位置)
-
-      o baseline_offset (0) (#)
-        ベースラインの相対位置
-
-      o wall_picture  (*なし*) (#)
-        壁紙にする画像ファイルのパス
-        なお、use_transbg が true となっている間は、壁紙の表示は行なわれません。
-
-      o fade_ratio  (*100*) (#)
-        Focus から外れたときの前景/背景色の Fade 率(百分率)[0-100]
-
-      o brightness  (*100*) (#)
-        背景画像(透過処理含む)の輝度調整(百分率)[0-100]
-
-      o contrast (*100*) (#)
-        背景画像(透過処理含む)のコントラスト(百分率)[0-100]
-
-      o gamma (*100*) (#)
-        背景画像(透過処理含む)のガンマ値(百分率)[0-100]
-
-      o alpha (*255*) (#)
-        背景画像使用時及び透過処理時に、bg_color で指定した色と背景をブレンドす
-        る比率[0-255]
-        なお、背景画像又は擬似的な背景透過を使用する際、このオプションがデフォ
-        ルト値 (255) のままだった場合は、自動的に 0 に変更されます。
-        depth オプションの説明も参照してください。
-      
-      o line_space  (*0*) (#)
-        行間の広さ[0-255]
-        高さが不揃いの複数のフォントを使用する場合は、このオプションで行間を適宜
-        調整してください。
-        マイナスの値を指定すると行間が狭くなります。
-
-      o letter_space (*0*) (#)
-        字間の広さ[0-255]
-        幅が不揃いの複数のフォントを使用する場合は、このオプションで字間を適宜
-        調整してください。
-        なお、-V オプションと同時に指定すると無効になります。
-        また、type_engine=xcore で letter_space に 1 以上の値を指定すると、
-        描画パフォーマンスが大幅に低下します。
-        マイナスの値は指定できません。
-
-      o borderless (true/*false*)
-        Window Manager の飾りを外す。
-
-      o blink_cursor (true/*false*) (#)
-        カーソルを点滅させる。
-
-      -- その他 --
-      o locale
-        指定したローケールに setlocale() します。
-
-      o use_xim  (*true*/false)
-        XIM を使う
-
-        これを false にすると、XIM は一切使用できなくなります。
 
       o input_method (#)
         使用するインプットメソッド
@@ -868,30 +501,328 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         HTT_AUX_BASE_DIR 環境変数により、aux モジュールのあるパスを指定するこ
         とができます(デフォルトは/usr/lib/iiim/le)。
 
-      o tabsize (*8*) (#)
-        タブ幅
+      o receive_string_via_ucs  (true/*false*) (#)
+        copy and paste で受け取った XCOMPOUND TEXT や、XIM から入力された文字列
+        を、一旦 UNICODE を経由してから端末エンコーディングに変換する
 
-      o logsize (*128*) (#)
-        ログの行数
-        unlimited を指定するとログの行数は無制限になります。
-        65535行を超える数値を指定した場合、unlimited と見なします。
+      o use_auto_detect (#)
+        文字コードの自動判定を行う
 
-      o word_separators ( ,.:;/|@()[]{}) (#)
-        単語の区切り文字を指定('\x'から始まる16進数の使用も可)
+        あらかじめ、auto_detect_encodings オプションで候補とするエンコーディング
+        を指定しておく必要があります。
 
-        マウスのダブルクリックで、単語選択する際に使用されます。
+      o use_combining  (*true*/false) (#)
+        結合文字を処理する(直前の基底文字に結合する)
 
-      o regard_uri_as_word (true/*false*) (#)
-        URI をダブルクリックすると、word_separators オプションに関わらず、当該
-        URI を一単語として選択する。
+        なお、use_dynamic_comb が true の場合は、自動的に false になります。
 
-      o mod_meta_key (*none*/mod1/mod2/mod3/mod4/meta/alt/super/hyper)
-        Meta キーとして使用するキーを指定
+      o use_ctl  (*true*/false) (#)
+        BiDi 及び インド諸語 のレンダリングを行う。
+        (必要ない場合は false に設定することを推奨します。)
 
-      o mod_meta_mode  (none/esc/*8bit*) (#)
-        Meta キーを押下した時の挙動
+      o use_dynamic_comb  (true/*false*) (#)
+        結合文字について、1カラム分占有するが、直前の基底文字に結合して表示する。
 
-        esc の場合は"0x1b"を出力し、8bit の場合は入力文字の8ビット目をたてます。
+        端末アプリケーションが結合文字をサポートしていない場合でも、結合文字を正
+        しく表示できるようにします。
+
+      o use_multi_column_char  (*true*/false)  (#)
+        1 文字で複数コラムを占有する文字の処理を行なう
+
+        いわゆる全角文字を処理するかどうかを指定します。 w3m-m17n を縦表示で使
+        用する場合には、このオプションを無効にしてください。
+
+      o use_vertical_cursor (*true*/false)
+        縦書き用カーソル
+
+        十字カーソルキーを、cjk 縦表示の場合であれば、
+        右 => 下
+        左 => 上
+        上 => 右
+        下 => 左
+        に割当て直します。
+
+      o use_xim  (*true*/false)
+        XIM を使う
+
+        これを false にすると、XIM は一切使用できなくなります。
+
+      o vertical_mode  (*none*/cjk/mongol) (#)
+        縦表示のスタイルを指定
+
+        cjk は、右から左の縦表示、mongol は、左から右の縦表示です。
+
+      -- Font 関連 --
+      o baseline_offset (0) (#)
+        ベースラインの相対位置
+
+      o box_drawing_font (unicode/decsp/*noconv*) (#)
+        罫線文字について、常に Unicode フォント又は DEC Special フォントで表示す
+        る。
+
+      o compose_dec_special_font (true/*false*)
+        DEC special (特殊文字を除く) のグリフを動的に合成
+
+        このオプションが指定された場合、"font" ファイルで DEC_SPECIAL として
+        指定したフォントは無視されます。
+
+      o emoji_path (~/.mlterm/emoji)
+        絵文字表示に使用する画像のあるディレクトリ又は絵文字フォント
+        (NotoColorEmoji.ttfなど)のパスを指定します。
+
+      o fg_color  (*black*) (#)
+        端末画面の前景色
+
+        fg_color,bg_colorに指定できる値は、rgb.txt で定義された色名、#RRGGBB、
+        #RRGGBBAA、rgb:RR/GG/BB 又は rgba:RR/GG/BB/AA 形式の色指定です。
+
+        e.g.)
+        fg_color = blue
+        fg_color = #aabbcc
+
+      o fontsize  (*16*) (#)
+        フォントサイズ
+        なお、例えば、(tv)font 設定ファイルで、
+        DEFAULT=-kochi-mincho-medium-*--14-*-
+        のように、特定のサイズ(上記例では 14 pixel)のフォントをデフォルトとして
+        指定した場合には、fontsize オプションを変更しても、フォントサイズは(上記
+        例では 14 pixel のまま)変わらなくなるため、注意してください。
+
+      o font_size_range  (*1-10000*)
+        変更可能なフォントサイズの範囲
+
+        フォーマットは以下のとおり。
+        [min]-[max]
+
+        e.g.)
+        font_size_range = 10-24
+        10 から 24 pixel まで変更できるようになります。
+
+      o hide_underline (true/*false*)
+        アンダーラインを描画しない。
+
+      o iso88591_font_for_usascii (true/*false*)
+        US_ASCII の表示には、必ず ISO8859-1 フォントを使用する
+
+      o leftward_double_drawing (true/*false*)
+        medium フォントを重ね打ちする場合の開始位置を 1 pixel 左(デフォルトは右)
+        からとする。
+
+      o letter_space (*0*) (#)
+        字間の広さ[0-255]
+        幅が不揃いの複数のフォントを使用する場合は、このオプションで字間を適宜
+        調整してください。
+        なお、-V オプションと同時に指定すると無効になります。
+        また、type_engine=xcore で letter_space に 1 以上の値を指定すると、
+        描画パフォーマンスが大幅に低下します。
+        マイナスの値は指定できません。
+
+      o line_space  (*0*) (#)
+        行間の広さ[0-255]
+        高さが不揃いの複数のフォントを使用する場合は、このオプションで行間を適宜
+        調整してください。
+        マイナスの値を指定すると行間が狭くなります。
+
+      o not_use_unicode_font  (true/*false*) (#)
+        UNICODE を適当な文字集合にmapして、UNICODE フォントを使わずに表示する
+        なお、文字幅及び結合文字の属性は、UNICODE の属性を使用します。
+
+      o only_use_unicode_font (true/*false*) (#)
+        すべての文字を UNICODE フォントだけを使って表示する
+        なお、文字幅の属性は、UNICODE の属性は使いません。
+
+      o ot_script (latn) (#)
+        グリフ置換を行う場合の script を指定します。
+
+      o ot_features (liga,clig,dlig,hlig,rlig) (#)
+        グリフ置換を行う場合の feature を指定します。
+
+      o screen_width_ratio (*100*) (#)
+        実スクリーンの横幅(百分率)
+        縦書きモードの場合は縦幅
+
+      o step_in_changing_font_size (*1*)
+        larger,smaller ボタンでのフォントサイズの変化量(*1*)
+
+      o type_engine (xcore/xft/*cairo*) (#)
+        xcore, xft 又は cairoのいずれによりフォントを描画するかを指定する。
+        なお、use_anti_alias = true にした場合は、自動的に type_engine = cairo と
+        なります。
+
+      o underline_offset (0) (#)
+        アンダーラインの位置(フォントのベースラインからの相対位置)
+
+      o unicode_full_width_areas (#)
+        EastAsianWidth.txt に関わらず、このオプションで指定した範囲の文字は、常
+        に全角幅とする。範囲の指定方法は、unicode_noconv_areas オプション参照
+
+      o unicode_half_width_areas (#)
+        EastAsianWidth.txt に関わらず、このオプションで指定した範囲の文字は、常
+        に半角幅とする。範囲の指定方法は、unicode_noconv_areas オプション参照
+
+      o unicode_noconv_areas (#)
+        not_use_unicode_font を true とした場合でも、このオプションで指定した範
+        囲の文字は、常に UNICODE のまま表示する。
+        範囲の指定方法は次のとおり。
+
+        e.g.) U+1234-5678,U+0123-4567
+
+      o use_aafont (true/false) (mlterm-fb, mlterm-wl or mlterm-sdl2 用)
+        mlterm-fb、mlterm-wl 又は mlterm-sdl2 で truetype フォントを使用する場合
+        に、~/mlterm/*font-fb でなく ~/.mlterm/*aafont の設定を読み込み、
+        fontconfig を使ってフォントを探す。
+        mlterm-fb のデフォルト値は false、mlterm-wl 及び mlterm-sdl2 のデフォル
+        ト値は true
+
+      o use_anti_alias (true/false/*default*) (#)
+        アンチエイリアスフォントを強制的に使用する。
+        なお、このオプションを指定しなかった場合又は use_anti_alias = default
+        にした場合、アンチエイリアスするかどうかは、システムの設定によります。
+
+      o use_bold_font (*true*/false)
+        ボールドフォントを使用する。
+
+      o use_cp932_ucs_for_xft (*true*/false)
+        Xft 又は cairo 使用時、JISX0208 の Unicode 変換に CP932 の変換テーブル
+        を使う
+
+        多くの Unicode フォント(東風、Dynalab フォント)は、CP932 の変換テーブ
+        ルを元に、JISX0208 用のフォントを格納しています。「〜」などが表示され
+        ないという場合は、このオプションを有効にしてください。
+
+      o use_italic_font (*true*/false)
+        イタリックフォントを使用する。
+
+      o use_ot_layout (true/*false*) (#)
+        Open Type フォントの置換グリフ等を使ってテキストを表示します。
+        use_ctl オプションを有効にしておく必要があります。
+        なお、use_ot_layout=true の場合、置換グリフ等を使ってテキストを表示して
+        いる行においては、cairo on xlib 及び freetype+fontconfig on
+        framebuffer/wayland/sdl2 における代替グリフ検索による自動フォント補完機
+        能は無効となります。
+
+      o use_point_size (true/*false*)
+        fontsizeオプションで指定した数値をピクセルでなくポイントとして扱う。
+        (cairo、xft又はwin32の場合のみ有効)
+
+      o use_variable_column_width  (true/*false*) (#)
+        可変長コラム幅を使用する
+
+        なお、vertical_mode が cjk 又は mongol に設定されている場合は、
+        自動的に false に設定されます。
+
+      -- Background 関連 --
+      o alpha (*255*) (#)
+        背景画像使用時及び透過処理時に、bg_color で指定した色と背景をブレンドす
+        る比率[0-255]
+        なお、背景画像又は擬似的な背景透過を使用する際、このオプションがデフォ
+        ルト値 (255) のままだった場合は、自動的に 0 に変更されます。
+        depth オプションの説明も参照してください。
+
+      o bg_color  (*white*) (#)
+        同背景色
+
+      o brightness  (*100*) (#)
+        背景画像(透過処理含む)の輝度調整(百分率)[0-100]
+
+      o contrast (*100*) (#)
+        背景画像(透過処理含む)のコントラスト(百分率)[0-100]
+
+      o fade_ratio  (*100*) (#)
+        Focus から外れたときの前景/背景色の Fade 率(百分率)[0-100]
+
+      o gamma (*100*) (#)
+        背景画像(透過処理含む)のガンマ値(百分率)[0-100]
+
+      o separate_wall_picture (*true*/false) (mlterm-fb on NetBSD/x68k 用)
+        壁紙のみ Graphic VRAM ではなく Text VRAM に描画し、スクロール測度を改善
+        する。
+
+      o use_transbg (true/*false*) (#)
+        擬似的な背景透過を行う。
+
+      o wall_picture  (*なし*) (#)
+        壁紙にする画像ファイルのパス
+        なお、use_transbg が true となっている間は、壁紙の表示は行なわれません。
+
+      -- Color 関連 --
+      o bd_color (#)
+        ボールドの代わりに文字に色を付けるのに使用する色
+
+      o bl_color (#)
+        点滅の代わりに文字に色を付けるのに使用する色
+
+      o co_color (#)
+        打ち消し線の代わりに文字に色を付けるのに使用する色
+
+      o cursor_fg_color (#)
+        カーソルの前景色
+
+      o cursor_bg_color (#)
+        同背景色
+
+      o it_color (#)
+        イタリックの代わりに文字に色を付けるのに使用する色
+
+      o rv_color (#)
+        反転の代わりに文字に色を付けるのに使用する色
+
+      o ul_color (#)
+        アンダーラインの代わりに文字に色を付けるのに使用する色
+
+      o vt_color_mode (256/*high*/true)
+        CSI 38;2;r;g;b m 又は CSI 48;2;r;g;b m で指定された RGB により表示される
+        色について、256色からの近似値とするか、high color 又は true color で表示
+        するかを指定する。
+
+      -- Scrollbar 関連 --
+      o sb_fg_color (#)
+        スクロールバーの前景色
+
+      o sb_bg_color (#)
+        同背景色
+
+      o scrollbar_mode (none/*left*/right/autohide) (#)
+        スクロールバーのつけ方
+        autohide の場合、マウスカーソルを画面の右端に近づけたときだけ一時的にスク
+        ロールバーを表示します。
+
+      o scrollbar_view_name (*simple*/sample/sample2/sample3/next/motif/athena/mozmodern) (#)
+        使いたいスクロールバーの名前
+
+      o use_mdi (*true*/false)
+        スクロールバー及び画面分割を有効にする。
+
+        scrollbar_mode , scrollbar_view_name オプションは、これが true の場合の
+        み有効です。
+
+      -- その他 --
+      o allow_change_shortcut (true/*false*)
+        OSC 5379 の "set_shortcut" による動的なショートカットキー定義を有効にす
+        る。
+
+      o allow_osc52 (true/*false*)
+        OSC 52 sequence によるクリップボード(セレクション)へのアクセスを許可する。
+        なお、このオプションを動的に変更するには、"proto:allow_osc52=switch"
+        ショートカットキーを使用する必要があります。
+
+      o allow_scp (true/*false*)
+        ssh 接続時に OSC 5379 scp を許可する。
+        なお、このオプションを動的に変更するには、"proto:allow_scp=switch"
+        ショートカットキーを使用する必要があります。
+
+        false の場合でも、転送先ホストの "." (~/.mlterm/recv) ディレクトリ以下に
+        保存することは可能です。
+
+      o app_name (*mlterm*)
+        アプリケーション名
+        (xlib版では WM_CLASS プロパティにセットされます)
+
+      o auto_restart (*true*/false)
+        SIGSEGV, SIGBUS, SIGFPE, SIGILL が発生した場合に、mlterm 内部の console
+        application (ssh 接続を除く。)を引き継いだ mlterm を起動し直す。
+
+        デバッグのため core dump を取得する場合は、必ず false にしてください。
 
       o bel_mode  (none/*sound*/visual/sound|visual) (#)
         BEL(0x7)を受け取った時の挙動
@@ -899,8 +830,27 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         soundの場合はビープ音で、visualの場合は画面ブランクでBELを通知します。
         sound|visualを指定すると、両方行います。
 
-      o use_urgent_bell (true/*false*)
-        フォーカスを失なった画面上でBEL(0x7)を受け取った時に、ユーザに警告する。
+      o blink_cursor (true/*false*) (#)
+        カーソルを点滅させる。
+
+      o borderless (true/*false*)
+        Window Manager の飾りを外す。
+
+      o broadcast (true/*false*) (#)
+        キー入力及びペーストされた文字列を、全ての pty (ignore_broadcasted_chars
+        オプションの値が false なものに限る) に送信する。
+
+      o cipher_list
+        ssh 接続で使用する共通鍵暗号を指定する。
+        (コンマ区切りで複数指定)
+
+      o click_interval (*250*) (#)
+        ダブルクリックの間隔(ミリ秒)
+
+      o console_sixel_colors (16/256/full) (mlterm-con 用)
+        mlterm-con が動作するコンソールがサポートしている Sixel Graphics の色数
+        16, 256, full のいずれかを指定します。
+        XTCOLREG(CSI?Pi;Pa;PvS)により、16か256のいずれか適当な方を判定します。
 
       o daemon_mode (*none*/blend/genuine)
         daemon process となるかどうか
@@ -912,35 +862,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
         なお、既にdaemon processが起動していた場合は、mlclientが実行されます。
 
-      o use_extended_scroll_shortcut (true/*false*) (#)
-        スクロールのショートカットキーとして、PAGE_UP,PAGE_DOWN ショートカット以
-        外に、Up,Down,j,k,Prior,Next キー及び、SCROLL_UP,SCROLL_DOWN ショートカ
-        ットを有効にするかどうか
-
-      o init_str
-        pty をオープンしたときに、端末に送られる初期化文字列を指定する。
-
-      o click_interval (*250*) (#)
-        ダブルクリックの間隔(ミリ秒)
-
-      o static_backscroll_mode (true/*false*) (#)
-        バックスクロール時に端末出力があっても画面が流れないようにする。
-
-      o exit_backscroll_by_pty (true/*false*)
-        バックスクロール中に、端末出力があった場合、バックスクロールを抜ける。
-
-      o logging_vt_seq (true/*false*) (#)
-        pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録する。
-
-      o vt_seq_format (*raw*/ttyrec) (#)
-        ~/.mlterm/[device].log に記録するフォーマットを指定する。
-        rawはそのまま、ttyrecはttyrec形式で保存する。
-
-      o use_clipboard (*true*/false) (#)
-        領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。
-
-      o logging_msg (*true*/false)
-        mlterm が出力するメッセージを ~/.mlterm/msg.log に出力する。
+      o default_cell_size (*8,16*) (mlterm-con 用)
+        mlterm-con がセルの幅と高さのピクセル数を取得できなかった場合に使用する
+        デフォルトの幅と高さ
 
       o default_server
         ssh 等により直接ログインするサーバを指定する。
@@ -950,50 +874,132 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         例) mlterm --serv ssh://user@host:22:eucjp
             mlterm --serv mosh://user@host:22:utf8
 
-      o ssh_public_key (~/.ssh/id_rsa.pub (win32 では %HOMEPATH%\mlterm\id_rsa.pub))
-        ssh 接続の認証で使用する公開鍵のファイルを指定する。
+      o depth
+        Visual の深さ (8, 16, 24, 32)
+        なお、depth が 32 の場合、--alpha オプション又は背景色として
+        "rgba:RR/GG/BB/AA" と指定することで、半透明にすることができます。
 
-      o ssh_private_key (~/.ssh/id_rsa (win32 では %HOMEPATH%\mlterm\id_rsa))
-        ssh 接続の認証で使用する秘密鍵のファイルを指定する。
+      o display
+        X の DISPLAY を指定
 
-      o cipher_list
-        ssh 接続で使用する共通鍵暗号を指定する。
-        (コンマ区切りで複数指定)
+      o exit_backscroll_by_pty (true/*false*)
+        バックスクロール中に、端末出力があった場合、バックスクロールを抜ける。
+
+      o fb_resolution (mlterm-fb on NetBSD/x68k or OpenBSD 用)
+        768x512x4 のような形式で解像度を指定する。
+
+      o geometry
+        表示位置を指定
+
+      o icon_name (*mlterm*)
+        アイコン名
+
+      o icon_path
+        アイコン画像のファイル名
+
+      o ignore_broadcasted_chars (true/*false*)
+        broadcast オプションが true の場合でも、ブロードキャストを受け付けない。
+
+      o init_str
+        pty をオープンしたときに、端末に送られる初期化文字列を指定する。
+
+      o inner_border (*2*)
+        Window の inner border (0-224)
+
+        "H,V"形式で値を指定すると、横方向と縦方向で別々に inner border の値を指
+        定できます。
+
+      o local_echo_wait (250)
+        local echo 状態を保持する時間 (ミリ秒)
+
+      o locale
+        指定したローケールに setlocale() します。
+
+      o layout_inner_border (*0*)
+        Layout Manager の inner border (0-224)
+
+        "H,V"形式で値を指定すると、横方向と縦方向で別々に inner border の値を指
+        定できます。
+
+      o logging_msg (*true*/false)
+        mlterm が出力するメッセージを ~/.mlterm/msg.log に出力する。
+
+      o logging_vt_seq (true/*false*) (#)
+        pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録する。
+
+      o logsize (*128*) (#)
+        ログの行数
+        unlimited を指定するとログの行数は無制限になります。
+        65535行を超える数値を指定した場合、unlimited と見なします。
+
+      o max_ptys (*32*)
+        同時に立ち上げることができる pty の最大数 (32の倍数で指定)
+
+      o mod_meta_key (*none*/mod1/mod2/mod3/mod4/meta/alt/super/hyper)
+        Meta キーとして使用するキーを指定
+
+      o mod_meta_mode  (none/esc/*8bit*) (#)
+        Meta キーを押下した時の挙動
+
+        esc の場合は"0x1b"を出力し、8bit の場合は入力文字の8ビット目をたてます。
+
+      o parent_window (*0*)
+        親 Window の Window ID を指定
+
+      o primary_da (*63;1;2;3;4;7;29*)
+        CSI c に対する応答文字列
+
+      o receive_directory (~/.mlterm/recv)
+        zmodem や scp で受信したファイルを保存するディレクトリ
+
+      o regard_uri_as_word (true/*false*) (#)
+        URI をダブルクリックすると、word_separators オプションに関わらず、当該
+        URI を一単語として選択する。
+
+      o scroll_on_resizing (true/*false*)
+        画面を小さくリサイズした時に、画面に表示されている文字を全てスクロールア
+        ウトする。
+
+      o secondary_da (*24;279;0*)
+        CSI > c に対する応答文字列
+
+      o ssh_auto_reconnect (true/*false*)
+        ssh の接続が予期せず切断した場合に、自動的に再接続を試みる。
 
       o ssh_keepalive_interval (0)
         ssh 接続中に、指定した秒数ごとに、SSH_MSG_IGNORE を送信する。
         (0 の場合は送信しない。)
 
+      o ssh_private_key (~/.ssh/id_rsa (win32 では %HOMEPATH%\mlterm\id_rsa))
+        ssh 接続の認証で使用する秘密鍵のファイルを指定する。
+
+      o ssh_public_key (~/.ssh/id_rsa.pub (win32 では %HOMEPATH%\mlterm\id_rsa.pub))
+        ssh 接続の認証で使用する公開鍵のファイルを指定する。
+
       o ssh_x11_forwarding (true/*false*)
         ssh 接続で x11 forwarding を有効にする。
 
-      o allow_scp (true/*false*)
-        ssh 接続時に OSC 5379 scp を許可する。
-        なお、このオプションを動的に変更するには、"proto:allow_scp=switch"
-        ショートカットキーを使用する必要があります。
+      o start_with_local_pty (true/*false*) (Android 用)
+        default_server オプションが指定されていない場合に、起動時の SSH 接続ダイ
+        アログを表示しないようにする。
 
-        false の場合でも、転送先ホストの "." (~/.mlterm/recv) ディレクトリ以下に
-        保存することは可能です。
+      o startup_screens (*1*)
+        起動時に立ち上げるウィンドウの数
 
-      o ssh_auto_reconnect (true/*false*)
-        ssh の接続が予期せず切断した場合に、自動的に再接続を試みる。
+      o static_backscroll_mode (true/*false*) (#)
+        バックスクロール時に端末出力があっても画面が流れないようにする。
 
-      o auto_restart (*true*/false)
-        SIGSEGV, SIGBUS, SIGFPE, SIGILL が発生した場合に、mlterm 内部の console
-        application (ssh 接続を除く。)を引き継いだ mlterm を起動し直す。
+      o tabsize (*8*) (#)
+        タブ幅
 
-        デバッグのため core dump を取得する場合は、必ず false にしてください。
+      o termtype (*xterm*)
+        端末タイプ
 
-      o allow_osc52 (true/*false*)
-        OSC 52 sequence によるクリップボード(セレクション)へのアクセスを許可する。
-        なお、このオプションを動的に変更するには、"proto:allow_osc52=switch"
-        ショートカットキーを使用する必要があります。
+      o title (*mlterm*)
+        タイトル名
 
-      o use_local_echo (true/*false*) (#)
-        local echo mode を有効にする。
-
-      o local_echo_wait (250)
-        local echo 状態を保持する時間 (ミリ秒)
+      o trim_trailing_newline_in_pasting (true/*false*) (#)
+        ペーストする文字列の末尾の改行を削除する。
 
       o use_alt_buffer (*true*/false)
         Alternate screen buffer を有効にする。
@@ -1004,40 +1010,34 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         ANSI color change escape sequences を有効にする。
         xterm の "colorMode" 相当のオプションです。
 
-      o allow_change_shortcut (true/*false*)
-        OSC 5379 の "set_shortcut" による動的なショートカットキー定義を有効にす
-        る。
+      o use_clipboard (*true*/false) (#)
+        領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。
+
+      o use_extended_scroll_shortcut (true/*false*) (#)
+        スクロールのショートカットキーとして、PAGE_UP,PAGE_DOWN ショートカット以
+        外に、Up,Down,j,k,Prior,Next キー及び、SCROLL_UP,SCROLL_DOWN ショートカ
+        ットを有効にするかどうか
+
+      o use_local_echo (true/*false*) (#)
+        local echo mode を有効にする。
+
+      o use_login_shell (true/*false*)
+        ログインシェルを使うかどうか
+
+      o use_urgent_bell (true/*false*)
+        フォーカスを失なった画面上でBEL(0x7)を受け取った時に、ユーザに警告する。
+
+      o vt_seq_format (*raw*/ttyrec) (#)
+        ~/.mlterm/[device].log に記録するフォーマットを指定する。
+        rawはそのまま、ttyrecはttyrec形式で保存する。
+
+      o word_separators ( ,.:;/|@()[]{}) (#)
+        単語の区切り文字を指定('\x'から始まる16進数の使用も可)
+
+        マウスのダブルクリックで、単語選択する際に使用されます。
 
       o working_directory
         子プロセス(シェル)のカレントディレクトリを指定する。
-
-      o trim_trailing_newline_in_pasting (true/*false*) (#)
-        ペーストする文字列の末尾の改行を削除する。
-
-      o broadcast (true/*false*) (#)
-        キー入力及びペーストされた文字列を、全ての pty (ignore_broadcasted_chars
-        オプションの値が false なものに限る) に送信する。
-
-      o ignore_broadcasted_chars (true/*false*)
-        broadcast オプションが true の場合でも、ブロードキャストを受け付けない。
-
-      o start_with_local_pty (true/*false*) (Android 用)
-        default_server オプションが指定されていない場合に、起動時の SSH 接続ダイ
-        アログを表示しないようにする。
-
-      o fb_resolution (mlterm-fb on NetBSD/x68k or OpenBSD 用)
-        768x512x4 のような形式で解像度を指定する。
-
-      o separate_wall_picture (*true*/false) (mlterm-fb on NetBSD/x68k 用)
-        壁紙のみ Graphic VRAM ではなく Text VRAM に描画し、スクロール測度を改善
-        する。
-
-      o scroll_on_resizing (true/*false*)
-        画面を小さくリサイズした時に、画面に表示されている文字を全てスクロールア
-        ウトする。
-
-      o receive_directory (~/.mlterm/recv)
-        zmodem や scp で受信したファイルを保存するディレクトリ
 
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)
@@ -1396,7 +1396,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
     -*/--type          : type engine
     -0/--crbg=value    : cursor_bg_color
     -1/--wscr=value    : screen_width_ratio
-    -2/--hscr=value    : screen_height_ratio
     -3/--contrast=value: contrast
     -4/--gamma=value   : gamma
     -5/--big5bug(=bool): big5_buggy
