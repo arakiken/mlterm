@@ -16,7 +16,9 @@ typedef enum {
   mc_io_set_save_color = 5383,
 } mc_io_t;
 
-int mc_io_is_pty(void);
+void mc_io_set_use_file(int flag);
+
+int mc_io_is_file(void);
 
 void mc_exec(const char *cmd);
 

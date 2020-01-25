@@ -6,7 +6,7 @@
 #include <pobl/bl_mem.h>    /* malloc */
 #include <pobl/bl_unistd.h> /* STDIN_FILENO */
 #include <pobl/bl_debug.h>
-#include <pobl/bl_str.h>
+#include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_def.h> /* USE_WIN32API */
 
 /* --- static variables --- */

@@ -3,7 +3,7 @@
 #include "mc_auto_detect.h"
 
 #include <stdio.h>
-#include <pobl/bl_str.h>
+#include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_mem.h> /* free */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_locale.h>

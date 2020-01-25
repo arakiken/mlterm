@@ -495,7 +495,7 @@ static void child_window_resized(ui_window_t *win, ui_window_t *child) {
 }
 
 static void window_exposed(ui_window_t *win, int x, int y, u_int width, u_int height) {
-  ui_window_fill_with(win, &((ui_layout_t *)win)->term.screen->window.fg_color, x, y, width,
+  ui_window_fill_with(win, &win->fg_color, x, y, width,
                       height);
 }
 
