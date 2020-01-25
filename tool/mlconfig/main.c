@@ -369,7 +369,7 @@ static GtkWidget *apply_cancel_button(void) {
 
   addbutton(_("Save&Exit"), saveexit_clicked, hbox);
 
-  if (mc_io_is_pty()) {
+  if (!mc_io_is_file()) {
     addbutton(_("Apply&Exit"), applyexit_clicked, hbox);
     addbutton(_("Apply"), apply_clicked, hbox);
   }
@@ -799,6 +799,8 @@ static int show(void) {
 /* --- global functions --- */
 
 int main(int argc, char **argv) {
+  int is_file_io = 0;
+
 #ifdef DEBUG
   atexit(check_mem_leak);
 #endif
@@ -817,15 +819,22 @@ int main(int argc, char **argv) {
   bind_textdomain_codeset("mlconfig", "UTF-8");
   textdomain("mlconfig");
 
-#ifdef __DEBUG
-  {
+  if (argc == 1) {
+    is_file_io = 1;
+  } else {
     int count;
 
     for (count = 0; count < argc; count++) {
+#ifdef __DEBUG
       fprintf(stderr, "%s\n", argv[count]);
+#endif
+
+      if (strcmp(argv[count], "--file") == 0) {
+        is_file_io = 1;
+      }
     }
   }
-#endif
+  mc_io_set_use_file(is_file_io);
 
   bl_set_msg_log_file_name("mlterm/msg.log");
 

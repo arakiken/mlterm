@@ -1,3 +1,15 @@
+2020-01-25  Araki Ken  <arakiken@users.sf.net>
+
+	* mlconfig/main.c: If mlconfig start without options or with --file
+	  option, it configures files in ~/.mlterm directly.
+
+	* mc_io.[ch]:
+	  mc_io_is_pty() -> mc_io_is_file().
+	  mc_io_set_use_file() is added.
+
+	* ui_layout.c: window_exposed() uses ui_layout_t.window.fg_color instead of
+	  ui_layout_t.term.screen.window.fg_color
+
 2020-01-24  Araki Ken  <arakiken@users.sf.net>
 
 	* mc_color.c: Color names like "white", "back" and so on are converted

@@ -2,7 +2,7 @@
 
 #include "mc_char_encoding.h"
 #include <stdio.h>
-#include <pobl/bl_str.h>
+#include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_mem.h> /* free */
 #include <ctype.h>
 #include <pobl/bl_debug.h>

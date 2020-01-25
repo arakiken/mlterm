@@ -2,7 +2,7 @@
 
 #include "mc_wall_pic.h"
 
-#include <pobl/bl_str.h>
+#include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_mem.h> /* free */
 #include <glib.h>
 #include <c_intl.h>

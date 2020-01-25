@@ -8,7 +8,7 @@
 #include <c_intl.h>
 
 #include <pobl/bl_mem.h>
-#include <pobl/bl_str.h> /* bl_str_sep */
+#include <pobl/bl_str.h> /* bl_str_sep/strdup */
 
 #include "mc_io.h"
 #include "mc_flags.h"

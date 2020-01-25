@@ -2,7 +2,7 @@
 
 #include "mc_sb_view.h"
 
-#include <pobl/bl_str.h>
+#include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_mem.h> /* free */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_conf_io.h>

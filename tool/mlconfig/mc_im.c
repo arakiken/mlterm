@@ -8,7 +8,7 @@
 #include <pobl/bl_conf_io.h>
 #include <pobl/bl_dlfcn.h>
 #include <pobl/bl_map.h>
-#include <pobl/bl_str.h>
+#include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_def.h> /* USE_WIN32API */
 #include <glib.h>
 #include <c_intl.h>
