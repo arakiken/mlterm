@@ -216,7 +216,7 @@ int bl_conf_io_write(bl_conf_write_t *conf, const char *key, const char *val) {
 void bl_conf_write_close(bl_conf_write_t *conf) {
   FILE *fp;
 
-  if ((fp = bl_fopen_with_mkdir(conf->path, "w"))) {
+  if (conf->num > 0 && (fp = bl_fopen_with_mkdir(conf->path, "w"))) {
     u_int count;
 
     for (count = 0; count < conf->num; count++) {

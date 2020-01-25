@@ -36,17 +36,30 @@ static char *get_value(bl_conf_write_t *conf, const char *key) {
   return NULL;
 }
 
-static bl_conf_write_t *open_conf(const char *file) {
+static bl_conf_write_t *open_conf(const char *file /* "mlterm/xxx" */) {
+  char *env;
   char *path;
+  bl_conf_write_t *conf;
 
-  if ((path = bl_get_user_rc_path(file))) {
-    bl_conf_write_t *conf = bl_conf_write_open(path);
-    free(path);
+  if ((env = getenv("MLTERM_CONFIG_DIR"))) {
+    size_t env_len = strlen(env);
 
-    return conf;
+    if ((path = malloc(env_len + strlen(file) - 6 + 1))) {
+      memcpy(path, env, env_len);
+      strcpy(path + env_len, file + 6);
+    } else {
+      return NULL;
+    }
+  } else {
+    if ((path = bl_get_user_rc_path(file)) == NULL) {
+      return NULL;
+    }
   }
 
-  return NULL;
+  conf = bl_conf_write_open(path);
+  free(path);
+
+  return conf;
 }
 
 static void main_config_set(const char *key, const char *value) {
@@ -303,41 +316,33 @@ const char *mc_get_gui_file(void) {
 
 void mc_set_font_name_file(mc_io_t io, const char *file, const char *cs, const char *font_name) {
   char *path;
-  bl_conf_write_t *conf;
 
   if ((path = alloca(7 + strlen(file) + 1))) {
+    bl_conf_write_t *conf;
+
     sprintf(path, "mlterm/%s", file);
 
-    if ((path = bl_get_user_rc_path(path))) {
-      if ((conf = bl_conf_write_open(path))) {
-        bl_conf_io_write(conf, cs, font_name);
-        bl_conf_write_close(conf);
-      }
-
-      free(path);
+    if ((conf = open_conf(path))) {
+      bl_conf_io_write(conf, cs, font_name);
+      bl_conf_write_close(conf);
     }
   }
 }
 
 char *mc_get_font_name_file(const char *file, const char *cs) {
   char *path;
-  bl_conf_write_t *conf;
-  char *name;
 
   if ((path = alloca(7 + strlen(file) + 1))) {
+    bl_conf_write_t *conf;
+
     sprintf(path, "mlterm/%s", file);
 
-    if ((path = bl_get_user_rc_path(path))) {
-      conf = bl_conf_write_open(path);
-      free(path);
+    if ((conf = open_conf(path))) {
+      char *name = get_value(conf, cs);
+      bl_conf_write_close(conf);
 
-      if (conf) {
-        name = get_value(conf, cs);
-        bl_conf_write_close(conf);
-
-        if (name) {
-          return strdup(name);
-        }
+      if (name) {
+        return strdup(name);
       }
     }
   }
@@ -346,16 +351,11 @@ char *mc_get_font_name_file(const char *file, const char *cs) {
 }
 
 void mc_set_color_name_file(mc_io_t io, const char *color, const char *value) {
-  char *path;
   bl_conf_write_t *conf;
 
-  if ((path = bl_get_user_rc_path("mlterm/color"))) {
-    if ((conf = bl_conf_write_open(path))) {
-      bl_conf_io_write(conf, color, value);
-      bl_conf_write_close(conf);
-    }
-
-    free(path);
+  if ((conf = open_conf("mlterm/color"))) {
+    bl_conf_io_write(conf, color, value);
+    bl_conf_write_close(conf);
   }
 }
 
@@ -367,22 +367,14 @@ char *mc_get_color_name_file(const char *color) {
     "#000000", "#cd0000", "#00cd00", "#cdcd00", "#0000ee", "#cd00cd", "#00cdcd", "#e5e5e5",
     "#7f7f7f", "#ff0000", "#00ff00", "#ffff00", "#5c5cff", "#ff00ff", "#00ffff", "#ffffff",
   };
-  char *path;
   bl_conf_write_t *conf;
 
-  if ((path = bl_get_user_rc_path("mlterm/color"))) {
-    char *name;
+  if ((conf = open_conf("mlterm/conf"))) {
+    char *name = get_value(conf, color);
+    bl_conf_write_close(conf);
 
-    conf = bl_conf_write_open(path);
-    free(path);
-
-    if (conf) {
-      name = get_value(conf, color);
-      bl_conf_write_close(conf);
-
-      if (name) {
-        return strdup(name);
-      }
+    if (name) {
+      return strdup(name);
     }
   }
 
