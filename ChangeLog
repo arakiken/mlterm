@@ -1,5 +1,13 @@
 2020-01-26  Araki Ken  <arakiken@users.sf.net>
 
+	* mc_io.[ch], mc_io_{file|pty}.[ch]:
+	  - FD_SET() is called in mc_io_is_file().
+	  - mc_{set|get}_color_name() => mc_{set|get}_color_rgb()
+	  - mc_get_color_name_file() returns a value whose format is "#RRGGBB"
+	    with the use of normalize_rgb().
+
+2020-01-26  Araki Ken  <arakiken@users.sf.net>
+
 	* mc_io_file.c:
 	  - open_conf() checks MLTERM_CONFIG_DIR environmental variable.
 	  - mc_{set|get}_font_name_file() and mc_{set|get}_color_name_file()

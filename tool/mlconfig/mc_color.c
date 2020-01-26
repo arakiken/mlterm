@@ -95,7 +95,7 @@ GtkWidget *mc_color_config_widget_new(int id) {
 
   value = mc_get_str_value(configname[id]);
   if (*value != '\0' && *value != '#' && strncmp(value, "rgb", 3) != 0) {
-    char *rgb = mc_get_color_name(value);
+    char *rgb = mc_get_color_rgb(value);
 
     free(value);
     value = rgb;
@@ -220,7 +220,7 @@ GtkWidget *mc_vtcolor_config_widget_new(void) {
 
   for (id = 0; id < 16; id++) {
     sprintf(id_str, "%d", id);
-    value = mc_get_color_name(id_str);
+    value = mc_get_color_rgb(id_str);
     color_strncpy(new_vtcolor[id], value);
     color_strncpy(old_vtcolor[id], value);
 
@@ -275,7 +275,7 @@ void mc_update_vtcolor(mc_io_t io) {
 
     if (is_changed_vt[id]) {
       sprintf(id_str, "%d", id);
-      mc_set_color_name(io, id_str, new_vtcolor[id]);
+      mc_set_color_rgb(io, id_str, new_vtcolor[id]);
       strcpy(old_vtcolor[id], new_vtcolor[id]);
     }
   }

@@ -59,6 +59,7 @@ int mc_io_is_file(void) {
     fflush(stdout);
     tval.tv_usec = 750000; /* 750 msec */
     tval.tv_sec = 0;
+    FD_SET(STDIN_FILENO, &read_fds);
     if (select(STDIN_FILENO + 1, &read_fds, NULL, NULL, &tval) == 1) {
       char c;
 
@@ -146,18 +147,18 @@ char *mc_get_font_name(const char *file, const char *cs) {
   }
 }
 
-void mc_set_color_name(mc_io_t io, const char *color, const char *value) {
+void mc_set_color_rgb(mc_io_t io, const char *color, const char *value) {
   if (mc_io_is_file()) {
-    mc_set_color_name_file(io, color, value);
+    mc_set_color_rgb_file(io, color, value);
   } else {
-    mc_set_color_name_pty(io, color, value);
+    mc_set_color_rgb_pty(io, color, value);
   }
 }
 
-char *mc_get_color_name(const char *color) {
+char *mc_get_color_rgb(const char *color) {
   if (mc_io_is_file()) {
-    return mc_get_color_name_file(color);
+    return mc_get_color_rgb_file(color);
   } else {
-    return mc_get_color_name_pty(color);
+    return mc_get_color_rgb_pty(color);
   }
 }
