@@ -38,8 +38,8 @@ void mc_set_font_name(mc_io_t io, const char *file, const char *cs, const char *
 
 char *mc_get_font_name(const char *file, const char *cs);
 
-void mc_set_color_name(mc_io_t io, const char *color, const char *value);
+void mc_set_color_rgb(mc_io_t io, const char *color, const char *value);
 
-char *mc_get_color_name(const char *color);
+char *mc_get_color_rgb(const char *color);
 
 #endif

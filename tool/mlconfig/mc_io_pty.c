@@ -246,7 +246,7 @@ char *mc_get_font_name_pty(const char *file, const char *cs) {
   return strdup("error");
 }
 
-void mc_set_color_name_pty(mc_io_t io, const char *color, const char *value) {
+void mc_set_color_rgb_pty(mc_io_t io, const char *color, const char *value) {
   char *chal;
 
   if (io == mc_io_set_save_font && (chal = get_value("challenge", mc_io_get))) {
@@ -258,7 +258,7 @@ void mc_set_color_name_pty(mc_io_t io, const char *color, const char *value) {
   fflush(stdout);
 }
 
-char *mc_get_color_name_pty(const char *color) {
+char *mc_get_color_rgb_pty(const char *color) {
   char *key;
   char *value;
 

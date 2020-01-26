@@ -81,6 +81,73 @@ static char *main_config_get(const char *key) {
   return NULL;
 }
 
+static char *normalize_rgb(const char *rgb) {
+  char norm_rgb[8];
+  int r;
+  int g;
+  int b;
+  int a;
+  size_t rgb_len;
+  char *format;
+  int has_alpha;
+  int long_color;
+
+  a = 0xffff;
+  has_alpha = 0;
+  long_color = 0;
+
+  rgb_len = strlen(rgb);
+
+  if (rgb_len >= 14) {
+    if (rgb_len == 16) {
+      format = "rgba:%2x/%2x/%2x/%2x";
+      has_alpha = 1;
+    } else if (rgb_len == 17) {
+      format = "#%4x%4x%4x%4x";
+      has_alpha = 1;
+      long_color = 1;
+    } else if (rgb_len == 18) {
+      format = "rgb:%4x/%4x/%4x";
+      long_color = 1;
+    } else if (rgb_len == 24) {
+      format = "rgba:%4x/%4x/%4x/%4x";
+      long_color = 1;
+      has_alpha = 1;
+    } else {
+      goto fail;
+    }
+  } else {
+    if (rgb_len == 7) {
+      format = "#%2x%2x%2x";
+    } else if (rgb_len == 9) {
+      format = "#%2x%2x%2x%2x";
+      has_alpha = 1;
+    } else if (rgb_len == 12) {
+      format = "rgb:%2x/%2x/%2x";
+    } else if (rgb_len == 13) {
+      format = "#%4x%4x%4x";
+      long_color = 1;
+    } else {
+      goto fail;
+    }
+  }
+
+  if (sscanf(rgb, format, &r, &g, &b, &a) != (3 + has_alpha)) {
+    goto fail;
+  }
+
+  if (long_color) {
+    sprintf(norm_rgb, "#%.2x%.2x%.2x", (r >> 8) & 0xff, (g >> 8) & 0xff, (b >> 8) & 0xff);
+  } else {
+    sprintf(norm_rgb, "#%.2x%.2x%.2x", r, g, b);
+  }
+
+  return strdup(norm_rgb);
+
+fail:
+  return strdup(rgb);
+}
+
 /* --- global functions --- */
 
 void mc_exec_file(const char *cmd) {}
@@ -339,10 +406,15 @@ char *mc_get_font_name_file(const char *file, const char *cs) {
 
     if ((conf = open_conf(path))) {
       char *name = get_value(conf, cs);
+
+      if (name) {
+        name = strdup(name);
+      }
+
       bl_conf_write_close(conf);
 
       if (name) {
-        return strdup(name);
+        return name;
       }
     }
   }
@@ -350,7 +422,7 @@ char *mc_get_font_name_file(const char *file, const char *cs) {
   return strdup("");
 }
 
-void mc_set_color_name_file(mc_io_t io, const char *color, const char *value) {
+void mc_set_color_rgb_file(mc_io_t io, const char *color, const char *value) {
   bl_conf_write_t *conf;
 
   if ((conf = open_conf("mlterm/color"))) {
@@ -359,7 +431,7 @@ void mc_set_color_name_file(mc_io_t io, const char *color, const char *value) {
   }
 }
 
-char *mc_get_color_name_file(const char *color) {
+char *mc_get_color_rgb_file(const char *color) {
   static char *vt_colors[] = {
     "hl_black", "hl_red", "hl_green", "hl_yellow", "hl_blue", "hl_magenta", "hl_cyan", "hl_white",
   };
@@ -367,37 +439,62 @@ char *mc_get_color_name_file(const char *color) {
     "#000000", "#cd0000", "#00cd00", "#cdcd00", "#0000ee", "#cd00cd", "#00cdcd", "#e5e5e5",
     "#7f7f7f", "#ff0000", "#00ff00", "#ffff00", "#5c5cff", "#ff00ff", "#00ffff", "#ffffff",
   };
+  int color_num;
   bl_conf_write_t *conf;
 
-  if ((conf = open_conf("mlterm/conf"))) {
-    char *name = get_value(conf, color);
-    bl_conf_write_close(conf);
+  if ('0' <= *color && *color <= '9') {
+    const char *p = color;
 
-    if (name) {
-      return strdup(name);
+    color_num = 0;
+    do {
+      color_num = color_num * 10 + *p - '0';
+      p++;
+    } while ('0' <= *p && *p <= '9');
+  } else {
+    if (strcmp(color, "lightgray") == 0) {
+      return strdup("#d3d3d3");
+    }
+
+    for (color_num = sizeof(vt_colors) / sizeof(vt_colors[0]) - 1; color_num >= 0; color_num--) {
+      if (strcasecmp(color, vt_colors[color_num] + 3) == 0) {
+        goto next_step;
+      } else if (strcasecmp(color, vt_colors[color_num]) == 0) {
+        color_num += 8;
+        goto next_step;
+      }
+
+      /* color_num == -1 */
     }
   }
 
-  if ('0' <= *color && *color <= '9') {
-    int color_num = 0;
+next_step:
+  if ((conf = open_conf("mlterm/color"))) {
+    char *rgb = get_value(conf, color);
 
-    do {
-      color_num = color_num * 10 + *color - '0';
-      color++;
-    } while ('0' <= *color && *color <= '9');
+    if (rgb == NULL && color_num >= 0) {
+      char buf[3];
 
-    return strdup(color_rgbs[color_num]);
-  } else {
-    int count;
-
-    for (count = 0; count < sizeof(vt_colors) / sizeof(vt_colors[0]); count++) {
-      if (strcasecmp(color, vt_colors[count] + 3) == 0) {
-        return strdup(color_rgbs[count]);
-      } else if (strcasecmp(color, vt_colors[count]) == 0) {
-        return strdup(color_rgbs[count + 8]);
+      sprintf(buf, "%d", color_num);
+      if ((rgb = get_value(conf, buf)) == NULL && color_num < 16) {
+        rgb = get_value(conf, color_num >= 8 ?
+                               vt_colors[color_num - 8] : vt_colors[color_num] + 3);
       }
     }
+
+    if (rgb) {
+      rgb = normalize_rgb(rgb);
+    }
+
+    bl_conf_write_close(conf);
+
+    if (rgb) {
+      return rgb;
+    }
   }
 
-  return strdup("");
+  if (0 <= color_num && color_num < 16) {
+    return strdup(color_rgbs[color_num]);
+  } else {
+    return strdup("");
+  }
 }
