@@ -1,3 +1,26 @@
+2020-01-29  Araki Ken  <arakiken@users.sf.net>
+
+	* libptyssh/vt_pty_ssh.c: ssh_connect() calls mkdir("~/.ssh")
+	  to save to ~/.mlterm/known_hosts.
+
+	* ui_screen.c: set_xdnd_config() calls vt_set_use_scp_full(-1)
+	  for "scp" command.
+
+	* vt_parser.c: vt_set_use_scp_full(-1) sets use_scp_full = true
+	  temporarily.
+
+	* vt_pty_ssh.c: vt_pty_is_loopback() is replaced by
+	  vt_config_menu_is_active() in vt_pty_ssh_scp().
+
+	* vt_config_menu.h: vt_config_menu_is_active() is added.
+
+	* beos.cpp:
+	  - MLView::MouseMoved() saves the current "modifiers" if 'dragMessage'
+	    argument is not null.
+	  - MLView::MessageReceived() supports SCP by Shift+DnD.
+
+	* mc_io.c, mc_io_file.c: vt_get_color_rgb() supports "lightgray" and "gray".
+
 2020-01-26  Araki Ken  <arakiken@users.sf.net>
 
 	* mc_io.[ch], mc_io_{file|pty}.[ch]:

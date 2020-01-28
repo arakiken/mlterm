@@ -1,5 +1,6 @@
 * Support CSI>4;1m.
 * Support uniscribe for libotl on win32.
+* Support SCP by Shift+DnD on HaikuOS.
 * Mlconfig configures files in ~/.mlterm directly if it starts without options
   or with --file option.
 * Merge patches:

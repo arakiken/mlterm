@@ -451,10 +451,6 @@ char *mc_get_color_rgb_file(const char *color) {
       p++;
     } while ('0' <= *p && *p <= '9');
   } else {
-    if (strcmp(color, "lightgray") == 0) {
-      return strdup("#d3d3d3");
-    }
-
     for (color_num = sizeof(vt_colors) / sizeof(vt_colors[0]) - 1; color_num >= 0; color_num--) {
       if (strcasecmp(color, vt_colors[color_num] + 3) == 0) {
         goto next_step;

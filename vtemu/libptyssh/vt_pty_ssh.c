@@ -16,6 +16,7 @@
 #include <pobl/bl_net.h>     /* getaddrinfo/socket/connect/sockaddr_un */
 #include <pobl/bl_conf_io.h> /* bl_get_user_rc_path */
 #include <pobl/bl_util.h> /* bl_get_user_name */
+#include <pobl/bl_file.h> /* bl_mkdir_for_file */
 
 #if !defined(USE_WIN32API) && defined(HAVE_PTHREAD)
 #include <pthread.h>
@@ -517,6 +518,7 @@ static ssh_session_t *ssh_connect(const char *host, const char *port, const char
                                   LIBSSH2_KNOWNHOST_KEY_SSHRSA,
                               NULL);
 
+        bl_mkdir_for_file(path, 0700);
         libssh2_knownhost_writefile(nhs, path, LIBSSH2_KNOWNHOST_FILE_OPENSSH);
 
         bl_msg_printf("Add to %s and continue connecting.\n", path);
