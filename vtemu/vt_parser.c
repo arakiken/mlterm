@@ -6844,7 +6844,7 @@ void vt_set_use_ttyrec_format(int use) { use_ttyrec_format = use; }
 
 #ifdef USE_LIBSSH2
 void vt_set_use_scp_full(int use) {
-  if (use >= 0)
+  if (use >= 0) {
     use_scp_full = use;
   } else if (use == -1) {
     if (use_scp_full == 0) {
