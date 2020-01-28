@@ -42,4 +42,10 @@ int vt_config_menu_write(vt_config_menu_t *config_menu, u_char *buf, size_t len)
 
 #endif /* NO_TOOLS */
 
+#ifdef USE_WIN32API
+#define vt_config_menu_is_active(config_menu) ((config_menu)->fd != 0)
+#else
+#define vt_config_menu_is_active(config_menu) ((config_menu)->fd != -1)
+#endif
+
 #endif

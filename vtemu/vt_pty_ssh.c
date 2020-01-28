@@ -272,7 +272,7 @@ int vt_pty_ssh_scp(vt_pty_t *pty, vt_char_encoding_t pty_encoding, /* Not VT_UNK
     return 0;
   }
 
-  if (vt_pty_is_loopback(pty) /* using loopback (mlconfig etc) */ || use_scp_full) {
+  if (use_scp_full || vt_config_menu_is_active(&pty->config_menu)) {
     /* do nothing */
   } else {
     if (!dst_is_remote) {

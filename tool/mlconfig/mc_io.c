@@ -156,6 +156,12 @@ void mc_set_color_rgb(mc_io_t io, const char *color, const char *value) {
 }
 
 char *mc_get_color_rgb(const char *color) {
+  if (strcmp(color, "lightgray") == 0) {
+    return strdup("#d3d3d3");
+  } else if (strcmp(color, "gray") == 0) {
+    return strdup("#bebebe");
+  }
+
   if (mc_io_is_file()) {
     return mc_get_color_rgb_file(color);
   } else {

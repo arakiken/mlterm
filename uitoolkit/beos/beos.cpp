@@ -50,6 +50,7 @@ public:
 class MLView : public BView {
 private:
   int32 buttons;
+  int32 dnd_modifiers;
   const BFont *cur_font;
 
 public:
@@ -395,7 +396,13 @@ void MLView::MouseDown(BPoint where) {
 }
 
 void MLView::MouseMoved(BPoint where, uint32 code, const BMessage *dragMessage) {
-  if (dragMessage || !uiwindow || (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term)) {
+  if (dragMessage) {
+    Window()->CurrentMessage()->FindInt32((const char*)"modifiers", &dnd_modifiers);
+
+    return;
+  }
+
+  if (!uiwindow || (IS_UISCREEN(uiwindow) && !((ui_screen_t *)uiwindow)->term)) {
     /* It has been already removed from ui_layout or term has been detached. */
     return;
   }
@@ -490,18 +497,41 @@ void MLView::SetFont(const BFont *font, uint32 mask) {
 void MLView::MessageReceived(BMessage *message) {
   if (message->what == B_SIMPLE_DATA) {
     int32 count = 0;
-    entry_ref ref;
 
+#if 0
+    status_t s;
+    int32 action;
+
+    while ((s = message->FindInt32("be:actions", count++, &action)) == B_OK) {
+      bl_debug_printf(BL_DEBUG_TAG "ACTION: %x (COYP %x MOVE %x)\n",
+                      action, B_COPY_TARGET, B_MOVE_TARGET);
+    }
+#ifdef DEBUG
+    if (s == B_NAME_NOT_FOUND) {
+      bl_debug_printf(BL_DEBUG_TAG " be:actions is not found.\n");
+    }
+#endif
+
+    count = 0;
+#endif
+
+    entry_ref ref;
     while (message->FindRef("refs", count++, &ref) == B_OK) {
       BPath path(&ref);
 
-      XSelectionNotifyEvent ev;
-      ev.type = UI_SELECTION_NOTIFIED;
-      ev.data = (char*)path.Path();
-      ev.len = strlen(ev.data);
-
       view_lock(this);
-      ui_window_receive_event(uiwindow, (XEvent*)&ev);
+
+      if (dnd_modifiers & ShiftMask) {
+        (*uiwindow->set_xdnd_config)(uiwindow, NULL, "scp", (char*)path.Path());
+      } else {
+        XSelectionNotifyEvent ev;
+        ev.type = UI_SELECTION_NOTIFIED;
+        ev.data = (char*)path.Path();
+        ev.len = strlen(ev.data);
+
+        ui_window_receive_event(uiwindow, (XEvent*)&ev);
+      }
+
       beos_unlock();
     }
   } else if (message->what == B_INPUT_METHOD_EVENT) {

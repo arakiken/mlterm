@@ -2605,7 +2605,9 @@ static void set_xdnd_config(ui_window_t *win, char *dev, char *key, char *value)
       char *cmd;
       if ((cmd = alloca(13 + strlen(value) + 1))) {
         sprintf(cmd, "scp \"%s\" . utf8", value);
+        vt_set_use_scp_full(-1); /* temporarily permit */
         vt_term_exec_cmd(screen->term, cmd);
+        vt_set_use_scp_full(-1); /* restore */
       }
     }
   } else {
