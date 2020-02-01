@@ -47,8 +47,6 @@ static void destroy_image(XImage *image) {
   bl_mem_remove(image->data, __FILE__, __LINE__, __FUNCTION__);
   XDestroyImage(image);
 }
-#undef XDestroyImage
-#define XDestroyImage(image) destroy_image(image)
 #endif
 
 #if 1
@@ -428,7 +426,11 @@ static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
   *pixmap = XCreatePixmap(disp->display, ui_display_get_group_leader(disp), w, h, disp->depth);
 
   XPutImage(disp->display, *pixmap, disp->gc->gc, image, 0, 0, 0, 0, w, h);
+#ifdef BL_DEBUG
+  destroy_image(image);
+#else
   XDestroyImage(image);
+#endif
 
   if (width) {
     *width = w;
@@ -846,7 +848,11 @@ static int pixbuf_to_pixmap(ui_display_t *disp, GdkPixbuf *pixbuf, Pixmap pixmap
     if ((image = pixbuf_to_ximage_truecolor(disp, pixbuf))) {
       XPutImage(disp->display, pixmap, disp->gc->gc, image, 0, 0, 0, 0,
                 gdk_pixbuf_get_width(pixbuf), gdk_pixbuf_get_height(pixbuf));
+#ifdef BL_DEBUG
+      destroy_image(image);
+#else
       XDestroyImage(image);
+#endif
 
       return 1;
     } else {
@@ -1484,7 +1490,12 @@ Pixmap ui_imagelib_get_transparent_background(ui_window_t *win, ui_picture_modif
     XPutImage(win->disp->display, pixmap, win->disp->gc->gc, image2, 0, 0, 0, 0, width, height);
 
     XDestroyImage(image);
+
+#ifdef BL_DEBUG
+    destroy_image(image2);
+#else
     XDestroyImage(image2);
+#endif
   } else if (root_width < win->disp->width || root_height < win->disp->height) {
     GC gc;
 

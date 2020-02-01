@@ -64,8 +64,8 @@ typedef union {
 } XEvent;
 
 typedef struct {
-	SDL_Window *window;
-	SDL_Renderer *renderer;
+  SDL_Window *window;
+  SDL_Renderer *renderer;
   SDL_Texture *texture;
   unsigned char *fb;
 

@@ -23,7 +23,8 @@
 #define LINE_SPACE 2
 #endif
 
-#ifdef USE_WAYLAND
+#if defined(MANAGE_SUB_WINDOWS_BY_MYSELF) && !defined(MANAGE_ROOT_WINDOWS_BY_MYSELF)
+/* USE_SDL2 || USE_WAYLAND */
 #define DISPLAY(stat_screen) ((stat_screen)->window.disp->display->parent)
 #else
 #define DISPLAY(stat_screen) ((stat_screen)->window.disp)
@@ -32,7 +33,8 @@
 /* --- static functions --- */
 
 static void adjust_window_position_by_size(ui_im_status_screen_t *stat_screen, int *x, int *y) {
-#ifdef USE_WAYLAND
+#if defined(MANAGE_SUB_WINDOWS_BY_MYSELF) && !defined(MANAGE_ROOT_WINDOWS_BY_MYSELF)
+  /* USE_SDL2 || USE_WAYLAND (Display : Window = 1 : 1) */
   if (ACTUAL_HEIGHT(&stat_screen->window) > DISPLAY(stat_screen)->height) {
     /* do nothing */
   } else
@@ -44,7 +46,8 @@ static void adjust_window_position_by_size(ui_im_status_screen_t *stat_screen, i
     }
   }
 
-#ifdef USE_WAYLAND
+#if defined(MANAGE_SUB_WINDOWS_BY_MYSELF) && !defined(MANAGE_ROOT_WINDOWS_BY_MYSELF)
+  /* USE_SDL2 || USE_WAYLAND (Display : Window = 1 : 1) */
   if (ACTUAL_WIDTH(&stat_screen->window) > DISPLAY(stat_screen)->width) {
     /* do nothing */
   } else
@@ -165,6 +168,13 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
       modified_beg = 0;
     }
   }
+
+  /* XXX */
+#ifdef USE_SDL2
+  if (stat_screen->window.disp->display->resizing) {
+    return;
+  }
+#endif
 
   for (i = 0; heads[i] < stat_screen->filled_len; i++) {
     if (heads[i + 1] > modified_beg) {

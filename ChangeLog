@@ -1,3 +1,15 @@
+2020-02-01  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/ui_window.c: Memory leak in ui_window_send_selection() is fixed.
+
+	* xlib/ui_imagelib.c: Minor fixes for debug mode.
+
+	* ui_im_{candidate|status}_screen.c:
+	  - #ifdef condition is fixed for SDL2.
+	  - If display->resizing is true, draw_screen() does nothing.
+
+	* sdl2/ui_dislay.c: init_display() supports input method window.
+
 2020-01-29  Araki Ken  <arakiken@users.sf.net>
 
 	* libptyssh/vt_pty_ssh.c: ssh_connect() calls mkdir("~/.ssh")

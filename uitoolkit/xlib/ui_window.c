@@ -2958,6 +2958,7 @@ void ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int wid
       image_size = width * height * 4;
       sel_bmp_size = image_size + 54;
 
+      free(sel_bmp);
       if ((sel_bmp = calloc(1, sel_bmp_size))) {
         int x;
         int y;

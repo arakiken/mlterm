@@ -42,7 +42,8 @@
 
 #define INVALID_INDEX (cand_screen->num_candidates)
 
-#ifdef USE_WAYLAND
+#if defined(MANAGE_SUB_WINDOWS_BY_MYSELF) && !defined(MANAGE_ROOT_WINDOWS_BY_MYSELF)
+/* USE_SDL2 || USE_WAYLAND (Display : Window = 1 : 1)  */
 #define DISPLAY(cand_screen) ((cand_screen)->window.disp->display->parent)
 #else
 #define DISPLAY(cand_screen) ((cand_screen)->window.disp)
@@ -129,7 +130,8 @@ static u_int total_candidate_width(ui_font_manager_t *font_man, ui_im_candidate_
 }
 
 static void adjust_window_position_by_size(ui_im_candidate_screen_t *cand_screen, int *x, int *y) {
-#ifdef USE_WAYLAND
+#if defined(MANAGE_SUB_WINDOWS_BY_MYSELF) && !defined(MANAGE_ROOT_WINDOWS_BY_MYSELF)
+  /* USE_SDL2 || USE_WAYLAND (Display : Window = 1 : 1) */
   if (ACTUAL_WIDTH(&cand_screen->window) > DISPLAY(cand_screen)->width) {
     /* do nothing */
   } else
@@ -143,7 +145,8 @@ static void adjust_window_position_by_size(ui_im_candidate_screen_t *cand_screen
     }
   }
 
-#ifdef USE_WAYLAND
+#if defined(MANAGE_SUB_WINDOWS_BY_MYSELF) && !defined(MANAGE_ROOT_WINDOWS_BY_MYSELF)
+  /* USE_SDL2 || USE_WAYLAND (Display : Window = 1 : 1) */
   if (ACTUAL_HEIGHT(&cand_screen->window) > DISPLAY(cand_screen)->height) {
     /* do nothing */
   } else
@@ -257,6 +260,13 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
     win_width = cand_screen->window.width;
     win_height = cand_screen->window.height;
   }
+
+  /* XXX */
+#ifdef USE_SDL2
+  if (cand_screen->window.disp->display->resizing) {
+    return;
+  }
+#endif
 
 /*
  * digits and candidates
@@ -433,6 +443,13 @@ static void draw_screen_horizontal(ui_im_candidate_screen_t *cand_screen, u_int 
     win_width = cand_screen->window.width;
     win_height = cand_screen->window.height;
   }
+
+  /* XXX */
+#ifdef USE_SDL2
+  if (cand_screen->window.disp->display->resizing) {
+    return;
+  }
+#endif
 
   for (i = top; i <= last; i++) {
     int j;
