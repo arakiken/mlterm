@@ -347,12 +347,20 @@ static int init_display(Display *display, char *app_name, int x, int y, int hint
   SDL_Rect rect;
 
   if (!display->window) {
+    Uint32 flag;
+
+    if (display->parent) {
+      /* XXX Input Method */
+      flag = SDL_WINDOW_SHOWN | SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE |
+             SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_SKIP_TASKBAR | SDL_WINDOW_UTILITY;
+    } else {
+      flag = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_INPUT_FOCUS;
+    }
+
     if (!(display->window = SDL_CreateWindow(app_name,
                                              (hint & XValue) ? x : SDL_WINDOWPOS_CENTERED,
                                              (hint & YValue) ? y : SDL_WINDOWPOS_CENTERED,
-                                             display->width, display->height,
-                                             SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE |
-                                             SDL_WINDOW_INPUT_FOCUS))) {
+                                             display->width, display->height, flag))) {
       return 0;
     }
 

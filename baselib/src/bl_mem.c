@@ -319,7 +319,7 @@ void bl_mem_remove(void *ptr, const char *file, /* should be allocated memory. *
     } else {
 #ifdef __DEBUG
       fprintf(stderr,
-              " %p(size %d , alloced at %s[l.%d in %s] and freed at"
+              " %p(size %d, alloced at %s[l.%d in %s] and freed at"
               " %s[l.%d in %s] logged in %p) was successfully freed.\n",
               ptr, log->size, log->func, log->line, log->file, file, line, func, log);
 #endif

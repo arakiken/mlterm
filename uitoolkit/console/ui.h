@@ -521,8 +521,7 @@ KeySym XStringToKeysym(char *str);
 #define TYPE_XCORE_SCALABLE
 #define MANAGE_ROOT_WINDOWS_BY_MYSELF
 #define MANAGE_SUB_WINDOWS_BY_MYSELF
-/* See also console/ui_display.c where ui_picture_display_closed() is never
- * called. */
+/* See also console/ui_display.c where ui_picture_display_closed() is never called. */
 #define INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
 #undef SUPPORT_POINT_SIZE_FONT
 #undef XIM_SPOT_IS_LINE_TOP

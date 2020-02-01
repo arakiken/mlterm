@@ -10,6 +10,7 @@
   Fix a bug which disabled to change the value of "logsize" option from "0" to "unlimited".
   Fix segfault when "snapshot" command of OSC 5379 is executed.
   Fix mouse tracking position if "use_ot_layout = true".
+  Fix segfault when mlterm-sdl2 starts with -im=uim option.
 
 ver 3.8.9
 * Support zmodem. (See doc/en/README.tarnsfer)
