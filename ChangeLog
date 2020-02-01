@@ -1,5 +1,11 @@
 2020-02-01  Araki Ken  <arakiken@users.sf.net>
 
+	* sdl2/ui_display.c:
+	  - MONITOR_PTY is always defined if USE_LIBSSH2 is defined.
+	  - monitor_ptys() calls select() at 0.5 second intervals.
+
+2020-02-01  Araki Ken  <arakiken@users.sf.net>
+
 	* xlib/ui_window.c: Memory leak in ui_window_send_selection() is fixed.
 
 	* xlib/ui_imagelib.c: Minor fixes for debug mode.
