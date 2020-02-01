@@ -18,10 +18,14 @@
 #include "../ui_selection_encoding.h"
 #include "syswminfo.h"
 
-#ifndef USE_WIN32API
+#if !defined(USE_WIN32API) || defined(USE_LIBSSH2)
 #define MONITOR_PTY
-#include <sys/select.h>
 #include "../vtemu/vt_term_manager.h"
+#ifdef USE_WIN32API
+#include <winsock2.h>
+#else
+#include <sys/select.h>
+#endif
 #endif
 
 #define START_PRESENT_MSEC 4
@@ -470,13 +474,17 @@ static int monitor_ptys(void *p) {
     }
 
     if (maxfd >= 0) {
-      select(maxfd + 1, &read_fds, NULL, NULL, NULL);
+      struct timeval tv;
 
-      SDL_zero(ev);
-      ev.type = pty_event_type;
-      SDL_PushEvent(&ev);
+      tv.tv_usec = 500000; /* 0.5 sec */
+      tv.tv_sec = 0;
+      if (select(maxfd + 1, &read_fds, NULL, NULL, &tv) > 0) {
+        SDL_zero(ev);
+        ev.type = pty_event_type;
+        SDL_PushEvent(&ev);
 
-      SDL_CondWait(pty_cond, mutex);
+        SDL_CondWait(pty_cond, mutex);
+      }
     } else {
       SDL_Delay(100);
     }
