@@ -297,13 +297,15 @@ static int show_text(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font,
 
         add_glyphs(glyphs, num_glyphs);
       }
+
+      drawn_x = glyphs[num_glyphs].x;
+    } else {
+      drawn_x = x;
     }
 
     if (orig_glyphs != glyphs) {
       cairo_glyph_free(orig_glyphs);
     }
-
-    drawn_x = glyphs[num_glyphs].x;
   }
 
   if (font->size_attr == DOUBLE_WIDTH) {
@@ -466,7 +468,7 @@ void ui_window_cairo_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t
           x_off = font->x_off;
           font->x_off = 0;
           x = draw_string32(win, font->compl_fonts[compl_idx].next, font, fg_color,
-                            x + font->x_off, y, substr, substr - str + count);
+                            x + font->x_off, y, substr, str + count - substr);
           font->x_off = x_off;
 
           str += count;
