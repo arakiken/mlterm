@@ -45,6 +45,7 @@
 /* without "(cs) != UNKNOWN_CS &&", 0xa0 <= (UNKNOWN_CS & 0xff) returns true. */
 #define IS_NON_ISO2022(cs) ((cs) != UNKNOWN_CS && 0xc0 <= ((cs)&0xff))
 #define IS_ISCII(cs) (0xf0 <= (cs) && (cs) <= 0xfa)
+#define IS_JIS_EXT(cs) (JISC6226_1978_NEC_EXT <= (cs) && (cs) <= SJIS_IBM_EXT)
 
 #define IS_FULLWIDTH_CS(cs) (IS_CS94MB(cs) || IS_CS96MB(cs) || (0x1e0 <= (cs) && (cs) <= 0x1ff))
 #define CS_SIZE(cs) \
@@ -60,6 +61,7 @@ typedef enum ef_charset {
 
   /* 94 sb cs */
   DEC_SPECIAL = CS94SB_ID('0'),
+  DEC_TECHNICAL = CS94SB_ID('>'),
   ISO646_IRV = CS94SB_ID('@'),
   ISO646_EN = CS94SB_ID('A'),
   US_ASCII = CS94SB_ID('B'),
@@ -84,6 +86,7 @@ typedef enum ef_charset {
   TIS620_2533 = CS96SB_ID('T'),
   ISO8859_13_R = CS96SB_ID('Y'), /* Ft = 5/9 */
   ISO8859_14_R = CS96SB_ID('_'), /* Ft = 5/15 */
+
   ISO8859_15_R = CS96SB_ID('b'), /* Ft = 6/2 */
   ISO8859_16_R = CS96SB_ID('f'), /* Ft = 6/6 */
   TCVN5712_3_1993 = CS96SB_ID('Z'),

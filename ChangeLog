@@ -1,3 +1,17 @@
+2020-02-06  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c:
+	  - The response of Primary DA is changed as follows.
+	    \x1b[?63;1;2;3;4;7;29c -> \x1b[?63;1;2;3;4;6;7;15;18;22;29c
+	  - DEC_TECHNICAL characters are converted to UCS4.
+
+	* ef_charset.h: IS_JIS_EXT() is added.
+
+	* vt_char_encoding.[ch]: vt_convert_dectech_to_ucs() is added.
+
+	* ui_window_cairo.c:
+	  The number of characters passing to draw_string32() is fixed.
+
 2020-02-01  Araki Ken  <arakiken@users.sf.net>
 
 	* sdl2/ui_display.c:

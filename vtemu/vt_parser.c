@@ -4146,10 +4146,22 @@ static void send_device_attributes(vt_pty_t *pty, int rank) {
     if (primary_da && (seq = alloca(4 + strlen(primary_da) + 1))) {
       sprintf(seq, "\x1b[?%sc", primary_da);
     } else {
+      /*
+       * 1  132-columns
+       * 2  Printer
+       * 3  ReGIS graphics
+       * 4  Sixel graphics
+       * 6  Selective erase
+       * 7  Soft character set (DRCS)
+       * 15 Technical character set
+       * 18 Windowing capability
+       * 22 Color
+       * 29 ANSI text locator (i.e., DEC Locator mode)
+       */
 #ifndef NO_IMAGE
-      seq = "\x1b[?63;1;2;3;4;7;29c";
+      seq = "\x1b[?63;1;2;3;4;6;7;15;18;22;29c";
 #else
-      seq = "\x1b[?63;1;2;7;29c";
+      seq = "\x1b[?63;1;2;6;7;15;18;22;29c";
 #endif
     }
   } else if (rank == 2) {
@@ -7491,17 +7503,15 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
   } else if (ch.cs != US_ASCII) {
     if ((vt_parser->unicode_policy & ONLY_USE_UNICODE_FONT) ||
         /* XXX converting japanese gaiji to ucs. */
-        ch.cs == JISC6226_1978_NEC_EXT || ch.cs == JISC6226_1978_NECIBM_EXT ||
-        ch.cs == JISX0208_1983_MAC_EXT || ch.cs == SJIS_IBM_EXT ||
+        IS_JIS_EXT(ch.cs) ||
         /* XXX converting RTL characters to ucs. */
         ch.cs == ISO8859_6_R || /* Arabic */
         ch.cs == ISO8859_8_R    /* Hebrew */
 #if 0
         /* GB18030_2000 2-byte chars(==GBK) are converted to UCS */
-        ||
-        (encoding == VT_GB18030 && ch.cs == GBK)
+        || (encoding == VT_GB18030 && ch.cs == GBK)
 #endif
-            ) {
+        ) {
       ef_char_t ucs;
 
       if (ef_map_to_ucs4(&ucs, &ch)) {
@@ -7511,11 +7521,11 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
         ch = ucs;
 
         /* Use width property of the original charset. */
-        ch.property = modify_ucs_property(code, vt_parser->col_size_of_width_a,
-                                          ef_get_ucs_property(code)) & ~(EF_FULLWIDTH|EF_AWIDTH);
+        ch.property = ef_get_ucs_property(code) & ~(EF_FULLWIDTH|EF_AWIDTH);
         if (IS_FULLWIDTH_CS(orig_cs)) {
           ch.property |= EF_FULLWIDTH;
         }
+        ch.property = modify_ucs_property(code, vt_parser->col_size_of_width_a, ch.property);
       }
     } else if (IS_FULLWIDTH_CS(ch.cs)) {
       ch.property |= EF_FULLWIDTH;
@@ -7542,12 +7552,19 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
     if (vt_is_msb_set(ch.cs)) {
       SET_MSB(ch.ch[0]);
     } else {
-      if (ch.cs == US_ASCII && vt_parser->gl != US_ASCII) {
+      u_int16_t ucs;
+
+      if (ch.cs == US_ASCII) {
         /* XXX prev_ch should not be static. */
         static u_char prev_ch;
         static ef_charset_t prev_gl = US_ASCII;
 
+        if (vt_parser->gl == US_ASCII) {
+          goto end_func;
+        }
+
         if (IS_CS94MB(vt_parser->gl)) {
+          /* iso2022 multi byte characters can be parsed in utf-8 encoding */
           if (vt_parser->gl == prev_gl && prev_ch) {
             ch.ch[1] = ch.ch[0];
             ch.ch[0] = prev_ch;
@@ -7555,28 +7572,39 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
             ch.property = EF_FULLWIDTH;
             prev_ch = 0;
             prev_gl = US_ASCII;
+
+            ch.cs = vt_parser->gl;
+
+            goto end_func;
           } else {
             prev_ch = ch.ch[0];
             prev_gl = vt_parser->gl;
 
             return 0;
           }
+        } else {
+          ch.cs = vt_parser->gl;
         }
-
-        ch.cs = vt_parser->gl;
       }
 
       if (ch.cs == DEC_SPECIAL) {
-        u_int16_t ucs;
-
-        if ((vt_parser->unicode_policy & ONLY_USE_UNICODE_BOXDRAW_FONT) &&
-            (ucs = vt_convert_decsp_to_ucs(ch.ch[0]))) {
-          ef_int_to_bytes(ch.ch, 4, ucs);
-          ch.size = 4;
-          ch.cs = ISO10646_UCS4_1;
-          ch.property = modify_ucs_property(ucs, vt_parser->col_size_of_width_a,
-                                            ef_get_ucs_property(ucs));
+        if ((vt_parser->unicode_policy & ONLY_USE_UNICODE_BOXDRAW_FONT)) {
+          ucs = vt_convert_decsp_to_ucs(ch.ch[0]);
+        } else {
+          goto end_func;
         }
+      } else if (ch.cs == DEC_TECHNICAL) {
+        ucs = vt_convert_dectech_to_ucs(ch.ch[0]);
+      } else {
+        goto end_func;
+      }
+
+      if (ucs) {
+        ef_int_to_bytes(ch.ch, 4, ucs);
+        ch.size = 4;
+        ch.cs = ISO10646_UCS4_1;
+        /* Use modify_ucs_property() to make it possible to aplly full_width_areas setting. */
+        ch.property = modify_ucs_property(ucs, 0 /* not used */, 0 /* Use original property */);
       }
     }
   } else {
