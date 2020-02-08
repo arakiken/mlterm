@@ -49,7 +49,8 @@ void view_set_hidden(void *view, int flag);
 void view_reset_uiwindow(ui_window_t *uiwindow);
 
 /* for BWindow */
-void window_alloc(ui_window_t *root, int x, int y, u_int width, u_int height, int popup);
+void window_alloc(ui_window_t *root, int x, int y, u_int width, u_int height, int popup,
+                  int geom_hint);
 
 void window_show(void *window);
 

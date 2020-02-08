@@ -914,7 +914,8 @@ void view_reset_uiwindow(ui_window_t *uiwindow) {
   ((MLView*)uiwindow->my_window)->uiwindow = uiwindow;
 }
 
-void window_alloc(ui_window_t *root, int x, int y, u_int width, u_int height, int popup) {
+void window_alloc(ui_window_t *root, int x, int y, u_int width, u_int height, int popup,
+                  int geom_hint) {
   MLWindow *window;
 
   if (popup) {
@@ -928,16 +929,23 @@ void window_alloc(ui_window_t *root, int x, int y, u_int width, u_int height, in
     view->uiwindow = root;
     window->AddChild(view);
   } else {
-#if 1
     /* XXX */
-    static int count = 0;
+    static int x_count = 0;
+    static int y_count = 0;
     BRect r = BScreen(window).Frame();
-    int x = ((r.right - width) / 8) * count + 50;
-    int y = ((r.bottom - height) / 8) * count + 50;
-    if (++count == 8) {
-      count = 0;
+
+    if ((geom_hint & XValue) == 0) {
+      x = ((r.right - width) / 8) * x_count + 50;
+      if (++x_count == 8) {
+        x_count = 0;
+      }
     }
-#endif
+    if ((geom_hint & YValue) == 0) {
+      y = ((r.bottom - height) / 8) * y_count + 50;
+      if (++y_count == 8) {
+        y_count = 0;
+      }
+    }
 
     window = new MLWindow(BRect(x, y, x + width - 1, y + height - 1),
                           "mlterm", B_DOCUMENT_WINDOW, 0);

@@ -1,3 +1,9 @@
+2020-02-09  Araki Ken  <arakiken@users.sf.net>
+
+	* beos.cpp, beos.h: 'int geom_hint' is added to argument of window_alloc(),
+	  and if geom_hint has XValue or YValue, x or y argument is applied to
+	  the new window.
+
 2020-02-06  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c:
