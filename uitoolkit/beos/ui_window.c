@@ -544,7 +544,7 @@ int ui_window_show(ui_window_t *win,
     view_alloc(win, win->x, win->y, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win));
   } else {
     window_alloc(win, win->x, win->y, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
-                 IS_IM_WINDOW(win));
+                 IS_IM_WINDOW(win), hint);
   }
 
 #ifndef DISABLE_XDND

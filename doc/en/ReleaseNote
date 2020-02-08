@@ -6,6 +6,7 @@
 * Support DEC Technical character set.
 * Change DA1 response.
   \x1b[?63;1;2;3;4;7;29c -> \x1b[?63;1;2;3;4;6;7;15;18;22;29c
+* geometry / -g option works on HaikuOS.
 * Merge patches:
   https://sourceforge.net/p/mlterm/bugs/78/
   https://sourceforge.net/p/mlterm/patches/25/attachment/typos.diff
