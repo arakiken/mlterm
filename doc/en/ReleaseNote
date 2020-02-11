@@ -16,6 +16,7 @@
   Fix mouse tracking position if "use_ot_layout = true".
   Fix segfault when mlterm-sdl2 starts with -im=uim option.
   Fix a bug which makes mlterm-sdl2 on win32 stop starting mlconfig.
+  Fix compiling error on HaikuOS + gcc-x86.
 
 ver 3.8.9
 * Support zmodem. (See doc/en/README.tarnsfer)

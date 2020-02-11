@@ -73,7 +73,7 @@ private:
 public:
   ConnectDialog();
   bool Go();
-  void ConnectDialog::Position(BWindow *parent);
+  void Position(BWindow *parent);
   virtual void MessageReceived(BMessage *message);
   BTextControl *text;
 };
@@ -760,11 +760,20 @@ void view_draw_string(/* BView */ void *view, ui_font_t *font, ui_color_t *fg_co
   ((BView*)view)->SetHighColor((pixel >> 16) & 0xff, (pixel >> 8) & 0xff, pixel & 0xff,
                                (pixel >> 24) & 0xff);
   ((BView*)view)->SetFont((BFont*)font->xfont->fid);
-  ((BView*)view)->MovePenTo(x, y);
+  /*
+   * https://www.haiku-os.org/legacy-docs/bebook/BView.html
+   * The BeOS draws text one pixel above the logical baseline to maintain
+   * compatibility with an earlier version of one of our most commonly-used font
+   * rasterizers. This affects both fonts and BShapes representing glyphs
+   * (see BFont::GetGlyphShapes(). To draw text at the right place, add one to
+   * the Y coordinate when calling MovePenTo() or specifying a BPoint at which
+   * to begin drawing.
+   */
+  ((BView*)view)->MovePenTo(x, y + 1);
   ((BView*)view)->DrawString(str, len);
 
   if (font->double_draw_gap) {
-    ((BView*)view)->MovePenTo(x + font->double_draw_gap, y);
+    ((BView*)view)->MovePenTo(x + font->double_draw_gap, y + 1);
     ((BView*)view)->DrawString(str, len);
   }
 
@@ -932,7 +941,7 @@ void window_alloc(ui_window_t *root, int x, int y, u_int width, u_int height, in
     /* XXX */
     static int x_count = 0;
     static int y_count = 0;
-    BRect r = BScreen(window).Frame();
+    BRect r = BScreen().Frame();
 
     if ((geom_hint & XValue) == 0) {
       x = ((r.right - width) / 8) * x_count + 50;
@@ -1051,10 +1060,14 @@ void *beos_create_font(const char *font_family, float size, int is_italic, int i
 }
 
 #ifdef USE_OT_LAYOUT
-char *beos_get_font_path(void *bfont) {
-  return NULL;
+char *beos_get_font_family(void *bfont) {
+  font_family family;
+
+  ((BFont*)bfont)->GetFamilyAndStyle(&family, NULL);
+
+  return strdup(family);
 }
-#endif /* USE_OT_LAYOUT */
+#endif
 
 void beos_release_font(void *bfont) {
   delete (BFont*)bfont;

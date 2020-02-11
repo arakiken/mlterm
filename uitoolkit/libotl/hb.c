@@ -2,6 +2,11 @@
 
 #include <hb.h>
 #ifdef USE_QUARTZ
+#ifdef COCOA_TOUCH
+#include <CoreGraphics/CoreGraphics.h>
+#else
+#include <ApplicationServices/ApplicationServices.h>
+#endif
 #include <hb-coretext.h>
 #else
 #include <hb-ft.h>
@@ -127,9 +132,12 @@ static u_int convert_text_to_glyphs(void *hbfont, u_int32_t *shape_glyphs /* nev
   return num;
 }
 
-#ifdef USE_WIN32GUI
+#if defined(USE_WIN32GUI) || defined(USE_BEOS)
 
 #include <freetype/ftmodapi.h>
+#ifdef USE_BEOS
+#include <fontconfig/fontconfig.h>
+#endif
 
 static FT_Library ftlib;
 static u_int ref_count;
@@ -138,8 +146,10 @@ static void done_ft_face(void *p) {
   FT_Face face;
 
   face = p;
+#ifdef USE_WIN32GUI
   free(face->generic.data);
   face->generic.data = NULL;
+#endif
   FT_Done_Face(face);
 
   if (--ref_count == 0) {
@@ -150,20 +160,83 @@ static void done_ft_face(void *p) {
 
 #endif
 
-/* --- global functions --- */
+#if defined(USE_WIN32GUI) || defined(USE_QUARTZ) || defined(USE_BEOS)
+
+static struct {
+  char *name;
+  hb_font_t *hbfont;
+  u_int ref_count;
+
+} *hbfonts;
+static u_int num_hbfonts;
+
+static hb_font_t *get_cached_hbfont(const char *name) {
+  u_int count;
+
+  for (count = 0; count < num_hbfonts; count++) {
+    if (strcmp(hbfonts[count].name, name) == 0) {
+      hbfonts[count].ref_count++;
+
+      return hbfonts[count].hbfont;
+    }
+  }
+
+  return NULL;
+}
+
+static void add_hbfont_to_cache(const char *name, hb_font_t *hbfont) {
+  void *p;
+
+  if ((p = realloc(hbfonts, sizeof(*hbfonts) * (num_hbfonts + 1)))) {
+    hbfonts = p;
+    hbfonts[num_hbfonts].hbfont = hbfont;
+    hbfonts[num_hbfonts].name = strdup(name);
+    hbfonts[num_hbfonts++].ref_count = 1;
+  }
+}
+
+static void remove_hbfont_from_cache(hb_font_t *hbfont) {
+  u_int count;
+
+  for (count = 0; count < num_hbfonts; count++) {
+    if (hbfonts[count].hbfont == hbfont) {
+      if (--hbfonts[count].ref_count == 0) {
+        free(hbfonts[count].name);
+        hb_font_destroy(hbfonts[count].hbfont);
+        hbfonts[count] = hbfonts[--num_hbfonts];
+
+        return;
+      }
+    }
+  }
+}
+
+#if defined(USE_WIN32GUI)
 
 #ifdef NO_DYNAMIC_LOAD_OTL
 static
 #endif
 void *otl_open(void *obj) {
-#if defined(USE_WIN32GUI)
+  /* obj == HDC */
 
   HDC hdc = obj;
+  HFONT hfont;
+  LOGFONTA logfont;
+  hb_font_t *hbfont;
   u_char buf[4];
   void *font_data;
   u_int size;
   int is_ttc;
   FT_Face face;
+
+  if ((hfont = GetCurrentObject(hdc, OBJ_FONT)) == NULL ||
+      GetObjectA(hfont, sizeof(logfont), &logfont) == 0) {
+    return NULL;
+  }
+
+  if ((hbfont = get_cached_hbfont(logfont.lfFaceName))) {
+    return hbfont;
+  }
 
 #define TTC_TAG ('t' << 0) + ('t' << 8) + ('c' << 16) + ('f' << 24)
 
@@ -194,8 +267,6 @@ void *otl_open(void *obj) {
   }
 
   if (FT_New_Memory_Face(ftlib, font_data, size, 0, &face) == 0) {
-    hb_font_t *hbfont;
-
     if ((hbfont = hb_ft_font_create(face, done_ft_face))) {
 #if 1
       if (hb_ot_layout_has_substitution(hb_font_get_face(hbfont)))
@@ -203,6 +274,8 @@ void *otl_open(void *obj) {
       {
         face->generic.data = font_data;
         ref_count++;
+
+        add_hbfont_to_cache(logfont.lfFaceName, hbfont);
 
         return hbfont;
       }
@@ -221,52 +294,202 @@ void *otl_open(void *obj) {
   }
 
   return NULL;
+}
 
 #elif defined(USE_QUARTZ)
 
+#ifdef NO_DYNAMIC_LOAD_OTL
+static
+#endif
+void *otl_open(void *obj) {
+  /* obj == CGFont */
+
+  char family[128];
   hb_face_t *face;
+  hb_font_t *hbfont;
 
-  if ((face = hb_coretext_face_create(obj /* CGFont */))) {
-    hb_font_t *font;
+  if (!CFStringGetCString(CGFontCopyFullName(obj), family, sizeof(family), kCFStringEncodingUTF8)) {
+    return NULL;
+  }
 
+  if ((hbfont = get_cached_hbfont(family))) {
+    return hbfont;
+  }
+
+  if ((face = hb_coretext_face_create(obj))) {
     /* XXX hb_ot_layout_has_substitution() of harfbuzz 1.1.3 always returns 0 */
-    if (/* hb_ot_layout_has_substitution(face) && */ (font = hb_font_create(face))) {
-      hb_ot_font_set_funcs(font);
+    if (/* hb_ot_layout_has_substitution(face) && */ (hbfont = hb_font_create(face))) {
+      hb_ot_font_set_funcs(hbfont);
       hb_face_destroy(face);
 
-      return font;
+      add_hbfont_to_cache(family, hbfont);
+
+      return hbfont;
     }
 
     hb_face_destroy(face);
   }
 
   return NULL;
+}
 
-#else
+#else /* USE_BEOS */
 
-  hb_font_t *font;
+#ifdef NO_DYNAMIC_LOAD_OTL
+static
+#endif
+void *otl_open(void *obj) {
+  /* obj == string (Font Family) */
 
-  if ((font = hb_ft_font_create(obj, NULL))) {
+  hb_font_t *hbfont;
+  FcPattern *pattern;
+  FcPattern *match;
+  FcResult result;
+  FcValue val;
+  FT_Face face;
+
+  if ((hbfont = get_cached_hbfont(obj))) {
+    return hbfont;
+  }
+
+  if (!ftlib) {
+    if (FT_Init_FreeType(&ftlib) != 0) {
+      return NULL;
+    }
+  }
+
+  if ((pattern = FcPatternCreate()) == NULL) {
+    return NULL;
+  }
+
+  FcPatternAddString(pattern, FC_FAMILY, obj);
+  match = FcFontMatch(NULL, pattern, &result);
+  FcPatternDestroy(pattern);
+
+  if (match == NULL) {
+    return NULL;
+  }
+
+  FcPatternGet(match, FC_FILE, 0, &val);
+  if (FT_New_Face(ftlib, val.u.s, 0, &face)) {
+    FcPatternDestroy(match);
+
+    return NULL;
+  }
+
+  FcPatternDestroy(match);
+
+  if ((hbfont = hb_ft_font_create(face, done_ft_face))) {
 #if 1
-    if (hb_ot_layout_has_substitution(hb_font_get_face(font)))
+    if (hb_ot_layout_has_substitution(hb_font_get_face(hbfont)))
 #endif
     {
-      return font;
+      ref_count++;
+      add_hbfont_to_cache(obj, hbfont);
+
+      return hbfont;
     }
 
-    hb_font_destroy(font);
+    hb_font_destroy(hbfont);
+  }
+
+  FT_Done_Face(face);
+
+  if (ref_count == 0) {
+    FT_Done_FreeType(ftlib);
+    ftlib = NULL;
   }
 
   return NULL;
+}
 
 #endif
+
+#else /* USE_XLIB, USE_FRAMEBUFFER, USE_SDL2, USE_WAYLAND */
+
+static struct {
+  FT_Face face;
+  hb_font_t *hbfont;
+  u_int ref_count;
+
+} *hbfonts;
+static u_int num_hbfonts;
+
+static hb_font_t *get_cached_hbfont(FT_Face face) {
+  u_int count;
+
+  for (count = 0; count < num_hbfonts; count++) {
+    if (hbfonts[count].face == face) {
+      hbfonts[count].ref_count++;
+
+      return hbfonts[count].hbfont;
+    }
+  }
+
+  return NULL;
+}
+
+static void add_hbfont_to_cache(FT_Face face, hb_font_t *hbfont) {
+  void *p;
+
+  if ((p = realloc(hbfonts, sizeof(*hbfonts) * (num_hbfonts + 1)))) {
+    hbfonts = p;
+    hbfonts[num_hbfonts].hbfont = hbfont;
+    hbfonts[num_hbfonts].face = face;
+    hbfonts[num_hbfonts++].ref_count = 1;
+  }
+}
+
+static void remove_hbfont_from_cache(hb_font_t *hbfont) {
+  u_int count;
+
+  for (count = 0; count < num_hbfonts; count++) {
+    if (hbfonts[count].hbfont == hbfont) {
+      if (--hbfonts[count].ref_count == 0) {
+        hb_font_destroy(hbfonts[count].hbfont);
+        hbfonts[count] = hbfonts[--num_hbfonts];
+
+        return;
+      }
+    }
+  }
 }
 
 #ifdef NO_DYNAMIC_LOAD_OTL
 static
 #endif
+void *otl_open(void *obj) {
+  /* obj == FT_Face */
+
+  hb_font_t *hbfont;
+
+  if ((hbfont = get_cached_hbfont(obj))) {
+    return hbfont;
+  }
+
+  if ((hbfont = hb_ft_font_create(obj, NULL))) {
+#if 1
+    if (hb_ot_layout_has_substitution(hb_font_get_face(hbfont)))
+#endif
+    {
+      add_hbfont_to_cache(obj, hbfont);
+
+      return hbfont;
+    }
+
+    hb_font_destroy(hbfont);
+  }
+
+  return NULL;
+}
+
+#endif
+
+#ifdef NO_DYNAMIC_LOAD_OTL
+static
+#endif
 void otl_close(void *hbfont) {
-  hb_font_destroy(hbfont);
+  remove_hbfont_from_cache(hbfont);
 }
 
 static hb_script_t get_hb_script(u_int32_t code, int *is_rtl, hb_script_t default_hbscript) {
@@ -467,7 +690,7 @@ u_int otl_convert_text_to_glyphs(void *hbfont, u_int32_t *shape_glyphs, u_int nu
     if (fontsize > 0) {
       u_int scale = fontsize << 6; /* fontsize x 64 */
 
-#ifdef USE_WIN32GUI
+#if defined(USE_WIN32GUI) || defined(USE_BEOS)
       FT_Set_Pixel_Sizes(hb_ft_font_get_face(hbfont), fontsize, fontsize);
 #endif
 

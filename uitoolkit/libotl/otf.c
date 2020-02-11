@@ -6,24 +6,88 @@
 #ifdef USE_WIN32GUI
 #include <windows.h>
 #endif
+#ifdef USE_BEOS
+#include <fontconfig/fontconfig.h>
+#endif
 
-/* --- global functions --- */
+#if defined(USE_WIN32GUI) || defined(USE_QUARTZ) || defined(USE_BEOS)
+
+static struct {
+  char *name;
+  OTF *otf;
+  u_int ref_count;
+
+} *otfs;
+static u_int num_otfs;
+
+static OTF *get_cached_otf(const char *name) {
+  u_int count;
+
+  for (count = 0; count < num_otfs; count++) {
+    if (strcmp(otfs[count].name, name) == 0) {
+      otfs[count].ref_count++;
+
+      return otfs[count].otf;
+    }
+  }
+
+  return NULL;
+}
+
+static void add_otf_to_cache(const char *name, OTF *otf) {
+  void *p;
+
+  if ((p = realloc(otfs, sizeof(*otfs) * (num_otfs + 1)))) {
+    otfs = p;
+    otfs[num_otfs].otf = otf;
+    otfs[num_otfs].name = strdup(name);
+    otfs[num_otfs++].ref_count = 1;
+  }
+}
+
+static void remove_otf_from_cache(OTF *otf) {
+  u_int count;
+
+  for (count = 0; count < num_otfs; count++) {
+    if (otfs[count].otf == otf) {
+      if (--otfs[count].ref_count == 0) {
+        free(otfs[count].name);
+        OTF_close(otfs[count].otf);
+        otfs[count] = otfs[--num_otfs];
+
+        return;
+      }
+    }
+  }
+}
+
+#if defined(USE_WIN32GUI)
 
 #ifdef NO_DYNAMIC_LOAD_OTL
 static
 #endif
 void *otl_open(void *obj) {
-  OTF* otf;
+  /* obj == HDC */
 
-#if defined(USE_WIN32GUI)
-
-  FT_Library ftlib;
   HDC hdc = obj;
+  HFONT hfont;
+  LOGFONTA logfont;
+  OTF* otf;
+  FT_Library ftlib;
   u_char buf[4];
   void *font_data;
   u_int size;
   int is_ttc;
   FT_Face face;
+
+  if ((hfont = GetCurrentObject(hdc, OBJ_FONT)) == NULL ||
+      GetObjectA(hfont, sizeof(logfont), &logfont) == 0) {
+    return NULL;
+  }
+
+  if ((otf = get_cached_otf(logfont.lfFaceName))) {
+    return otf;
+  }
 
 #define TTC_TAG ('t' << 0) + ('t' << 8) + ('c' << 16) + ('f' << 24)
 
@@ -58,6 +122,8 @@ void *otl_open(void *obj) {
       if (OTF_get_table(otf, "GSUB") != 0 || OTF_get_table(otf, "cmap") != 0) {
         OTF_close(otf);
         otf = NULL;
+      } else {
+        add_otf_to_cache(logfont.lfFaceName, otf);
       }
     }
 
@@ -67,30 +133,179 @@ void *otl_open(void *obj) {
   free(font_data);
   FT_Done_FreeType(ftlib);
 
-#else
+  return otf;
+}
 
-#if defined(USE_QUARTZ) || defined(USE_BEOS)
-  if ((otf = OTF_open(obj)))
-#else
-  if ((otf = OTF_open_ft_face(obj)))
+#elif defined(USE_QUARTZ)
+
+#ifdef NO_DYNAMIC_LOAD_OTL
+static
 #endif
-  {
+void *otl_open(void *obj) {
+  /* obj == string (Font path) */
+
+  OTF* otf;
+
+  if ((otf = get_cached_otf(obj))) {
+    return otf;
+  }
+
+  if ((otf = OTF_open(obj))) {
     if (OTF_check_table(otf, "GSUB") != 0 || OTF_check_table(otf, "cmap") != 0) {
       OTF_close(otf);
       otf = NULL;
     }
   }
 
-#endif
+  if (otf) {
+    add_otf_to_cache(obj, otf);
+  }
 
   return otf;
+}
+
+#else /* USE_BEOS */
+
+#ifdef NO_DYNAMIC_LOAD_OTL
+static
+#endif
+void *otl_open(void *obj) {
+  /* obj == string (Font Family) */
+
+  char *family = obj;
+  OTF *otf;
+  FT_Library ftlib;
+  FcPattern *pattern;
+  FcPattern *match;
+  FcResult result;
+  FcValue val;
+  FT_Face face;
+
+  if ((otf = get_cached_otf(family))) {
+    return otf;
+  }
+
+  if (FT_Init_FreeType(&ftlib) != 0) {
+    return NULL;
+  }
+
+  if ((pattern = FcPatternCreate()) == NULL) {
+    return NULL;
+  }
+
+  FcPatternAddString(pattern, FC_FAMILY, family);
+  match = FcFontMatch(NULL, pattern, &result);
+  FcPatternDestroy(pattern);
+
+  if (match == NULL) {
+    return NULL;
+  }
+
+  FcPatternGet(match, FC_FILE, 0, &val);
+  if (FT_New_Face(ftlib, val.u.s, 0, &face)) {
+    otf = NULL;
+  } else {
+    if ((otf = OTF_open_ft_face(face))) {
+      if (OTF_get_table(otf, "GSUB") != 0 || OTF_get_table(otf, "cmap") != 0) {
+        OTF_close(otf);
+        otf = NULL;
+      } else {
+        add_otf_to_cache(family, otf);
+      }
+    }
+
+    FT_Done_Face(face);
+  }
+
+  FcPatternDestroy(match);
+  FT_Done_FreeType(ftlib);
+
+  return otf;
+}
+
+#endif
+
+#else /* USE_XLIB, USE_FRAMEBUFFER, USE_SDL2, USE_WAYLAND */
+
+static struct {
+  FT_Face face;
+  OTF *otf;
+  u_int ref_count;
+
+} *otfs;
+static u_int num_otfs;
+
+static OTF *get_cached_otf(FT_Face face) {
+  u_int count;
+
+  for (count = 0; count < num_otfs; count++) {
+    if (otfs[count].face == face) {
+      otfs[count].ref_count++;
+
+      return otfs[count].otf;
+    }
+  }
+
+  return NULL;
+}
+
+static void add_otf_to_cache(FT_Face face, OTF *otf) {
+  void *p;
+
+  if ((p = realloc(otfs, sizeof(*otfs) * (num_otfs + 1)))) {
+    otfs = p;
+    otfs[num_otfs].otf = otf;
+    otfs[num_otfs].face = face;
+    otfs[num_otfs++].ref_count = 1;
+  }
+}
+
+static void remove_otf_from_cache(OTF *otf) {
+  u_int count;
+
+  for (count = 0; count < num_otfs; count++) {
+    if (otfs[count].otf == otf) {
+      if (--otfs[count].ref_count == 0) {
+        OTF_close(otfs[count].otf);
+        otfs[count] = otfs[--num_otfs];
+
+        return;
+      }
+    }
+  }
 }
 
 #ifdef NO_DYNAMIC_LOAD_OTL
 static
 #endif
+void *otl_open(void *obj) {
+  /* obj == FT_Face */
+
+  OTF* otf;
+
+  if ((otf = get_cached_otf(obj))) {
+    return otf;
+  }
+
+  if ((otf = OTF_open_ft_face(obj))) {
+    if (OTF_check_table(otf, "GSUB") != 0 || OTF_check_table(otf, "cmap") != 0) {
+      OTF_close(otf);
+      otf = NULL;
+    }
+  }
+
+  add_otf_to_cache(obj, otf);
+
+  return otf;
+}
+
+#endif
+
+#ifdef NO_DYNAMIC_LOAD_OTL
+static
+#endif
 void otl_close(void *otf) {
-  OTF_close(otf);
+  remove_otf_from_cache(otf);
 }
 
 /*

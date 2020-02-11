@@ -82,7 +82,7 @@ void beos_beep(void);
 
 void *beos_create_font(const char *font_family, float size, int is_italic, int is_bold);
 
-char *beos_get_font_path(void *bfont);
+char *beos_get_font_family(void *bfont);
 
 void beos_release_font(void *bfont);
 
