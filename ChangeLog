@@ -1,3 +1,21 @@
+2020-02-11  Araki Ken  <arakiken@users.sf.net>
+
+	* hb.c, otf.c: hb_font_t / OTF is cached.
+
+	* libotl/Makefile.in:
+	  CFLAGS_beos = @FONTCONFIG_CFLAGS@ and LIBS_beos = @FONTCONFIG_LIBS@
+
+	* beos/ui_font.c: ui_font_has_ot_layout_table() always returns 0
+	  because HaikuOS doesn't provide API to show characters by glyph
+	  indeces.
+
+	* beos.cpp, beos.h:
+	  - Declaration of ConnectDialog::Position() is fixed.
+	  - MovePenTo(x, y) is changed to MovePenTo(x, y + 1) in drawing text.
+	  - beos_get_font_path() -> beos_get_font_family()
+
+	* main/Makefile.in: g++ is used to link mlterm on HaikuOS.
+
 2020-02-09  Araki Ken  <arakiken@users.sf.net>
 
 	* beos.cpp, beos.h: 'int geom_hint' is added to argument of window_alloc(),

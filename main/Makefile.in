@@ -9,6 +9,7 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 
 CC = @CC@
+CXX = @CXX@
 LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
 
@@ -83,7 +84,9 @@ PROG2_console = mlterm-con
 INSTALL_OPT = @INSTALL_OPT@
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(CFLAGS_FOR_FEATURES)
+LIBTOOL_CXX = $(LIBTOOL) --mode=compile $(CXX) $(CFLAGS) $(CFLAGS_FOR_FEATURES)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
+LIBTOOL_LINK_CXX = $(LIBTOOL) --mode=link $(CXX) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 all: $(PROG_@GUI@) $(PROG2_@GUI@)
@@ -92,8 +95,13 @@ debug:
 	$(MAKE) LPOBL="$(LPOBL_DEB)" LMEF="$(LMEF_DEB)" all
 
 $(PROG_@GUI@): $(OBJ) $(LMLTERM) $(LUITK)
-	$(LIBTOOL_LINK) -o $(PROG_@GUI@) $(OBJ@MAIN_OBJ_SUFFIX@) \
-		$(LIBS) @CTL_LIBS_FOR_PROG@
+	if test "@GUI@" = "beos"; then \
+		$(LIBTOOL_LINK_CXX) -o $(PROG_@GUI@) $(OBJ@MAIN_OBJ_SUFFIX@) \
+			$(LIBS) @CTL_LIBS_FOR_PROG@ ; \
+	else \
+		$(LIBTOOL_LINK) -o $(PROG_@GUI@) $(OBJ@MAIN_OBJ_SUFFIX@) \
+			$(LIBS) @CTL_LIBS_FOR_PROG@ ; \
+	fi
 
 mlterm-con: $(top_srcdir)/main/main-con.c
 	$(CC) -o mlterm-con $(top_srcdir)/main/main-con.c $(CFLAGS_LOCAL) @CFLAGS@ @CPPFLAGS@ \
@@ -108,7 +116,7 @@ mlterm-con: $(top_srcdir)/main/main-con.c
 	$(LIBTOOL_CC) -c $<
 
 .cpp.o:
-	$(LIBTOOL_CC) -c $<
+	$(LIBTOOL_CXX) -c $<
 
 $(BINDIR):
 	mkdir -p $(BINDIR)

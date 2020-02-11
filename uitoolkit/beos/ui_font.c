@@ -378,24 +378,17 @@ void ui_font_destroy(ui_font_t *font) {
 
 #ifdef USE_OT_LAYOUT
 int ui_font_has_ot_layout_table(ui_font_t *font) {
+#if 0
   if (!font->ot_font) {
-#ifdef USE_HARFBUZZ
+    char *family;
+
     if (font->ot_font_not_found) {
       return 0;
     }
 
-    font->ot_font = otl_open(font->xfont->fid);
-#else
-    char *path;
-
-    if (font->ot_font_not_found || !(path = beos_get_font_path(font->xfont->fid))) {
-      return 0;
-    }
-
-    font->ot_font = otl_open(path);
-
-    free(path);
-#endif
+    family = beos_get_font_family(font->xfont->fid);
+    font->ot_font = otl_open(family);
+    free(family);
 
     if (!font->ot_font) {
       font->ot_font_not_found = 1;
@@ -405,6 +398,15 @@ int ui_font_has_ot_layout_table(ui_font_t *font) {
   }
 
   return 1;
+#else
+  if (!font->ot_font_not_found) {
+    bl_msg_printf("Open Type Layout is not supported on HaikuOS which doesn't "
+                  "provide API to show characters by glyph indeces for now.\n");
+    font->ot_font_not_found = 1;
+  }
+
+  return 0;
+#endif
 }
 
 u_int ui_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shape_glyphs, u_int num_shape_glyphs,
@@ -491,7 +493,7 @@ size_t ui_convert_ucs4_to_utf16(u_char *dst, /* 4 bytes. Little endian. */
 #ifdef DEBUG
 
 void ui_font_dump(ui_font_t *font) {
-  bl_msg_printf("  id %x: Font %p width %d height %d ascent %d",
+  bl_msg_printf("id %x: Font %p width %d height %d ascent %d",
                 font->id, font->xfont->fid, font->width, font->height, font->ascent);
 
   if (font->is_proportional) {
