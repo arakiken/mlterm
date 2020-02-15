@@ -1,3 +1,23 @@
+2020-02-15  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/Makefile.in:
+	  xdg-shell-client-protocol.o is excluded from linked objects.
+
+	* ui.h, ui_display.c: xdg-shell and wlr-layer-shell are supported.
+
+	* xdg-shell-client-protocol.[ch], wlr-layer-shell-unstable-v1-client-protocol.[ch]: Added.
+
+	* ui_selection.[ch], ui_screen.c:
+	  - ui_start_selection() and ui_sel_line_scrolled_out() don't return
+	    anything.
+	  - update_sel_region() returns 1 only if the color of selected region
+	    is reversed or restored.
+	  - ui_{restore|reverse}_selected_region_color_except_logs()
+	    returns 0 (not redrawing) instead of 1 if sel->end_row < 0.
+
+	* sdl2/ui_display.c: SDL_DestroyRenderer() is called before
+	  SDL_DestroyWindow() not after it.
+
 2020-02-11  Araki Ken  <arakiken@users.sf.net>
 
 	* hb.c, otf.c: hb_font_t / OTF is cached.

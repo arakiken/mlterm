@@ -59,8 +59,8 @@ void ui_sel_init(ui_selection_t *sel, ui_sel_event_listener_t *listener);
 
 void ui_sel_final(ui_selection_t *sel);
 
-int ui_start_selection(ui_selection_t *sel, int col_l, int row_l, int col_r, int row_r,
-                       ui_sel_type_t type, int is_rect);
+void ui_start_selection(ui_selection_t *sel, int col_l, int row_l, int col_r, int row_r,
+                        ui_sel_type_t type, int is_rect);
 
 int ui_selecting(ui_selection_t *sel, int col, int row);
 
@@ -78,7 +78,7 @@ int ui_sel_clear(ui_selection_t *sel);
 
 int ui_selected_region_is_changed(ui_selection_t *sel, int col, int row, u_int base);
 
-int ui_sel_line_scrolled_out(ui_selection_t *sel, int min_row);
+void ui_sel_line_scrolled_out(ui_selection_t *sel, int min_row);
 
 #define ui_is_selecting(sel) ((sel)->is_selecting)
 

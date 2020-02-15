@@ -182,6 +182,8 @@ static int update_sel_region(ui_selection_t *sel, int col, int row) {
                                             (sel->beg_row = sel->lock_row), rs_end_col, rs_end_row,
                                             0);
       }
+    } else {
+      do_restore = 0;
     }
   }
 
@@ -190,7 +192,7 @@ static int update_sel_region(ui_selection_t *sel, int col, int row) {
                   sel->end_col, sel->end_row);
 #endif
 
-  return 1;
+  return (do_reverse | do_restore);
 }
 
 /* --- global functions --- */
@@ -207,8 +209,8 @@ void ui_sel_final(ui_selection_t *sel) {
   }
 }
 
-int ui_start_selection(ui_selection_t *sel, int col_l, int row_l, int col_r, int row_r,
-                       ui_sel_type_t type, int is_rect) {
+void ui_start_selection(ui_selection_t *sel, int col_l, int row_l, int col_r, int row_r,
+                        ui_sel_type_t type, int is_rect) {
   sel->is_reversed = 1;
   sel->is_selecting = type;
   sel->is_rect = is_rect;
@@ -224,8 +226,6 @@ int ui_start_selection(ui_selection_t *sel, int col_l, int row_l, int col_r, int
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " selection started => %d %d\n", sel->beg_col, sel->beg_row);
 #endif
-
-  return 1;
 }
 
 int ui_selecting(ui_selection_t *sel, int col, int row) {
@@ -236,14 +236,18 @@ int ui_selecting(ui_selection_t *sel, int col, int row) {
   sel->prev_col = col;
   sel->prev_row = row;
 
-  update_sel_region(sel, col, row);
-
 #ifdef __DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " selecting %d %d => %d %d - %d %d.\n", col, row, sel->beg_col,
-                  sel->beg_row, sel->end_col, sel->end_row);
-#endif
+  {
+    int ret = update_sel_region(sel, col, row);
 
-  return 1;
+    bl_debug_printf(BL_DEBUG_TAG " selecting %d %d => %d %d - %d %d.\n", col, row, sel->beg_col,
+                    sel->beg_row, sel->end_col, sel->end_row);
+
+    return ret;
+  }
+#else
+  return update_sel_region(sel, col, row);
+#endif
 }
 
 int ui_stop_selecting(ui_selection_t *sel) {
@@ -307,7 +311,7 @@ int ui_restore_selected_region_color_except_logs(ui_selection_t *sel) {
   }
 
   if (sel->end_row < 0) {
-    return 1;
+    return 0;
   }
 
   if ((beg_row = sel->beg_row) < 0) {
@@ -332,7 +336,7 @@ int ui_reverse_selected_region_color_except_logs(ui_selection_t *sel) {
   }
 
   if (sel->end_row < 0) {
-    return 1;
+    return 0;
   }
 
   if ((beg_row = sel->beg_row) < 0) {
@@ -389,9 +393,9 @@ int ui_reverse_selected_region_color(ui_selection_t *sel) {
 }
 #endif
 
-int ui_sel_line_scrolled_out(ui_selection_t *sel, int min_row) {
+void ui_sel_line_scrolled_out(ui_selection_t *sel, int min_row) {
   if (!sel->is_selecting) {
-    return 0;
+    return;
   }
 
   if (sel->base_row_l > min_row) {
@@ -431,8 +435,6 @@ int ui_sel_line_scrolled_out(ui_selection_t *sel, int min_row) {
   } else {
     sel->prev_col = 0;
   }
-
-  return 1;
 }
 
 int ui_selected_region_is_changed(ui_selection_t *sel, int col, int row, u_int base) {

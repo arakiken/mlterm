@@ -2790,9 +2790,8 @@ static void start_selection(ui_screen_t *screen, int col_r, int row_r, ui_sel_ty
     row_l = row_r;
   }
 
-  if (ui_start_selection(&screen->sel, col_l, row_l, col_r, row_r, type, is_rect)) {
-    ui_window_update(&screen->window, UPDATE_SCREEN);
-  }
+  ui_start_selection(&screen->sel, col_l, row_l, col_r, row_r, type, is_rect);
+  ui_window_update(&screen->window, UPDATE_SCREEN);
 }
 
 static void selecting(ui_screen_t *screen, int char_index, int row) {

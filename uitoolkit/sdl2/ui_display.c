@@ -339,8 +339,8 @@ static void close_display(ui_display_t *disp) {
 #endif
 
   SDL_DestroyTexture(disp->display->texture);
-  SDL_DestroyWindow(disp->display->window);
   SDL_DestroyRenderer(disp->display->renderer);
+  SDL_DestroyWindow(disp->display->window);
 
   ui_picture_display_closed(disp->display);
 

@@ -219,8 +219,6 @@ static ui_display_t *add_root_to_display(ui_display_t *disp, ui_window_t *root,
   memcpy(new, disp, sizeof(ui_display_t));
   new->display = new + 1;
   new->name = strdup(disp->name);
-  new->roots = NULL;
-  new->num_roots = 0;
 
   memcpy(new->display, disp->display, sizeof(Display));
 
@@ -235,9 +233,11 @@ static ui_display_t *add_root_to_display(ui_display_t *disp, ui_window_t *root,
 
   displays[num_displays++] = new;
 
-  if ((p = realloc(disp->roots, sizeof(ui_window_t*) * (disp->num_roots + 1)))) {
-    disp->roots = p;
-    disp->roots[disp->num_roots++] = root;
+  if ((disp->roots = malloc(sizeof(ui_window_t*)))) {
+    disp->roots[0] = root;
+    disp->num_roots = 1;
+  } else {
+    disp->num_roots = 0;
   }
 
   wlserv->ref_count++;
@@ -278,19 +278,30 @@ static const struct wl_seat_listener seat_listener = {
   seat_name,
 };
 
-#ifdef XDG_SHELL_V6
-static void xdg_shell_ping(void *data, struct zxdg_shell_v6 *xdg_shell, uint32_t serial) {
-  zxdg_shell_v6_pong(xdg_shell, serial);
+#ifdef XDG_SHELL
+static void xdg_shell_ping(void *data, struct xdg_wm_base *xdg_shell, uint32_t serial) {
+  xdg_wm_base_pong(xdg_shell, serial);
 }
 
-static const struct zxdg_shell_v6_listener xdg_shell_listener = {
+static const struct xdg_wm_base_listener xdg_shell_listener = {
   xdg_shell_ping
+};
+#endif
+
+#ifdef ZXDG_SHELL_V6
+static void zxdg_shell_ping(void *data, struct zxdg_shell_v6 *zxdg_shell, uint32_t serial) {
+  zxdg_shell_v6_pong(zxdg_shell, serial);
+}
+
+static const struct zxdg_shell_v6_listener zxdg_shell_listener = {
+  zxdg_shell_ping
 };
 #endif
 
 static void registry_global(void *data, struct wl_registry *registry, uint32_t name,
                             const char *interface, uint32_t version) {
   ui_wlserv_t *wlserv = data;
+
   if(strcmp(interface, "wl_compositor") == 0) {
     wlserv->compositor = wl_registry_bind(registry, name,
                                           &wl_compositor_interface, 1);
@@ -299,34 +310,76 @@ static void registry_global(void *data, struct wl_registry *registry, uint32_t n
   else if (strcmp(interface, "wl_subcompositor") == 0) {
     wlserv->subcompositor = wl_registry_bind(registry, name, &wl_subcompositor_interface, 1);
   }
-  /* For sway 1.0 which doesn't support wl_surface. (supports only xdg-shell) */
+  /* For sway 1.0 which doesn't support wl_surface. (supports only zxdg-shell) */
   else if (strcmp(interface, "wl_shell") == 0) {
-    wlserv->is_xdg_shell = -1; /* not xdg_shell */
+    wlserv->shell_type = 1;
   } else if (strcmp(interface, "zxdg_shell_v6") == 0) {
-    if (wlserv->is_xdg_shell == 0) {
-      wlserv->is_xdg_shell = 1;
+    if (wlserv->shell_type == 0 /* Not determined */) {
+      wlserv->shell_type = 2;
+    }
+  } else if (strcmp(interface, "xdg_shell") == 0) {
+    if (wlserv->shell_type == 0 /* Not determined */ || wlserv->shell_type == 2 /* zxdg_shell */) {
+      /* Prefer xdg_shell to zxdg_shell */
+      wlserv->shell_type = 3;
     }
   }
-#else
+#if 0
+  else if (strcmp(interface, "zwlr_layer_shell_v1") == 0) {
+    wlserv->shell_type = 4;
+  }
+#endif
+#else /* COMPAT_LIBVTE */
   else if (strcmp(interface, "wl_shell") == 0) {
     wlserv->shell = wl_registry_bind(registry, name, &wl_shell_interface, 1);
 
-#ifdef XDG_SHELL_V6
+#ifdef ZXDG_SHELL_V6
+    if (wlserv->zxdg_shell) {
+      zxdg_shell_v6_destroy(wlserv->zxdg_shell);
+      wlserv->zxdg_shell = NULL;
+    }
+#endif
+#ifdef XDG_SHELL
     if (wlserv->xdg_shell) {
-      zxdg_shell_v6_destroy(wlserv->xdg_shell);
+      xdg_wm_base_destroy(wlserv->xdg_shell);
       wlserv->xdg_shell = NULL;
     }
 #endif
   }
-#ifdef XDG_SHELL_V6
+#ifdef ZXDG_SHELL_V6
   else if (strcmp(interface, "zxdg_shell_v6") == 0) {
+#ifdef XDG_SHELL
+    if (wlserv->xdg_shell) {
+      /* do nothing (prefer xdg_shell) */
+    } else
+#endif
     if (wlserv->shell == NULL) {
-      wlserv->xdg_shell = wl_registry_bind(registry, name, &zxdg_shell_v6_interface, 1);
-      zxdg_shell_v6_add_listener(wlserv->xdg_shell, &xdg_shell_listener, NULL);
+      wlserv->zxdg_shell = wl_registry_bind(registry, name, &zxdg_shell_v6_interface, 1);
+      zxdg_shell_v6_add_listener(wlserv->zxdg_shell, &zxdg_shell_listener, NULL);
     }
   }
 #endif
+#ifdef XDG_SHELL
+  else if (strcmp(interface, "xdg_wm_base") == 0) {
+#ifdef ZXDG_SHELL_V6
+    if (wlserv->zxdg_shell) {
+      zxdg_shell_v6_destroy(wlserv->zxdg_shell);
+      wlserv->zxdg_shell = NULL;
+    }
 #endif
+    if (wlserv->shell == NULL) {
+      wlserv->xdg_shell = wl_registry_bind(registry, name, &xdg_wm_base_interface, 1);
+      xdg_wm_base_add_listener(wlserv->xdg_shell, &xdg_shell_listener, NULL);
+    }
+  }
+#endif
+#ifdef WLR_SHELL_V1
+  else if (strcmp(interface, "zwlr_layer_shell_v1") == 0) {
+    if (wlserv->shell == NULL) {
+      wlserv->wlr_shell = wl_registry_bind(registry, name, &zwlr_layer_shell_v1_interface, 1);
+    }
+  }
+#endif
+#endif /* COMPAT_LIBVTE */
   else if (strcmp(interface, "wl_shm") == 0) {
     wlserv->shm = wl_registry_bind(registry, name, &wl_shm_interface, 1);
   } else if (strcmp(interface, "wl_seat") == 0) {
@@ -805,9 +858,19 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
         int state = get_edge_state(disp->display->width, disp->display->height, ev.x, ev.y);
         if (state > 0) {
           if (state == 11) {
-#ifdef XDG_SHELL_V6
+#ifdef ZXDG_SHELL_V6
+            if (disp->display->zxdg_toplevel) {
+              zxdg_toplevel_v6_move(disp->display->zxdg_toplevel, wlserv->seat, serial);
+            } else
+#endif
+#ifdef XDG_SHELL
             if (disp->display->xdg_toplevel) {
-              zxdg_toplevel_v6_move(disp->display->xdg_toplevel, wlserv->seat, serial);
+              xdg_toplevel_move(disp->display->xdg_toplevel, wlserv->seat, serial);
+            } else
+#endif
+#ifdef WLR_SHELL_V1
+            if (disp->display->wlr_surface) {
+              /* XXX */
             } else
 #endif
             {
@@ -816,9 +879,19 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
           } else {
             disp->display->is_resizing = 1;
 
-#ifdef XDG_SHELL_V6
+#ifdef ZXDG_SHELL_V6
+            if (disp->display->zxdg_toplevel) {
+              zxdg_toplevel_v6_resize(disp->display->zxdg_toplevel, wlserv->seat, serial, state);
+            } else
+#endif
+#ifdef XDG_SHELL
             if (disp->display->xdg_toplevel) {
-              zxdg_toplevel_v6_resize(disp->display->xdg_toplevel, wlserv->seat, serial, state);
+              xdg_toplevel_resize(disp->display->xdg_toplevel, wlserv->seat, serial, state);
+            } else
+#endif
+#ifdef WLR_SHELL_V1
+            if (disp->display->wlr_surface) {
+              /* XXX */
             } else
 #endif
             {
@@ -1037,11 +1110,19 @@ static int create_shm_buffer(Display *display) {
   wl_shm_pool_destroy(pool);
   close(fd);
 
+  /* wl_surface_attach() must be called after (z)xdg_surface_configure() on (z)xdg-shell. */
 #if defined(COMPAT_LIBVTE)
-  if (display->wlserv->is_xdg_shell != 1)
-#elif defined(XDG_SHELL_V6)
-  /* wl_surface_attach() must be called after xdg_surface_configure() on xdg-shell. */
-  if (display->xdg_surface == NULL)
+  if (display->wlserv->shell_type >= 2 /* ZXDG_SHELL, XDG_SHELL */) {
+    /* do nothing */
+  } else
+#elif defined(XDG_SHELL)
+  if (display->xdg_surface) {
+    /* do nothing */
+  } else
+#elif defined(ZXDG_SHELL_V6)
+  if (display->zxdg_surface) {
+    /* do nothing */
+  } else
 #endif
   {
     wl_surface_attach(display->surface, display->buffer, 0, 0);
@@ -1282,18 +1363,18 @@ static const struct wl_shell_surface_listener shell_surface_listener = {
   shell_surface_popup_done
 };
 
-#ifdef XDG_SHELL_V6
-static void xdg_surface_configure(void *data, struct zxdg_surface_v6 *xdg_surface,
-                                  uint32_t serial) {
+#ifdef ZXDG_SHELL_V6
+static void zxdg_surface_configure(void *data, struct zxdg_surface_v6 *zxdg_surface,
+                                   uint32_t serial) {
   ui_display_t *disp = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("xdg_surface_configure\n");
+  bl_debug_printf("zxdg_surface_configure\n");
 #endif
 
-  zxdg_surface_v6_ack_configure(xdg_surface, serial);
+  zxdg_surface_v6_ack_configure(zxdg_surface, serial);
 
-  disp->display->xdg_surface_configured = 1;
+  disp->display->zxdg_surface_configured = 1;
 
   /* See flush_damage() */
 #if 0
@@ -1303,17 +1384,17 @@ static void xdg_surface_configure(void *data, struct zxdg_surface_v6 *xdg_surfac
 #endif
 }
 
-static const struct zxdg_surface_v6_listener xdg_surface_listener = {
-  xdg_surface_configure
+static const struct zxdg_surface_v6_listener zxdg_surface_listener = {
+  zxdg_surface_configure
 };
 
-static void xdg_toplevel_configure(void *data, struct zxdg_toplevel_v6 *xdg_toplevel,
-                                   int32_t width, int32_t height, struct wl_array *states) {
+static void zxdg_toplevel_configure(void *data, struct zxdg_toplevel_v6 *zxdg_toplevel,
+                                    int32_t width, int32_t height, struct wl_array *states) {
   ui_display_t *disp = data;
 #ifdef __DEBUG
   uint32_t *ps;
 
-  bl_debug_printf("xdg_toplevel_configure: w %d, h %d / states: ", width, height);
+  bl_debug_printf("zxdg_toplevel_configure: w %d, h %d / states: ", width, height);
   wl_array_for_each(ps, states) {
   switch(*ps) {
     case ZXDG_TOPLEVEL_V6_STATE_MAXIMIZED:
@@ -1363,7 +1444,7 @@ static void xdg_toplevel_configure(void *data, struct zxdg_toplevel_v6 *xdg_topl
   }
 }
 
-static void xdg_toplevel_close(void *data, struct zxdg_toplevel_v6 *toplevel) {
+static void zxdg_toplevel_close(void *data, struct zxdg_toplevel_v6 *toplevel) {
   ui_display_t *disp = data;
 
   if (disp->roots[0]->window_destroyed) {
@@ -1371,11 +1452,235 @@ static void xdg_toplevel_close(void *data, struct zxdg_toplevel_v6 *toplevel) {
   }
 }
 
-const struct zxdg_toplevel_v6_listener xdg_toplevel_listener = {
-  xdg_toplevel_configure, xdg_toplevel_close
+const struct zxdg_toplevel_v6_listener zxdg_toplevel_listener = {
+  zxdg_toplevel_configure, zxdg_toplevel_close
+};
+
+static void zxdg_popup_configure(void *data, struct zxdg_popup_v6 *zxdg_popup, int32_t x, int32_t y,
+                                 int32_t width, int32_t height) {
+  ui_display_t *disp = data;
+  int resized;
+
+#ifdef __DEBUG
+  bl_debug_printf("Configuring size from w %d h %d to w %d h %d.\n",
+                  disp->display->width, disp->display->height, width, height);
+#endif
+
+  if (width == 0) {
+    width = disp->display->width;
+  }
+  if (height == 0) {
+    height = disp->display->height;
+  }
+
+  if (rotate_display) {
+    resized = resize_display(disp, height, width, 0);
+  } else {
+    resized = resize_display(disp, width, height, 0);
+  }
+
+  if (resized) {
+    ui_window_resize_with_margin(disp->roots[0], disp->width, disp->height, NOTIFY_TO_MYSELF);
+  }
+}
+
+static void zxdg_popup_done(void *data, struct zxdg_popup_v6 *popup) {
+  ui_display_t *disp = data;
+
+  ui_window_final(disp->roots[0]);
+}
+
+const struct zxdg_popup_v6_listener zxdg_popup_listener = {
+  zxdg_popup_configure, zxdg_popup_done
 };
 #endif
+
+#ifdef XDG_SHELL
+static void xdg_surface_configure(void *data, struct xdg_surface *xdg_surface,
+                                  uint32_t serial) {
+  ui_display_t *disp = data;
+
+#ifdef __DEBUG
+  bl_debug_printf("xdg_surface_configure\n");
 #endif
+
+  xdg_surface_ack_configure(xdg_surface, serial);
+
+  disp->display->xdg_surface_configured = 1;
+
+  /* See flush_damage() */
+#if 0
+  wl_surface_attach(disp->display->surface, disp->display->buffer, 0, 0);
+  wl_surface_damage(disp->display->surface, 0, 0, disp->display->width, disp->display->height);
+  wl_surface_commit(disp->display->surface);
+#endif
+}
+
+static const struct xdg_surface_listener xdg_surface_listener = {
+  xdg_surface_configure
+};
+
+static void xdg_toplevel_configure(void *data, struct xdg_toplevel *xdg_toplevel,
+                                   int32_t width, int32_t height, struct wl_array *states) {
+  ui_display_t *disp = data;
+#ifdef __DEBUG
+  uint32_t *ps;
+
+  bl_debug_printf("xdg_toplevel_configure: w %d, h %d / states: ", width, height);
+  wl_array_for_each(ps, states) {
+  switch(*ps) {
+    case XDG_TOPLEVEL_STATE_MAXIMIZED:
+      bl_msg_printf("MAXIMIZED ");
+      break;
+    case XDG_TOPLEVEL_STATE_FULLSCREEN:
+      bl_msg_printf("FULLSCREEN ");
+      break;
+    case XDG_TOPLEVEL_STATE_RESIZING:
+      bl_msg_printf("RESIZING ");
+      break;
+    case XDG_TOPLEVEL_STATE_ACTIVATED:
+      bl_msg_printf("ACTIVATED ");
+      break;
+    }
+  }
+  bl_msg_printf("\n");
+#endif
+
+#ifdef __DEBUG
+  bl_debug_printf("Configuring size from w %d h %d to w %d h %d.\n",
+                  disp->display->width, disp->display->height, width, height);
+#endif
+
+  if (width == 0) {
+    width = disp->display->width;
+  }
+  if (height == 0) {
+    height = disp->display->height;
+  }
+
+  if (check_resize(disp->display->width, disp->display->height, &width, &height,
+                   total_min_width(disp->roots[0]), total_min_height(disp->roots[0]),
+                   max_width_inc(disp->roots[0]), max_height_inc(disp->roots[0]),
+                   disp->display->is_resizing)) {
+#ifdef __DEBUG
+    bl_msg_printf("-> modified size w %d h %d\n", width, height);
+#endif
+
+    if (rotate_display) {
+      resize_display(disp, height, width, 0);
+    } else {
+      resize_display(disp, width, height, 0);
+    }
+
+    ui_window_resize_with_margin(disp->roots[0], disp->width, disp->height, NOTIFY_TO_MYSELF);
+  }
+}
+
+static void xdg_toplevel_close(void *data, struct xdg_toplevel *toplevel) {
+  ui_display_t *disp = data;
+
+  if (disp->roots[0]->window_destroyed) {
+    (*disp->roots[0]->window_destroyed)(disp->roots[0]);
+  }
+}
+
+const struct xdg_toplevel_listener xdg_toplevel_listener = {
+  xdg_toplevel_configure, xdg_toplevel_close
+};
+
+static void xdg_popup_configure(void *data, struct xdg_popup *xdg_popup, int32_t x, int32_t y,
+                                int32_t width, int32_t height) {
+  ui_display_t *disp = data;
+  int resized;
+
+#ifdef __DEBUG
+  bl_debug_printf("Configuring size from w %d h %d to w %d h %d.\n",
+                  disp->display->width, disp->display->height, width, height);
+#endif
+
+  if (width == 0) {
+    width = disp->display->width;
+  }
+  if (height == 0) {
+    height = disp->display->height;
+  }
+
+  if (rotate_display) {
+    resized = resize_display(disp, height, width, 0);
+  } else {
+    resized = resize_display(disp, width, height, 0);
+  }
+
+  if (resized) {
+    ui_window_resize_with_margin(disp->roots[0], disp->width, disp->height, NOTIFY_TO_MYSELF);
+  }
+}
+
+static void xdg_popup_done(void *data, struct xdg_popup *popup) {
+  ui_display_t *disp = data;
+
+  ui_window_final(disp->roots[0]);
+}
+
+const struct xdg_popup_listener xdg_popup_listener = {
+  xdg_popup_configure, xdg_popup_done
+};
+#endif
+
+#ifdef WLR_SHELL_V1
+/*
+ * Where zwlr_layer_surface_v1_set_size(disp->display->wlr_surface, width, height)
+ * should be called ?
+ */
+static void wlr_surface_configure(void *data, struct zwlr_layer_surface_v1 *wlr_surface,
+                                  uint32_t serial, uint32_t width, uint32_t height) {
+  ui_display_t *disp = data;
+
+#ifdef __DEBUG
+  bl_debug_printf("Configuring size from w %d h %d to w %d h %d.\n",
+                  disp->display->width, disp->display->height, width, height);
+#endif
+
+  zwlr_layer_surface_v1_ack_configure(wlr_surface, serial);
+
+  if (width == 0) {
+    width = disp->display->width;
+  }
+  if (height == 0) {
+    height = disp->display->height;
+  }
+
+  if (check_resize(disp->display->width, disp->display->height, &width, &height,
+                   total_min_width(disp->roots[0]), total_min_height(disp->roots[0]),
+                   max_width_inc(disp->roots[0]), max_height_inc(disp->roots[0]),
+                   disp->display->is_resizing)) {
+#ifdef __DEBUG
+    bl_msg_printf("-> modified size w %d h %d\n", width, height);
+#endif
+
+    if (rotate_display) {
+      resize_display(disp, height, width, 0);
+    } else {
+      resize_display(disp, width, height, 0);
+    }
+
+    ui_window_resize_with_margin(disp->roots[0], disp->width, disp->height, NOTIFY_TO_MYSELF);
+  }
+}
+
+static void wlr_surface_close(void *data, struct zwlr_layer_surface_v1 *wlr_surface) {
+  ui_display_t *disp = data;
+
+  if (disp->roots[0]->window_destroyed) {
+    (*disp->roots[0]->window_destroyed)(disp->roots[0]);
+  }
+}
+
+const struct zwlr_layer_surface_v1_listener wlr_surface_listener = {
+  wlr_surface_configure, wlr_surface_close
+};
+#endif
+#endif /* Not COMPAT_LIBVTE */
 
 static void update_mime(char **mime, char *new_mime) {
   if (strcmp(new_mime, "text/plain;charset=utf-8") == 0) {
@@ -1855,13 +2160,25 @@ static void close_wl_display(ui_wlserv_t *wlserv) {
 #ifdef COMPAT_LIBVTE
   wl_subcompositor_destroy(wlserv->subcompositor);
 #else
-#ifdef XDG_SHELL_V6
-  if (wlserv->xdg_shell) {
-    zxdg_shell_v6_destroy(wlserv->xdg_shell);
-    wlserv->xdg_shell = NULL;
-  } else if (wlserv->shell)
+#ifdef ZXDG_SHELL_V6
+  if (wlserv->zxdg_shell) {
+    zxdg_shell_v6_destroy(wlserv->zxdg_shell);
+    wlserv->zxdg_shell = NULL;
+  } else
 #endif
-  {
+#ifdef XDG_SHELL
+  if (wlserv->xdg_shell) {
+    xdg_wm_base_destroy(wlserv->xdg_shell);
+    wlserv->xdg_shell = NULL;
+  } else
+#endif
+#ifdef WLR_SHELL_V1
+  if (wlserv->wlr_shell) {
+    zwlr_layer_shell_v1_destroy(wlserv->wlr_shell);
+    wlserv->wlr_shell = NULL;
+  } else
+#endif
+  if (wlserv->shell) {
     wl_shell_destroy(wlserv->shell);
     wlserv->shell = NULL;
   }
@@ -1934,12 +2251,37 @@ static void close_display(ui_display_t *disp) {
     wl_surface_destroy(disp->display->surface);
   }
 #else
-#ifdef XDG_SHELL_V6
+#ifdef ZXDG_SHELL_V6
+  if (disp->display->zxdg_surface) {
+    destroy_shm_buffer(disp->display);
+    disp->display->buffer = NULL;
+    if (disp->display->zxdg_toplevel) {
+      zxdg_toplevel_v6_destroy(disp->display->zxdg_toplevel);
+    } else /* if (disp->display->zxdg_popup) */ {
+      zxdg_popup_v6_destroy(disp->display->zxdg_popup);
+    }
+    zxdg_surface_v6_destroy(disp->display->zxdg_surface);
+    wl_surface_destroy(disp->display->surface);
+  } else
+#endif
+#ifdef XDG_SHELL
   if (disp->display->xdg_surface) {
     destroy_shm_buffer(disp->display);
     disp->display->buffer = NULL;
-    zxdg_toplevel_v6_destroy(disp->display->xdg_toplevel);
-    zxdg_surface_v6_destroy(disp->display->xdg_surface);
+    if (disp->display->xdg_toplevel) {
+      xdg_toplevel_destroy(disp->display->xdg_toplevel);
+    } else /* if (disp->display->xdg_popup) */ {
+      xdg_popup_destroy(disp->display->xdg_popup);
+    }
+    xdg_surface_destroy(disp->display->xdg_surface);
+    wl_surface_destroy(disp->display->surface);
+  } else
+#endif
+#ifdef WLR_SHELL_V1
+  if (disp->display->wlr_surface) {
+    destroy_shm_buffer(disp->display);
+    disp->display->buffer = NULL;
+    zwlr_layer_surface_v1_destroy(disp->display->wlr_surface);
     wl_surface_destroy(disp->display->surface);
   } else
 #endif
@@ -1976,21 +2318,39 @@ static void close_display(ui_display_t *disp) {
 static int flush_damage(Display *display) {
   if (display->damage_height > 0) {
     /*
-     * xdg_shell seems to require calling wl_surface_attach() every time
+     * zxdg_shell and xdg_shell seem to require calling wl_surface_attach() every time
      * differently from wl_shell.
+     * (wlr_shell also requires it)
      */
-#if defined(COMPAT_LIBVTE)
-    if (display->wlserv->is_xdg_shell == 1) {
+#ifdef COMPAT_LIBVTE
+    if (display->wlserv->shell_type >= 2 /* ZXDG_SHELL, XDG_SHELL */) {
       wl_surface_attach(display->surface, display->buffer, 0, 0);
     } else
-#elif defined(XDG_SHELL_V6)
+#else
+#ifdef ZXDG_SHELL_V6
+    if (display->zxdg_surface) {
+      if (display->zxdg_surface_configured) {
+        wl_surface_attach(display->surface, display->buffer, 0, 0);
+      } else {
+        return 0;
+      }
+    } else
+#endif
+#ifdef XDG_SHELL
     if (display->xdg_surface) {
       if (display->xdg_surface_configured) {
         wl_surface_attach(display->surface, display->buffer, 0, 0);
       } else {
         return 0;
       }
-    }
+    } else
+#endif
+#ifdef WLR_SHELL_V1
+    if (display->wlr_surface) {
+      wl_surface_attach(display->surface, display->buffer, 0, 0);
+    } else
+#endif
+    { ; }
 #endif
 
     wl_surface_damage(display->surface, display->damage_x, display->damage_y,
@@ -2072,7 +2432,8 @@ static int flush_display(Display *display) {
   }
 }
 
-static void create_surface(ui_display_t *disp, u_int width, u_int height, char *app_name) {
+static void create_surface(ui_display_t *disp, int x, int y, u_int width, u_int height,
+                           char *app_name) {
   Display *display = disp->display;
   ui_wlserv_t *wlserv = display->wlserv;
 
@@ -2081,14 +2442,99 @@ static void create_surface(ui_display_t *disp, u_int width, u_int height, char *
 #ifdef COMPAT_LIBVTE
   display->subsurface = wl_subcompositor_get_subsurface(wlserv->subcompositor, display->surface,
                                                         display->parent_surface);
-#else
-#ifdef XDG_SHELL_V6
+#else /* COMPAT_LIBVTE */
+#ifdef ZXDG_SHELL_V6
+  if (wlserv->zxdg_shell) {
+    display->zxdg_surface = zxdg_shell_v6_get_xdg_surface(wlserv->zxdg_shell, display->surface);
+    zxdg_surface_v6_add_listener(display->zxdg_surface, &zxdg_surface_listener, disp);
+    if (display->parent) {
+      /* Input Method */
+      struct zxdg_positioner_v6 *pos = zxdg_shell_v6_create_positioner(wlserv->zxdg_shell);
+      zxdg_positioner_v6_set_size(pos, width, height);
+      zxdg_positioner_v6_set_anchor_rect(pos, x, y, width, height);
+      zxdg_positioner_v6_set_offset(pos, 0, 0);
+      zxdg_positioner_v6_set_anchor(pos,
+                                    ZXDG_POSITIONER_V6_ANCHOR_TOP|ZXDG_POSITIONER_V6_ANCHOR_LEFT);
+#if 0
+      zxdg_positioner_v6_set_gravity(pos, ZXDG_POSITIONER_GRAVITY_TOP);
+      zxdg_positioner_v6_set_constraint_adjustment(
+        pos,
+        ZXDG_POSITIONER_V6_CONSTRAINT_ADJUSTMENT_SLIDE_X |
+        ZXDG_POSITIONER_V6_CONSTRAINT_ADJUSTMENT_SLIDE_Y |
+        ZXDG_POSITIONER_V6_CONSTRAINT_ADJUSTMENT_FLIP_X |
+        ZXDG_POSITIONER_V6_CONSTRAINT_ADJUSTMENT_FLIP_Y |
+        ZXDG_POSITIONER_V6_CONSTRAINT_ADJUSTMENT_RESIZE_X |
+        ZXDG_POSITIONER_V6_CONSTRAINT_ADJUSTMENT_RESIZE_Y);
+#endif
+      display->zxdg_popup = zxdg_surface_v6_get_popup(display->zxdg_surface,
+                                                      display->parent->display->zxdg_surface,
+                                                      pos);
+      zxdg_positioner_v6_destroy(pos);
+      zxdg_popup_v6_add_listener(display->zxdg_popup, &zxdg_popup_listener, disp);
+    } else {
+      display->zxdg_toplevel = zxdg_surface_v6_get_toplevel(display->zxdg_surface);
+      zxdg_toplevel_v6_set_app_id(display->zxdg_toplevel, app_name);
+      zxdg_toplevel_v6_add_listener(display->zxdg_toplevel, &zxdg_toplevel_listener, disp);
+      wl_surface_add_listener(display->surface, &surface_listener, wlserv);
+#if 0
+      zxdg_surface_v6_set_window_geometry(display->zxdg_surface, x, y, width, height);
+#endif
+    }
+    wl_surface_commit(display->surface);
+  } else
+#endif
+#ifdef XDG_SHELL
   if (wlserv->xdg_shell) {
-    display->xdg_surface = zxdg_shell_v6_get_xdg_surface(wlserv->xdg_shell, display->surface);
-    zxdg_surface_v6_add_listener(display->xdg_surface, &xdg_surface_listener, disp);
-    display->xdg_toplevel = zxdg_surface_v6_get_toplevel(display->xdg_surface);
-    zxdg_toplevel_v6_set_app_id(display->xdg_toplevel, app_name);
-    zxdg_toplevel_v6_add_listener(display->xdg_toplevel, &xdg_toplevel_listener, disp);
+    display->xdg_surface = xdg_wm_base_get_xdg_surface(wlserv->xdg_shell, display->surface);
+    xdg_surface_add_listener(display->xdg_surface, &xdg_surface_listener, disp);
+    if (display->parent) {
+      /* Input Method */
+      struct xdg_positioner *pos = xdg_wm_base_create_positioner(wlserv->xdg_shell);
+      xdg_positioner_set_size(pos, width, height);
+      xdg_positioner_set_anchor_rect(pos, x, y, width, height);
+      xdg_positioner_set_offset(pos, 0, 0);
+      xdg_positioner_set_anchor(pos, XDG_POSITIONER_ANCHOR_TOP|XDG_POSITIONER_ANCHOR_LEFT);
+#if 0
+      xdg_positioner_set_gravity(pos, XDG_POSITIONER_GRAVITY_TOP);
+      xdg_positioner_set_constraint_adjustment(pos,
+                                               XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_SLIDE_X |
+                                               XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_SLIDE_Y |
+                                               XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_FLIP_X |
+                                               XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_FLIP_Y |
+                                               XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_RESIZE_X |
+                                               XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_RESIZE_Y);
+#endif
+      display->xdg_popup = xdg_surface_get_popup(display->xdg_surface,
+                                                 display->parent->display->xdg_surface,
+                                                 pos);
+      xdg_positioner_destroy(pos);
+      xdg_popup_add_listener(display->xdg_popup, &xdg_popup_listener, disp);
+    } else {
+      display->xdg_toplevel = xdg_surface_get_toplevel(display->xdg_surface);
+      xdg_toplevel_set_app_id(display->xdg_toplevel, app_name);
+      xdg_toplevel_add_listener(display->xdg_toplevel, &xdg_toplevel_listener, disp);
+      wl_surface_add_listener(display->surface, &surface_listener, wlserv);
+#if 0
+      xdg_surface_set_window_geometry(display->xdg_surface, x, y, width, height);
+#endif
+    }
+    wl_surface_commit(display->surface);
+  } else
+#endif
+#ifdef WLR_SHELL_V1
+  if (wlserv->wlr_shell) {
+    display->wlr_surface = zwlr_layer_shell_v1_get_layer_surface(wlserv->wlr_shell,
+                                                                 display->surface,
+                                                                 wlserv->output,
+                                                                 ZWLR_LAYER_SHELL_V1_LAYER_TOP,
+                                                                 "mlterm");
+    zwlr_layer_surface_v1_add_listener(display->wlr_surface, &wlr_surface_listener, disp);
+    zwlr_layer_surface_v1_set_keyboard_interactivity(disp->display->wlr_surface, 1);
+    zwlr_layer_surface_v1_set_anchor(display->wlr_surface,
+                                     ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
+                                     ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
+                                     ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT);
+    wl_surface_add_listener(display->surface, &surface_listener, wlserv);
     wl_surface_commit(display->surface);
   } else
 #endif
@@ -2105,7 +2551,7 @@ static void create_surface(ui_display_t *disp, u_int width, u_int height, char *
       wl_shell_surface_set_title(display->shell_surface, app_name);
     }
   }
-#endif
+#endif /* COMPAT_LIBVTE */
 
   disp->width = width;
   disp->height = height;
@@ -2260,8 +2706,20 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
   root->parent = NULL;
 
   root->gc = disp->gc;
-  root->x = 0;
-  root->y = 0;
+
+  /*
+   * Don't set root->x and root->y to 1 or greater value.
+   * root->x and root->y specify the relative position to the display, and
+   * the size of the root window is the same as that of the display on wayland.
+   */
+  root->x = root->y = 0;
+
+  if ((hint & XValue) == 0) {
+    x = 0;
+  }
+  if ((hint & YValue) == 0) {
+    y = 0;
+  }
 
   if (app_name) {
     root->app_name = app_name;
@@ -2273,7 +2731,8 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
    */
   disp->roots[disp->num_roots++] = root;
 
-  create_surface(disp, ACTUAL_WIDTH(root), ACTUAL_HEIGHT(root), root->app_name);
+  /* x and y are for xdg_popup and zxdg_popup */
+  create_surface(disp, x, y, ACTUAL_WIDTH(root), ACTUAL_HEIGHT(root), root->app_name);
 
 #ifdef COMPAT_LIBVTE
   if (!disp->display->parent) {
@@ -2281,17 +2740,19 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
   } else
 #endif
   {
-#if 0 /* def XDG_SHELL_V6 */
-    if (disp->display->xdg_surface && disp->display->parent == NULL &&
-        (hint & (XValue | YValue))) {
-      zxdg_surface_v6_set_window_geometry(disp->display->xdg_surface,
-                                          x, y, ACTUAL_WIDTH(root), ACTUAL_HEIGHT(root));
-    }
-#endif
-
     create_shm_buffer(disp->display);
 
 #ifndef COMPAT_LIBVTE
+#ifdef ZXDG_SHELL_V6
+    if (disp->display->zxdg_surface || disp->display->zxdg_popup) {
+      /* x and y is processed in create_surface() */
+    } else
+#endif
+#ifdef XDG_SHELL
+    if (disp->display->xdg_surface || disp->display->xdg_popup) {
+      /* x and y is processed in create_surface() */
+    } else
+#endif
     if (disp->display->parent)
 #endif
     {
@@ -2578,11 +3039,23 @@ int ui_display_move(ui_display_t *disp, int x, int y) {
       wl_surface_commit(display->parent_surface);
     }
   }
-#else
-#ifdef XDG_SHELL_V6
-  if (display->xdg_surface) {
+#else /* COMPAT_LIBVTE */
+#ifdef ZXDG_SHELL_V6
+  if (display->zxdg_toplevel || display->zxdg_popup) {
+    /* XXX */
+    bl_warn_printf("It is impossible to move windows on zxdg_shell for now.\n");
+  } else
+#endif
+#ifdef XDG_SHELL
+  if (display->xdg_toplevel || display->xdg_popup) {
     /* XXX */
     bl_warn_printf("It is impossible to move windows on xdg_shell for now.\n");
+  } else
+#endif
+#ifdef WLR_SHELL_V1
+  if (display->wlr_surface) {
+    /* XXX */
+    bl_warn_printf("It is impossible to move windows on wlr_shell for now.\n");
   } else
 #endif
   if (display->parent) {
@@ -2594,7 +3067,7 @@ int ui_display_move(ui_display_t *disp, int x, int y) {
                                    display->parent->display->surface, x, y,
                                    WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
   }
-#endif
+#endif /* COMPAT_LIBVTE */
 
   return 1;
 }
@@ -2815,9 +3288,19 @@ void ui_display_logical_to_physical_coordinates(ui_display_t *disp, int *x, int 
 void ui_display_set_maximized(ui_display_t *disp, int flag) {
 #ifndef COMPAT_LIBVTE
   if (flag) {
-#ifdef XDG_SHELL_V6
+#ifdef ZXDG_SHELL_V6
+    if (disp->display->zxdg_toplevel) {
+      zxdg_toplevel_v6_set_maximized(disp->display->zxdg_toplevel);
+    } else
+#endif
+#ifdef XDG_SHELL
     if (disp->display->xdg_toplevel) {
-      zxdg_toplevel_v6_set_maximized(disp->display->xdg_toplevel);
+      xdg_toplevel_set_maximized(disp->display->xdg_toplevel);
+    } else
+#endif
+#ifdef WLR_SHELL_V1
+    if (disp->display->wlr_surface) {
+      /* XXX */
     } else
 #endif
     {
@@ -2829,9 +3312,19 @@ void ui_display_set_maximized(ui_display_t *disp, int flag) {
 
 void ui_display_set_title(ui_display_t *disp, const u_char *name) {
 #ifndef COMPAT_LIBVTE
-#ifdef XDG_SHELL_V6
+#ifdef ZXDG_SHELL_V6
+  if (disp->display->zxdg_toplevel) {
+    zxdg_toplevel_v6_set_title(disp->display->zxdg_toplevel, name);
+  } else
+#endif
+#ifdef XDG_SHELL
   if (disp->display->xdg_toplevel) {
-    zxdg_toplevel_v6_set_title(disp->display->xdg_toplevel, name);
+    xdg_toplevel_set_title(disp->display->xdg_toplevel, name);
+  } else
+#endif
+#ifdef WLR_SHELL_V1
+  if (disp->display->wlr_surface) {
+    /* XXX */
   } else
 #endif
   {
