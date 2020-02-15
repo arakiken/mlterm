@@ -323,11 +323,6 @@ static void registry_global(void *data, struct wl_registry *registry, uint32_t n
       wlserv->shell_type = 3;
     }
   }
-#if 0
-  else if (strcmp(interface, "zwlr_layer_shell_v1") == 0) {
-    wlserv->shell_type = 4;
-  }
-#endif
 #else /* COMPAT_LIBVTE */
   else if (strcmp(interface, "wl_shell") == 0) {
     wlserv->shell = wl_registry_bind(registry, name, &wl_shell_interface, 1);
@@ -369,13 +364,6 @@ static void registry_global(void *data, struct wl_registry *registry, uint32_t n
     if (wlserv->shell == NULL) {
       wlserv->xdg_shell = wl_registry_bind(registry, name, &xdg_wm_base_interface, 1);
       xdg_wm_base_add_listener(wlserv->xdg_shell, &xdg_shell_listener, NULL);
-    }
-  }
-#endif
-#ifdef WLR_SHELL_V1
-  else if (strcmp(interface, "zwlr_layer_shell_v1") == 0) {
-    if (wlserv->shell == NULL) {
-      wlserv->wlr_shell = wl_registry_bind(registry, name, &zwlr_layer_shell_v1_interface, 1);
     }
   }
 #endif
@@ -868,11 +856,6 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
               xdg_toplevel_move(disp->display->xdg_toplevel, wlserv->seat, serial);
             } else
 #endif
-#ifdef WLR_SHELL_V1
-            if (disp->display->wlr_surface) {
-              /* XXX */
-            } else
-#endif
             {
               wl_shell_surface_move(disp->display->shell_surface, wlserv->seat, serial);
             }
@@ -887,11 +870,6 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
 #ifdef XDG_SHELL
             if (disp->display->xdg_toplevel) {
               xdg_toplevel_resize(disp->display->xdg_toplevel, wlserv->seat, serial, state);
-            } else
-#endif
-#ifdef WLR_SHELL_V1
-            if (disp->display->wlr_surface) {
-              /* XXX */
             } else
 #endif
             {
@@ -1626,60 +1604,6 @@ const struct xdg_popup_listener xdg_popup_listener = {
   xdg_popup_configure, xdg_popup_done
 };
 #endif
-
-#ifdef WLR_SHELL_V1
-/*
- * Where zwlr_layer_surface_v1_set_size(disp->display->wlr_surface, width, height)
- * should be called ?
- */
-static void wlr_surface_configure(void *data, struct zwlr_layer_surface_v1 *wlr_surface,
-                                  uint32_t serial, uint32_t width, uint32_t height) {
-  ui_display_t *disp = data;
-
-#ifdef __DEBUG
-  bl_debug_printf("Configuring size from w %d h %d to w %d h %d.\n",
-                  disp->display->width, disp->display->height, width, height);
-#endif
-
-  zwlr_layer_surface_v1_ack_configure(wlr_surface, serial);
-
-  if (width == 0) {
-    width = disp->display->width;
-  }
-  if (height == 0) {
-    height = disp->display->height;
-  }
-
-  if (check_resize(disp->display->width, disp->display->height, &width, &height,
-                   total_min_width(disp->roots[0]), total_min_height(disp->roots[0]),
-                   max_width_inc(disp->roots[0]), max_height_inc(disp->roots[0]),
-                   disp->display->is_resizing)) {
-#ifdef __DEBUG
-    bl_msg_printf("-> modified size w %d h %d\n", width, height);
-#endif
-
-    if (rotate_display) {
-      resize_display(disp, height, width, 0);
-    } else {
-      resize_display(disp, width, height, 0);
-    }
-
-    ui_window_resize_with_margin(disp->roots[0], disp->width, disp->height, NOTIFY_TO_MYSELF);
-  }
-}
-
-static void wlr_surface_close(void *data, struct zwlr_layer_surface_v1 *wlr_surface) {
-  ui_display_t *disp = data;
-
-  if (disp->roots[0]->window_destroyed) {
-    (*disp->roots[0]->window_destroyed)(disp->roots[0]);
-  }
-}
-
-const struct zwlr_layer_surface_v1_listener wlr_surface_listener = {
-  wlr_surface_configure, wlr_surface_close
-};
-#endif
 #endif /* Not COMPAT_LIBVTE */
 
 static void update_mime(char **mime, char *new_mime) {
@@ -2172,12 +2096,6 @@ static void close_wl_display(ui_wlserv_t *wlserv) {
     wlserv->xdg_shell = NULL;
   } else
 #endif
-#ifdef WLR_SHELL_V1
-  if (wlserv->wlr_shell) {
-    zwlr_layer_shell_v1_destroy(wlserv->wlr_shell);
-    wlserv->wlr_shell = NULL;
-  } else
-#endif
   if (wlserv->shell) {
     wl_shell_destroy(wlserv->shell);
     wlserv->shell = NULL;
@@ -2277,14 +2195,6 @@ static void close_display(ui_display_t *disp) {
     wl_surface_destroy(disp->display->surface);
   } else
 #endif
-#ifdef WLR_SHELL_V1
-  if (disp->display->wlr_surface) {
-    destroy_shm_buffer(disp->display);
-    disp->display->buffer = NULL;
-    zwlr_layer_surface_v1_destroy(disp->display->wlr_surface);
-    wl_surface_destroy(disp->display->surface);
-  } else
-#endif
   if (disp->display->shell_surface) {
     destroy_shm_buffer(disp->display);
     disp->display->buffer = NULL;
@@ -2320,7 +2230,6 @@ static int flush_damage(Display *display) {
     /*
      * zxdg_shell and xdg_shell seem to require calling wl_surface_attach() every time
      * differently from wl_shell.
-     * (wlr_shell also requires it)
      */
 #ifdef COMPAT_LIBVTE
     if (display->wlserv->shell_type >= 2 /* ZXDG_SHELL, XDG_SHELL */) {
@@ -2343,11 +2252,6 @@ static int flush_damage(Display *display) {
       } else {
         return 0;
       }
-    } else
-#endif
-#ifdef WLR_SHELL_V1
-    if (display->wlr_surface) {
-      wl_surface_attach(display->surface, display->buffer, 0, 0);
     } else
 #endif
     { ; }
@@ -2518,23 +2422,6 @@ static void create_surface(ui_display_t *disp, int x, int y, u_int width, u_int 
       xdg_surface_set_window_geometry(display->xdg_surface, x, y, width, height);
 #endif
     }
-    wl_surface_commit(display->surface);
-  } else
-#endif
-#ifdef WLR_SHELL_V1
-  if (wlserv->wlr_shell) {
-    display->wlr_surface = zwlr_layer_shell_v1_get_layer_surface(wlserv->wlr_shell,
-                                                                 display->surface,
-                                                                 wlserv->output,
-                                                                 ZWLR_LAYER_SHELL_V1_LAYER_TOP,
-                                                                 "mlterm");
-    zwlr_layer_surface_v1_add_listener(display->wlr_surface, &wlr_surface_listener, disp);
-    zwlr_layer_surface_v1_set_keyboard_interactivity(disp->display->wlr_surface, 1);
-    zwlr_layer_surface_v1_set_anchor(display->wlr_surface,
-                                     ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP |
-                                     ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
-                                     ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT);
-    wl_surface_add_listener(display->surface, &surface_listener, wlserv);
     wl_surface_commit(display->surface);
   } else
 #endif
@@ -3052,12 +2939,6 @@ int ui_display_move(ui_display_t *disp, int x, int y) {
     bl_warn_printf("It is impossible to move windows on xdg_shell for now.\n");
   } else
 #endif
-#ifdef WLR_SHELL_V1
-  if (display->wlr_surface) {
-    /* XXX */
-    bl_warn_printf("It is impossible to move windows on wlr_shell for now.\n");
-  } else
-#endif
   if (display->parent) {
     /* input method window */
 #ifdef __DEBUG
@@ -3298,11 +3179,6 @@ void ui_display_set_maximized(ui_display_t *disp, int flag) {
       xdg_toplevel_set_maximized(disp->display->xdg_toplevel);
     } else
 #endif
-#ifdef WLR_SHELL_V1
-    if (disp->display->wlr_surface) {
-      /* XXX */
-    } else
-#endif
     {
       wl_shell_surface_set_maximized(disp->display->shell_surface, disp->display->wlserv->output);
     }
@@ -3320,11 +3196,6 @@ void ui_display_set_title(ui_display_t *disp, const u_char *name) {
 #ifdef XDG_SHELL
   if (disp->display->xdg_toplevel) {
     xdg_toplevel_set_title(disp->display->xdg_toplevel, name);
-  } else
-#endif
-#ifdef WLR_SHELL_V1
-  if (disp->display->wlr_surface) {
-    /* XXX */
   } else
 #endif
   {

@@ -6,7 +6,6 @@
 #ifndef COMPAT_LIBVTE
 #define XDG_SHELL
 #define ZXDG_SHELL_V6
-/* #define WLR_SHELL_V1 */
 #endif
 
 #include <wayland-client.h>
@@ -20,9 +19,6 @@
 #endif
 #ifdef ZXDG_SHELL_V6
 #include "xdg-shell-unstable-v6-client-protocol.h"
-#endif
-#ifdef WLR_SHELL_V1
-#include "wlr-layer-shell-unstable-v1-client-protocol.h"
 #endif
 
 #ifdef USE_FREETYPE
@@ -151,9 +147,6 @@ typedef struct {
 #ifdef ZXDG_SHELL_V6
   struct zxdg_shell_v6 *zxdg_shell;
 #endif
-#ifdef WLR_SHELL_V1
-  struct zwlr_layer_shell_v1 *wlr_shell;
-#endif
 #endif
 
 } ui_wlserv_t;
@@ -214,9 +207,6 @@ typedef struct {
   struct xdg_toplevel *xdg_toplevel;
   struct xdg_popup *xdg_popup;
   int xdg_surface_configured;
-#endif
-#ifdef WLR_SHELL_V1
-  struct zwlr_layer_surface_v1 *wlr_surface;
 #endif
 #endif /* COMPAT_LIBVTE */
 
