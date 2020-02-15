@@ -1,5 +1,11 @@
 2020-02-15  Araki Ken  <arakiken@users.sf.net>
 
+	* ui.h, ui_display.c: WLR_SHELL_V1 is removed.
+
+	* wlr-layer-shell-unstable-v1-client-protocol.[ch]: Removed.
+
+2020-02-15  Araki Ken  <arakiken@users.sf.net>
+
 	* gtk/Makefile.in:
 	  xdg-shell-client-protocol.o is excluded from linked objects.
 
