@@ -2062,6 +2062,7 @@ static void close_wl_display(ui_wlserv_t *wlserv) {
   bl_debug_printf("Closing wldisplay.\n");
 #endif
 
+  /* dnd_offer and sel_offer are destroyed in data_device_leave() */
 #if 0
   if (wlserv->dnd_offer) {
     wl_data_offer_destroy(wlserv->dnd_offer);
@@ -2072,6 +2073,11 @@ static void close_wl_display(ui_wlserv_t *wlserv) {
     wlserv->sel_offer = NULL;
   }
 #endif
+
+  if (wlserv->xsel_offer) {
+    gtk_primary_selection_offer_destroy(wlserv->xsel_offer);
+    wlserv->xsel_offer = NULL;
+  }
   if (wlserv->sel_source) {
     wl_data_source_destroy(wlserv->sel_source);
     wlserv->sel_source = NULL;
@@ -2102,6 +2108,7 @@ static void close_wl_display(ui_wlserv_t *wlserv) {
   }
 #endif
 
+  wl_shm_destroy(wlserv->shm);
   wl_output_destroy(wlserv->output);
   wl_compositor_destroy(wlserv->compositor);
 #ifndef COMPAT_LIBVTE
@@ -2133,6 +2140,13 @@ static void close_wl_display(ui_wlserv_t *wlserv) {
 
   wl_data_device_destroy(wlserv->data_device);
   wl_data_device_manager_destroy(wlserv->data_device_manager);
+
+  if (wlserv->xsel_device) {
+    gtk_primary_selection_device_destroy(wlserv->xsel_device);
+  }
+  if (wlserv->xsel_device_manager) {
+    gtk_primary_selection_device_manager_destroy(wlserv->xsel_device_manager);
+  }
 #ifndef COMPAT_LIBVTE
   wl_display_disconnect(wlserv->display);
 
