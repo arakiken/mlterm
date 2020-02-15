@@ -1,9 +1,10 @@
 * Support CSI>4;1m.
 * Support uniscribe for libotl on win32.
 * Support SCP by Shift+DnD on HaikuOS.
+* Support xdg-shell on wayland.
+* Support DEC Technical character set.
 * Mlconfig configures files in ~/.mlterm directly if it starts without options
   or with --file option.
-* Support DEC Technical character set.
 * Change DA1 response.
   \x1b[?63;1;2;3;4;7;29c -> \x1b[?63;1;2;3;4;6;7;15;18;22;29c
 * geometry / -g option works on HaikuOS.

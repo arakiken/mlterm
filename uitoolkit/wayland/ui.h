@@ -4,7 +4,9 @@
 #define ___UI_H__
 
 #ifndef COMPAT_LIBVTE
-#define XDG_SHELL_V6
+#define XDG_SHELL
+#define ZXDG_SHELL_V6
+/* #define WLR_SHELL_V1 */
 #endif
 
 #include <wayland-client.h>
@@ -13,8 +15,14 @@
 #include <wayland-egl.h>
 #include <xkbcommon/xkbcommon.h>
 #include "gtk-primary-selection.h"
-#ifdef XDG_SHELL_V6
+#ifdef XDG_SHELL
+#include "xdg-shell-client-protocol.h"
+#endif
+#ifdef ZXDG_SHELL_V6
 #include "xdg-shell-unstable-v6-client-protocol.h"
+#endif
+#ifdef WLR_SHELL_V1
+#include "wlr-layer-shell-unstable-v1-client-protocol.h"
 #endif
 
 #ifdef USE_FREETYPE
@@ -133,11 +141,18 @@ typedef struct {
    */
 #ifdef COMPAT_LIBVTE
   struct wl_subcompositor *subcompositor;
-  int is_xdg_shell; /* for sway 1.0 */
+  /* for sway */
+  int shell_type; /* 0: Not determined, 1: wl_shell, 2: zxdg_shell, 3: xdg_shell */
 #else
   struct wl_shell *shell;
-#ifdef XDG_SHELL_V6
-  struct zxdg_shell_v6 *xdg_shell;
+#ifdef XDG_SHELL
+  struct xdg_wm_base *xdg_shell;
+#endif
+#ifdef ZXDG_SHELL_V6
+  struct zxdg_shell_v6 *zxdg_shell;
+#endif
+#ifdef WLR_SHELL_V1
+  struct zwlr_layer_shell_v1 *wlr_shell;
 #endif
 #endif
 
@@ -186,14 +201,24 @@ typedef struct {
   struct wl_subsurface *subsurface;
   int x;
   int y;
-#else
+#else /* COMPAT_LIBVTE */
   struct wl_shell_surface *shell_surface;
-#ifdef XDG_SHELL_V6
-  struct zxdg_surface_v6 *xdg_surface;
-  struct zxdg_toplevel_v6 *xdg_toplevel;
+#ifdef ZXDG_SHELL_V6
+  struct zxdg_surface_v6 *zxdg_surface;
+  struct zxdg_toplevel_v6 *zxdg_toplevel;
+  struct zxdg_popup_v6 *zxdg_popup;
+  int zxdg_surface_configured;
+#endif
+#ifdef XDG_SHELL
+  struct xdg_surface *xdg_surface;
+  struct xdg_toplevel *xdg_toplevel;
+  struct xdg_popup *xdg_popup;
   int xdg_surface_configured;
 #endif
+#ifdef WLR_SHELL_V1
+  struct zwlr_layer_surface_v1 *wlr_surface;
 #endif
+#endif /* COMPAT_LIBVTE */
 
 } Display;
 
