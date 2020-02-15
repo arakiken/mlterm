@@ -1,3 +1,8 @@
+2020-02-16  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_display.c: xsel_offer, shm, xsel_device and xsel_device_manager are
+	  destroyed on exit.
+
 2020-02-15  Araki Ken  <arakiken@users.sf.net>
 
 	* ui.h, ui_display.c: WLR_SHELL_V1 is removed.
