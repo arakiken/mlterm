@@ -1,3 +1,11 @@
+2020-02-20  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/ui_display_linux.c, fb/ui_window.c:
+	  Inputting accented character with the use of AltGr key is available.
+
+	* wayland/ui_display.c:
+	  Warning message in ui_display_move() is not output everytime but output only once.
+
 2020-02-16  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_display.c: xsel_offer, shm, xsel_device and xsel_device_manager are

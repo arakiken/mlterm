@@ -10,6 +10,7 @@
 #ifdef USE_WAYLAND
 #include <mef/ef_utf8_parser.h>
 #endif
+#include <mef/ef_utf16_parser.h>
 
 #include "ui_display.h"
 #include "ui_font.h"
@@ -1901,7 +1902,7 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
 
 size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parser_t **parser,
                          KeySym *keysym, XKeyEvent *event) {
-  u_char ch;
+  u_int32_t ch;
 
   if (seq_len == 0) {
     return 0;
@@ -1957,7 +1958,21 @@ size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parse
 #endif
 
   if ((*keysym = event->ksym) >= 0x100) {
-    switch (*keysym) {
+#ifdef __linux__
+    /*
+     * 0x00-0x7f  : ASCII+
+     * 0x100-0x263: Function Keys (Max: KEY_CLEAR(0x163 + 0x100))
+     * 0x1080-    : Unicode (Use after decrement 0x1000) (See kcode_to_ksym() in ui_display_linux.c)
+     */
+    if (*keysym >= 0x1080) {
+      *keysym -= 0x1000;
+      ch -= 0x1000;
+
+      goto ucs;
+    } else
+#endif
+    {
+      switch (*keysym) {
       case XK_KP_Multiply:
         ch = '*';
         break;
@@ -1977,47 +1992,48 @@ size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parse
       default:
         if (win->disp->display->lock_state & NLKED) {
           switch (*keysym) {
-            case XK_KP_Insert:
-              ch = '0';
-              break;
-            case XK_KP_End:
-              ch = '1';
-              break;
-            case XK_KP_Down:
-              ch = '2';
-              break;
-            case XK_KP_Next:
-              ch = '3';
-              break;
-            case XK_KP_Left:
-              ch = '4';
-              break;
-            case XK_KP_Begin:
-              ch = '5';
-              break;
-            case XK_KP_Right:
-              ch = '6';
-              break;
-            case XK_KP_Home:
-              ch = '7';
-              break;
-            case XK_KP_Up:
-              ch = '8';
-              break;
-            case XK_KP_Prior:
-              ch = '9';
-              break;
-            case XK_KP_Delete:
-              ch = '.';
-              break;
-            default:
-              return 0;
+          case XK_KP_Insert:
+            ch = '0';
+            break;
+          case XK_KP_End:
+            ch = '1';
+            break;
+          case XK_KP_Down:
+            ch = '2';
+            break;
+          case XK_KP_Next:
+            ch = '3';
+            break;
+          case XK_KP_Left:
+            ch = '4';
+            break;
+          case XK_KP_Begin:
+            ch = '5';
+            break;
+          case XK_KP_Right:
+            ch = '6';
+            break;
+          case XK_KP_Home:
+            ch = '7';
+            break;
+          case XK_KP_Up:
+            ch = '8';
+            break;
+          case XK_KP_Prior:
+            ch = '9';
+            break;
+          case XK_KP_Delete:
+            ch = '.';
+            break;
+          default:
+            return 0;
           }
 
           *keysym = ch;
         } else {
           return 0;
         }
+      }
     }
   } else if (*keysym == XK_Tab && (event->state & ShiftMask)) {
     *keysym = XK_ISO_Left_Tab;
@@ -2032,13 +2048,31 @@ size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parse
    * Not "<= '_'" but "<= 'z'" because Control + 'a' is not
    * distinguished from Control + 'A'.
    */
-  if ((event->state & ControlMask) && (ch == ' ' || ('@' <= ch && ch <= 'z'))) {
-    seq[0] = (ch & 0x1f);
-  } else {
-    seq[0] = ch;
+  if (ch < 0x80) {
+    if ((event->state & ControlMask) && (ch == ' ' || ('@' <= ch && ch <= 'z'))) {
+      seq[0] = (ch & 0x1f);
+    } else {
+      seq[0] = ch;
+    }
+
+    return 1;
   }
 
-  return 1;
+ucs:
+  if (seq_len >= 2) {
+    static ef_parser_t *utf16_parser;
+
+    if (utf16_parser == NULL) {
+      utf16_parser = ef_utf16_parser_new(); /* XXX leaked */
+    }
+
+    *parser = utf16_parser;
+
+    seq[0] = (ch >> 8) & 0xff;
+    seq[1] = ch & 0xff;
+  }
+
+  return 2;
 }
 
 /*

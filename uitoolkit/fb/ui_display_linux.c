@@ -34,7 +34,73 @@ static int get_key_state(void) {
   }
 }
 
-static int kcode_to_ksym(int kcode, int state) {
+static int get_accented_char(int kb_value, int dead /* 0: grave, 1: acute, 3: tilda */) {
+  static struct {
+    u_int8_t base;
+    u_int8_t grave;
+    u_int8_t acute;
+    u_int8_t tilda;
+  } accent_db1[] = {
+    { 'a', 0xc0, 0xc1, 0xc3 },
+    { 'e', 0xc8, 0xc9, 0x0 },
+    { 'i', 0xcc, 0xcd, 0x0 },
+    { 'o', 0xd2, 0xd3, 0xd5 },
+    { 'u', 0xd9, 0xda, 0x0 },
+  };
+
+  static struct {
+    u_int8_t base;
+    u_int16_t acute;
+  } accent_db2[] = {
+    { 'c', 0x106 },
+    { 'l', 0x139 },
+    { 'r', 0x154 },
+    { 's', 0x15a },
+    { 'z', 0x179 },
+  };
+
+  size_t count;
+
+  for (count = 0; count < sizeof(accent_db1) / sizeof(accent_db1[0]); count++) {
+    if (accent_db1[count].base == (kb_value | 0x20)) {
+      if (dead == 0) {
+        return accent_db1[count].grave + (kb_value & 0x20);
+      } else if (dead == 1) {
+        return accent_db1[count].acute + (kb_value & 0x20);
+      } else if (dead == 3 && accent_db1[count].tilda > 0) {
+        return accent_db1[count].tilda + (kb_value & 0x20);
+      } else {
+        return kb_value;
+      }
+    }
+  }
+
+  for (count = 0; count < sizeof(accent_db2) / sizeof(accent_db2[0]); count++) {
+    if (accent_db2[count].base == (kb_value | 0x20)) {
+      if (dead == 1) {
+        return accent_db2[count].acute + ((kb_value & 0x20) == 0x20 ? 1 : 0);
+      } else {
+        return kb_value;
+      }
+    }
+  }
+
+  if ((kb_value | 0x20) == 'y') {
+    if (dead == 1) {
+      return 0xdd + (kb_value & 0x20);
+    }
+  } else if ((kb_value | 0x20) == 'n') {
+    if (dead == 1) {
+      return 0x143 + ((kb_value & 0x20) == 0x20 ? 1 : 0);
+    } else if (dead == 3) {
+      return 0xd1 + (kb_value & 0x20);
+    }
+  }
+
+  return kb_value;
+}
+
+static int kcode_to_ksym(int kcode, int *state) {
   if (kcode == KEY_ENTER || kcode == KEY_KPENTER) {
     /* KDGKBENT returns '\n'(0x0a) */
     return 0x0d;
@@ -44,23 +110,59 @@ static int kcode_to_ksym(int kcode, int state) {
   } else if (kcode <= KEY_SLASH || kcode == KEY_SPACE || kcode == KEY_YEN || kcode == KEY_RO) {
     struct kbentry ent;
 
-    if (state & ShiftMask) {
-      ent.kb_table = (1 << KG_SHIFT);
+    ent.kb_table = 0;
+    if ((*state) & ShiftMask) {
+      ent.kb_table |= (1 << KG_SHIFT);
     }
 #ifdef READ_CTRL_KEYMAP
-    else if (state & ControlMask) {
-      ent.kb_table = (1 << KG_CTRL);
+    if ((*state) & ControlMask) {
+      ent.kb_table |= (1 << KG_CTRL);
     }
 #endif
-    else {
-      ent.kb_table = 0;
+    if ((*state) & Mod2Mask) {
+      ent.kb_table |= (1 << KG_ALTGR);
     }
 
     ent.kb_index = kcode;
 
-    if (ioctl(STDIN_FILENO, KDGKBENT, &ent) == 0 && ent.kb_value != K_HOLE &&
-        ent.kb_value != K_NOSUCHMAP) {
-      ent.kb_value &= 0xff;
+    if (ioctl(STDIN_FILENO, KDGKBENT, &ent) == 0 && ent.kb_value != K_HOLE && ent.kb_value != K_NOSUCHMAP) {
+      static int dead = -1;
+
+#ifdef __DEBUG
+      bl_debug_printf("KDGKBENT idx %x val %x tbl %x\n", ent.kb_index, ent.kb_value, ent.kb_table);
+#endif
+
+      if (ent.kb_value >= 0x1000) {
+        ent.kb_value = (0xf000 - (ent.kb_value & 0xf000)) + (ent.kb_value & 0xfff) + 0x1000;
+        dead = -1;
+      } else {
+        if (KTYP(ent.kb_value) == KT_DEAD || KTYP(ent.kb_value) == KT_DEAD2) {
+          dead = ent.kb_value & 0xff;
+
+          return 0;
+        } else {
+          ent.kb_value &= 0xff;
+
+          if (dead != -1) {
+            ent.kb_value = get_accented_char(ent.kb_value, dead);
+            dead = -1;
+          }
+
+          if (ent.kb_value >= 0x80) {
+            ent.kb_value += 0x1000;
+          }
+        }
+      }
+
+#ifdef __DEBUG
+      bl_debug_printf("-> val %x\n", ent.kb_value);
+#endif
+
+#if 1
+      if (ent.kb_table & (1 << KG_ALTGR)) {
+        *state &= ~ModMask;
+      }
+#endif
 
 #if 1
       /* XXX linux returns KEY_GRAVE for HankakuZenkaku key. */
@@ -583,7 +685,9 @@ static int receive_key_event(void) {
             }
           } else if (ev.code == KEY_RIGHTCTRL || ev.code == KEY_LEFTCTRL) {
             _display.key_state |= ControlMask;
-          } else if (ev.code == KEY_RIGHTALT || ev.code == KEY_LEFTALT) {
+          } else if (ev.code == KEY_RIGHTALT) {
+            _display.key_state |= (Mod1Mask|Mod2Mask);
+          } else if (ev.code == KEY_LEFTALT) {
             _display.key_state |= Mod1Mask;
           } else if (ev.code == KEY_NUMLOCK) {
             _display.lock_state ^= NLKED;
@@ -591,18 +695,21 @@ static int receive_key_event(void) {
             XKeyEvent xev;
 
             xev.type = KeyPress;
-            xev.ksym = kcode_to_ksym(ev.code, _display.key_state);
-            xev.keycode = ev.code;
             xev.state = _mouse.button_state | _display.key_state;
+            xev.keycode = ev.code;
 
-            receive_event_for_multi_roots(&xev);
+            if ((xev.ksym = kcode_to_ksym(ev.code, &xev.state)) > 0) {
+              receive_event_for_multi_roots(&xev);
+            }
           }
         } else if (ev.value == 0 /* Released */) {
           if (ev.code == KEY_RIGHTSHIFT || ev.code == KEY_LEFTSHIFT) {
             _display.key_state &= ~ShiftMask;
           } else if (ev.code == KEY_RIGHTCTRL || ev.code == KEY_LEFTCTRL) {
             _display.key_state &= ~ControlMask;
-          } else if (ev.code == KEY_RIGHTALT || ev.code == KEY_LEFTALT) {
+          } else if (ev.code == KEY_RIGHTALT) {
+            _display.key_state &= ~(Mod1Mask|Mod2Mask);
+          } else if (ev.code == KEY_LEFTALT) {
             _display.key_state &= ~Mod1Mask;
           }
         }
