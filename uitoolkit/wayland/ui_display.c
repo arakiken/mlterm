@@ -2944,13 +2944,21 @@ int ui_display_move(ui_display_t *disp, int x, int y) {
 #ifdef ZXDG_SHELL_V6
   if (display->zxdg_toplevel || display->zxdg_popup) {
     /* XXX */
-    bl_warn_printf("It is impossible to move windows on zxdg_shell for now.\n");
+    static int output_msg;
+    if (!output_msg) {
+      bl_warn_printf("It is impossible to move windows on zxdg_shell for now.\n");
+      output_msg = 1;
+    }
   } else
 #endif
 #ifdef XDG_SHELL
   if (display->xdg_toplevel || display->xdg_popup) {
     /* XXX */
-    bl_warn_printf("It is impossible to move windows on xdg_shell for now.\n");
+    static int output_msg;
+    if (!output_msg) {
+      bl_warn_printf("It is impossible to move windows on xdg_shell for now.\n");
+      output_msg = 1;
+    }
   } else
 #endif
   if (display->parent) {
