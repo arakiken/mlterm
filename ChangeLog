@@ -1,5 +1,10 @@
 2020-02-20  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_parser.c:
+	  - write_to_pty_nohook() is added.
+	  - Response sequence of mlterm is sent to a console application by
+	    write_to_pty_nohook() instead of vt_write_to_pty().
+
 	* fb/ui_display_linux.c, fb/ui_window.c:
 	  Inputting accented character with the use of AltGr key is available.
 
