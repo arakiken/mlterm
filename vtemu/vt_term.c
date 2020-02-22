@@ -211,15 +211,6 @@ static void *
 
 #endif
 
-/* Must be called in visual context. */
-static void set_use_local_echo(vt_term_t *term, int flag) {
-  if (term->use_local_echo != flag && !(term->use_local_echo = flag)) {
-    vt_screen_logical(term->screen);
-    vt_screen_disable_local_echo(term->screen);
-    vt_screen_visual(term->screen);
-  }
-}
-
 /* --- global functions --- */
 
 void vt_term_final(void) {
@@ -275,7 +266,7 @@ vt_term_t *vt_term_new(const char *term_type, u_int cols, u_int rows, u_int tab_
                                      use_auto_detect, logging_vt_seq, policy, col_size_a,
                                      use_char_combining, use_multi_col_char, win_name, icon_name,
                                      use_ansi_colors, alt_color_mode, cursor_style,
-                                     ignore_broadcasted_chars))) {
+                                     ignore_broadcasted_chars, use_local_echo))) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " vt_parser_new failed.\n");
 #endif
@@ -291,7 +282,6 @@ vt_term_t *vt_term_new(const char *term_type, u_int cols, u_int rows, u_int tab_
   term->bidi_mode = bidi_mode;
   term->use_ctl = use_ctl;
   term->use_dynamic_comb = use_dynamic_comb;
-  term->use_local_echo = use_local_echo;
 
   return term;
 
@@ -551,15 +541,11 @@ pid_t vt_term_get_pty_mode(vt_term_t *term) {
 }
 
 size_t vt_term_write(vt_term_t *term, u_char *buf, size_t len) {
-  if (term->pty == NULL || vt_parser_is_transferring_data(term->parser)) {
+  if (term->pty == NULL) {
     return 0;
   }
 
-  if (term->use_local_echo) {
-    vt_parser_local_echo(term->parser, buf, len);
-  }
-
-  return vt_write_to_pty(term->pty, buf, len);
+  return vt_parser_write(term->parser, buf, len);
 }
 
 /* The caller should swap width_pix and height_pix in vertical mode. */
@@ -931,17 +917,12 @@ int vt_term_get_config(vt_term_t *term, vt_term_t *output, /* if term == output,
     if ((value = term->icon_path) == NULL) {
       value = "";
     }
-  } else if (strcmp(key, "use_local_echo") == 0) {
-    if (term->use_local_echo) {
-      value = "true";
-    } else {
-      value = "false";
-    }
+  }
 #if defined(__ANDROID__) && defined(USE_LIBSSH2)
-  } else if (strcmp(key, "start_with_local_pty") == 0) {
+  else if (strcmp(key, "start_with_local_pty") == 0) {
     value = start_with_local_pty ? "true" : "false";
 #endif
-  } else {
+  else {
     /* Continue to process it in x_screen.c */
     return 0;
   }
@@ -970,12 +951,6 @@ int vt_term_get_config(vt_term_t *term, vt_term_t *output, /* if term == output,
 int vt_term_set_config(vt_term_t *term, char *key, char *value) {
   if (vt_parser_set_config(term->parser, key, value)) {
     /* do nothing */
-  } else if (strcmp(key, "use_local_echo") == 0) {
-    int flag;
-
-    if ((flag = true_or_false(value)) != -1) {
-      set_use_local_echo(term, flag);
-    }
   }
 #ifdef USE_OT_LAYOUT
   else if (strcmp(key, "ot_script") == 0) {

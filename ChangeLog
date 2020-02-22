@@ -1,3 +1,21 @@
+2020-02-22  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_pty.[ch]: vt_pty_set_hook() and vt_pty_hook_t are removed.
+
+	* vt_term.[ch]: 'use_local_echo' is removed from vt_term_t.
+
+	* vt_parser.[ch]:
+	  - is_app_cursor_keys, is_app_escape, keep_screen_on_deccolm,
+	    cursor_to_right_of_sixel, allow_deccolm, auto_cr and bold_affects_bg
+	    are removed from vt_parser_t. (vtmode_flags is used instead.)
+	  - write_to_pty_nohook() is removed.
+	  - vt_parser_write() is added.
+	  - vt_parser_write() and vt_parser_write_{modified|special}_key() call
+	    write_loopback() if SRM is set.
+	  - vt_parser_local_echo() -> local_echo()
+	  - 'use_local_echo' is added to arguments of vt_parser_new().
+	  - vt_parser_is_transferring_data() is removed.
+
 2020-02-20  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c:
