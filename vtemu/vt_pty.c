@@ -194,10 +194,6 @@ size_t vt_write_to_pty(vt_pty_t *pty, u_char *buf, size_t len /* if 0, flushing 
   }
 #endif
 
-  if (pty->hook) {
-    written_size = (*pty->hook->pre_write)(pty->hook->self, w_buf, w_buf_size);
-  }
-
   written_size = (*pty->write)(pty, w_buf, w_buf_size);
 
   if (written_size < 0) {

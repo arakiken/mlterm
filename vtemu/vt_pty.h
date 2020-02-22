@@ -49,13 +49,6 @@ typedef struct vt_pty_event_listener {
 
 } vt_pty_event_listener_t;
 
-typedef struct vt_pty_hook {
-  void *self;
-
-  size_t (*pre_write)(void *, u_char *, size_t);
-
-} vt_pty_hook_t;
-
 typedef struct vt_pty {
   int master; /* master pty fd */
   int slave;  /* slave pty fd */
@@ -72,7 +65,6 @@ typedef struct vt_pty {
   ssize_t (*read)(struct vt_pty *, u_char*, size_t);
 
   vt_pty_event_listener_t *pty_listener;
-  vt_pty_hook_t *hook;
 
   vt_config_menu_t config_menu;
 
@@ -123,8 +115,6 @@ char *vt_pty_get_slave_name(vt_pty_t *pty);
 int vt_start_config_menu(vt_pty_t *pty, char *cmd_path, int x, int y, char *display);
 
 #define vt_pty_get_cmd_line(pty) ((pty)->cmd_line)
-
-#define vt_pty_set_hook(pty, hk) ((pty)->hook = hk)
 
 #define vt_pty_get_mode(pty) ((pty)->mode)
 

@@ -119,6 +119,15 @@ static u_int64_t true64 = 1;
 
 #define VTMODE(mode) ((mode) + 10000)
 
+#define IS_APP_CURSOR_KEYS(vt_parser) ((vt_parser)->vtmode_flags & SHIFT_FLAG64(DECMODE_1))
+#define ALLOW_DECCOLM(vt_parser) ((vt_parser)->vtmode_flags & SHIFT_FLAG64(DECMODE_40))
+#define KEEP_SCREEN_ON_DECCOLM(vt_parser) ((vt_parser)->vtmode_flags & SHIFT_FLAG64(DECMODE_95))
+#define BOLD_AFFECTS_BG(vt_parser) ((vt_parser)->vtmode_flags & SHIFT_FLAG64(DECMODE_116))
+#define IS_APP_ESCAPE(vt_parser) ((vt_parser)->vtmode_flags & SHIFT_FLAG64(DECMODE_7727))
+#define CURSOR_TO_RIGHT_OF_SIXEL(vt_parser) ((vt_parser)->vtmode_flags & SHIFT_FLAG64(DECMODE_8452))
+#define SEND_RECV_MODE(vt_parser) ((vt_parser)->vtmode_flags & SHIFT_FLAG64(VTMODE_12))
+#define AUTO_CR(vt_parser) ((vt_parser)->vtmode_flags & SHIFT_FLAG64(VTMODE_20))
+
 #define destroy_drcs(drcs) \
   vt_drcs_destroy(drcs);   \
   (drcs) = NULL;
@@ -981,7 +990,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
       if (IS_VTSYS_BASE_COLOR(fg_color)) {
         fg_color |= VT_BOLD_COLOR_MASK;
       }
-      if (vt_parser->bold_affects_bg && IS_VTSYS_BASE_COLOR(bg_color)) {
+      if (BOLD_AFFECTS_BG(vt_parser) && IS_VTSYS_BASE_COLOR(bg_color)) {
         bg_color |= VT_BOLD_COLOR_MASK;
       }
     }
@@ -1603,18 +1612,6 @@ static void set_modkey_mode(vt_parser_t *vt_parser, int key, int mode) {
   }
 }
 
-static void write_to_pty_nohook(vt_pty_t *pty, u_char *seq, size_t len) {
-  vt_pty_hook_t *hook = pty->hook;
-
-  if (hook) {
-    vt_pty_set_hook(pty, NULL);
-    vt_write_to_pty(pty, seq, len);
-    vt_pty_set_hook(pty, hook);
-  } else {
-    vt_write_to_pty(pty, seq, len);
-  }
-}
-
 static void report_window_size(vt_parser_t *vt_parser, int by_char) {
   if (HAS_XTERM_LISTENER(vt_parser, get_window_size)) {
     int ps;
@@ -1633,7 +1630,7 @@ static void report_window_size(vt_parser_t *vt_parser, int by_char) {
     }
 
     sprintf(seq, "\x1b[%d;%d;%dt", ps, height, width);
-    write_to_pty_nohook(vt_parser->pty, seq, strlen(seq));
+    vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
   }
 }
 
@@ -1662,7 +1659,7 @@ static void report_display_size(vt_parser_t *vt_parser, int by_char) {
     }
 
     sprintf(seq, "\x1b[%d;%d;%dt", ps, height, width);
-    write_to_pty_nohook(vt_parser->pty, seq, strlen(seq));
+    vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
   }
 }
 
@@ -1674,7 +1671,7 @@ static void report_cell_size(vt_parser_t *vt_parser) {
     char seq[6 + DIGIT_STR_LEN(u_int) * 2 + 1];
 
     sprintf(seq, "\x1b[6;%d;%dt", line_height, col_width);
-    write_to_pty_nohook(vt_parser->pty, seq, strlen(seq));
+    vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
   }
 }
 
@@ -1733,13 +1730,13 @@ static void report_window_or_icon_name(vt_parser_t *vt_parser, int is_window) {
     memcpy(seq + 3, title, len);
   }
   strcpy(seq + 3 + len, "\x1b\\");
-  write_to_pty_nohook(vt_parser->pty, seq, strlen(seq));
+  vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
 
   return;
 
 error:
-  write_to_pty_nohook(vt_parser->pty, pre, 3);
-  write_to_pty_nohook(vt_parser->pty, "\x1b\\", 2);
+  vt_write_to_pty(vt_parser->pty, pre, 3);
+  vt_write_to_pty(vt_parser->pty, "\x1b\\", 2);
 }
 
 static void set_presentation_state(vt_parser_t *vt_parser, char *seq) {
@@ -1810,7 +1807,7 @@ static void report_presentation_state(vt_parser_t *vt_parser, int ps) {
             vt_screen_cursor_logical_col(vt_parser->screen) + 1,
             vt_screen_get_page_id(vt_parser->screen) + 1, rend, attr, flag);
 
-    write_to_pty_nohook(vt_parser->pty, seq, strlen(seq));
+    vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
   } else if (ps == 2) {
     /* DECTABSR */
     char *seq;
@@ -1841,7 +1838,7 @@ static void report_presentation_state(vt_parser_t *vt_parser, int ps) {
 
       strcpy(p, "\x1b\\");
 
-      write_to_pty_nohook(vt_parser->pty, seq, p + 2 - seq);
+      vt_write_to_pty(vt_parser->pty, seq, p + 2 - seq);
     }
   }
 }
@@ -1876,7 +1873,7 @@ static void report_color_table(vt_parser_t *vt_parser, int pu) {
 
   strcpy(p - 1, "\x1b\\");
 
-  write_to_pty_nohook(vt_parser->pty, seq, strlen(seq));
+  vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
 }
 
 #ifndef NO_IMAGE
@@ -1892,7 +1889,7 @@ static int cursor_char_is_picture_and_modified(vt_screen_t *screen) {
   }
 }
 
-/* Don't call this if vt_parser->sixel_scrolling is true. */
+/* Don't call this if SIXEL_NO_SCROLLING is false. */
 static int check_sixel_anim(vt_screen_t *screen, u_char *str, size_t left) {
   vt_line_t *line;
   vt_char_t *ch;
@@ -2015,7 +2012,7 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
 
       if (is_sixel) {
         if (vt_parser->sixel_scrolling) {
-          if (!vt_parser->cursor_to_right_of_sixel &&
+          if (!CURSOR_TO_RIGHT_OF_SIXEL(vt_parser) &&
               /* mlterm always enables DECSET 8452 in status line. */
               !vt_status_line_is_focused(vt_parser->screen)) {
             vt_screen_line_feed(vt_parser->screen);
@@ -2819,7 +2816,7 @@ static void get_rgb(vt_parser_t *vt_parser, vt_color_t color) {
 
     sprintf(seq, "\x1b]4;%d;rgb:%.2x%.2x/%.2x%.2x/%.2x%.2x\x1b\\",
             color, red, red, green, green, blue, blue);
-    write_to_pty_nohook(vt_parser->pty, seq, strlen(seq));
+    vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
   }
 }
 
@@ -2836,7 +2833,7 @@ static void get_fgbg_rgb(vt_parser_t *vt_parser, int ps /* 10, 11 */) {
     sprintf(seq, "\x1b]%d;rgb:%.2x%.2x/%.2x%.2x/%.2x%.2x\x1b\\",
             ps, red, red, green, green, blue, blue);
 
-    write_to_pty_nohook(vt_parser->pty, seq, strlen(seq));
+    vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
   }
 }
 
@@ -3260,7 +3257,7 @@ static int response_termcap(vt_pty_t *pty, u_char *key, u_char *value) {
     }
     strcpy(dst, "\x1b\\");
 
-    write_to_pty_nohook(pty, response, strlen(response));
+    vt_write_to_pty(pty, response, strlen(response));
 
     return 1;
   } else {
@@ -3383,8 +3380,8 @@ static void report_termcap(vt_parser_t *vt_parser, u_char *key) {
         } else {
           value = vt_termcap_special_key_to_seq(
               vt_parser->termcap, db[idx].spkey, db[idx].modcode,
-              /* vt_parser->is_app_keypad */ 0, vt_parser->is_app_cursor_keys,
-              /* vt_parser->is_app_escape */ 0,
+              /* vt_parser->is_app_keypad */ 0, IS_APP_CURSOR_KEYS(vt_parser),
+              /* IS_APP_ESCAPE(vt_parser) */ 0,
               vt_parser->modify_cursor_keys, vt_parser->modify_function_keys);
         }
 
@@ -3397,48 +3394,48 @@ static void report_termcap(vt_parser_t *vt_parser, u_char *key) {
     }
   }
 
-  write_to_pty_nohook(vt_parser->pty, "\x1bP0+r\x1b\\", 7);
+  vt_write_to_pty(vt_parser->pty, "\x1bP0+r\x1b\\", 7);
 }
 
 static void report_char_attr_status(vt_parser_t *vt_parser) {
   char color[10]; /* ";38;5;XXX" (256 color) */
 
-  write_to_pty_nohook(vt_parser->pty, "\x1bP1$r0", 6);
+  vt_write_to_pty(vt_parser->pty, "\x1bP1$r0", 6);
 
   if (vt_parser->is_bold) {
-    write_to_pty_nohook(vt_parser->pty, ";1", 2);
+    vt_write_to_pty(vt_parser->pty, ";1", 2);
   }
 
   if (vt_parser->is_italic) {
-    write_to_pty_nohook(vt_parser->pty, ";3", 2);
+    vt_write_to_pty(vt_parser->pty, ";3", 2);
   }
 
   if (vt_parser->line_style & LS_UNDERLINE_SINGLE) {
-    write_to_pty_nohook(vt_parser->pty, ";4", 2);
+    vt_write_to_pty(vt_parser->pty, ";4", 2);
   }
 
   if (vt_parser->is_blinking) {
-    write_to_pty_nohook(vt_parser->pty, ";5", 2);
+    vt_write_to_pty(vt_parser->pty, ";5", 2);
   }
 
   if (vt_parser->is_reversed) {
-    write_to_pty_nohook(vt_parser->pty, ";7", 2);
+    vt_write_to_pty(vt_parser->pty, ";7", 2);
   }
 
   if (vt_parser->is_invisible) {
-    write_to_pty_nohook(vt_parser->pty, ":8", 2);
+    vt_write_to_pty(vt_parser->pty, ":8", 2);
   }
 
   if (vt_parser->line_style & LS_CROSSED_OUT) {
-    write_to_pty_nohook(vt_parser->pty, ";9", 2);
+    vt_write_to_pty(vt_parser->pty, ";9", 2);
   }
 
   if (vt_parser->line_style & LS_UNDERLINE_DOUBLE) {
-    write_to_pty_nohook(vt_parser->pty, ";21", 3);
+    vt_write_to_pty(vt_parser->pty, ";21", 3);
   }
 
   if (vt_parser->line_style & LS_OVERLINE) {
-    write_to_pty_nohook(vt_parser->pty, ":53", 3);
+    vt_write_to_pty(vt_parser->pty, ":53", 3);
   }
 
   color[0] = ';';
@@ -3453,7 +3450,7 @@ static void report_char_attr_status(vt_parser_t *vt_parser) {
   } else {
     goto bg_color;
   }
-  write_to_pty_nohook(vt_parser->pty, color, strlen(color));
+  vt_write_to_pty(vt_parser->pty, color, strlen(color));
 
 bg_color:
   if (IS_VTSYS_BASE_COLOR(vt_parser->bg_color)) {
@@ -3468,10 +3465,10 @@ bg_color:
   } else {
     goto end;
   }
-  write_to_pty_nohook(vt_parser->pty, color, strlen(color));
+  vt_write_to_pty(vt_parser->pty, color, strlen(color));
 
 end:
-  write_to_pty_nohook(vt_parser->pty, "m\x1b\\", 3);
+  vt_write_to_pty(vt_parser->pty, "m\x1b\\", 3);
 }
 
 static void report_status(vt_parser_t *vt_parser, u_char *key) {
@@ -3585,17 +3582,17 @@ static void report_status(vt_parser_t *vt_parser, u_char *key) {
 
   if ((seq = alloca(7 + strlen(val) + strlen(key) + 1))) {
     sprintf(seq, "\x1bP1$r%s%s\x1b\\", val, key);
-    write_to_pty_nohook(vt_parser->pty, seq, strlen(seq));
+    vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
   }
 
   return;
 
 error_validreq:
-  write_to_pty_nohook(vt_parser->pty, "\x1bP1$r\x1b\\", 7);
+  vt_write_to_pty(vt_parser->pty, "\x1bP1$r\x1b\\", 7);
   return;
 
 error_invalidreq:
-  write_to_pty_nohook(vt_parser->pty, "\x1bP0$r\x1b\\", 7);
+  vt_write_to_pty(vt_parser->pty, "\x1bP0$r\x1b\\", 7);
 }
 
 static void clear_line_all(vt_parser_t *vt_parser) {
@@ -3705,7 +3702,6 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
   switch (idx) {
   case DECMODE_1:
     /* DECCKM */
-    vt_parser->is_app_cursor_keys = flag;
     break;
 
   case DECMODE_2:
@@ -3722,9 +3718,9 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
 
   case DECMODE_3:
     /* DECCOLM */
-    if (vt_parser->allow_deccolm) {
+    if (ALLOW_DECCOLM(vt_parser)) {
       /* XTERM compatibility [#1048321] */
-      if (!vt_parser->keep_screen_on_deccolm) {
+      if (!KEEP_SCREEN_ON_DECCOLM(vt_parser)) {
         clear_display_all(vt_parser);
         vt_screen_goto(vt_parser->screen, 0, 0);
       }
@@ -3792,7 +3788,7 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
 #endif
 
   case DECMODE_40:
-    if ((vt_parser->allow_deccolm = flag)) {
+    if (flag) {
       /* Compatible behavior with rlogin. (Not compatible with xterm) */
       set_vtmode(vt_parser, 3, (vt_parser->vtmode_flags >> DECMODE_3) & 1);
     }
@@ -3831,12 +3827,10 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
 
   case DECMODE_95:
     /* DECNCSM */
-    vt_parser->keep_screen_on_deccolm = flag;
     break;
 
   case DECMODE_116:
     /* DECBBSM */
-    vt_parser->bold_affects_bg = flag;
     break;
 
   case DECMODE_117:
@@ -3943,7 +3937,6 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
     break;
 
   case DECMODE_7727:
-    vt_parser->is_app_escape = flag;
     break;
 
   case DECMODE_8428:
@@ -3953,7 +3946,6 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
 
   case DECMODE_8452:
     /* RLogin original */
-    vt_parser->cursor_to_right_of_sixel = flag;
     break;
 
   case DECMODE_8800:
@@ -3988,17 +3980,10 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
 
   case VTMODE_12:
     /* SRM */
-    if (flag) {
-      vt_pty_set_hook(vt_parser->pty, NULL);
-    } else {
-      vt_parser->pty_hook.pre_write = vt_parser_write_loopback;
-      vt_pty_set_hook(vt_parser->pty, &vt_parser->pty_hook);
-    }
     break;
 
   case VTMODE_20:
     /* LNM */
-    vt_parser->auto_cr = flag;
     break;
 
   case VTMODE_33:
@@ -4146,7 +4131,7 @@ static void send_device_status(vt_parser_t *vt_parser, int num, int id) {
     return;
   }
 
-  write_to_pty_nohook(vt_parser->pty, seq, strlen(seq));
+  vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
 }
 
 static void send_device_attributes(vt_pty_t *pty, int rank) {
@@ -4192,7 +4177,7 @@ static void send_device_attributes(vt_pty_t *pty, int rank) {
     return;
   }
 
-  write_to_pty_nohook(pty, seq, strlen(seq));
+  vt_write_to_pty(pty, seq, strlen(seq));
 }
 
 static void send_display_extent(vt_pty_t *pty, u_int cols, u_int rows, int vmargin,
@@ -4201,7 +4186,7 @@ static void send_display_extent(vt_pty_t *pty, u_int cols, u_int rows, int vmarg
 
   sprintf(seq, "\x1b[%d;%d;%d;%d;%d\"w", rows, cols, hmargin, vmargin, page);
 
-  write_to_pty_nohook(pty, seq, strlen(seq));
+  vt_write_to_pty(pty, seq, strlen(seq));
 }
 
 static void set_use_status_line(vt_parser_t *vt_parser, int ps) {
@@ -4255,7 +4240,7 @@ static int inc_str_in_esc_seq(vt_screen_t *screen, u_char **str_p, size_t *left,
        */
       if (CTL_LF <= **str_p && **str_p <= CTL_FF) {
         vt_screen_line_feed(screen);
-        /* XXX vt_parser->auto_cr is ignored for now. */
+        /* XXX AUTO_CR(vt_parser) is ignored for now. */
       } else if (**str_p == CTL_CR) {
         vt_screen_goto_beg_of_line(screen);
       } else if (**str_p == CTL_BS) {
@@ -4388,7 +4373,7 @@ inline static int parse_vt52_escape_sequence(
   } else if (*str_p == 'Z') {
     char msg[] = "\x1b/Z";
 
-    write_to_pty_nohook(vt_parser->pty, msg, sizeof(msg) - 1);
+    vt_write_to_pty(vt_parser->pty, msg, sizeof(msg) - 1);
   } else if (*str_p == '=') {
     /* Enter altenate keypad mode */
   } else if (*str_p == '>') {
@@ -4643,7 +4628,7 @@ inline static int parse_vt100_escape_sequence(
             char seq[3 + DIGIT_STR_LEN(u_int) + 5];
             sprintf(seq, "\x1b[?%d;%d$y", ps[0],
                     (ps[0] >= VTMODE(0)) ? 0 : get_vtmode(vt_parser, ps[0]));
-            write_to_pty_nohook(vt_parser->pty, seq, strlen(seq));
+            vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
           }
         } else if (*str_p == 'h') {
           /* "CSI ? h" DEC Private Mode Set (DECSET) */
@@ -4762,7 +4747,7 @@ inline static int parse_vt100_escape_sequence(
           } else {
             seq = "\x1b[?1;3;0S";
           }
-          write_to_pty_nohook(vt_parser->pty, seq, strlen(seq));
+          vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
         } else if (*str_p == 'W') {
           /* "CSI ? W"  DECST8C */
 
@@ -4912,7 +4897,7 @@ inline static int parse_vt100_escape_sequence(
           if (num > 0) {
             char seq[2 + DIGIT_STR_LEN(u_int) + 5];
             sprintf(seq, "\x1b[%d;%d$y", ps[0], get_vtmode(vt_parser, VTMODE(ps[0])));
-            write_to_pty_nohook(vt_parser->pty, seq, strlen(seq));
+            vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
           }
         } else if (*str_p == '|') {
           /* "CSI $ |" DECSCPP */
@@ -4942,7 +4927,7 @@ inline static int parse_vt100_escape_sequence(
         } else if (*str_p == 'u') {
           if (ps[0] == 1) {
             /* "CSI 1 $ u" DECRQTSR */
-            write_to_pty_nohook(vt_parser->pty, "\x1bP0$s\x1b\\", 7);
+            vt_write_to_pty(vt_parser->pty, "\x1bP0$s\x1b\\", 7);
           } else if (ps[0] == 2) {
             if (num == 2) {
               /* "CSI 2;Pu $ u" DECCTR */
@@ -5133,7 +5118,7 @@ inline static int parse_vt100_escape_sequence(
             }
 
             sprintf(seq, "\x1bP%d!~%.4x\x1b\\", ps[0], checksum);
-            write_to_pty_nohook(vt_parser->pty, seq, strlen(seq));
+            vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
           }
         }
       } else if (intmed_ch == '\'') {
@@ -5273,7 +5258,7 @@ inline static int parse_vt100_escape_sequence(
             char seq[2+DIGIT_STR_LEN(ps[0])+3];
 
             sprintf(seq, "\x1b[%d*q", ps[0]);
-            write_to_pty_nohook(vt_parser->pty, seq, strlen(seq));
+            vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
           }
         }
       }
@@ -5567,7 +5552,7 @@ inline static int parse_vt100_escape_sequence(
 
         if (ps[0] == 5) {
           /* Operating Status */
-          write_to_pty_nohook(vt_parser->pty, "\x1b[0n", 4);
+          vt_write_to_pty(vt_parser->pty, "\x1b[0n", 4);
         } else if (ps[0] == 6) {
           /* CPR */
           char seq[4 + DIGIT_STR_LEN(u_int) * 2 + 1];
@@ -5575,7 +5560,7 @@ inline static int parse_vt100_escape_sequence(
           sprintf(seq, "\x1b[%d;%dR", vt_screen_cursor_logical_row(vt_parser->screen) + 1,
                   vt_screen_cursor_logical_col(vt_parser->screen) + 1);
 
-          write_to_pty_nohook(vt_parser->pty, seq, strlen(seq));
+          vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
         }
       } else if (*str_p == 'r') {
         /* "CSI r" set scroll region (DECSTBM) */
@@ -5632,9 +5617,9 @@ inline static int parse_vt100_escape_sequence(
           char cmd[] = "update_all";
           config_protocol_set(vt_parser, cmd, 0);
         } else if (ps[0] == 11) {
-          write_to_pty_nohook(vt_parser->pty, "\x1b[1t", 4); /* XXX always non-iconified */
+          vt_write_to_pty(vt_parser->pty, "\x1b[1t", 4); /* XXX always non-iconified */
         } else if (ps[0] == 13) {
-          write_to_pty_nohook(vt_parser->pty, "\x1b[3;0;0t", 8);
+          vt_write_to_pty(vt_parser->pty, "\x1b[3;0;0t", 8);
         } else if (ps[0] == 14) {
           report_window_size(vt_parser, 0);
         } else if (ps[0] == 15) {
@@ -5702,7 +5687,7 @@ inline static int parse_vt100_escape_sequence(
           /* '+ 0x30' lets int to char */
           seq[2] = ps[0] + 2 + 0x30;
 
-          write_to_pty_nohook(vt_parser->pty, seq, sizeof(seq) - 1);
+          vt_write_to_pty(vt_parser->pty, seq, sizeof(seq) - 1);
         }
       }
 #if 0
@@ -6450,7 +6435,7 @@ inline static int parse_vt100_escape_sequence(
 #endif
 
     vt_screen_line_feed(vt_parser->screen);
-    if (vt_parser->auto_cr) {
+    if (AUTO_CR(vt_parser)) {
       vt_screen_goto_beg_of_line(vt_parser->screen);
     }
   } else if (*str_p == CTL_CR) {
@@ -6693,6 +6678,49 @@ static int write_loopback(vt_parser_t *vt_parser, const u_char *buf, size_t len,
   return 1;
 }
 
+static void local_echo(vt_parser_t *vt_parser, const u_char *buf, size_t len) {
+  size_t count;
+
+  if (len == 1) {
+    if (vt_parser->prev_local_echo_char == buf[0]) {
+      vt_screen_local_echo_wait(vt_parser->screen, 0);
+      vt_parse_vt100_sequence(vt_parser);
+
+      return;
+    } else {
+      vt_parser->prev_local_echo_char = buf[0];
+    }
+  } else {
+    vt_parser->prev_local_echo_char = 0;
+  }
+
+  for (count = 0; count < len; count++) {
+    if (buf[count] < 0x20) {
+      vt_screen_local_echo_wait(vt_parser->screen, 0);
+      vt_parse_vt100_sequence(vt_parser);
+
+      return;
+    }
+  }
+
+  vt_parse_vt100_sequence(vt_parser);
+
+  if (!(vt_parser->line_style & LS_UNDERLINE)) {
+    char *new_buf;
+    size_t new_len;
+
+    if ((new_buf = alloca((new_len = 4 + len + 5)))) {
+      memcpy(new_buf, "\x1b[4m", 4);
+      memcpy(new_buf + 4, buf, len);
+      memcpy(new_buf + 4 + len, "\x1b[24m", 5);
+      buf = new_buf;
+      len = new_len;
+    }
+  }
+
+  write_loopback(vt_parser, buf, len, 1, 1);
+}
+
 static int is_transferring_data(vt_parser_t *vt_parser) {
   int progress_cur;
   int progress_len;
@@ -6791,7 +6819,7 @@ static void transfer_data(vt_parser_t *vt_parser) {
     vt_transfer_data(input, copy_len, output, &len, sizeof(output));
 
     if (len > 0) {
-      write_to_pty_nohook(vt_parser->pty, output, len);
+      vt_write_to_pty(vt_parser->pty, output, len);
     }
   } while (is_transferring_data(vt_parser) && receive_bytes(vt_parser) > 0);
 }
@@ -6812,7 +6840,7 @@ static void transfer_cancel(vt_parser_t *vt_parser, int do_zcan) {
   vt_parser->is_zmodem_ready = 0;
 
   if (do_zcan) {
-    write_to_pty_nohook(vt_parser->pty,
+    vt_write_to_pty(vt_parser->pty,
                         "**\x18\x18\x18\x18\x18\x18\x18\x18"
                         "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08", 20);
   }
@@ -6919,14 +6947,12 @@ void vt_parser_final(void) {
   vt_set_auto_detect_encodings("");
 }
 
-vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
-                           vt_char_encoding_t encoding, int is_auto_encoding,
-                           int use_auto_detect, int logging_vt_seq,
-                           vt_unicode_policy_t policy, u_int col_size_a,
-                           int use_char_combining, int use_multi_col_char,
-                           const char *win_name, const char *icon_name,
+vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap, vt_char_encoding_t encoding,
+                           int is_auto_encoding, int use_auto_detect, int logging_vt_seq,
+                           vt_unicode_policy_t policy, u_int col_size_a, int use_char_combining,
+                           int use_multi_col_char, const char *win_name, const char *icon_name,
                            int use_ansi_colors, vt_alt_color_mode_t alt_color_mode,
-                           vt_cursor_style_t cursor_style, int ignore_broadcasted_chars) {
+                           vt_cursor_style_t cursor_style, int ignore_broadcasted_chars, int use_local_echo) {
   vt_parser_t *vt_parser;
 
   if ((vt_parser = calloc(1, sizeof(vt_parser_t))) == NULL) {
@@ -6935,8 +6961,6 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
 
   vt_str_init(vt_parser->w_buf.chars, PTY_WR_BUFFER_SIZE);
   vt_parser->w_buf.output_func = vt_screen_overwrite_chars;
-
-  vt_parser->pty_hook.self = vt_parser;
 
   vt_parser->screen = screen;
   vt_parser->termcap = termcap;
@@ -6989,6 +7013,7 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
   vt_parser->alt_color_mode = alt_color_mode;
   vt_parser->saved_vtmode_flags = vt_parser->vtmode_flags = INITIAL_VTMODE_FLAGS;
   vt_parser->ignore_broadcasted_chars = ignore_broadcasted_chars;
+  vt_parser->use_local_echo = use_local_echo;
 
   return vt_parser;
 
@@ -7104,10 +7129,30 @@ int vt_parse_vt100_sequence(vt_parser_t *vt_parser) {
   return 1;
 }
 
+int vt_parser_write(vt_parser_t *vt_parser, u_char *buf, size_t len) {
+  if (vt_parser->is_transferring_data) {
+    return 0;
+  }
+
+  if (vt_parser->use_local_echo) {
+    local_echo(vt_parser, buf, len);
+  }
+
+  if (!SEND_RECV_MODE(vt_parser)) {
+    write_loopback(vt_parser, buf, len, 0, 1);
+  }
+
+  return vt_write_to_pty(vt_parser->pty, buf, len);
+}
+
 int vt_parser_write_modified_key(vt_parser_t *vt_parser,
                                  int key, /* should be less than 0x80 */
                                  int modcode) {
   char *buf;
+
+  if (vt_parser->is_transferring_data) {
+    return 0;
+  }
 
   if (vt_parser->modify_other_keys == 1) {
     if ((modcode == 5 /* Control */ || modcode == 6 /* Shift+Control */) &&
@@ -7121,6 +7166,8 @@ int vt_parser_write_modified_key(vt_parser_t *vt_parser,
   if (!((modcode - 1) == 1 /* is shift */ &&
         (('!' <= key && key < 'A') || ('Z' < key && key < 'a') || ('z' < key && key <= '~'))) &&
       (buf = alloca(10))) {
+    size_t len;
+
 #if 1
     /* formatOtherKeys = 1 */
     sprintf(buf, "\x1b[%d;%du", key, modcode);
@@ -7129,7 +7176,13 @@ int vt_parser_write_modified_key(vt_parser_t *vt_parser,
     sprintf(buf, "\x1b[27;%d;%d", modcode, key);
 #endif
 
-    vt_write_to_pty(vt_parser->pty, buf, strlen(buf));
+    len = strlen(buf);
+
+    if (!SEND_RECV_MODE(vt_parser)) {
+      write_loopback(vt_parser, buf, len, 0, 1);
+    }
+
+    vt_write_to_pty(vt_parser->pty, buf, len);
 
     return 1;
   }
@@ -7141,11 +7194,21 @@ int vt_parser_write_special_key(vt_parser_t *vt_parser, vt_special_key_t key,
                                 int modcode, int is_numlock) {
   char *buf;
 
-  if ((buf = vt_termcap_special_key_to_seq(
-           vt_parser->termcap, key, modcode, (vt_parser->is_app_keypad && !is_numlock),
-           vt_parser->is_app_cursor_keys, vt_parser->is_app_escape,
-           vt_parser->modify_cursor_keys, vt_parser->modify_function_keys))) {
-    vt_write_to_pty(vt_parser->pty, buf, strlen(buf));
+  if (vt_parser->is_transferring_data) {
+    return 0;
+  }
+
+  if ((buf = vt_termcap_special_key_to_seq(vt_parser->termcap, key, modcode,
+                                           (vt_parser->is_app_keypad && !is_numlock),
+                                           IS_APP_CURSOR_KEYS(vt_parser), IS_APP_ESCAPE(vt_parser),
+                                           vt_parser->modify_cursor_keys, vt_parser->modify_function_keys))) {
+    size_t len = strlen(buf);
+
+    if (!SEND_RECV_MODE(vt_parser)) {
+      write_loopback(vt_parser, buf, len, 0, 1);
+    }
+
+    vt_write_to_pty(vt_parser->pty, buf, len);
 
     return 1;
   } else {
@@ -7194,49 +7257,6 @@ int vt_parser_preedit(vt_parser_t *vt_parser, const u_char *buf, size_t len) {
   return write_loopback(vt_parser, buf, len, 1, 1);
 }
 #endif
-
-int vt_parser_local_echo(vt_parser_t *vt_parser, const u_char *buf, size_t len) {
-  size_t count;
-
-  if (len == 1) {
-    if (vt_parser->prev_local_echo_char == buf[0]) {
-      vt_screen_local_echo_wait(vt_parser->screen, 0);
-      vt_parse_vt100_sequence(vt_parser);
-
-      return 1;
-    } else {
-      vt_parser->prev_local_echo_char = buf[0];
-    }
-  } else {
-    vt_parser->prev_local_echo_char = 0;
-  }
-
-  for (count = 0; count < len; count++) {
-    if (buf[count] < 0x20) {
-      vt_screen_local_echo_wait(vt_parser->screen, 0);
-      vt_parse_vt100_sequence(vt_parser);
-
-      return 1;
-    }
-  }
-
-  vt_parse_vt100_sequence(vt_parser);
-
-  if (!(vt_parser->line_style & LS_UNDERLINE)) {
-    char *new_buf;
-    size_t new_len;
-
-    if ((new_buf = alloca((new_len = 4 + len + 5)))) {
-      memcpy(new_buf, "\x1b[4m", 4);
-      memcpy(new_buf + 4, buf, len);
-      memcpy(new_buf + 4 + len, "\x1b[24m", 5);
-      buf = new_buf;
-      len = new_len;
-    }
-  }
-
-  return write_loopback(vt_parser, buf, len, 1, 1);
-}
 
 int vt_parser_change_encoding(vt_parser_t *vt_parser, vt_char_encoding_t encoding) {
   ef_parser_t *cc_parser;
@@ -7869,6 +7889,12 @@ int vt_parser_get_config(
   } else if (strcmp(key, "local_echo_wait") == 0) {
     sprintf(digit, "%d", local_echo_wait_msec);
     value = digit;
+  } else if (strcmp(key, "use_local_echo") == 0) {
+    if (vt_parser->use_local_echo) {
+      value = "true";
+    } else {
+      value = "false";
+    }
   } else if (strcmp(key, "challenge") == 0) {
     value = vt_get_proto_challenge();
     if (to_menu < 0) {
@@ -8049,6 +8075,16 @@ int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
 
     if (bl_str_to_uint(&msec, value)) {
       local_echo_wait_msec = msec;
+    }
+  } else if (strcmp(key, "use_local_echo") == 0) {
+    int flag;
+
+    if ((flag = true_or_false(value)) != -1) {
+      if ((vt_parser->use_local_echo ? 1 : 0) != flag && !(vt_parser->use_local_echo = flag)) {
+        vt_screen_logical(vt_parser->screen);
+        vt_screen_disable_local_echo(vt_parser->screen);
+        vt_screen_visual(vt_parser->screen);
+      }
     }
   } else if (strncmp(key, "send_file", 9) == 0) {
     if (strstr(value, "..")) {
@@ -8275,7 +8311,7 @@ void vt_parser_report_mouse_tracking(vt_parser_t *vt_parser, int col, int row,
     sprintf(seq, "\x1b[%d;%d;%d;%d;%d&w", ev, button_state, row, col,
             vt_screen_get_page_id(vt_parser->screen) + 1);
 
-    write_to_pty_nohook(vt_parser->pty, seq, strlen(seq));
+    vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
 
     if (vt_parser->locator_mode & LOCATOR_ONESHOT) {
       set_mouse_report(vt_parser, 0);
@@ -8358,7 +8394,7 @@ void vt_parser_report_mouse_tracking(vt_parser_t *vt_parser, int col, int row,
       }
     }
 
-    write_to_pty_nohook(vt_parser->pty, seq, seq_len);
+    vt_write_to_pty(vt_parser->pty, seq, seq_len);
 
 #ifdef __DEBUG
     bl_debug_printf(BL_DEBUG_TAG " [reported cursor pos] %d %d\n", col, row);

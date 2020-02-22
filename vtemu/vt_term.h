@@ -39,7 +39,6 @@ typedef struct vt_term {
   int8_t use_dynamic_comb;
   int8_t use_ot_layout;
 
-  int8_t use_local_echo;
   int8_t is_attached;
 #ifdef OPEN_PTY_ASYNC
   int8_t return_special_pid;

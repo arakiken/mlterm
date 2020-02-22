@@ -202,7 +202,6 @@ typedef struct vt_parser {
   vt_write_buffer_t w_buf;
 
   vt_pty_t *pty;
-  vt_pty_hook_t pty_hook;
 
   vt_screen_t *screen;
   vt_termcap_ptr_t termcap;
@@ -288,15 +287,10 @@ typedef struct vt_parser {
   int use_multi_col_char : 1;
   int logging_vt_seq : 1;
   int is_app_keypad : 1;
-  int is_app_cursor_keys : 1;
-  int is_app_escape : 1;
   int is_bracketed_paste_mode : 1;
-  int allow_deccolm : 1;
-  int keep_screen_on_deccolm : 1;
   int want_focus_event : 1;
   int im_is_active : 1;
   int sixel_scrolling : 1;
-  int cursor_to_right_of_sixel : 1;
   int yield : 1;
   int is_auto_encoding : 1;
   int use_auto_detect : 1;
@@ -307,11 +301,10 @@ typedef struct vt_parser {
   int get_title_using_hex : 1;
   int set_title_using_utf8 : 1;
   int get_title_using_utf8 : 1;
-  int auto_cr : 1;
-  int bold_affects_bg : 1;
   int use_ansi_colors : 1;
   int is_transferring_data : 2; /* 0x1=send 0x2=recv */
   int is_zmodem_ready : 1;
+  int use_local_echo : 1;
 
 #ifdef USE_VT52
   int is_vt52_mode : 1;
@@ -349,14 +342,12 @@ void vt_set_local_echo_wait(u_int msec);
 
 void vt_parser_final(void);
 
-vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap,
-                           vt_char_encoding_t encoding, int is_auto_encoding,
-                           int use_auto_detect, int logging_vt_seq,
-                           vt_unicode_policy_t policy, u_int col_size_a,
-                           int use_char_combining, int use_multi_col_char,
-                           const char *win_name, const char *icon_name,
+vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap, vt_char_encoding_t encoding,
+                           int is_auto_encoding, int use_auto_detect, int logging_vt_seq,
+                           vt_unicode_policy_t policy, u_int col_size_a, int use_char_combining,
+                           int use_multi_col_char, const char *win_name, const char *icon_name,
                            int use_ansi_colors, vt_alt_color_mode_t alt_color_mode,
-                           vt_cursor_style_t cursor_style, int ignore_broadcasted_chars);
+                           vt_cursor_style_t cursor_style, int ignore_broadcasted_chars, int use_local_echo);
 
 int vt_parser_destroy(vt_parser_t *vt_parser);
 
@@ -370,14 +361,14 @@ void vt_parser_set_config_listener(vt_parser_t *vt_parser,
 
 #define vt_parser_is_sending_data(parser) ((parser)->is_transferring_data & 0x1)
 
-#define vt_parser_is_transferring_data(parser) ((parser)->is_transferring_data)
-
 #define vt_parser_is_zmodem_ready(parser) ((parser)->is_zmodem_ready)
 
 int vt_parse_vt100_sequence(vt_parser_t *vt_parser);
 
 #define vt_parser_has_pending_sequence(vt_parser) \
   ((vt_parser)->r_buf.left > 0 || (vt_parser)->is_transferring_data)
+
+int vt_parser_write(vt_parser_t *vt_parser, u_char *buf, size_t len);
 
 int vt_parser_write_modified_key(vt_parser_t *vt_parser, int key, int modcode);
 
@@ -394,9 +385,6 @@ int vt_parser_show_message(vt_parser_t *vt_parser, char *msg);
 /* Must be called in visual context. */
 int vt_parser_preedit(vt_parser_t *vt_parser, const u_char *buf, size_t len);
 #endif
-
-/* Must be called in visual context. */
-int vt_parser_local_echo(vt_parser_t *vt_parser, const u_char *buf, size_t len);
 
 int vt_parser_change_encoding(vt_parser_t *vt_parser, vt_char_encoding_t encoding);
 
