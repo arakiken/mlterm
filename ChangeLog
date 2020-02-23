@@ -1,3 +1,9 @@
+2020-02-23  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_cursor.c: vt_cursor_left_chars_in_line_are_cleared() and
+	  vt_cursor_char_is_cleared() checks if cursor->char_index or cursor->col
+	  is less than cursor->model->num_cols.
+
 2020-02-22  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_pty.[ch]: vt_pty_set_hook() and vt_pty_hook_t are removed.
