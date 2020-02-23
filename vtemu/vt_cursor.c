@@ -42,9 +42,16 @@ static int cursor_goto(vt_cursor_t *cursor, int col_or_idx, int row, int is_by_c
   cursor->char_index = char_index;
   cursor->row = row;
   cursor->col_in_char = cols_rest;
+  /*
+   * XXX
+   * vt_convert_char_index_to_col() can return value equal to or greater than
+   * cursor->model->num_cols, because columns in a line can be over cursor->model->num_cols
+   * even if the number of characters in it is equal to or less than cursor->model->num_cols.
+   * (This might be a bug of vt_edit_{overwrite|insert}_chars() ?)
+   * (See hack in vt_cursor_char_is_cleared() and vt_cursor_left_chars_in_line_are_cleared().)
+   */
   cursor->col = vt_convert_char_index_to_col(vt_model_get_line(cursor->model, cursor->row),
-                                             cursor->char_index, 0) +
-                cursor->col_in_char;
+                                             cursor->char_index, 0) + cursor->col_in_char;
 
   return 1;
 }
@@ -140,10 +147,21 @@ vt_char_t *vt_get_cursor_char(vt_cursor_t *cursor) {
 void vt_cursor_char_is_cleared(vt_cursor_t *cursor) {
   cursor->char_index += cursor->col_in_char;
   cursor->col_in_char = 0;
+
+  if (cursor->char_index >= cursor->model->num_cols) {
+    /* XXX hack */
+    cursor->col -= (cursor->char_index - cursor->model->num_cols + 1);
+    cursor->char_index = cursor->model->num_cols - 1;
+  }
 }
 
 void vt_cursor_left_chars_in_line_are_cleared(vt_cursor_t *cursor) {
-  cursor->char_index = cursor->col;
+  if (cursor->col >= cursor->model->num_cols) {
+    /* XXX hack */
+    cursor->char_index = cursor->col = cursor->model->num_cols - 1;
+  } else {
+    cursor->char_index = cursor->col;
+  }
   cursor->col_in_char = 0;
 }
 
