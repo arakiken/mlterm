@@ -665,7 +665,7 @@ static int set_candidate(ui_im_candidate_screen_t *cand_screen, ef_parser_t *par
   u_short info;
 
   info = index >> 16;
-  index &= 0xFF;
+  index &= 0xFFFF;
 
   if (index >= cand_screen->num_candidates) {
 #ifdef DEBUG

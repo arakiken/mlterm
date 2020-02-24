@@ -794,9 +794,12 @@ static void candidate_select(void *p, int index) {
      * (e.g. uim_get_candidate(0) and uim_get_candidate(10) returns the same.)
      */
     if (uim->is_mozc && uim->im.cand_screen->index != index &&
-        uim->im.cand_screen->index / uim->cand_limit != index / uim->cand_limit &&
-        (index % uim->cand_limit) == 0) {
-      candidate_activate(p, uim->im.cand_screen->num_candidates, uim->cand_limit);
+        uim->im.cand_screen->index / uim->cand_limit != index / uim->cand_limit) {
+      int mod = index % uim->cand_limit;
+
+      if (mod == 0 || mod == uim->cand_limit - 1) {
+        candidate_activate(p, uim->im.cand_screen->num_candidates, uim->cand_limit);
+      }
     }
 
     (*uim->im.cand_screen->select)(uim->im.cand_screen, index);
