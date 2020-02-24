@@ -102,31 +102,51 @@
 #define SUPPORT_ITERM2_OSC1337
 #endif
 
-/* If u_int64_t is defined as 32 bit (unsigned long), 1 << (32 or larger) is ignored. */
-static u_int64_t true64 = 1;
-#define SHIFT_FLAG64(mode) ((sizeof(true64) < 8 && (mode) >= 32) ? 0 : (true64 << (mode)))
+/* mode must be less than 64 */
+#define MOD32(mode) ((mode) >= 32 ? (mode) - 32 : (mode))
+#define DIV32(mode) ((mode) >= 32) /* 1 or 0 */
+#define SHIFT_FLAG_0(mode) ((mode) >= 32 ? 0 : (1 << (mode)))
+#define SHIFT_FLAG_1(mode) ((mode) >= 32 ? (1 << ((mode) - 32)) : 0)
 
 /*
  * The default of DECMODE_1010 is 'set' (scroll to bottom on tty output) on xterm,
  * but is 'reset' on mlterm ("exit_backscroll_by_pty" option).
  */
-#define INITIAL_VTMODE_FLAGS \
-  SHIFT_FLAG64(DECMODE_2) | /* is_vt52_mode == 0 */ \
-  SHIFT_FLAG64(DECMODE_7) | /* auto_wrap == 1 (compatible with xterm, not with VT220) */ \
-  SHIFT_FLAG64(DECMODE_25) | /* is_visible_cursor == 1 */ \
-  SHIFT_FLAG64(DECMODE_1034) | /* mod_meta_mode = 8bit (compatible with xterm) */ \
-  SHIFT_FLAG64(VTMODE_12); /* local echo is false */
+#define INITIAL_VTMODE_FLAGS_0 \
+  SHIFT_FLAG_0(DECMODE_2) | /* is_vt52_mode == 0 */ \
+  SHIFT_FLAG_0(DECMODE_7) | /* auto_wrap == 1 (compatible with xterm, not with VT220) */ \
+  SHIFT_FLAG_0(DECMODE_25) | /* is_visible_cursor == 1 */ \
+  SHIFT_FLAG_0(DECMODE_1034) | /* mod_meta_mode = 8bit (compatible with xterm) */ \
+  SHIFT_FLAG_0(VTMODE_12); /* local echo is false */
+#define INITIAL_VTMODE_FLAGS_1 \
+  SHIFT_FLAG_1(DECMODE_2) | /* is_vt52_mode == 0 */ \
+  SHIFT_FLAG_1(DECMODE_7) | /* auto_wrap == 1 (compatible with xterm, not with VT220) */ \
+  SHIFT_FLAG_1(DECMODE_25) | /* is_visible_cursor == 1 */ \
+  SHIFT_FLAG_1(DECMODE_1034) | /* mod_meta_mode = 8bit (compatible with xterm) */ \
+  SHIFT_FLAG_1(VTMODE_12); /* local echo is false */
+
+#define SHIFT_FLAG(mode) (1 << MOD32(mode))
+#define GET_VTMODE_FLAG(vt_parser, mode) \
+  ((vt_parser)->vtmode_flags[DIV32(mode)] & SHIFT_FLAG(mode))
+/* returns 1 or 0 */
+#define GET_VTMODE_FLAG2(vt_parser, mode) \
+  (((vt_parser)->vtmode_flags[DIV32(mode)] >> MOD32(mode)) & 1)
+#define GET_SAVED_VTMODE_FLAG(vt_parser, mode) \
+  ((vt_parser)->saved_vtmode_flags[DIV32(mode)] & SHIFT_FLAG(mode))
+/* returns 1 or 0 */
+#define GET_SAVED_VTMODE_FLAG2(vt_parser, mode) \
+  (((vt_parser)->saved_vtmode_flags[DIV32(mode)] >> MOD32(mode)) & 1)
+
+#define IS_APP_CURSOR_KEYS(vt_parser) GET_VTMODE_FLAG(vt_parser, DECMODE_1)
+#define ALLOW_DECCOLM(vt_parser) GET_VTMODE_FLAG(vt_parser, DECMODE_40)
+#define KEEP_SCREEN_ON_DECCOLM(vt_parser) GET_VTMODE_FLAG(vt_parser, DECMODE_95)
+#define BOLD_AFFECTS_BG(vt_parser) GET_VTMODE_FLAG(vt_parser, DECMODE_116)
+#define IS_APP_ESCAPE(vt_parser) GET_VTMODE_FLAG(vt_parser, DECMODE_7727)
+#define CURSOR_TO_RIGHT_OF_SIXEL(vt_parser) GET_VTMODE_FLAG(vt_parser, DECMODE_8452)
+#define SEND_RECV_MODE(vt_parser) GET_VTMODE_FLAG(vt_parser, VTMODE_12)
+#define AUTO_CR(vt_parser) GET_VTMODE_FLAG(vt_parser, VTMODE_20)
 
 #define VTMODE(mode) ((mode) + 10000)
-
-#define IS_APP_CURSOR_KEYS(vt_parser) ((vt_parser)->vtmode_flags & SHIFT_FLAG64(DECMODE_1))
-#define ALLOW_DECCOLM(vt_parser) ((vt_parser)->vtmode_flags & SHIFT_FLAG64(DECMODE_40))
-#define KEEP_SCREEN_ON_DECCOLM(vt_parser) ((vt_parser)->vtmode_flags & SHIFT_FLAG64(DECMODE_95))
-#define BOLD_AFFECTS_BG(vt_parser) ((vt_parser)->vtmode_flags & SHIFT_FLAG64(DECMODE_116))
-#define IS_APP_ESCAPE(vt_parser) ((vt_parser)->vtmode_flags & SHIFT_FLAG64(DECMODE_7727))
-#define CURSOR_TO_RIGHT_OF_SIXEL(vt_parser) ((vt_parser)->vtmode_flags & SHIFT_FLAG64(DECMODE_8452))
-#define SEND_RECV_MODE(vt_parser) ((vt_parser)->vtmode_flags & SHIFT_FLAG64(VTMODE_12))
-#define AUTO_CR(vt_parser) ((vt_parser)->vtmode_flags & SHIFT_FLAG64(VTMODE_20))
 
 #define destroy_drcs(drcs) \
   vt_drcs_destroy(drcs);   \
@@ -138,6 +158,7 @@ static u_int64_t true64 = 1;
  */
 typedef enum {
   /* DECSET/DECRST */
+  /* vtmode_flags[0] */
   DECMODE_1 = 0,
   DECMODE_2,
   DECMODE_3,
@@ -170,6 +191,8 @@ typedef enum {
   DECMODE_1049,
   DECMODE_2004,
   DECMODE_7727,
+
+  /* vtmode_flags[1] */
   DECMODE_8428,
   DECMODE_8452,
   DECMODE_8800,
@@ -3636,7 +3659,7 @@ static int get_vtmode(vt_parser_t *vt_parser, int mode) {
   }
 
   if ((idx = vtmode_num_to_idx(mode)) != -1) {
-    if (vt_parser->vtmode_flags & (SHIFT_FLAG64(idx))) {
+    if (GET_VTMODE_FLAG(vt_parser, idx)) {
       return 1; /* set */
     } else {
       return 2; /* reset */
@@ -3694,9 +3717,9 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
   }
 
   if (flag) {
-    vt_parser->vtmode_flags |= (SHIFT_FLAG64(idx));
+    vt_parser->vtmode_flags[DIV32(idx)] |= (SHIFT_FLAG(idx));
   } else {
-    vt_parser->vtmode_flags &= ~(SHIFT_FLAG64(idx));
+    vt_parser->vtmode_flags[DIV32(idx)] &= ~(SHIFT_FLAG(idx));
   }
 
   switch (idx) {
@@ -3790,7 +3813,7 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
   case DECMODE_40:
     if (flag) {
       /* Compatible behavior with rlogin. (Not compatible with xterm) */
-      set_vtmode(vt_parser, 3, (vt_parser->vtmode_flags >> DECMODE_3) & 1);
+      set_vtmode(vt_parser, 3, GET_VTMODE_FLAG2(vt_parser, DECMODE_3));
     }
     break;
 
@@ -3960,7 +3983,7 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
     /* KAM */
     if (!HAS_XTERM_LISTENER(vt_parser, lock_keyboard)) {
       if (flag) {
-        vt_parser->vtmode_flags &= ~(SHIFT_FLAG64(idx)); /* unset flag */
+        vt_parser->vtmode_flags[DIV32(VTMODE_2)] &= ~(SHIFT_FLAG(VTMODE_2)); /* unset flag */
       }
     } else {
       (*vt_parser->xterm_listener->lock_keyboard)(vt_parser->xterm_listener->self, flag);
@@ -4051,7 +4074,7 @@ static void soft_reset(vt_parser_t *vt_parser) {
   set_vtmode(vt_parser, 6, 0);
 #else
   vt_screen_set_relative_origin(vt_parser->screen, 0);
-  vt_parser->vtmode_flags &= ~(SHIFT_FLAG64(DECMODE_6));
+  vt_parser->vtmode_flags[DIV32(DECMODE_6)] &= ~(SHIFT_FLAG(DECMODE_6));
 #endif
 
   /*
@@ -4669,8 +4692,7 @@ inline static int parse_vt100_escape_sequence(
             if (ps[count] < VTMODE(0)) {
               int idx;
               if ((idx = vtmode_num_to_idx(ps[count])) != -1) {
-                set_vtmode(vt_parser, ps[count],
-                           (vt_parser->saved_vtmode_flags & SHIFT_FLAG64(idx)) ? 1 : 0);
+                set_vtmode(vt_parser, ps[count], GET_SAVED_VTMODE_FLAG2(vt_parser, idx));
               }
             }
           }
@@ -4682,10 +4704,10 @@ inline static int parse_vt100_escape_sequence(
             if (ps[count] < VTMODE(0)) {
               int idx;
               if ((idx = vtmode_num_to_idx(ps[count])) != -1) {
-                if (vt_parser->vtmode_flags & SHIFT_FLAG64(idx)) {
-                  vt_parser->saved_vtmode_flags |= (SHIFT_FLAG64(idx));
+                if (GET_VTMODE_FLAG(vt_parser, idx)) {
+                  vt_parser->saved_vtmode_flags[DIV32(idx)] |= (SHIFT_FLAG(idx));
                 } else {
-                  vt_parser->saved_vtmode_flags &= ~(SHIFT_FLAG64(idx));
+                  vt_parser->saved_vtmode_flags[DIV32(idx)] &= ~(SHIFT_FLAG(idx));
                 }
               }
             }
@@ -7011,7 +7033,8 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap, vt_cha
   vt_parser->sixel_scrolling = 1;
   vt_parser->use_ansi_colors = use_ansi_colors;
   vt_parser->alt_color_mode = alt_color_mode;
-  vt_parser->saved_vtmode_flags = vt_parser->vtmode_flags = INITIAL_VTMODE_FLAGS;
+  vt_parser->saved_vtmode_flags[0] = vt_parser->vtmode_flags[0] = INITIAL_VTMODE_FLAGS_0;
+  vt_parser->saved_vtmode_flags[1] = vt_parser->vtmode_flags[1] = INITIAL_VTMODE_FLAGS_1;
   vt_parser->ignore_broadcasted_chars = ignore_broadcasted_chars;
   vt_parser->use_local_echo = use_local_echo;
 

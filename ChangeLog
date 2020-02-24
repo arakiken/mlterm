@@ -1,5 +1,10 @@
 2020-02-24  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_parser.[ch]: The type of vtmode_flags and saved_vtmode_flags is
+	  changed from u_int64_t to u_int32_t[2].
+
+2020-02-24  Araki Ken  <arakiken@users.sf.net>
+
 	* ui_im_candidate_screen.c:
 	  index &= 0xFF -> index &= 0xFFFF in set_candidate()
 
