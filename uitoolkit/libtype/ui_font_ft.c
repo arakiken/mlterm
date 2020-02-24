@@ -742,6 +742,7 @@ static int cairo_compl_font_open(ui_font_t *font, int num_compl_fonts, FcPattern
       }
 
       ret = FcPatternGetCharSet(match, FC_CHARSET, 0, &charset);
+      /* If ret != FcResultMatch, charset is NULL and register it to the cache. */
       if (!(charset = add_charset_to_cache(val.u.s, charset))) {
         break;
       }
