@@ -57,6 +57,7 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
   gc = DefaultGC(display, screen);
 
   if (!(font = XLoadQueryFont(display, "-*-r-normal-*-*-*-*-*-c-*-iso8859-1"))) {
+    bl_msg_printf("No X11 font for connection dialog.\n");
     XCloseDisplay(display);
 
     return 0;
