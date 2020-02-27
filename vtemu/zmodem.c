@@ -51,7 +51,6 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <unistd.h>
-#include <libgen.h>
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
@@ -62,6 +61,7 @@
 
 #include <pobl/bl_def.h> /* USE_WIN32API */
 #include <pobl/bl_types.h> /* u_int32_t */
+#include <pobl/bl_path.h> /* basename */
 
 #ifndef uint32_t
 #define uint32_t u_int32_t

@@ -1965,7 +1965,6 @@ size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parse
      * 0x1080-    : Unicode (Use after decrement 0x1000) (See kcode_to_ksym() in ui_display_linux.c)
      */
     if (*keysym >= 0x1080) {
-      *keysym -= 0x1000;
       ch -= 0x1000;
 
       goto ucs;

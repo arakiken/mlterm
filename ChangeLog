@@ -1,3 +1,15 @@
+2020-02-27  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_display_linux.c: ioctl(KDGKBDIACRUC) or ioctl(KDGKBDIACR) is used
+	  for get_accented_char().
+
+	* fb/ui_window.c: '*keysym -= 0x1000' for unicode characters are removed.
+
+	* aclocal.m4, configure: 'rm -f' check is removed for old machines
+	  such as FreeBSD 2.x or before.
+
+	* zmodem.c: <>pobl/bl_path.h> is included instead of <libgen.h>
+
 2020-02-24  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.[ch]: The type of vtmode_flags and saved_vtmode_flags is

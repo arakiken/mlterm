@@ -10329,7 +10329,7 @@ AC_CONFIG_COMMANDS_PRE(dnl
 # To make any issue more visible, cause the running configure to be aborted
 # by default if the 'rm' program in use doesn't match our expectations; the
 # user can still override this though.
-if rm -f && rm -fr && rm -rf; then : OK; else
+if true; then : OK; else
   cat >&2 <<'END'
 Oops!
 
