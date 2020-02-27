@@ -15,6 +15,12 @@
 
 static int console_id = -1;
 
+#ifdef KDGKBDIACRUC
+static struct kbdiacrsuc diacrs_uc;
+#else
+static struct kbdiacrs diacrs;
+#endif
+
 /* --- static functions --- */
 
 static int get_key_state(void) {
@@ -34,70 +40,63 @@ static int get_key_state(void) {
   }
 }
 
-static int get_accented_char(int kb_value, int dead /* 0: grave, 1: acute, 3: tilda */) {
-  static struct {
-    u_int8_t base;
-    u_int8_t grave;
-    u_int8_t acute;
-    u_int8_t tilda;
-  } accent_db1[] = {
-    { 'a', 0xc0, 0xc1, 0xc3 },
-    { 'e', 0xc8, 0xc9, 0x0 },
-    { 'i', 0xcc, 0xcd, 0x0 },
-    { 'o', 0xd2, 0xd3, 0xd5 },
-    { 'u', 0xd9, 0xda, 0x0 },
-  };
+static int get_accented_char(int kb_value, int dead) {
+  u_char table[] = { '`', '\'', '^', '~', '\"', ',' };
+  u_char diacr = table[dead];
 
-  static struct {
-    u_int8_t base;
-    u_int16_t acute;
-  } accent_db2[] = {
-    { 'c', 0x106 },
-    { 'l', 0x139 },
-    { 'r', 0x154 },
-    { 's', 0x15a },
-    { 'z', 0x179 },
-  };
+  if (dead <= 5) {
+    u_int count;
 
-  size_t count;
-
-  for (count = 0; count < sizeof(accent_db1) / sizeof(accent_db1[0]); count++) {
-    if (accent_db1[count].base == (kb_value | 0x20)) {
-      if (dead == 0) {
-        return accent_db1[count].grave + (kb_value & 0x20);
-      } else if (dead == 1) {
-        return accent_db1[count].acute + (kb_value & 0x20);
-      } else if (dead == 3 && accent_db1[count].tilda > 0) {
-        return accent_db1[count].tilda + (kb_value & 0x20);
-      } else {
-        return kb_value;
+#ifdef KDGKBDIACRUC
+    for (count = 0; count < diacrs_uc.kb_cnt; count++) {
+      if (diacrs_uc.kbdiacruc[count].diacr == diacr &&
+          diacrs_uc.kbdiacruc[count].base == kb_value) {
+        return diacrs_uc.kbdiacruc[count].result;
       }
     }
-  }
-
-  for (count = 0; count < sizeof(accent_db2) / sizeof(accent_db2[0]); count++) {
-    if (accent_db2[count].base == (kb_value | 0x20)) {
-      if (dead == 1) {
-        return accent_db2[count].acute + ((kb_value & 0x20) == 0x20 ? 1 : 0);
-      } else {
-        return kb_value;
+#else
+    for (count = 0; count < diacrs.kb_cnt; count++) {
+      if (diacrs.kbdiacr[count].diacr == diacr &&
+          diacrs.kbdiacr[count].base == kb_value) {
+        return diacrs.kbdiacr[count].result;
       }
     }
-  }
-
-  if ((kb_value | 0x20) == 'y') {
-    if (dead == 1) {
-      return 0xdd + (kb_value & 0x20);
-    }
-  } else if ((kb_value | 0x20) == 'n') {
-    if (dead == 1) {
-      return 0x143 + ((kb_value & 0x20) == 0x20 ? 1 : 0);
-    } else if (dead == 3) {
-      return 0xd1 + (kb_value & 0x20);
-    }
+#endif
   }
 
   return kb_value;
+}
+
+static void load_diacr(void) {
+#ifdef KDGKBDIACRUC
+  if (diacrs_uc.kb_cnt == 0) {
+    ioctl(STDIN_FILENO, KDGKBDIACRUC, &diacrs_uc);
+#if 0
+    {
+      u_int count;
+      for (count = 0; count < diacrs_uc.kb_cnt; count++) {
+        bl_debug_printf("UC %x %x %x\n", diacrs_uc.kbdiacruc[count].diacr,
+                        diacrs_uc.kbdiacruc[count].base,
+                        diacrs_uc.kbdiacruc[count].result);
+      }
+    }
+#endif
+  }
+#else
+  if (diacrs.kb_cnt == 0) {
+    ioctl(STDIN_FILENO, KDGKBDIACR, &diacrs);
+#if 0
+    {
+      u_int count;
+      for (count = 0; count < diacrs.kb_cnt; count++) {
+        bl_debug_printf("%x %x %x\n", diacrs.kbdiacr[count].diacr,
+                        diacrs.kbdiacr[count].base,
+                        diacrs.kbdiacr[count].result);
+      }
+    }
+#endif
+  }
+#endif
 }
 
 static int kcode_to_ksym(int kcode, int *state) {
@@ -112,20 +111,16 @@ static int kcode_to_ksym(int kcode, int *state) {
 
     ent.kb_table = 0;
     if ((*state) & ShiftMask) {
-      ent.kb_table |= (1 << KG_SHIFT);
+      ent.kb_table |= K_SHIFTTAB;
     }
-#ifdef READ_CTRL_KEYMAP
-    if ((*state) & ControlMask) {
-      ent.kb_table |= (1 << KG_CTRL);
-    }
-#endif
     if ((*state) & Mod2Mask) {
-      ent.kb_table |= (1 << KG_ALTGR);
+      ent.kb_table |= K_ALTTAB;
     }
 
     ent.kb_index = kcode;
 
-    if (ioctl(STDIN_FILENO, KDGKBENT, &ent) == 0 && ent.kb_value != K_HOLE && ent.kb_value != K_NOSUCHMAP) {
+    if (ioctl(STDIN_FILENO, KDGKBENT, &ent) == 0 && ent.kb_value != K_HOLE &&
+        ent.kb_value != K_NOSUCHMAP) {
       static int dead = -1;
 
 #ifdef __DEBUG
@@ -137,6 +132,7 @@ static int kcode_to_ksym(int kcode, int *state) {
         dead = -1;
       } else {
         if (KTYP(ent.kb_value) == KT_DEAD || KTYP(ent.kb_value) == KT_DEAD2) {
+          load_diacr();
           dead = ent.kb_value & 0xff;
 
           return 0;
@@ -159,7 +155,7 @@ static int kcode_to_ksym(int kcode, int *state) {
 #endif
 
 #if 1
-      if (ent.kb_table & (1 << KG_ALTGR)) {
+      if (ent.kb_table & K_ALTTAB) {
         *state &= ~ModMask;
       }
 #endif
@@ -430,6 +426,13 @@ static int open_display(u_int depth) {
   } else {
     bl_file_set_cloexec(_display.fd);
   }
+
+#if 0
+  {
+    u_long val = K_UNICODE;
+    ioctl(STDIN_FILENO, KDSKBMODE, &val);
+  }
+#endif
 
   _disp.display = &_display;
 
