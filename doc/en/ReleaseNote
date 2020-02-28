@@ -3,6 +3,7 @@
 * Support SCP by Shift+DnD on HaikuOS.
 * Support xdg-shell on wayland.
 * Support DEC Technical character set.
+* Support input of unicode characters on mlterm-fb/Linux.
 * Mlconfig configures files in ~/.mlterm directly if it starts without options
   or with --file option.
 * Change DA1 response.
@@ -18,6 +19,7 @@
   Fix segfault when mlterm-sdl2 starts with -im=uim option.
   Fix a bug which makes mlterm-sdl2 on win32 stop starting mlconfig.
   Fix compiling error on HaikuOS + gcc-x86.
+  Fix http://twitter.com/hamano/status/1177087752208183296
 
 ver 3.8.9
 * Support zmodem. (See doc/en/README.tarnsfer)

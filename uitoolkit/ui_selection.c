@@ -182,8 +182,6 @@ static int update_sel_region(ui_selection_t *sel, int col, int row) {
                                             (sel->beg_row = sel->lock_row), rs_end_col, rs_end_row,
                                             0);
       }
-    } else {
-      do_restore = 0;
     }
   }
 
