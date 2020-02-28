@@ -50,6 +50,12 @@ Framebuffer support
     (If the string in /sys/class/input/input<num>/name contains "key",
     /dev/input/event<num> is regarded as the keyboard.
      You can specify <num> by "KBD_INPUT_NUM" environmental variable.)
+  o If you want to change keyboard layout, execute "loadkeys xxx" command.
+    (e.g. loadkeys jp106).
+  o You can input accented characters with the use of 'dead' keys, but
+    mlterm-fb reads kernel accent table in startup once.
+    If you execute loadkeys after mlterm-fb has started, mlterm-fb doesn't
+    read it again.
   o If mlterm can't open /dev/input/event<num> of the mouse, mouse operation is
     disabled.
     (If the string in /sys/class/input/input<num>/name contains "mouse",
