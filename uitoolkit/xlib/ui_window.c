@@ -768,7 +768,7 @@ static void ui_window_xft_draw_string32(ui_window_t *win, ui_font_t *font, ui_co
     return;
   }
 
-  return (*func)(win, font, fg_color, x, y, str, len);
+  (*func)(win, font, fg_color, x, y, str, len);
 }
 
 static void xft_set_clip(ui_window_t *win, int x, int y, u_int width, u_int height) {

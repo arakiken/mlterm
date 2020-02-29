@@ -840,7 +840,7 @@ void vt_term_enter_backscroll_mode(vt_term_t *term) {
     return;
   }
 
-  return vt_enter_backscroll_mode(term->screen);
+  vt_enter_backscroll_mode(term->screen);
 }
 
 void vt_term_set_icon_path(vt_term_t *term, const char *path) {

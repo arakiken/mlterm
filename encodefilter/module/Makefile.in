@@ -21,7 +21,7 @@ KOKR_TABLE_OBJ = ef_ucs4_uhc.o ef_uhc_johab.o
 ZH_TABLE_OBJ = ef_ucs4_gbk.o ef_ucs4_big5.o ef_ucs4_cns11643.o
 BYTE_TABLE_OBJ = ef_ucs4_cp125x.o ef_ucs4_koi8.o ef_ucs4_georgian_ps.o \
 		ef_ucs4_iso8859.o ef_ucs4_tcvn5712_1.o ef_ucs4_viscii.o ef_ucs4_iscii.o
-		
+
 OBJ = $(JAJP_TABLE_OBJ) $(KOKR_TABLE_OBJ) $(ZH_TABLE_OBJ) $(BYTE_TABLE_OBJ)
 
 TARGET = libmef_jajp.la libmef_kokr.la libmef_zh.la libmef_8bits.la

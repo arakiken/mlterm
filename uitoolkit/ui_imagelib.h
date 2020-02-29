@@ -26,7 +26,7 @@ Pixmap ui_imagelib_pixbuf_to_pixmap(ui_window_t *win, ui_picture_modifier_t *pic
 void ui_destroy_image(Display *display, Pixmap pixmap);
 
 #ifdef USE_XLIB
-#define ui_destroy_mask(display, mask) ((mask) ? ui_destroy_image(display, mask) : 0)
+#define ui_destroy_mask(display, mask) if (mask) { ui_destroy_image(display, mask); }
 #else
 void ui_destroy_mask(Display *display, PixmapMask mask);
 #endif

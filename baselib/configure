@@ -12490,6 +12490,21 @@ rm -rf conftest*
 fi
 
 
+# for OpenServer 6.0.0
+ac_fn_c_check_header_mongrel "$LINENO" "sys/bitypes.h" "ac_cv_header_sys_bitypes_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_bitypes_h" = xyes; then :
+
+ac_includes_default="\
+$ac_includes_default
+#include <sys/bitypes.h>"
+HAVE_SYS_BITYPES_H=1
+$as_echo "#define HAVE_SYS_BITYPES_H 1" >>confdefs.h
+
+
+fi
+
+
+
 ac_fn_c_check_type "$LINENO" "u_char" "ac_cv_type_u_char" "$ac_includes_default"
 if test "x$ac_cv_type_u_char" = xyes; then :
 

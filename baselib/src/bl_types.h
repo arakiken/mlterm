@@ -7,6 +7,9 @@
 #include "bl_config.h"
 
 #include <sys/types.h>
+#ifdef HAVE_SYS_BITYPES_H
+#include <sys/bitypes.h> /* for OpenServer 6.0.0 */
+#endif
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
