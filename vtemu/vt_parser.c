@@ -3196,9 +3196,8 @@ static void define_macro(vt_parser_t *vt_parser, u_char *param, u_char *data) {
       return;
     }
 
-    memset(p + vt_parser->num_macros * sizeof(*vt_parser->macros), 0,
+    memset((vt_parser->macros = p) + vt_parser->num_macros, 0,
            (ps[0] + 1 - vt_parser->num_macros) * sizeof(*vt_parser->macros));
-    vt_parser->macros = p;
     vt_parser->num_macros = ps[0] + 1;
   } else {
     destroy_macro(vt_parser, ps[0]);

@@ -18,6 +18,10 @@
 #define __DEBUG
 #endif
 
+#ifndef CONCATABLE_FUNCTION
+#define __FUNCTION__ ""
+#endif
+
 #ifndef HAVE_ALLOCA
 
 #define ALLOCA_PAGE_UNIT_SIZE 4096

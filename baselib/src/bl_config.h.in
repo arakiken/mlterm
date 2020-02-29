@@ -23,6 +23,8 @@
 
 #undef HAVE_STDINT_H
 
+#undef HAVE_SYS_BITYPES_H
+
 /* AC_C_BIGENDIAN */
 #undef WORDS_BIGENDIAN
 

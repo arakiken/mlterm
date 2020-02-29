@@ -59,6 +59,16 @@ AC_C_CONST
 AC_C_BIGENDIAN
 AC_SYS_LARGEFILE
 
+# for OpenServer 6.0.0
+AC_CHECK_HEADER(sys/bitypes.h,
+[
+ac_includes_default="\
+$ac_includes_default
+#include <sys/bitypes.h>"
+HAVE_SYS_BITYPES_H=1
+AC_DEFINE(HAVE_SYS_BITYPES_H)
+])
+
 AC_CHECK_TYPE(u_char,unsigned char)
 AC_CHECK_TYPE(u_short,unsigned short)
 AC_CHECK_TYPE(u_int,unsigned int)

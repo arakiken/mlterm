@@ -1,3 +1,24 @@
+2020-02-29  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c: (void*) + num * sizeof(vt_macro_t) -> (vt_macro_t*) + num
+
+	* xlib/ui_window.c, vt_term.c:
+	  ui_window_xft_draw_string32() and vt_term_enter_backscroll_mode()
+	  returns nothing.
+
+	* ui_imagelib.h: Ternary operator is removed from ui_destroy_mask() macro
+	  because it causes compiling error on OpenServer 6.0.0.
+
+	* encodefilter/module/Makefile.in, main/Makefile.in, uitoolkit/Makefile.in:
+	  Tab and backslash characters which can stops 'make' command unexpectedly
+	  are removed.
+
+	* bl_mem.c: If CONCATABLE_FUNCTION is not defined, #define __FUNCTION__ "".
+
+	* baselib/configure.in, bl_config.h.in, bl_types.h:
+	  Not only <sys/types.h> but also <sys/bitypes.h> is checked.
+	  (for OpenServer 6.0.0)
+
 2020-02-28  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.fb, doc/ja/README.fb: Updated.
