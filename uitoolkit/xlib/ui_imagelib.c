@@ -49,6 +49,7 @@ static void destroy_image(XImage *image) {
 }
 #endif
 
+/* Floyd Steinberg dithering */
 #if 1
 #define USE_FS
 #endif
@@ -338,6 +339,79 @@ static int modify_pixmap(ui_display_t *disp, Pixmap src_pixmap,
 #include "../../common/c_sixel.c"
 #endif
 
+static void update_mask(ui_display_t *disp, Pixmap *mask, GC *gc, u_int32_t *data,
+                        int x, int y, u_int width, u_int height) {
+#ifdef GDK_PIXBUF_VERSION
+  if (mask && ((u_char *)data)[3] <= 0x7f)
+#else
+  if (mask && data[0] <= 0x7fffffff)
+#endif
+  {
+    if (*mask == None) {
+      if ((*mask = XCreatePixmap(disp->display, ui_display_get_group_leader(disp),
+                                 width, height, 1))) {
+        XGCValues gcv;
+
+        *gc = XCreateGC(disp->display, *mask, 0, &gcv);
+        XSetForeground(disp->display, *gc, 1);
+        XFillRectangle(disp->display, *mask, *gc, 0, 0, width, height);
+        XSetForeground(disp->display, *gc, 0);
+      } else {
+        return;
+      }
+    }
+
+    XDrawPoint(disp->display, *mask, *gc, x, y);
+  }
+}
+
+static void update_diff_table_first(char *diff_cur, char *diff_next,
+                                    int diff_r, int diff_g, int diff_b) {
+  diff_cur[3 * 1 + 0] += diff_r / 2;
+  diff_cur[3 * 1 + 1] += diff_g / 2;
+  diff_cur[3 * 1 + 2] += diff_b / 2;
+
+  /* initialize next line */
+  diff_next[3 * 0 + 0] = diff_r / 4;
+  diff_next[3 * 0 + 1] = diff_g / 4;
+  diff_next[3 * 0 + 2] = diff_b / 4;
+
+  diff_next[3 * 1 + 0] = diff_r / 4;
+  diff_next[3 * 1 + 1] = diff_g / 4;
+  diff_next[3 * 1 + 2] = diff_b / 4;
+}
+
+static void update_diff_table_n(char *diff_cur, char *diff_next, int x,
+                                int diff_r, int diff_g, int diff_b) {
+  diff_cur[3 * (x + 1) + 0] += diff_r / 2;
+  diff_cur[3 * (x + 1) + 1] += diff_g / 2;
+  diff_cur[3 * (x + 1) + 2] += diff_b / 2;
+
+  diff_next[3 * (x - 1) + 0] += diff_r / 8;
+  diff_next[3 * (x - 1) + 1] += diff_g / 8;
+  diff_next[3 * (x - 1) + 2] += diff_b / 8;
+
+  diff_next[3 * (x + 0) + 0] += diff_r / 8;
+  diff_next[3 * (x + 0) + 1] += diff_g / 8;
+  diff_next[3 * (x + 0) + 2] += diff_b / 8;
+
+  /* initialize next line */
+  diff_next[3 * (x + 1) + 0] = diff_r / 4;
+  diff_next[3 * (x + 1) + 1] = diff_g / 4;
+  diff_next[3 * (x + 1) + 2] = diff_b / 4;
+}
+
+static void update_diff_table_last(char *diff_next, int x,
+                                   int diff_r, int diff_g, int diff_b) {
+  diff_next[3 * (x - 1) + 0] += diff_r / 4;
+  diff_next[3 * (x - 1) + 1] += diff_g / 4;
+  diff_next[3 * (x - 1) + 2] += diff_b / 4;
+
+  diff_next[3 * (x + 0) + 0] += diff_r / 4;
+  diff_next[3 * (x + 0) + 1] += diff_g / 4;
+  diff_next[3 * (x + 0) + 2] += diff_b / 4;
+}
+
 static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
                       Pixmap *mask, /* Can be NULL */
                       u_int *width, /* Can be NULL */
@@ -346,72 +420,152 @@ static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
   XImage *image;
   u_int32_t *data;
   u_int32_t *in;
-  u_char *out;
   u_int w;
   u_int h;
   u_int x;
   u_int y;
-  XVisualInfo *vinfo;
-  rgb_info_t rgbinfo;
   int bytes_per_pixel;
   GC mask_gc;
-  XGCValues gcv;
+  int num_cells;
 
-  if (disp->depth < 16 || !(data = in = out = load_sixel_from_file(path, &w, &h))) {
+  if (disp->depth < 8 || !(data = in = load_sixel_from_file(path, &w, &h))) {
     return 0;
-  }
-
-  vinfo = ui_display_get_visual_info(disp);
-  rgb_info_init(vinfo, &rgbinfo);
-  XFree(vinfo);
-
-  if (disp->depth == 16) {
-    bytes_per_pixel = 2;
-  } else {
-    bytes_per_pixel = 4;
   }
 
   if (mask) {
     *mask = None;
   }
 
-  for (y = 0; y < h; y++) {
-    for (x = 0; x < w; x++) {
-      u_int32_t pixel;
+  if (disp->depth == 8) {
+    XColor *color_list;
+    int closest;
+    u_char *out8;
+#ifdef USE_FS
+    char *diff_next;
+    char *diff_cur;
+    char *temp;
+#endif /* USE_FS */
+#ifdef GDK_PIXBUF_VERSION
+    u_char *pixel;
+#define get_rgb(in) pixel = (u_char*)((in)++);
+#else
+    u_char pixel[3];
+#define get_rgb(in) \
+    pixel[0] = ((in)[0] >> 16) & 0xff; \
+    pixel[1] = ((in)[0] >> 8) & 0xff; \
+    pixel[2] = (in)[0] & 0xff; \
+    in++;
+#endif
+
+    if ((num_cells = fetch_colormap(disp, &color_list)) == 0) {
+      free(data);
+
+      return 0;
+    }
+
+    bytes_per_pixel = 1;
+    out8 = data;
+
+#ifdef USE_FS
+    if ((diff_cur = calloc(1, w * 3)) == NULL || (diff_next = calloc(1, w * 3)) == NULL) {
+      free(data);
+      free(diff_cur);
+      free(color_list);
+
+      return 0;
+    }
+#endif /* USE_FS */
+
+    for (y = 0; y < h; y++) {
+      update_mask(disp, mask, &mask_gc, in, 0, y, w, h);
+      get_rgb(in);
+#ifdef USE_FS
+      closest = closest_color_index(color_list, num_cells, pixel[0] - diff_cur[0],
+                                    pixel[1] - diff_cur[1], pixel[2] - diff_cur[2]);
+      update_diff_table_first(diff_cur, diff_next,
+                              (color_list[closest].red >> 8) - pixel[0],
+                              (color_list[closest].green >> 8) - pixel[1],
+                              (color_list[closest].blue >> 8) - pixel[2]);
+#else
+      closest = closest_color_index(color_list, num_cells, pixel[0], pixel[1], pixel[2]);
+#endif
+      *(out8++) = closest;
+
+      for (x = 1; x < w - 1; x++) {
+        update_mask(disp, mask, &mask_gc, in, x, y, w, h);
+        get_rgb(in);
+#ifdef USE_FS
+        closest = closest_color_index(color_list, num_cells, pixel[0] - diff_cur[3 * x + 0],
+                                      pixel[1] - diff_cur[3 * x + 1],
+                                      pixel[2] - diff_cur[3 * x + 2]);
+        update_diff_table_n(diff_cur, diff_next, x,
+                            (color_list[closest].red >> 8) - pixel[0],
+                            (color_list[closest].green >> 8) - pixel[1],
+                            (color_list[closest].blue >> 8) - pixel[2]);
+#else
+        closest = closest_color_index(color_list, num_cells, pixel[0], pixel[1], pixel[2]);
+#endif /* USE_FS */
+        *(out8++) = closest;
+      }
+
+      update_mask(disp, mask, &mask_gc, in, x, y, w, h);
+      get_rgb(in);
+#ifdef USE_FS
+      closest = closest_color_index(color_list, num_cells, pixel[0] - diff_cur[3 * x + 0],
+                                    pixel[1] - diff_cur[3 * x + 1], pixel[2] - diff_cur[3 * x + 2]);
+      update_diff_table_last(diff_next, x,
+                             (color_list[closest].red >> 8) - pixel[0],
+                             (color_list[closest].green >> 8) - pixel[1],
+                             (color_list[closest].blue >> 8) - pixel[2]);
+
+      temp = diff_cur;
+      diff_cur = diff_next;
+      diff_next = temp;
+#else
+      closest = closest_color_index(color_list, num_cells, pixel[0], pixel[1], pixel[2]);
+#endif /* USE_FS */
+      *(out8++) = closest;
+    }
+
+    free(color_list);
+  } else {
+    XVisualInfo *vinfo;
+    rgb_info_t rgbinfo;
+    u_int16_t *out16;
+    u_int32_t *out32;
+
+    if (disp->depth == 16) {
+      bytes_per_pixel = 2;
+      out16 = data;
+    } else /* if (disp->depth == 32 || disp->depth == 24) */ {
+      bytes_per_pixel = 4;
+      out32 = data;
+    }
+
+    vinfo = ui_display_get_visual_info(disp);
+    rgb_info_init(vinfo, &rgbinfo);
+    XFree(vinfo);
+
+    for (y = 0; y < h; y++) {
+      for (x = 0; x < w; x++) {
+        u_int32_t pixel;
+
+        update_mask(disp, mask, &mask_gc, in, x, y, w, h);
 
 #ifdef GDK_PIXBUF_VERSION
-      if (mask && ((u_char *)in)[3] <= 0x7f)
+        pixel = RGB_TO_PIXEL(((u_char *)in)[0], ((u_char *)in)[1], ((u_char *)in)[2], rgbinfo);
 #else
-      if (mask && in[0] <= 0x7fffffff)
+        pixel = RGB_TO_PIXEL((in[0] >> 16) & 0xff, (in[0] >> 8) & 0xff, in[0] & 0xff, rgbinfo);
 #endif
-      {
-        if (*mask == None) {
-          *mask = XCreatePixmap(disp->display, ui_display_get_group_leader(disp), w, h, 1);
-          mask_gc = XCreateGC(disp->display, *mask, 0, &gcv);
 
-          XSetForeground(disp->display, mask_gc, 1);
-          XFillRectangle(disp->display, *mask, mask_gc, 0, 0, w, h);
-          XSetForeground(disp->display, mask_gc, 0);
+        if (bytes_per_pixel == 2) {
+          *(out16++) = pixel;
+        } else /* if (bytes_per_pixel == 4) */ {
+          *(out32++) = (pixel | (in[0] & 0xff000000));
         }
 
-        XDrawPoint(disp->display, *mask, mask_gc, x, y);
+        in++;
       }
-
-#ifdef GDK_PIXBUF_VERSION
-      pixel = RGB_TO_PIXEL(((u_char *)in)[0], ((u_char *)in)[1], ((u_char *)in)[2], rgbinfo);
-#else
-      pixel = RGB_TO_PIXEL((in[0] >> 16) & 0xff, (in[0] >> 8) & 0xff, in[0] & 0xff, rgbinfo);
-#endif
-
-      if (bytes_per_pixel == 2) {
-        *((u_int16_t *)out) = pixel;
-      } else /* if( bytes_per_pixel == 4) */
-      {
-        *((u_int32_t *)out) = (pixel | (in[0] & 0xff000000));
-      }
-
-      in++;
-      out += bytes_per_pixel;
     }
   }
 
@@ -660,7 +814,6 @@ static int pixbuf_to_pixmap_pseudocolor(ui_display_t *disp, GdkPixbuf *pixbuf, P
   u_char *pixel;
   XColor *color_list;
   int closest;
-  int diff_r, diff_g, diff_b;
   int ret_val = 0;
 
   if ((num_cells = fetch_colormap(disp, &color_list)) == 0) {
@@ -689,22 +842,10 @@ static int pixbuf_to_pixmap_pseudocolor(ui_display_t *disp, GdkPixbuf *pixbuf, P
 #ifdef USE_FS
     closest = closest_color_index(color_list, num_cells, pixel[0] - diff_cur[0],
                                   pixel[1] - diff_cur[1], pixel[2] - diff_cur[2]);
-    diff_r = (color_list[closest].red >> 8) - pixel[0];
-    diff_g = (color_list[closest].green >> 8) - pixel[1];
-    diff_b = (color_list[closest].blue >> 8) - pixel[2];
-
-    diff_cur[3 * 1 + 0] += diff_r / 2;
-    diff_cur[3 * 1 + 1] += diff_g / 2;
-    diff_cur[3 * 1 + 2] += diff_b / 2;
-
-    /* initialize next line */
-    diff_next[3 * 0 + 0] = diff_r / 4;
-    diff_next[3 * 0 + 1] = diff_g / 4;
-    diff_next[3 * 0 + 2] = diff_b / 4;
-
-    diff_next[3 * 1 + 0] = diff_r / 4;
-    diff_next[3 * 1 + 1] = diff_g / 4;
-    diff_next[3 * 1 + 2] = diff_b / 4;
+    update_diff_table_first(diff_cur, diff_next,
+                            (color_list[closest].red >> 8) - pixel[0],
+                            (color_list[closest].green >> 8) - pixel[1],
+                            (color_list[closest].blue >> 8) - pixel[2]);
 #else
     closest = closest_color_index(color_list, num_cells, pixel[0], pixel[1], pixel[2]);
 #endif /* USE_FS */
@@ -713,29 +854,14 @@ static int pixbuf_to_pixmap_pseudocolor(ui_display_t *disp, GdkPixbuf *pixbuf, P
     XDrawPoint(disp->display, pixmap, disp->gc->gc, 0, y);
     pixel += bytes_per_pixel;
 
-    for (x = 1; x < width - 2; x++) {
+    for (x = 1; x < width - 1; x++) {
 #ifdef USE_FS
       closest = closest_color_index(color_list, num_cells, pixel[0] - diff_cur[3 * x + 0],
                                     pixel[1] - diff_cur[3 * x + 1], pixel[2] - diff_cur[3 * x + 2]);
-      diff_r = (color_list[closest].red >> 8) - pixel[0];
-      diff_g = (color_list[closest].green >> 8) - pixel[1];
-      diff_b = (color_list[closest].blue >> 8) - pixel[2];
-
-      diff_cur[3 * (x + 1) + 0] += diff_r / 2;
-      diff_cur[3 * (x + 1) + 1] += diff_g / 2;
-      diff_cur[3 * (x + 1) + 2] += diff_b / 2;
-
-      diff_next[3 * (x - 1) + 0] += diff_r / 8;
-      diff_next[3 * (x - 1) + 1] += diff_g / 8;
-      diff_next[3 * (x - 1) + 2] += diff_b / 8;
-
-      diff_next[3 * (x + 0) + 0] += diff_r / 8;
-      diff_next[3 * (x + 0) + 1] += diff_g / 8;
-      diff_next[3 * (x + 0) + 2] += diff_b / 8;
-      /* initialize next line */
-      diff_next[3 * (x + 1) + 0] = diff_r / 4;
-      diff_next[3 * (x + 1) + 1] = diff_g / 4;
-      diff_next[3 * (x + 1) + 2] = diff_b / 4;
+      update_diff_table_n(diff_cur, diff_next, x,
+                          (color_list[closest].red >> 8) - pixel[0],
+                          (color_list[closest].green >> 8) - pixel[1],
+                          (color_list[closest].blue >> 8) - pixel[2]);
 #else
       closest = closest_color_index(color_list, num_cells, pixel[0], pixel[1], pixel[2]);
 #endif /* USE_FS */
@@ -745,20 +871,14 @@ static int pixbuf_to_pixmap_pseudocolor(ui_display_t *disp, GdkPixbuf *pixbuf, P
 
       pixel += bytes_per_pixel;
     }
+
 #ifdef USE_FS
     closest = closest_color_index(color_list, num_cells, pixel[0] - diff_cur[3 * x + 0],
                                   pixel[1] - diff_cur[3 * x + 1], pixel[2] - diff_cur[3 * x + 2]);
-    diff_r = (color_list[closest].red >> 8) - pixel[0];
-    diff_g = (color_list[closest].green >> 8) - pixel[1];
-    diff_b = (color_list[closest].blue >> 8) - pixel[2];
-
-    diff_next[3 * (x - 1) + 0] += diff_r / 4;
-    diff_next[3 * (x - 1) + 1] += diff_g / 4;
-    diff_next[3 * (x - 1) + 2] += diff_b / 4;
-
-    diff_next[3 * (x + 0) + 0] += diff_r / 4;
-    diff_next[3 * (x + 0) + 1] += diff_g / 4;
-    diff_next[3 * (x + 0) + 2] += diff_b / 4;
+    update_diff_table_last(diff_next, x,
+                           (color_list[closest].red >> 8) - pixel[0],
+                           (color_list[closest].green >> 8) - pixel[1],
+                           (color_list[closest].blue >> 8) - pixel[2]);
 
     temp = diff_cur;
     diff_cur = diff_next;

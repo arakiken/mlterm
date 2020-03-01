@@ -26,6 +26,7 @@
 #include <fcntl.h> /* O_BINARY */
 #endif
 
+/* Floyd Steinberg dithering */
 #define USE_FS 1
 
 #if (GDK_PIXBUF_MAJOR < 2)
@@ -201,7 +202,7 @@ static int pixbuf_to_pixmap_pseudocolor(Display *display, Visual *visual, Colorm
     XDrawPoint(display, pixmap, gc, 0, y);
     pixel += bytes_per_pixel;
 
-    for (x = 1; x < width - 2; x++) {
+    for (x = 1; x < width - 1; x++) {
 #ifdef USE_FS
       closest = closest_color_index(color_list, num_cells, pixel[0] - diff_cur[3 * x + 0],
                                     pixel[1] - diff_cur[3 * x + 1], pixel[2] - diff_cur[3 * x + 2]);
@@ -220,6 +221,7 @@ static int pixbuf_to_pixmap_pseudocolor(Display *display, Visual *visual, Colorm
       diff_next[3 * (x + 0) + 0] += diff_r / 8;
       diff_next[3 * (x + 0) + 1] += diff_g / 8;
       diff_next[3 * (x + 0) + 2] += diff_b / 8;
+
       /* initialize next line */
       diff_next[3 * (x + 1) + 0] = diff_r / 4;
       diff_next[3 * (x + 1) + 1] = diff_g / 4;
