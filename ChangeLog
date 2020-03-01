@@ -1,3 +1,11 @@
+2020-03-01  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/ui_imagelib.c: load_sixel() supports 8-bit depth, it enables you
+	  to show sixel on 8-bit depth without mlimgloader.
+
+	* gdk-pixbuf.c: pixbuf_to_pixmap_pseudocolor() is fixed to dither the
+	  last 1 pixel of each line properly.
+
 2020-02-29  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: (void*) + num * sizeof(vt_macro_t) -> (vt_macro_t*) + num
