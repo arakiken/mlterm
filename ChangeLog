@@ -1,5 +1,12 @@
 2020-03-01  Araki Ken  <arakiken@users.sf.net>
 
+	* ef_ucs_property.table: Updated to Unicode 12.1.0 (UnicodeData.txt and
+	  EastAsianWidth.txt)
+
+	* config.sub, config.guess: Updated.
+
+2020-03-01  Araki Ken  <arakiken@users.sf.net>
+
 	* xlib/ui_imagelib.c: load_sixel() supports 8-bit depth, it enables you
 	  to show sixel on 8-bit depth without mlimgloader.
 
