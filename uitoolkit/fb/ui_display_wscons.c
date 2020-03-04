@@ -7,6 +7,8 @@
 #include "../ui_event_source.h"
 #endif
 
+#include "wskbdutil.c"
+
 #ifdef __NetBSD__
 #define KEY_REPEAT_UNIT 25       /* msec (see ui_event_source.c) */
 #define DEFAULT_KEY_REPEAT_1 400 /* msec */
@@ -212,21 +214,41 @@ static void process_wskbd_event(struct wscons_event *ev) {
       wskbd_mode_switch = 1;
     } else if (ksym == KS_Num_Lock) {
       _display.lock_state ^= NLKED;
-    } else {
+    } else if (ksym != KS_voidSymbol) {
+      static keysym_t dead_key;
       XKeyEvent xev;
 
-      xev.type = KeyPress;
-      xev.ksym = ksym;
-      xev.state = _mouse.button_state | _display.key_state;
-      xev.keycode = get_ps2_kcode(ev->value);
+      if (0x300 <= ksym && ksym <= 0x337) { /* See wsksymdef.h */
+        dead_key = ksym;
+      } else {
+        if (dead_key) {
+          keysym_t buf[2];
 
-      receive_event_for_multi_roots(&xev);
-
-      prev_key_event = *ev;
-#ifdef __NetBSD__
-      kbd_repeat_wait = (kbd_repeat_1 + KEY_REPEAT_UNIT / 2) / KEY_REPEAT_UNIT;
+          buf[0] = dead_key;
+          buf[1] = ksym;
+          if ((xev.ksym = wskbd_compose_value(buf)) == KS_voidSymbol) {
+            xev.ksym = ksym;
+          }
+#if 0
+          bl_debug_printf("Compose %x %x -> %x\n", dead_key, ksym, xev.ksym);
 #endif
+          dead_key = 0;
+        } else {
+          xev.ksym = ksym;
+        }
+        xev.keycode = get_ps2_kcode(ev->value);
+        xev.state = _mouse.button_state | _display.key_state;
+        xev.type = KeyPress;
+
+        receive_event_for_multi_roots(&xev);
+
+        prev_key_event = *ev;
+      }
     }
+
+#ifdef __NetBSD__
+    kbd_repeat_wait = (kbd_repeat_1 + KEY_REPEAT_UNIT / 2) / KEY_REPEAT_UNIT;
+#endif
   } else if (ev->type == WSCONS_EVENT_KEY_UP) {
     if (ksym == KS_Shift_R || ksym == KS_Shift_L) {
       _display.key_state &= ~ShiftMask;

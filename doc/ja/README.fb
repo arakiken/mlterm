@@ -85,13 +85,14 @@ Framebuffer 対応に関するメモ
     うに moused を起動しておいてください。
     $ /etc/rc.d/moused onestart
   o FreeBSD(98)では、4 bpp のみサポートしています。
+  o デッドキーによるアクセント付き文字等の入力には対応していません。
 
   (for NetBSD)
   o See https://gist.github.com/tsutsui/5689730
     (Thanks to @tsutsuii san)
   o /boot.cfg に次のように vesa を指定して起動してください。
-    menu=Boot vesa:vesa 800x600x32;boot netbsd
-                   ^^^^^^^^^^^^^^^
+    menu=Boot ... vesa 0x13e;boot
+                  ^^^^^^^^^^ -> 0x13e は 640x400x32 (boot prompt で > vesa list)
   o キーリピートは、~/.mlterm/main に次のオプションを指定することで変更できます。
     ただし、指定できる値は25ms単位になります。
     kbd_repeat_1=400
@@ -99,6 +100,8 @@ Framebuffer 対応に関するメモ
   o キーボード入力は、/dev/wskbd を使って読み込みます。別のデバイスを使用したい
     場合は、WSKBD 環境変数にそのデバイス名を指定してください。
     (e.g. export WSKBD=/dev/wskbd0)
+  o キーボードレイアウトを変更したい場合は wsconsctl -w -k encoding=cz のように
+    wsconsctl コマンドを実行してください。
   o 8 bpp で使用した場合、色が正しく表示されません(要修正)。
   o Input method plugin として iBus を使用する場合は、./configure に
     --without-pthread を指定してビルドしないでください(mlterm-fb に pthread ライ
