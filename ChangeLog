@@ -1,3 +1,12 @@
+2020-03-04  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* ui_display_wscons.c: Dead key is processed to input accented characters
+	  etc from keyboard.
+
+	* wskbdutil.c: Added.
+
 2020-03-01  Araki Ken  <arakiken@users.sf.net>
 
 	* ef_ucs_property.table: Updated to Unicode 12.1.0 (UnicodeData.txt and
