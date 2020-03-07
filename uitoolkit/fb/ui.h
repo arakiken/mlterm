@@ -395,15 +395,15 @@ typedef int XFontSet; /* dummy */
 
 #define KEY_CLEAR 0xff    /* dummy */
 #define KEY_LINEFEED 0xfe /* dummy */
-#define KEY_LEFTSHIFT 0x02
-#define KEY_LEFTCTRL 0x09
-#define KEY_LEFTALT 0x07
-#define KEY_RIGHTSHIFT 0x03
-#define KEY_RIGHTCTRL 0x80
-#define KEY_RIGHTALT 0x81
+#define KEY_LEFTSHIFT LSH
+#define KEY_LEFTCTRL LCTR
+#define KEY_LEFTALT LALT
+#define KEY_RIGHTSHIFT RSH
+#define KEY_RIGHTCTRL RCTR
+#define KEY_RIGHTALT RALT
 #define KEY_LEFTMETA 0xfd  /* dummy */
 #define KEY_RIGHTMETA 0xfc /* dummy */
-#define KEY_CAPSLOCK 0x04
+#define KEY_CAPSLOCK CLK
 #define KEY_PAGEUP 0x4d
 #define KEY_PAGEDOWN 0x55
 #define KEY_END 0x53
@@ -413,22 +413,22 @@ typedef int XFontSet; /* dummy */
 #define KEY_RIGHT 0x51
 #define KEY_DOWN 0x54
 #define KEY_SELECT 0xfb /* dummy */
-#define KEY_PRINT 0x0a
+#define KEY_PRINT 0x0a /* == NEXT in kbio.h */
 #define KEY_INSERT 0x56
 #define KEY_DELETE 0x57
 #define KEY_HELP 0xfa /* dummy */
-#define KEY_F1 0x1b
-#define KEY_F2 0x1c
-#define KEY_F3 0x1d
-#define KEY_F4 0x1e
-#define KEY_F5 0x1f
-#define KEY_F6 0x20
-#define KEY_F7 0x21
-#define KEY_F8 0x22
-#define KEY_F9 0x23
-#define KEY_F10 0x24
-#define KEY_F11 0x25
-#define KEY_F12 0x26
+#define KEY_F1 F_FN(1)
+#define KEY_F2 F_FN(2)
+#define KEY_F3 F_FN(3)
+#define KEY_F4 F_FN(4)
+#define KEY_F5 F_FN(5)
+#define KEY_F6 F_FN(6)
+#define KEY_F7 F_FN(7)
+#define KEY_F8 F_FN(8)
+#define KEY_F9 F_FN(9)
+#define KEY_F10 F_FN(10)
+#define KEY_F11 F_FN(11)
+#define KEY_F12 F_FN(12)
 #define KEY_F13 0xf9 /* dummy */
 #define KEY_F14 0xf8 /* dummy */
 #define KEY_F15 0xf7 /* dummy */
@@ -441,8 +441,8 @@ typedef int XFontSet; /* dummy */
 #define KEY_F22 0xf0 /* dummy */
 #define KEY_F23 0xef /* dummy */
 #define KEY_F24 0xee /* dummy */
-#define KEY_NUMLOCK 0x05
-#define KEY_SCROLLLOCK 0x06
+#define KEY_NUMLOCK NLK
+#define KEY_SCROLLLOCK SLK
 #define KEY_FIND 0xed             /* dummy */
 #define KEY_MENU 0xec             /* dummy */
 #define KEY_MUHENKAN 0xeb         /* dummy */

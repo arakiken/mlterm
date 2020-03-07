@@ -1,3 +1,20 @@
+2020-03-07  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.fb, doc/ja/README.fb: Updated.
+
+	* fb/ui_window.c:
+	  - ui_window_get_str() supports unicode on FreeBSD.
+	  - ModMask is cleared if keyboard input is unicode.
+
+	* ui_display_linux.c:
+	  - The type of diacrs_uc and diacrs is changed to pointer.
+	  - load_diacr() is integrated to get_accented_char().
+	  - ModMask is not cleared if kb_value doesn't change in either
+	    kb_table = K_ALTTAB or kb_table = 0.
+
+	* ui_display_freebsd.c: Dead key is processed to input accented characters
+	  etc from keyboard.
+
 2020-03-04  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.fb, doc/ja/README.fb: Updated.

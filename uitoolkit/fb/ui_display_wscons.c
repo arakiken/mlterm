@@ -202,6 +202,10 @@ static void process_wskbd_event(struct wscons_event *ev) {
   }
 
   if (ev->type == WSCONS_EVENT_KEY_DOWN) {
+#if 0
+    bl_debug_printf("ksym %x state %x mode %d\n", ksym, _display.key_state, wskbd_mode_switch);
+#endif
+
     if (ksym == KS_Shift_R || ksym == KS_Shift_L) {
       _display.key_state |= ShiftMask;
     } else if (ksym == KS_Caps_Lock) {
@@ -210,7 +214,7 @@ static void process_wskbd_event(struct wscons_event *ev) {
       _display.key_state |= ControlMask;
     } else if (ksym == KS_Alt_R || ksym == KS_Alt_L) {
       _display.key_state |= Mod1Mask;
-    } else if (ksym == KS_Mode_switch) {
+    } else if (ksym == KS_Mode_switch) { /* ALTGR */
       wskbd_mode_switch = 1;
     } else if (ksym == KS_Num_Lock) {
       _display.lock_state ^= NLKED;

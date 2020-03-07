@@ -2280,6 +2280,7 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
   write_buf:
     /* Check unmasked (raw) state of event. */
     if (screen->mod_meta_mask & event->state) {
+      /* XXX Fix to check if kstr is ASCII (mod_meta_mode should work only for ASCII chars) */
       if (screen->mod_meta_mode == MOD_META_OUTPUT_ESC) {
         write_to_pty(screen, mod_meta_prefix, strlen(mod_meta_prefix), NULL);
       } else if (screen->mod_meta_mode == MOD_META_SET_MSB) {
@@ -2298,7 +2299,7 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
 #if defined(USE_WIN32GUI) && defined(UTF16_IME_CHAR)
         size /= 2;
         for (count = 0; count < size; count++) {
-        /* UTF16BE => 8bit */
+          /* UTF16BE => 8bit */
           if (0x20 <= kstr[count*2 + 1] && kstr[count*2 + 1] <= 0x7e) {
             kstr[count] = kstr[count*2] | 0x80;
           }
