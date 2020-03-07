@@ -18,8 +18,21 @@
 /* --- static variables --- */
 
 static keymap_t keymap;
+static accentmap_t *accentmap;
 
 /* --- static functions --- */
+
+static int load_accentmap(void) {
+  if (accentmap) {
+    return 1;
+  } else if ((accentmap = malloc(sizeof(*accentmap)))) { /* XXX Leadked */
+    ioctl(STDIN_FILENO, GIO_DEADKEYMAP, accentmap);
+
+    return 1;
+  } else {
+    return 0;
+  }
+}
 
 static int open_display(u_int depth) {
   char *dev;
@@ -433,9 +446,11 @@ static int receive_key_event(void) {
   u_char code;
 
   while (read(_display.fd, &code, 1) == 1) {
+    static int dead;
     XKeyEvent xev;
     int pressed;
     int idx;
+    int key_state = _display.key_state;
 
     if (code & 0x80) {
       pressed = 0;
@@ -474,7 +489,7 @@ static int receive_key_event(void) {
       if (_display.key_state & ControlMask) {
         idx |= 2;
       }
-      if (_display.key_state & ModMask) {
+      if (_display.key_state & Mod2Mask) { /* ALTGR */
         idx |= 4;
       }
     } else {
@@ -501,6 +516,41 @@ static int receive_key_event(void) {
 #endif
         {
           xev.ksym = keymap.key[code].map[idx];
+          if (xev.ksym >= 0x100) {
+            /* Unicode */
+            xev.ksym += 0x1000; /* See ui_window_get_str() in ui_window.c */
+          } else if ((_display.key_state & Mod2Mask) /* ALTRIGHT */ &&
+                     /*
+                      * e.g.) German keyboard
+                      *       Alt + ( -> [
+                      *       map[0] = (, map[idx] = [
+                      */
+                     keymap.key[code].map[idx] != keymap.key[code].map[0]) {
+            key_state &= ~ModMask;
+          }
+        }
+
+        if (dead) {
+          if ('a' <= (xev.ksym | 0x20) && (xev.ksym | 0x20) <= 'z') {
+            if (load_accentmap()) {
+              struct acc_t *acc = &accentmap->acc[dead - F_ACC];
+
+              if (acc->accchar) {
+                int count;
+
+                for (count = 0; count < NUM_ACCENTCHARS; count++) {
+                  if (acc->map[count][0] == 0) {
+                    break;
+                  } else if (acc->map[count][0] == xev.ksym) {
+                    xev.ksym = acc->map[count][1];
+                    break;
+                  }
+                }
+              }
+            }
+          }
+
+          dead = 0;
         }
 
         goto send_event;
@@ -513,27 +563,39 @@ static int receive_key_event(void) {
       if ((kcode = keymap.key[code].map[0]) == 0) {
         /* do nothing */
       } else if (pressed) {
-        if (kcode == KEY_RIGHTSHIFT || kcode == KEY_LEFTSHIFT) {
-          _display.key_state |= ShiftMask;
-        } else if (kcode == KEY_RIGHTCTRL || kcode == KEY_LEFTCTRL) {
-          _display.key_state |= ControlMask;
-        } else if (kcode == KEY_RIGHTALT || kcode == KEY_LEFTALT) {
-          _display.key_state |= Mod1Mask;
-        } else if (kcode == KEY_NUMLOCK) {
-          _display.lock_state ^= NLKED;
-        } else if (kcode == KEY_CAPSLOCK) {
-          _display.lock_state ^= CLKED;
-        } else {
-          xev.ksym = kcode + 0x100;
+        int kcode2 = keymap.key[code].map[idx];
 
-          goto send_event;
+        if (F_ACC <= kcode2 && kcode2 <= L_ACC) {
+          dead = kcode2;
+        } else {
+          dead = 0;
+
+          if (kcode == KEY_RIGHTSHIFT || kcode == KEY_LEFTSHIFT) {
+            _display.key_state |= ShiftMask;
+          } else if (kcode == KEY_RIGHTCTRL || kcode == KEY_LEFTCTRL) {
+            _display.key_state |= ControlMask;
+          } else if (kcode == KEY_RIGHTALT) {
+            _display.key_state |= (Mod1Mask|Mod2Mask);
+          } else if (kcode == KEY_LEFTALT) {
+            _display.key_state |= Mod1Mask;
+          } else if (kcode == KEY_NUMLOCK) {
+            _display.lock_state ^= NLKED;
+          } else if (kcode == KEY_CAPSLOCK) {
+            _display.lock_state ^= CLKED;
+          } else {
+            xev.ksym = kcode + 0x100;
+
+            goto send_event;
+          }
         }
       } else {
         if (kcode == KEY_RIGHTSHIFT || kcode == KEY_LEFTSHIFT) {
           _display.key_state &= ~ShiftMask;
         } else if (kcode == KEY_RIGHTCTRL || kcode == KEY_LEFTCTRL) {
           _display.key_state &= ~ControlMask;
-        } else if (kcode == KEY_RIGHTALT || kcode == KEY_LEFTALT) {
+        } else if (kcode == KEY_RIGHTALT) {
+          _display.key_state &= ~(Mod1Mask|Mod2Mask);
+        } else if (kcode == KEY_LEFTALT) {
           _display.key_state &= ~Mod1Mask;
         }
       }
@@ -543,7 +605,7 @@ static int receive_key_event(void) {
 
   send_event:
     xev.type = KeyPress;
-    xev.state = _mouse.button_state | _display.key_state;
+    xev.state = _mouse.button_state | key_state /* Don't use _display.key_state */ ;
     xev.keycode = code;
 
 #ifdef __DEBUG

@@ -1958,13 +1958,20 @@ size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parse
 #endif
 
   if ((*keysym = event->ksym) >= 0x100) {
-#ifdef __linux__
+#if defined(__linux__) || defined(__FreeBSD__)
     /*
-     * 0x00-0x7f  : ASCII+
-     * 0x100-0x263: Function Keys (Max: KEY_CLEAR(0x163 + 0x100))
-     * 0x1080-    : Unicode (Use after decrement 0x1000) (See kcode_to_ksym() in ui_display_linux.c)
+     * Linux:
+     * 0x00-0xff  : ASCII + ISO8859-1-R
+     * 0x100-0x263: Function Keys (Max: KEY_CLEAR(0x163) + 0x100)
+     * 0x1000-    : Unicode (Use after decrement 0x1000) (See kcode_to_ksym() in ui_display_linux.c)
+     *
+     * FreeBSD:
+     * 0x00-0xff  : ASCII + ISO8859-1-R
+     * 0x100-0x256: Function Keys (Max: KEY_KP0(0x156) + 0x100)
+     * 0x1100-    : Unicode (Use after decrement 0x1000)
+     *              (See receive_key_event() in ui_display_freebsd.c)
      */
-    if (*keysym >= 0x1080) {
+    if (*keysym >= 0x1000) {
       ch -= 0x1000;
 
       goto ucs;
@@ -2069,6 +2076,13 @@ ucs:
 
     seq[0] = (ch >> 8) & 0xff;
     seq[1] = ch & 0xff;
+
+    /*
+     * Disable mod_meta_mode for UTF-16.
+     * e.g.) "mod_meta_mode = 8bit" modifies 0x20AC to 0xA0AC.
+     *       (see key_pressed() in ui_screen.c
+     */
+    event->state &= ~ModMask;
   }
 
   return 2;

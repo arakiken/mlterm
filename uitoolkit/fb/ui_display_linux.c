@@ -16,9 +16,9 @@
 static int console_id = -1;
 
 #ifdef KDGKBDIACRUC
-static struct kbdiacrsuc diacrs_uc;
+static struct kbdiacrsuc *diacrs_uc;
 #else
-static struct kbdiacrs diacrs;
+static struct kbdiacrs *diacrs;
 #endif
 
 /* --- static functions --- */
@@ -48,55 +48,58 @@ static int get_accented_char(int kb_value, int dead) {
     u_int count;
 
 #ifdef KDGKBDIACRUC
-    for (count = 0; count < diacrs_uc.kb_cnt; count++) {
-      if (diacrs_uc.kbdiacruc[count].diacr == diacr &&
-          diacrs_uc.kbdiacruc[count].base == kb_value) {
-        return diacrs_uc.kbdiacruc[count].result;
+    if (diacrs_uc == NULL) {
+      if ((diacrs_uc = malloc(sizeof(*diacrs_uc))) == NULL) { /* XXX Leaked */
+        goto end;
+      }
+      ioctl(STDIN_FILENO, KDGKBDIACRUC, diacrs_uc);
+#if 0
+      {
+        u_int count;
+        for (count = 0; count < diacrs_uc.kb_cnt; count++) {
+          bl_debug_printf("UC %x %x %x\n", diacrs_uc.kbdiacruc[count].diacr,
+                          diacrs_uc.kbdiacruc[count].base,
+                          diacrs_uc.kbdiacruc[count].result);
+        }
+      }
+#endif
+    }
+
+    for (count = 0; count < diacrs_uc->kb_cnt; count++) {
+      if (diacrs_uc->kbdiacruc[count].diacr == diacr &&
+          diacrs_uc->kbdiacruc[count].base == kb_value) {
+        return diacrs_uc->kbdiacruc[count].result;
       }
     }
 #else
-    for (count = 0; count < diacrs.kb_cnt; count++) {
-      if (diacrs.kbdiacr[count].diacr == diacr &&
-          diacrs.kbdiacr[count].base == kb_value) {
-        return diacrs.kbdiacr[count].result;
+    if (diacrs == NULL) {
+      if ((diacrs = malloc(sizeof(*diacrs))) == NULL) { /* XXX Leaked */
+        goto end;
+      }
+      ioctl(STDIN_FILENO, KDGKBDIACR, diacrs);
+#if 0
+      {
+        u_int count;
+        for (count = 0; count < diacrs.kb_cnt; count++) {
+          bl_debug_printf("%x %x %x\n", diacrs.kbdiacr[count].diacr,
+                          diacrs.kbdiacr[count].base,
+                          diacrs.kbdiacr[count].result);
+        }
+      }
+#endif
+    }
+
+    for (count = 0; count < diacrs->kb_cnt; count++) {
+      if (diacrs->kbdiacr[count].diacr == diacr &&
+          diacrs->kbdiacr[count].base == kb_value) {
+        return diacrs->kbdiacr[count].result;
       }
     }
 #endif
   }
 
+end:
   return kb_value;
-}
-
-static void load_diacr(void) {
-#ifdef KDGKBDIACRUC
-  if (diacrs_uc.kb_cnt == 0) {
-    ioctl(STDIN_FILENO, KDGKBDIACRUC, &diacrs_uc);
-#if 0
-    {
-      u_int count;
-      for (count = 0; count < diacrs_uc.kb_cnt; count++) {
-        bl_debug_printf("UC %x %x %x\n", diacrs_uc.kbdiacruc[count].diacr,
-                        diacrs_uc.kbdiacruc[count].base,
-                        diacrs_uc.kbdiacruc[count].result);
-      }
-    }
-#endif
-  }
-#else
-  if (diacrs.kb_cnt == 0) {
-    ioctl(STDIN_FILENO, KDGKBDIACR, &diacrs);
-#if 0
-    {
-      u_int count;
-      for (count = 0; count < diacrs.kb_cnt; count++) {
-        bl_debug_printf("%x %x %x\n", diacrs.kbdiacr[count].diacr,
-                        diacrs.kbdiacr[count].base,
-                        diacrs.kbdiacr[count].result);
-      }
-    }
-#endif
-  }
-#endif
 }
 
 static int kcode_to_ksym(int kcode, int *state) {
@@ -128,36 +131,48 @@ static int kcode_to_ksym(int kcode, int *state) {
 #endif
 
       if (ent.kb_value >= 0x1000) {
+        /* See ui_window_get_str() in ui_window.c */
         ent.kb_value = (0xf000 - (ent.kb_value & 0xf000)) + (ent.kb_value & 0xfff) + 0x1000;
         dead = -1;
       } else {
         if (KTYP(ent.kb_value) == KT_DEAD || KTYP(ent.kb_value) == KT_DEAD2) {
-          load_diacr();
           dead = ent.kb_value & 0xff;
 
           return 0;
         } else {
+          int orig_kb_value = ent.kb_value;
+
           ent.kb_value &= 0xff;
 
           if (dead != -1) {
             ent.kb_value = get_accented_char(ent.kb_value, dead);
+            if (ent.kb_value >= 0x100) {
+              /* See ui_window_get_str() in ui_window.c */
+              ent.kb_value += 0x1000;
+            }
             dead = -1;
           }
 
-          if (ent.kb_value >= 0x80) {
-            ent.kb_value += 0x1000;
+          if (ent.kb_table & K_ALTTAB) {
+            struct kbentry ent2;
+
+            ent2.kb_table = 0;
+            ent2.kb_index = kcode;
+
+            /*
+             * e.g.) German keyboard
+             *       Alt + ( -> [
+             *       ent2.kb_value = (, orig_kb_value = [
+             */
+            if (ioctl(STDIN_FILENO, KDGKBENT, &ent2) == 0 && orig_kb_value != ent2.kb_value) {
+              *state &= ~ModMask;
+            }
           }
         }
       }
 
 #ifdef __DEBUG
       bl_debug_printf("-> val %x\n", ent.kb_value);
-#endif
-
-#if 1
-      if (ent.kb_table & K_ALTTAB) {
-        *state &= ~ModMask;
-      }
 #endif
 
 #if 1
@@ -427,6 +442,7 @@ static int open_display(u_int depth) {
     bl_file_set_cloexec(_display.fd);
   }
 
+  /* K_UNICODE is the default value. */
 #if 0
   {
     u_long val = K_UNICODE;

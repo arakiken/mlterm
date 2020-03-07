@@ -81,11 +81,12 @@ Framebuffer 対応に関するメモ
   o キーリピートを変更する場合は kbdcontrol -r [delay.repeat] で、write-combine
     を有効にする場合は memcontrol set -b 0x.... -l 0x.... write-combine で、それ
     ぞれあらかじめ設定しておいてください。
+  o キーボードレイアウトを変更したい場合は kbdcontrol -l cz のように kbdcontrol
+    コマンドを実行してください。
   o FreeBSD 5.0 以上で、マウス(/dev/sysmouse)を使用する場合、あらかじめ、次のよ
     うに moused を起動しておいてください。
     $ /etc/rc.d/moused onestart
   o FreeBSD(98)では、4 bpp のみサポートしています。
-  o デッドキーによるアクセント付き文字等の入力には対応していません。
 
   (for NetBSD)
   o See https://gist.github.com/tsutsui/5689730
