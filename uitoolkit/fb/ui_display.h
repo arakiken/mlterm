@@ -6,7 +6,7 @@
 #include "../ui_display.h"
 
 #ifdef __FreeBSD__
-#include <sys/kbio.h> /* NLKED */
+/* CLKED, NLKED, SLKED and ALKED are defined in sys/kbio.h */
 #else
 #define CLKED 1
 #define NLKED 2
