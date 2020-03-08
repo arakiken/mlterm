@@ -1,3 +1,7 @@
+2020-03-08  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/ui.h: Compiling error on FreeBSD is fixed.
+
 2020-03-07  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.fb, doc/ja/README.fb: Updated.

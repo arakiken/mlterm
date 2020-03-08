@@ -9,6 +9,7 @@
 #include <stdint.h> /* XXX */
 #elif defined(__FreeBSD__)
 #include <osreldate.h>
+#include <sys/kbio.h>
 #if __FreeBSD_version >= 410000
 #include <sys/fbio.h>
 #else
@@ -417,18 +418,18 @@ typedef int XFontSet; /* dummy */
 #define KEY_INSERT 0x56
 #define KEY_DELETE 0x57
 #define KEY_HELP 0xfa /* dummy */
-#define KEY_F1 F_FN(1)
-#define KEY_F2 F_FN(2)
-#define KEY_F3 F_FN(3)
-#define KEY_F4 F_FN(4)
-#define KEY_F5 F_FN(5)
-#define KEY_F6 F_FN(6)
-#define KEY_F7 F_FN(7)
-#define KEY_F8 F_FN(8)
-#define KEY_F9 F_FN(9)
-#define KEY_F10 F_FN(10)
-#define KEY_F11 F_FN(11)
-#define KEY_F12 F_FN(12)
+#define KEY_F1 F(1)
+#define KEY_F2 F(2)
+#define KEY_F3 F(3)
+#define KEY_F4 F(4)
+#define KEY_F5 F(5)
+#define KEY_F6 F(6)
+#define KEY_F7 F(7)
+#define KEY_F8 F(8)
+#define KEY_F9 F(9)
+#define KEY_F10 F(10)
+#define KEY_F11 F(11)
+#define KEY_F12 F(12)
 #define KEY_F13 0xf9 /* dummy */
 #define KEY_F14 0xf8 /* dummy */
 #define KEY_F15 0xf7 /* dummy */
