@@ -22,6 +22,7 @@
   Fix a bug which makes mlterm-sdl2 on win32 stop starting mlconfig.
   Fix compiling error on HaikuOS + gcc-x86.
   Fix http://twitter.com/hamano/status/1177087752208183296
+  Fix a bug which disabled clipping of DECDHL in cairo. (Enbugged at 3.8.6)
 
 ver 3.8.9
 * Support zmodem. (See doc/en/README.tarnsfer)
