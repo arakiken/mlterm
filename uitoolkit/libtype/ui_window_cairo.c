@@ -493,8 +493,12 @@ void cairo_resize(ui_window_t *win) {
 }
 
 void cairo_set_clip(ui_window_t *win, int x, int y, u_int width, u_int height) {
+  flush_glyphs(win->cairo_draw);
   cairo_rectangle(win->cairo_draw, x, y, width, height);
   cairo_clip(win->cairo_draw);
 }
 
-void cairo_unset_clip(ui_window_t *win) { cairo_reset_clip(win->cairo_draw); }
+void cairo_unset_clip(ui_window_t *win) {
+  flush_glyphs(win->cairo_draw);
+  cairo_reset_clip(win->cairo_draw);
+}

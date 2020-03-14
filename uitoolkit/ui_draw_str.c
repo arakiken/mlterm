@@ -16,6 +16,10 @@
 #define PERF_DEBUG
 #endif
 
+#if 0
+#define CLIP_LINE
+#endif
+
 /* --- static functions --- */
 
 static u_int calculate_char_width(ui_font_t *font, u_int code, ef_charset_t cs, int is_awidth,
@@ -1232,6 +1236,7 @@ int ui_draw_str(ui_window_t *window, ui_font_manager_t *font_man, ui_color_manag
                 int top_margin, int hide_underline, int underline_offset) {
   u_int updated_width;
   int ret;
+  int clip;
 
 #ifdef __DEBUG
   bl_debug_printf("Draw %d characters.\n", num_chars);
@@ -1239,11 +1244,21 @@ int ui_draw_str(ui_window_t *window, ui_font_manager_t *font_man, ui_color_manag
 
   if (font_man->size_attr >= DOUBLE_HEIGHT_TOP) {
     ui_window_set_clip(window, x, y, window->width - x, height);
-    ascent = height - (height - ascent) * 2;
+    clip = 1;
 
+    ascent = height - (height - ascent) * 2;
     if (font_man->size_attr == DOUBLE_HEIGHT_TOP) {
       ascent += height;
     }
+  }
+#ifdef CLIP_LINE
+  else if (top_margin < 0) { /* XXX line_space = -1 -> top_margin == 0 */
+    ui_window_set_clip(window, x, y, window->width - x, height);
+    clip = 1;
+  }
+#endif
+  else {
+    clip = 0;
   }
 
   switch (ui_get_type_engine(font_man)) {
@@ -1269,7 +1284,7 @@ int ui_draw_str(ui_window_t *window, ui_font_manager_t *font_man, ui_color_manag
 #endif
   }
 
-  if (font_man->size_attr >= DOUBLE_HEIGHT_TOP) {
+  if (clip) {
     ui_window_unset_clip(window);
   }
 
@@ -1282,6 +1297,7 @@ int ui_draw_str_to_eol(ui_window_t *window, ui_font_manager_t *font_man,
                        int hide_underline, int underline_offset) {
   u_int updated_width;
   int ret;
+  int clip;
 
 #ifdef __DEBUG
   bl_debug_printf("Draw %d characters to eol.\n", num_chars);
@@ -1289,11 +1305,21 @@ int ui_draw_str_to_eol(ui_window_t *window, ui_font_manager_t *font_man,
 
   if (font_man->size_attr >= DOUBLE_HEIGHT_TOP) {
     ui_window_set_clip(window, x, y, window->width - x, height);
-    ascent = height - (height - ascent) * 2;
+    clip = 1;
 
+    ascent = height - (height - ascent) * 2;
     if (font_man->size_attr == DOUBLE_HEIGHT_TOP) {
       ascent += height;
     }
+  }
+#ifdef CLIP_LINE
+  else if (top_margin < 0) { /* XXX line_space = -1 -> top_margin == 0 */
+    ui_window_set_clip(window, x, y, window->width - x, height);
+    clip = 1;
+  }
+#endif
+  else {
+    clip = 0;
   }
 
   switch (ui_get_type_engine(font_man)) {
@@ -1338,7 +1364,7 @@ int ui_draw_str_to_eol(ui_window_t *window, ui_font_manager_t *font_man,
 #endif
   }
 
-  if (font_man->size_attr >= DOUBLE_HEIGHT_TOP) {
+  if (clip) {
     ui_window_unset_clip(window);
   }
 

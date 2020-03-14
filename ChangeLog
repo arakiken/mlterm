@@ -1,3 +1,11 @@
+2020-03-14  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_draw_str.c: If CLIP_LINE is defined and top_margin < 0,
+	  ui_draw_str() and ui_draw_str_to_eol() calls cairo_{set|unser}_clip().
+
+	* libtype/ui_window_cairo.c: cairo_{set|unset}_clip() calls flush_glyphs()
+	  in order to apply clipping region.
+
 2020-03-08  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/ui.h: Compiling error on FreeBSD is fixed.
