@@ -767,7 +767,8 @@ public class MLTerm extends StyledText {
             modcode++;
           }
 
-          if (modcode > 0 && otherkey < 0x80 && pty.writeModifiedKey(otherkey, modcode)) {
+          if (modcode > 0 && 0 < otherkey && otherkey < 0x80 &&
+              pty.writeModifiedKey(otherkey, modcode)) {
             str = null;
           } else if (pty.writeSpecialKey(event.keyCode, modcode)) {
             str = null;

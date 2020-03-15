@@ -1,3 +1,8 @@
+2020-03-15  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c, MLTrem.java: If ksym is 0, vt_term_write_modified_key()
+	  is not called.
+
 2020-03-14  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_draw_str.c: If CLIP_LINE is defined and top_margin < 0,
