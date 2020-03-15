@@ -141,13 +141,16 @@ size_t ui_xic_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parser_t
 
   *keysym = win->xic->prev_keydown_wparam;
 
-  if ('a' <= *keysym && *keysym <= VK_F24) {
-    /*
-     * Avoid to conflict 'a' - 'z' with VK_NUMPAD1..9,
-     * VK_MULTIPLY..VK_DIVIDE, VK_F1..VK_F11.
-     * (0x61 - 0x7a)
-     */
-    *keysym += 0xff00;
+  if (VK_PRIOR <= *keysym && *keysym <= VK_F24) {
+    if (*keysym <= VK_HELP /* 0x21 - 0x2f */ || VK_NUMPAD0 <= *keysym /* 0x60 - 0x87 */) {
+      /*
+       * Avoid to conflict 'a' - 'z' with VK_NUMPAD1..9, VK_MULTIPLY..VK_DIVIDE,
+       * VK_F1..VK_F11. (0x61 - 0x7a)
+       * vt_term_write_modified_key() regards VK_PRIOR - VK_HELP as '!' - '/'
+       * without += 0xff00.
+       */
+      *keysym += 0xff00;
+    }
   }
 
   win->xic->prev_keydown_wparam = 0;
@@ -175,21 +178,21 @@ size_t ui_xic_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parser_t
   }
 
 #ifndef UTF16_IME_CHAR
-  len = 1;
   if (event->ch > 0xff) {
-    *(seq++) = (char)((event->ch >> 8) & 0xff);
-
     if (seq_len == 1) {
-      goto zero_return;
+      return 2; /* The size of seq is insufficient */
     }
 
-    len++;
+    *(seq++) = (char)((event->ch >> 8) & 0xff);
+    len = 2;
+  } else {
+    len = 1;
   }
 
   *seq = (char)(event->ch & 0xff);
 #else
   if (seq_len == 1) {
-    goto zero_return;
+    return 2; /* The size of seq is insufficient */
   }
 
   *(seq++) = (char)((event->ch >> 8) & 0xff);

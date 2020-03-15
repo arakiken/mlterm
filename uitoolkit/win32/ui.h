@@ -218,21 +218,24 @@ typedef LPLOGFONT XFontSet;
 #define XK_Caps_Lock VK_CAPITAL
 #define XK_Escape VK_ESCAPE
 /* #define XXX VK_SPACE */
-#define XK_Prior VK_PRIOR
-#define XK_Next VK_NEXT
-#define XK_End VK_END
-#define XK_Home VK_HOME
-#define XK_Left VK_LEFT
-#define XK_Up VK_UP
-#define XK_Right VK_RIGHT
-#define XK_Down VK_DOWN
-#define XK_Select VK_SELECT
-#define XK_Print VK_PRINT
-#define XK_Execute VK_EXECUTE
+
+#define XK_Prior (VK_PRIOR + 0xff00)   /* 0xff21 (vt_term_write_modified_key() regards this '!') */
+#define XK_Next (VK_NEXT + 0xff00)     /* 0xff22 (vt_term_write_modified_key() regards this '"') */
+#define XK_End (VK_END + 0xff00)       /* 0xff23 (vt_term_write_modified_key() regards this '#') */
+#define XK_Home (VK_HOME + 0xff00)     /* 0xff24 (vt_term_write_modified_key() regards this '$') */
+#define XK_Left (VK_LEFT + 0xff00)     /* 0xff25 (vt_term_write_modified_key() regards this '%') */
+#define XK_Up (VK_UP + 0xff00)         /* 0xff26 (vt_term_write_modified_key() regards this '&') */
+#define XK_Right (VK_RIGHT + 0xff00)   /* 0xff27 (vt_term_write_modified_key() regards this ''') */
+#define XK_Down (VK_DOWN + 0xff00)     /* 0xff28 (vt_term_write_modified_key() regards this '(') */
+#define XK_Select (VK_SELECT + 0xff00) /* 0xff29 (vt_term_write_modified_key() regards this ')') */
+#define XK_Print (VK_PRINT + 0xff00)   /* 0xff2a (vt_term_write_modified_key() regards this '*') */
+/* 0xff2b (vt_term_write_modified_key() regards this '+') */
+#define XK_Execute (VK_EXECUTE + 0xff00)
 /* #define XXX VK_SNAPSHOT  ... PrintScreen key */
-#define XK_Insert VK_INSERT
-#define XK_Delete VK_DELETE
-#define XK_Help VK_HELP
+#define XK_Insert (VK_INSERT + 0xff00) /* 0xff2d (vt_term_write_modified_key() regards this '-') */
+#define XK_Delete (VK_DELETE + 0xff00) /* 0xff2e (vt_term_write_modified_key() regards this '.') */
+#define XK_Help (VK_HELP + 0xff00)     /* 0xff2f (vt_term_write_modified_key() regards this '/') */
+
 #define XK_F1 (VK_F1 + 0xff00)   /* 0xff70 (avoid to conflict with 'p') */
 #define XK_F2 (VK_F2 + 0xff00)   /* 0xff71 (avoid to conflict with 'q') */
 #define XK_F3 (VK_F3 + 0xff00)   /* 0xff72 (avoid to conflict with 'r') */
@@ -290,37 +293,19 @@ typedef LPLOGFONT XFontSet;
 #define XK_KP_Subtract (VK_SUBTRACT + 0xff00)   /* 0xff6d (avoid to conflict with 'm') */
 #define XK_KP_Decimal (VK_DECIMAL + 0xff00)     /* 0xff6e (avoid to conflict with 'n') */
 #define XK_KP_Divide (VK_DIVIDE + 0xff00)       /* 0xff6f (avoid to conflict with 'o') */
-#define XK_KP_0 VK_NUMPAD0
-#define XK_KP_1                                                \
-  (VK_NUMPAD1 + 0xff00) /* 0xff61 (avoid to conflict with 'a') \
-                           */
-#define XK_KP_2                                                \
-  (VK_NUMPAD2 + 0xff00) /* 0xff62 (avoid to conflict with 'b') \
-                           */
-#define XK_KP_3                                                \
-  (VK_NUMPAD3 + 0xff00) /* 0xff63 (avoid to conflict with 'c') \
-                           */
-#define XK_KP_4                                                \
-  (VK_NUMPAD4 + 0xff00) /* 0xff64 (avoid to conflict with 'd') \
-                           */
-#define XK_KP_5                                                \
-  (VK_NUMPAD5 + 0xff00) /* 0xff65 (avoid to conflict with 'e') \
-                           */
-#define XK_KP_6                                                \
-  (VK_NUMPAD6 + 0xff00) /* 0xff66 (avoid to conflict with 'f') \
-                           */
-#define XK_KP_7                                                \
-  (VK_NUMPAD7 + 0xff00) /* 0xff67 (avoid to conflict with 'g') \
-                           */
-#define XK_KP_8                                                \
-  (VK_NUMPAD8 + 0xff00) /* 0xff68 (avoid to conflict with 'h') \
-                           */
-#define XK_KP_9                                                \
-  (VK_NUMPAD9 + 0xff00) /* 0xff69 (avoid to conflict with 'i') \
-                           */
+#define XK_KP_0 (VK_NUMPAD0 + 0xff00) /* 0xff60 (vt_term_write_modified_key() regards this '`') */
+#define XK_KP_1 (VK_NUMPAD1 + 0xff00) /* 0xff61 (avoid to conflict with 'a') */
+#define XK_KP_2 (VK_NUMPAD2 + 0xff00) /* 0xff62 (avoid to conflict with 'b') */
+#define XK_KP_3 (VK_NUMPAD3 + 0xff00) /* 0xff63 (avoid to conflict with 'c') */
+#define XK_KP_4 (VK_NUMPAD4 + 0xff00) /* 0xff64 (avoid to conflict with 'd') */
+#define XK_KP_5 (VK_NUMPAD5 + 0xff00) /* 0xff65 (avoid to conflict with 'e') */
+#define XK_KP_6 (VK_NUMPAD6 + 0xff00) /* 0xff66 (avoid to conflict with 'f') */
+#define XK_KP_7 (VK_NUMPAD7 + 0xff00) /* 0xff67 (avoid to conflict with 'g') */
+#define XK_KP_8 (VK_NUMPAD8 + 0xff00) /* 0xff68 (avoid to conflict with 'h') */
+#define XK_KP_9 (VK_NUMPAD9 + 0xff00) /* 0xff69 (avoid to conflict with 'i') */
 
 /* VK_NUMPAD0 = 0x60, VK_DIVIDE = 0x6f */
-#define IsKeypadKey(ksym) ((ksym) == XK_KP_0 || (XK_KP_1 <= (ksym) && (ksym) <= XK_KP_Divide))
+#define IsKeypadKey(ksym) (XK_KP_0 <= (ksym) && (ksym) <= XK_KP_Divide)
 #define IsModifierKey(ksym) (0)
 
 #define XK_ISO_Left_Tab 0xffd9

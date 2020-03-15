@@ -7168,10 +7168,8 @@ int vt_parser_write(vt_parser_t *vt_parser, u_char *buf, size_t len) {
 }
 
 int vt_parser_write_modified_key(vt_parser_t *vt_parser,
-                                 int key, /* should be less than 0x80 */
+                                 int key, /* 0 < key < 0x80 */
                                  int modcode) {
-  char *buf;
-
   if (vt_parser->is_transferring_data) {
     return 0;
   }
@@ -7186,15 +7184,18 @@ int vt_parser_write_modified_key(vt_parser_t *vt_parser,
   }
 
   if (!((modcode - 1) == 1 /* is shift */ &&
-        (('!' <= key && key < 'A') || ('Z' < key && key < 'a') || ('z' < key && key <= '~'))) &&
-      (buf = alloca(10))) {
+        (('!' <= key && key < 'A') || ('Z' < key && key < 'a') || ('z' < key && key <= '~')))) {
     size_t len;
 
 #if 1
+    char buf[10];
+
     /* formatOtherKeys = 1 */
     sprintf(buf, "\x1b[%d;%du", key, modcode);
 #else
-    /* formatOtherKeys = 0. Fix alloca(10) */
+    char buf[12];
+
+    /* formatOtherKeys = 0 */
     sprintf(buf, "\x1b[27;%d;%d", modcode, key);
 #endif
 
