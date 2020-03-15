@@ -1,5 +1,9 @@
 2020-03-15  Araki Ken  <arakiken@users.sf.net>
 
+	* win32/ui.h, win32/ui_xic.c: XK_Prior - XK_Help and XK_KP_0 = VK_XXX + 0xff00.
+
+	* vt_parser.c: alloca(10) -> buf[10]
+
 	* ui_screen.c, MLTrem.java: If ksym is 0, vt_term_write_modified_key()
 	  is not called.
 
