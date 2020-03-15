@@ -2090,8 +2090,7 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
     modcode = 0;
     spkey = -1;
 
-    if (event->state) /* Check unmasked (raw) state of event. */
-    {
+    if (event->state) /* Check unmasked (raw) state of event. */ {
       int is_shift;
       int is_meta;
       int is_alt;
@@ -2102,22 +2101,26 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
           /* compatible with xterm (Modifier codes in input.c) */
           (modcode =
                (is_shift ? 1 : 0) + (is_alt ? 2 : 0) + (is_ctl ? 4 : 0) + (is_meta ? 8 : 0))) {
-        int key;
+        int key = ksym;
 
+#ifdef USE_WIN32GUI
+        /* XXX Is this necessary ? (changeset 2605) */
+        if (key == 0 && size > 0) {
+          /* utf16 */
+          key = ef_bytes_to_int(kstr, size);
+        }
+#else
+        /* Note that ksym can be 0 in receiving kstr converted by XCompose. (~/.XCompose) */
+#endif
         modcode++;
 
-        if ((key = ksym) < 0x80 ||
+        if ((0 < key && key < 0x80) ||
             /*
              * XK_BackSpace, XK_Tab and XK_Return are defined as
              * 0xffXX in keysymdef.h, while they are less than
              * 0x80 on win32, framebuffer and wayland.
              */
             (size == 1 && (key = kstr[0]) < 0x20)) {
-          if (key == 0 && size > 0) {
-            /* For win32gui */
-            key = ef_bytes_to_int(kstr, size);
-          }
-
           if (vt_term_write_modified_key(screen->term, key, modcode)) {
             return;
           }
