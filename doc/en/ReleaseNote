@@ -4,6 +4,7 @@
 * Support xdg-shell on wayland.
 * Support DEC Technical character set.
 * Support input of unicode characters on mlterm-fb.
+* Support ormode of Sixel Graphics.
 * Update unicode property table (generated from UnicodeData.txt and
   EastAsianWidth.txt) to version 12.1.0.
 * Mlconfig configures files in ~/.mlterm directly if it starts without options

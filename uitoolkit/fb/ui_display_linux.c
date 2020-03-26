@@ -135,7 +135,11 @@ static int kcode_to_ksym(int kcode, int *state) {
         ent.kb_value = (0xf000 - (ent.kb_value & 0xf000)) + (ent.kb_value & 0xfff) + 0x1000;
         dead = -1;
       } else {
-        if (KTYP(ent.kb_value) == KT_DEAD || KTYP(ent.kb_value) == KT_DEAD2) {
+        if (KTYP(ent.kb_value) == KT_DEAD
+#ifdef KT_DEAD2
+            || KTYP(ent.kb_value) == KT_DEAD2
+#endif
+            ) {
           dead = ent.kb_value & 0xff;
 
           return 0;
