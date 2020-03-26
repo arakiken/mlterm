@@ -1,3 +1,14 @@
+2020-03-26  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_term.c: Missing '}' is fixed.
+
+	* vt_parser.[ch]: The return value of vt_parser_write() is changed from
+	  int to size_t.
+
+	* ui_display_linux.c: Compiling error in no KT_DEAD2 macro definition is fixed.
+
+	* c_sixel.c: SIXEL_ORMODE is defined.
+
 2020-03-15  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/ui.h, win32/ui_xic.c: XK_Prior - XK_Help and XK_KP_0 = VK_XXX + 0xff00.

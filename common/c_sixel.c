@@ -19,7 +19,7 @@
  * (See https://github.com/isaki68k/sayaka/,
  *  https://github.com/isaki68k/sayaka/blob/master/vala/sixel.native.c#L113)
  */
-#if 0
+#if 1
 #define SIXEL_ORMODE
 #endif
 

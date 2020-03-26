@@ -921,6 +921,7 @@ int vt_term_get_config(vt_term_t *term, vt_term_t *output, /* if term == output,
 #if defined(__ANDROID__) && defined(USE_LIBSSH2)
   else if (strcmp(key, "start_with_local_pty") == 0) {
     value = start_with_local_pty ? "true" : "false";
+  }
 #endif
   else {
     /* Continue to process it in x_screen.c */

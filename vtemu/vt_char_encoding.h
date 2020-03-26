@@ -87,6 +87,7 @@ typedef enum vt_char_encoding {
 
 } vt_char_encoding_t;
 
+/* VT_ISO8859_1 <= (encoding) is always true if encoding is u_int16_t (vt_parser.h) */
 #define IS_ISO8859_VARIANT(encoding) (VT_ISO8859_1 <= (encoding) && (encoding) <= VT_TCVN5712)
 
 #define IS_8BIT_ENCODING(encoding) (VT_ISO8859_1 <= (encoding) && (encoding) <= VT_CP874)
