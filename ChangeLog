@@ -1,3 +1,10 @@
+2020-03-29  Araki Ken  <arakiken@users.sf.net>
+
+	* c_sixel.c:
+	  - Both SIXEL_SHAREPALETTE and SIXEL_ORMODE are defined,
+	    don't remove 'p++' at the end of load_sixel_from_data().
+	  - for (x < rep) -> do .. while (x < rep)
+
 2020-03-26  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_term.c: Missing '}' is fixed.
