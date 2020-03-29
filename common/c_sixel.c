@@ -519,7 +519,7 @@ body:
   }
 #endif
 
-  rep = asp_x;
+  rep = asp_x; /* always >= 1 */
   pix_x = pix_y = 0;
   stride = width * PIXEL_SIZE;
   color = 0;
@@ -572,11 +572,11 @@ body:
       if (ormode) {
         for (y = 0; y < 6; y++) {
           if ((b & a) != 0) {
-            int x;
+            int x = 0;
 
-            for (x = 0; x < rep; x++) {
-              ((pixel_t*)line)[x] |= color;
-            }
+            do {
+              ((pixel_t*)line)[x++] |= color;
+            } while (x < rep); /* rep >= 1 */
           }
 
           a <<= 1;
@@ -589,11 +589,11 @@ body:
         for (y = 0; y < 6; y++) {
           if ((b & a) != 0) {
 #ifdef USE_GRF
-            int x;
+            int x = 0;
 
-            for (x = 0; x < rep; x++) {
-              ((u_int16_t*)line)[x] = color_indexes[color];
-            }
+            do {
+              ((u_int16_t*)line)[x++] = color_indexes[color];
+            } while (x < rep); /* rep >= 1 */
 #else
             memset(line, color_indexes[color], rep);
 #endif
@@ -604,16 +604,16 @@ body:
 #else
         for (y = 0; y < 6; y++) {
           if ((b & a) != 0) {
-            int x;
+            int x = 0;
 
-            for (x = 0; x < rep; x++) {
+            do {
 #ifdef SIXEL_1BPP
               /* 0x80 is opaque mark */
-              ((pixel_t*)line)[x] = 0x80 | palette[color];
+              ((pixel_t*)line)[x++] = 0x80 | palette[color];
 #else
-              ((pixel_t*)line)[x] = palette[color];
+              ((pixel_t*)line)[x++] = palette[color];
 #endif
-            }
+            } while (x < rep); /* rep >= 1 */
           }
 
           a <<= 1;
@@ -632,7 +632,7 @@ body:
         cur_height = pix_y + 6;
       }
 
-      rep = asp_x;
+      rep = asp_x; /* always >= 1 */
     } else if (*p == '!') {
       /* ! Pn Ch */
       if (*(++p) == '\0') {
@@ -652,7 +652,7 @@ body:
       }
     } else if (*p == '$' || *p == '-') {
       pix_x = 0;
-      rep = asp_x;
+      rep = asp_x; /* always >= 1 */
 
       if (*p == '-') {
         if (!init_width && width > cur_width && cur_width > 0) {
@@ -917,12 +917,15 @@ end:
 
       for (y = 0; y < cur_height; y++) {
         for (x = 0; x < cur_width; x++) {
-#ifdef SIXEL_SHAREPALETTE
+#if defined(SIXEL_SHAREPALETTE)
           *p = color_indexes[*p];
+#elif defined(SIXEL_1BPP)
+          /* 0x80 is opaque mark */
+          *p = 0x80 | palette[*p];
 #else
           *p = palette[*p];
-          p++;
 #endif
+          p++;
         }
       }
     }
