@@ -8,6 +8,7 @@
 #include <unistd.h> /* select */
 #include <sys/time.h>
 #endif
+#include <pobl/bl_str.h> /* strdup */
 
 #if 0
 #define __DEBUG
@@ -22,8 +23,8 @@ int mc_get_flag_value_file(const char *key);
 const char *mc_get_gui_file(void);
 void mc_set_font_name_file(mc_io_t io, const char *file, const char *cs, const char *font_name);
 char *mc_get_font_name_file(const char *file, const char *cs);
-void mc_set_color_name_file(mc_io_t io, const char *color, const char *value);
-char *mc_get_color_name_file(const char *color);
+void mc_set_color_rgb_file(mc_io_t io, const char *color, const char *value);
+char *mc_get_color_rgb_file(const char *color);
 
 void mc_exec_pty(const char *cmd);
 void mc_set_str_value_pty(const char *key, const char *value);
@@ -34,8 +35,8 @@ int mc_get_flag_value_pty(const char *key);
 const char *mc_get_gui_pty(void);
 void mc_set_font_name_pty(mc_io_t io, const char *file, const char *cs, const char *font_name);
 char *mc_get_font_name_pty(const char *file, const char *cs);
-void mc_set_color_name_pty(mc_io_t io, const char *color, const char *value);
-char *mc_get_color_name_pty(const char *color);
+void mc_set_color_rgb_pty(mc_io_t io, const char *color, const char *value);
+char *mc_get_color_rgb_pty(const char *color);
 
 /* --- static variables --- */
 
@@ -43,7 +44,7 @@ static int is_file_io = 0;
 
 /* --- global functions --- */
 
-void mc_io_set_use_file(flag) {
+void mc_io_set_use_file(int flag) {
   is_file_io = flag;
 }
 
