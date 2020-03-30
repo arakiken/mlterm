@@ -1,3 +1,9 @@
+2020-03-30  Araki Ken  <arakiken@users.sf.net>
+
+	* mc_io.c:
+	  Function declarations are renamed as follows.
+	  mc_{set|get}_color_name_{file|pty}() -> mc_{set|get}_color_rgb_{file|pty}()
+
 2020-03-29  Araki Ken  <arakiken@users.sf.net>
 
 	* c_sixel.c:
