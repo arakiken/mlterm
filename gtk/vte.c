@@ -4424,11 +4424,16 @@ int ui_event_source_remove_fd(int fd) {
  * So multi device is disabled for now.
  *
  * __attribute__((constructor)) hack is necessary because
- *gdk_disable_multidevice()
- * must be called before gtk_init().
+ * gdk_disable_multidevice() must be called before gtk_init().
  */
 #if GTK_CHECK_VERSION(2, 90, 0) && __GNUC__
-static void __attribute__((constructor)) init_vte(void) { gdk_disable_multidevice(); }
+static void __attribute__((constructor)) init_vte(void) {
+#if 0
+  setenv("GDK_CORE_DEVICE_EVENTS", "1", 1);
+#else
+  gdk_disable_multidevice();
+#endif
+}
 #endif
 
 #if VTE_CHECK_VERSION(0, 46, 0)

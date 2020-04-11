@@ -3,6 +3,9 @@
 #include <X11/keysym.h>
 #include <xlib/ui_xim.h> /* ui_xim_display_opened */
 #include <gdk/gdkx.h>
+#if GTK_CHECK_VERSION(2, 90, 0) && defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2)
+#include <X11/extensions/XInput2.h>
+#endif
 
 #if GTK_CHECK_VERSION(2, 90, 0)
 #define gdk_x11_drawable_get_xid(window) gdk_x11_window_get_xid(window)
@@ -11,6 +14,12 @@
 #if 0
 /* Forcibly enable transparency on gnome-terminal which doesn't support it. */
 #define FORCE_TRANSPARENCY
+#endif
+
+/* --- static variables --- */
+
+#if GTK_CHECK_VERSION(2, 90, 0) && defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2)
+static int is_xinput2;
 #endif
 
 /* --- static functions --- */
@@ -49,6 +58,23 @@ static GdkFilterReturn vte_terminal_filter(GdkXEvent *xevent, GdkEvent *event, /
   if (XFilterEvent((XEvent *)xevent, None)) {
     return GDK_FILTER_REMOVE;
   }
+
+#if GTK_CHECK_VERSION(2, 90, 0) && defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2)
+  if (((XEvent *)xevent)->type == GenericEvent) {
+    /*
+     * It is not necessary to replace root, event and child members of XIDeviceEvent.
+     * (((XIDeviceEvent*)((XEvent*)xevent)->xcookie.data)->event)
+     *
+     * XXX TODO
+     * Convert XIDeviceEvent (XI_KeyPress etc) to XEvent (KeyPress etc) and
+     * pass it to ui_window_receive_event().
+     * See _gdk_x11_event_translator_translate() in gdk/x11/gdktranslator.c.
+     *  -> _gdk_x11_device_manager_xi2_translate_event() in gdk/x11/gdkdevicemanager-xi2.c.
+     */
+
+    return GDK_FILTER_CONTINUE;
+  }
+#endif
 
   if ((((XEvent *)xevent)->type == KeyPress || ((XEvent *)xevent)->type == KeyRelease)) {
     is_key_event = 1;
@@ -300,12 +326,28 @@ static void show_root(ui_display_t *disp, GtkWidget *widget) {
     }
   }
 
+#if GTK_CHECK_VERSION(2, 90, 0) && defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2)
+  if (is_xinput2) {
+    ui_window_remove_event_mask(&PVT(terminal)->screen->window,
+                                ButtonPressMask | ButtonMotionMask | ButtonReleaseMask |
+                                KeyPressMask);
+  }
+#endif
+
   ui_display_show_root(disp, &PVT(terminal)->screen->window, 0, 0, 0, "mlterm", xid);
 }
 
 static void init_display(ui_display_t *disp, VteTerminalClass *vclass) {
   GdkDisplay *gdkdisp = gdk_display_get_default();
   const char *name = gdk_display_get_name(gdkdisp);
+#if GTK_CHECK_VERSION(2, 90, 0) && defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2)
+  GdkDeviceManager *devman = gdk_display_get_device_manager(gdkdisp);
+
+  if (G_OBJECT_TYPE(devman) == GDK_TYPE_X11_DEVICE_MANAGER_XI2) {
+    is_xinput2 = 1;
+    bl_msg_printf("Set GDK_CORE_DEVICE_EVENTS=1 to disable XInput2 in advance.\n");
+  }
+#endif
 
   if (name && strstr(name, "wayland")) {
     GtkWidget *dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR,

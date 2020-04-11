@@ -13191,6 +13191,30 @@ if test "$bl_cv_pty" = helper -o "$bl_cv_mingw" = yes -o "$bl_cv_cygwin" = yes -
 	UTMP_NAME=none
 	UTMP_LIBS=
 fi
+#  setutxent()  (SysV)
+if test -z "$UTMP_NAME" ; then
+	ac_fn_c_check_func "$LINENO" "setutxent" "ac_cv_func_setutxent"
+if test "x$ac_cv_func_setutxent" = xyes; then :
+
+		UTMP_NAME=sysv
+		UTMP_LIBS=
+		UTMP_CFLAGS=-DUSE_UTMPX
+
+fi
+
+
+fi
+#  setutent()  (SysV)
+if test -z "$UTMP_NAME" ; then
+	ac_fn_c_check_func "$LINENO" "setutent" "ac_cv_func_setutent"
+if test "x$ac_cv_func_setutent" = xyes; then :
+
+		UTMP_NAME=sysv
+		UTMP_LIBS=
+
+fi
+
+fi
 #  libutempter
 if test -z "$UTMP_NAME" ; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for addToUtmp in -lutempter" >&5
@@ -13233,30 +13257,6 @@ if test "x$ac_cv_lib_utempter_addToUtmp" = xyes; then :
 
 		UTMP_NAME=utmper
 		UTMP_LIBS="-lutempter -lutil"
-
-fi
-
-fi
-#  setutxent()  (SysV)
-if test -z "$UTMP_NAME" ; then
-	ac_fn_c_check_func "$LINENO" "setutxent" "ac_cv_func_setutxent"
-if test "x$ac_cv_func_setutxent" = xyes; then :
-
-		UTMP_NAME=sysv
-		UTMP_LIBS=
-		UTMP_CFLAGS=-DUSE_UTMPX
-
-fi
-
-
-fi
-#  setutent()  (SysV)
-if test -z "$UTMP_NAME" ; then
-	ac_fn_c_check_func "$LINENO" "setutent" "ac_cv_func_setutent"
-if test "x$ac_cv_func_setutent" = xyes; then :
-
-		UTMP_NAME=sysv
-		UTMP_LIBS=
 
 fi
 
