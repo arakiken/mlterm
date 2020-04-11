@@ -1723,7 +1723,8 @@ if test "$utmp_none_obj" = ""; then
 fi
 
 if test "$INSTALL_OPT" = ""; then
-	if test "$utmp_none_obj" = ""; then
+  # SUID is not set to mlterm on MacOSX/Quartz.
+	if test "$utmp_none_obj" = "" -a "$gui" != "quartz"; then
 		has_utmp=`grep utmp /etc/group 2>/dev/null`
 		if test "$has_utmp" ; then
 			INSTALL_OPT="-m 2755 -g utmp"

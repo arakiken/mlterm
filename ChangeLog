@@ -1,3 +1,17 @@
+2020-04-12  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/README: Updated.
+
+	* vte_xlib.c: If GdkDeviceManager is created with XInput2, warning message
+	  is output to ~/.mlterm/msg.log.
+
+	* configure.in: "-m 2755 -g utmp" and "-m 4755 -o root" are not set
+	  to INSTALL_OPT on MacOSX/Quartz.
+
+	* bl_utmp_sysv.c: /dev/ttys00N is supported.
+
+	* baselib/configure.in: setut{x}ent() is preferred to utemper.
+
 2020-03-30  Araki Ken  <arakiken@users.sf.net>
 
 	* mc_io.c:

@@ -87,9 +87,13 @@ bl_utmp_t bl_utmp_new(const char *tty, const char *host, int pty_fd) {
 
   if ((tty_num = strchr(tty, '/'))) {
     tty_num++;
-  } else if ((strncmp(tty + 1, "typ", 3)) == 0) {
+  } else if (strncmp(tty + 1, "typ", 3) == 0) {
     /* /dev/ttypN or /dev/ptypN */
     tty_num = tty + 4;
+  } else if (strncmp(tty, "ttys", 4) == 0) {
+    /* /dev/ttys00N (MacOSX) */
+    tty_num = tty + 4;
+    tty += 3; /* s00N */
   } else {
     free(utmp);
 
