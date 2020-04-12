@@ -476,11 +476,9 @@ static void remove_event_source(int complete) {
     ibus_bus_fd = -1;
   }
 
-#ifndef USE_WAYLAND
   if (complete) {
     (*syms->ui_event_source_remove_fd)(IBUS_ID);
   }
-#endif
 }
 
 /*

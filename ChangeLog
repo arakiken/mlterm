@@ -1,5 +1,11 @@
 2020-04-12  Araki Ken  <arakiken@users.sf.net>
 
+	* im_ibus.c: IBUS_ID is removed from event sources.
+	  (I forgot to remove '#ifndef USE_WAYLAND' in remove_event_source()
+	   in revision 2742.)
+
+2020-04-12  Araki Ken  <arakiken@users.sf.net>
+
 	* gtk/README: Updated.
 
 	* vte_xlib.c: If GdkDeviceManager is created with XInput2, warning message
