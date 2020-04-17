@@ -1,3 +1,8 @@
+2020-04-17  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_display.c: add_root_to_display() is fixed not to destroy
+	  disp->roots[0] and disp->num_roots.
+
 2020-04-12  Araki Ken  <arakiken@users.sf.net>
 
 	* im_ibus.c: IBUS_ID is removed from event sources.
