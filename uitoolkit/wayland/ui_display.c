@@ -184,7 +184,8 @@ static ui_display_t *parent_surface_to_display(struct wl_surface *surface) {
   u_int count;
 
   for (count = 0; count < num_displays; count++) {
-    if (surface == displays[count]->display->parent_surface) {
+    if (displays[count]->display->buffer &&
+        surface == displays[count]->display->parent_surface) {
       return displays[count];
     }
   }
@@ -212,7 +213,7 @@ static ui_display_t *add_root_to_display(ui_display_t *disp, ui_window_t *root,
     num_wlservs = 1;
   }
 
-  if (!(new = calloc(1, sizeof(ui_display_t) + sizeof(Display)))) {
+  if (!(new = malloc(sizeof(ui_display_t) + sizeof(Display)))) {
     return NULL;
   }
 
@@ -233,11 +234,11 @@ static ui_display_t *add_root_to_display(ui_display_t *disp, ui_window_t *root,
 
   displays[num_displays++] = new;
 
-  if ((disp->roots = malloc(sizeof(ui_window_t*)))) {
-    disp->roots[0] = root;
-    disp->num_roots = 1;
+  if ((new->roots = malloc(sizeof(ui_window_t*)))) {
+    new->roots[0] = root;
+    new->num_roots = 1;
   } else {
-    disp->num_roots = 0;
+    new->num_roots = 0;
   }
 
   wlserv->ref_count++;
