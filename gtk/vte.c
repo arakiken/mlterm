@@ -1,6 +1,7 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #undef VTE_SEAL_ENABLE
+#define VTE_COMPILATION /* Don't define _VTE_GNUC_NONNULL as __attribute__(__nonnull__) */
 #include <vte/vte.h>
 #ifndef VTE_CHECK_VERSION
 #define VTE_CHECK_VERSION(a, b, c) (0)
@@ -4278,7 +4279,12 @@ void vte_pty_child_setup(VtePty *pty) {
 }
 
 int vte_pty_get_fd(VtePty *pty) {
-  if (!pty->terminal) {
+  /*
+   * XXX
+   * sakura 3.6.0 calls vte_pty_get_fd(NULL) if "Close tab" of right-click menu is selected.
+   * (This is because vte_pty_get_pty() in this file can return NULL.)
+   */
+  if (!pty || !pty->terminal) {
     return -1;
   }
 
