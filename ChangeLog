@@ -1,3 +1,7 @@
+2020-04-18  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: VTE_COMPILATION is defined.
+
 2020-04-17  Araki Ken  <arakiken@users.sf.net>
 
 	* wayland/ui_display.c: add_root_to_display() is fixed not to destroy
