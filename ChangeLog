@@ -1,3 +1,12 @@
+2020-04-19  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c:
+	  - vte_terminal_match_remove_all() is implemented.
+	  - vte_terminal_finalize() calls vte_terminal_match_remove_all()
+	  - vte_terminal_match_add_{g}regex() keeps regex in
+	    PVT(terminal)->match_{g|v}regexes and {g|vte}_regex_ref(regex).
+	  - vte_get_encodings() and vte_get_encoding_supported() symbols are added.
+
 2020-04-18  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: VTE_COMPILATION is defined.

@@ -156,9 +156,13 @@ struct _VteTerminalPrivate {
 
 #if GLIB_CHECK_VERSION(2, 14, 0)
   GRegex *gregex;
+  GRegex **match_gregexes;
 #if VTE_CHECK_VERSION(0, 46, 0)
   VteRegex *vregex;
+  VteRegex **match_vregexes;
+  u_int16_t num_match_vregexes;
 #endif
+  u_int16_t num_match_gregexes;
 #endif
 
 #if VTE_CHECK_VERSION(0, 38, 0)
@@ -1086,9 +1090,30 @@ static void vte_terminal_finalize(GObject *obj) {
 
   terminal = VTE_TERMINAL(obj);
 
+#if GLIB_CHECK_VERSION(2, 14, 0)
+  if (PVT(terminal)->gregex) {
+    g_regex_unref(PVT(terminal)->gregex);
+    PVT(terminal)->gregex = NULL;
+  }
+
+#if VTE_CHECK_VERSION(0, 46, 0)
+  if (PVT(terminal)->vregex) {
+    vte_regex_unref(PVT(terminal)->vregex);
+    PVT(terminal)->vregex = NULL;
+  }
+#endif
+#endif
+
+#if VTE_CHECK_VERSION(0, 38, 0)
+  vte_terminal_match_remove_all(terminal);
+#else
+  vte_terminal_match_clear_all(terminal);
+#endif
+
 #if VTE_CHECK_VERSION(0, 26, 0)
   if (PVT(terminal)->pty) {
     g_object_unref(PVT(terminal)->pty);
+    PVT(terminal)->pty = NULL;
   }
 #endif
 
@@ -2396,8 +2421,12 @@ static void vte_terminal_init(VteTerminal *terminal) {
 
 #if GLIB_CHECK_VERSION(2, 14, 0)
   PVT(terminal)->gregex = NULL;
+  PVT(terminal)->match_gregexes = NULL;
+  PVT(terminal)->num_match_gregexes = 0;
 #if VTE_CHECK_VERSION(0, 46, 0)
   PVT(terminal)->vregex = NULL;
+  PVT(terminal)->match_vregexes = NULL;
+  PVT(terminal)->num_match_vregexes = 0;
 #endif
 #endif
 
@@ -2904,33 +2933,30 @@ pid_t vte_terminal_forkpty(VteTerminal *terminal, char **envv, const char *direc
   return vt_term_get_child_pid(PVT(terminal)->term);
 }
 
-void vte_terminal_feed(VteTerminal *terminal, const char *data,
 #if VTE_CHECK_VERSION(0, 38, 0)
-                       gssize length
+void vte_terminal_feed(VteTerminal *terminal, const char *data, gssize length)
 #else
-                       glong length
+void vte_terminal_feed(VteTerminal *terminal, const char *data, glong length)
 #endif
-                       ) {
+{
   vt_term_write_loopback(PVT(terminal)->term, data, length == -1 ? strlen(data) : length);
 }
 
-void vte_terminal_feed_child(VteTerminal *terminal, const char *text,
 #if VTE_CHECK_VERSION(0, 38, 0)
-                             gssize length
+void vte_terminal_feed_child(VteTerminal *terminal, const char *text, gssize length)
 #else
-                             glong length
+void vte_terminal_feed_child(VteTerminal *terminal, const char *text, glong length)
 #endif
-                             ) {
+{
   vt_term_write(PVT(terminal)->term, text, length == -1 ? strlen(text) : length);
 }
 
-void vte_terminal_feed_child_binary(VteTerminal *terminal,
 #if VTE_CHECK_VERSION(0, 38, 0)
-                                    const guint8 *data, gsize length
+void vte_terminal_feed_child_binary(VteTerminal *terminal, const guint8 *data, gsize length)
 #else
-                                    const char *data, glong length
+void vte_terminal_feed_child_binary(VteTerminal *terminal, const char *data, glong length)
 #endif
-                                    ) {
+{
   vt_term_write(PVT(terminal)->term, data, length);
 }
 
@@ -3035,11 +3061,10 @@ void vte_terminal_unselect_all(VteTerminal *terminal) {
 }
 #endif
 
-void
 #if VTE_CHECK_VERSION(0, 38, 0)
-vte_terminal_select_none(VteTerminal *terminal)
+void vte_terminal_select_none(VteTerminal *terminal)
 #else
-vte_terminal_unselect_all(VteTerminal *terminal)
+void vte_terminal_unselect_all(VteTerminal *terminal)
 #endif
 {
   if (!GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
@@ -3730,11 +3755,18 @@ void vte_terminal_get_cursor_position(VteTerminal *terminal, glong *column, glon
   *row = vt_term_cursor_row(PVT(terminal)->term);
 }
 
-void vte_terminal_match_clear_all(VteTerminal *terminal) {}
-
 #if GLIB_CHECK_VERSION(2, 14, 0)
 int vte_terminal_match_add_gregex(VteTerminal *terminal, GRegex *regex, GRegexMatchFlags flags) {
   /* XXX */
+  void *p;
+
+  if ((p = realloc(PVT(terminal)->match_gregexes,
+                   sizeof(GRegex*) * (PVT(terminal)->num_match_gregexes + 1))) == NULL) {
+    return 0;
+  }
+  PVT(terminal)->match_gregexes = p;
+  PVT(terminal)->match_gregexes[PVT(terminal)->num_match_gregexes++] = regex;
+  g_regex_ref(regex);
 
   if (strstr(g_regex_get_pattern(regex), "http")) {
     /* tag == 1 */
@@ -3752,6 +3784,37 @@ void vte_terminal_match_set_cursor_type(VteTerminal *terminal, int tag, GdkCurso
 }
 
 void vte_terminal_match_set_cursor_name(VteTerminal *terminal, int tag, const char *cursor_name) {}
+
+#if VTE_CHECK_VERSION(0, 38, 0)
+void vte_terminal_match_remove_all(VteTerminal *terminal)
+#else
+void vte_terminal_match_clear_all(VteTerminal *terminal)
+#endif
+{
+#if GLIB_CHECK_VERSION(2, 14, 0)
+  if (PVT(terminal)->match_gregexes) {
+    u_int count;
+
+    for (count = 0; count < PVT(terminal)->num_match_gregexes; count++) {
+      g_regex_unref(PVT(terminal)->match_gregexes[count]);
+    }
+    free(PVT(terminal)->match_gregexes);
+    PVT(terminal)->match_gregexes = NULL;
+  }
+
+#if VTE_CHECK_VERSION(0, 46, 0)
+  if (PVT(terminal)->match_vregexes) {
+    u_int count;
+
+    for (count = 0; count < PVT(terminal)->num_match_vregexes; count++) {
+      vte_regex_unref(PVT(terminal)->match_vregexes[count]);
+    }
+    free(PVT(terminal)->match_vregexes);
+    PVT(terminal)->match_vregexes = NULL;
+  }
+#endif
+#endif
+}
 
 void vte_terminal_match_remove(VteTerminal *terminal, int tag) {}
 
@@ -3794,11 +3857,12 @@ char *vte_terminal_match_check_event(VteTerminal *terminal, GdkEvent *event, int
 #endif
 
 #if GLIB_CHECK_VERSION(2, 14, 0)
-void vte_terminal_search_set_gregex(VteTerminal *terminal, GRegex *regex
 #if VTE_CHECK_VERSION(0, 38, 0)
-                                    , GRegexMatchFlags flags
+void vte_terminal_search_set_gregex(VteTerminal *terminal, GRegex *regex, GRegexMatchFlags flags)
+#else
+void vte_terminal_search_set_gregex(VteTerminal *terminal, GRegex *regex)
 #endif
-                                    ) {
+{
   if (regex) {
     if (!PVT(terminal)->gregex) {
       vt_term_search_init(PVT(terminal)->term, match_gregex);
@@ -4111,21 +4175,19 @@ void vte_pty_set_term(VtePty *pty, const char *emulation) {
 }
 #endif
 
-VtePty *
 #if VTE_CHECK_VERSION(0, 38, 0)
-vte_terminal_get_pty(
+VtePty *vte_terminal_get_pty(VteTerminal *terminal)
 #else
-vte_terminal_get_pty_object(
+VtePty *vte_terminal_get_pty_object(VteTerminal *terminal)
 #endif
-    VteTerminal *terminal) {
+{
   return PVT(terminal)->pty;
 }
 
-void
 #if VTE_CHECK_VERSION(0, 38, 0)
-vte_terminal_set_pty(VteTerminal *terminal, VtePty *pty)
+void vte_terminal_set_pty(VteTerminal *terminal, VtePty *pty)
 #else
-vte_terminal_set_pty_object(VteTerminal *terminal, VtePty *pty)
+void vte_terminal_set_pty_object(VteTerminal *terminal, VtePty *pty)
 #endif
 {
   pid_t pid;
@@ -4449,7 +4511,7 @@ VteRegex *vte_regex_ref(VteRegex *regex) {
   g_atomic_int_inc(&regex->ref_count);
 
   return regex;
- }
+}
 
 VteRegex *vte_regex_unref(VteRegex *regex) {
   g_return_val_if_fail(regex, NULL);
@@ -4490,6 +4552,15 @@ gboolean vte_regex_jit(VteRegex *regex, guint32 flags, GError **error) {
 
 int vte_terminal_match_add_regex(VteTerminal *terminal, VteRegex *regex, guint32 flags) {
   /* XXX */
+  void *p;
+
+  if ((p = realloc(PVT(terminal)->match_vregexes,
+                   sizeof(VteRegex*) * (PVT(terminal)->num_match_vregexes + 1))) == NULL) {
+    return 0;
+  }
+  PVT(terminal)->match_vregexes = p;
+  PVT(terminal)->match_vregexes[PVT(terminal)->num_match_vregexes++] = regex;
+  vte_regex_ref(regex);
 
   if (strstr(g_regex_get_pattern(regex->gregex), "http")) {
     /* tag == 1 */
@@ -4595,5 +4666,15 @@ void vte_terminal_set_enable_shaping(VteTerminal *terminal, gboolean enable_shap
 
 gboolean vte_terminal_get_enable_shaping(VteTerminal *terminal) {
   return vte_terminal_get_enable_bidi(terminal);
+}
+#endif
+
+#if VTE_CHECK_VERSION(0, 60, 0)
+char **vte_get_encodings(gboolean include_aliases) {
+  return calloc(1, sizeof(char*));
+}
+
+gboolean vte_get_encoding_supported(const char *encoding) {
+  return FALSE;
 }
 #endif
