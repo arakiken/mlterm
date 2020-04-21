@@ -1958,6 +1958,7 @@ size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parse
 #endif
 
   if ((*keysym = event->ksym) >= 0x100) {
+#ifndef USE_SDL2
 #if defined(__linux__) || defined(__FreeBSD__)
     /*
      * Linux:
@@ -1976,6 +1977,7 @@ size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parse
 
       goto ucs;
     } else
+#endif
 #endif
     {
       switch (*keysym) {
