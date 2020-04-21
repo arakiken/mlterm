@@ -1,3 +1,8 @@
+2020-04-22  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/ui_window.c: ui_window_get_str() doesn't regard event->ksym
+	  which is >= 0x100 as UCS on SDL2.
+
 2020-04-19  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c:
