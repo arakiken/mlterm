@@ -806,6 +806,7 @@ DEXPORT
 SUBSYSTEM
 WIN32TAG
 CYGPATHW
+MLTERM_FB
 OPT_CFLAGS
 DEB_CFLAGS
 X_CFLAGS_AUX
@@ -16660,6 +16661,8 @@ fi
 
 
 
+MLTERM_FB="mlterm-fb"
+
 
 # Check whether --with-gui was given.
 if test "${with_gui+set}" = set; then :
@@ -16697,6 +16700,26 @@ if test `echo $gui | grep ,`; then
 	done
 elif test "$gui" = "subdir"; then
 	gui=`basename $PWD`
+
+	if test "$gui" = "wscons"; then
+		MLTERM_FB="mlterm-wscons"
+	elif test "$gui" = "x68kgrf"; then
+		MLTERM_FB="mlterm-x68kgrf"
+	elif test "$gui" = "scpc98"; then
+		MLTERM_FB="mlterm-scpc98"
+	fi
+fi
+
+
+if test "$gui" = "wscons"; then
+	gui="fb"
+	fbtype="wscons"
+elif test "$gui" = "x68kgrf"; then
+	gui="fb"
+	fbtype="x68kgrf"
+elif test "$gui" = "scpc98"; then
+	gui="fb"
+	fbtype="pc98"
 fi
 
 if test "$gui" = "fb" ; then
@@ -18054,26 +18077,32 @@ fi
 
 else
 	GUI="fb"
-	# for NetBSD/x68k
-	# <machine/vuid_event.h> is also checked not to enable USE_GRF on NetBSD/macppc.
-	ac_fn_c_check_header_mongrel "$LINENO" "machine/grfioctl.h" "ac_cv_header_machine_grfioctl_h" "$ac_includes_default"
+	if test "$fbtype" = ""; then
+		if test "`sysctl machdep.ispc98`" = "machdep.ispc98: 1"; then
+			fbtype="pc98"
+		else
+			# for NetBSD/x68k
+			# <machine/vuid_event.h> is also checked not to enable USE_GRF on NetBSD/macppc.
+			ac_fn_c_check_header_mongrel "$LINENO" "machine/grfioctl.h" "ac_cv_header_machine_grfioctl_h" "$ac_includes_default"
 if test "x$ac_cv_header_machine_grfioctl_h" = xyes; then :
   ac_fn_c_check_header_mongrel "$LINENO" "machine/vuid_event.h" "ac_cv_header_machine_vuid_event_h" "$ac_includes_default"
 if test "x$ac_cv_header_machine_vuid_event_h" = xyes; then :
-
-			fbtype="(x68kgrf)"
-			GUI_CFLAGS="-DUSE_GRF"
-
+  fbtype="x68kgrf"
 fi
 
 
 fi
 
 
-	if test "`sysctl machdep.ispc98`" = "machdep.ispc98: 1"; then
-		GUI_CFLAGS="${GUI_CFLAGS} -DPC98"
-		fbtype="(pc98)"
+		fi
 	fi
+
+	if test "$fbtype" = "x68kgrf"; then
+		GUI_CFLAGS="${GUI_CFLAGS} -DUSE_GRF"
+	elif test "$fbtype" = "pc98"; then
+		GUI_CFLAGS="${GUI_CFLAGS} -DPC98"
+	fi
+
 	GUI_CFLAGS="${GUI_CFLAGS} -DUSE_FRAMEBUFFER"
 fi
 
@@ -25604,8 +25633,11 @@ echo
 echo "Installation path prefix          : $prefix"
 echo "Build shared libraries            : $enable_shared"
 echo "Build static libraries            : $enable_static"
-echo -n "GUI toolkit                       : $gui"
-echo "$fbtype"
+if test "$fbtype" = ""; then
+	echo "GUI toolkit                       : $gui"
+else
+	echo "GUI toolkit                       : $gui ($fbtype)"
+fi
 echo "BiDi rendering (Fribidi)          : $have_fribidi"
 echo "Indic rendering                   : $ind"
 if test "$OT_LAYOUT_OBJ" = "hb.o"; then

@@ -72,7 +72,7 @@ LIBS = $(LIBS1) $(LIBS2_@GUI@)
 
 PROG_xlib = mlterm
 PROG_win32 = mlterm
-PROG_fb = mlterm-fb
+PROG_fb = @MLTERM_FB@
 PROG_console = mlterm-con-server
 PROG_quartz = mlterm
 PROG_beos = mlterm
