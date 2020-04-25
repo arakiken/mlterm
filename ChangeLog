@@ -1,5 +1,11 @@
 2020-04-25  Araki Ken  <arakiken@users.sf.net>
 
+	* README.fb: Updated.
+
+	* vt_parser.c: Minor fix.
+
+2020-04-25  Araki Ken  <arakiken@users.sf.net>
+
 	* configure.in, ui_display_x68kgrf.c:
 	  If --with-gui=x68kgrf is specified, ui_display_x68kgrf.c includes
 	  uitoolkit/fb/grfioctl.h instead of <machine/grfioctl.h>.

@@ -14,6 +14,11 @@
 #include <stdarg.h> /* va_list */
 #endif
 
+#if defined(USE_LIBSSH2) && !defined(USE_WIN32API)
+#define _XOPEN_SOURCE
+#include <wchar.h> /* wcwidth */
+#endif
+
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>    /* malloc/free */
 #include <pobl/bl_util.h>   /* DIGIT_STR_LEN */
@@ -34,11 +39,6 @@
 
 #if defined(__CYGWIN__) || defined(__MSYS__)
 #include "cygfile.h"
-#endif
-
-#if defined(USE_LIBSSH2) && !defined(USE_WIN32API)
-#define _XOPEN_SOURCE
-#include <wchar.h> /* wcwidth */
 #endif
 
 /*

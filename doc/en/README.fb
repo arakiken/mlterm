@@ -81,6 +81,9 @@ Framebuffer support
   (for NetBSD)
   o See https://gist.github.com/tsutsui/5689730
     (Thanks to @tsutsuii san)
+  o ./configure automatically determines whether to build mlterm-fb for
+    NetBSD/x68k or for wscons.
+    It is possible to force it by --with-gui=x68kgrf or --with-gui=wscons option.
   o Boot kernel with vesa.
     [Example of /boot.cfg]
     menu=Boot ... vesa 0x13e;boot

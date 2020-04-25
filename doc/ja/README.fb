@@ -91,6 +91,10 @@ Framebuffer 対応に関するメモ
   (for NetBSD)
   o See https://gist.github.com/tsutsui/5689730
     (Thanks to @tsutsuii san)
+  o NetBSD/x68k 用の mlterm-fb をビルドするか、wscons 用の mlterm-fb をビルドす
+    るかは、./configure が自動的に判定しますが、--with-gui=x68kgrf 又は
+    --with-gui=wscons オプションを指定すると、どちらにするか強制的に指定すること
+    も可能です。
   o /boot.cfg に次のように vesa を指定して起動してください。
     menu=Boot ... vesa 0x13e;boot
                   ^^^^^^^^^^ -> 0x13e は 640x400x32 (boot prompt で > vesa list)
