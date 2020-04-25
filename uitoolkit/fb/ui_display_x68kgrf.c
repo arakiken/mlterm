@@ -1,8 +1,13 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #include <dev/wscons/wsdisplay_usl_io.h> /* VT_GETSTATE */
+#ifdef HAVE_GRFIOCTL_H
 #include <machine/grfioctl.h>
 #include <machine/vuid_event.h>
+#else
+#include "grfioctl.h"
+#include <dev/sun/vuid_event.h>
+#endif
 #include <dev/sun/kbio.h>
 
 #define get_key_state() (0)

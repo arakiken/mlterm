@@ -18087,7 +18087,10 @@ else
 if test "x$ac_cv_header_machine_grfioctl_h" = xyes; then :
   ac_fn_c_check_header_mongrel "$LINENO" "machine/vuid_event.h" "ac_cv_header_machine_vuid_event_h" "$ac_includes_default"
 if test "x$ac_cv_header_machine_vuid_event_h" = xyes; then :
-  fbtype="x68kgrf"
+
+					fbtype="x68kgrf"
+					GUI_CFLAGS="-DHAVE_GRFIOCTL_H"
+
 fi
 
 
