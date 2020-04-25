@@ -562,7 +562,11 @@ else
 			# for NetBSD/x68k
 			# <machine/vuid_event.h> is also checked not to enable USE_GRF on NetBSD/macppc.
 			AC_CHECK_HEADER(machine/grfioctl.h,
-				AC_CHECK_HEADER(machine/vuid_event.h, fbtype="x68kgrf"))
+				AC_CHECK_HEADER(machine/vuid_event.h,
+					[
+					fbtype="x68kgrf"
+					GUI_CFLAGS="-DHAVE_GRFIOCTL_H"
+					]))
 		fi
 	fi
 
