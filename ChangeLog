@@ -1,5 +1,7 @@
 2020-04-25  Araki Ken  <arakiken@users.sf.net>
 
+	* c_sixel.c: Compiling error by g++ is fixed.
+
 	* zmodem.c: basename() -> bl_basename()
 
 	* README.fb: Updated.

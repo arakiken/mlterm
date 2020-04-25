@@ -913,7 +913,7 @@ end:
 #ifdef SIXEL_ORMODE
     if (ormode) {
       int x, y;
-      pixel_t *p = pixels;
+      pixel_t *p = (pixel_t*)pixels;
 
       for (y = 0; y < cur_height; y++) {
         for (x = 0; x < cur_width; x++) {
