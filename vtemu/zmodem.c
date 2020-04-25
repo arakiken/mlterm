@@ -61,7 +61,7 @@
 
 #include <pobl/bl_def.h> /* USE_WIN32API */
 #include <pobl/bl_types.h> /* u_int32_t */
-#include <pobl/bl_path.h> /* basename */
+#include <pobl/bl_path.h> /* bl_basename */
 
 #ifndef uint32_t
 #define uint32_t u_int32_t
@@ -869,7 +869,7 @@ static void stats_new_file(const char * filename, const int filesize) {
      */
     basename_arg = Xstrdup(filename, __FILE__, __LINE__);
     dirname_arg = Xstrdup(filename, __FILE__, __LINE__);
-    set_transfer_stats_filename(basename(basename_arg));
+    set_transfer_stats_filename(bl_basename(basename_arg));
     set_transfer_stats_pathname(dirname(dirname_arg));
     Xfree(basename_arg, __FILE__, __LINE__);
     Xfree(dirname_arg, __FILE__, __LINE__);
@@ -1014,7 +1014,7 @@ static Q_BOOL setup_for_next_file() {
     if (status.file_name != NULL) {
         Xfree(status.file_name, __FILE__, __LINE__);
     }
-    status.file_name = Xstrdup(basename(basename_arg), __FILE__, __LINE__);
+    status.file_name = Xstrdup(bl_basename(basename_arg), __FILE__, __LINE__);
 
     /*
      * Update the stats
