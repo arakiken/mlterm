@@ -59,7 +59,7 @@ libzmodem.la : zmodem.o
 	$(LIBTOOL_LINK) -o libzmodem.la zmodem.lo \
 	@NO_UNDEFINED_FLAG@ -rpath $(libdir)/mlterm -module -avoid-version @LPOBL@
 
-install : $(LIBDIR)
+install : $(LIBDIR)/mlterm
 	if test "`echo @LMLTERM_CORE@|grep .la`" != "" ; then \
 		$(LIBTOOL_INSTALL) @LMLTERM_CORE@ $(LIBDIR) ; \
 	fi
@@ -68,8 +68,8 @@ install : $(LIBDIR)
 uninstall :
 	rm -f $(LIBDIR)/*mlterm_core*.*
 
-$(LIBDIR) :
-	mkdir -p $(LIBDIR)
+$(LIBDIR)/mlterm :
+	mkdir -p $(LIBDIR)/mlterm
 
 clean :
 	rm -rf $(OBJ) $(OBJ:.o=.lo) $(OBJ_CORE) $(OBJ_CORE:.o=.lo) mlterm.o mlterm.lo \
