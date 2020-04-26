@@ -82,6 +82,9 @@ rm -rf $RPM_BUILD_ROOT
 %{datadir}/mlterm/scrollbars/sample3/
 
 %changelog
+* Sun Apr 26 2020 Araki Ken <arakiken@users.sf.net>
+- Source version 3.9.0
+
 * Fri Nov 22 2019 Araki Ken <arakiken@users.sf.net>
 - Source version 3.8.9
 

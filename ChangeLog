@@ -1,5 +1,16 @@
 2020-04-26  Araki Ken  <arakiken@users.sf.net>
 
+	* 3.9.0 released.
+	  (tag "rel-3_9_0")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  mlterm.c, android/jni/version.h:
+	  updated for 3.9.0.
+
+	* README, doc/en/PROTOCOL, gtk/README: Updated.
+
+2020-04-26  Araki Ken  <arakiken@users.sf.net>
+
 	* vtemu/Makefile.in: mkdir -p $(LIBDIR)/mlterm
 
 	* Makefile.in: 'distclean' target executes 'rm -rf gui'.

@@ -78,9 +78,6 @@ How to build & install libvte compatible library using mlterm engine.
     ~/.gtkterm2rc    => terminalFont=Terminal 14
     ~/.mlterm/aafont => DEFAULT=Terminal 14
 
-  o Uim module of mlterm conflicts with the one of gtk+ and segmentation fault
-    is caused. (uim 1.5.7)
-
   o Unsupported vte api functions
     - vte_terminal_copy_primary
     - vte_terminal_set_font_scale
@@ -189,7 +186,7 @@ How to build & install libvte compatible library using mlterm engine.
       "visible-bell"
 
 * Tested terminals using vte.
-  o gnome-terminal 3.32.2 on Arch Linux ... OK except transparency
+  o gnome-terminal 3.34.2 on Arch Linux ... OK except transparency
   o gnome-terminal 2.16.0 on CentOS 5   ... OK
   o roxterm 3.3.2 on Arch Linux         ... OK
   o lxterminal 0.3.2 on Arch Linux      ... OK
@@ -198,6 +195,7 @@ How to build & install libvte compatible library using mlterm engine.
 
   Following platforms are not actually tested by developers, but were tested
   in the past.
+  o gnome-terminal 3.32.2 on Arch Linux ... OK except transparency
   o gnome-terminal 3.30.2 on Arch Linux ... OK except transparency
   o gnome-terminal 3.28.2 on Arch Linux ... OK except transparency
   o gnome-terminal 3.26.2 on Arch Linux ... OK except transparency
