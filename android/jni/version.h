@@ -6,8 +6,8 @@
 #include <pobl/bl_util.h>
 
 #define MAJOR_VERSION 3
-#define MINOR_VERSION 8
-#define REVISION 9
+#define MINOR_VERSION 9
+#define REVISION 0
 #define PATCH_LEVEL 0
 
 #if 0
