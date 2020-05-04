@@ -39,7 +39,7 @@ How to transfer data from/to remote hosts.
   where (l)rz and (l)sz commands are installed.
 
   If you want to use zmodem with mosh, build and install
-  http://bitbucket.org/arakiken/mosh/get/sixel-winsock.tar.gz which supports zmodem.
+  https://github.com/arakiken/mosh/archive/sixel-winsock.zip which supports zmodem.
 
   Pressing pause key (which can be configured by RESET in ~/.mlterm/key) stops
   (l)sz or (l)rz.

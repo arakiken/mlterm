@@ -86,11 +86,11 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
   o ssh2 client
     ssh2 client として直接 ssh2 server に接続することができます。
-    libssh2 (http://www.libssh2.org) が必要となります。
+    libssh2 (https://www.libssh2.org) が必要となります。
     なお、共通鍵暗号方式として camellia を利用する場合や、Agent forwarding 機能
     が必要な場合は、
-    https://bitbucket.org/arakiken/libssh2/downloads から、camellia branch の
-    libssh2 をインストールしてください。
+    https://github.com/arakiken/libssh2/archive/camellia-agentfwd.zip
+    をインストールしてください。
     (例 mlterm(mlclient) --serv ssh://user@host:22)
     (see doc/ja/README.ssh, doc/en/README.transfer)
 
@@ -221,14 +221,15 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       mlterm 本体にリンクするようにします。
 
     --disable-ssh2
-      libssh2 (http://www.libssh2.org) を用いて ssh サーバに接続する機能を無効に
+      libssh2 (https://www.libssh2.org) を用いて ssh サーバに接続する機能を無効に
       します。
       なお、共通鍵暗号方式として camellia を使用したい場合や SSH agent forwarding
-      を行いたい場合は、https://bitbucket.org/arakiken/libssh2/downloads にある
-      camellia branch の libssh2 をダウンロードしてインストールしてください。
+      を行いたい場合は、
+      https://github.com/arakiken/libssh2/archive/camellia-agentfwd.zip
+      をダウンロードしてインストールしてください。
 
     --with-mosh=(moshのソースコードがあるディレクトリ)
-      mosh (http://www.mosh.org) を用いて mosh サーバに接続する機能を有効にします。
+      mosh (https://www.mosh.org) を用いて mosh サーバに接続する機能を有効にします。
       なお、あらかじめ mosh の ./configure スクリプトを実行しておいてください。
       また、このオプションは、libssh2 が有効な場合のみ、利用できます。
 
@@ -1592,7 +1593,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
     します。
 
 * 連絡先
-  mlterm-dev-ja ML(http://lists.sourceforge.net/lists/listinfo/mlterm-dev-ja)
+  mlterm-dev-ja ML(https://lists.sourceforge.net/lists/listinfo/mlterm-dev-ja)
 
 * 利用に際しての条件
   BSDライセンスとします。詳細は附属のLICENCEファイルを参照。

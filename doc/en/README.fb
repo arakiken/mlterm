@@ -116,8 +116,8 @@ Framebuffer support
 
   (for OpenBSD)
   o Enable following options and rebuild kernel.
-    (Apply http://mlterm.sf.net/openbsd-5.3-fixvesa.patch for OpenBSD 4.9 or
-     later at the same time.)
+    (Apply http://mlterm.sourceforge.net/openbsd-5.3-fixvesa.patch for OpenBSD
+     4.9 or later at the same time.)
     vesabios0 at mainbus?
     option VESAFB
   o You can change the screen resolution and depth by fb_resolution option in

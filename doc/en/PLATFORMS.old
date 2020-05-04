@@ -1,5 +1,57 @@
 comment -*- mode: text -*-
-comment $Id$
+
+Following platforms are not actually tested by developers, but were supported
+in the past and are probably supported now.
+
+* Ubuntu 15.10 / X, framebuffer (CC=gcc, CC=clang) (x86)
+* Ubuntu 14.10 / X, framebuffer (CC=gcc, CC=clang) (x86)
+* Ubuntu 14.04 / X, framebuffer (CC=gcc, CC=clang) (x86)
+* Ubuntu 13.10 / X, framebuffer (CC=gcc, CC=clang) (x86)
+* Ubuntu 10.10 (CC=gcc, CC=llvm-gcc-4.2) (x86)
+* Ubuntu 11.04 (CC=gcc, CC=clang) (x86)
+* Ubuntu 11.10 (CC=gcc, CC=clang) (x86)
+* Ubuntu 12.04 (CC=gcc, CC=clang) (x86)
+* Debian GNU/Linux Sid, GNU libc 2.3.2 (x86)
+* Solaris 8 (x86)
+* Solaris 2.6 (SunOS 5.6) (CC=cc)
+* Mac OS X 10.2 (ppc)
+* OpenBSD 3.5 (x86)
+* Fedora Core 2 (x86)
+* Fedora 25 / X, framebuffer, wayland (x86)
+* Fedora 24 / X, framebuffer (x86)
+* SuSE Linux 9.1 (x86)
+* Arch Linux 2013.05.01 / X (CC=gcc) (x86)
+* HP-UX 10.20 (CC="cc -Ae")
+* EWS4800 (UX/4800 R11.7) + X11R6 (CC=/usr/abiccs/bin/cc)
+* EWS4800 (UX/4800 R13.5, 64bit) (CC=/usr/ccs64/bin/cc)
+* FreeBSD 3.3R
+* FreeBSD 4.4R
+* NetBSD teokure 6.0.1 / frmebuffer (x86)
+* NetBSD 1.6Q current (x86)
+* NetBSD 1.6.2 (x86)
+* RedHat Linux 7.1
+* Ubuntu 10.04 (x86)
+* MS Windows 98/Cygwin 1.5.13 with x-org 6.8.2.0-1 (x86)
+* MS Windows XP SP3 (x86)
+* MS Windows XP SP3/MSYS 1.0.10 (x86)
+* MS Windows XP SP3/Cygwin 1.7.1-1 (x86)
+* MS Windows XP SP3/Cygwin 1.7.1-1 with X (x86)
+* MS Windows 7/Cygwin 1.7.9 (CC=gcc, CC="gcc -mno-cygwin") (x86)
+* MS Windows 7/Cygwin 1.7.9 with X (x86)
+* MS Windows 7/Cygwin 1.7.10 (CC=gcc, CC="gcc -mno-cygwin") (x86)
+* MS Windows 7/Cygwin 1.7.10 with X (x86)
+* MS Windows 7/Cygwin 1.7.13 (CC=gcc, CC="gcc-3 -mno-cygwin") (x86)
+* MS Windows 7/Cygwin 1.7.13 with X (x86)
+* MS Windows 7 + Cygwin 1.7.17 / GDI (CC=gcc, CC="gcc-3 -mno-cygwin") (x86)
+* MS Windows 7 + Cygwin 1.7.17 / X (x86)
+* MS Windows 7 + Cygwin 1.7.22 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
+* MS Windows 7 + Cygwin 1.7.22 / X (x86)
+* MS Windows 7 + Cygwin 1.7.26 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
+* MS Windows 7 + Cygwin 1.7.26 / X (x86)
+* MS Windows 8 + Cygwin 2.4.1 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
+* MS Windows 7 / GDI (x86)
+* MS Windows 7 + MSYS 1.0.10 / GDI (x86)
+
 
 supported platforms (mlterm-2.9.3 pre/cvs-1.922)
 

@@ -3,7 +3,7 @@ comment -*- mode: text -*-
 How to build & install mlterm co-operating with Java.
 
 * Requirements
-  o SWT (http://www.eclipse.org/swt/)
+  o SWT (https://www.eclipse.org/swt/)
   o JDK or JRE >=1.5
 
 * Build
@@ -88,8 +88,7 @@ How to build & install mlterm co-operating with Java.
     Control+F3: Switch to a next free pty.
 
 * On-line demo (win32 only)
-  http://mlterm.sf.net/mltermlet.html
-  http://mlterm.sf.net/mltermlet.jnpl
+  http://mlterm.sourceforge.net/mltermlet.jnlp
 
   o If libeay32.dll exits in system foler (c:\windows\system) and it is not
     compatible with the one which libssh2 depends on, this demo doesn't start.

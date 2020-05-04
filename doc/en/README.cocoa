@@ -14,7 +14,7 @@ MacOS X/Cocoa support (Experimental)
 
 * Configuration
   Edit main, font, key and color files in ~/.mlterm/
-  See files in http://bitbucket.org/arakiken/mlterm/src/tip/etc/
+  See files in https://github.com/arakiken/mlterm/blob/master/etc/
 
   (Font Configuration)
   Format of font,vfont,tfont is as follows.
@@ -42,4 +42,4 @@ MacOS X/Cocoa support (Experimental)
   o Touch screen for more than 0.5 sec to select characters.
 
 * Executable binaries (MacOSX)
-  http://mlterm.sf.net/bin.html
+  http://mlterm.sourceforge.net/bin.html

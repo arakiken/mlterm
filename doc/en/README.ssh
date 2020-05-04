@@ -4,26 +4,26 @@ Memo about ssh2
 
 * mlterm with ssh2
   If you build mlterm with configure --enable-ssh2, mlterm can connect ssh2
-  server directly by libssh2 (http://www.libssh2.org)
+  server directly by libssh2 (https://www.libssh2.org)
 
   See mlterm manual page for the options related to ssh connection.
 
 * Note
   See doc/en/README.transfer about scp.
 
-* libssh2 camellia branch
-  https://bitbucket.org/arakiken/libssh2/branch/camellia
-  https://bitbucket.org/arakiken/libssh2/get/camellia.tar.gz
+* libssh2 camellia-agentfwd branch
+  https://github.com/arakiken/libssh2/tree/camellia-agentfwd
+  https://github.com/arakiken/libssh2/archive/camellia-agentfwd.zip
 
   o Support camellia.
   o Support Agent Forwarding.
   o Support pageant on cygwin.
   o Minor bug fixes.
 
-  "mlterm for win32" in http://mlterm.sf.net/bin.html contains libssh2 camellia
- branch.
+  "mlterm for win32" in http://mlterm.sourceforge.net/bin.html contains
+  libssh2 camellia-agentfwd branch.
   If you want to add camellia to preferred cipher list, specify
- "cipher_list = camellia,..." in ~/.mlterm/main.
+  "cipher_list = camellia,..." in ~/.mlterm/main.
   If you want to use Agent Forwarding,
   1) Start pageant.
   2) Input "ssh -A host" to "ExecCmd" entry of the connection dialog.

@@ -1,11 +1,11 @@
 comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
-Framebuffer $BBP1~$K4X$9$k%a%b(B
+Framebuffer ÂÐ±þ¤Ë´Ø¤¹¤ë¥á¥â
 
-* $B%F%9%H4D6-(B
+* ¥Æ¥¹¥È´Ä¶­
   Arch Linux
   CentOS 5
-  (Linux kernel 2.6 $B0J9_BP1~(B)
+  (Linux kernel 2.6 °Ê¹ßÂÐ±þ)
 
   FreeBSD 9.0
   FreeBSD(98) 4.11
@@ -14,160 +14,161 @@ Framebuffer $BBP1~$K4X$9$k%a%b(B
 
   OpenBSD 5.3
 
-* $B%S%k%I(B
+* ¥Ó¥ë¥É
   ./configure --with-gui=fb (--disable-anti-alias) ...
   make
   sudo make install
-  ($B%$%s%9%H!<%k@h$O!"(BX $BHG(B mlterm $B$HF1$8%G%#%l%/%H%j$G9=$$$^$;$s!#(B
-   $B$3$N>l9g!"$9$G$K(B X$BHG(B mlterm $B$,%$%s%9%H!<%k$5$l$F$$$l$P!"A4$F$N%U%!%$%k$r(B
-   make install $B$7$J$/$F$b!"(Bmake install-fb $B$G!"(Bmlterm-fb $B5Z$S(B
-   libim-*-fb.so $B%U%!%$%k$@$1%$%s%9%H!<%k$7$F$b!"LdBj$"$j$^$;$s!#(B)
+  (¥¤¥ó¥¹¥È¡¼¥ëÀè¤Ï¡¢X ÈÇ mlterm ¤ÈÆ±¤¸¥Ç¥£¥ì¥¯¥È¥ê¤Ç¹½¤¤¤Þ¤»¤ó¡£
+   ¤³¤Î¾ì¹ç¡¢¤¹¤Ç¤Ë XÈÇ mlterm ¤¬¥¤¥ó¥¹¥È¡¼¥ë¤µ¤ì¤Æ¤¤¤ì¤Ð¡¢Á´¤Æ¤Î¥Õ¥¡¥¤¥ë¤ò
+   make install ¤·¤Ê¤¯¤Æ¤â¡¢make install-fb ¤Ç¡¢mlterm-fb µÚ¤Ó
+   libim-*-fb.so ¥Õ¥¡¥¤¥ë¤À¤±¥¤¥ó¥¹¥È¡¼¥ë¤·¤Æ¤â¡¢ÌäÂê¤¢¤ê¤Þ¤»¤ó¡£)
 
-* $B@_Dj(B
-  $B%U%)%s%H@_Dj0J30$O!"(BX $BHG(B mlterm $B$HF1$8$G$9!#(B
-  $B$J$*!"(Bmlterm-fb $B$r5/F0$9$kA0$K!"I,$:%U%)%s%H$N@_Dj$r9T$C$F$/$@$5$$!#(B
+* ÀßÄê
+  ¥Õ¥©¥ó¥ÈÀßÄê°Ê³°¤Ï¡¢X ÈÇ mlterm ¤ÈÆ±¤¸¤Ç¤¹¡£
+  ¤Ê¤ª¡¢mlterm-fb ¤òµ¯Æ°¤¹¤ëÁ°¤Ë¡¢É¬¤º¥Õ¥©¥ó¥È¤ÎÀßÄê¤ò¹Ô¤Ã¤Æ¤¯¤À¤µ¤¤¡£
 
-  o $B%U%)%s%H$N@_DjJ}K!(B
-    ~/.mlterm/font $B$G$J$/!"(B~/.mlterm/font-fb $B$K!";HMQ$7$?$$(B pcf $BKt$O(B true type
-    $B%U%)%s%H$r@_Dj$7$F$/$@$5$$!#(Bfont-fb $B$N%U%)!<%^%C%H$O(B font $B$H4pK\E*$K$OF1$8(B
-    $B$G$9$,!"(BXLFD $B$G$O$J$/!";HMQ$9$k%U%)%s%H%U%!%$%k$N%Q%9$r5-:\$7$^$9!#(B
-    (etc/font-fb $B$,%5%s%W%k$G$9!#(B)
-    true type $B%U%)%s%H$NI=<($K$O!"$"$i$+$8$a(B freetype $B$r%$%s%9%H!<%k$7$F$*$/(B
-    $BI,MW$,$"$j$^$9!#(B
+  o ¥Õ¥©¥ó¥È¤ÎÀßÄêÊýË¡
+    ~/.mlterm/font ¤Ç¤Ê¤¯¡¢~/.mlterm/font-fb ¤Ë¡¢»ÈÍÑ¤·¤¿¤¤ pcf Ëô¤Ï true type
+    ¥Õ¥©¥ó¥È¤òÀßÄê¤·¤Æ¤¯¤À¤µ¤¤¡£font-fb ¤Î¥Õ¥©¡¼¥Þ¥Ã¥È¤Ï font ¤È´ðËÜÅª¤Ë¤ÏÆ±¤¸
+    ¤Ç¤¹¤¬¡¢XLFD ¤Ç¤Ï¤Ê¤¯¡¢»ÈÍÑ¤¹¤ë¥Õ¥©¥ó¥È¥Õ¥¡¥¤¥ë¤Î¥Ñ¥¹¤òµ­ºÜ¤·¤Þ¤¹¡£
+    (etc/font-fb ¤¬¥µ¥ó¥×¥ë¤Ç¤¹¡£)
+    true type ¥Õ¥©¥ó¥È¤ÎÉ½¼¨¤Ë¤Ï¡¢¤¢¤é¤«¤¸¤á freetype ¤ò¥¤¥ó¥¹¥È¡¼¥ë¤·¤Æ¤ª¤¯
+    É¬Í×¤¬¤¢¤ê¤Þ¤¹¡£
 
-    mlfc $B%3%^%s%I$r<B9T$9$k$H!"(Btrue type $B%U%)%s%H$r8!:w$7!"(B~/.mlterm/font-fb $B$r(B
-    $B<+F0E*$K@8@.$7$^$9!#(B
+    mlfc ¥³¥Þ¥ó¥É¤ò¼Â¹Ô¤¹¤ë¤È¡¢true type ¥Õ¥©¥ó¥È¤ò¸¡º÷¤·¡¢~/.mlterm/font-fb ¤ò
+    ¼«Æ°Åª¤ËÀ¸À®¤·¤Þ¤¹¡£
 
-    $B$^$?!"(Bmlterm-fb --aafont $B$H5/F0$9$k$H!"(B~/.mlterm/*font-fb $B$G$O$J$/!"(B
-    ~/.mlterm/*aafont $B$N@_Dj$rFI$_9~$_!"(Bfontconfig $B$r;H$C$F%U%)%s%H$r8!:w$7$^$9!#(B
+    ¤Þ¤¿¡¢mlterm-fb --aafont ¤Èµ¯Æ°¤¹¤ë¤È¡¢~/.mlterm/*font-fb ¤Ç¤Ï¤Ê¤¯¡¢
+    ~/.mlterm/*aafont ¤ÎÀßÄê¤òÆÉ¤ß¹þ¤ß¡¢fontconfig ¤ò»È¤Ã¤Æ¥Õ¥©¥ó¥È¤ò¸¡º÷¤·¤Þ¤¹¡£
 
-    $B$J$*!"(Btrue type $B%U%)%s%H$r;HMQ$7$J$$>l9g$O(B --disable-anti-alias $B%*%W%7%g%s!"(B
-    fontconfig$B$r;HMQ$7$J$$>l9g$O(B --disable-fontconfig $B%*%W%7%g%s$r;XDj$7$F!"(B
-    ./configure $B$7!"%S%k%I$7$F$/$@$5$$!#(B
+    ¤Ê¤ª¡¢true type ¥Õ¥©¥ó¥È¤ò»ÈÍÑ¤·¤Ê¤¤¾ì¹ç¤Ï --disable-anti-alias ¥ª¥×¥·¥ç¥ó¡¢
+    fontconfig¤ò»ÈÍÑ¤·¤Ê¤¤¾ì¹ç¤Ï --disable-fontconfig ¥ª¥×¥·¥ç¥ó¤ò»ØÄê¤·¤Æ¡¢
+    ./configure ¤·¡¢¥Ó¥ë¥É¤·¤Æ¤¯¤À¤µ¤¤¡£
 
-* $B5/F0J}K!(B
+* µ¯Æ°ÊýË¡
   mlterm-fb (-fg white -bg black -sb=false)
 
-* $BN10U;v9`(B
+* Î±°Õ»ö¹à
   (for Linux)
-  o $B%-!<%\!<%I$KBP1~$9$k(B /dev/input/event<num> $B$,B8:_$7$J$$!"Kt$O%"%/%;%9$9$k8"(B
-    $B8B$,$J$$>l9g!"%7%g!<%H%+%C%H%-!<$O;HMQ$G$-$^$;$s!#(B
-    $B$J$*!"%-!<%\!<%I$KBP1~$9$k(B /dev/input/event<num> $B$O!"(B
-    /sys/class/input/input<num>/name $B$NJ8;zNs$K(B "key" $B$,4^$^$l$F$$$k$+$I$&$+$GH=(B
-    $BDj$7$F$$$^$9!#(B
-    KBD_INPUT_NUM $B4D6-JQ?t$K$h$j!"(B<num>$B$NCM$r;XDj$9$k$3$H$b$G$-$^$9!#(B
-  o $B%-!<%\!<%I%l%$%"%&%H$rJQ99$7$?$$>l9g$O(B "loadkeys jp106" $B$N$h$&$K(B loadkeys $B%3(B
-    $B%^%s%I$r<B9T$7$F$/$@$5$$!#(B
-  o $B%I%$%D8l$J$I$N%-!<%\!<%I$G!"$$$o$f$k%G%C%I%-!<$r;H$C$F!"H/2;5-9f$,$D$$$?J8;z(B
-    $B$rF~NO$9$k>l9g$K;HMQ$9$kJQ49%F!<%V$K$D$$$F$O!"(Bmlterm-fb $B5/F08e$K(B loadkeys $B%3(B
-    $B%^%s%I$G%-!<%\!<%I%l%$%"%&%H$rJQ99$7$F$b!"4p$N%-!<%\!<%I%l%$%"%&%H$N$b$N$N$^(B
-    $B$^JQ$o$i$J$$$N$GCm0U$7$F$/$@$5$$!#(B
-  o $B%^%&%9$KBP1~$9$k(B /dev/input/event<num> $B$,B8:_$7$J$$!"Kt$O%"%/%;%9$9$k8"8B$,(B
-    $B$J$$>l9g!"%^%&%9$r;H$&$3$H$O$G$-$^$;$s!#(B
-    $B$J$*!"%^%&%9$KBP1~$9$k(B /dev/input/event<num> $B$O!"(B
-    /sys/class/input/input<num>/name $B$NJ8;zNs$K(B "mouse" $B$,4^$^$l$F$$$k$+$I$&$+$G(B
-    $BH=Dj$7$F$$$^$9!#(B
-    MOUSE_INPUT_NUM $B4D6-JQ?t$K$h$j!"(B<num>$B$NCM$r;XDj$9$k$3$H$b$G$-$^$9!#(B
-  o $B%^%&%9$r;HMQ$9$k>l9g!"(Bgpm $B$ODd;_$7$F$*$$$F$/$@$5$$!#(B
+  o ¥­¡¼¥Ü¡¼¥É¤ËÂÐ±þ¤¹¤ë /dev/input/event<num> ¤¬Â¸ºß¤·¤Ê¤¤¡¢Ëô¤Ï¥¢¥¯¥»¥¹¤¹¤ë¸¢
+    ¸Â¤¬¤Ê¤¤¾ì¹ç¡¢¥·¥ç¡¼¥È¥«¥Ã¥È¥­¡¼¤Ï»ÈÍÑ¤Ç¤­¤Þ¤»¤ó¡£
+    ¤Ê¤ª¡¢¥­¡¼¥Ü¡¼¥É¤ËÂÐ±þ¤¹¤ë /dev/input/event<num> ¤Ï¡¢
+    /sys/class/input/input<num>/name ¤ÎÊ¸»úÎó¤Ë "key" ¤¬´Þ¤Þ¤ì¤Æ¤¤¤ë¤«¤É¤¦¤«¤ÇÈ½
+    Äê¤·¤Æ¤¤¤Þ¤¹¡£
+    KBD_INPUT_NUM ´Ä¶­ÊÑ¿ô¤Ë¤è¤ê¡¢<num>¤ÎÃÍ¤ò»ØÄê¤¹¤ë¤³¤È¤â¤Ç¤­¤Þ¤¹¡£
+  o ¥­¡¼¥Ü¡¼¥É¥ì¥¤¥¢¥¦¥È¤òÊÑ¹¹¤·¤¿¤¤¾ì¹ç¤Ï "loadkeys jp106" ¤Î¤è¤¦¤Ë loadkeys ¥³
+    ¥Þ¥ó¥É¤ò¼Â¹Ô¤·¤Æ¤¯¤À¤µ¤¤¡£
+  o ¥É¥¤¥Ä¸ì¤Ê¤É¤Î¥­¡¼¥Ü¡¼¥É¤Ç¡¢¤¤¤ï¤æ¤ë¥Ç¥Ã¥É¥­¡¼¤ò»È¤Ã¤Æ¡¢È¯²»µ­¹æ¤¬¤Ä¤¤¤¿Ê¸»ú
+    ¤òÆþÎÏ¤¹¤ë¾ì¹ç¤Ë»ÈÍÑ¤¹¤ëÊÑ´¹¥Æ¡¼¥Ö¤Ë¤Ä¤¤¤Æ¤Ï¡¢mlterm-fb µ¯Æ°¸å¤Ë loadkeys ¥³
+    ¥Þ¥ó¥É¤Ç¥­¡¼¥Ü¡¼¥É¥ì¥¤¥¢¥¦¥È¤òÊÑ¹¹¤·¤Æ¤â¡¢´ð¤Î¥­¡¼¥Ü¡¼¥É¥ì¥¤¥¢¥¦¥È¤Î¤â¤Î¤Î¤Þ
+    ¤ÞÊÑ¤ï¤é¤Ê¤¤¤Î¤ÇÃí°Õ¤·¤Æ¤¯¤À¤µ¤¤¡£
+  o ¥Þ¥¦¥¹¤ËÂÐ±þ¤¹¤ë /dev/input/event<num> ¤¬Â¸ºß¤·¤Ê¤¤¡¢Ëô¤Ï¥¢¥¯¥»¥¹¤¹¤ë¸¢¸Â¤¬
+    ¤Ê¤¤¾ì¹ç¡¢¥Þ¥¦¥¹¤ò»È¤¦¤³¤È¤Ï¤Ç¤­¤Þ¤»¤ó¡£
+    ¤Ê¤ª¡¢¥Þ¥¦¥¹¤ËÂÐ±þ¤¹¤ë /dev/input/event<num> ¤Ï¡¢
+    /sys/class/input/input<num>/name ¤ÎÊ¸»úÎó¤Ë "mouse" ¤¬´Þ¤Þ¤ì¤Æ¤¤¤ë¤«¤É¤¦¤«¤Ç
+    È½Äê¤·¤Æ¤¤¤Þ¤¹¡£
+    MOUSE_INPUT_NUM ´Ä¶­ÊÑ¿ô¤Ë¤è¤ê¡¢<num>¤ÎÃÍ¤ò»ØÄê¤¹¤ë¤³¤È¤â¤Ç¤­¤Þ¤¹¡£
+  o ¥Þ¥¦¥¹¤ò»ÈÍÑ¤¹¤ë¾ì¹ç¡¢gpm ¤ÏÄä»ß¤·¤Æ¤ª¤¤¤Æ¤¯¤À¤µ¤¤¡£
     (/etc/init.d/gpm stop)
 
   (for FreeBSD)
-  o $B$"$i$+$8$a!"(BSC_PIXEL_MODE $B5Z$S(B VESA $B%*%W%7%g%sIU$-$N%+!<%M%k$G5/F0(B($BKt$O5/F0(B
-    $B8e$K%+!<%M%k%b%8%e!<%k$r%m!<%I(B)$B$7!"(Bvidcontrol $B%3%^%s%IEy$K$h$j!"E,@Z$JI=<(%b(B
-    $B!<%I$r;XDj$7$F$/$@$5$$!#(B
+  o ¤¢¤é¤«¤¸¤á¡¢SC_PIXEL_MODE µÚ¤Ó VESA ¥ª¥×¥·¥ç¥óÉÕ¤­¤Î¥«¡¼¥Í¥ë¤Çµ¯Æ°(Ëô¤Ïµ¯Æ°
+    ¸å¤Ë¥«¡¼¥Í¥ë¥â¥¸¥å¡¼¥ë¤ò¥í¡¼¥É)¤·¡¢vidcontrol ¥³¥Þ¥ó¥ÉÅù¤Ë¤è¤ê¡¢Å¬ÀÚ¤ÊÉ½¼¨¥â
+    ¡¼¥É¤ò»ØÄê¤·¤Æ¤¯¤À¤µ¤¤¡£
     $ vidcontrol MODE_XXX
-    (vidcontrol -i mode$B$GI=<($5$l$kA4$F$N%b!<%I$G(B mlterm-fb $B$,5/F0$9$k$o$1$G$O$J(B
-    $B$$$N$GCm0U$7$F$/$@$5$$!#(B)
-  o $B%-!<%j%T!<%H$rJQ99$9$k>l9g$O(B kbdcontrol -r [delay.repeat] $B$G!"(Bwrite-combine
-    $B$rM-8z$K$9$k>l9g$O(B memcontrol set -b 0x.... -l 0x.... write-combine $B$G!"$=$l(B
-    $B$>$l$"$i$+$8$a@_Dj$7$F$*$$$F$/$@$5$$!#(B
-  o $B%-!<%\!<%I%l%$%"%&%H$rJQ99$7$?$$>l9g$O(B kbdcontrol -l cz $B$N$h$&$K(B kbdcontrol
-    $B%3%^%s%I$r<B9T$7$F$/$@$5$$!#(B
-  o FreeBSD 5.0 $B0J>e$G!"%^%&%9(B(/dev/sysmouse)$B$r;HMQ$9$k>l9g!"$"$i$+$8$a!"<!$N$h(B
-    $B$&$K(B moused $B$r5/F0$7$F$*$$$F$/$@$5$$!#(B
+    (vidcontrol -i mode¤ÇÉ½¼¨¤µ¤ì¤ëÁ´¤Æ¤Î¥â¡¼¥É¤Ç mlterm-fb ¤¬µ¯Æ°¤¹¤ë¤ï¤±¤Ç¤Ï¤Ê
+    ¤¤¤Î¤ÇÃí°Õ¤·¤Æ¤¯¤À¤µ¤¤¡£)
+  o ¥­¡¼¥ê¥Ô¡¼¥È¤òÊÑ¹¹¤¹¤ë¾ì¹ç¤Ï kbdcontrol -r [delay.repeat] ¤Ç¡¢write-combine
+    ¤òÍ­¸ú¤Ë¤¹¤ë¾ì¹ç¤Ï memcontrol set -b 0x.... -l 0x.... write-combine ¤Ç¡¢¤½¤ì
+    ¤¾¤ì¤¢¤é¤«¤¸¤áÀßÄê¤·¤Æ¤ª¤¤¤Æ¤¯¤À¤µ¤¤¡£
+  o ¥­¡¼¥Ü¡¼¥É¥ì¥¤¥¢¥¦¥È¤òÊÑ¹¹¤·¤¿¤¤¾ì¹ç¤Ï kbdcontrol -l cz ¤Î¤è¤¦¤Ë kbdcontrol
+    ¥³¥Þ¥ó¥É¤ò¼Â¹Ô¤·¤Æ¤¯¤À¤µ¤¤¡£
+  o FreeBSD 5.0 °Ê¾å¤Ç¡¢¥Þ¥¦¥¹(/dev/sysmouse)¤ò»ÈÍÑ¤¹¤ë¾ì¹ç¡¢¤¢¤é¤«¤¸¤á¡¢¼¡¤Î¤è
+    ¤¦¤Ë moused ¤òµ¯Æ°¤·¤Æ¤ª¤¤¤Æ¤¯¤À¤µ¤¤¡£
     $ /etc/rc.d/moused onestart
-  o FreeBSD(98)$B$G$O!"(B4 bpp $B$N$_%5%]!<%H$7$F$$$^$9!#(B
+  o FreeBSD(98)¤Ç¤Ï¡¢4 bpp ¤Î¤ß¥µ¥Ý¡¼¥È¤·¤Æ¤¤¤Þ¤¹¡£
 
   (for NetBSD)
   o See https://gist.github.com/tsutsui/5689730
     (Thanks to @tsutsuii san)
-  o NetBSD/x68k $BMQ$N(B mlterm-fb $B$r%S%k%I$9$k$+!"(Bwscons $BMQ$N(B mlterm-fb $B$r%S%k%I$9(B
-    $B$k$+$O!"(B./configure $B$,<+F0E*$KH=Dj$7$^$9$,!"(B--with-gui=x68kgrf $BKt$O(B
-    --with-gui=wscons $B%*%W%7%g%s$r;XDj$9$k$H!"$I$A$i$K$9$k$+6/@)E*$K;XDj$9$k$3$H(B
-    $B$b2DG=$G$9!#(B
-  o /boot.cfg $B$K<!$N$h$&$K(B vesa $B$r;XDj$7$F5/F0$7$F$/$@$5$$!#(B
+  o NetBSD/x68k ÍÑ¤Î mlterm-fb ¤ò¥Ó¥ë¥É¤¹¤ë¤«¡¢wscons ÍÑ¤Î mlterm-fb ¤ò¥Ó¥ë¥É¤¹
+    ¤ë¤«¤Ï¡¢./configure ¤¬¼«Æ°Åª¤ËÈ½Äê¤·¤Þ¤¹¤¬¡¢--with-gui=x68kgrf Ëô¤Ï
+    --with-gui=wscons ¥ª¥×¥·¥ç¥ó¤ò»ØÄê¤¹¤ë¤È¡¢¤É¤Á¤é¤Ë¤¹¤ë¤«¶¯À©Åª¤Ë»ØÄê¤¹¤ë¤³¤È
+    ¤â²ÄÇ½¤Ç¤¹¡£
+  o /boot.cfg ¤Ë¼¡¤Î¤è¤¦¤Ë vesa ¤ò»ØÄê¤·¤Æµ¯Æ°¤·¤Æ¤¯¤À¤µ¤¤¡£
     menu=Boot ... vesa 0x13e;boot
-                  ^^^^^^^^^^ -> 0x13e $B$O(B 640x400x32 (boot prompt $B$G(B > vesa list)
-  o $B%-!<%j%T!<%H$O!"(B~/.mlterm/main $B$K<!$N%*%W%7%g%s$r;XDj$9$k$3$H$GJQ99$G$-$^$9!#(B
-    $B$?$@$7!";XDj$G$-$kCM$O(B25ms$BC10L$K$J$j$^$9!#(B
+                  ^^^^^^^^^^ -> 0x13e ¤Ï 640x400x32 (boot prompt ¤Ç > vesa list)
+  o ¥­¡¼¥ê¥Ô¡¼¥È¤Ï¡¢~/.mlterm/main ¤Ë¼¡¤Î¥ª¥×¥·¥ç¥ó¤ò»ØÄê¤¹¤ë¤³¤È¤ÇÊÑ¹¹¤Ç¤­¤Þ¤¹¡£
+    ¤¿¤À¤·¡¢»ØÄê¤Ç¤­¤ëÃÍ¤Ï25msÃ±°Ì¤Ë¤Ê¤ê¤Þ¤¹¡£
     kbd_repeat_1=400
     kbd_repeat_N=50
-  o $B%-!<%\!<%IF~NO$O!"(B/dev/wskbd $B$r;H$C$FFI$_9~$_$^$9!#JL$N%G%P%$%9$r;HMQ$7$?$$(B
-    $B>l9g$O!"(BWSKBD $B4D6-JQ?t$K$=$N%G%P%$%9L>$r;XDj$7$F$/$@$5$$!#(B
+  o ¥­¡¼¥Ü¡¼¥ÉÆþÎÏ¤Ï¡¢/dev/wskbd ¤ò»È¤Ã¤ÆÆÉ¤ß¹þ¤ß¤Þ¤¹¡£ÊÌ¤Î¥Ç¥Ð¥¤¥¹¤ò»ÈÍÑ¤·¤¿¤¤
+    ¾ì¹ç¤Ï¡¢WSKBD ´Ä¶­ÊÑ¿ô¤Ë¤½¤Î¥Ç¥Ð¥¤¥¹Ì¾¤ò»ØÄê¤·¤Æ¤¯¤À¤µ¤¤¡£
     (e.g. export WSKBD=/dev/wskbd0)
-  o $B%-!<%\!<%I%l%$%"%&%H$rJQ99$7$?$$>l9g$O(B wsconsctl -w -k encoding=cz $B$N$h$&$K(B
-    wsconsctl $B%3%^%s%I$r<B9T$7$F$/$@$5$$!#(B
-  o 8 bpp $B$G;HMQ$7$?>l9g!"?'$,@5$7$/I=<($5$l$^$;$s(B($BMW=$@5(B)$B!#(B
-  o Input method plugin $B$H$7$F(B iBus $B$r;HMQ$9$k>l9g$O!"(B./configure $B$K(B
-    --without-pthread $B$r;XDj$7$F%S%k%I$7$J$$$G$/$@$5$$(B(mlterm-fb $B$K(B pthread $B%i%$(B
-    $B%V%i%j$r%j%s%/$7$F$*$+$J$$$H!"(Bibus module $B$N(B dlopen $B$K<:GT$7$^$9!#(B)$B!#(B
-  o 1$B!&(B2$B!&(B4 bpp $B$G$O!"JI;fEy$O(B ANSI color $B$+$i6a;w?'$r8!:w$7$FI=<($7$^$9$,!"(B
-    4 bpp $B$G(B --colors=false (use_ansi_colors=false)$B$r;XDj$7!"(B16$B?'0J2<$N(B sixel $B$r(B
-    $BGX7J$K%;%C%H$7$?>l9g$OEv3:2hA|$N%Q%l%C%H$r;HMQ$7$^$9!#(B
-  o NetBSD/luna68k $B$G$O!"(B--depth=1 $BKt$O(B --depth=4 $B$K$h$j!"(B1bpp $B$H(B 4bpp $B$r@Z$jBX(B
-    $B$($k$3$H$,$G$-$^$9!#(B
-  o NetBSD/x68k $B$G$O(B ~/.mlterm/main $B$K<!$N$h$&$K;XDj$9$k$3$H$G!"2rA|EY$rJQ99$G$-(B
-    $B$^$9!#%5%]!<%H$9$k2rA|EY$O!"(B512x512x15 512x512x8 768x512x4 768x512x1
-    1024x768x4 1024x768x1 $B$G$9!#(B
+  o ¥­¡¼¥Ü¡¼¥É¥ì¥¤¥¢¥¦¥È¤òÊÑ¹¹¤·¤¿¤¤¾ì¹ç¤Ï wsconsctl -w -k encoding=cz ¤Î¤è¤¦¤Ë
+    wsconsctl ¥³¥Þ¥ó¥É¤ò¼Â¹Ô¤·¤Æ¤¯¤À¤µ¤¤¡£
+  o 8 bpp ¤Ç»ÈÍÑ¤·¤¿¾ì¹ç¡¢¿§¤¬Àµ¤·¤¯É½¼¨¤µ¤ì¤Þ¤»¤ó(Í×½¤Àµ)¡£
+  o Input method plugin ¤È¤·¤Æ iBus ¤ò»ÈÍÑ¤¹¤ë¾ì¹ç¤Ï¡¢./configure ¤Ë
+    --without-pthread ¤ò»ØÄê¤·¤Æ¥Ó¥ë¥É¤·¤Ê¤¤¤Ç¤¯¤À¤µ¤¤(mlterm-fb ¤Ë pthread ¥é¥¤
+    ¥Ö¥é¥ê¤ò¥ê¥ó¥¯¤·¤Æ¤ª¤«¤Ê¤¤¤È¡¢ibus module ¤Î dlopen ¤Ë¼ºÇÔ¤·¤Þ¤¹¡£)¡£
+  o 1¡¦2¡¦4 bpp ¤Ç¤Ï¡¢ÊÉ»æÅù¤Ï ANSI color ¤«¤é¶á»÷¿§¤ò¸¡º÷¤·¤ÆÉ½¼¨¤·¤Þ¤¹¤¬¡¢
+    4 bpp ¤Ç --colors=false (use_ansi_colors=false)¤ò»ØÄê¤·¡¢16¿§°Ê²¼¤Î sixel ¤ò
+    ÇØ·Ê¤Ë¥»¥Ã¥È¤·¤¿¾ì¹ç¤ÏÅö³º²èÁü¤Î¥Ñ¥ì¥Ã¥È¤ò»ÈÍÑ¤·¤Þ¤¹¡£
+  o NetBSD/luna68k ¤Ç¤Ï¡¢--depth=1 Ëô¤Ï --depth=4 ¤Ë¤è¤ê¡¢1bpp ¤È 4bpp ¤òÀÚ¤êÂØ
+    ¤¨¤ë¤³¤È¤¬¤Ç¤­¤Þ¤¹¡£
+  o NetBSD/x68k ¤Ç¤Ï ~/.mlterm/main ¤Ë¼¡¤Î¤è¤¦¤Ë»ØÄê¤¹¤ë¤³¤È¤Ç¡¢²òÁüÅÙ¤òÊÑ¹¹¤Ç¤­
+    ¤Þ¤¹¡£¥µ¥Ý¡¼¥È¤¹¤ë²òÁüÅÙ¤Ï¡¢512x512x15 512x512x8 768x512x4 768x512x1
+    1024x768x4 1024x768x1 ¤Ç¤¹¡£
     fb_resolution=512x512x15
-  o NetBSD/x68k $B$G$O!"(Bfb_resolution=768x512x4 $B$N>l9g$K!"(B--multivram=false $BKt$O(B
-    separate_wall_picture=false $B%*%W%7%g%s$r;XDj$7$J$$>l9g!"JI;f$N$_(B Text VRAM $B$K(B ($B$=(B
-    $B$NB>$O(B Graphic VRAM) $B$KIA2h$7$^$9!#$3$l$K$h$j!"%9%/%m!<%kB.EY$,2~A1$7$^$9!#(B
+  o NetBSD/x68k ¤Ç¤Ï¡¢fb_resolution=768x512x4 ¤Î¾ì¹ç¤Ë¡¢--multivram=false Ëô¤Ï
+    separate_wall_picture=false ¥ª¥×¥·¥ç¥ó¤ò»ØÄê¤·¤Ê¤¤¾ì¹ç¡¢ÊÉ»æ¤Î¤ß Text VRAM ¤Ë (¤½
+    ¤ÎÂ¾¤Ï Graphic VRAM) ¤ËÉÁ²è¤·¤Þ¤¹¡£¤³¤ì¤Ë¤è¤ê¡¢¥¹¥¯¥í¡¼¥ëÂ®ÅÙ¤¬²þÁ±¤·¤Þ¤¹¡£
 
   (for OpenBSD)
-  o $B<!$N(B2$B9T$rM-8z$K$7$F%+!<%M%k$N:F9=C[$r9T$C$F$/$@$5$$!#(B
-    (OpenBSD 4.9$B0J9_$G$O(B http://mlterm.sf.net/openbsd-5.3-fixvesa.patch $B$bEv$F$F$/$@$5$$(B)
+  o ¼¡¤Î2¹Ô¤òÍ­¸ú¤Ë¤·¤Æ¥«¡¼¥Í¥ë¤ÎºÆ¹½ÃÛ¤ò¹Ô¤Ã¤Æ¤¯¤À¤µ¤¤¡£
+    (OpenBSD 4.9°Ê¹ß¤Ç¤Ï http://mlterm.sourceforge.net/openbsd-5.3-fixvesa.patch
+    ¤âÅö¤Æ¤Æ¤¯¤À¤µ¤¤)
     vesabios0 at mainbus?
     option VESAFB
-  o ~/.mlterm/main $B$K<!$N$h$&$K;XDj$9$k$3$H$G!"2rA|EY$rJQ99$G$-$^$9!#(B
+  o ~/.mlterm/main ¤Ë¼¡¤Î¤è¤¦¤Ë»ØÄê¤¹¤ë¤³¤È¤Ç¡¢²òÁüÅÙ¤òÊÑ¹¹¤Ç¤­¤Þ¤¹¡£
     fb_resolution=800x600x32
-  o $B%-!<%j%T!<%H$O!"(B/etc/wsconsctl.conf $B$K@_Dj$9$k$+!"(Bwsconsctl $B%3%^%s%I$G;XDj$7(B
-    $B$F$/$@$5$$!#(B
+  o ¥­¡¼¥ê¥Ô¡¼¥È¤Ï¡¢/etc/wsconsctl.conf ¤ËÀßÄê¤¹¤ë¤«¡¢wsconsctl ¥³¥Þ¥ó¥É¤Ç»ØÄê¤·
+    ¤Æ¤¯¤À¤µ¤¤¡£
     $ wsconsctl keyboard.repeat.del1=400
     $ wsconsctl keyboard.repeat.deln=50
-  o $B%-!<%\!<%IF~NO$O!"(B/dev/wskbd $B$r;H$C$FFI$_9~$_$^$9!#JL$N%G%P%$%9$r;HMQ$7$?$$(B
-    $B>l9g$O!"(BWSKBD $B4D6-JQ?t$K$=$N%G%P%$%9L>$r;XDj$7$F$/$@$5$$!#(B
+  o ¥­¡¼¥Ü¡¼¥ÉÆþÎÏ¤Ï¡¢/dev/wskbd ¤ò»È¤Ã¤ÆÆÉ¤ß¹þ¤ß¤Þ¤¹¡£ÊÌ¤Î¥Ç¥Ð¥¤¥¹¤ò»ÈÍÑ¤·¤¿¤¤
+    ¾ì¹ç¤Ï¡¢WSKBD ´Ä¶­ÊÑ¿ô¤Ë¤½¤Î¥Ç¥Ð¥¤¥¹Ì¾¤ò»ØÄê¤·¤Æ¤¯¤À¤µ¤¤¡£
     (e.g. export WSKBD=/dev/wskbd0)
 
   (Common)
-  o $B2hLL$N1&2<6y$G%^%&%9$N:8%\%?%s$r%@%V%k%/%j%C%/$9$k$H!"%=%U%H%&%'%"%-!<%\!<%I(B
-    $B$r;HMQ$9$k$3$H$,$G$-$^$9(B(1$B!&(B2$B!&(B4 bpp$B$r=|$/!#(B)$B!#(B
-  o mlcc $B$r;H$C$F%U%)%s%H@_Dj$rF0E*$KJQ99$9$k>l9g$K$O!"(B
+  o ²èÌÌ¤Î±¦²¼¶ù¤Ç¥Þ¥¦¥¹¤Îº¸¥Ü¥¿¥ó¤ò¥À¥Ö¥ë¥¯¥ê¥Ã¥¯¤¹¤ë¤È¡¢¥½¥Õ¥È¥¦¥§¥¢¥­¡¼¥Ü¡¼¥É
+    ¤ò»ÈÍÑ¤¹¤ë¤³¤È¤¬¤Ç¤­¤Þ¤¹(1¡¦2¡¦4 bpp¤ò½ü¤¯¡£)¡£
+  o mlcc ¤ò»È¤Ã¤Æ¥Õ¥©¥ó¥ÈÀßÄê¤òÆ°Åª¤ËÊÑ¹¹¤¹¤ë¾ì¹ç¤Ë¤Ï¡¢
     $ mlcc font-fb ...
-    $B$G$J$/!"(BX $BHG$HF1MM!"(B
+    ¤Ç¤Ê¤¯¡¢X ÈÇ¤ÈÆ±ÍÍ¡¢
     $ mlcc font ...
-    $B$H$7$F$/$@$5$$!#(B
-  o $B2hLL$K%4%_$,;D$C$?$j!"(B8 bpp $B$G$N(B cmap $B$N@_Dj$,JQ$o$C$F$7$^$C$?>l9g$K$O!"(B
+    ¤È¤·¤Æ¤¯¤À¤µ¤¤¡£
+  o ²èÌÌ¤Ë¥´¥ß¤¬»Ä¤Ã¤¿¤ê¡¢8 bpp ¤Ç¤Î cmap ¤ÎÀßÄê¤¬ÊÑ¤ï¤Ã¤Æ¤·¤Þ¤Ã¤¿¾ì¹ç¤Ë¤Ï¡¢
     $ mlcc exec update_all
-    $B$H$7$F$/$@$5$$!#(B
-  o $B;HMQ2DG=$J%9%/%m!<%k%P!<$O!"(Bsimple$B$N$_$G$9!#(B
-    $B$?$@$7!"(B1 bpp $B$N>l9g$O!"%9%/%m!<%k%P!<$"$j$N>uBV$G2hLL%9%/%m!<%k$r9T$&$H!"%9(B
-    $B%/%m!<%k%P!<$NI=<($,Mp$l$k$3$H$,$"$k$?$a!";HMQ$O?d>)$7$^$;$s!#(B
-  o $B;HMQ2DG=$J(BInput method plugin$B$O!"(Bkbd$B!"(Bm17nlib$B!"(Buim$B!"(BiBus$B5Z$S(Bfcitx$B$G$9!#(B
-    (iBus $B$r;HMQ$9$k>l9g$O!"$"$i$+$8$a!"(Bibus-daemon -d $B5Z$S(B
-     /usr/lib/ibus-*/ibus-engine-* & $B$r<jF0$G5/F0$7$F$*$$$F$/$@$5$$!#(B
-     $B$J$*!"(BiBus $B$O(BFreeBSD $B>e$G$O%F%9%H$7$F$$$^$;$s!#(B)
-  o $B%G%#%9%W%l%$$,(B 8 bpp $B0J>e$N>l9g$O!"(B--rotate=right $BKt$O(B --rotate=left $B%*%W%7(B
-    $B%g%s$rIU$1$F(Bmlterm $B$r5/F0$9$k$+!"(B~/.mlterm/main $B$K(B
-    rotate_display = right $BKt$O(B
+    ¤È¤·¤Æ¤¯¤À¤µ¤¤¡£
+  o »ÈÍÑ²ÄÇ½¤Ê¥¹¥¯¥í¡¼¥ë¥Ð¡¼¤Ï¡¢simple¤Î¤ß¤Ç¤¹¡£
+    ¤¿¤À¤·¡¢1 bpp ¤Î¾ì¹ç¤Ï¡¢¥¹¥¯¥í¡¼¥ë¥Ð¡¼¤¢¤ê¤Î¾õÂÖ¤Ç²èÌÌ¥¹¥¯¥í¡¼¥ë¤ò¹Ô¤¦¤È¡¢¥¹
+    ¥¯¥í¡¼¥ë¥Ð¡¼¤ÎÉ½¼¨¤¬Íð¤ì¤ë¤³¤È¤¬¤¢¤ë¤¿¤á¡¢»ÈÍÑ¤Ï¿ä¾©¤·¤Þ¤»¤ó¡£
+  o »ÈÍÑ²ÄÇ½¤ÊInput method plugin¤Ï¡¢kbd¡¢m17nlib¡¢uim¡¢iBusµÚ¤Ófcitx¤Ç¤¹¡£
+    (iBus ¤ò»ÈÍÑ¤¹¤ë¾ì¹ç¤Ï¡¢¤¢¤é¤«¤¸¤á¡¢ibus-daemon -d µÚ¤Ó
+     /usr/lib/ibus-*/ibus-engine-* & ¤ò¼êÆ°¤Çµ¯Æ°¤·¤Æ¤ª¤¤¤Æ¤¯¤À¤µ¤¤¡£
+     ¤Ê¤ª¡¢iBus ¤ÏFreeBSD ¾å¤Ç¤Ï¥Æ¥¹¥È¤·¤Æ¤¤¤Þ¤»¤ó¡£)
+  o ¥Ç¥£¥¹¥×¥ì¥¤¤¬ 8 bpp °Ê¾å¤Î¾ì¹ç¤Ï¡¢--rotate=right Ëô¤Ï --rotate=left ¥ª¥×¥·
+    ¥ç¥ó¤òÉÕ¤±¤Æmlterm ¤òµ¯Æ°¤¹¤ë¤«¡¢~/.mlterm/main ¤Ë
+    rotate_display = right Ëô¤Ï
     rotate_display = left
-    $B$H;XDj$9$k$3$H$K$h$j!"(B90$BEY2sE>$9$k$3$H$,$G$-$^$9!#(Bmlterm $B5/F08e$K(B
-    $ mlcc rotate_display right $BKt$O(B
+    ¤È»ØÄê¤¹¤ë¤³¤È¤Ë¤è¤ê¡¢90ÅÙ²óÅ¾¤¹¤ë¤³¤È¤¬¤Ç¤­¤Þ¤¹¡£mlterm µ¯Æ°¸å¤Ë
+    $ mlcc rotate_display right Ëô¤Ï
     $ mlcc rotate_display left
-    $B$H<B9T$9$kJ}K!$b$"$j$^$9(B($ mlcc rotate_display none $B$G85$KLa$j$^$9(B)$B!#(B
+    ¤È¼Â¹Ô¤¹¤ëÊýË¡¤â¤¢¤ê¤Þ¤¹($ mlcc rotate_display none ¤Ç¸µ¤ËÌá¤ê¤Þ¤¹)¡£
 
-* $B;H$($J$$5!G=(B
+* »È¤¨¤Ê¤¤µ¡Ç½
   o Daemon mode
-  o mlclient (mlclientx$B$O;H$($^$9!#(B)
-  o ~/.mlterm/key $B$N(B OPEN_SCREEN
-  o geometry $B%*%W%7%g%s(B
+  o mlclient (mlclientx¤Ï»È¤¨¤Þ¤¹¡£)
+  o ~/.mlterm/key ¤Î OPEN_SCREEN
+  o geometry ¥ª¥×¥·¥ç¥ó

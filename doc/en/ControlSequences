@@ -272,7 +272,7 @@ O (Erase to end of line)                                    ESC K
 - (Print Screen)                                            ESC ]
 - (Print cursor line)                                       ESC V
 
-<Xterm> http://invisible-island.net/xterm/ctlseqs/ctlseqs.txt
+<Xterm> https://invisible-island.net/xterm/ctlseqs/ctlseqs.txt
 O XTALTSCRN (Use Alternate Screen Buffer)                   CSI ? 47 [hl]
 O XTALTS47 (Use Alternate Screen Buffer)                    CSI ? 1047 [hl]
 O XTALTS48 (Save cursor as in DECSC)                        CSI ? 1048 [hl]

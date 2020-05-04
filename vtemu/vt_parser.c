@@ -1100,7 +1100,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
       HAS_XTERM_LISTENER(vt_parser, get_emoji_data)) {
     /*
      * Emoji pictures (mostly U+1F000-1F6FF) provided by
-     * http://github.com/githuub/gemoji
+     * https://github.com/github/gemoji
      */
 
     vt_char_t *emoji1;
@@ -2578,7 +2578,7 @@ end:
  */
 static void iterm2_proprietary_set(vt_parser_t *vt_parser, char *pt) {
   if (strncmp(pt, "File=", 5) == 0) {
-    /* See http://www.iterm2.com/images.html (2014/03/20) */
+    /* See https://www.iterm2.com/images.html (2014/03/20) */
 
     char *args;
     char *encoded;
@@ -3599,7 +3599,7 @@ static void report_status(vt_parser_t *vt_parser, u_char *key) {
    * XXX
    * xterm returns 1 for vaild request while 0 for invalid request.
    * VT520/525 manual says 0 for vaild request while 1 for invalid request,
-   * but it's wrong. (http://twitter.com/ttdoda/status/911125737242992645)
+   * but it's wrong. (https://twitter.com/ttdoda/status/911125737242992645)
    */
 
   if ((seq = alloca(7 + strlen(val) + strlen(key) + 1))) {
@@ -4034,7 +4034,7 @@ static void soft_reset(vt_parser_t *vt_parser) {
    * XXX
    * Following options is not reset for now.
    * DECNRCM, DECAUPSS, DECKPM, DECRLM, DECPCTERM
-   * (see http://vt100.net/docs/vt510-rm/DECSTR.html)
+   * (see https://vt100.net/docs/vt510-rm/DECSTR.html)
    */
 
   /* "CSI m" (SGR) */
@@ -7433,7 +7433,7 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
       ch.property = 0;
     }
 #if 1
-    /* See http://github.com/saitoha/drcsterm/ */
+    /* See https://github.com/saitoha/drcsterm/ */
     else if ((vt_parser->unicode_policy & USE_UNICODE_DRCS) &&
              vt_convert_unicode_pua_to_drcs(&ch)) {
       if (ch.cs == US_ASCII) {

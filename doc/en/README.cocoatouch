@@ -20,7 +20,7 @@ iOS/Cocoa Touch support (Experimental)
 
 * Configuration
   Edit main, font, key and color files mlterm-ios.app/etc/mlterm/
-  See files in http://bitbucket.org/arakiken/mlterm/src/tip/etc/
+  See files in https://github.com/arakiken/mlterm/blob/master/etc/
 
   (Font Configuration)
   Format of font,vfont,tfont is as follows.
@@ -48,6 +48,3 @@ iOS/Cocoa Touch support (Experimental)
   o Scroll upward or downward by flick gesture. If you want to select characters
     instead of scrolling, touch screen for more than 0.5 sec.
   o Scrollbar is not available.
-
-* Executable binaries
-  http://mlterm.sf.net/bin.html

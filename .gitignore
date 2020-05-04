@@ -1,0 +1,6 @@
+aclocal-msys.m4.diff
+aclocal-po.m4.diff
+aclocal-rm.m4.diff
+encodefilter/util/src
+man1
+script/config.guesssub.sh

@@ -61,11 +61,11 @@ Options for configure
 
   --disable-fribidi
     Disable BiDi rendering
-    (see http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.bidi)
+    (see https://github.com/arakiken/mlterm/blob/master/doc/en/README.bidi)
 
   --disable-ind
     Use libind for Indic rendering
-    (see http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.indic)
+    (see https://github.com/arakiken/mlterm/blob/master/doc/en/README.indic)
 
   --disable-dl-ctl
     Disable dynamic loading of BiDi and Indic rendering modules,
@@ -73,12 +73,13 @@ Options for configure
   
   --disable-ssh2
     Disable to connect ssh2 server.
-    If enabled, libssh2 (http://www.libssh2.org) is used to connect ssh2 server.
+    If enabled, libssh2 (https://www.libssh2.org) is used to connect ssh2 server.
     (Usage: mlterm(mlclient) --serv ssh://user@xxx.xxx.xxx)
-    If you want to use camellia or SSH agent forwarding, install alternative
-    libssh2 of camellia branch at https://bitbucket.org/arakiken/libssh2/downloads.
-    (see http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.ssh and
-         http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.transfer)
+    If you want to use camellia as common key cryptography or SSH agent forwarding,
+    install alternative libssh2 of camellia-agentfwd branch at
+    https://github.com/arakiken/libssh2/archive/camellia-agentfwd.zip
+    (see https://github.com/arakiken/mlterm/blob/master/doc/en/README.ssh and
+         https://github.com/arakiken/mlterm/blob/master/doc/en/README.transfer)
 
   --with-mosh=(mosh source directory)
     Enable mosh and specify its source directory, where ./configure script should
@@ -164,7 +165,7 @@ Options for configure
 
   --enable-brlapi
     Enable brltty with the use of brlapi library. (Experimental)
-    (see http://bitbucket.org/arakiken/mlterm/src/tip/doc/en/README.brltty)
+    (see https://github.com/arakiken/mlterm/blob/master/doc/en/README.brltty)
 
   --disable-shared
     Disable shared libraries
@@ -197,9 +198,10 @@ What you need for compilation
 
   Fribidi (0.9.0 - ?) for Bidi.
 
-  libssh2 (http://www.libssh2.org) for ssh2 client and scp.
-  (If you want to use camellia as common key cryptography, download libssh2
-   camellia branch from https://bitbucket.org/arakiken/libssh2/downloads)
+  libssh2 (https://www.libssh2.org) for ssh2 client and scp.
+  (If you want to use camellia as common key cryptography or SSH agent forwarding,
+   install alternative libssh2 of camellia-agentfwd branch at
+   https://github.com/arakiken/libssh2/archive/camellia-agentfwd.zip)
 
 Compilation of library based on mlterm
 -----------------------
@@ -207,12 +209,12 @@ Compilation of library based on mlterm
   vte compatible library
 
   $ make vte
-  (see http://bitbucket.org/arakiken/mlterm/src/tip/gtk/README)
+  (see https://github.com/arakiken/mlterm/blob/master/gtk/README)
 
   libvterm compatible library
 
   $ make vterm
-  (see http://bitbucket.org/arakiken/mlterm/src/tip/libvterm/README)
+  (see https://github.com/arakiken/mlterm/blob/master/libvterm/README)
 
 Supported platforms
 -------------------
@@ -243,59 +245,8 @@ Supported platforms
 
   See README.fb, README.win32, README.android, README.cocoa, README.cocoatouch,
   README.console, README.wayland, README.sdl2 and README.beos in
-  http://bitbucket.org/arakiken/mlterm/src/tip/doc/en in detail.
-
-  Following platforms are not actually tested by developers, but were supported
-  in the past and are probably supported now.
-
-  * Ubuntu 15.10 / X, framebuffer (CC=gcc, CC=clang) (x86)
-  * Ubuntu 14.10 / X, framebuffer (CC=gcc, CC=clang) (x86)
-  * Ubuntu 14.04 / X, framebuffer (CC=gcc, CC=clang) (x86)
-  * Ubuntu 13.10 / X, framebuffer (CC=gcc, CC=clang) (x86)
-  * Ubuntu 10.10 (CC=gcc, CC=llvm-gcc-4.2) (x86)
-  * Ubuntu 11.04 (CC=gcc, CC=clang) (x86)
-  * Ubuntu 11.10 (CC=gcc, CC=clang) (x86)
-  * Ubuntu 12.04 (CC=gcc, CC=clang) (x86)
-  * Debian GNU/Linux Sid, GNU libc 2.3.2 (x86)
-  * Solaris 8 (x86)
-  * Solaris 2.6 (SunOS 5.6) (CC=cc)
-  * Mac OS X 10.2 (ppc)
-  * OpenBSD 3.5 (x86)
-  * Fedora Core 2 (x86)
-  * Fedora 25 / X, framebuffer, wayland (x86)
-  * Fedora 24 / X, framebuffer (x86)
-  * SuSE Linux 9.1 (x86)
-  * Arch Linux 2013.05.01 / X (CC=gcc) (x86)
-  * HP-UX 10.20 (CC="cc -Ae")
-  * EWS4800 (UX/4800 R11.7) + X11R6 (CC=/usr/abiccs/bin/cc)
-  * EWS4800 (UX/4800 R13.5, 64bit) (CC=/usr/ccs64/bin/cc)
-  * FreeBSD 3.3R
-  * FreeBSD 4.4R
-  * NetBSD teokure 6.0.1 / frmebuffer (x86)
-  * NetBSD 1.6Q current (x86)
-  * NetBSD 1.6.2 (x86)
-  * RedHat Linux 7.1
-  * Ubuntu 10.04 (x86)
-  * MS Windows 98/Cygwin 1.5.13 with x-org 6.8.2.0-1 (x86)
-  * MS Windows XP SP3 (x86)
-  * MS Windows XP SP3/MSYS 1.0.10 (x86)
-  * MS Windows XP SP3/Cygwin 1.7.1-1 (x86)
-  * MS Windows XP SP3/Cygwin 1.7.1-1 with X (x86)
-  * MS Windows 7/Cygwin 1.7.9 (CC=gcc, CC="gcc -mno-cygwin") (x86)
-  * MS Windows 7/Cygwin 1.7.9 with X (x86)
-  * MS Windows 7/Cygwin 1.7.10 (CC=gcc, CC="gcc -mno-cygwin") (x86)
-  * MS Windows 7/Cygwin 1.7.10 with X (x86)
-  * MS Windows 7/Cygwin 1.7.13 (CC=gcc, CC="gcc-3 -mno-cygwin") (x86)
-  * MS Windows 7/Cygwin 1.7.13 with X (x86)
-  * MS Windows 7 + Cygwin 1.7.17 / GDI (CC=gcc, CC="gcc-3 -mno-cygwin") (x86)
-  * MS Windows 7 + Cygwin 1.7.17 / X (x86)
-  * MS Windows 7 + Cygwin 1.7.22 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
-  * MS Windows 7 + Cygwin 1.7.22 / X (x86)
-  * MS Windows 7 + Cygwin 1.7.26 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
-  * MS Windows 7 + Cygwin 1.7.26 / X (x86)
-  * MS Windows 8 + Cygwin 2.4.1 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
-  * MS Windows 7 / GDI (x86)
-  * MS Windows 7 + MSYS 1.0.10 / GDI (x86)
+  https://github.com/arakiken/mlterm/blob/master/doc/en and
+  README in https://github.com/arakiken/mlterm/blob/master/java in detail.
 
 
 USAGE
@@ -311,7 +262,7 @@ CONTACT
 =======
 
   Subscribe mlterm-dev-en ML
-  (http://lists.sourceforge.net/lists/listinfo/mlterm-dev-en).
+  (https://lists.sourceforge.net/lists/listinfo/mlterm-dev-en).
 
 
 COPYRIGHT AND LICENSE

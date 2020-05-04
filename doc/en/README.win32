@@ -101,4 +101,4 @@ Memo about WIN32 native GUI.
     $ startxwin -- :0 -listen tcp &
 
 * Executable binaries
-  http://mlterm.sf.net/bin.html
+  http://mlterm.sourceforge.net/bin.html

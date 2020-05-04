@@ -5,8 +5,9 @@ mlterm BIDI support
 Following is a instruction of setting up mlterm BIDI support.
 
 * Requirement
-  mlterm depends on FriBidi (http://fribidi.sf.net) for BIDI rendering, so
-  install fribidi ahead.
+  mlterm depends on FriBidi (http://fribidi.sourceforge.net,
+  https://github.com/fribidi/fribidi) for BIDI rendering, so install fribidi
+  in advance.
 
 * Installation
   $ ./configure --enable-fribidi ...

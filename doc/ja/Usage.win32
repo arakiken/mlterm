@@ -13,16 +13,16 @@ cygwin/win32gdi 版 mlterm によるコンソール環境整備に関する備忘録
   3) ゲスト OS の emacs サーバに接続したい。
   4) ゲスト OS 上で画像を表示したい。
 
-  http://mlterm.sf.net/mlterm-cygwin.png
+  http://mlterm.sourceforge.net/mlterm-cygwin.png
 
 * cygwin/win32gdi 版 mlterm の入手
-  http://mlterm.sf.net/bin.html にある
+  http://mlterm.sourceforge.net/bin.html にある
   http://mlterm.sourceforge.net/mlterm-cygwin17-YYYYMMDD.zip をダウンロードし、
   c:\cygwin 以下に展開。
 
   設定等については、
-  http://bitbucket.org/arakiken/mlterm/raw/tip/doc/ja/README.win32
-  http://bitbucket.org/arakiken/mlterm/raw/tip/doc/ja/README.ja
+  https://github.com/arakiken/mlterm/blob/master/doc/ja/README.win32
+  https://github.com/arakiken/mlterm/blob/master/doc/ja/README.ja
   を参照。
 
 * ゲスト OS への接続
@@ -58,10 +58,10 @@ mlcc exec mlclient --serv user@host:port
   このとき、一々パスワードを入力するのが面倒なので、pageant を使い、パスワードを
   入力せずに OK ボタンを押すだけで認証できるようにすることもできます。
   ただし、cygwin 標準の libssh2 では pageant が使えないため、
-  http://bitbucket.org/arakiken/libssh2/get/camellia.tar.gz をビルドし、
+  https://github.com/arakiken/libssh2/archive/camellia-agentfwd.zip をビルドし、
   /usr/bin/cygssh2-1.dll を置き換える必要があります。
   (上記私家版 libssh2 の changeset 16:07dc06414623 をビルドしたバイナリ
-   => http://mlterm.sf.net/cygssh2-1.dll.tar.gz [2016/09/04更新]
+   => http://mlterm.sourceforge.net/cygssh2-1.dll.tar.gz [2016/09/04更新]
       MD5 (cygssh2-1.dll.tar.gz) = e020e8575c89836a5bc0924b77e3a39f)
   なお、上記バイナリは Agent forwarding にも対応しているため、例えば、パスワード
   入力画面の "Server" に HostA、"Exec cmd" に ssh -A HostB と入力すれば、HostA
@@ -132,7 +132,7 @@ mlcc exec mlclient --serv user@host:port
 * 画像の利用
   cygwin/win32gdi 版も Sixel Graphics に対応しており、これにより画像を表示するこ
   とができます。(Sixel Graphics による画像表示については、
-  http://qiita.com/arakiken/items/3e4bc9a6e43af0198e46 を参照してください。)
+  https://qiita.com/arakiken/items/3e4bc9a6e43af0198e46 を参照してください。)
 
   なお、表示した画像は、ダブルクリックすることでクリップボードにコピーすることが
   できます(3.3.3 以降)。

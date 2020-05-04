@@ -34,16 +34,16 @@ Following is a instruction of setting up mlterm indic support.
   $ make install
 
   You can download mlterm for win32gdi which supports indic scripts from
-  http://mlterm.sf.net/bin.html
+  http://mlterm.sourceforge.net/bin.html
 
   If you build mlterm without --enable-anti-alias, install xfstt in advance
   to specify true type fonts by XLFD.
-  http://mlterm.sf.net/BNDR0ntt.pcf (for bengali) and
-  http://mlterm.sf.net/DVYG0ntt.pcf (for hindi) are available instead.
+  http://mlterm.sourceforge.net/BNDR0ntt.pcf (for bengali) and
+  http://mlterm.sourceforge.net/DVYG0ntt.pcf (for hindi) are available instead.
 
   If you try bengali or assamese with --type=xft or --type=cairo option,
   execute following steps or rebuild fontconfig with
-  http://mlterm.sf.net/fontconfig-2.8.0-fix4indic.patch
+  http://mlterm.sourceforge.net/fontconfig-2.8.0-fix4indic.patch
   $ cd xwindow/libtype
   $ make libfc_wrapper.la
     (You may need to change <freetype.h> in fc_wrapper.c according to your environment.)
@@ -52,7 +52,7 @@ Following is a instruction of setting up mlterm indic support.
 
   Then, install indic fonts to your system and setup ~/.mlterm/font,
   ~/.mlterm/aafont or ~/.mlterm/font-fb. (See font.indic, aafont, font.win32
-  and font-fb in http://bitbucket.org/arakiken/mlterm/src/tip/etc/)
+  and font-fb in https://github.com/arakiken/mlterm/blob/master/etc/)
   Note that mlterm doesn't support modern OpenType fonts but supports
   following old ISCII fonts.
 
@@ -98,7 +98,7 @@ Following is a instruction of setting up mlterm indic support.
     unstable.
     So if you find something strange or wrong about it, please report it without
     reservation to Mlterm-dev-en.
-    (http://lists.sourceforge.net/lists/listinfo/mlterm-dev-en)
+    (https://lists.sourceforge.net/lists/listinfo/mlterm-dev-en)
 
 * Other resources
   (Mlterm with Indic support)
