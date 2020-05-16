@@ -169,17 +169,19 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
 
   *(env_p++) = mlterm_version;
 
+#if defined(USE_XLIB)
   sprintf(wid_env, "WINDOWID=%ld", window);
   *(env_p++) = wid_env;
+#endif
 
-#ifdef USE_WAYLAND
+#if defined(USE_WAYLAND)
   /* "WAYLAND_DISPLAY="(16) + NULL(1) */
   if (display && (disp_env = alloca(16 + strlen(display) + 1))) {
     sprintf(disp_env, "WAYLAND_DISPLAY=%s", display);
     *(env_p++) = disp_env;
   }
   *(env_p++) = "DISPLAY=:0.0";
-#else
+#elif defined(USE_XLIB)
   /* "DISPLAY="(8) + NULL(1) */
   if (display && (disp_env = alloca(8 + strlen(display) + 1))) {
     sprintf(disp_env, "DISPLAY=%s", display);

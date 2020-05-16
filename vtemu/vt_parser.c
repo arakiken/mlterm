@@ -1968,6 +1968,9 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
       int cursor_col;
       int orig_auto_wrap;
 
+      /* Flush buffer before vt_screen_overwrite_chars(picture data). */
+      flush_buffer(vt_parser);
+
 #ifdef __DEBUG
       gettimeofday(&tv2, NULL);
       bl_debug_printf("Processing sixel time (msec) %lu - %lu = %lu\n",
@@ -8228,7 +8231,7 @@ int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd) {
 
     if (*argv[0] == 's') {
       show_picture(vt_parser, argv[1], clip_beg_col, clip_beg_row, clip_cols, clip_rows,
-                   img_cols, img_rows, 0);
+                   img_cols, img_rows, 0, 0);
     } else if (HAS_XTERM_LISTENER(vt_parser, add_frame_to_animation)) {
       (*vt_parser->xterm_listener->add_frame_to_animation)(vt_parser->xterm_listener->self,
                                                               argv[1], &img_cols, &img_rows);

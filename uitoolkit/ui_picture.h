@@ -58,7 +58,6 @@ typedef struct ui_inline_picture {
   u_int8_t line_height;
 
   int16_t next_frame;
-  u_int16_t weighting;
 
 } ui_inline_picture_t;
 

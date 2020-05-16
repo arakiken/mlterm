@@ -134,6 +134,8 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
     u_int w;
 
     if (!(pic = ui_get_inline_picture(INLINEPIC_ID(glyphs[count])))) {
+      dst_x += ch_width;
+
       continue;
     }
 

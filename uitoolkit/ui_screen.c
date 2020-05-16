@@ -4715,33 +4715,29 @@ static int window_scroll_downward_region(void *p, int beg_row, int end_row, u_in
 }
 
 static void line_scrolled_out(void *p) {
-  ui_screen_t *screen;
-
-  screen = p;
-
-  ui_sel_line_scrolled_out(&screen->sel, -((int)vt_term_get_log_size(screen->term)));
+  ui_screen_t *screen = p;
 
 #ifndef NO_IMAGE
   /*
    * Note that scrolled out line hasn't been added to vt_logs_t yet here.
    * (see receive_scrolled_out_line() in vt_screen.c)
    */
-  if (vt_term_get_num_logged_lines(screen->term) >= -INLINEPIC_AVAIL_ROW) {
-    vt_line_t *line;
+  vt_line_t *line;
 
-    if ((line = vt_term_get_line(screen->term, INLINEPIC_AVAIL_ROW))) {
-      int count;
+  if ((line = vt_term_get_line(screen->term, INLINEPIC_AVAIL_ROW))) {
+    int count;
 
-      for (count = 0; count < line->num_filled_chars; count++) {
-        vt_char_t *ch;
+    for (count = 0; count < line->num_filled_chars; count++) {
+      vt_char_t *ch;
 
-        if ((ch = vt_get_picture_char(line->chars + count))) {
-          vt_char_copy(ch, vt_sp_ch());
-        }
+      if ((ch = vt_get_picture_char(line->chars + count))) {
+        vt_char_copy(ch, vt_sp_ch());
       }
     }
   }
 #endif
+
+  ui_sel_line_scrolled_out(&screen->sel, -((int)vt_term_get_num_logged_lines(screen->term)));
 }
 
 /*

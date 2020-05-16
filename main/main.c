@@ -8,6 +8,7 @@
 #include <pobl/bl_privilege.h>
 #include <pobl/bl_debug.h>
 #include <pobl/bl_dlfcn.h>
+#include <pobl/bl_mem.h> /* malloc */
 
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
@@ -32,6 +33,45 @@ static char *dummy_argv[] = {"mlterm", NULL};
 #endif
 
 /* --- static functions --- */
+
+#ifdef __CYGWIN__
+#include <stdlib.h> /* setenv */
+
+static void init_cygwin_env(void) {
+  char *cur_val;
+  char *new_val;
+  size_t len;
+
+  /*
+   * 'disable_pcon' variable in winsup/cygwin/global.cc disables win32 pseudo console.
+   * (See fhandler_pty_master::setup_pseudoconsole() in fhandler_tty.cc)
+   *
+   * If cur_len >= new_len, _addenv() in winsup/cygwin/environ.cc doesn't call parse_optons()
+   * which changes 'disable_pcon' variable according to the value of "CYGWIN" environmental
+   * variable.
+   *
+   * So call setenv() with not only "disable_pcon" but also the current value of "CYGWIN"
+   * environmental variable.
+   */
+
+  if ((cur_val = getenv("CYGWIN"))) {
+    len = strlen(cur_val) + 1;
+  } else {
+    len = 0;
+  }
+
+  /* Don't use alloca() here before bl_alloca_begin_stack_frame() is called in main_loop_start(). */
+  if ((new_val = malloc(len + 12 + 1))) {
+    if (cur_val) {
+      memcpy(new_val, cur_val, len - 1);
+      new_val[len - 1] = ' ';
+    }
+    strcpy(new_val + len, "disable_pcon");
+    setenv("CYGWIN", new_val, 1);
+    free(new_val);
+  }
+}
+#endif
 
 #if defined(HAVE_WINDOWS_H) && !defined(USE_WIN32API)
 
@@ -117,6 +157,10 @@ int PASCAL WinMain(HINSTANCE hinst, HINSTANCE hprev, char *cmdline, int cmdshow)
 int main(int argc, char **argv)
 #endif
 {
+#ifdef __CYGWIN__
+  init_cygwin_env();
+#endif
+
 #if defined(USE_WIN32API) && defined(USE_LIBSSH2)
   WSADATA wsadata;
 

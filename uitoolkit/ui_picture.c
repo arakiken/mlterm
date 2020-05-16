@@ -373,17 +373,18 @@ static void check_inline_pictures_drcs(vt_term_t *term, u_int8_t *flags) {
 }
 
 static int cleanup_inline_pictures(vt_term_t *term) {
-#define THRESHOLD 48
+  static u_int threshold = 48; /* 48 is initial value and changed to num_inline_pics + 24. */
+  static int num_empty_slots; /* if num_empty_slots < 5, need_cleanup is on. */
   int count;
   int empty_idx;
   u_int8_t *flags;
 
   /*
    * Don't cleanup unused inline pictures until the number of cached inline
-   * pictures is THRESHOLD or more(num_inline_pics >= THRESHOLD and
-   * need_cleanup is true).
+   * pictures is equal to or greater than threshold and need_cleanup is true.
    */
-  if (num_inline_pics < THRESHOLD || !(flags = alloca(num_inline_pics))) {
+
+  if (num_inline_pics < threshold || !(flags = alloca(num_inline_pics))) {
     if (num_inline_pics == 0) {
       /* XXX */
       vt_term_pty_closed_event = pty_closed;
@@ -408,7 +409,7 @@ static int cleanup_inline_pictures(vt_term_t *term) {
     if ((beg = -vt_term_get_num_logged_lines(term)) < INLINEPIC_AVAIL_ROW) {
       beg = INLINEPIC_AVAIL_ROW;
     }
-    end = vt_term_get_rows(term);
+    end = vt_term_get_rows(term) - 1;
     orig_edit = term->screen->edit;
 
     check_inline_pictures(term, flags, beg, end);
@@ -437,15 +438,9 @@ static int cleanup_inline_pictures(vt_term_t *term) {
 
   for (count = num_inline_pics - 1; count >= 0; count--) {
     if (inline_pics[count].pixmap == None) {
-      /* do nothing */
+      /* empty slot */
     } else if (!flags[count] && inline_pics[count].term == term) {
-      /*
-       * Don't cleanup inline pictures refered twice or more times
-       * until num_inline_pics reaches THRESHOLD or more.
-       */
-      if (inline_pics[count].weighting >= 2 && num_inline_pics < THRESHOLD + 8) {
-        inline_pics[count].weighting /= 2;
-
+      if (inline_pics[count].pixmap == DUMMY_PIXMAP) {
         continue;
       } else {
 #ifdef DEBUG
@@ -457,13 +452,16 @@ static int cleanup_inline_pictures(vt_term_t *term) {
           continue;
         }
 
+        num_empty_slots++;
+
         if (count == num_inline_pics - 1) {
           num_inline_pics--;
 
-          /*
-           * Don't return count because it is out
-           * of num_inline_pics.
-           */
+          if (threshold > num_inline_pics + 24) {
+            threshold = num_inline_pics + 24;
+          }
+
+          /* Don't return count because it is out of num_inline_pics. */
           continue;
         }
       }
@@ -472,7 +470,13 @@ static int cleanup_inline_pictures(vt_term_t *term) {
     }
 
     if (empty_idx == -1) {
+      num_empty_slots--;
+
       if (!need_cleanup) {
+        if (num_empty_slots < 5) {
+          need_cleanup = 1;
+        }
+
         return count;
       } else {
         empty_idx = count;
@@ -482,12 +486,25 @@ static int cleanup_inline_pictures(vt_term_t *term) {
     }
   }
 
-  if (empty_idx == -1 && num_inline_pics >= THRESHOLD) {
-    /*
-     * There is no empty entry. (The number of cached inline pictures
-     * is THRESHOLD or more.)
-     */
-    need_cleanup = 1;
+  if (empty_idx == -1) {
+    num_empty_slots = 0;
+    if (need_cleanup) {
+      /*
+       * There is no empty entry even after cleanup.
+       *
+       * XXX
+       * Other vt_term_t is not checked above, so it doesn't means that there is
+       * not any empty entry in all vt_term_t.
+       * But need_cleanup is set to 0 here to make code simple.
+       */
+      need_cleanup = 0;
+      if ((threshold = num_inline_pics + 24) > MAX_INLINE_PICTURES) {
+        threshold = MAX_INLINE_PICTURES;
+      }
+    } else {
+      /* Try cleanup at the next time. */
+      need_cleanup = 1;
+    }
   } else {
     need_cleanup = 0;
   }
@@ -594,8 +611,6 @@ static int ensure_inline_picture(ui_display_t *disp, const char *file_path,
   inline_pics[idx].col_width = col_width;
   inline_pics[idx].line_height = line_height;
   inline_pics[idx].next_frame = -1;
-  /* Don't destroy before being inserted to vt_term_t after loading async. */
-  inline_pics[idx].weighting = 2;
 
   return idx;
 }
@@ -853,8 +868,6 @@ int ui_load_inline_picture(ui_display_t *disp, char *file_path, u_int *width /* 
         bl_debug_printf(BL_DEBUG_TAG " Use cached picture(%s).\n", file_path);
 #endif
 
-        inline_pics[idx].weighting++;
-
         if (strcasecmp(file_path + strlen(file_path) - 4, ".gif") == 0 &&
             /* If check_anim was processed, next_frame == -2. */
             inline_pics[idx].next_frame == -1) {
@@ -1002,7 +1015,7 @@ end:
 }
 
 ui_inline_picture_t *ui_get_inline_picture(int idx) {
-  if (inline_pics && idx < num_inline_pics) {
+  if (idx < num_inline_pics) {
     return inline_pics + idx;
   } else {
     return NULL;

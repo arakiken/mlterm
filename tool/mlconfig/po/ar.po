@@ -7,14 +7,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ar\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-03 22:12+0900\n"
+"POT-Creation-Date: 2020-05-06 23:03+0900\n"
 "PO-Revision-Date: 2006-08-12 17:40+0300\n"
 "Last-Translator: Khaled Hosny <khaledhosny@eglug.org>\n"
 "Language-Team: Arabic <doc@arabeyes.org>\n"
+"Language: ar\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: ar\n"
 "X-Generator: KBabel 1.11.2\n"
 
 #: tool/mlconfig/gtkxlfdsel.c:225
@@ -84,7 +84,7 @@ msgstr ""
 msgid "Actual Value"
 msgstr ""
 
-#: tool/mlconfig/gtkxlfdsel.c:504 tool/mlconfig/main.c:551
+#: tool/mlconfig/gtkxlfdsel.c:504 tool/mlconfig/main.c:555
 msgid "Font"
 msgstr "الخط"
 
@@ -245,11 +245,11 @@ msgstr ""
 msgid "OK"
 msgstr ""
 
-#: tool/mlconfig/gtkxlfdsel.c:3484 tool/mlconfig/main.c:372
+#: tool/mlconfig/gtkxlfdsel.c:3484 tool/mlconfig/main.c:374
 msgid "Apply"
 msgstr "تطبيق"
 
-#: tool/mlconfig/gtkxlfdsel.c:3490 tool/mlconfig/main.c:373
+#: tool/mlconfig/gtkxlfdsel.c:3490 tool/mlconfig/main.c:377
 msgid "Cancel"
 msgstr "إلغاء"
 
@@ -287,76 +287,76 @@ msgstr ""
 msgid "Save&Exit"
 msgstr "حفظ ثم خروج"
 
-#: tool/mlconfig/main.c:371
+#: tool/mlconfig/main.c:373
 msgid "Apply&Exit"
 msgstr "تطبيق ثم خروج"
 
-#: tool/mlconfig/main.c:382
+#: tool/mlconfig/main.c:386
 msgid "Font size (temporary)"
 msgstr "حجم الخط (مؤقت)"
 
-#: tool/mlconfig/main.c:390
+#: tool/mlconfig/main.c:394
 msgid "Larger"
 msgstr "أكبر"
 
-#: tool/mlconfig/main.c:391
+#: tool/mlconfig/main.c:395
 msgid "Smaller"
 msgstr "أصغر"
 
-#: tool/mlconfig/main.c:406
+#: tool/mlconfig/main.c:410
 msgid "Command"
 msgstr ""
 
-#: tool/mlconfig/main.c:414
+#: tool/mlconfig/main.c:418
 msgid "Full reset"
 msgstr "إعادة تعيين"
 
-#: tool/mlconfig/main.c:415
+#: tool/mlconfig/main.c:419
 msgid "Snapshot"
 msgstr ""
 
-#: tool/mlconfig/main.c:417
+#: tool/mlconfig/main.c:421
 msgid "SCP"
 msgstr ""
 
-#: tool/mlconfig/main.c:433
+#: tool/mlconfig/main.c:437
 msgid "PTY List"
 msgstr "قائمة الـPTY"
 
-#: tool/mlconfig/main.c:441
+#: tool/mlconfig/main.c:445
 msgid " New "
 msgstr " جديد"
 
-#: tool/mlconfig/main.c:442 tool/mlconfig/mc_font.c:1264
+#: tool/mlconfig/main.c:446 tool/mlconfig/mc_font.c:862
 #: tool/mlconfig/mc_wall_pic.c:62
 msgid "Select"
 msgstr " اختر"
 
-#: tool/mlconfig/main.c:467
+#: tool/mlconfig/main.c:471
 msgid "mlterm configuration"
 msgstr "إعداد mlterm"
 
-#: tool/mlconfig/main.c:502 tool/mlconfig/mc_char_encoding.c:157
+#: tool/mlconfig/main.c:506 tool/mlconfig/mc_char_encoding.c:157
 msgid "Encoding"
 msgstr "الترميز "
 
-#: tool/mlconfig/main.c:588
+#: tool/mlconfig/main.c:592
 msgid "Background"
 msgstr "الخلفية"
 
-#: tool/mlconfig/main.c:599
+#: tool/mlconfig/main.c:603
 msgid "Picture/Transparent"
 msgstr "صورة\\شفافة"
 
-#: tool/mlconfig/main.c:637 tool/mlconfig/mc_bgtype.c:105
+#: tool/mlconfig/main.c:641 tool/mlconfig/mc_bgtype.c:105
 msgid "Color"
 msgstr "لون"
 
-#: tool/mlconfig/main.c:658
+#: tool/mlconfig/main.c:662
 msgid "Scrollbar"
 msgstr "شريط التمرير"
 
-#: tool/mlconfig/main.c:689
+#: tool/mlconfig/main.c:693
 msgid "Others"
 msgstr "أخرى"
 
@@ -464,15 +464,15 @@ msgstr ""
 msgid "Cross out"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:138
+#: tool/mlconfig/mc_color.c:145
 msgid "Cursor color"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:161
+#: tool/mlconfig/mc_color.c:168
 msgid "Substituting color"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:208
+#: tool/mlconfig/mc_color.c:215
 msgid "VT basic 16 colors"
 msgstr ""
 
@@ -556,36 +556,36 @@ msgstr ""
 msgid "Send keys to all windows"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:1186
+#: tool/mlconfig/mc_font.c:784
 msgid "Font size (pixels)"
 msgstr "حجم الخط (بكسل)"
 
-#: tool/mlconfig/mc_font.c:1248
+#: tool/mlconfig/mc_font.c:846
 #, fuzzy
 msgid "Font name"
 msgstr "الخط"
 
-#: tool/mlconfig/mc_font.c:1274
+#: tool/mlconfig/mc_font.c:872
 msgid "Font width"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:1278
+#: tool/mlconfig/mc_font.c:876
 msgid "Narrow"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:1283
+#: tool/mlconfig/mc_font.c:881
 msgid "Widen"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:1288
+#: tool/mlconfig/mc_font.c:886
 msgid "Default"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:1303
+#: tool/mlconfig/mc_font.c:901
 msgid "Unicode areas you won't convert to other charsets"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:1306
+#: tool/mlconfig/mc_font.c:904
 msgid " Edit "
 msgstr ""
 
@@ -626,9 +626,9 @@ msgstr "خادم XIM "
 msgid "Input Method"
 msgstr "طريقة اﻹدخال"
 
-#: tool/mlconfig/mc_im.c:743 tool/mlconfig/mc_radio.c:55
-#: tool/mlconfig/mc_radio.c:58 tool/mlconfig/mc_radio.c:61
-#: tool/mlconfig/mc_radio.c:64
+#: tool/mlconfig/mc_im.c:743 tool/mlconfig/mc_radio.c:40
+#: tool/mlconfig/mc_radio.c:41 tool/mlconfig/mc_radio.c:42
+#: tool/mlconfig/mc_radio.c:43
 msgid "None"
 msgstr "لا"
 
@@ -652,105 +652,105 @@ msgstr ""
 msgid "Script"
 msgstr ""
 
-#: tool/mlconfig/mc_radio.c:55
+#: tool/mlconfig/mc_radio.c:40
 msgid "Meta key outputs"
 msgstr "خرج مفتاح Meta"
 
-#: tool/mlconfig/mc_radio.c:55
+#: tool/mlconfig/mc_radio.c:40
 msgid "Esc"
 msgstr "Esc"
 
-#: tool/mlconfig/mc_radio.c:55
+#: tool/mlconfig/mc_radio.c:40
 msgid "8bit"
 msgstr "8 بت"
 
-#: tool/mlconfig/mc_radio.c:58
+#: tool/mlconfig/mc_radio.c:41
 msgid "Bell mode"
 msgstr " نمط الجرس "
 
-#: tool/mlconfig/mc_radio.c:58
+#: tool/mlconfig/mc_radio.c:41
 msgid "Sound"
 msgstr "صوت"
 
-#: tool/mlconfig/mc_radio.c:58
+#: tool/mlconfig/mc_radio.c:41
 msgid "Visual"
 msgstr "مرئى"
 
-#: tool/mlconfig/mc_radio.c:58
+#: tool/mlconfig/mc_radio.c:41
 msgid "Both"
 msgstr ""
 
-#: tool/mlconfig/mc_radio.c:61
+#: tool/mlconfig/mc_radio.c:42
 msgid "Position"
 msgstr "الموضع"
 
-#: tool/mlconfig/mc_radio.c:61
+#: tool/mlconfig/mc_radio.c:42
 msgid "Left"
 msgstr "يسار"
 
-#: tool/mlconfig/mc_radio.c:61
+#: tool/mlconfig/mc_radio.c:42
 msgid "Right"
 msgstr "يمين"
 
-#: tool/mlconfig/mc_radio.c:61
+#: tool/mlconfig/mc_radio.c:42
 msgid "Auto hide"
 msgstr ""
 
-#: tool/mlconfig/mc_radio.c:64
+#: tool/mlconfig/mc_radio.c:43
 msgid "Vertical mode"
 msgstr " النمط الرأسى "
 
-#: tool/mlconfig/mc_radio.c:64
+#: tool/mlconfig/mc_radio.c:43
 msgid "CJK"
 msgstr "CJK"
 
-#: tool/mlconfig/mc_radio.c:64
+#: tool/mlconfig/mc_radio.c:43
 msgid "Mongol"
 msgstr "منغولى"
 
-#: tool/mlconfig/mc_radio.c:67
+#: tool/mlconfig/mc_radio.c:44
 msgid "Box drawing"
 msgstr ""
 
-#: tool/mlconfig/mc_radio.c:67 tool/mlconfig/mc_radio.c:70
+#: tool/mlconfig/mc_radio.c:44 tool/mlconfig/mc_radio.c:45
 msgid "As it is"
 msgstr ""
 
-#: tool/mlconfig/mc_radio.c:67
+#: tool/mlconfig/mc_radio.c:44
 #, fuzzy
 msgid "Unicode"
 msgstr "--- يونيكود ---"
 
-#: tool/mlconfig/mc_radio.c:67
+#: tool/mlconfig/mc_radio.c:44
 msgid "DEC Special"
 msgstr ""
 
-#: tool/mlconfig/mc_radio.c:70
+#: tool/mlconfig/mc_radio.c:45
 msgid "Font policy"
 msgstr ""
 
-#: tool/mlconfig/mc_radio.c:70
+#: tool/mlconfig/mc_radio.c:45
 msgid "Always unicode"
 msgstr ""
 
-#: tool/mlconfig/mc_radio.c:70
+#: tool/mlconfig/mc_radio.c:45
 msgid "Never unicode"
 msgstr ""
 
-#: tool/mlconfig/mc_radio.c:73
+#: tool/mlconfig/mc_radio.c:46
 msgid "Save log"
 msgstr ""
 
-#: tool/mlconfig/mc_radio.c:73
+#: tool/mlconfig/mc_radio.c:46
 #, fuzzy
 msgid "No"
 msgstr "لا"
 
-#: tool/mlconfig/mc_radio.c:73
+#: tool/mlconfig/mc_radio.c:46
 msgid "Raw format"
 msgstr ""
 
-#: tool/mlconfig/mc_radio.c:73
+#: tool/mlconfig/mc_radio.c:46
 msgid "Ttyrec format"
 msgstr ""
 

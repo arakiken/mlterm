@@ -1,3 +1,24 @@
+2020-05-13  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja: Updated.
+
+	* ui_draw_str.c:
+	  Hack to avoid http://twitter.com/isaki68k/status/1259110003874488326
+	  is added.
+
+	* main.c: setenv("CYGWIN", "disable_pcon") on cygwin to disable pseudo
+	  console support introduced since cygwin 3.1.0.
+
+	* ui_picture.[ch]:
+	  - cleanup_inline_pictures() is tuned.
+	  - weighting is removed from ui_inline_picture_t.
+
+	* ui_screen.c: vt_term_get_num_logged_lines() is not called before
+	  vt_term_get_line() in line_scrolled_out().
+
+	* ui_screen_manager.c: DISPLAY and WINDOWID environmental variables are set
+	  only if USE_XLIB is defined.
+
 2020-05-04  Araki Ken  <arakiken@users.sf.net>
 
 	* URL is changed from bitbucket to github.
