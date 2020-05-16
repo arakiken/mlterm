@@ -42,6 +42,8 @@
 #define DUMMY_PIXMAP ((Pixmap)1)
 #define PIXMAP_IS_ACTIVE(inline_pic) ((inline_pic).pixmap && (inline_pic).pixmap != DUMMY_PIXMAP)
 
+#define get_inline_picture(idx) ((idx) < num_inline_pics ? inline_pics + (idx) : NULL)
+
 #if 0
 #define __DEBUG
 #endif
@@ -1016,6 +1018,21 @@ end:
 
 ui_inline_picture_t *ui_get_inline_picture(int idx) {
   if (idx < num_inline_pics) {
+    /*
+     * XXX
+     * This check is not really necessary because cleanup_inline_pictures()
+     * doesn't destroy inline pictures remaining in vt_term.
+     * But it is enabled for now because of this bug.
+     * http://twitter.com/isaki68k/status/1259110003874488326
+     */
+#if 1
+    if (inline_pics[idx].pixmap == None) {
+      bl_msg_printf("A bug that should never happen.\n");
+
+      return NULL;
+    }
+#endif
+
     return inline_pics + idx;
   } else {
     return NULL;
@@ -1026,8 +1043,8 @@ int ui_add_frame_to_animation(int prev_idx, int next_idx) {
   ui_inline_picture_t *prev_pic;
   ui_inline_picture_t *next_pic;
 
-  if ((prev_pic = ui_get_inline_picture(prev_idx)) &&
-      (next_pic = ui_get_inline_picture(next_idx)) &&
+  if ((prev_pic = get_inline_picture(prev_idx)) &&
+      (next_pic = get_inline_picture(next_idx)) &&
       /* Animation is stopped after adding next_idx which equals to
          prev_pic->next_frame */
       prev_pic->next_frame != next_idx &&
