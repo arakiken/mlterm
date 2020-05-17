@@ -1,5 +1,11 @@
 2020-05-17  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_picture.c: If the value of "separate_wall_picture" option is "true",
+	  a wall picture is not resized to the window size but to the display size
+	  on x68k.
+
+2020-05-17  Araki Ken  <arakiken@users.sf.net>
+
 	* ui_picture.c: ui_get_inline_picture() checks whether pixmap == None or not.
 
 2020-05-17  Araki Ken  <arakiken@users.sf.net>

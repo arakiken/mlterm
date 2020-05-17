@@ -4,3 +4,9 @@ aclocal-rm.m4.diff
 encodefilter/util/src
 man1
 script/config.guesssub.sh
+tool/mlconfig/po/ar.gmo
+tool/mlconfig/po/de.gmo
+tool/mlconfig/po/ja.gmo
+tool/mlconfig/po/mlconfig.pot
+tool/mlconfig/po/vi.gmo
+tool/mlconfig/po/zh_TW.gmo

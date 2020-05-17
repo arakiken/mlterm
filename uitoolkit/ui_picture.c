@@ -59,6 +59,10 @@ typedef struct inline_pic_args {
 
 } inline_pic_args_t;
 
+#ifdef USE_GRF
+extern int separate_wall_picture;
+#endif
+
 /* --- static varaibles --- */
 
 static ui_picture_t **pics;
@@ -119,6 +123,19 @@ static int destroy_picture_intern(ui_picture_t *pic) {
 static ui_picture_t *create_bg_picture(ui_window_t *win, ui_picture_modifier_t *mod,
                                        char *file_path) {
   ui_picture_t *pic;
+
+#ifdef USE_GRF
+  ui_window_t new_win;
+
+  if (separate_wall_picture) {
+    memset(&new_win, 0, sizeof(new_win));
+    new_win.disp = win->disp;
+    new_win.width = win->disp->display->width;
+    new_win.height = win->disp->display->height;
+
+    win = &new_win;
+  }
+#endif
 
   if (!(pic = create_picture_intern(win->disp->display, mod, file_path, ACTUAL_WIDTH(win),
                                     ACTUAL_HEIGHT(win)))) {
