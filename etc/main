@@ -127,6 +127,8 @@
 
 # emoji_path =
 
+# emoji_file_format =
+
 # (Available for mlterm-fb, mlterm-wl or mlterm-sdl2)
 # use_aafont = false
 

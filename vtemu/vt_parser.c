@@ -1109,7 +1109,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
     emoji1 = &vt_parser->w_buf.chars[vt_parser->w_buf.filled_len - 1];
     emoji2 = NULL;
 
-    if (0x1f1e6 <= ch && ch <= 0x1f1ff) {
+    if (0x1f1e6 <= ch && ch <= 0x1f1ff /* REGIONAL INDICATOR SYMBOL LETTER A-Z */) {
       vt_char_t *prev_ch;
 
       if (vt_parser->w_buf.filled_len <= 1) {
@@ -1124,10 +1124,23 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
           emoji1 = prev_ch;
         }
       }
+    } else if (0x1f3fb <= ch && ch <= 0x1f3ff) /* EMOJI MODIFIER FITZPATRIC TYPE 1-6 */ {
+      vt_char_t *prev_ch;
+
+      if (vt_parser->w_buf.filled_len <= 1) {
+        prev_ch = vt_screen_get_n_prev_char(vt_parser->screen, 1);
+      } else {
+        prev_ch = emoji1 - 1;
+      }
+
+      if (prev_ch) {
+        emoji2 = emoji1;
+        emoji1 = prev_ch;
+      }
     }
 
     if ((*vt_parser->xterm_listener->get_emoji_data)(vt_parser->xterm_listener->self, emoji1,
-                                                        emoji2)) {
+                                                     emoji2)) {
       if (emoji2) {
         /* Base char: emoji1, Comb1: picture, Comb2: emoji2 */
         if (emoji2 == emoji1 + 1) {

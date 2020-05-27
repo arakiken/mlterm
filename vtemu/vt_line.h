@@ -170,6 +170,8 @@ int vt_line_ctl_visual(vt_line_t *line);
 
 int vt_line_ctl_logical(vt_line_t *line);
 
+int vt_line_clear_picture(vt_line_t *line);
+
 #ifdef DEBUG
 
 void vt_line_dump(vt_line_t *line);

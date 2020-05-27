@@ -8,6 +8,7 @@ void TEST_bl_args(void);
 void TEST_bl_map(void);
 void TEST_bl_path(void);
 void TEST_ui_font_config(void);
+void TEST_ui_emoji(void);
 
 #ifndef NO_IMAGE
 void TEST_sixel_realloc_pixels(void);
@@ -24,6 +25,8 @@ void test(void) {
   TEST_bl_map();
   TEST_bl_path();
   TEST_ui_font_config();
+  TEST_ui_emoji();
+
 #ifndef NO_IMAGE
   TEST_sixel_realloc_pixels();
 #endif

@@ -1075,6 +1075,8 @@ void TEST_sixel_realloc_pixels(void) {
     }
   }
 
+  free(pixels);
+
   bl_msg_printf("PASS realloc_pixels test\n");
 }
 

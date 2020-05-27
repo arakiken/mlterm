@@ -1,3 +1,36 @@
+2020-05-24  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja, etc/main, etc/main.ja: Updated.
+
+	* test.c: test() calls TEST_ui_emoji().
+
+	* vt_parser.c: put_char() supports emoji modifier fitzpatric type 1-6
+	  (U+1F3FB-1F3FF)
+
+	* vt_line.[ch]: vt_line_clear_picture() is added.
+
+	* ui_screen.c:
+	  - "emoji_file_format" is added to get_config_intern() and
+	    ui_screen_set_config().
+	  - xterm_get_emoji_data() calls vt_char_set_picture_id() instead of
+	    vt_char_combine_picture if ch1 has already had a picture id.
+	    (For emoji modifier fitzpatric type 1-6)
+
+	* ui_picture.h: INLINE_AVAIL_ROWS is changed from -MAX_INLINE_PICTURES * 2
+	  to -MAX_INLINE_PICTURES.
+
+	* ui_picture.c:
+	  ensure_inline_pictures() clears inline pictures in the backscroll log
+	  if num_inline_pics >= MAX_INLINE_PICTURES after cleanup_inline_pictures().
+
+	* ui_main_config.c: --emojifmt / emoji_file_format option is added.
+
+	* ui_emoji.[ch]:
+	  - ui_emoji_{set|get}_file_format() and TEST_ui_emoji() is added.
+	  - 'check_exist' is added to arguments of ui_emoji_get_path().
+
+	* main.c: setenv("MSYS", "disable_pcon").
+
 2020-05-17  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_picture.c: If the value of "separate_wall_picture" option is "true",

@@ -327,6 +327,8 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "ignore broadcasted characters [false]");
   bl_conf_add_opt(conf, '\0', "emoji", 0, "emoji_path",
                   "emoji directory or file path [~/.mlterm/emoji]");
+  bl_conf_add_opt(conf, '\0', "emojifmt", 0, "emoji_file_format",
+                  "emoji file format [%.4x.png,%.4x-%.4x.png]");
   bl_conf_add_opt(conf, '\0', "lew", 0, "local_echo_wait",
                   "time (msec) to keep local echo mode [250]");
   bl_conf_add_opt(conf, '\0', "sr", 1, "scroll_on_resizing",
@@ -1398,6 +1400,10 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
 
   if ((value = bl_conf_get_value(conf, "emoji_path"))) {
     ui_emoji_set_path(value);
+  }
+
+  if ((value = bl_conf_get_value(conf, "emoji_file_format"))) {
+    ui_emoji_set_file_format(value);
   }
 
   if ((value = bl_conf_get_value(conf, "scroll_on_resizing"))) {

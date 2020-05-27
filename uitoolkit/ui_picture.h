@@ -63,7 +63,7 @@ typedef struct ui_inline_picture {
 
 #define MAX_INLINE_PICTURES (1 << PICTURE_ID_BITS)
 #define MAKE_INLINEPIC_POS(col, row, num_rows) ((col) * (num_rows) + (row))
-#define INLINEPIC_AVAIL_ROW -(MAX_INLINE_PICTURES * 2)
+#define INLINEPIC_AVAIL_ROW -MAX_INLINE_PICTURES
 
 #ifdef NO_IMAGE
 

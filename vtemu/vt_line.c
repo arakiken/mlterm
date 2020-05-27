@@ -1731,6 +1731,22 @@ int vt_line_ctl_logical(vt_line_t *line) {
   return 0;
 }
 
+int vt_line_clear_picture(vt_line_t *line) {
+  int count;
+  int rmpic = 0;
+
+  for (count = 0; count < line->num_filled_chars; count++) {
+    vt_char_t *ch;
+
+    if ((ch = vt_get_picture_char(line->chars + count))) {
+      rmpic = 1;
+      vt_char_copy(ch, vt_sp_ch());
+    }
+  }
+
+  return rmpic;
+}
+
 #ifdef DEBUG
 
 void vt_line_dump(vt_line_t *line) {

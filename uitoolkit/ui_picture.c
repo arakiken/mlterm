@@ -612,13 +612,33 @@ static int ensure_inline_picture(ui_display_t *disp, const char *file_path,
     void *p;
 
     /* XXX pthread_mutex_lock( &mutex) is necessary. */
-    if (num_inline_pics >= MAX_INLINE_PICTURES ||
-        !(p = realloc(inline_pics, (num_inline_pics + 1) * sizeof(*inline_pics)))) {
+    if (num_inline_pics >= MAX_INLINE_PICTURES) {
+      int row;
+      int rmpic = 0;
+
+      for (row = INLINEPIC_AVAIL_ROW; row < 0; row++) {
+        vt_line_t *line;
+
+        if ((line = vt_term_get_line(term, row))) {
+          rmpic = vt_line_clear_picture(line);
+        }
+      }
+
+      if (!rmpic) {
+        return -1;
+      }
+
+      /* retry cleanup */
+      need_cleanup = 1;
+      if ((idx = cleanup_inline_pictures(term)) == -1) {
+        return -1;
+      }
+    } else if ((p = realloc(inline_pics, (num_inline_pics + 1) * sizeof(*inline_pics)))) {
+      inline_pics = p;
+      idx = num_inline_pics++;
+    } else {
       return -1;
     }
-
-    inline_pics = p;
-    idx = num_inline_pics++;
   }
 
   inline_pics[idx].pixmap = None; /* mark as empty */

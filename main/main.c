@@ -34,7 +34,13 @@ static char *dummy_argv[] = {"mlterm", NULL};
 
 /* --- static functions --- */
 
+#if defined(__CYGWIN__) || defined(__MSYS__)
 #ifdef __CYGWIN__
+#define ENV_PCON "CYGWIN"
+#else
+#define ENV_PCON "MSYS"
+#endif
+
 #include <stdlib.h> /* setenv */
 
 static void init_cygwin_env(void) {
@@ -54,7 +60,7 @@ static void init_cygwin_env(void) {
    * environmental variable.
    */
 
-  if ((cur_val = getenv("CYGWIN"))) {
+  if ((cur_val = getenv(ENV_PCON))) {
     len = strlen(cur_val) + 1;
   } else {
     len = 0;
@@ -67,7 +73,7 @@ static void init_cygwin_env(void) {
       new_val[len - 1] = ' ';
     }
     strcpy(new_val + len, "disable_pcon");
-    setenv("CYGWIN", new_val, 1);
+    setenv(ENV_PCON, new_val, 1);
     free(new_val);
   }
 }

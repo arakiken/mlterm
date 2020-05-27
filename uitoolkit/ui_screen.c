@@ -4442,7 +4442,7 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
     sprintf(digit, "%d", ui_get_click_interval());
     value = digit;
   } else if (strcmp(key, "emoji_path") == 0) {
-    if ((value = ui_emoji_get_path(0, 0))) {
+    if ((value = ui_emoji_get_path(0, 0, 0))) {
       char *p = strrchr(value, '/');
       *p = '\0';
 
@@ -4459,6 +4459,17 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
 
   emoji_path_end:
     ;
+  } else if (strcmp(key, "emoji_file_format") == 0) {
+    char *p;
+
+    if ((value = ui_emoji_get_file_format()) && (p = alloca(strlen(value) + 1))) {
+      strcpy(p, value);
+      free(value);
+      value = p;
+    } else {
+      free(value);
+      value = "";
+    }
   }
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
   else if (strcmp(key, "use_aafont") == 0) {
@@ -4725,15 +4736,7 @@ static void line_scrolled_out(void *p) {
   vt_line_t *line;
 
   if ((line = vt_term_get_line(screen->term, INLINEPIC_AVAIL_ROW))) {
-    int count;
-
-    for (count = 0; count < line->num_filled_chars; count++) {
-      vt_char_t *ch;
-
-      if ((ch = vt_get_picture_char(line->chars + count))) {
-        vt_char_copy(ch, vt_sp_ch());
-      }
-    }
+    vt_line_clear_picture(line);
   }
 #endif
 
@@ -5739,13 +5742,19 @@ static int xterm_get_emoji_data(void *p, vt_char_t *ch1, vt_char_t *ch2) {
   width = ui_col_width(screen) * vt_char_cols(ch1);
   height = ui_line_height(screen);
 
-  if ((file_path = ui_emoji_get_path(vt_char_code(ch1), ch2 ? vt_char_code(ch2) : 0))) {
+  if ((file_path = ui_emoji_get_path(vt_char_code(ch1), ch2 ? vt_char_code(ch2) : 0, 1))) {
     idx = ui_load_inline_picture(screen->window.disp, file_path, &width, &height,
                                  width / vt_char_cols(ch1), height, 0, screen->term);
     free(file_path);
 
     if (idx != -1) {
-      vt_char_combine_picture(ch1, idx, 0);
+      vt_char_t *pch;
+
+      if ((pch = vt_get_picture_char(ch1))) {
+        vt_char_set_picture_id(pch, idx);
+      } else {
+        vt_char_combine_picture(ch1, idx, 0);
+      }
 
       return 1;
     }
@@ -6914,6 +6923,8 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
     }
   } else if (strcmp(key, "emoji_path") == 0) {
     ui_emoji_set_path(value);
+  } else if (strcmp(key, "emoji_file_format") == 0) {
+    ui_emoji_set_file_format(value);
   }
 #ifdef ROTATABLE_DISPLAY
   else if (strcmp(key, "rotate_display") == 0) {

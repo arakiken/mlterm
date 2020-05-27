@@ -571,6 +571,21 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         絵文字表示に使用する画像のあるディレクトリ又は絵文字フォント
         (NotoColorEmoji.ttfなど)のパスを指定します。
 
+      o emoji_file_format (%.4x.png,%.4x-%.4x.png)
+        emoji_path オプションで指定したディレクトリ内の画像ファイルのファイル名の
+        フォーマットを指定します。
+
+        また、以下のように、カンマに続けて、2つのコードポイントからなる emoji
+        sequence のファイル名のフォーマットも指定することができます。
+        [Format1],[Format2]
+
+        [Format2] の指定を省略する場合、
+        [Format1のうち拡張子を除く部分]-[Format1]
+        を2つのコードポイントからなる emoji sequence のファイル名とみなします。
+
+        ファイル名のうちコードポイントを示す部分は、printf のフォーマット指定子を
+        使用してください。
+
       o fg_color  (*black*) (#)
         端末画面の前景色
 
@@ -1192,13 +1207,32 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
       Unicode の U+1F000-1F6FF 又は U+1F900-1F9FF については、~/.mlterm/emoji 以
       下に 1fXXX.png という画像ファイルがあれば、それを適宜拡縮して表示します。
-      画像ファイルは、https://github.com/github/gemoji/archive/master.zip 内の
-      images/emoji/unicode/*.png をコピーしてください。
+      (ただし、3つ以上のコードポイントからなる emoji sequence の表示には対応して
+      いません。)
+      画像ファイルは、以下から入手してください。
+      a) https://github.com/github/gemoji/archive/master.zip
+         images/emoji/unicode/*.png を ~/.mlterm/emoji にコピーしてください。
+
+      b) https://github.com/googlefonts/noto-emoji/archive/master.zip
+         png/128/*.png を ~/.mlterm/emoji にコピーし、~/.mlterm/main において、
+         emoji_file_format = emoji_u%x.png,emoji_u%x_%x.png
+         と指定してください。
+
+      c) openmoji-72x72-color.zip at https://github.com/hfg-gmuend/openmoji/
+         *.png を ~/.mlterm/emoji にコピーし、~/.mlterm/main において、
+         emoji_file_format = %X.png
+         と指定してください。
+
+      d) https://github.com/twitter/twemoji/archive/master.zip
+         assets/72x72/*.png を ~/.mlterm/emoji にコピーしてください。
 
       --emoji / emoji_path オプションにより、~/.mlterm/emoji 以外のディレクトリ
       を指定することも可能です。
-      また、NotoColorEmoji.ttf のように絵文字フォントのパスを指定すれば、指定さ
-      れた絵文字フォントを使用して絵文字を表示します。
+
+      また、--emoji / emoji_path オプションに、/foo/bar/NotoColorEmoji.ttf のよ
+      うに絵文字フォントのパスを指定すれば、指定された絵文字フォントを使用して絵
+      文字を表示します(ただし、絵文字フォントを使用する場合、複数のコードポイン
+      トからなる emoji sequence の表示には対応していません。)。
 
       X Input Method のフォントは、なるべく端末画面で使用されているそれと同じ
       ものが使用されます。

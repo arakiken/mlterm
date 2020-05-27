@@ -619,6 +619,17 @@ Specify path of a directory where emoji image files exist or a open type emoji
 font to show unicode emoji characters.
 The default is \fB~/.mlterm/emoji\fR.
 .TP
+\fB\-\-emojifmt\fR=\fIvalue\fR
+Specify filename format of emoji image files in the directory specified by
+\-\-emoji option.
+The value is "[Format1](,[Format2])".
+[Format1] is for singleton emoji consisting of 1 code point, and [Format2]
+is for emoji sequence consisting of 2 code points.
+If you omit [Format2], [Format1 except file suffix]-[Format1] is automatically
+used for emoji sequence.
+Emoji sequence consisting of 3 or more code points is not supported for now.
+The default is \fB%.4x.png,%.4x-%.4x.png\fR.
+.TP
 \fB\-\-exitbs\fR(=\fIbool\fR)
 Whether to exit backscroll mode on receiving data from pty.
 The default is \fBfalse\fR.
@@ -1533,6 +1544,10 @@ Specify X server to connect.
 \fBemoji_path=\fIvalue\fR (\fB\-\-emoji\fR)
 Specify path of a directory where emoji image files exist or a open type emoji
 font to show unicode emoji characters.
+.TP
+\fBemoji_file_format=\fIvalue\fR (\fB\-\-emojifmt\fR)
+Specify filename format of emoji image files in the directory specified by
+\-\-emoji option.
 .TP
 \fBencoding=\fIencoding\fR (\fB\-E\fR, \fB\-\-km\fR)
 Specify encoding.
