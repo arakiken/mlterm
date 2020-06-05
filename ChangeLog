@@ -1,3 +1,17 @@
+2020-06-05  Araki Ken  <arakiken@users.sf.net>
+
+	* etc/key, doc/ja/README.ja: Updated.
+
+	* ui_screen.[ch]:
+	  - copymode_enabled, copymode_cursor_char_index and copymode_cursor_row
+	    are added to ui_screen_t.
+	  - draw_cursor() draws copy mode cursor and unhighlight_cursor() hides
+	    copy mode cursor if screen->copymode_enabled is true.
+	  - copymode_{start|key|move_vertical}() are added.
+
+	* ui_shortcut.[ch]:
+	  COPY_MODE whose default shortcut is Control+Return is added.
+
 2020-05-24  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, README.ja, etc/main, etc/main.ja: Updated.

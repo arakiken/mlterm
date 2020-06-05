@@ -133,6 +133,10 @@ typedef struct ui_screen {
 
   ui_icon_picture_t *icon;
 
+  int16_t copymode_cursor_char_index; /* visual */
+  int16_t copymode_cursor_row;        /* visual */
+  int8_t copymode_enabled;            /* visual */
+
   int16_t prev_inline_pic;
 
   u_int16_t prev_mouse_report_col;

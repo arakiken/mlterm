@@ -1,3 +1,4 @@
+* Support copy mode which starts by Control+Return.
 * Add emoji_file_format / --emojifmt option.
 * Bug fixes:
   Fix a bug which caused a 'mlimgloader' process not to exit after loading a wall picture.

@@ -30,6 +30,7 @@ typedef enum ui_key_func {
   SCROLL_DOWN,
   INSERT_SELECTION,
   RESET,
+  COPY_MODE,
   EXIT_PROGRAM,
 
   MAX_KEY_MAPS

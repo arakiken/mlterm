@@ -59,6 +59,7 @@ static key_func_table_t key_func_table[] = {
   { "SCROLL_DOWN", SCROLL_DOWN, },
   { "INSERT_SELECTION", INSERT_SELECTION, },
   { "RESET", RESET, },
+  { "COPY_MODE", COPY_MODE, },
   { "EXIT_PROGRAM", EXIT_PROGRAM, },
 
   /* obsoleted: alias of OPEN_SCREEN */
@@ -170,7 +171,11 @@ void ui_shortcut_init(ui_shortcut_t *shortcut) {
     { XK_Insert, ShiftMask, 1, },
 #endif
 
+    /* RESET */
     { XK_Pause, 0, 1, },
+
+    /* COPY_MODE */
+    { XK_Return, ControlMask, 1, },
 
 #ifdef DEBUG
     /* EXIT PROGRAM(only for debug) */

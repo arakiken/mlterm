@@ -14,7 +14,7 @@
 # Shift+Up=SCROLL_UP
 # Shift+Insert=INSERT_SELECTION
 # Pause=RESET
-# UNUSED=SWITCH_OSC52
+# Control+Return=COPY_MODE
 # UNUSED=EXIT_PROGRAM
 # Control+Button1="menu:mlterm-menu"
 # Control+Button3="menu:mlconfig"
@@ -34,6 +34,7 @@
 # Control+F12="proto:use_local_echo=false"
 # Control+F13="proto:broadcast=switch"
 # Control+F14="proto:ignore_broadcasted_chars=switch"
+# Control+F15="proto:allow_osc52=switch"
 # Shift+Button3="exesel:mlclient -e w3m"
 # Shift+Button3="exesel:\"/cygdrive/c/Program Files/Internet Explorer/iexplore.exe\" \"%s\""
 # Shift+Button3="exesel:/cygdrive/c/Program\\ Files/Internet\\ Explorer/iexplore.exe \"%s\""

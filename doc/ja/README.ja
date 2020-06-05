@@ -1340,6 +1340,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         セレクションのペースト
       o RESET(Pause)
         端末をリセット
+      o COPY_MODE
+        キーボードでの領域選択及びコピーができるモードに入ります。
       o "" で囲まれた文字列
         文字列の出力
 
