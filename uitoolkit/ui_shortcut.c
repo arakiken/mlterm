@@ -57,6 +57,8 @@ static key_func_table_t key_func_table[] = {
   { "PAGE_DOWN", PAGE_DOWN, },
   { "SCROLL_UP", SCROLL_UP, },
   { "SCROLL_DOWN", SCROLL_DOWN, },
+  { "SCROLL_UP_TO_MARK", SCROLL_UP_TO_MARK, },
+  { "SCROLL_DOWN_TO_MARK", SCROLL_DOWN_TO_MARK, },
   { "INSERT_SELECTION", INSERT_SELECTION, },
   { "RESET", RESET, },
   { "COPY_MODE", COPY_MODE, },
@@ -164,6 +166,12 @@ void ui_shortcut_init(ui_shortcut_t *shortcut) {
     /* SCROLL_DOWN */
     { XK_Down, ShiftMask, 1, },
 
+    /* SCROLL_UP_TO_MARK */
+    { XK_Up, ControlMask|ShiftMask, 1, },
+
+    /* SCROLL_DOWN_TO_MARK */
+    { XK_Down, ControlMask|ShiftMask, 1, },
+
     /* INSERT_SELECTION */
 #if defined(USE_QUARTZ) || (defined(USE_SDL2) && defined(__APPLE__))
     { 'v', CommandMask, 1, },
@@ -175,7 +183,7 @@ void ui_shortcut_init(ui_shortcut_t *shortcut) {
     { XK_Pause, 0, 1, },
 
     /* COPY_MODE */
-    { XK_Return, ControlMask, 1, },
+    { XK_Return, ControlMask|ShiftMask, 1, },
 
 #ifdef DEBUG
     /* EXIT PROGRAM(only for debug) */

@@ -236,6 +236,11 @@ void vt_term_enter_backscroll_mode(vt_term_t *term);
 
 #define vt_term_backscroll_downward(term, size) vt_screen_backscroll_downward((term)->screen, size)
 
+#define vt_term_backscroll_upward_to_mark(term) vt_screen_backscroll_upward_to_mark((term)->screen)
+
+#define vt_term_backscroll_downward_to_mark(term) \
+  vt_screen_backscroll_downward_to_mark((term)->screen)
+
 #define vt_term_reverse_color(term, beg_char_index, beg_row, end_char_index, end_row, is_rect) \
   vt_screen_reverse_color((term)->screen, beg_char_index, beg_row, end_char_index, end_row, is_rect)
 
@@ -323,7 +328,8 @@ int vt_term_set_config(vt_term_t *term, char *key, char *value);
   vt_parser_report_mouse_tracking((term)->parser, col, row, button, is_released, key_state, \
                                         button_state)
 
-#define vt_term_search_init(term, match) vt_screen_search_init((term)->screen, match)
+#define vt_term_search_init(term, char_index, row, match) \
+  vt_screen_search_init((term)->screen, char_index, row, match)
 
 #define vt_term_search_final(term) vt_screen_search_final((term)->screen)
 

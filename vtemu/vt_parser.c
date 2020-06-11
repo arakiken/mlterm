@@ -5911,7 +5911,15 @@ inline static int parse_vt100_escape_sequence(
 #endif
 #ifdef SUPPORT_ITERM2_OSC1337
       else if (ps == 1337) {
-        iterm2_proprietary_set(vt_parser, pt);
+        if (strcmp(pt, "SetMark") == 0) {
+          vt_line_t *line;
+
+          if ((line = vt_screen_get_cursor_line(vt_parser->screen))) {
+            line->mark = 1;
+          }
+        } else {
+          iterm2_proprietary_set(vt_parser, pt);
+        }
       }
 #endif
       else if (ps == 5379) {

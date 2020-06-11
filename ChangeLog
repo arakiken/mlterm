@@ -1,3 +1,38 @@
+2020-06-09  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja, man/mlterm.1: Updated.
+
+	* ui_screen.[ch]:
+	  - If screen->copymode_enabled is true, draw_cursor() ignores
+	    vt_term_is_visible_cursor().
+	  - If vt_line_t::mark is true, redraw_screen() draws mark before the
+	    beginning of a line.
+	  - redraw_screen() draws pattern text to be searched for in copy mode.
+	  - bs_scroll_*() doesn't call ui_window_update() in copy mode.
+	  - bs_scroll_{up|down}ward_to_mark() are added.
+	  - SCROLL_{UP|DOWN}_TO_MARK shortcuts are supported.
+	  - copymode_pattern, copymode_pattern_pos and copymode_pattern_editing
+	    are added to members of ui_screen_t.
+	  - '/' key in copymode enables searching specified text in the screen
+	    and backlog.
+
+	* ui_shortcut.[ch]:
+	  - SCROLL_{UP|DOWN}_TO_MASK shortcuts are added.
+	  - The default key of COPY_MODE shortcut is changed from
+	    Control+Return to Control+Shift+Return.
+
+	* win32/ui_window.c: Control+Shift+Key works.
+
+	* vt_term.h: vt_term_backscroll_{up|down}ward_to_mark() are added.
+
+	* vt_screen.[ch]:
+	  - vt_screen_backscroll_{up|down}ward_to_mark() are added.
+	  - 'char_index' and 'row' are added to arguments of vt_screen_search_init().
+
+	* vt_parser.c: OSC 1337;SetMark ST is supported.
+
+	* vt_line.[ch]: mark is added to members of vt_line_t.
+
 2020-06-05  Araki Ken  <arakiken@users.sf.net>
 
 	* etc/key, doc/ja/README.ja: Updated.

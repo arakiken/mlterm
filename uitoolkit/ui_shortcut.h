@@ -28,6 +28,8 @@ typedef enum ui_key_func {
   PAGE_DOWN,
   SCROLL_UP,
   SCROLL_DOWN,
+  SCROLL_UP_TO_MARK,
+  SCROLL_DOWN_TO_MARK,
   INSERT_SELECTION,
   RESET,
   COPY_MODE,

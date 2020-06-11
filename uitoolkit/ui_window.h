@@ -79,7 +79,7 @@ typedef struct ui_window {
 
   Window my_window;
 
-#ifdef  USE_XLIB
+#ifdef USE_XLIB
   /*
    * Don't remove if USE_XFT and USE_CAIRO are not defined to keep the size of
    * ui_window_t

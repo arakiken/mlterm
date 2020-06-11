@@ -597,6 +597,7 @@ static void copy_line(vt_line_t *dst, vt_line_t *src, int optimize_ctl_info) {
   dst->is_modified = src->is_modified;
   dst->is_continued_to_next = src->is_continued_to_next;
   dst->size_attr = src->size_attr;
+  dst->mark = src->mark;
 
 #if !defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
   if (vt_line_is_using_bidi(src)) {

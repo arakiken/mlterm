@@ -195,6 +195,10 @@ int vt_screen_backscroll_upward(vt_screen_t *screen, u_int size);
 
 int vt_screen_backscroll_downward(vt_screen_t *screen, u_int size);
 
+u_int vt_screen_backscroll_upward_to_mark(vt_screen_t *screen);
+
+u_int vt_screen_backscroll_downward_to_mark(vt_screen_t *screen);
+
 #define vt_screen_get_tab_size(screen) vt_edit_get_tab_size((screen)->edit)
 
 #define vt_screen_set_tab_size(screen, tab_size) vt_edit_set_tab_size((screen)->edit, tab_size)
@@ -220,7 +224,7 @@ int vt_screen_get_line_region(vt_screen_t *screen, int *beg_row, int *end_char_i
 int vt_screen_get_word_region(vt_screen_t *screen, int *beg_char_index, int *beg_row,
                               int *end_char_index, int *end_row, int base_char_index, int base_row);
 
-int vt_screen_search_init(vt_screen_t *screen,
+int vt_screen_search_init(vt_screen_t *screen, int char_index, int row,
                           int (*match)(size_t *, size_t *, void *, u_char *, int));
 
 void vt_screen_search_final(vt_screen_t *screen);

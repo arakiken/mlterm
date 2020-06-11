@@ -2008,6 +2008,8 @@ You can specify Button1, Button2, Button3, Button4 or Button5 as \fIKEY\fR.
 \fBPAGE_DOWN\fR,
 \fBSCROLL_UP\fR,
 \fBSCROLL_DOWN\fR,
+\fBSCROLL_UP_TO_MARK\fR,
+\fBSCROLL_DOWN_TO_MARK\fR,
 \fBINSERT_SELECTION\fR,
 \fBRESET\fR,
 \fBCOPY_MODE\fR,
@@ -2075,6 +2077,14 @@ Scroll down one line
 (default \fBShift+Down\fR).  Note this key is enabled only when
 \fB\-q\fR/\fB\-\-extkey\fR option is used.
 .TP
+\fBSCROLL_UP_TO_MARK\fR
+Start backscroll mode and scroll up to the next marked line
+(default \fBControl+Shift+Up\fR).
+.TP
+\fBSCROLL_DOWN_TO_MARK\fR
+Scroll down to the next marked line
+(default \fBControl+Shift+Down\fR).
+.TP
 \fBINSERT_SELECTION\fR
 Insert selection (default \fBShift+Insert\fR).
 .TP
@@ -2083,7 +2093,7 @@ Reset terminal (default \fBPause\fR).
 .TP
 \fBCOPY_MODE\fR
 Enter copy mode which enables you to select and copy region by keyboard
-(default \fBControl+Return\fR).
+(default \fBControl+Shift+Return\fR).
 .TP
 \fB"\fISTRING\fB"\fR
 The specified string is issued when the \fIKEY\fR key is pressed.

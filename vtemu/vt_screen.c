@@ -80,6 +80,9 @@ static void receive_scrolled_out_line(void *p, vt_line_t *line) {
   screen = p;
 
   if (vt_status_line_is_focused(screen)) {
+    vt_line_set_size_attr(line, 0);
+    line->mark = 0;
+
     return;
   }
 
@@ -113,6 +116,7 @@ static void receive_scrolled_out_line(void *p, vt_line_t *line) {
 #endif
   {
     vt_line_set_size_attr(line, 0);
+    line->mark = 0;
   }
 
   if (vt_screen_is_backscrolling(screen) == BSM_STATIC) {
@@ -1177,6 +1181,46 @@ int vt_screen_backscroll_downward(vt_screen_t *screen, u_int size) {
   return 1;
 }
 
+u_int vt_screen_backscroll_upward_to_mark(vt_screen_t *screen) {
+  vt_line_t *line;
+  int count = 0;
+  int start_row = -screen->backscroll_rows;
+
+  do {
+    if (start_row + count >= 0 ||
+        (line = vt_screen_get_line(screen, start_row + count)) == NULL) {
+      return 0;
+    }
+    count++;
+  } while (!line->mark);
+  count--;
+
+  if (vt_screen_backscroll_upward(screen, count)) {
+    return count;
+  } else {
+    return 0;
+  }
+}
+
+u_int vt_screen_backscroll_downward_to_mark(vt_screen_t *screen) {
+  vt_line_t *line;
+  int count = 0;
+  int start_row = -screen->backscroll_rows - 1;
+
+  do {
+    if ((line = vt_screen_get_line(screen, start_row - count)) == NULL) {
+      return 0;
+    }
+    count++;
+  } while (!line->mark);
+
+  if (vt_screen_backscroll_downward(screen, count)) {
+    return count;
+  } else {
+    return 0;
+  }
+}
+
 int vt_screen_reverse_color(vt_screen_t *screen, int beg_char_index, int beg_row,
                             int end_char_index, int end_row, int is_rect) {
   if (is_rect) {
@@ -1418,6 +1462,7 @@ int vt_screen_get_word_region(vt_screen_t *screen, int *beg_char_index, int *beg
 }
 
 int vt_screen_search_init(vt_screen_t *screen,
+                          int char_index, int row, /* -1: cursor position */
                           int (*match)(size_t *, size_t *, void *, u_char *, int)) {
   if (screen->search) {
     return 0;
@@ -1429,7 +1474,8 @@ int vt_screen_search_init(vt_screen_t *screen,
 
   screen->search->match = match;
 
-  vt_screen_search_reset_position(screen);
+  screen->search->char_index = char_index;
+  screen->search->row = row;
 
   return 1;
 }

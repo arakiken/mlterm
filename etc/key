@@ -14,7 +14,7 @@
 # Shift+Up=SCROLL_UP
 # Shift+Insert=INSERT_SELECTION
 # Pause=RESET
-# Control+Return=COPY_MODE
+# Control+Shift+Return=COPY_MODE
 # UNUSED=EXIT_PROGRAM
 # Control+Button1="menu:mlterm-menu"
 # Control+Button3="menu:mlconfig"

@@ -52,11 +52,12 @@ typedef struct vt_line {
 #endif
   u_int8_t ctl_info_type;
 
-  int8_t is_modified; /* 1: need to redraw. 2: was really changed. */
-  int8_t is_continued_to_next;
+  int is_modified : 4; /* 1: need to redraw. 2: was really changed. */
+  int is_continued_to_next : 4;
 
   /* public */
   int8_t size_attr;
+  int8_t mark;
 
 } vt_line_t;
 

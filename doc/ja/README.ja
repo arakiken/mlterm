@@ -1334,13 +1334,19 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         スクロールアップ
       o PAGE_DOWN(Shift+Next)
         ページダウン
+      o SCROLL_UP_TO_MARK(Control+Shift+Up)
+        次のマークされた行までスクロールアップ
+        (OSC 1337;SetMark で行にマークすることができます。)
       o SCROLL_DOWN(Shift+Down)
         スクロールダウン
       o INSERT_SELECTION(Shift+Insert)
         セレクションのペースト
+      o SCROLL_DOWN_TO_MARK(Control+Shift+Down)
+        次のマークされた行までスクロールダウン
+        (OSC 1337;SetMark で行にマークすることができます。)
       o RESET(Pause)
         端末をリセット
-      o COPY_MODE
+      o COPY_MODE(Control+Shift+Return)
         キーボードでの領域選択及びコピーができるモードに入ります。
       o "" で囲まれた文字列
         文字列の出力

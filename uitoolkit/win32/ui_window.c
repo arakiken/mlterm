@@ -1663,6 +1663,8 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
                  */
                 kev.ch += 0x20;
               }
+            } else if (kev.state & ControlMask) {
+              /* WM_*_CHAR message will not be sent. */
             } else {
               /* wait for WM_*_CHAR message. */
               break;
@@ -1672,6 +1674,8 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
              * - See ui_xic_get_str() in win32/ui_xic.c.
              * - Control+0-9 doesn't cause WM_*_CHAR message.
              */
+          } else if ((kev.state & ShiftMask) && (kev.state & ControlMask)) {
+            /* WM_*_CHAR message will not be sent. */
           } else {
             /* wait for WM_*_CHAR message. */
             break;
