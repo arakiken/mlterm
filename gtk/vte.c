@@ -1234,17 +1234,19 @@ static void init_screen(VteTerminal *terminal, ui_font_manager_t *font_man,
    * ui_window_t::width and height property, but screen->term is NULL
    * until widget is realized.
    */
-  PVT(terminal)->screen = ui_screen_new(
-      PVT(terminal)->term, font_man, color_man, main_config.brightness, main_config.contrast,
-      main_config.gamma, main_config.alpha, main_config.fade_ratio, &shortcut,
-      /* main_config.screen_width_ratio */ 100,
-      main_config.mod_meta_key,
-      main_config.mod_meta_mode, main_config.bel_mode, main_config.receive_string_via_ucs,
-      main_config.pic_file_path, main_config.use_transbg, main_config.use_vertical_cursor,
-      main_config.use_extended_scroll_shortcut, main_config.borderless,
-      main_config.line_space, main_config.input_method, main_config.allow_osc52,
-      hmargin, vmargin, main_config.hide_underline, main_config.underline_offset,
-      main_config.baseline_offset);
+  PVT(terminal)->screen = ui_screen_new(PVT(terminal)->term, font_man, color_man,
+                                        main_config.brightness, main_config.contrast,
+                                        main_config.gamma, main_config.alpha,
+                                        main_config.fade_ratio, &shortcut,
+                                        /* main_config.screen_width_ratio */ 100,
+                                        main_config.mod_meta_key, main_config.mod_meta_mode,
+                                        main_config.bel_mode, main_config.receive_string_via_ucs,
+                                        main_config.pic_file_path, main_config.use_transbg,
+                                        main_config.use_vertical_cursor, main_config.borderless,
+                                        main_config.line_space, main_config.input_method,
+                                        main_config.allow_osc52, hmargin, vmargin,
+                                        main_config.hide_underline, main_config.underline_offset,
+                                        main_config.baseline_offset);
   if (PVT(terminal)->term) {
     vt_term_detach(PVT(terminal)->term);
     PVT(terminal)->screen->term = NULL;

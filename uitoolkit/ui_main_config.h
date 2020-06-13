@@ -94,7 +94,6 @@ typedef struct ui_main_config {
   int8_t use_char_combining;
   int8_t use_multi_col_char;
   int8_t use_vertical_cursor;
-  int8_t use_extended_scroll_shortcut;
   int8_t borderless;
   int8_t use_dynamic_comb;
   int8_t logging_vt_seq;

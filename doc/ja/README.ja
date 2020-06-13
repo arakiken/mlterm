@@ -1033,11 +1033,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o use_clipboard (*true*/false) (#)
         領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。
 
-      o use_extended_scroll_shortcut (true/*false*) (#)
-        スクロールのショートカットキーとして、PAGE_UP,PAGE_DOWN ショートカット以
-        外に、Up,Down,j,k,Prior,Next キー及び、SCROLL_UP,SCROLL_DOWN ショートカ
-        ットを有効にするかどうか
-
       o use_local_echo (true/*false*) (#)
         local echo mode を有効にする。
 
@@ -1329,25 +1324,22 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o VEXPAND_SCREEN(Shift+F7)
         分割された画面のうち現在選択された画面を縦方向に広げます。
       o PAGE_UP(Shift+Prior)
-        ページアップ
+        バックスクロールモードに移行し、ページアップ
       o SCROLL_UP(Shift+Up)
-        スクロールアップ
-      o PAGE_DOWN(Shift+Next)
-        ページダウン
+        バックスクロールモードに移行し、スクロールアップ
       o SCROLL_UP_TO_MARK(Control+Shift+Up)
-        次のマークされた行までスクロールアップ
+        バックスクロールモードに移行し、次のマークされた行までスクロールアップ
         (OSC 1337;SetMark で行にマークすることができます。)
-      o SCROLL_DOWN(Shift+Down)
-        スクロールダウン
-      o INSERT_SELECTION(Shift+Insert)
-        セレクションのペースト
       o SCROLL_DOWN_TO_MARK(Control+Shift+Down)
         次のマークされた行までスクロールダウン
         (OSC 1337;SetMark で行にマークすることができます。)
+      o INSERT_SELECTION(Shift+Insert)
+        セレクションのペースト
       o RESET(Pause)
         端末をリセット
       o COPY_MODE(Control+Shift+Return)
         キーボードでの領域選択及びコピーができるモードに入ります。
+        コピーモードでの操作方法は、「操作方法」-「キーボード」を参照ください。
       o "" で囲まれた文字列
         文字列の出力
 
@@ -1490,7 +1482,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
     -n/--noucsfont(=bool) : not_use_unicode_font
     -o/--lsp=value     : line_space
     -p/--pic=value     : wall_picture
-    -q/--extkey(=bool) : use_extended_scroll_shortcut
     -r/--fade=value    : fade_ratio
     -s/--sb(=bool)     : use_scrollbar
     -t/--transbg(=bool) : use_transbg
@@ -1601,18 +1592,31 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 * 操作方法
   o キーボード
     [通常モード]
-    Shift-↑     ... バックスクロールモードへ移行しつつ上スクロール
-    Shift-PageUp ... バックスクロールモードへ移行しつつページアップ
+    Shift+↑     ... バックスクロールモードへ移行し、スクロールアップ
+    Shift+PageUp ... バックスクロールモードへ移行し、ページアップ
 
     [バックスクロールモード]
-    j/↓         ... 下スクロール(use_extended_scroll_shortcut が true のとき)
-    k/↑         ... 上スクロール(use_extended_scroll_shortcut が true のとき)
-    u/PageUP     ... ページアップ(use_extended_scroll_shortcut が true のとき)
-    d/PageDown   ... ページダウン(use_extended_scroll_shortcut が true のとき)
-    Shift-↑     ... 上スクロール
-    Shift+PageUp ... ページアップ
-    Shift+PageDown ... ページダウン
-    その他のキー入力 ... バックスクロールモードから通常モードへの復帰
+    j, ↓              ... 下スクロール
+    k, ↑              ... 上スクロール
+    u, PageUP          ... ページアップ
+    d, PageDown        ... ページダウン
+    ショートカットキー ... INSERT_SELECTION、RESET 及び COPY_MODE は通常モードに復帰
+    その他のキー入力   ... バックスクロールモードから通常モードに復帰
+
+    [コピーモード]
+    Control+Shift+Return            ... コピーモードへの移行
+    j/↓                            ... 下移動
+    k/↑                            ... 上移動
+    l/右                            ... 右移動
+    h/左                            ... 左移動
+    u/PageUP                        ... ページアップ
+    d/PageDown                      ... ページダウン
+    /                               ... 検索文字列の入力
+    Control+g                       ... 検索文字列の入力の中止
+    Space, Return                   ... 領域選択開始、終了
+    Mod(Alt)+Space, Mod(Alt)+Return ... 矩形領域選択開始
+    Control+x                       ... 領域選択の中止
+    Escape,q                        ... コピーモードから通常モードに復帰
 
   o マウス
     ドラッグすれば領域選択できます。

@@ -19,21 +19,21 @@ static int old_flag_modes[MC_FLAG_MODES];
 static int new_flag_modes[MC_FLAG_MODES];
 static int is_changed[MC_FLAG_MODES];
 static char *config_keys[MC_FLAG_MODES] = {
-    "type_engine", "type_engine", "use_anti_alias", "use_variable_column_width", "use_combining",
-    "use_dynamic_comb", "receive_string_via_ucs", "use_multi_column_char", "use_ctl",
-    "col_size_of_width_a", "use_clipboard", "use_local_echo", "blink_cursor",
-    "static_backscroll_mode", "use_extended_scroll_shortcut", "regard_uri_as_word",
-    "use_ot_layout", "trim_trailing_newline_in_pasting", "broadcast",
+  "type_engine", "type_engine", "use_anti_alias", "use_variable_column_width", "use_combining",
+  "use_dynamic_comb", "receive_string_via_ucs", "use_multi_column_char", "use_ctl",
+  "col_size_of_width_a", "use_clipboard", "use_local_echo", "blink_cursor",
+  "static_backscroll_mode", "regard_uri_as_word",
+  "use_ot_layout", "trim_trailing_newline_in_pasting", "broadcast",
 };
 
 static char *labels[MC_FLAG_MODES] = {
-    N_("Xft"), N_("Cairo"), N_("Anti Alias"), N_("Variable column width"), N_("Combining"),
-    N_("Combining = 1 (or 0) logical column(s)"), N_("Process received strings via Unicode"),
-    N_("Fullwidth = 2 (or 1) logical column(s)"), N_("Complex Text Layout"),
-    N_("Ambiguouswidth = fullwidth"), N_("CLIPBOARD Selection"), N_("Local echo"),
-    N_("Blink cursor"), N_("Don't scroll automatically in scrolling back"),
-    N_("Scroll by Shift+Up or Shift+Down"), N_("Select URI by double click"), N_("OpenType Layout"),
-    N_("Trim trailing CR/LF in pasting"), N_("Send keys to all windows"),
+  N_("Xft"), N_("Cairo"), N_("Anti Alias"), N_("Variable column width"), N_("Combining"),
+  N_("Combining = 1 (or 0) logical column(s)"), N_("Process received strings via Unicode"),
+  N_("Fullwidth = 2 (or 1) logical column(s)"), N_("Complex Text Layout"),
+  N_("Ambiguouswidth = fullwidth"), N_("CLIPBOARD Selection"), N_("Local echo"),
+  N_("Blink cursor"), N_("Don't scroll automatically in scrolling back"),
+  N_("Select URI by double click"), N_("OpenType Layout"),
+  N_("Trim trailing CR/LF in pasting"), N_("Send keys to all windows"),
 };
 
 static GtkWidget *widgets[MC_FLAG_MODES];

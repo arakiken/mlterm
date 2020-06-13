@@ -101,7 +101,6 @@ static int update(mc_io_t io) {
   mc_update_flag_mode(MC_FLAG_LOCALECHO);
   mc_update_flag_mode(MC_FLAG_BLINKCURSOR);
   mc_update_flag_mode(MC_FLAG_STATICBACKSCROLL);
-  mc_update_flag_mode(MC_FLAG_EXTSCROLLSHORTCUT);
   mc_update_flag_mode(MC_FLAG_REGARDURIASWORD);
   mc_update_flag_mode(MC_FLAG_OTLAYOUT);
 
@@ -756,10 +755,6 @@ static int show(void) {
   gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
 
   config_widget = mc_flag_config_widget_new(MC_FLAG_STATICBACKSCROLL);
-  gtk_widget_show(config_widget);
-  gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
-
-  config_widget = mc_flag_config_widget_new(MC_FLAG_EXTSCROLLSHORTCUT);
   gtk_widget_show(config_widget);
   gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 

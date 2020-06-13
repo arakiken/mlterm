@@ -456,19 +456,6 @@ The default is \fB0\fR.
 Path for a wallpaper (background) image.
 Note that the wallpaper cannot be used with pseudo transparent background.
 .TP
-\fB\-q\fR, \fB\-\-extkey\fR(=\fIbool\fR)
-Enable extended keys for backscroll mode.
-The default is \fBfalse\fR.
-Extended scroll keys are
-\fBSCROLL_UP\fR, up arrow, and "k" (for scrolling one line backward) and
-\fBSCROLL_DOWN\fR, down arrow, and "j" (for scrolling one line forward).
-Please note that concrete keys for symbols of
-\fBSCROLL_UP\fR and \fBSCROLL_DOWN\fR are specified in
-\fBkey\fR configuration file.
-Only keys of \fBPAGE_UP\fR and \fBPAGE_DOWN\fR (which are
-specified in \fBkey\fR configuration file)
-are available by default.
-.TP
 \fB\-r\fR, \fB\-\-fade\fR=\fIratio\fR
 Specify fading ratio for unfocused windows.
 \fB100\fR means no fading and \fB0\fR means darkest.
@@ -1121,9 +1108,6 @@ Whether to blink cursor. (\fB\-\-blink\fR)
 Don't scroll automatically in scrolling back.
 Don't exit backscroll mode when console applications output something. (\fB\-6\fR, \fB\-\-stbs\fR)
 .TP
-Scroll by Shift+Up or Shift+Down
-Enable extended keys for backscroll mode. (\fB\-q\fR, \fB\-\-extkey\fR)
-.TP
 Select URI by double click
 Select URI by double clicking it regardless of \fB\-W\fR option. (\fB\-\-uriword\fR)
 .TP
@@ -1248,31 +1232,21 @@ Scroll down one line.
 \fBk\fR or \fBUp\fR
 Scroll up one line.
 .TP
-\fBd\fR or \fBPageDown\fR
-Scroll down one page.
-.TP
 \fBu\fR or \fBPageUp\fR
 Scroll up one page.
 .TP
-\fBShift\fR + \fBspace\fR
-Initialize XIM.
-.TP
-\fBShift\fR + \fBInsert\fR
-Insert selection.
-.TP
-\fBControl\fR + \fBF1\fR
-Open a new pty window.
+\fBd\fR or \fBPageDown\fR
+Scroll down one page.
 .TP
 keys defined in \fBkey\fR configuration file
-\fBPAGE_UP\fR, \fBPAGE_DOWN\fR, \fBSCROLL_UP\fR,
-and \fBSCROLL_DOWN\fR keys are defined in the file.
+Shortcut keys work the same way as in normal mode.
+(\fBINSERT_SELECTION\fR, \fBRESET\fR and \fBCOPY_MODE\fR
+exit from the backscroll mode.)
 .TP
+
 other keys
 Exit from the backscroll mode.
 .PP
-Please note that keys other than \fBPAGE_UP\fR and \fBPAGE_DOWN\fR
-in \fBkey\fR configuration file are available only when you
-used \fB\-q\fR/\fB\-\-extkey\fR command option.
 .\" ********************************************************************
 .SH SELECTION
 Selection is a mechanism to be used for copy-and-paste in X Window System.
@@ -1363,6 +1337,49 @@ are simply ignored.
 .PP
 *3 Characters from unsupported character sets will be pasted
 into \fBmlterm\fR using ISO-2022 escape sequence.
+.\" ********************************************************************
+.SH COPY MODE
+\fBmlterm\fR enters into copy mode by typing
+Shift + Control + Return key. In the mode,
+you can move in the screen including backlog,
+select region and copy it by the following keys.
+.TP
+\fBj\fR or \fBDown\fR
+Scroll down one line.
+.TP
+\fBk\fR or \fBUp\fR
+Scroll up one line.
+.TP
+\fBl\fR or \fBRight\fR
+Move right.
+.TP
+\fBh\fR or \fBLeft\fR
+Move left.
+.TP
+\fBu\fR or \fBPageUp\fR
+Scroll up one page.
+.TP
+\fBd\fR or \fBPageDown\fR
+Scroll down one page.
+.TP
+\fB/\fR
+Input search string.
+.TP
+\fBControl+g\fR
+Cancel search string.
+.TP
+\fBSpace\fR or \fBReturn\fR
+Start or finish selection.
+.TP
+\fBMod+Space\fR or \fBMod+Return\fR
+Start rectangle selection.
+.TP
+\fBControl+x\fR
+Stop selection.
+.TP
+\fBEscape\fR or \fBq\fR
+Exit from the copy mode.
+.PP
 .\" ********************************************************************
 .SH CONFIGURATION
 \fBmlterm\fR loads configuration files of "\fBmain\fR", "\fBfont\fR",
@@ -1783,9 +1800,6 @@ Use CP932 - UCS mapping for displaying JISX0208 by Xft or cairo.
 \fBuse_dynamic_comb=\fIbool\fR (\fB\-J\fR, \fB\-\-dyncomb\fR)
 Enable dynamic character combining.
 .TP
-\fBuse_extended_scroll_shortcut=\fIbool\fR (\fB\-q\fR, \fB\-\-extkey\fR)
-Enable extended short cut keys for scrolling.
-.TP
 \fBuse_ctl=\fIbool\fR (\fB\-C\fR, \fB\-\-ctl\fR)
 Enable complex text layouting on UTF8 encoding.
 .TP
@@ -2005,9 +2019,7 @@ You can specify Button1, Button2, Button3, Button4 or Button5 as \fIKEY\fR.
 \fBHEXPAND_SCREEN\fR,
 \fBVEXPAND_SCREEN\fR,
 \fBPAGE_UP\fR,
-\fBPAGE_DOWN\fR,
 \fBSCROLL_UP\fR,
-\fBSCROLL_DOWN\fR,
 \fBSCROLL_UP_TO_MARK\fR,
 \fBSCROLL_DOWN_TO_MARK\fR,
 \fBINSERT_SELECTION\fR,
@@ -2063,19 +2075,9 @@ Expand current screen vertically (default \fBShift+F7\fR).
 Start backscroll mode and scroll up one page
 (default \fBShift+Prior\fR).
 .TP
-\fBPAGE_DOWN\fR
-Scroll down one page.
-(default \fBShift+Next\fR).
-.TP
 \fBSCROLL_UP\fR
 Start backscroll mode and scroll up by one line
-(default \fBShift+Up\fR).  Note this key is enabled only when
-\fB\-q\fR/\fB\-\-extkey\fR option is used.
-.TP
-\fBSCROLL_DOWN\fR
-Scroll down one line
-(default \fBShift+Down\fR).  Note this key is enabled only when
-\fB\-q\fR/\fB\-\-extkey\fR option is used.
+(default \fBShift+Up\fR).
 .TP
 \fBSCROLL_UP_TO_MARK\fR
 Start backscroll mode and scroll up to the next marked line

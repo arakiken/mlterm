@@ -172,8 +172,6 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
 #ifndef NO_IMAGE
   bl_conf_add_opt(conf, 'p', "pic", 0, "wall_picture", "path for wallpaper (background) image");
 #endif
-  bl_conf_add_opt(conf, 'q', "extkey", 1, "use_extended_scroll_shortcut",
-                  "use extended scroll shortcut keys [false]");
   bl_conf_add_opt(conf, 'r', "fade", 0, "fade_ratio",
                   "fade ratio in percent when window unfocued [100]");
   bl_conf_add_opt(conf, 's', "mdi", 1, "use_mdi", "use multiple document interface [true]");
@@ -985,12 +983,6 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   if ((value = bl_conf_get_value(conf, "use_vertical_cursor"))) {
     if (strcmp(value, "false") == 0) {
       main_config->use_vertical_cursor = 0;
-    }
-  }
-
-  if ((value = bl_conf_get_value(conf, "use_extended_scroll_shortcut"))) {
-    if (strcmp(value, "true") == 0) {
-      main_config->use_extended_scroll_shortcut = 1;
     }
   }
 

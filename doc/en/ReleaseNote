@@ -1,6 +1,10 @@
 * Support copy mode which starts by Control+Shift+Return.
 * Support OSC 1337;Setmark ST.
+* Add SCROLL_UP_TO_MARK and SCROLL_DOWN_TO_MARK shortcut keys.
 * Add emoji_file_format / --emojifmt option.
+* Drop SCROLL_DOWN and PAGE_DOWN shortcut keys.
+* Drop use_extended_scroll_shortcut option and SCROLL_UP shortcut key is enabled
+  by default. (If you want to disable it, add UNUSED=SCROLL_UP to ~/.mlterm/key.)
 * Bug fixes:
   Fix a bug which caused a 'mlimgloader' process not to exit after loading a wall picture.
   (Enbugged at 3.8.8)

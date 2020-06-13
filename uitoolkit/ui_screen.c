@@ -1877,64 +1877,54 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
     return 1;
   }
 #endif
+  else if (ui_shortcut_match(screen->shortcut, SCROLL_UP, ksym, state)) {
+    enter_backscroll_mode(screen);
+    bs_scroll_downward(screen, 1);
+
+    return 1;
+  } else if (ui_shortcut_match(screen->shortcut, PAGE_UP, ksym, state)) {
+    enter_backscroll_mode(screen);
+    bs_half_page_downward(screen);
+
+    return 1;
+  } else if (ui_shortcut_match(screen->shortcut, SCROLL_UP_TO_MARK, ksym, state)) {
+    enter_backscroll_mode(screen);
+    bs_scroll_downward_to_mark(screen);
+
+    return 1;
+  } else if (ui_shortcut_match(screen->shortcut, SCROLL_DOWN_TO_MARK, ksym, state)) {
+    bs_scroll_upward_to_mark(screen);
+
+    return 1;
+  }
 
   if (vt_term_is_backscrolling(screen->term)) {
-    if (screen->use_extended_scroll_shortcut) {
-      if (ui_shortcut_match(screen->shortcut, SCROLL_UP, ksym, state)) {
-        bs_scroll_downward(screen, 1);
-
-        return 1;
-      } else if (ui_shortcut_match(screen->shortcut, SCROLL_DOWN, ksym, state)) {
-        bs_scroll_upward(screen, 1);
-
-        return 1;
-      }
 #if 1
-      else if (state == 0) {
-        if (ksym == 'u' || ksym == XK_Prior || ksym == XK_KP_Prior) {
-          bs_half_page_downward(screen);
-
-          return 1;
-        } else if (ksym == 'd' || ksym == XK_Next || ksym == XK_KP_Next) {
-          bs_half_page_upward(screen);
-
-          return 1;
-        } else if (ksym == 'k' || ksym == XK_Up || ksym == XK_KP_Up) {
-          bs_scroll_downward(screen, 1);
-
-          return 1;
-        } else if (ksym == 'j' || ksym == XK_Down || ksym == XK_KP_Down) {
-          bs_scroll_upward(screen, 1);
-
-          return 1;
-        }
-      }
-#endif
-    }
-
-    if (ui_shortcut_match(screen->shortcut, PAGE_UP, ksym, state)) {
+    if (ksym == 'u' || ksym == XK_Prior || ksym == XK_KP_Prior) {
       bs_half_page_downward(screen);
 
       return 1;
-    } else if (ui_shortcut_match(screen->shortcut, PAGE_DOWN, ksym, state)) {
+    } else if (ksym == 'd' || ksym == XK_Next || ksym == XK_KP_Next) {
       bs_half_page_upward(screen);
 
       return 1;
-    } else if (ui_shortcut_match(screen->shortcut, SCROLL_UP_TO_MARK, ksym, state)) {
-      bs_scroll_downward_to_mark(screen);
+    } else if (ksym == 'k' || ksym == XK_Up || ksym == XK_KP_Up) {
+      bs_scroll_downward(screen, 1);
 
       return 1;
-    } else if (ui_shortcut_match(screen->shortcut, SCROLL_DOWN_TO_MARK, ksym, state)) {
-      bs_scroll_upward_to_mark(screen);
+    } else if (ksym == 'j' || ksym == XK_Down || ksym == XK_KP_Down) {
+      bs_scroll_upward(screen, 1);
 
       return 1;
-    } else if (ksym == XK_Shift_L || ksym == XK_Shift_R || ksym == XK_Control_L ||
-               ksym == XK_Control_R || ksym == XK_Caps_Lock || ksym == XK_Shift_Lock ||
-               ksym == XK_Meta_L || ksym == XK_Meta_R || ksym == XK_Alt_L || ksym == XK_Alt_R ||
-               ksym == XK_Super_L || ksym == XK_Super_R || ksym == XK_Hyper_L ||
-               ksym == XK_Hyper_R || ksym == XK_Escape) {
+    }
+#endif
+
+    if (ksym == XK_Shift_L || ksym == XK_Shift_R || ksym == XK_Control_L ||
+        ksym == XK_Control_R || ksym == XK_Caps_Lock || ksym == XK_Shift_Lock ||
+        ksym == XK_Meta_L || ksym == XK_Meta_R || ksym == XK_Alt_L || ksym == XK_Alt_R ||
+        ksym == XK_Super_L || ksym == XK_Super_R || ksym == XK_Hyper_L ||
+        ksym == XK_Hyper_R || ksym == XK_Escape) {
       /* any modifier keys(X11/keysymdefs.h) */
-
       return 1;
     } else if (ksym == 0) {
       /* button press -> reversed color is restored in button_press(). */
@@ -1946,21 +1936,7 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
     }
   }
 
-  if (screen->use_extended_scroll_shortcut &&
-      ui_shortcut_match(screen->shortcut, SCROLL_UP, ksym, state)) {
-    enter_backscroll_mode(screen);
-    bs_scroll_downward(screen, 1);
-  } else if (ui_shortcut_match(screen->shortcut, PAGE_UP, ksym, state)) {
-    enter_backscroll_mode(screen);
-    bs_half_page_downward(screen);
-  } else if (ui_shortcut_match(screen->shortcut, PAGE_DOWN, ksym, state)) {
-    /* do nothing */
-  } else if (ui_shortcut_match(screen->shortcut, SCROLL_UP_TO_MARK, ksym, state)) {
-    enter_backscroll_mode(screen);
-    bs_scroll_downward_to_mark(screen);
-  } else if (ui_shortcut_match(screen->shortcut, SCROLL_DOWN_TO_MARK, ksym, state)) {
-    /* do nothing */
-  } else if (ui_shortcut_match(screen->shortcut, INSERT_SELECTION, ksym, state)) {
+  if (ui_shortcut_match(screen->shortcut, INSERT_SELECTION, ksym, state)) {
     yank_event_received(screen, CurrentTime);
   } else if (ui_shortcut_match(screen->shortcut, RESET, ksym, state)) {
     vt_term_reset(screen->term, 1);
@@ -2370,14 +2346,14 @@ static void copymode_key(ui_screen_t *screen, int kchar, int ksym, u_int state) 
       } else {
         copymode_move_vertical(screen, 1);
       }
-    } else if (ksym == XK_Prior) {
+    } else if (ksym == XK_Prior || ksym == 'u') {
       copymode_move_vertical(screen, -(vt_term_get_rows(screen->term)));
-    } else if (ksym == XK_Next) {
+    } else if (ksym == XK_Next || ksym == 'd') {
       copymode_move_vertical(screen, vt_term_get_rows(screen->term));
     } else if (ksym == XK_Return || ksym == ' ') {
       ui_stop_selecting(&screen->sel);
-    } else if ((ksym == 'g' || ksym == 'x') && state == ControlMask) {
-      /* Control+g (BEL) Control+x (CAN) */
+    } else if (ksym == 'x' && state == ControlMask) {
+      /* Control+x (CAN) */
       ui_sel_clear(&screen->sel);
     } else if (ksym == XK_Escape || ksym == 'q') {
     copymode_end:
@@ -4862,12 +4838,6 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
     } else {
       value = "false";
     }
-  } else if (strcmp(key, "use_extended_scroll_shortcut") == 0) {
-    if (screen->use_extended_scroll_shortcut) {
-      value = "true";
-    } else {
-      value = "false";
-    }
   } else if (strcmp(key, "pty_list") == 0) {
     value = vt_get_pty_list();
   } else if (strcmp(key, "trim_trailing_newline_in_pasting") == 0) {
@@ -6397,8 +6367,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
                            char *mod_meta_key,
                            ui_mod_meta_mode_t mod_meta_mode, ui_bel_mode_t bel_mode,
                            int receive_string_via_ucs, char *pic_file_path, int use_transbg,
-                           int use_vertical_cursor,
-                           int use_extended_scroll_shortcut, int borderless, int line_space,
+                           int use_vertical_cursor, int borderless, int line_space,
                            char *input_method, int allow_osc52, u_int hmargin,
                            u_int vmargin, int hide_underline, int underline_offset,
                            int baseline_offset) {
@@ -6616,7 +6585,6 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->mod_ignore_mask = ~0; /* set later in get_mod_ignore_mask() */
 
   screen->bel_mode = bel_mode;
-  screen->use_extended_scroll_shortcut = use_extended_scroll_shortcut;
   screen->borderless = borderless;
   screen->font_or_color_config_updated = 0;
   screen->hide_underline = hide_underline;
@@ -7326,12 +7294,6 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
 
     if ((flag = true_or_false(value)) != -1) {
       ui_set_use_urgent_bell(flag);
-    }
-  } else if (strcmp(key, "use_extended_scroll_shortcut") == 0) {
-    int flag;
-
-    if ((flag = true_or_false(value)) != -1) {
-      screen->use_extended_scroll_shortcut = flag;
     }
   } else if (strstr(key, "_use_unicode_font")) {
     int flag;

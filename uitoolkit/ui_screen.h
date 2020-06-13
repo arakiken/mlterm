@@ -151,7 +151,6 @@ typedef struct ui_screen {
   int8_t line_space;
   int8_t receive_string_via_ucs;
   int8_t use_vertical_cursor;
-  int8_t use_extended_scroll_shortcut;
   int8_t borderless;
   int8_t font_or_color_config_updated; /* 0x1 = font updated, 0x2 = color
                                           updated */
@@ -185,8 +184,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, ui_font_manager_t *font_man,
                            u_int screen_width_ratio, char *mod_meta_key,
                            ui_mod_meta_mode_t mod_meta_mode, ui_bel_mode_t bel_mode,
                            int receive_string_via_ucs, char *pic_file_path, int use_transbg,
-                           int use_vertical_cursor,
-                           int use_extended_scroll_shortcut, int borderless, int line_space,
+                           int use_vertical_cursor, int borderless, int line_space,
                            char *input_method, int allow_osc52, u_int hmargin,
                            u_int vmargin, int hide_underline, int underline_offset,
                            int baseline_offset);

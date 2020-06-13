@@ -225,8 +225,6 @@
 # (none,blend,genuine)
 # daemon_mode = none
 
-# use_extended_scroll_shortcut = false
-
 # init_str =
 
 # click_interval = 250

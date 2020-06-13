@@ -54,9 +54,7 @@ static key_func_table_t key_func_table[] = {
   { "HEXPAND_SCREEN", HEXPAND_SCREEN, },
   { "VEXPAND_SCREEN", VEXPAND_SCREEN, },
   { "PAGE_UP", PAGE_UP, },
-  { "PAGE_DOWN", PAGE_DOWN, },
   { "SCROLL_UP", SCROLL_UP, },
-  { "SCROLL_DOWN", SCROLL_DOWN, },
   { "SCROLL_UP_TO_MARK", SCROLL_UP_TO_MARK, },
   { "SCROLL_DOWN_TO_MARK", SCROLL_DOWN_TO_MARK, },
   { "INSERT_SELECTION", INSERT_SELECTION, },
@@ -154,17 +152,11 @@ void ui_shortcut_init(ui_shortcut_t *shortcut) {
     /* VEXPAND_SCREEN */
     { XK_F7, ShiftMask, 1, },
 
-    /* PAGE_UP(compatible with kterm) */
+    /* PAGE_UP */
     { XK_Prior, ShiftMask, 1, },
-
-    /* PAGE_DOWN(compatible with kterm) */
-    { XK_Next, ShiftMask, 1, },
 
     /* SCROLL_UP */
     { XK_Up, ShiftMask, 1, },
-
-    /* SCROLL_DOWN */
-    { XK_Down, ShiftMask, 1, },
 
     /* SCROLL_UP_TO_MARK */
     { XK_Up, ControlMask|ShiftMask, 1, },

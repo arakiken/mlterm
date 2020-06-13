@@ -1,3 +1,19 @@
+2020-06-13  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja, doc/en/PROTOCOL: Updated.
+
+	* MLPreferenceActivity.java: "Scroll by Shift+Up or Shift+Down" is dropped.
+
+	* mlcofig/main.c, mc_flags.[ch]: MC_FLAG_EXTSCROLLSHORTCUT is dropped.
+
+	* ui_main_config.[ch]: "use_extended_scroll_shortcut" / -q option is dropped.
+
+	* ui_shortcut.[ch], ui_screen.[ch], ui_screen_manager.c, vte.c:
+	  - SCROLL_DOWN and PAGE_DOWN shortcut keys are dropped.
+	  - "use_extended_scroll_shortcut" is removed from get_config_intern()
+	    and "ui_screen_set_config().
+	  - use_extended_scroll_shortcut is removed from arguments of ui_screen_new().
+
 2020-06-09  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja, man/mlterm.1: Updated.
