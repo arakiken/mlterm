@@ -1,3 +1,52 @@
+2020-06-20  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, doc/ja/README.ja: Updated.
+
+	* im_canna.c, im_fcitx.c, im_ibus.c, im_iiimf.c, im_scim_mod_if.c, im_uim.c, im_wnn.c:
+	  - parser->init before im_convert_encoding() is removed.
+	  - Character encoding conversion before im.listener->write_to_term() is removed.
+
+	* im_iiimf.[ch], im_iiimf_aux.c:
+	  - PARSER_INIT_WITH_BOM() is removed.
+	  - If WORDS_BIGENDIAN is not defined, ef_utf16le_parser_new() is called
+	    instead of ef_utf16_parser_new().
+	  - Character encoding conversion before im.listener->write_to_term() is removed.
+	  - Infinite loop in aux_quit() is fixed.
+
+	* im_kbd.c:
+	  - Character encoding conversion before im.listener->write_to_term() is removed.
+	  - kbd->conv is removed.
+
+	* im_m17nlib.c: m17nlib->conv is removed.
+
+	* ef_str_parser.[ch]: ef_str_parser_init() -> ef_str_parser_get()
+
+	* im_skk.c:
+	  Character encoding conversion before im.listener->write_to_term() is removed.
+
+	* im_common.h: im_convert_encoding() calls parser->init().
+
+	* ui_im.h: 'ef_parser_t*' is added to arguments of
+	  ui_im_event_listener::write_to_term().
+
+	* ui_screen.c:
+	  - calculate_vtchars_width() is added to determine the current position
+	    in editing search text for get_spot_intern() and draw_preedit_str().
+	  - copymode_xxx members of ui_screen_t are collected to ui_copymode_t
+	    and related code is moved to ui_copymode.[ch].
+	  - 'update' argument which specifies whether to call ui_window_update()
+	    internally is added to arguments of bs_scroll_*().
+	  - The key to stop selection in copymode is changed from
+	    Control+x to any other keys.
+
+	* ui_copymode.[ch]: Added.
+
+	* ui_layout.c: The return value of screen_scroll_* functions is changed
+	  from int to void.
+
+	* ui_window_cairo.c: Undefined symbol 'flush_glyphs' on cairo 1.8.0 or
+	  before is fixed.
+
 2020-06-13  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, README.ja, doc/en/PROTOCOL: Updated.

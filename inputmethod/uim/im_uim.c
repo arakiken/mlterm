@@ -472,9 +472,6 @@ static void mode_update(void *p, int mode) {
 
 static void commit(void *p, const char *str) {
   im_uim_t *uim;
-  u_char conv_buf[256];
-  size_t filled_len;
-  size_t len;
 
 #ifdef IM_UIM_DEBUG
   bl_debug_printf(BL_DEBUG_TAG "str: %s\n", str);
@@ -482,29 +479,8 @@ static void commit(void *p, const char *str) {
 
   uim = (im_uim_t *)p;
 
-  len = strlen(str);
-
-  if (!NEED_TO_CONV(uim)) {
-    (*uim->im.listener->write_to_term)(uim->im.listener->self, (u_char *)str, len);
-
-    return;
-  }
-
-  (*uim->parser_uim->init)(uim->parser_uim);
-  (*uim->parser_uim->set_str)(uim->parser_uim, (u_char *)str, len);
-
-  (*uim->conv->init)(uim->conv);
-
-  while (!uim->parser_uim->is_eos) {
-    filled_len = (*uim->conv->convert)(uim->conv, conv_buf, sizeof(conv_buf), uim->parser_uim);
-
-    if (filled_len == 0) {
-      /* finished converting */
-      break;
-    }
-
-    (*uim->im.listener->write_to_term)(uim->im.listener->self, conv_buf, filled_len);
-  }
+  (*uim->im.listener->write_to_term)(uim->im.listener->self, str, strlen(str),
+                                     uim->parser_uim);
 }
 
 static void preedit_clear(void *ptr) {
@@ -569,7 +545,6 @@ static void preedit_pushback(void *ptr, int attr, const char *_str) {
 
   if (NEED_TO_CONV(uim)) {
     /* uim encoding -> term encoding */
-    (*uim->parser_uim->init)(uim->parser_uim);
     if (!im_convert_encoding(uim->parser_uim, uim->conv, (u_char *)_str, &str, len + 1)) {
       return;
     }
@@ -1172,50 +1147,25 @@ static void helper_update_custom(char *custom, char *value) {
   }
 }
 
-static void helper_commit_string(u_char *str /* UTF-8? */
-                                 ) {
+static void helper_commit_string(u_char *str /* UTF-8? */) {
   ef_parser_t *parser_utf8;
-  ef_conv_t *conv;
-  u_char conv_buf[256];
-  size_t filled_len;
 
   if (!focused_uim) {
     return;
   }
 
   if (focused_uim->term_encoding == VT_UTF8) {
-    (*focused_uim->im.listener->write_to_term)(focused_uim->im.listener->self, str, strlen(str));
-    return;
-  }
-
-  if (!(conv = (*syms->vt_char_encoding_conv_new)(focused_uim->term_encoding))) {
+    (*focused_uim->im.listener->write_to_term)(focused_uim->im.listener->self, str, strlen(str),
+                                               NULL);
     return;
   }
 
   if (!(parser_utf8 = (*syms->vt_char_encoding_parser_new)(VT_UTF8))) {
-    (*conv->destroy)(conv);
     return;
   }
-
-  (*parser_utf8->init)(parser_utf8);
-  (*parser_utf8->set_str)(parser_utf8, str, strlen(str));
-
-  (*conv->init)(conv);
-
-  while (!parser_utf8->is_eos) {
-    filled_len = (*conv->convert)(conv, conv_buf, sizeof(conv_buf), parser_utf8);
-
-    if (filled_len == 0) {
-      /* finished converting */
-      break;
-    }
-
-    (*focused_uim->im.listener->write_to_term)(focused_uim->im.listener->self, conv_buf,
-                                               filled_len);
-  }
-
+  (*focused_uim->im.listener->write_to_term)(focused_uim->im.listener->self, str, strlen(str),
+                                             parser_utf8);
   (*parser_utf8->destroy)(parser_utf8);
-  (*conv->destroy)(conv);
 }
 
 static void helper_read_handler(void) {

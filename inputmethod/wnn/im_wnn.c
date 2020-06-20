@@ -178,7 +178,6 @@ static void preedit(im_wnn_t *wnn, char *preedit,                               
       return;
     }
 
-    (*parser_wchar->init)(parser_wchar);
     if ((len = im_convert_encoding(parser_wchar, wnn->conv, preedit, &tmp, preedit_len))) {
       preedit = tmp;
       preedit_len = len;
@@ -296,24 +295,7 @@ candidate:
 }
 
 static void commit(im_wnn_t *wnn, const char *str, size_t len) {
-  u_char conv_buf[256];
-  size_t filled_len;
-
-  (*parser_wchar->init)(parser_wchar);
-  (*parser_wchar->set_str)(parser_wchar, (u_char*)str, len);
-
-  (*wnn->conv->init)(wnn->conv);
-
-  while (!parser_wchar->is_eos) {
-    filled_len = (*wnn->conv->convert)(wnn->conv, conv_buf, sizeof(conv_buf), parser_wchar);
-
-    if (filled_len == 0) {
-      /* finished converting */
-      break;
-    }
-
-    (*wnn->im.listener->write_to_term)(wnn->im.listener->self, conv_buf, filled_len);
-  }
+  (*wnn->im.listener->write_to_term)(wnn->im.listener->self, str, len, parser_wchar);
 }
 
 static int insert_char(im_wnn_t *wnn, u_char key_char) {

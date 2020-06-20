@@ -130,8 +130,6 @@ void vt_term_set_use_ot_layout(vt_term_t *term, int flag);
 #define vt_term_convert_to(term, dst, len, _parser) \
   vt_parser_convert_to((term)->parser, dst, len, _parser)
 
-#define vt_term_init_encoding_parser(term) vt_init_encoding_parser((term)->parser)
-
 #define vt_term_init_encoding_conv(term) vt_init_encoding_conv((term)->parser)
 
 int vt_term_get_master_fd(vt_term_t *term);

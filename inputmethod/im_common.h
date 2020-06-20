@@ -3,9 +3,8 @@
 #ifndef __IM_COMMON_H__
 #define __IM_COMMON_H__
 
-static inline u_int im_convert_encoding(ef_parser_t *parser, /* must be initialized */
-                                        ef_conv_t *conv, u_char *from, u_char **to,
-                                        u_int from_len) {
+static inline u_int im_convert_encoding(ef_parser_t *parser, ef_conv_t *conv, u_char *from,
+                                        u_char **to, u_int from_len) {
   u_int len;
   u_int filled_len;
 
@@ -17,6 +16,7 @@ static inline u_int im_convert_encoding(ef_parser_t *parser, /* must be initiali
 
   len = 0;
 
+  (*parser->init)(parser);
   (*parser->set_str)(parser, from, from_len);
   (*conv->init)(conv);
 

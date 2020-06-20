@@ -366,27 +366,9 @@ static void commit_string(FcitxClient *client, char *str, void *data) {
 
   if ((len = strlen(str)) == 0) {
     /* do nothing */
-  } else if (fcitx->term_encoding == VT_UTF8) {
-    (*fcitx->im.listener->write_to_term)(fcitx->im.listener->self, str, len);
   } else {
-    u_char conv_buf[256];
-    size_t filled_len;
-
-    (*parser_utf8->init)(parser_utf8);
-    (*parser_utf8->set_str)(parser_utf8, str, len);
-
-    (*fcitx->conv->init)(fcitx->conv);
-
-    while (!parser_utf8->is_eos) {
-      filled_len = (*fcitx->conv->convert)(fcitx->conv, conv_buf, sizeof(conv_buf), parser_utf8);
-
-      if (filled_len == 0) {
-        /* finished converting */
-        break;
-      }
-
-      (*fcitx->im.listener->write_to_term)(fcitx->im.listener->self, conv_buf, filled_len);
-    }
+    (*fcitx->im.listener->write_to_term)(fcitx->im.listener->self, str, len,
+                                         fcitx->term_encoding == VT_UTF8 ? NULL : parser_utf8);
   }
 
 #ifdef USE_IM_CANDIDATE_SCREEN
@@ -457,7 +439,6 @@ static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdow
     }
 
     if (NEED_TO_CONV(fcitx)) {
-      (*parser_utf8->init)(parser_utf8);
       if (im_convert_encoding(parser_utf8, fcitx->conv, preedit, &tmp, preedit_len + 1)) {
         preedit = tmp;
         preedit_len = strlen(preedit);
@@ -584,7 +565,6 @@ static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdow
     }
 
     if (NEED_TO_CONV(fcitx)) {
-      (*parser_utf8->init)(parser_utf8);
       if (im_convert_encoding(parser_utf8, fcitx->conv, candidateword, &tmp,
                               strlen(candidateword) + 1)) {
         candidateword = tmp;

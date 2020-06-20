@@ -58,9 +58,6 @@ static ef_parser_t parser = {
 
 /* --- global functions --- */
 
-ef_parser_t *ef_str_parser_init(ef_char_t *src, u_int src_len) {
-  (*parser.init)(&parser);
-  (*parser.set_str)(&parser, (u_char*)src, src_len * sizeof(ef_char_t));
-
+ef_parser_t *ef_str_parser_get(void) {
   return &parser;
 }

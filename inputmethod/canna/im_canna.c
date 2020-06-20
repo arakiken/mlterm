@@ -116,7 +116,6 @@ static void preedit(im_canna_t *canna, char *preedit,             /* eucjp(null 
     }
 
     if (NEED_TO_CONV(canna)) {
-      (*parser_eucjp->init)(parser_eucjp);
       if (im_convert_encoding(parser_eucjp, canna->conv, preedit, &tmp, preedit_len)) {
         preedit = tmp;
         preedit_len = strlen(preedit);
@@ -218,7 +217,6 @@ candidate:
     }
 
     if (NEED_TO_CONV(canna)) {
-      (*parser_eucjp->init)(parser_eucjp);
       if (im_convert_encoding(parser_eucjp, canna->conv, candidateword, &tmp,
                               strlen(candidateword))) {
         candidateword = tmp;
@@ -234,37 +232,12 @@ candidate:
 }
 
 static void commit(im_canna_t *canna, const char *str) {
-  u_char conv_buf[256];
-  size_t filled_len;
-  size_t len;
-
 #ifdef IM_CANNA_DEBUG
   bl_debug_printf(BL_DEBUG_TAG "str: %s\n", str);
 #endif
 
-  len = strlen(str);
-
-  if (!NEED_TO_CONV(canna)) {
-    (*canna->im.listener->write_to_term)(canna->im.listener->self, (u_char*)str, len);
-
-    return;
-  }
-
-  (*parser_eucjp->init)(parser_eucjp);
-  (*parser_eucjp->set_str)(parser_eucjp, (u_char*)str, len);
-
-  (*canna->conv->init)(canna->conv);
-
-  while (!parser_eucjp->is_eos) {
-    filled_len = (*canna->conv->convert)(canna->conv, conv_buf, sizeof(conv_buf), parser_eucjp);
-
-    if (filled_len == 0) {
-      /* finished converting */
-      break;
-    }
-
-    (*canna->im.listener->write_to_term)(canna->im.listener->self, conv_buf, filled_len);
-  }
+  (*canna->im.listener->write_to_term)(canna->im.listener->self, (u_char*)str, strlen(str),
+                                       NEED_TO_CONV(canna) ? parser_eucjp : NULL);
 }
 
 /*

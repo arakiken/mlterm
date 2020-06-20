@@ -1615,8 +1615,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
     Control+g                       ... 検索文字列の入力の中止
     Space, Return                   ... 領域選択開始、終了
     Mod(Alt)+Space, Mod(Alt)+Return ... 矩形領域選択開始
-    Control+x                       ... 領域選択の中止
     Escape,q                        ... コピーモードから通常モードに復帰
+    その他のキー                    ... 領域選択の中止
 
   o マウス
     ドラッグすれば領域選択できます。

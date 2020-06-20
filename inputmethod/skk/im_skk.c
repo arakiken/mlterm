@@ -307,22 +307,9 @@ candidate:
 }
 
 static void commit(im_skk_t *skk) {
-  ef_parser_t *parser;
-  u_char conv_buf[256];
-  size_t filled_len;
-
-  parser = ef_str_parser_init(skk->preedit, skk->preedit_len);
-  (*skk->conv->init)(skk->conv);
-
-  while (!parser->is_eos) {
-    filled_len = (*skk->conv->convert)(skk->conv, conv_buf, sizeof(conv_buf), parser);
-    if (filled_len == 0) {
-      /* finished converting */
-      break;
-    }
-
-    (*skk->im.listener->write_to_term)(skk->im.listener->self, conv_buf, filled_len);
-  }
+  (*skk->im.listener->write_to_term)(skk->im.listener->self,
+                                     (u_char*)skk->preedit, skk->preedit_len * sizeof(ef_char_t),
+                                     ef_str_parser_get());
 }
 
 static int insert_char(im_skk_t *skk, u_char key_char) {

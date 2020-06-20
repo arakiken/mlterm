@@ -127,6 +127,21 @@ static int convert_y_to_row(ui_screen_t *screen, u_int *y_rest, int y) {
   return row;
 }
 
+static int calculate_vtchars_width(ui_screen_t *screen, vt_char_t *chars, u_int num) {
+  int w = 0;
+
+  /* excluding the last char width. */
+  while (num-- > 0) {
+    if (!vt_char_is_zerowidth(chars)) {
+      w += ui_calculate_vtchar_width(ui_get_font(screen->font_man,
+                                                 vt_char_font(chars)), chars, NULL);
+    }
+    chars++;
+  }
+
+  return w;
+}
+
 static int convert_char_index_to_x(
     ui_screen_t *screen, vt_line_t *line,
     int char_index /* Should be 0 >= and <= vt_line_end_char_index() */
@@ -435,8 +450,8 @@ static void draw_cursor(ui_screen_t *screen) {
     return;
   }
 
-  if (screen->copymode_enabled) {
-    row = screen->copymode_cursor_row - vt_term_convert_scr_row_to_abs(screen->term, 0);
+  if (screen->copymode) {
+    row = screen->copymode->cursor_row - vt_term_convert_scr_row_to_abs(screen->term, 0);
     /*
      * If the screen is scrolled by scrollbar in copy mode, row can points
      * outside area of the screen.
@@ -444,7 +459,7 @@ static void draw_cursor(ui_screen_t *screen) {
     if (row < 0 || vt_term_get_rows(screen->term) <= row) {
       return;
     }
-    char_index = screen->copymode_cursor_char_index;
+    char_index = screen->copymode->cursor_char_index;
   } else {
     if (!vt_term_is_visible_cursor(screen->term)) {
       return;
@@ -469,13 +484,13 @@ static void draw_cursor(ui_screen_t *screen) {
 
   /*
    * XXX
-   * screen->copymode_cursor_char_index can point a null (invalid) character beyond
+   * screen->copymode->cursor_char_index can point a null (invalid) character beyond
    * line->num_filled_chars when lines in vt_edit are scrolled out to vt_log
    * by output from pty.
    */
-  if (screen->copymode_enabled && char_index >= line->num_filled_chars) {
+  if (screen->copymode && char_index >= line->num_filled_chars) {
     /* line->num_filled_chars > 0 because vt_line_is_empty() above returned false. */
-    screen->copymode_cursor_char_index = char_index = line->num_filled_chars - 1;
+    screen->copymode->cursor_char_index = char_index = line->num_filled_chars - 1;
   }
 
   orig = vt_line_shape(line);
@@ -740,9 +755,8 @@ static void redraw_screen(ui_screen_t *screen) {
   int count;
   vt_line_t *line;
   int y;
-  int line_height;
+  u_int line_height;
   int end_row;
-  ui_font_t *font;
 
 #ifdef USE_BRLAPI
   ui_brltty_write();
@@ -762,7 +776,7 @@ static void redraw_screen(ui_screen_t *screen) {
       bl_debug_printf(BL_DEBUG_TAG " nothing is redrawn.\n");
 #endif
 
-      if (screen->copymode_pattern_editing) {
+      if (screen->copymode && screen->copymode->pattern_editing) {
         line_height = ui_line_height(screen);
 
         goto draw_copymode_pattern;
@@ -823,40 +837,17 @@ static void redraw_screen(ui_screen_t *screen) {
     ui_im_redraw_preedit(screen->im, screen->window.is_focused);
   }
 
-  if (!screen->copymode_pattern_editing) {
+  if (screen->copymode == NULL || !screen->copymode->pattern_editing) {
     return;
   }
 
 draw_copymode_pattern:
   end_row = vt_term_get_rows(screen->term) - 1;
   y = line_height * end_row;
-  font = ui_get_usascii_font(screen->font_man);
 
-#ifdef USE_CONSOLE
-  ui_window_console_draw_string(&screen->window, font,
-                                ui_get_xcolor(screen->color_man, VT_BG_COLOR),
-                                ui_get_xcolor(screen->color_man, VT_FG_COLOR),
-                                0, y + ui_line_ascent(screen),
-                                screen->copymode_pattern, strlen(screen->copymode_pattern), 0);
-#else
-  ui_window_fill_with(&screen->window, ui_get_xcolor(screen->color_man, VT_FG_COLOR),
-                      0, y, screen->window.width, line_height);
-
-#if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
-  if (font->xft_font || font->cairo_font) {
-    ui_window_ft_draw_string8(&screen->window, font,
-                              ui_get_xcolor(screen->color_man, VT_BG_COLOR),
-                              0, y + ui_line_ascent(screen),
-                              screen->copymode_pattern, strlen(screen->copymode_pattern));
-  } else
-#endif
-  {
-    ui_window_draw_string(&screen->window, font,
-                          ui_get_xcolor(screen->color_man, VT_BG_COLOR),
-                          0, y + ui_line_ascent(screen),
-                          screen->copymode_pattern, strlen(screen->copymode_pattern));
-  }
-#endif
+  ui_draw_str(&screen->window, screen->font_man, screen->color_man,
+              screen->copymode->pattern, screen->copymode->pattern_len,
+              0, y, line_height, ui_line_ascent(screen), line_top_margin(screen), 0, 0);
 
   if ((line = vt_term_get_line_in_screen(screen->term, end_row))) {
     /* Clear editing pattern at the next time. */
@@ -877,12 +868,12 @@ static void highlight_cursor(ui_screen_t *screen) {
 }
 
 static void unhighlight_cursor(ui_screen_t *screen, int revert_visual) {
-  if (screen->copymode_enabled) {
+  if (screen->copymode) {
     vt_line_t *line;
 
-    if ((line = vt_term_get_line(screen->term, screen->copymode_cursor_row))) {
-      vt_line_set_modified(line, screen->copymode_cursor_char_index,
-                           screen->copymode_cursor_char_index);
+    if ((line = vt_term_get_line(screen->term, screen->copymode->cursor_row))) {
+      vt_line_set_modified(line, screen->copymode->cursor_char_index,
+                           screen->copymode->cursor_char_index);
     }
 
     if (revert_visual) {
@@ -914,9 +905,9 @@ static void enter_backscroll_mode(ui_screen_t *screen) {
   }
 }
 
-static void exit_backscroll_mode(ui_screen_t *screen) {
+static int exit_backscroll_mode(ui_screen_t *screen) {
   if (!vt_term_is_backscrolling(screen->term)) {
-    return;
+    return 0;
   }
 
   vt_term_exit_backscroll_mode(screen->term);
@@ -925,11 +916,13 @@ static void exit_backscroll_mode(ui_screen_t *screen) {
   if (HAS_SCROLL_LISTENER(screen, bs_mode_exited)) {
     (*screen->screen_scroll_listener->bs_mode_exited)(screen->screen_scroll_listener->self);
   }
+
+  return 1;
 }
 
-static int bs_scroll_upward(ui_screen_t *screen, u_int size) {
+static int bs_scroll_upward(ui_screen_t *screen, u_int size, int update) {
   if (vt_term_backscroll_upward(screen->term, size)) {
-    if (!screen->copymode_enabled) {
+    if (update) {
       ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
     }
 
@@ -944,9 +937,9 @@ static int bs_scroll_upward(ui_screen_t *screen, u_int size) {
   }
 }
 
-static int bs_scroll_downward(ui_screen_t *screen, u_int size) {
+static int bs_scroll_downward(ui_screen_t *screen, u_int size, int update) {
   if (vt_term_backscroll_downward(screen->term, size)) {
-    if (!screen->copymode_enabled) {
+    if (update) {
       ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
     }
 
@@ -961,17 +954,30 @@ static int bs_scroll_downward(ui_screen_t *screen, u_int size) {
   }
 }
 
-#define bs_half_page_upward(screen) bs_scroll_upward(screen, vt_term_get_rows((screen)->term) / 2)
+#define bs_half_page_upward(screen) \
+  bs_scroll_upward(screen, vt_term_get_rows((screen)->term) / 2, 1)
 #define bs_half_page_downward(screen) \
-  bs_scroll_downward(screen, vt_term_get_rows((screen)->term) / 2)
-#define bs_page_upward(screen) bs_scroll_upward(screen, vt_term_get_rows((screen)->term))
-#define bs_page_downward(screen) bs_scroll_downward(screen, vt_term_get_rows((screen)->term))
+  bs_scroll_downward(screen, vt_term_get_rows((screen)->term) / 2, 1)
+#define bs_page_upward(screen) bs_scroll_upward(screen, vt_term_get_rows((screen)->term), 1)
+#define bs_page_downward(screen) bs_scroll_downward(screen, vt_term_get_rows((screen)->term), 1)
 
-static int bs_scroll_upward_to_mark(ui_screen_t *screen) {
+static void bs_scroll_to(ui_screen_t *screen, int row, int update) {
+  if (vt_term_backscroll_to(screen->term, row)) {
+    if (update) {
+      ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
+    }
+
+    if (HAS_SCROLL_LISTENER(screen, scrolled_to)) {
+      (*screen->screen_scroll_listener->scrolled_to)(screen->screen_scroll_listener->self, row);
+    }
+  }
+}
+
+static int bs_scroll_upward_to_mark(ui_screen_t *screen, int update) {
   u_int size;
 
   if ((size = vt_term_backscroll_upward_to_mark(screen->term)) > 0) {
-    if (!screen->copymode_enabled) {
+    if (update) {
       ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
     }
 
@@ -986,11 +992,11 @@ static int bs_scroll_upward_to_mark(ui_screen_t *screen) {
   }
 }
 
-static int bs_scroll_downward_to_mark(ui_screen_t *screen) {
+static int bs_scroll_downward_to_mark(ui_screen_t *screen, int update) {
   u_int size;
 
   if ((size = vt_term_backscroll_downward_to_mark(screen->term)) > 0) {
-    if (!screen->copymode_enabled) {
+    if (update) {
       ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
     }
 
@@ -1879,7 +1885,7 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
 #endif
   else if (ui_shortcut_match(screen->shortcut, SCROLL_UP, ksym, state)) {
     enter_backscroll_mode(screen);
-    bs_scroll_downward(screen, 1);
+    bs_scroll_downward(screen, 1, 1);
 
     return 1;
   } else if (ui_shortcut_match(screen->shortcut, PAGE_UP, ksym, state)) {
@@ -1889,11 +1895,11 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
     return 1;
   } else if (ui_shortcut_match(screen->shortcut, SCROLL_UP_TO_MARK, ksym, state)) {
     enter_backscroll_mode(screen);
-    bs_scroll_downward_to_mark(screen);
+    bs_scroll_downward_to_mark(screen, 1);
 
     return 1;
   } else if (ui_shortcut_match(screen->shortcut, SCROLL_DOWN_TO_MARK, ksym, state)) {
-    bs_scroll_upward_to_mark(screen);
+    bs_scroll_upward_to_mark(screen, 1);
 
     return 1;
   }
@@ -1909,11 +1915,11 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
 
       return 1;
     } else if (ksym == 'k' || ksym == XK_Up || ksym == XK_KP_Up) {
-      bs_scroll_downward(screen, 1);
+      bs_scroll_downward(screen, 1, 1);
 
       return 1;
     } else if (ksym == 'j' || ksym == XK_Down || ksym == XK_KP_Down) {
-      bs_scroll_upward(screen, 1);
+      bs_scroll_upward(screen, 1, 1);
 
       return 1;
     }
@@ -2146,181 +2152,182 @@ static int copymode_move_vertical(ui_screen_t *screen, int step /* != 0 */) {
   if (step < 0) {
     int top_row = vt_term_convert_scr_row_to_abs(screen->term, 0);
 
-    if (screen->copymode_cursor_row + step >= top_row) {
-      screen->copymode_cursor_row += step;
+    if (screen->copymode->cursor_row + step >= top_row) {
+      screen->copymode->cursor_row += step;
     } else {
       enter_backscroll_mode(screen);
-      /* This doesn't call ui_window_update() if copymode_enabled is true. */
-      if (bs_scroll_downward(screen, -step)) {
+      if (bs_scroll_downward(screen, -step, 0)) {
         top_row = vt_term_convert_scr_row_to_abs(screen->term, 0);
-        if ((screen->copymode_cursor_row += step) < top_row) {
-          screen->copymode_cursor_row = top_row;
+        if ((screen->copymode->cursor_row += step) < top_row) {
+          screen->copymode->cursor_row = top_row;
         }
-      } else if (screen->copymode_cursor_row == top_row) {
+      } else if (screen->copymode->cursor_row == top_row) {
         return 0;
       } else {
-        screen->copymode_cursor_row = top_row;
+        screen->copymode->cursor_row = top_row;
       }
     }
   } else /* if (step > 0) */ {
     int bottom_row = vt_term_convert_scr_row_to_abs(screen->term,
                                                     vt_term_get_rows(screen->term) - 1);
-    if (screen->copymode_cursor_row + step <= bottom_row) {
-      screen->copymode_cursor_row += step;
+    if (screen->copymode->cursor_row + step <= bottom_row) {
+      screen->copymode->cursor_row += step;
     } else {
-      /* This doesn't call ui_window_update() if copymode_enabled is true. */
-      if (bs_scroll_upward(screen, step)) {
+      if (bs_scroll_upward(screen, step, 0)) {
         bottom_row = vt_term_convert_scr_row_to_abs(screen->term,
                                                     vt_term_get_rows(screen->term) - 1);
-        if ((screen->copymode_cursor_row += step) > bottom_row) {
-          screen->copymode_cursor_row = bottom_row;
+        if ((screen->copymode->cursor_row += step) > bottom_row) {
+          screen->copymode->cursor_row = bottom_row;
         }
-      } else if (screen->copymode_cursor_row == bottom_row) {
+      } else if (screen->copymode->cursor_row == bottom_row) {
         return 0;
       } else {
-        screen->copymode_cursor_row = bottom_row;
+        screen->copymode->cursor_row = bottom_row;
       }
     }
   }
 
-  if ((line = vt_term_get_line(screen->term, screen->copymode_cursor_row))) {
-    if ((step == 1 || step == -1) && screen->copymode_cursor_char_index < 0) {
+  if ((line = vt_term_get_line(screen->term, screen->copymode->cursor_row))) {
+    if ((step == 1 || step == -1) && screen->copymode->cursor_char_index < 0) {
       if (step == (vt_line_is_rtl(line) ? -1 : 1)) {
-        screen->copymode_cursor_char_index = 0;
+        screen->copymode->cursor_char_index = 0;
       } else {
-        screen->copymode_cursor_char_index = vt_line_get_num_filled_chars_except_sp(line) - 1;
+        screen->copymode->cursor_char_index = vt_line_get_num_filled_chars_except_sp(line) - 1;
       }
     } else {
       u_int num_except_sp = vt_line_get_num_filled_chars_except_sp(line);
 
-      if (num_except_sp <= screen->copymode_cursor_char_index) {
-        screen->copymode_cursor_char_index = num_except_sp - 1;
+      if (num_except_sp <= screen->copymode->cursor_char_index) {
+        screen->copymode->cursor_char_index = num_except_sp - 1;
       }
     }
   }
 
-  if (screen->copymode_cursor_char_index < 0) {
-    screen->copymode_cursor_char_index = 0;
+  if (screen->copymode->cursor_char_index < 0) {
+    screen->copymode->cursor_char_index = 0;
   }
 
-  if (vt_line_is_rtl(line) && screen->copymode_cursor_char_index == 0) {
-    screen->copymode_cursor_char_index = get_beg_in_rtl_line(line);
+  if (vt_line_is_rtl(line) && screen->copymode->cursor_char_index == 0) {
+    screen->copymode->cursor_char_index = get_beg_in_rtl_line(line);
   }
 
   return 1;
 }
 
 static void copymode_start(ui_screen_t *screen) {
-  screen->copymode_enabled = 1;
-  screen->copymode_cursor_char_index = vt_term_cursor_char_index(screen->term);
-  screen->copymode_cursor_row = vt_term_cursor_row(screen->term);
+  screen->copymode = ui_copymode_new(vt_term_cursor_char_index(screen->term),
+                                     vt_term_cursor_row(screen->term));
 }
 
 static int search_find(ui_screen_t*, u_char*, int backward, int*, int*, int*, int*);
 
-static void copymode_key(ui_screen_t *screen, int kchar, int ksym, u_int state) {
+static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str, size_t len,
+                         ef_parser_t *parser) {
   vt_line_t *line;
 
-  if (screen->copymode_pattern_editing) {
+  if (screen->copymode->pattern_editing) {
     if (ksym == 'g' && state == ControlMask) {
-      screen->copymode_pattern_editing = 0;
+      ui_copymode_pattern_cancel_edit(screen->copymode);
       vt_term_search_final(screen->term);
     } else if (ksym == XK_Return) {
-      int beg_char_index = screen->copymode_cursor_char_index + 1;
-      int beg_row = screen->copymode_cursor_row;
-      int end_char_index;
-      int end_row;
+      u_char *pattern;
 
-      if (search_find(screen, screen->copymode_pattern + 1, 0,
-                      &beg_char_index, &beg_row, &end_char_index, &end_row)) {
-        vt_line_t *line;
+      if ((pattern = ui_copymode_get_utf8_pattern(screen->copymode))) {
+        int beg_char_index = screen->copymode->cursor_char_index + 1;
+        int beg_row = screen->copymode->cursor_row;
+        int end_char_index;
+        int end_row;
 
-        if (vt_term_convert_scr_row_to_abs(screen->term, 0) + (int)vt_term_get_rows(screen->term)
-            <= beg_row) {
-          /* This doesn't call ui_window_update() if copymode_enabled is true. */
-          ui_screen_scroll_to(screen, beg_row + vt_term_get_rows(screen->term) / 2);
+        if (search_find(screen, pattern, 0,
+                        &beg_char_index, &beg_row, &end_char_index, &end_row)) {
+          vt_line_t *line;
+
+          if (vt_term_convert_scr_row_to_abs(screen->term, 0) + (int)vt_term_get_rows(screen->term)
+              <= beg_row) {
+            /* This doesn't call ui_window_update() if copymode_enabled is true. */
+            bs_scroll_to(screen, beg_row - vt_term_get_rows(screen->term) / 2, 0);
+          }
+
+          if ((line = vt_term_get_line(screen->term, screen->copymode->cursor_row))) {
+            vt_line_set_modified(line, screen->copymode->cursor_char_index,
+                                 screen->copymode->cursor_char_index);
+          }
+
+          screen->copymode->cursor_char_index = beg_char_index;
+          screen->copymode->cursor_row = beg_row;
         }
 
-        if ((line = vt_term_get_line(screen->term, screen->copymode_cursor_row))) {
-          vt_line_set_modified(line, screen->copymode_cursor_char_index,
-                               screen->copymode_cursor_char_index);
-        }
-
-        screen->copymode_cursor_char_index = beg_char_index;
-        screen->copymode_cursor_row = beg_row;
+        free(pattern);
       }
 
-      screen->copymode_pattern_editing = 0;
+      screen->copymode->pattern_editing = 0;
     } else if (ksym == XK_BackSpace || ksym == XK_Delete) {
-      screen->copymode_pattern[--screen->copymode_pattern_pos] = '\0';
-      if (screen->copymode_pattern_pos == 0) {
-        screen->copymode_pattern_editing = 0;
+      if (!ui_copymode_pattern_delete(screen->copymode)) {
         vt_term_search_final(screen->term);
       }
-    } else if (0x20 <= kchar && kchar <= 0x7e) {
-      screen->copymode_pattern[screen->copymode_pattern_pos] = kchar;
-      if (screen->copymode_pattern_pos < 255) {
-        screen->copymode_pattern_pos++;
-      }
+    } else if (len > 0) {
+      ui_copymode_pattern_add_str(screen->copymode, str, len, parser);
     } else {
       return;
     }
-  } else if (kchar == '/') {
-    if (screen->copymode_pattern == NULL) {
-      screen->copymode_pattern = calloc(256, 1);
-      screen->copymode_pattern_pos = 1;
-      screen->copymode_pattern[0] = '/';
+  } else if ((len == 1 && str[0] == '/')
+#if defined(USE_WIN32GUI) && defined(UTF16_IME_CHAR)
+             || (len == 2) && str[0] == 0 && str[1] == '/'
+#endif
+            ) {
+    if (!screen->copymode->pattern_editing) {
+      ui_copymode_pattern_start_edit(screen->copymode);
     }
-    screen->copymode_pattern_editing = 1;
   } else {
     if (!ui_is_selecting(&screen->sel) && (ksym == ' ' || ksym == XK_Return)) {
       restore_selected_region_color_instantly(screen);
-      if ((line = vt_term_get_line(screen->term, screen->copymode_cursor_row)) &&
+      if ((line = vt_term_get_line(screen->term, screen->copymode->cursor_row)) &&
           vt_line_is_rtl(line)) {
-        start_selection(screen, -screen->copymode_cursor_char_index, screen->copymode_cursor_row,
+        start_selection(screen, -screen->copymode->cursor_char_index, screen->copymode->cursor_row,
                         SEL_CHAR, (state & ModMask) ? 1 : 0);
       } else {
-        start_selection(screen, screen->copymode_cursor_char_index, screen->copymode_cursor_row,
+        start_selection(screen, screen->copymode->cursor_char_index, screen->copymode->cursor_row,
                         SEL_CHAR, (state & ModMask) ? 1 : 0);
       }
 
       return;
     }
 
-    if ((line = vt_term_get_line(screen->term, screen->copymode_cursor_row)) == NULL) {
+    if ((line = vt_term_get_line(screen->term, screen->copymode->cursor_row)) == NULL) {
       goto copymode_end;
     }
 
-    vt_line_set_modified(line, screen->copymode_cursor_char_index,
-                         screen->copymode_cursor_char_index);
+    vt_line_set_modified(line, screen->copymode->cursor_char_index,
+                         screen->copymode->cursor_char_index);
 
     vt_term_search_final(screen->term);
 
 
     if (ksym == XK_Left || ksym == 'h') {
-      if (vt_line_is_rtl(line) && screen->copymode_cursor_char_index <= get_beg_in_rtl_line(line)) {
-        screen->copymode_cursor_char_index = -1;
+      if (vt_line_is_rtl(line) &&
+          screen->copymode->cursor_char_index <= get_beg_in_rtl_line(line)) {
+        screen->copymode->cursor_char_index = -1;
       } else {
-        screen->copymode_cursor_char_index--;
+        screen->copymode->cursor_char_index--;
       }
 
-      if (screen->copymode_cursor_char_index < 0) {
+      if (screen->copymode->cursor_char_index < 0) {
         /* copymode_move_vertical() modifies copymode_char_index internally. */
         if (!copymode_move_vertical(screen, vt_line_is_rtl(line) ? 1 : -1)) {
-          screen->copymode_cursor_char_index = 0;
+          screen->copymode->cursor_char_index = 0;
 
           return;
         }
       }
     } else if (ksym == XK_Right || ksym == 'l') {
-      if (screen->copymode_cursor_char_index + 1 < vt_line_get_num_filled_chars_except_sp(line)) {
-        screen->copymode_cursor_char_index++;
+      if (screen->copymode->cursor_char_index + 1 < vt_line_get_num_filled_chars_except_sp(line)) {
+        screen->copymode->cursor_char_index++;
       } else {
-        screen->copymode_cursor_char_index = -1;
+        screen->copymode->cursor_char_index = -1;
 
         /* copymode_move_vertical() modifies copymode_char_index internally. */
         if (!copymode_move_vertical(screen, vt_line_is_rtl(line) ? -1 : 1)) {
-          screen->copymode_cursor_char_index = vt_line_get_num_filled_chars_except_sp(line) - 1;
+          screen->copymode->cursor_char_index = vt_line_get_num_filled_chars_except_sp(line) - 1;
 
           return;
         }
@@ -2329,9 +2336,9 @@ static void copymode_key(ui_screen_t *screen, int kchar, int ksym, u_int state) 
       if (state == (ControlMask | ShiftMask)) {
         enter_backscroll_mode(screen);
         /* This doesn't call ui_window_update() if copymode_enabled is true. */
-        if (bs_scroll_downward_to_mark(screen)) {
-          screen->copymode_cursor_char_index = 0;
-          screen->copymode_cursor_row = vt_term_convert_scr_row_to_abs(screen->term, 0);
+        if (bs_scroll_downward_to_mark(screen, 0)) {
+          screen->copymode->cursor_char_index = 0;
+          screen->copymode->cursor_row = vt_term_convert_scr_row_to_abs(screen->term, 0);
         }
       } else {
         copymode_move_vertical(screen, -1);
@@ -2339,9 +2346,9 @@ static void copymode_key(ui_screen_t *screen, int kchar, int ksym, u_int state) 
     } else if (ksym == XK_Down || ksym == 'j') {
       if (state == (ControlMask | ShiftMask)) {
         /* This doesn't call ui_window_update() if copymode_enabled is true. */
-        if (bs_scroll_upward_to_mark(screen)) {
-          screen->copymode_cursor_char_index = 0;
-          screen->copymode_cursor_row = vt_term_convert_scr_row_to_abs(screen->term, 0);
+        if (bs_scroll_upward_to_mark(screen, 0)) {
+          screen->copymode->cursor_char_index = 0;
+          screen->copymode->cursor_row = vt_term_convert_scr_row_to_abs(screen->term, 0);
         }
       } else {
         copymode_move_vertical(screen, 1);
@@ -2352,29 +2359,31 @@ static void copymode_key(ui_screen_t *screen, int kchar, int ksym, u_int state) 
       copymode_move_vertical(screen, vt_term_get_rows(screen->term));
     } else if (ksym == XK_Return || ksym == ' ') {
       ui_stop_selecting(&screen->sel);
-    } else if (ksym == 'x' && state == ControlMask) {
-      /* Control+x (CAN) */
-      ui_sel_clear(&screen->sel);
     } else if (ksym == XK_Escape || ksym == 'q') {
     copymode_end:
       ui_sel_clear(&screen->sel);
-      screen->copymode_enabled = 0;
+      ui_copymode_destroy(screen->copymode);
+      screen->copymode = NULL;
+      if (exit_backscroll_mode(screen)) {
+        /* ui_window_update() is called in exit_backscroll_mode(). */
+        return;
+      }
     } else {
-      return;
+      ui_sel_clear(&screen->sel);
     }
   }
 
   if (ui_is_selecting(&screen->sel)) {
     int ret;
 
-    if ((line = vt_term_get_line(screen->term, screen->copymode_cursor_row)) &&
+    if ((line = vt_term_get_line(screen->term, screen->copymode->cursor_row)) &&
         vt_line_is_rtl(line)) {
-      ret = selecting(screen, -screen->copymode_cursor_char_index, screen->copymode_cursor_row);
+      ret = selecting(screen, -screen->copymode->cursor_char_index, screen->copymode->cursor_row);
     } else {
-      ret = selecting(screen, screen->copymode_cursor_char_index, screen->copymode_cursor_row);
+      ret = selecting(screen, screen->copymode->cursor_char_index, screen->copymode->cursor_row);
     }
 
-    if (ret || !screen->copymode_pattern_editing) {
+    if (ret || !screen->copymode->pattern_editing) {
       return;
     }
   }
@@ -2461,7 +2470,9 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
 #endif
 
     if (!(*screen->im->key_event)(screen->im, kchar, ksym, event)) {
-      exit_backscroll_mode(screen);
+      if (screen->copymode == NULL) {
+        exit_backscroll_mode(screen);
+      }
 
       return;
     }
@@ -2479,19 +2490,8 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
   }
 #endif
 
-  if (screen->copymode_enabled) {
-    u_char kchar = 0;
-
-#if defined(USE_WIN32GUI) && defined(UTF16_IME_CHAR)
-    if (size == 2 && kstr[0] == 0) {
-      kchar = kstr[1];
-    } else
-#endif
-    if (size == 1) {
-      kchar = kstr[0];
-    }
-
-    copymode_key(screen, kchar, ksym, masked_state);
+  if (screen->copymode) {
+    copymode_key(screen, ksym, masked_state, kstr, size, parser);
 
     return;
   }
@@ -3254,13 +3254,13 @@ static void selecting_with_motion(ui_screen_t *screen, int x, int y, Time time, 
         enter_backscroll_mode(screen);
       }
 
-      bs_scroll_downward(screen, 1);
+      bs_scroll_downward(screen, 1, 1);
     }
 
     y = 0;
   } else if (y > screen->height) {
     if (vt_term_is_backscrolling(screen->term)) {
-      bs_scroll_upward(screen, 1);
+      bs_scroll_upward(screen, 1, 1);
     }
 
     y = screen->height - ui_line_height(screen);
@@ -3493,13 +3493,13 @@ static void button_motion(ui_window_t *win, XMotionEvent *event) {
       if (diff > 0) {
         if (diff >= line_height) {
           enter_backscroll_mode(screen);
-          bs_scroll_downward(screen, 1);
+          bs_scroll_downward(screen, 1, 1);
           screen->flick_base_y = screen->flick_cur_y;
           screen->flick_cur_y = event->y;
         }
       } else {
         if (diff <= -line_height) {
-          bs_scroll_upward(screen, 1);
+          bs_scroll_upward(screen, 1, 1);
           screen->flick_base_y = screen->flick_cur_y;
           screen->flick_cur_y = event->y;
         }
@@ -3643,7 +3643,7 @@ static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num)
 
     enter_backscroll_mode(screen);
     if (event->state & ShiftMask) {
-      bs_scroll_downward(screen, 1);
+      bs_scroll_downward(screen, 1, 1);
     } else if (event->state & ControlMask) {
       bs_page_downward(screen);
     } else {
@@ -3654,7 +3654,7 @@ static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num)
 
     enter_backscroll_mode(screen);
     if (event->state & ShiftMask) {
-      bs_scroll_upward(screen, 1);
+      bs_scroll_upward(screen, 1, 1);
     } else if (event->state & ControlMask) {
       bs_page_upward(screen);
     } else {
@@ -3756,7 +3756,7 @@ static void idling(ui_window_t *win) {
     if (screen->autoscroll_count < 0) {
       count = -screen->autoscroll_count;
 
-      if (bs_scroll_upward(screen, count)) {
+      if (bs_scroll_upward(screen, count, 1)) {
         screen->autoscroll_count++;
       } else {
         screen->autoscroll_count = 0;
@@ -3765,7 +3765,7 @@ static void idling(ui_window_t *win) {
       count = screen->autoscroll_count;
 
       enter_backscroll_mode(screen);
-      if (bs_scroll_downward(screen, count)) {
+      if (bs_scroll_downward(screen, count, 1)) {
         screen->autoscroll_count--;
       } else {
         screen->autoscroll_count = 0;
@@ -4583,6 +4583,10 @@ static void change_fade_ratio(ui_screen_t *screen, u_int fade_ratio) {
   vt_term_set_modified_all_lines_in_screen(screen->term);
 }
 
+/*
+ * If screen->inputmethod is same as input_method, re-create a new input method
+ * forcibly because change_char_encoding() expects change_im() to do so.
+ */
 static void change_im(ui_screen_t *screen, char *input_method) {
   ui_im_t *im;
 
@@ -5171,6 +5175,7 @@ static void line_scrolled_out(void *p) {
 
 static int get_spot_intern(ui_screen_t *screen, vt_char_t *chars, int segment_offset,
                            int return_line_bottom, int ignore_vertical_mode, int *x, int *y) {
+  int row;
   vt_line_t *line;
   vt_char_t *comb_chars;
   u_int comb_size;
@@ -5178,7 +5183,18 @@ static int get_spot_intern(ui_screen_t *screen, vt_char_t *chars, int segment_of
 
   *x = *y = 0;
 
-  if ((line = vt_term_get_cursor_line(screen->term)) == NULL || vt_line_is_empty(line)) {
+  if (screen->copymode) {
+    /* copymode doesn't support vertical mode */
+    if (screen->copymode->pattern_editing) {
+      row = vt_term_convert_scr_row_to_abs(screen->term, vt_term_get_rows(screen->term) - 1);
+    } else {
+      row = screen->copymode->cursor_row;
+    }
+  } else {
+    row = vt_term_cursor_row(screen->term);
+  }
+
+  if ((line = vt_term_get_line(screen->term, row)) == NULL || vt_line_is_empty(line)) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " cursor line doesn't exist ?.\n");
 #endif
@@ -5187,13 +5203,20 @@ static int get_spot_intern(ui_screen_t *screen, vt_char_t *chars, int segment_of
   }
 
   if (!vt_term_get_vertical_mode(screen->term) || ignore_vertical_mode) {
-    int row;
-
-    if ((row = vt_term_cursor_row_in_screen(screen->term)) < 0) {
-      return 0;
+    if (screen->copymode) {
+      if (screen->copymode->pattern_editing) {
+        *x = calculate_vtchars_width(screen, screen->copymode->pattern,
+                                     screen->copymode->pattern_len);
+      } else {
+        *x = convert_char_index_to_x_with_shape(screen, line,
+                                                screen->copymode->cursor_char_index);
+      }
+    } else {
+      *x = convert_char_index_to_x_with_shape(screen, line,
+                                              vt_term_cursor_char_index(screen->term));
     }
 
-    *x = convert_char_index_to_x_with_shape(screen, line, vt_term_cursor_char_index(screen->term));
+    row -= vt_term_convert_scr_row_to_abs(screen->term, 0);
     *y = convert_row_to_y(screen, row);
     if (return_line_bottom) {
       *y += ui_line_height(screen);
@@ -5224,8 +5247,9 @@ static int get_spot_intern(ui_screen_t *screen, vt_char_t *chars, int segment_of
       } while (++i < segment_offset);
     }
   } else {
+    /* Don't mind copymode because it doesn't support vertical mode. */
     *x = convert_char_index_to_x_with_shape(screen, line, vt_term_cursor_char_index(screen->term));
-    *y = convert_row_to_y(screen, vt_term_cursor_row(screen->term));
+    *y = convert_row_to_y(screen, row);
     *x += ui_col_width(screen);
 
     if (segment_offset > 0) {
@@ -5331,6 +5355,7 @@ static int is_vertical(void *p) {
 
 static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars, int cursor_offset) {
   ui_screen_t *screen;
+  int row;
   vt_line_t *line;
   ui_font_t *font;
   int x;
@@ -5366,7 +5391,18 @@ static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars, int cur
 
   screen->is_preediting = 1;
 
-  if ((line = vt_term_get_cursor_line(screen->term)) == NULL || vt_line_is_empty(line)) {
+  if (screen->copymode) {
+    /* copymode doesn't support vertical mode */
+    if (screen->copymode->pattern_editing) {
+      row = vt_term_convert_scr_row_to_abs(screen->term, vt_term_get_rows(screen->term) - 1);
+    } else {
+      row = screen->copymode->cursor_row;
+    }
+  } else {
+    row = vt_term_cursor_row(screen->term);
+  }
+
+  if ((line = vt_term_get_line(screen->term, row)) == NULL || vt_line_is_empty(line)) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " cursor line doesn't exist ?.\n");
 #endif
@@ -5375,29 +5411,38 @@ static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars, int cur
   }
 
   if (!vt_term_get_vertical_mode(screen->term)) {
-    int row;
-
-    row = vt_term_cursor_row_in_screen(screen->term);
-
+    row -= vt_term_convert_scr_row_to_abs(screen->term, 0);
     if (row < 0) {
       return;
     }
 
     beg_row = row;
-  } else if (vt_term_get_vertical_mode(screen->term) == VERT_RTL) {
-    u_int ncols;
+  } else {
+    /* Don't mind copymode because it doesn't support vertical mode. */
+    if (vt_term_get_vertical_mode(screen->term) == VERT_RTL) {
+      u_int ncols = vt_term_get_cols(screen->term);
 
-    ncols = vt_term_get_cols(screen->term);
-    beg_row = vt_term_cursor_col(screen->term);
-    beg_row = ncols - beg_row - 1;
-  } else /* VERT_LTR */
-  {
-    beg_row = vt_term_cursor_col(screen->term);
+      beg_row = vt_term_cursor_col(screen->term); /* copymode doesn't support vertical mode */
+      beg_row = ncols - beg_row - 1;
+    } else {
+      /* VERT_LTR */
+      beg_row = vt_term_cursor_col(screen->term);
+    }
   }
   end_row = beg_row;
 
-  x = convert_char_index_to_x_with_shape(screen, line, vt_term_cursor_char_index(screen->term));
-  y = convert_row_to_y(screen, vt_term_cursor_row_in_screen(screen->term));
+  if (screen->copymode) {
+    if (screen->copymode->pattern_editing) {
+      x = calculate_vtchars_width(screen, screen->copymode->pattern,
+                                  screen->copymode->pattern_len);
+    } else {
+      x = convert_char_index_to_x_with_shape(screen, line,
+                                             screen->copymode->cursor_char_index);
+    }
+  } else {
+    x = convert_char_index_to_x_with_shape(screen, line, vt_term_cursor_char_index(screen->term));
+  }
+  y = convert_row_to_y(screen, row);
 
   preedit_cursor_x = x;
   preedit_cursor_y = y;
@@ -5674,25 +5719,34 @@ static int compare_key_state_with_modmap(void *p, u_int state, int *is_shift, in
 }
 
 static void write_to_term(void *p, u_char *str, /* must be same as term encoding */
-                          size_t len) {
-  ui_screen_t *screen;
-
-  screen = p;
-
+                          size_t len, ef_parser_t *parser) {
+  ui_screen_t *screen = p;
 #ifdef __DEBUG
-  {
-    size_t count;
+  size_t count;
 
-    bl_debug_printf(BL_DEBUG_TAG " written str: ");
+  bl_debug_printf(BL_DEBUG_TAG " written str: ");
 
-    for (count = 0; count < len; count++) {
-      bl_msg_printf("%.2x ", str[count]);
-    }
-    bl_msg_printf("\n");
+  for (count = 0; count < len; count++) {
+    bl_msg_printf("%.2x ", str[count]);
   }
+  bl_msg_printf("\n");
 #endif
 
-  vt_term_write(screen->term, str, len);
+  if (screen->copymode) {
+    if (screen->copymode->pattern_editing) {
+      if (parser == NULL) {
+        if ((parser = vt_char_encoding_parser_new(vt_term_get_encoding(screen->term)))) {
+          ui_copymode_pattern_add_str(screen->copymode, str, len, parser);
+          (*parser->destroy)(parser);
+        }
+      } else {
+        ui_copymode_pattern_add_str(screen->copymode, str, len, parser);
+      }
+      ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
+    }
+  } else {
+    write_to_pty_intern(screen->term, str, len, parser);
+  }
 }
 
 #ifdef DEBUG
@@ -6631,7 +6685,9 @@ void ui_screen_destroy(ui_screen_t *screen) {
     ui_im_destroy(screen->im);
   }
 
-  free(screen->copymode_pattern);
+  if (screen->copymode) {
+    ui_copymode_destroy(screen->copymode);
+  }
 
   free(screen);
 }
@@ -6738,25 +6794,17 @@ void ui_set_screen_scroll_listener(ui_screen_t *screen,
 
 void ui_screen_scroll_upward(ui_screen_t *screen, u_int size) {
   enter_backscroll_mode(screen);
-  bs_scroll_upward(screen, size);
+  bs_scroll_upward(screen, size, 1);
 }
 
 void ui_screen_scroll_downward(ui_screen_t *screen, u_int size) {
   enter_backscroll_mode(screen);
-  bs_scroll_downward(screen, size);
+  bs_scroll_downward(screen, size, 1);
 }
 
 void ui_screen_scroll_to(ui_screen_t *screen, int row) {
   enter_backscroll_mode(screen);
-  if (vt_term_backscroll_to(screen->term, row)) {
-    if (!screen->copymode_enabled) {
-      ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
-    }
-
-    if (HAS_SCROLL_LISTENER(screen, scrolled_to)) {
-      (*screen->screen_scroll_listener->scrolled_to)(screen->screen_scroll_listener->self, row);
-    }
-  }
+  bs_scroll_to(screen, row, 1);
 }
 
 u_int ui_col_width(ui_screen_t *screen) { return ui_get_usascii_font(screen->font_man)->width; }

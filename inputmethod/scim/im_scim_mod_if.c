@@ -116,34 +116,13 @@ static void unfocused(ui_im_t *im) { im_scim_unfocused(((im_scim_t *)im)->contex
 
 static void commit(void *ptr, char *utf8_str) {
   im_scim_t *scim;
-  u_char conv_buf[256];
-  size_t filled_len;
 
   scim = (im_scim_t *)ptr;
 
-  if (scim->term_encoding == VT_UTF8) {
-    (*scim->im.listener->write_to_term)(scim->im.listener->self, (u_char *)utf8_str,
-                                        strlen(utf8_str));
-    goto skip;
-  }
+  (*scim->im.listener->write_to_term)(scim->im.listener->self,
+                                      (u_char *)utf8_str, strlen(utf8_str),
+                                      scim->term_encoding == VT_UTF8 ? NULL : parser_utf8);
 
-  (*parser_utf8->init)(parser_utf8);
-  (*parser_utf8->set_str)(parser_utf8, (u_char *)utf8_str, strlen(utf8_str));
-
-  (*scim->conv->init)(scim->conv);
-
-  while (!parser_utf8->is_eos) {
-    filled_len = (*scim->conv->convert)(scim->conv, conv_buf, sizeof(conv_buf), parser_utf8);
-
-    if (filled_len == 0) {
-      /* finished converting */
-      break;
-    }
-
-    (*scim->im.listener->write_to_term)(scim->im.listener->self, conv_buf, filled_len);
-  }
-
-skip:
   if (scim->im.cand_screen) {
     (*scim->im.cand_screen->destroy)(scim->im.cand_screen);
     scim->im.cand_screen = NULL;
@@ -183,9 +162,6 @@ static void preedit_update(void *ptr, char *utf8_str, int cursor_offset) {
 
   if (scim->term_encoding != VT_UTF8) {
     /* utf8 -> term encoding */
-    (*parser_utf8->init)(parser_utf8);
-    (*scim->conv->init)(scim->conv);
-
     if (!(im_convert_encoding(parser_utf8, scim->conv, (u_char *)utf8_str, &str,
                               strlen(utf8_str) + 1))) {
       return;

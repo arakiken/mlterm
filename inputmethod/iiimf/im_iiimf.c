@@ -54,6 +54,7 @@
 
 #include <string.h>    /* strncmp */
 #include <dirent.h>
+#include <pobl/bl_def.h> /* WORDS_BIGENDIAN */
 #include <pobl/bl_mem.h>  /* malloc/alloca/free */
 #include <pobl/bl_str.h>  /* bl_str_sep/strdup/bl_snprintf */
 #include <pobl/bl_locale.h> /* bl_get_lang */
@@ -176,7 +177,6 @@ static IIIMCF_input_method find_language_engine(char* lang) {
       if (iiimcf_get_input_method_desc(array[i], &id, &hrn, &domain) == IIIMF_STATUS_SUCCESS) {
         u_char *  str;
 
-        PARSER_INIT_WITH_BOM(parser_utf16);
         im_convert_encoding(parser_utf16, conv, (u_char*) id, &str, strlen_utf16(id) + 1);
 
         if (strcmp(le_name, str) == 0) {
@@ -256,21 +256,9 @@ static void commit(im_iiimf_t *iiimf) {
     return;
   }
 
-  PARSER_INIT_WITH_BOM(parser_utf16);
-  (*parser_utf16->set_str)(parser_utf16, (u_char*) utf16str, strlen_utf16(utf16str));
-
-  (*iiimf->conv->init)(iiimf->conv);
-
-  while (!parser_utf16->is_eos) {
-    filled_len = (*iiimf->conv->convert)(iiimf->conv, buf, sizeof(buf), parser_utf16);
-
-    if (filled_len == 0) {
-      /* finished converting */
-      break;
-    }
-
-    (*iiimf->im.listener->write_to_term)(iiimf->im.listener->self, buf, filled_len);
-  }
+  (*iiimf->im.listener->write_to_term)(iiimf->im.listener->self,
+                                       (u_char*) utf16str, strlen_utf16(utf16str),
+                                       parser_utf16);
 }
 
 static void preedit_start(im_iiimf_t *iiimf) {
@@ -338,7 +326,6 @@ static void preedit_change(im_iiimf_t *iiimf) {
   }
 
   /* UTF16 -> term encoding */
-  PARSER_INIT_WITH_BOM(parser_utf16);
   im_convert_encoding(parser_utf16, iiimf->conv, (u_char*) utf16str, &str,
                       strlen_utf16(utf16str) + 1);
 
@@ -642,7 +629,6 @@ static void lookup_choice_change(im_iiimf_t *iiimf) {
       continue;
     }
 
-    PARSER_INIT_WITH_BOM(parser_utf16);
     if (im_convert_encoding(parser_utf16, iiimf->conv, (u_char*)utf16str, &str,
                             strlen_utf16(utf16str) + 1)) {
       (*iiimf->im.cand_screen->set)(iiimf->im.cand_screen, iiimf->parser_term, str, i);
@@ -714,7 +700,6 @@ static void status_change(im_iiimf_t *iiimf) {
     return;
   }
 
-  PARSER_INIT_WITH_BOM(parser_utf16);
   if (im_convert_encoding(parser_utf16, iiimf->conv, (u_char*)utf16str, &str,
                           strlen_utf16(utf16str) + 1)) {
     (*iiimf->im.stat_screen->set)(iiimf->im.stat_screen, iiimf->parser_term, str);
@@ -1119,7 +1104,16 @@ ui_im_t *im_iiimf_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     iiimcf_destroy_attr(attr);
     attr = NULL;
 
-    if (!(parser_utf16 = ef_utf16_parser_new())) {
+    /*
+     * Note: The byte order is the same as client.
+     * (see lib/iiimp/data/im-connect.c:iiimp_connect_new())
+     */
+#ifdef WORDS_BIGENDIAN
+    if (!(parser_utf16 = ef_utf16_parser_new()))
+#else
+      if (!(parser_utf16 = ef_utf16le_parser_new()))
+#endif
+    {
       goto error;
     }
 
@@ -1333,7 +1327,16 @@ im_info_t *im_iiimf_get_info(char *locale, char *encoding) {
     total += num_langs;
   }
 
-  if (!(parser_utf16 = ef_utf16_parser_new())) {
+  /*
+   * Note: The byte order is the same as client.
+   * (see lib/iiimp/data/im-connect.c:iiimp_connect_new())
+   */
+#ifdef WORDS_BIGENDIAN
+  if (!(parser_utf16 = ef_utf16_parser_new()))
+#else
+  if (!(parser_utf16 = ef_utf16le_parser_new()))
+#endif
+  {
     goto error;
   }
 
@@ -1377,7 +1380,6 @@ im_info_t *im_iiimf_get_info(char *locale, char *encoding) {
       continue;
     }
 
-    PARSER_INIT_WITH_BOM(parser_utf16);
     im_convert_encoding(parser_utf16, conv, (u_char*)im_id, &im, strlen_utf16(im_id) + 1);
 
     for (j = 0; j < num_langs; j++) {

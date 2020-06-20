@@ -912,6 +912,22 @@ static void scrolled_downward(void *p, u_int size) {
 #endif
 }
 
+static void scrolled_to(void *p, int row) {
+  VteTerminal *terminal;
+
+  terminal = p;
+
+  PVT(terminal)->adj_value_changed_by_myself = 1;
+
+#if GTK_CHECK_VERSION(2, 14, 0)
+  gtk_adjustment_set_value(ADJUSTMENT(terminal),
+                           vt_term_get_num_logged_lines(PVT(terminal)->term) + row);
+#else
+  ADJUSTMENT(terminal)->value = row;
+  gtk_adjustment_value_changed(ADJUSTMENT(terminal));
+#endif
+}
+
 static void log_size_changed(void *p, u_int log_size) {
   VteTerminal *terminal;
 
@@ -1270,6 +1286,7 @@ static void init_screen(VteTerminal *terminal, ui_font_manager_t *font_man,
   PVT(terminal)->screen_scroll_listener.bs_mode_exited = bs_mode_exited;
   PVT(terminal)->screen_scroll_listener.scrolled_upward = scrolled_upward;
   PVT(terminal)->screen_scroll_listener.scrolled_downward = scrolled_downward;
+  PVT(terminal)->screen_scroll_listener.scrolled_to = scrolled_to;
   PVT(terminal)->screen_scroll_listener.log_size_changed = log_size_changed;
   ui_set_screen_scroll_listener(PVT(terminal)->screen, &PVT(terminal)->screen_scroll_listener);
 
@@ -3867,7 +3884,7 @@ void vte_terminal_search_set_gregex(VteTerminal *terminal, GRegex *regex)
 {
   if (regex) {
     if (!PVT(terminal)->gregex) {
-      vt_term_search_init(PVT(terminal)->term, match_gregex);
+      vt_term_search_init(PVT(terminal)->term, -1, -1, match_gregex);
     }
   } else {
     vt_term_search_final(PVT(terminal)->term);
@@ -4582,7 +4599,7 @@ gboolean vte_terminal_event_check_regex_simple(VteTerminal *terminal, GdkEvent *
 void vte_terminal_search_set_regex(VteTerminal *terminal, VteRegex *regex, guint32 flags) {
   if (regex) {
     if (!PVT(terminal)->vregex) {
-      vt_term_search_init(PVT(terminal)->term, match_vteregex);
+      vt_term_search_init(PVT(terminal)->term, -1, -1, match_vteregex);
     }
     vte_regex_ref(regex);
   } else {

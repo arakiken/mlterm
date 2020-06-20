@@ -286,9 +286,13 @@ static void file_unload(table_t *tables, char *data, size_t data_size, char *pat
 
 static size_t ef_str_to(char *dst, size_t dst_len, ef_char_t *src, u_int src_len,
                          ef_conv_t *conv) {
+  ef_parser_t *parser = ef_str_parser_get();
+
+  (*parser->init)(parser);
+  (*parser->set_str)(parser, (u_char*)src, src_len * sizeof(ef_char_t));
   (*conv->init)(conv);
 
-  return (*conv->convert)(conv, dst, dst_len, ef_str_parser_init(src, src_len));
+  return (*conv->convert)(conv, dst, dst_len, parser);
 }
 
 static u_int file_get_completion_list(char **list, u_int list_size, table_t *tables,

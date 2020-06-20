@@ -643,27 +643,23 @@ static void line_scrolled_out(void *p /* must be ui_screen_t(, or child of ui_la
  * callbacks of ui_sb_event_listener_t events.
  */
 
-static int screen_scroll_to(void *p, int row) {
+static void screen_scroll_to(void *p, int row) {
   struct terminal *term;
 
   term = p;
 
   ui_screen_scroll_to(term->screen, row);
-
-  return 1;
 }
 
-static int screen_scroll_upward(void *p, u_int size) {
+static void screen_scroll_upward(void *p, u_int size) {
   struct terminal *term;
 
   term = p;
 
   ui_screen_scroll_upward(term->screen, size);
-
-  return 1;
 }
 
-static int screen_scroll_downward(void *p, u_int size) {
+static void screen_scroll_downward(void *p, u_int size) {
   struct terminal *term;
 
   term = p;

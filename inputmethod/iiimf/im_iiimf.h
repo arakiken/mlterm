@@ -35,20 +35,6 @@ typedef struct im_iiimf {
 
 int im_iiimf_process_event(im_iiimf_t *iiimf);
 
-/*
- * taken from Minami-san's hack in x_dnd.c
- *
- * Note: The byte order is the same as client.
- * (see lib/iiimp/data/im-connect.c:iiimp_connect_new())
- */
-#define PARSER_INIT_WITH_BOM(parser)        \
-do {                \
-  u_int16_t BOM[] = {0xfeff};       \
-  (*(parser)->init)((parser));        \
-  (*(parser)->set_str)((parser), (u_char*)BOM, 2);  \
-  (*(parser)->next_char)((parser), NULL);   \
-} while (0)
-
 static size_t strlen_utf16(const IIIMP_card16 *str) {
   size_t len = 0;
 

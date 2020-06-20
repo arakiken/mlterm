@@ -1263,6 +1263,14 @@ static void save_cursor(vt_parser_t *vt_parser) {
   vt_screen_save_cursor(vt_parser->screen);
 }
 
+static void init_encoding_parser(vt_parser_t *vt_parser) {
+  (*vt_parser->cc_parser->init)(vt_parser->cc_parser);
+  vt_parser->gl = US_ASCII;
+  vt_parser->g0 = US_ASCII;
+  vt_parser->g1 = US_ASCII;
+  vt_parser->is_so = 0;
+}
+
 static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag);
 static void change_char_attr(vt_parser_t *vt_parser, int flag);
 
@@ -1293,7 +1301,7 @@ static void restore_cursor(vt_parser_t *vt_parser) {
         ef_char_t ch;
         ef_parser_t *parser;
 
-        vt_init_encoding_parser(vt_parser);
+        init_encoding_parser(vt_parser);
         parser = vt_parser->cc_parser;
         (*parser->set_str)(parser, DEC_SEQ, sizeof(DEC_SEQ));
         (*parser->next_char)(parser, &ch);
@@ -3747,9 +3755,9 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
     if (!(vt_parser->is_vt52_mode = (flag ? 0 : 1))) {
       /*
        * USASCII should be designated for G0-G3 here, but it is temporized by
-       * using vt_init_encoding_parser() etc for now.
+       * using init_encoding_parser() etc for now.
        */
-      vt_init_encoding_parser(vt_parser);
+      init_encoding_parser(vt_parser);
     }
 #endif
     break;
@@ -4056,7 +4064,7 @@ static void soft_reset(vt_parser_t *vt_parser) {
   /* "CSI m" (SGR) */
   change_char_attr(vt_parser, 0);
 
-  vt_init_encoding_parser(vt_parser);
+  init_encoding_parser(vt_parser);
 
   /* DECSC */
   (vt_screen_is_alternative_edit(vt_parser->screen) ? &vt_parser->saved_alternate
@@ -7354,14 +7362,6 @@ size_t vt_parser_convert_to(vt_parser_t *vt_parser, u_char *dst, size_t len,
   return (*vt_parser->cc_conv->convert)(vt_parser->cc_conv, dst, len, parser);
 }
 
-void vt_init_encoding_parser(vt_parser_t *vt_parser) {
-  (*vt_parser->cc_parser->init)(vt_parser->cc_parser);
-  vt_parser->gl = US_ASCII;
-  vt_parser->g0 = US_ASCII;
-  vt_parser->g1 = US_ASCII;
-  vt_parser->is_so = 0;
-}
-
 void vt_init_encoding_conv(vt_parser_t *vt_parser) {
   (*vt_parser->cc_conv->init)(vt_parser->cc_conv);
 
@@ -7373,7 +7373,7 @@ void vt_init_encoding_conv(vt_parser_t *vt_parser) {
    * 0x00 - 0x7f should be US-ASCII at the initial state.
    */
   if (IS_STATEFUL_ENCODING(vt_parser->encoding)) {
-    vt_init_encoding_parser(vt_parser);
+    init_encoding_parser(vt_parser);
   }
 }
 

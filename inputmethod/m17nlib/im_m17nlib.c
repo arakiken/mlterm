@@ -41,7 +41,6 @@
 #include <m17n-misc.h> /* merror_code */
 
 #include <ui_im.h>
-#include "../im_common.h"
 #include "../im_info.h"
 
 #if 0
@@ -62,7 +61,6 @@ typedef struct im_m17nlib {
 
   MConverter *mconverter;    /* MText -> u_char    */
   ef_parser_t *parser_term; /* for term encoding  */
-  ef_conv_t *conv;
 
 } im_m17nlib_t;
 
@@ -473,7 +471,7 @@ static void commit(im_m17nlib_t *m17nlib, MText *text) {
           "code: %d]\n",
           merror_code);
     } else {
-      (*m17nlib->im.listener->write_to_term)(m17nlib->im.listener->self, buf, filled_len);
+      (*m17nlib->im.listener->write_to_term)(m17nlib->im.listener->self, buf, filled_len, NULL);
     }
   }
 }
@@ -780,10 +778,6 @@ static void destroy(ui_im_t *im) {
     (*m17nlib->parser_term->destroy)(m17nlib->parser_term);
   }
 
-  if (m17nlib->conv) {
-    (*m17nlib->conv->destroy)(m17nlib->conv);
-  }
-
   free(m17nlib);
 
   if (ref_count == 0 && initialized) {
@@ -1035,7 +1029,6 @@ ui_im_t *im_m17nlib_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   m17nlib->input_context = NULL;
   m17nlib->mconverter = NULL;
   m17nlib->parser_term = NULL;
-  m17nlib->conv = NULL;
 
   if (!(m17nlib->input_method = find_input_method(param))) {
     bl_error_printf("Could not find %s\n", param);
@@ -1064,10 +1057,6 @@ ui_im_t *im_m17nlib_new(u_int64_t magic, vt_char_encoding_t term_encoding,
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " Could not create MConverter\n");
 #endif
-    goto error;
-  }
-
-  if (!(m17nlib->conv = (*syms->vt_char_encoding_conv_new)(term_encoding))) {
     goto error;
   }
 
@@ -1111,10 +1100,6 @@ error:
 
     if (m17nlib->parser_term) {
       (*m17nlib->parser_term->destroy)(m17nlib->parser_term);
-    }
-
-    if (m17nlib->conv) {
-      (*m17nlib->conv->destroy)(m17nlib->conv);
     }
 
     free(m17nlib);

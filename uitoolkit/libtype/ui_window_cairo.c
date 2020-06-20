@@ -209,7 +209,9 @@ static int show_text(cairo_t *cr, cairo_scaled_font_t *xfont, ui_font_t *font,
   }
 
   if (font->size_attr == DOUBLE_WIDTH) {
+#if CAIRO_VERSION_ENCODE(1, 8, 0) <= CAIRO_VERSION
     flush_glyphs(cr);
+#endif
     x /= 2;
     font->width /= 2;
     cairo_scale(cr, 2.0, 1.0);

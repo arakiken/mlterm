@@ -391,9 +391,7 @@ int vt_parser_change_encoding(vt_parser_t *vt_parser, vt_char_encoding_t encodin
 #define vt_parser_get_encoding(vt_parser) ((vt_parser)->encoding)
 
 size_t vt_parser_convert_to(vt_parser_t *vt_parser, u_char *dst, size_t len,
-                                  ef_parser_t *parser);
-
-void vt_init_encoding_parser(vt_parser_t *vt_parser);
+                            ef_parser_t *parser);
 
 void vt_init_encoding_conv(vt_parser_t *vt_parser);
 

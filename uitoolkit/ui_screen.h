@@ -15,6 +15,7 @@
 #include "ui_sb_mode.h"
 #include "ui_im.h"
 #include "ui_picture.h"
+#include "ui_copymode.h"
 
 typedef struct ui_screen *ui_screen_ptr_t;
 
@@ -133,14 +134,7 @@ typedef struct ui_screen {
 
   ui_icon_picture_t *icon;
 
-  u_char *copymode_pattern;
-  u_int8_t copymode_pattern_pos;
-  int8_t copymode_pattern_editing;
-  int16_t copymode_cursor_char_index; /* visual */
-  int16_t copymode_cursor_row;        /* visual */
-  int8_t copymode_enabled;            /* visual */
-
-  int8_t mark_drawn;
+  ui_copymode_t *copymode;
 
   int16_t prev_inline_pic;
 
@@ -161,6 +155,7 @@ typedef struct ui_screen {
   int8_t processing_vtseq;
   int8_t anim_wait;
   int8_t hide_pointer;
+  int8_t mark_drawn;
 
 } ui_screen_t;
 

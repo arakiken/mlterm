@@ -44,7 +44,6 @@
 #include <vt_iscii.h>
 #include <ui_im.h>
 
-#include "../im_common.h"
 #include "../im_info.h"
 
 #if 0
@@ -84,7 +83,6 @@ typedef struct im_kbd {
   vt_isciikey_state_t isciikey_state;
 
   ef_parser_t *parser;
-  ef_conv_t *conv;
 
 } im_kbd_t;
 
@@ -312,10 +310,6 @@ static void destroy(ui_im_t *im) {
     (*kbd->parser->destroy)(kbd->parser);
   }
 
-  if (kbd->conv) {
-    (*kbd->conv->destroy)(kbd->conv);
-  }
-
   ref_count--;
 
 #ifdef IM_KBD_DEBUG
@@ -336,7 +330,6 @@ static int key_event_arabic_hebrew(ui_im_t *im, u_char key_char, KeySym ksym, XK
   im_kbd_t *kbd;
   size_t len;
   u_char *c;
-  u_char conv_buf[10];
 
   kbd = (im_kbd_t*)im;
 
@@ -369,21 +362,7 @@ static int key_event_arabic_hebrew(ui_im_t *im, u_char key_char, KeySym ksym, XK
     len = strlen(c);
   }
 
-  (*kbd->parser->init)(kbd->parser);
-  (*kbd->parser->set_str)(kbd->parser, c, len);
-
-  (*kbd->conv->init)(kbd->conv);
-
-  while (!kbd->parser->is_eos) {
-    len = (*kbd->conv->convert)(kbd->conv, conv_buf, sizeof(conv_buf), kbd->parser);
-
-    if (len == 0) {
-      /* finished converting */
-      break;
-    }
-
-    (*kbd->im.listener->write_to_term)(kbd->im.listener->self, conv_buf, len);
-  }
+  (*kbd->im.listener->write_to_term)(kbd->im.listener->self, c, len, kbd->parser);
 
   return 0;
 }
@@ -392,7 +371,6 @@ static int key_event_iscii(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent 
   im_kbd_t *kbd;
   u_char buf[512];
   size_t len;
-  u_char conv_buf[10];
 
   kbd = (im_kbd_t*)im;
 
@@ -410,21 +388,7 @@ static int key_event_iscii(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent 
 
   len = (*syms->vt_convert_ascii_to_iscii)(kbd->isciikey_state, buf, sizeof(buf), &key_char, 1);
 
-  (*kbd->parser->init)(kbd->parser);
-  (*kbd->parser->set_str)(kbd->parser, buf, len);
-
-  (*kbd->conv->init)(kbd->conv);
-
-  while (!kbd->parser->is_eos) {
-    len = (*kbd->conv->convert)(kbd->conv, conv_buf, sizeof(conv_buf), kbd->parser);
-
-    if (len == 0) {
-      /* finished converting */
-      break;
-    }
-
-    (*kbd->im.listener->write_to_term)(kbd->im.listener->self, conv_buf, len);
-  }
+  (*kbd->im.listener->write_to_term)(kbd->im.listener->self, buf, len, kbd->parser);
 
   return 0;
 }
@@ -604,7 +568,6 @@ ui_im_t *im_kbd_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   kbd->mode = KBD_MODE_ASCII;
   kbd->isciikey_state = NULL;
   kbd->parser = NULL;
-  kbd->conv = NULL;
 
   if (kbd->type == KBD_TYPE_ARABIC || kbd->type == KBD_TYPE_HEBREW) {
     if (!(kbd->parser = ef_utf16_parser_new())) {
@@ -624,10 +587,6 @@ ui_im_t *im_kbd_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     if (!(kbd->parser = (*syms->vt_char_encoding_parser_new)(iscii_encoding))) {
       goto error;
     }
-  }
-
-  if (!(kbd->conv = (*syms->vt_char_encoding_conv_new)(term_encoding))) {
-    goto error;
   }
 
   /*

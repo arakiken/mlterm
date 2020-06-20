@@ -98,7 +98,9 @@ static GdkFilterReturn vte_terminal_filter(GdkXEvent *xevent, GdkEvent *event, /
        * This processing is added for key binding of popup menu.
        */
       if (is_key_event && ((XEvent *)xevent)->xany.window == disp.roots[count]->my_window) {
-        vt_term_search_reset_position(PVT(terminal)->term);
+        if (PVT(terminal)->screen->copymode == NULL) {
+          vt_term_search_reset_position(PVT(terminal)->term);
+        }
 
         if (!disp.roots[count]->is_focused) {
           ((XEvent *)xevent)->xany.window =

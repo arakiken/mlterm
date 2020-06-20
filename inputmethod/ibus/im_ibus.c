@@ -280,27 +280,9 @@ static void commit_text(IBusInputContext *context, IBusText *text, gpointer data
 
   if (ibus_text_get_length(text) == 0) {
     /* do nothing */
-  } else if (ibus->term_encoding == VT_UTF8) {
-    (*ibus->im.listener->write_to_term)(ibus->im.listener->self, text->text, strlen(text->text));
   } else {
-    u_char conv_buf[256];
-    size_t filled_len;
-
-    (*parser_utf8->init)(parser_utf8);
-    (*parser_utf8->set_str)(parser_utf8, text->text, strlen(text->text));
-
-    (*ibus->conv->init)(ibus->conv);
-
-    while (!parser_utf8->is_eos) {
-      filled_len = (*ibus->conv->convert)(ibus->conv, conv_buf, sizeof(conv_buf), parser_utf8);
-
-      if (filled_len == 0) {
-        /* finished converting */
-        break;
-      }
-
-      (*ibus->im.listener->write_to_term)(ibus->im.listener->self, conv_buf, filled_len);
-    }
+    (*ibus->im.listener->write_to_term)(ibus->im.listener->self, text->text, strlen(text->text),
+                                        ibus->term_encoding == VT_UTF8 ? NULL : parser_utf8);
   }
 
 #ifdef USE_IM_CANDIDATE_SCREEN
@@ -412,9 +394,6 @@ static void update_lookup_table(IBusInputContext *context, IBusLookupTable *tabl
 
     if (ibus->term_encoding != VT_UTF8) {
       u_char *p;
-
-      (*parser_utf8->init)(parser_utf8);
-      (*ibus->conv->init)(ibus->conv);
 
       if (im_convert_encoding(parser_utf8, ibus->conv, str, &p, strlen(str) + 1)) {
         (*ibus->im.cand_screen->set)(ibus->im.cand_screen, ibus->parser_term, p, i);

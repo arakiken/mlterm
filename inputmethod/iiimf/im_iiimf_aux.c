@@ -57,8 +57,15 @@
 #include <sys/stat.h>
 #include <limits.h>
 #include <fcntl.h>
-#include <pobl/bl_unistd.h>
+
+/*
+ * (m|c)alloc'ed memory in aux_service_t functions is not freed in this file,
+ * so bl_mem_free_all() causes double free.
+ */
+#undef BL_DEBUG
 #include <pobl/bl_mem.h> /* malloc/alloca/free */
+
+#include <pobl/bl_unistd.h>
 #include <pobl/bl_str.h> /* bl_snprintf/strdup/bl_str_sep */
 #include <pobl/bl_dlfcn.h> /* bl_dl_open() */
 #include <pobl/bl_file.h>
@@ -436,7 +443,6 @@ static aux_im_data_t *create_im_data(IIIMCF_context context, const IIIMP_card16 
   }
 
   if (entry == NULL) {
-    PARSER_INIT_WITH_BOM(parser_utf16);
     im_convert_encoding(parser_utf16, conv_iso88591, (u_char*)aux_name_utf16, &aux_name,
                         strlen_utf16(aux_name_utf16) + 1);
 
@@ -512,7 +518,6 @@ static void register_atok12_module(void) {
   for (i = 0, e = module->entries; i < module->num_entries; i ++, e ++) {
     u_char *str = NULL;
 
-    PARSER_INIT_WITH_BOM(parser_utf16);
     im_convert_encoding(parser_utf16, conv_iso88591, (u_char*)e->dir.name.utf16str,
                         &str, e->dir.name.len + 1);
     register_module_info(str, ATOK12_SO);
@@ -1357,7 +1362,6 @@ void aux_init(IIIMCF_handle iiimcf_handle, ui_im_export_syms_t *export_syms,
       continue;
     }
 
-    PARSER_INIT_WITH_BOM(parser_utf16);
     im_convert_encoding(parser_utf16, conv_iso88591, (u_char*)obj_name, &file_name,
                         strlen_utf16(obj_name) + 1);
     if (is_conf_file(file_name)) {
@@ -1415,7 +1419,6 @@ void aux_init(IIIMCF_handle iiimcf_handle, ui_im_export_syms_t *export_syms,
         for (j = 0, entry = module->entries; j < module->num_entries; j ++, entry ++) {
           u_char *aux_name = NULL;
 
-          PARSER_INIT_WITH_BOM(parser_utf16);
           im_convert_encoding(parser_utf16, conv_iso88591, (u_char*)entry->dir.name.utf16str,
                               &aux_name, entry->dir.name.len + 1);
 
@@ -1697,6 +1700,7 @@ void aux_destroy(aux_t *aux) {
       free(info);
       break;
     }
+    info = bl_slist_next(info);
   }
 
   free(aux);

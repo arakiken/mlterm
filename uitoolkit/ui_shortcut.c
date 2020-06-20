@@ -178,7 +178,7 @@ void ui_shortcut_init(ui_shortcut_t *shortcut) {
     { XK_Return, ControlMask|ShiftMask, 1, },
 
 #ifdef DEBUG
-    /* EXIT PROGRAM(only for debug) */
+    /* EXIT_PROGRAM(only for debug) */
     { XK_F1, ControlMask | ShiftMask, 1, },
 #else
     { 0, 0, 0, },
