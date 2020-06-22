@@ -959,10 +959,12 @@ enable_vt52
 enable_optimize_redrawing
 enable_ind
 enable_brlapi
+enable_utmp_suid
 enable_pty_helper
 with_map_table
 with_prop_table
 enable_dl_table
+with_utmp
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1678,16 +1680,17 @@ Optional Features:
   --disable-wnn           WNN [default=enabled]
   --disable-skk           SKK [default=enabled]
   --enable-vt52           enable VT52 emulation [default=disabled]
-  --enable-optimize-redrawing    optimize redrawing a line [default=disabled]
+  --enable-optimize-redrawing optimize redrawing a line [default=disabled]
   --disable-ind           libind [default=enabled]
   --enable-brlapi         libbrlapi [default=disabled]
+  --enable-utmp-suid      install mlterm with SUID or SGID for utmp [default=disabled]
   --enable-pty-helper     use pty helper [default=disabled]
   --disable-dl-table      dynamic loading table [default=enable]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-ios-sdk[=ARG]    iOS SDK(e.g. iphoneos4.3 iphonesimulator4.3)
+  --with-ios-sdk[=ARG]    iOS SDK (e.g. iphoneos4.3 iphonesimulator4.3)
   --with-ios-arch[=ARG]   iOS architectures (e.g. arm7v x86_64,i686)
   --with-libtool[=ARG]    libtool path [default=without]
   --with-pic[=PKGS]       try to use only PIC/non-PIC objects [default=use
@@ -1699,7 +1702,7 @@ Optional Packages:
   --with-sysroot[=DIR]    Search for dependent libraries within DIR (or the
                           compiler's sysroot if not specified).
   --with-x                use the X Window System
-  --with-gui[=ARG]        gui library(xlib|win32|fb|quartz|console|wayland|sdl2|beos)
+  --with-gui[=ARG]        gui library (xlib|win32|fb|quartz|console|wayland|sdl2|beos)
   --with-gtk[=ARG]        gtk+ version (2.0|3.0)
   --with-imagelib[=ARG]   image library (gdk-pixbuf) [default=no]
   --without-pthread       don't use pthread [default=with]
@@ -1710,6 +1713,7 @@ Optional Packages:
   --with-scrollbars[=ARG] scrollbar plugins (sample, extra, pixmap_engine) [default=sample,extra,pixmap_engine]
   --without-map-table     mapping table [default=with]
   --without-prop-table    property table [default=with]
+  --with-utmp[=ARG]       utmp (sysv,utempter,login,bsd,none)
 
 Some influential environment variables:
   CC          C compiler command
@@ -25566,9 +25570,15 @@ if test "$utmp_none_obj" = ""; then
 	UTMP_CFLAGS="-DUSE_UTMP"
 fi
 
+# Check whether --enable-utmp-suid was given.
+if test "${enable_utmp_suid+set}" = set; then :
+  enableval=$enable_utmp_suid; utmp_suid=$enable_utmp_suid
+fi
+
+
 if test "$INSTALL_OPT" = ""; then
-  # SUID is not set to mlterm on MacOSX/Quartz.
-	if test "$utmp_none_obj" = "" -a "$gui" != "quartz"; then
+	# SUID is not set to mlterm on MacOSX/Quartz.
+	if test "$utmp_suid" = "yes" -a "$utmp_none_obj" = "" -a "$gui" != "quartz"; then
 		has_utmp=`grep utmp /etc/group 2>/dev/null`
 		if test "$has_utmp" ; then
 			INSTALL_OPT="-m 2755 -g utmp"
@@ -25624,6 +25634,12 @@ fi
 # Check whether --enable-dl-table was given.
 if test "${enable_dl_table+set}" = set; then :
   enableval=$enable_dl_table;
+fi
+
+
+# Check whether --with-utmp was given.
+if test "${with_utmp+set}" = set; then :
+  withval=$with_utmp;
 fi
 
 
@@ -25687,6 +25703,7 @@ fi
 echo "libvte                            : $have_vte$vte_version"
 echo "brlapi                            : $brlapi"
 echo "VT52                              : $vt52"
+echo "Permission of mlterm binary       : $INSTALL_OPT"
 echo
 
 # This should be called at the end of configure.

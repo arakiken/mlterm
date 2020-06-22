@@ -1,5 +1,7 @@
 * Support copy mode which starts by Control+Shift+Return.
 * Support OSC 1337;Setmark ST.
+* Add --enable-utmp-suid option to ./configure script. The default value is disabled.
+* Add --with-utmp option to prefer the way of accessing to utmp.
 * Add SCROLL_UP_TO_MARK and SCROLL_DOWN_TO_MARK shortcut keys.
 * Add emoji_file_format / --emojifmt option.
 * Drop SCROLL_DOWN and PAGE_DOWN shortcut keys.

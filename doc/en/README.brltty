@@ -34,3 +34,4 @@ Support brltty with the use of brlapi
   o If BRLTTY_SPEECH_INPUT environmental variable is not set, mlterm doesn't
     output anything to speech synthesizer.
   o mlterm-fb, mlterm-con or mlterm-wl works with brltty as with mlterm.
+  o Permission of mlterm binary is installed with "-m 4755 -o root" option.

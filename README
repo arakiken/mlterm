@@ -92,9 +92,6 @@ Options for configure
     (Furthermore, don't link libpthread to mlterm in NetBSD even if --enable-ibus
      or --with-type-engines=cairo is specified.)
 
-  --disable-utmp
-    Disable utmp
-
   --enable-debug
     Build debug version
 
@@ -166,6 +163,14 @@ Options for configure
   --enable-brlapi
     Enable brltty with the use of brlapi library. (Experimental)
     (see https://github.com/arakiken/mlterm/blob/master/doc/en/README.brltty)
+
+  --enable-utmp-suid
+    Install mlterm binary with root setuid or utmp setgid to access to utmp
+    database directly.
+    The default is disabled.
+
+  --with-utmp=(utempter|sysv|login|bsd|none)
+    Specify the way of reading from or writing to utmp database.
 
   --disable-shared
     Disable shared libraries

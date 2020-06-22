@@ -631,9 +631,9 @@ ac_includes_default="\
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 DEB_CFLAGS
+UTMP_CFLAGS
 UTMP_LIBS
 UTMP_NAME
-UTMP_CFLAGS
 PTY_NAME
 NO_UNDEFINED_FLAG
 DL_CFLAGS
@@ -738,6 +738,7 @@ enable_libtool_lock
 enable_largefile
 with_libltdl
 enable_pty_helper
+with_utmp
 enable_debug
 with_funcs_mlterm_unuse
 '
@@ -1384,6 +1385,7 @@ Optional Packages:
   --with-sysroot[=DIR]    Search for dependent libraries within DIR (or the
                           compiler's sysroot if not specified).
   --with-libltdl[=PREFIX] load modules with libltdl [default=without]
+  --with-utmp[=ARG]       utmp (utempter,sysv,login,bsd,none)
   --without-funcs-mlterm-unuse remove functions mlterm doesn't use [default=with]
 
 Some influential environment variables:
@@ -13185,39 +13187,118 @@ PTY_NAME="${bl_cv_pty}"
 #
 # --- checks for utmp ---
 #
+
+
+# Check whether --with-utmp was given.
+if test "${with_utmp+set}" = set; then :
+  withval=$with_utmp; utmp_type=$with_utmp
+fi
+
+
 UTMP_NAME=
 UTMP_LIBS=
 if test "$bl_cv_pty" = helper -o "$bl_cv_mingw" = yes -o "$bl_cv_cygwin" = yes -o "$host_os" = "msys" -o "$host_os" = "haiku"; then
 	UTMP_NAME=none
 	UTMP_LIBS=
 fi
-#  setutxent()  (SysV)
-if test -z "$UTMP_NAME" ; then
-	ac_fn_c_check_func "$LINENO" "setutxent" "ac_cv_func_setutxent"
-if test "x$ac_cv_func_setutxent" = xyes; then :
 
-		UTMP_NAME=sysv
-		UTMP_LIBS=
-		UTMP_CFLAGS=-DUSE_UTMPX
-
-fi
-
-
-fi
-#  setutent()  (SysV)
-if test -z "$UTMP_NAME" ; then
-	ac_fn_c_check_func "$LINENO" "setutent" "ac_cv_func_setutent"
-if test "x$ac_cv_func_setutent" = xyes; then :
-
-		UTMP_NAME=sysv
-		UTMP_LIBS=
-
-fi
-
-fi
 #  libutempter
-if test -z "$UTMP_NAME" ; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for addToUtmp in -lutempter" >&5
+if test  "$utmp_type" = "" -o "$utmp_type" = "utempter"; then
+	if test -z "$UTMP_NAME"; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for utempter_add_record in -lutempter" >&5
+$as_echo_n "checking for utempter_add_record in -lutempter... " >&6; }
+if ${ac_cv_lib_utempter_utempter_add_record+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lutempter  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char utempter_add_record ();
+int
+main ()
+{
+return utempter_add_record ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_utempter_utempter_add_record=yes
+else
+  ac_cv_lib_utempter_utempter_add_record=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_utempter_utempter_add_record" >&5
+$as_echo "$ac_cv_lib_utempter_utempter_add_record" >&6; }
+if test "x$ac_cv_lib_utempter_utempter_add_record" = xyes; then :
+
+				UTMP_NAME=utmper
+				UTMP_LIBS="-lutempter"
+				UTMP_CFLAGS="-DUTEMPTER_NEW_API"
+
+fi
+
+	fi
+	if test -z "$UTMP_NAME"; then
+		# FreeBSD
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for utempter_add_record in -lulog" >&5
+$as_echo_n "checking for utempter_add_record in -lulog... " >&6; }
+if ${ac_cv_lib_ulog_utempter_add_record+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lulog  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char utempter_add_record ();
+int
+main ()
+{
+return utempter_add_record ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_ulog_utempter_add_record=yes
+else
+  ac_cv_lib_ulog_utempter_add_record=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ulog_utempter_add_record" >&5
+$as_echo "$ac_cv_lib_ulog_utempter_add_record" >&6; }
+if test "x$ac_cv_lib_ulog_utempter_add_record" = xyes; then :
+
+				UTMP_NAME=utmper
+				UTMP_LIBS="-lulog"
+				UTMP_CFLAGS="-DUTEMPTER_NEW_API"
+
+fi
+
+	fi
+	if test -z "$UTMP_NAME" ; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for addToUtmp in -lutempter" >&5
 $as_echo_n "checking for addToUtmp in -lutempter... " >&6; }
 if ${ac_cv_lib_utempter_addToUtmp+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -13255,15 +13336,45 @@ fi
 $as_echo "$ac_cv_lib_utempter_addToUtmp" >&6; }
 if test "x$ac_cv_lib_utempter_addToUtmp" = xyes; then :
 
-		UTMP_NAME=utmper
-		UTMP_LIBS="-lutempter -lutil"
+				UTMP_NAME=utmper
+				UTMP_LIBS="-lutempter -lutil"
 
 fi
 
+	fi
 fi
+
+#  setutxent()  (SysV)
+if test  "$utmp_type" = "" -o "$utmp_type" = "sysv"; then
+	if test -z "$UTMP_NAME"; then
+		ac_fn_c_check_func "$LINENO" "setutxent" "ac_cv_func_setutxent"
+if test "x$ac_cv_func_setutxent" = xyes; then :
+
+				UTMP_NAME=sysv
+				UTMP_LIBS=
+				UTMP_CFLAGS=-DUSE_UTMPX
+
+fi
+
+	fi
+
+	#  setutent()  (SysV)
+	if test -z "$UTMP_NAME"; then
+		ac_fn_c_check_func "$LINENO" "setutent" "ac_cv_func_setutent"
+if test "x$ac_cv_func_setutent" = xyes; then :
+
+				UTMP_NAME=sysv
+				UTMP_LIBS=
+
+fi
+
+	fi
+fi
+
 #  libutil
-if test -z "$UTMP_NAME" ; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for logout in -lutil" >&5
+if test  "$utmp_type" = "" -o "$utmp_type" = "login"; then
+	if test -z "$UTMP_NAME" ; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for logout in -lutil" >&5
 $as_echo_n "checking for logout in -lutil... " >&6; }
 if ${ac_cv_lib_util_logout+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -13301,17 +13412,27 @@ fi
 $as_echo "$ac_cv_lib_util_logout" >&6; }
 if test "x$ac_cv_lib_util_logout" = xyes; then :
 
-		UTMP_NAME=login
-		UTMP_LIBS=-lutil
+				UTMP_NAME=login
+				UTMP_LIBS=-lutil
 
 fi
 
+	fi
 fi
+
 #  other (BSD)
+if test  "$utmp_type" = "" -o "$utmp_type" = "bsd"; then
+	if test -z "$UTMP_NAME" ; then
+		UTMP_NAME=bsd
+		UTMP_LIBS=
+	fi
+fi
+
 if test -z "$UTMP_NAME" ; then
-	UTMP_NAME=bsd
+	UTMP_NAME=none
 	UTMP_LIBS=
 fi
+
 
 
 

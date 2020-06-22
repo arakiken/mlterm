@@ -2224,6 +2224,7 @@ static int search_find(ui_screen_t*, u_char*, int backward, int*, int*, int*, in
 static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str, size_t len,
                          ef_parser_t *parser) {
   vt_line_t *line;
+  int redraw_mode = UPDATE_SCREEN;
 
   if (screen->copymode->pattern_editing) {
     if (ksym == 'g' && state == ControlMask) {
@@ -2261,6 +2262,7 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
       }
 
       screen->copymode->pattern_editing = 0;
+      redraw_mode |= UPDATE_CURSOR;
     } else if (ksym == XK_BackSpace || ksym == XK_Delete) {
       if (!ui_copymode_pattern_delete(screen->copymode)) {
         vt_term_search_final(screen->term);
@@ -2279,6 +2281,8 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
       ui_copymode_pattern_start_edit(screen->copymode);
     }
   } else {
+    redraw_mode |= UPDATE_CURSOR;
+
     if (!ui_is_selecting(&screen->sel) && (ksym == ' ' || ksym == XK_Return)) {
       restore_selected_region_color_instantly(screen);
       if ((line = vt_term_get_line(screen->term, screen->copymode->cursor_row)) &&
@@ -2388,7 +2392,7 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
     }
   }
 
-  ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
+  ui_window_update(&screen->window, redraw_mode);
 }
 
 static void key_pressed(ui_window_t *win, XKeyEvent *event) {

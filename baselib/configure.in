@@ -320,54 +320,94 @@ AC_SUBST(PTY_NAME)
 #
 # --- checks for utmp ---
 #
+
+AC_ARG_WITH(utmp,
+	[  --with-utmp@<:@=ARG@:>@       utmp (utempter,sysv,login,bsd,none)],
+	utmp_type=$with_utmp)
+
 UTMP_NAME=
 UTMP_LIBS=
 if test "$bl_cv_pty" = helper -o "$bl_cv_mingw" = yes -o "$bl_cv_cygwin" = yes -o "$host_os" = "msys" -o "$host_os" = "haiku"; then
 	UTMP_NAME=none
 	UTMP_LIBS=
 fi
-#  setutxent()  (SysV)
-if test -z "$UTMP_NAME" ; then
-	AC_CHECK_FUNC(setutxent,
-		[
-		UTMP_NAME=sysv
-		UTMP_LIBS=
-		UTMP_CFLAGS=-DUSE_UTMPX
-		], [])
-	AC_SUBST(UTMP_CFLAGS)
-fi
-#  setutent()  (SysV)
-if test -z "$UTMP_NAME" ; then
-	AC_CHECK_FUNC(setutent,
-		[
-		UTMP_NAME=sysv
-		UTMP_LIBS=
-		], [])
-fi
+
 #  libutempter
-if test -z "$UTMP_NAME" ; then
-	AC_CHECK_LIB(utempter, addToUtmp,
-		[
-		UTMP_NAME=utmper
-		UTMP_LIBS="-lutempter -lutil"
-		], [])
+if test  "$utmp_type" = "" -o "$utmp_type" = "utempter"; then
+	if test -z "$UTMP_NAME"; then
+		AC_CHECK_LIB(utempter, utempter_add_record,
+			[
+				UTMP_NAME=utmper
+				UTMP_LIBS="-lutempter"
+				UTMP_CFLAGS="-DUTEMPTER_NEW_API"
+			], [])
+	fi
+	if test -z "$UTMP_NAME"; then
+		# FreeBSD
+		AC_CHECK_LIB(ulog, utempter_add_record,
+			[
+				UTMP_NAME=utmper
+				UTMP_LIBS="-lulog"
+				UTMP_CFLAGS="-DUTEMPTER_NEW_API"
+			], [])
+	fi
+	if test -z "$UTMP_NAME" ; then
+		AC_CHECK_LIB(utempter, addToUtmp,
+			[
+				UTMP_NAME=utmper
+				UTMP_LIBS="-lutempter -lutil"
+			])
+	fi
 fi
+
+#  setutxent()  (SysV)
+if test  "$utmp_type" = "" -o "$utmp_type" = "sysv"; then
+	if test -z "$UTMP_NAME"; then
+		AC_CHECK_FUNC(setutxent,
+			[
+				UTMP_NAME=sysv
+				UTMP_LIBS=
+				UTMP_CFLAGS=-DUSE_UTMPX
+			], [])
+	fi
+
+	#  setutent()  (SysV)
+	if test -z "$UTMP_NAME"; then
+		AC_CHECK_FUNC(setutent,
+			[
+				UTMP_NAME=sysv
+				UTMP_LIBS=
+			], [])
+	fi
+fi
+
 #  libutil
-if test -z "$UTMP_NAME" ; then
-	AC_CHECK_LIB(util, logout,
-		[
-		UTMP_NAME=login
-		UTMP_LIBS=-lutil
-		], [])
+if test  "$utmp_type" = "" -o "$utmp_type" = "login"; then
+	if test -z "$UTMP_NAME" ; then
+		AC_CHECK_LIB(util, logout,
+			[
+				UTMP_NAME=login
+				UTMP_LIBS=-lutil
+			], [])
+	fi
 fi
+
 #  other (BSD)
+if test  "$utmp_type" = "" -o "$utmp_type" = "bsd"; then
+	if test -z "$UTMP_NAME" ; then
+		UTMP_NAME=bsd
+		UTMP_LIBS=
+	fi
+fi
+
 if test -z "$UTMP_NAME" ; then
-	UTMP_NAME=bsd
+	UTMP_NAME=none
 	UTMP_LIBS=
 fi
+
 AC_SUBST(UTMP_NAME)
 AC_SUBST(UTMP_LIBS)
-
+AC_SUBST(UTMP_CFLAGS)
 
 #
 # --- debug ---

@@ -172,7 +172,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       Unicode の文字プロパティテーブルを組み込みません。
       この場合、結合文字等を扱えなくなります。
 
-    --with-gui
+    --with-gui=(xlib|win32|fb|quartz|console|wayland|sdl2)
       GUI ライブラリとして xlib / win32 / fb / quartz / console / wayland / sdl2
       / beos のいずれを使用するか指定します。
       (「対応プラットフォーム」の項目参照)
@@ -238,9 +238,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
     --without-pthread
       ssh サーバとの (doc/en/PROTOCOL の scp コマンドによる) secure copy において
       pthread を使用しません。
-
-    --disable-utmp
-      utmp を無効にします。
 
     --enable-debug
       デバッグバージョンをビルドします。
@@ -319,6 +316,14 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
     --enable-brlapi
       brlapi ライブラリを使って brltty サーバに接続します。(Experimental)
       (see doc/en/README.brltty)
+
+    --enable-utmp-suid
+      utmp を直接読み書きできるようにするために、mlterm のインストール時のパーミ
+      ッションとして、root への setuid 又は utmp への setgid を設定します。
+      デフォルトでは、無効になっています。
+
+    --with-utmp=(utempter|sysv|login|bsd|none)
+      utmp を読み書きする方法を指定します。
 
     --disable-shared
       共有ライブラリを構築しません。
