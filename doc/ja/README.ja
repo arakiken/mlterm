@@ -1338,6 +1338,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o SCROLL_DOWN_TO_MARK(Control+Shift+Down)
         次のマークされた行までスクロールダウン
         (OSC 1337;SetMark で行にマークすることができます。)
+      o SET_MARK(Control+Shift+m)
+        現在の行にマーク
       o INSERT_SELECTION(Shift+Insert)
         セレクションのペースト
       o RESET(Pause)

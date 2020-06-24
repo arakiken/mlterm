@@ -195,9 +195,9 @@ int vt_screen_backscroll_upward(vt_screen_t *screen, u_int size);
 
 int vt_screen_backscroll_downward(vt_screen_t *screen, u_int size);
 
-u_int vt_screen_backscroll_upward_to_mark(vt_screen_t *screen);
+u_int vt_screen_backscroll_upward_to_mark(vt_screen_t *screen, int *row);
 
-u_int vt_screen_backscroll_downward_to_mark(vt_screen_t *screen);
+u_int vt_screen_backscroll_downward_to_mark(vt_screen_t *screen, int *row);
 
 #define vt_screen_get_tab_size(screen) vt_edit_get_tab_size((screen)->edit)
 

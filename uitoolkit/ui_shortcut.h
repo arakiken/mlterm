@@ -31,6 +31,7 @@ typedef enum ui_key_func {
   INSERT_SELECTION,
   RESET,
   COPY_MODE,
+  SET_MARK,
   EXIT_PROGRAM,
 
   MAX_KEY_MAPS

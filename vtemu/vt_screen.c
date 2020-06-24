@@ -1181,19 +1181,22 @@ int vt_screen_backscroll_downward(vt_screen_t *screen, u_int size) {
   return 1;
 }
 
-u_int vt_screen_backscroll_upward_to_mark(vt_screen_t *screen) {
+u_int vt_screen_backscroll_upward_to_mark(vt_screen_t *screen, int *row) {
   vt_line_t *line;
   int count = 0;
-  int start_row = -screen->backscroll_rows;
 
   do {
-    if (start_row + count >= 0 ||
-        (line = vt_screen_get_line(screen, start_row + count)) == NULL) {
+    if ((line = vt_screen_get_line(screen, *row + (++count))) == NULL) {
       return 0;
     }
-    count++;
   } while (!line->mark);
-  count--;
+
+  *row += count;
+  if (screen->backscroll_rows == 0 && *row >= 0) {
+    return 0;
+  }
+
+  count = *row + screen->backscroll_rows;
 
   if (vt_screen_backscroll_upward(screen, count)) {
     return count;
@@ -1202,17 +1205,22 @@ u_int vt_screen_backscroll_upward_to_mark(vt_screen_t *screen) {
   }
 }
 
-u_int vt_screen_backscroll_downward_to_mark(vt_screen_t *screen) {
+u_int vt_screen_backscroll_downward_to_mark(vt_screen_t *screen, int *row) {
   vt_line_t *line;
   int count = 0;
-  int start_row = -screen->backscroll_rows - 1;
 
   do {
-    if ((line = vt_screen_get_line(screen, start_row - count)) == NULL) {
+    if ((line = vt_screen_get_line(screen, *row - (++count))) == NULL) {
       return 0;
     }
-    count++;
   } while (!line->mark);
+
+  *row -= count;
+  if (screen->backscroll_rows == 0 && *row >= 0) {
+    return 0;
+  }
+
+  count = -screen->backscroll_rows - *row;
 
   if (vt_screen_backscroll_downward(screen, count)) {
     return count;

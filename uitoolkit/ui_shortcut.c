@@ -60,6 +60,7 @@ static key_func_table_t key_func_table[] = {
   { "INSERT_SELECTION", INSERT_SELECTION, },
   { "RESET", RESET, },
   { "COPY_MODE", COPY_MODE, },
+  { "SET_MARK", SET_MARK, },
   { "EXIT_PROGRAM", EXIT_PROGRAM, },
 
   /* obsoleted: alias of OPEN_SCREEN */
@@ -177,6 +178,9 @@ void ui_shortcut_init(ui_shortcut_t *shortcut) {
     /* COPY_MODE */
     { XK_Return, ControlMask|ShiftMask, 1, },
 
+    /* SET_MARK */
+    { 'm', ControlMask|ShiftMask, 1, },
+
 #ifdef DEBUG
     /* EXIT_PROGRAM(only for debug) */
     { XK_F1, ControlMask | ShiftMask, 1, },
@@ -239,6 +243,10 @@ int ui_shortcut_match(ui_shortcut_t *shortcut, ui_key_func_t func, KeySym ksym, 
     return 0;
   }
 
+  if ('A' <= ksym && ksym <= 'Z') {
+    ksym += 0x20;
+  }
+
   /* ingoring except these masks */
   state &= (ModMask | ControlMask | ShiftMask | CommandMask | button_mask);
 
@@ -258,6 +266,10 @@ int ui_shortcut_match(ui_shortcut_t *shortcut, ui_key_func_t func, KeySym ksym, 
 
 char *ui_shortcut_str(ui_shortcut_t *shortcut, KeySym ksym, u_int state) {
   u_int count;
+
+  if ('A' <= ksym && ksym <= 'Z') {
+    ksym += 0x20;
+  }
 
   /* ingoring except these masks */
   state &= (ModMask | ControlMask | ShiftMask | CommandMask | button_mask);
@@ -341,7 +353,11 @@ int ui_shortcut_parse(ui_shortcut_t *shortcut, char *key, char *oper) {
   if (strncmp(key, "Button", 6) == 0) {
     state |= (Button1Mask << (key[6] - '1'));
     ksym = 0;
-  } else if ((ksym = XStringToKeysym(key)) == NoSymbol) {
+  } else if ((ksym = XStringToKeysym(key)) != NoSymbol) {
+    if ('A' <= ksym && ksym <= 'Z') {
+      ksym += 0x20;
+    }
+  } else {
     return 0;
   }
 

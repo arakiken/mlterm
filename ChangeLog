@@ -1,3 +1,19 @@
+2020-06-24  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja, etc/key: Updated.
+
+	* ui_screen.c:
+	  - 'int *row' is added to arguments of bs_scroll_{up|down}ward_to_mark().
+	  - SET_MARK shortcut key is supported.
+
+	* ui_shortcut.[ch]: SET_MARK is added.
+
+	* vt_term.h: 'row' is added to arguments of
+	  vt_term_backscroll_{up|down}ward_to_mark().
+
+	* vt_screen.[ch]: 'int *row' is added to arguments of
+	  vt_screen_backscroll_{up|down}ward_to_mark().
+
 2020-06-22  Araki Ken  <arakiken@users.sf.net>
 
 	* README, README.ja: Updated.

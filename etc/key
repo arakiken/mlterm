@@ -12,6 +12,9 @@
 # Shift+F7=VEXPAND_SCREEN
 # Shift+Prior=PAGE_UP
 # Shift+Up=SCROLL_UP
+# Control+Shift+Up=SCROLL_UP_TO_MARK
+# Control+Shift+Down=SCROLL_DOWN_TO_MARK
+# Control+Shift+m=SET_MARK
 # Shift+Insert=INSERT_SELECTION
 # Pause=RESET
 # Control+Shift+Return=COPY_MODE

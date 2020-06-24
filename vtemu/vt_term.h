@@ -234,10 +234,11 @@ void vt_term_enter_backscroll_mode(vt_term_t *term);
 
 #define vt_term_backscroll_downward(term, size) vt_screen_backscroll_downward((term)->screen, size)
 
-#define vt_term_backscroll_upward_to_mark(term) vt_screen_backscroll_upward_to_mark((term)->screen)
+#define vt_term_backscroll_upward_to_mark(term, row) \
+  vt_screen_backscroll_upward_to_mark((term)->screen, row)
 
-#define vt_term_backscroll_downward_to_mark(term) \
-  vt_screen_backscroll_downward_to_mark((term)->screen)
+#define vt_term_backscroll_downward_to_mark(term, row) \
+  vt_screen_backscroll_downward_to_mark((term)->screen, row)
 
 #define vt_term_reverse_color(term, beg_char_index, beg_row, end_char_index, end_row, is_rect) \
   vt_screen_reverse_color((term)->screen, beg_char_index, beg_row, end_char_index, end_row, is_rect)

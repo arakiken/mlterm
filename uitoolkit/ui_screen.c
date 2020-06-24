@@ -973,10 +973,10 @@ static void bs_scroll_to(ui_screen_t *screen, int row, int update) {
   }
 }
 
-static int bs_scroll_upward_to_mark(ui_screen_t *screen, int update) {
+static void bs_scroll_upward_to_mark(ui_screen_t *screen, int *row, int update) {
   u_int size;
 
-  if ((size = vt_term_backscroll_upward_to_mark(screen->term)) > 0) {
+  if ((size = vt_term_backscroll_upward_to_mark(screen->term, row)) > 0) {
     if (update) {
       ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
     }
@@ -985,17 +985,13 @@ static int bs_scroll_upward_to_mark(ui_screen_t *screen, int update) {
       (*screen->screen_scroll_listener->scrolled_upward)(screen->screen_scroll_listener->self,
                                                          size);
     }
-
-    return 1;
-  } else {
-    return 0;
   }
 }
 
-static int bs_scroll_downward_to_mark(ui_screen_t *screen, int update) {
+static void bs_scroll_downward_to_mark(ui_screen_t *screen, int *row, int update) {
   u_int size;
 
-  if ((size = vt_term_backscroll_downward_to_mark(screen->term)) > 0) {
+  if ((size = vt_term_backscroll_downward_to_mark(screen->term, row)) > 0) {
     if (update) {
       ui_window_update(&screen->window, UPDATE_SCREEN | UPDATE_CURSOR);
     }
@@ -1004,10 +1000,6 @@ static int bs_scroll_downward_to_mark(ui_screen_t *screen, int update) {
       (*screen->screen_scroll_listener->scrolled_downward)(screen->screen_scroll_listener->self,
                                                            size);
     }
-
-    return 1;
-  } else {
-    return 0;
   }
 }
 
@@ -1894,12 +1886,25 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
 
     return 1;
   } else if (ui_shortcut_match(screen->shortcut, SCROLL_UP_TO_MARK, ksym, state)) {
+    int row = vt_term_convert_scr_row_to_abs(screen->term, 0);
+
     enter_backscroll_mode(screen);
-    bs_scroll_downward_to_mark(screen, 1);
+    bs_scroll_downward_to_mark(screen, &row, 1);
 
     return 1;
   } else if (ui_shortcut_match(screen->shortcut, SCROLL_DOWN_TO_MARK, ksym, state)) {
-    bs_scroll_upward_to_mark(screen, 1);
+    int row = vt_term_convert_scr_row_to_abs(screen->term, 0);
+    bs_scroll_upward_to_mark(screen, &row, 1);
+
+    return 1;
+  } else if (ui_shortcut_match(screen->shortcut, SET_MARK, ksym, state)) {
+    vt_line_t *line;
+
+    if ((line = vt_term_get_cursor_line(screen->term))) {
+      line->mark ^= 1;
+
+      ui_window_update(screen, UPDATE_SCREEN|UPDATE_CURSOR);
+    }
 
     return 1;
   }
@@ -2245,7 +2250,6 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
 
           if (vt_term_convert_scr_row_to_abs(screen->term, 0) + (int)vt_term_get_rows(screen->term)
               <= beg_row) {
-            /* This doesn't call ui_window_update() if copymode_enabled is true. */
             bs_scroll_to(screen, beg_row - vt_term_get_rows(screen->term) / 2, 0);
           }
 
@@ -2274,9 +2278,9 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
     }
   } else if ((len == 1 && str[0] == '/')
 #if defined(USE_WIN32GUI) && defined(UTF16_IME_CHAR)
-             || (len == 2) && str[0] == 0 && str[1] == '/'
+             || (len == 2 && str[0] == 0 && str[1] == '/')
 #endif
-            ) {
+  ) {
     if (!screen->copymode->pattern_editing) {
       ui_copymode_pattern_start_edit(screen->copymode);
     }
@@ -2306,8 +2310,30 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
 
     vt_term_search_final(screen->term);
 
+    if (ui_shortcut_match(screen->shortcut, SCROLL_UP_TO_MARK, ksym, state)) {
+      int row = screen->copymode->cursor_row;
 
-    if (ksym == XK_Left || ksym == 'h') {
+      enter_backscroll_mode(screen);
+      bs_scroll_downward_to_mark(screen, &row, 0);
+      if (row != screen->copymode->cursor_row) {
+        screen->copymode->cursor_char_index = 0;
+        screen->copymode->cursor_row = row;
+      }
+    } else if (ui_shortcut_match(screen->shortcut, SCROLL_DOWN_TO_MARK, ksym, state)) {
+      int row = screen->copymode->cursor_row;
+
+      bs_scroll_upward_to_mark(screen, &row, 0);
+      if (row != screen->copymode->cursor_row) {
+        screen->copymode->cursor_char_index = 0;
+        screen->copymode->cursor_row = row;
+      }
+    } else if (ui_shortcut_match(screen->shortcut, SET_MARK, ksym, state)) {
+      vt_line_t *line;
+
+      if ((line = vt_term_get_line(screen->term, screen->copymode->cursor_row))) {
+        line->mark ^= 1;
+      }
+    } else if (ksym == XK_Left || ksym == 'h') {
       if (vt_line_is_rtl(line) &&
           screen->copymode->cursor_char_index <= get_beg_in_rtl_line(line)) {
         screen->copymode->cursor_char_index = -1;
@@ -2337,26 +2363,9 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
         }
       }
     } else if (ksym == XK_Up || ksym == 'k') {
-      if (state == (ControlMask | ShiftMask)) {
-        enter_backscroll_mode(screen);
-        /* This doesn't call ui_window_update() if copymode_enabled is true. */
-        if (bs_scroll_downward_to_mark(screen, 0)) {
-          screen->copymode->cursor_char_index = 0;
-          screen->copymode->cursor_row = vt_term_convert_scr_row_to_abs(screen->term, 0);
-        }
-      } else {
-        copymode_move_vertical(screen, -1);
-      }
+      copymode_move_vertical(screen, -1);
     } else if (ksym == XK_Down || ksym == 'j') {
-      if (state == (ControlMask | ShiftMask)) {
-        /* This doesn't call ui_window_update() if copymode_enabled is true. */
-        if (bs_scroll_upward_to_mark(screen, 0)) {
-          screen->copymode->cursor_char_index = 0;
-          screen->copymode->cursor_row = vt_term_convert_scr_row_to_abs(screen->term, 0);
-        }
-      } else {
-        copymode_move_vertical(screen, 1);
-      }
+      copymode_move_vertical(screen, 1);
     } else if (ksym == XK_Prior || ksym == 'u') {
       copymode_move_vertical(screen, -(vt_term_get_rows(screen->term)));
     } else if (ksym == XK_Next || ksym == 'd') {
