@@ -1606,18 +1606,25 @@ int vt_screen_search_find(vt_screen_t *screen,
       u_int comb_size;
       int beg;
       int end;
+      vt_char_t *comb;
 
-      vt_get_combining_chars(line_str + (*beg_char_index), &comb_size);
+      comb = vt_get_combining_chars(line_str + (*beg_char_index), &comb_size);
 
       for (count = 0; count < match_beg; count++) {
         /* Ignore 2nd and following bytes. */
         if ((buf[count] & 0xc0) != 0x80) {
+          while (comb_size > 0 && vt_char_cs(comb) == PICTURE_CHARSET) {
+            comb_size--;
+            comb++;
+          }
+
           if (comb_size > 0) {
             comb_size--;
+            comb++;
           } else if ((++(*beg_char_index)) >= line_len - 1) {
             break;
           } else {
-            vt_get_combining_chars(line_str + (*beg_char_index), &comb_size);
+            comb = vt_get_combining_chars(line_str + (*beg_char_index), &comb_size);
           }
         }
       }
@@ -1626,12 +1633,18 @@ int vt_screen_search_find(vt_screen_t *screen,
       for (; count < match_beg + match_len; count++) {
         /* Ignore 2nd and following bytes. */
         if ((buf[count] & 0xc0) != 0x80) {
+          while (comb_size > 0 && vt_char_cs(comb) == PICTURE_CHARSET) {
+            comb_size--;
+            comb++;
+          }
+
           if (comb_size > 0) {
             comb_size--;
+            comb++;
           } else if ((++(*end_char_index)) >= line_len - 1) {
             break;
           } else {
-            vt_get_combining_chars(line_str + (*end_char_index), &comb_size);
+            comb = vt_get_combining_chars(line_str + (*end_char_index), &comb_size);
           }
         }
       }

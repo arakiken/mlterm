@@ -512,6 +512,16 @@ static int receive_key_event(void) {
           xev.ksym = XK_Henkan_Mode;
         } else if (code == 123) {
           xev.ksym = XK_Muhenkan;
+        } else if (code == 28) {
+          /*
+           * Always convert code 28 to XK_Return
+           *
+           * key[28].map[0] (Normal)     -> 0xd
+           * key[28].map[1] (Shift)      -> 0xd
+           * key[28].map[2] (Control)    -> 0xa
+           * key[28].map[3] (Shift+Ctrl) -> 0xa
+           */
+          xev.ksym = XK_Return;
         } else
 #endif
         {

@@ -2402,6 +2402,10 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
   }
 
   ui_window_update(&screen->window, redraw_mode);
+
+  if ((redraw_mode & UPDATE_CURSOR) == 0) {
+    ui_xic_set_spot(&screen->window);
+  }
 }
 
 static void key_pressed(ui_window_t *win, XKeyEvent *event) {
@@ -5207,7 +5211,8 @@ static int get_spot_intern(ui_screen_t *screen, vt_char_t *chars, int segment_of
     row = vt_term_cursor_row(screen->term);
   }
 
-  if ((line = vt_term_get_line(screen->term, row)) == NULL || vt_line_is_empty(line)) {
+  if ((line = vt_term_get_line(screen->term, row)) == NULL ||
+      (vt_line_is_empty(line) && (!screen->copymode || !screen->copymode->pattern_editing))) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " cursor line doesn't exist ?.\n");
 #endif
@@ -5415,7 +5420,8 @@ static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars, int cur
     row = vt_term_cursor_row(screen->term);
   }
 
-  if ((line = vt_term_get_line(screen->term, row)) == NULL || vt_line_is_empty(line)) {
+  if ((line = vt_term_get_line(screen->term, row)) == NULL ||
+      (vt_line_is_empty(line) && (!screen->copymode || !screen->copymode->pattern_editing))) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " cursor line doesn't exist ?.\n");
 #endif

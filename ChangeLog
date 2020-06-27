@@ -1,3 +1,12 @@
+2020-06-27  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_screen.c: vt_screen_search_find() considers PICTURE_CHARSET.
+
+	* ui_screen.c: copymode_key() calls ui_xic_set_spot() if ui_window_update()
+	  is called without UPDATE_CURSOR.
+
+	* ui_display_freebsd.c: Key code 28 is always converted to XK_Return.
+
 2020-06-24  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, README.ja, etc/key: Updated.
