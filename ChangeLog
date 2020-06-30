@@ -1,3 +1,8 @@
+2020-06-30  Araki Ken  <arakiken@users.sf.net>
+
+	* beos.cpp: MLView::MessageReceived() calls BView::MessageReceived()
+	  if it doesn't process the received message.
+
 2020-06-27  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_screen.c: vt_screen_search_find() considers PICTURE_CHARSET.

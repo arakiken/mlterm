@@ -666,6 +666,8 @@ void MLView::MessageReceived(BMessage *message) {
     view_lock(this);
     ui_window_receive_event(uiwindow, (XEvent *)&bev);
     beos_unlock();
+  } else {
+    BView::MessageReceived(message);
   }
 }
 

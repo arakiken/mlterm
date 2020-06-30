@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
 	BApplication app("application/x-vnd.mlterm");
   pthread_t thrd;
 
-	bl_set_sys_conf_dir(CONFIG_PATH);
+  bl_set_sys_conf_dir(CONFIG_PATH);
   bl_set_msg_log_file_name("mlterm/msg.log");
 
   main_loop_init(argc, argv);
