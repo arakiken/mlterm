@@ -73,7 +73,18 @@ static encoding_to_cs_table_t usascii_font_cs_table[] = {
 };
 
 static u_int min_font_size = 1;
+#ifdef USE_FREETYPE
+/*
+ * The type of font size info embedded in each glyph is u_char.
+ * (See fb/ui_font.c)
+ *
+ * If max_font_size gets larger, consider if alloca() in draw_string_intern() in
+ * fb/ui_window.c should be replaced by malloc() or not.
+ */
+static u_int max_font_size = 200;
+#else
 static u_int max_font_size = 10000;
+#endif
 
 /* --- static functions --- */
 
@@ -106,6 +117,12 @@ int ui_set_font_size_range(u_int min_fsize, u_int max_fsize) {
 
     return 0;
   }
+
+#ifdef USE_FREETYPE
+  if (max_fsize > 200) {
+    max_fsize = 200;
+  }
+#endif
 
   if (max_fsize < min_fsize) {
 #ifdef DEBUG

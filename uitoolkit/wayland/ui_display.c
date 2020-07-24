@@ -3166,9 +3166,15 @@ void ui_display_send_text_selection(ui_display_t *disp, XSelectionRequestEvent *
   }
 }
 
-size_t ui_display_get_utf8(char *utf8 /* 7 bytes (UTF_MAX_SIZE + 1) */, KeySym ksym) {
-  /* xkb_keysym_to_utf8() appends '\0' to utf8 bytes. */
-  return xkb_keysym_to_utf8(ksym, utf8, 7);
+size_t ui_display_get_utf8(u_char *utf8 /* 7 bytes (UTF_MAX_SIZE + 1) */, KeySym ksym) {
+  /* xkb_keysym_to_utf8() appends '\0' to utf8 bytes and increments len. */
+  size_t len = xkb_keysym_to_utf8(ksym, utf8, 7);
+
+  if (len > 0) {
+    return len - 1;
+  } else {
+    return 0;
+  }
 }
 
 void ui_display_logical_to_physical_coordinates(ui_display_t *disp, int *x, int *y) {

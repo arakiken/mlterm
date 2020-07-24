@@ -85,12 +85,12 @@ inline static u_int get_comb_size(vt_char_t *multi_ch) {
   return size;
 }
 
-static vt_char_t *new_comb(vt_char_t *ch, u_int *comb_size_ptr) {
+static vt_char_t *new_comb(vt_char_t *ch, u_int *comb_size_ptr, int check_zerowidth) {
   vt_char_t *multi_ch;
   u_int comb_size;
 
   if (IS_SINGLE_CH(ch->u.ch.attr)) {
-    if (IS_ZEROWIDTH(ch)) {
+    if (check_zerowidth && IS_ZEROWIDTH(ch)) {
       /*
        * Zero width characters must not be combined to
        * show string like U+09b0 + U+200c + U+09cd + U+09af correctly.
@@ -125,7 +125,7 @@ static vt_char_t *new_comb(vt_char_t *ch, u_int *comb_size_ptr) {
       abort();
     }
   } else {
-    if (IS_ZEROWIDTH(ch->u.multi_ch)) {
+    if (check_zerowidth && IS_ZEROWIDTH(ch->u.multi_ch)) {
       /*
        * Zero width characters must not be combined to
        * show string like U+09b0 + U+200c + U+09cd + U+09af correctly.
@@ -195,6 +195,35 @@ static void normalize(vt_char_t *ch, u_int comb_size) {
   }
 }
 #endif
+
+static vt_char_t *combine(vt_char_t *ch, vt_char_t *src, int check_zerowidth) {
+  vt_char_t *comb;
+  u_int comb_size;
+
+/*
+ * This check should be excluded, because characters whose is_comb flag
+ * (combining property of mef) is NULL can be combined
+ * if vt_is_arabic_combining(them) returns non-NULL.
+ */
+#if 0
+  if (!is_comb) {
+    return NULL;
+  }
+#endif
+
+  if (!(comb = new_comb(ch, &comb_size, check_zerowidth))) {
+    return NULL;
+  }
+
+  *comb = *src;
+  UNSET_COMB_TRAILING(comb->u.ch.attr);
+
+#ifdef USE_NORMALIZE
+  normalize(ch, comb_size);
+#endif
+
+  return comb;
+}
 
 /* --- global functions --- */
 
@@ -461,7 +490,7 @@ vt_char_t *vt_char_combine(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int i
   }
 #endif
 
-  if (!(comb = new_comb(ch, &comb_size))) {
+  if (!(comb = new_comb(ch, &comb_size, 1))) {
     return NULL;
   }
 
@@ -477,32 +506,11 @@ vt_char_t *vt_char_combine(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int i
 }
 
 vt_char_t *vt_char_combine_simple(vt_char_t *ch, vt_char_t *src) {
-  vt_char_t *comb;
-  u_int comb_size;
+  return combine(ch, src, 1);
+}
 
-/*
- * This check should be excluded, because characters whose is_comb flag
- * (combining property of mef) is NULL can be combined
- * if vt_is_arabic_combining(them) returns non-NULL.
- */
-#if 0
-  if (!is_comb) {
-    return NULL;
-  }
-#endif
-
-  if (!(comb = new_comb(ch, &comb_size))) {
-    return NULL;
-  }
-
-  *comb = *src;
-  UNSET_COMB_TRAILING(comb->u.ch.attr);
-
-#ifdef USE_NORMALIZE
-  normalize(ch, comb_size);
-#endif
-
-  return comb;
+vt_char_t *vt_char_combine_forcibly(vt_char_t *ch, vt_char_t *src) {
+  return combine(ch, src, 0);
 }
 
 vt_char_t *vt_get_base_char(vt_char_t *ch) {

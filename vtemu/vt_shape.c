@@ -15,22 +15,24 @@
 /* --- static functions --- */
 
 static int combine_replacing_code(vt_char_t *dst, vt_char_t *src, u_int new_code, int8_t xoffset,
-                                  int8_t yoffset, u_int8_t advance, int was_vcol) {
+                                  int8_t yoffset, u_int8_t advance, int *was_vcol) {
   u_int code = vt_char_code(src);
 
-  if (IS_VAR_WIDTH_CHAR(code) || (code == 0 && was_vcol)) {
-    was_vcol = 1;
-  } else {
-    was_vcol = 0;
+  if ((dst = vt_char_combine_forcibly(dst, src)) == NULL) {
+    return 0;
   }
 
-  dst = vt_char_combine_simple(dst, src);
+  if (IS_VAR_WIDTH_CHAR(code) || (code == 0 && *was_vcol)) {
+    *was_vcol = 1;
+  } else {
+    *was_vcol = 0;
+  }
 
   vt_char_set_cs(dst, ISO10646_UCS4_1_V);
   vt_char_set_position(dst, xoffset, yoffset, advance);
   vt_char_set_code(dst, new_code);
 
-  return was_vcol;
+  return 1;
 }
 
 static int replace_code(vt_char_t *ch, u_int new_code, int was_vcol) {
@@ -197,11 +199,11 @@ u_int vt_shape_ot_layout(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int sr
         src_pos_mark++;
         prev_advance = advances[0];
         for (count = 1; count < num_shape_glyphs; count++, dst_shaped++, src_pos_mark++) {
-          if (OTL_IS_COMB(count)) {
-            was_vcol = combine_replacing_code(--dst_shaped, vt_get_base_char(&src[--src_pos_mark]),
-                                              shape_glyphs[count],
-                                              prev_advance + xoffsets[count],
-                                              yoffsets[count], advances[count], was_vcol);
+          if (OTL_IS_COMB(count) &&
+              combine_replacing_code(--dst_shaped, vt_get_base_char(&src[--src_pos_mark]),
+                                     shape_glyphs[count],
+                                     prev_advance + xoffsets[count],
+                                     yoffsets[count], advances[count], &was_vcol)) {
             if (advances[count] > 0) {
               /*
                * XXX
@@ -276,11 +278,11 @@ u_int vt_shape_ot_layout(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int sr
     src_pos_mark++;
     prev_advance = advances[0];
     for (count = 1; count < num_shape_glyphs; count++, dst_shaped++, src_pos_mark++) {
-      if (OTL_IS_COMB(count)) {
-        was_vcol = combine_replacing_code(--dst_shaped, vt_get_base_char(&src[--src_pos_mark]),
-                                          shape_glyphs[count],
-                                          prev_advance + xoffsets[count],
-                                          yoffsets[count], advances[count], was_vcol);
+      if (OTL_IS_COMB(count) &&
+          combine_replacing_code(--dst_shaped, vt_get_base_char(&src[--src_pos_mark]),
+                                 shape_glyphs[count],
+                                 prev_advance + xoffsets[count],
+                                 yoffsets[count], advances[count], &was_vcol)) {
         if (advances[count] > 0) {
           /*
            * XXX

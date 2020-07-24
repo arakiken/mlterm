@@ -59,10 +59,6 @@
 #define PCF_GLYPH_NAMES (1 << 7)
 #define PCF_BDF_ACCELERATORS (1 << 8)
 
-#define MAX_GLYPH_TABLES 512
-#define GLYPH_TABLE_SIZE 128
-#define INITIAL_GLYPH_INDEX_TABLE_SIZE 0x1000
-
 #if 0
 #define __DEBUG
 #endif
@@ -243,7 +239,7 @@ static int load_encodings(XFontStruct *xfont, u_char *p, size_t size, int is_be)
     size_t count;
 
     for (count = 0; count < (idx_size / sizeof(int16_t)); count++) {
-      xfont->glyph_indeces[count] = _TOINT16(p, is_be);
+      ((int16_t*)xfont->glyph_indeces)[count] = _TOINT16(p, is_be);
       p += 2;
     }
   }
@@ -268,8 +264,8 @@ static int load_encodings(XFontStruct *xfont, u_char *p, size_t size, int is_be)
   return 1;
 }
 
-static int get_metrics(u_int8_t *width, u_int8_t *width_full, u_int8_t *height, u_int8_t *ascent,
-                       u_char *p, size_t size, int is_be, int is_compressed) {
+static int get_metrics(u_int16_t *width, u_int16_t *width_full, u_int16_t *height,
+                       u_int16_t *ascent, u_char *p, size_t size, int is_be, int is_compressed) {
   int16_t num_metrics;
 
   /* XXX Proportional font is not considered. */
@@ -580,13 +576,38 @@ static int is_pcf(const char *file_path) {
 #endif
 #include FT_OUTLINE_H
 
+#if 0
+#define MAXIMIZE_HEIGHT
+#endif
+
+#define MAX_GLYPH_TABLES 512
+#define GLYPH_TABLE_SIZE 128
+#define INITIAL_GLYPH_INDEX_TABLE_SIZE 0x1000
 /* 0 - 511 */
-#define SEG(idx) (((idx) >> 7) & 0x1ff)
-/* 0 - 127 */
-#define OFF(idx) ((idx) & 0x7f)
-/* +3 is for storing glyph position info. */
-#define HAS_POSITION_INFO_BY_GLYPH(xfont) \
-  ((xfont)->glyph_size == (xfont)->glyph_width_bytes * (xfont)->height + 3)
+#define SEG(idx) (((idx) >> 23) & 0x1ff)
+/* 0 - 8388607 */
+#define OFF(idx) ((idx) & 0x7fffff)
+#define MAX_OFF OFF(0xffffffff)
+
+/*
+ * for stroing height position info and pitch (See get_ft_bitmap())
+ * If MAXIMIZE_HEIGHT is defined, 2 byte is used.
+ * Otherwise, 4 bytes are used.
+ * (This should be aligned because face->glyph->bitmap.pitch (not bitmap.width)
+ * is used if xfont->has_each_glyph_width_info is 0.)
+ */
+#define GLYPH_HEADER_SIZE_MIN 4
+
+/* for storing height and width position info */
+#define GLYPH_HEADER_SIZE_MAX (GLYPH_HEADER_SIZE_MIN + 3)
+
+#define GLYPH_ADV_IDX (GLYPH_HEADER_SIZE_MIN + 0)
+#define GLYPH_RETREAT_IDX (GLYPH_HEADER_SIZE_MIN + 1)
+#define GLYPH_WIDTH_IDX (GLYPH_HEADER_SIZE_MIN + 2)
+#define GLYPH_ADV(glyph) ((glyph)[GLYPH_ADV_IDX])
+#define GLYPH_RETREAT(glyph) ((glyph)[GLYPH_RETREAT_IDX])
+#define GLYPH_WIDTH(glyph) ((glyph)[GLYPH_WIDTH_IDX])
+
 #define FONT_ROTATED (FONT_ITALIC << 1)
 #define FONTSIZE_IN_FORMAT(format) ((format) & ~(FONT_BOLD | FONT_ITALIC | FONT_ROTATED))
 
@@ -684,7 +705,7 @@ static int load_glyph(FT_Face face, int32_t format, u_int32_t code, int is_aa) {
 }
 
 static int load_ft(XFontStruct *xfont, const char *file_path, int32_t format, int is_aa,
-                   u_int force_height) {
+                   u_int force_height, u_int force_ascent) {
   u_int count;
   FT_Face face;
   u_int fontsize;
@@ -742,7 +763,7 @@ face_found:
   xfont->num_indeces = INITIAL_GLYPH_INDEX_TABLE_SIZE;
 
   if (!(xfont->file = strdup(file_path)) ||
-      !(xfont->glyph_indeces = calloc(xfont->num_indeces, sizeof(u_int16_t))) ||
+      !(xfont->glyph_indeces = calloc(xfont->num_indeces, sizeof(u_int32_t))) ||
       !(xfont->glyphs = calloc(MAX_GLYPH_TABLES, sizeof(u_char*)))) {
     goto error;
   }
@@ -759,6 +780,7 @@ face_found:
     bl_debug_printf("height %d (max height %d) ppem %d units %d => h %d\n",
                     face->height, face->max_advance_height, face->size->metrics.y_ppem,
                     face->units_per_EM, xfont->height);
+    bl_debug_printf("(yMax %d yMin %d)\n", face->bbox.yMax, face->bbox.yMin);
 #endif
   }
 
@@ -766,44 +788,105 @@ face_found:
     xfont->width = xfont->width_full = xfont->height;
     xfont->ascent = 0;
   } else {
+    u_int limit;
+
     xfont->width_full = (face->max_advance_width * face->size->metrics.x_ppem +
                          face->units_per_EM - 1) / face->units_per_EM;
 #ifdef __DEBUG
     bl_debug_printf("maxw %d ppem %d units %d => xfont->width_full %d\n",
                     face->max_advance_width, face->size->metrics.x_ppem,
                     face->units_per_EM, xfont->width_full);
+    bl_debug_printf("(Adv M %d MaxAdv %d xMax %d xMin %d)\n",
+                    face->glyph->advance.x >> 6, face->size->metrics.max_advance,
+                    face->bbox.xMax, face->bbox.xMin);
 #endif
 
-    if (is_aa) {
-      xfont->width = face->glyph->bitmap.width / 3;
+    xfont->width = face->glyph->advance.x >> 6;
+
+    if (force_ascent) {
+      xfont->ascent = force_ascent;
     } else {
-      xfont->width = face->glyph->bitmap.width;
-    }
+      xfont->ascent =
+        (face->ascender * face->size->metrics.y_ppem + face->units_per_EM - 1) / face->units_per_EM;
 
-    xfont->ascent =
-      (face->ascender * face->size->metrics.y_ppem + face->units_per_EM - 1) / face->units_per_EM;
+#ifndef MAXIMIZE_HEIGHT
+      if (xfont->height < xfont->ascent) {
+        xfont->ascent = xfont->height;
+      }
+#else
+      if (load_glyph(face, format, get_glyph_index(face, 'j'), is_aa)) {
+        int descent = face->glyph->bitmap.rows - face->glyph->bitmap_top;
 
-    if (load_glyph(face, format, get_glyph_index(face, 'j'), is_aa)) {
-      int descent = face->glyph->bitmap.rows - face->glyph->bitmap_top;
-      if (descent > xfont->height - xfont->ascent) {
+        if (descent > xfont->height - xfont->ascent) {
 #ifdef __DEBUG
-        bl_debug_printf("Modify xfont->height to %d\n", xfont->ascent + descent);
+          bl_debug_printf("Modify xfont->height to %d\n", xfont->ascent + descent);
 #endif
-        xfont->height = xfont->ascent + descent;
+          xfont->height = xfont->ascent + descent;
+        }
+
+        if (face->glyph->bitmap_top > xfont->ascent) {
+          /* Pragmata Pro Mono: bitmap_top of 'i' and 'j' > xfont->ascent. */
+#ifdef __DEBUG
+          bl_debug_printf("Modify xfont->ascent to %d\n", face->glyph->bitmap_top);
+#endif
+          xfont->height += (face->glyph->bitmap_top - xfont->ascent);
+          xfont->ascent = face->glyph->bitmap_top;
+        }
       }
 
-      if (face->glyph->bitmap_top > xfont->ascent) {
-        /* Pragmata Pro Mono: bitmap_top of 'i' and 'j' > xfont->ascent. */
+      if (load_glyph(face, format, get_glyph_index(face, 0x2524), is_aa)) {
+        int descent = face->glyph->bitmap.rows - face->glyph->bitmap_top;
+
+        if (descent > xfont->height - xfont->ascent) {
+          /* Descent of some box drawing glyphs of Inconsolata > xfont->descent. */
 #ifdef __DEBUG
-        bl_debug_printf("Modify xfont->ascent to %d\n", face->glyph->bitmap_top);
+          bl_debug_printf("Modify xfont->height to %d\n", xfont->ascent + descent);
 #endif
-        xfont->height += (face->glyph->bitmap_top - xfont->ascent);
-        xfont->ascent = face->glyph->bitmap_top;
+          xfont->height = xfont->ascent + descent;
+        }
+
+        if (load_glyph(face, format, get_glyph_index(face, 0x255a), is_aa)) {
+          if (face->glyph->bitmap_top > xfont->ascent) {
+            /* Ascent of some box drawing glyphs of Inconsolata > xfont->ascent */
+#ifdef __DEBUG
+            bl_debug_printf("Modify xfont->ascent to %d\n", face->glyph->bitmap_top);
+#endif
+            xfont->height += (face->glyph->bitmap_top - xfont->ascent);
+            xfont->ascent = face->glyph->bitmap_top;
+          }
+        }
+      }
+#endif
+    }
+
+#if 0
+    limit = xfont->width * 3 - 1;
+    if (limit <= xfont->width_full) {
+      char *file = bl_basename(file_path);
+
+#ifdef DEBUG
+      bl_msg_printf("Max advance of %s font (%d) is too larger than the normal width (%d).\n",
+                    file_path, xfont->width_full, xfont->width);
+#endif
+
+      if (strstr(file, "NotoSansMono") || strstr(file, "Inconsolata")) {
+        /*
+         * XXX
+         * 'width_full' of Inconsolata and NotoSansMono calculated above is 3 times
+         * larger than expected. (Subpixel length ?)
+         */
+#ifdef DEBUG
+        bl_debug_printf(BL_DEBUG_TAG " width_full %d -> %d\n",
+                        xfont->width_full, (xfont->width_full + 2) / 3);
+#endif
+        xfont->width_full = (xfont->width_full + 2) / 3;
       }
     }
+#endif
 
     if (load_glyph(face, format, get_glyph_index(face, 'W'), is_aa)) {
       u_int w;
+
       if (is_aa) {
         w = face->glyph->bitmap.width / 3;
       } else {
@@ -820,15 +903,20 @@ face_found:
   }
 
   if (is_aa) {
-    xfont->glyph_width_bytes = xfont->width_full * 3;
+    /*
+     * If xfont->is_aa is true, xfont->glyph_width_bytes is used only for
+     * glyph_size in next_glyph_buf() and memory is allocated large enough to
+     * store each glyph regardless of the value of xfont->glyph_width_bytes.
+     * So xfont->width_full is not used here.
+     */
+    xfont->glyph_width_bytes = xfont->width * 3;
   } else {
     xfont->glyph_width_bytes = (xfont->width_full + 7) / 8;
   }
-  xfont->glyph_size = xfont->glyph_width_bytes * xfont->height;
 
 #if 0
-  bl_debug_printf("w %d %d h %d a %d\n", xfont->width, xfont->width_full, xfont->height,
-                  xfont->ascent);
+  bl_debug_printf("w %d %d h %d a %d (%d bytes/glyph line)\n", xfont->width, xfont->width_full,
+                  xfont->height, xfont->ascent, xfont->glyph_width_bytes);
 #endif
 
   return 1;
@@ -869,15 +957,20 @@ static void clear_glyph_cache_ft(XFontStruct *xfont) {
   }
 
   memset(xfont->glyphs, 0, MAX_GLYPH_TABLES * sizeof(u_char*));
-  xfont->num_glyphs = 0;
-  memset(xfont->glyph_indeces, 0, xfont->num_indeces * sizeof(u_int16_t));
+  xfont->num_glyph_bufs = 0;
+  xfont->glyph_buf_left = 0;
+  memset(xfont->glyph_indeces, 0, xfont->num_indeces * sizeof(u_int32_t));
 }
 
 static void enable_position_info_by_glyph(XFontStruct *xfont) {
-  /* Shrink glyph size (+1 is margin) */
-  xfont->glyph_width_bytes = (xfont->width_full / 2 + 1) * 3;
-  /* +3 is for storing glyph position info. */
-  xfont->glyph_size = xfont->glyph_width_bytes * xfont->height + 3;
+  /*
+   * If xfont->is_aa is true, xfont->glyph_width_bytes is used only for
+   * glyph_size in next_glyph_buf() and memory is allocated large enough to
+   * store each glyph regardless of the value of xfont->glyph_width_bytes.
+   * So xfont->width_full is not used here.
+   */
+  xfont->glyph_width_bytes = xfont->width * 3;
+  xfont->has_each_glyph_width_info = 1;
 }
 
 static void unload_ft(XFontStruct *xfont) {
@@ -938,28 +1031,64 @@ static int is_right_aligned_char(u_int32_t ch) {
   return 0;
 }
 
+static u_char *next_glyph_buf(XFontStruct *xfont, u_int code, u_int size) {
+  u_char *glyph;
+  u_int glyph_buf_size = GLYPH_TABLE_SIZE *
+                         (GLYPH_HEADER_SIZE_MIN + xfont->glyph_width_bytes * xfont->height);
+
+  if (glyph_buf_size > MAX_OFF + 1) {
+    glyph_buf_size = MAX_OFF + 1;
+  }
+
+  if (xfont->glyph_buf_left < size) {
+    if (xfont->num_glyph_bufs >= MAX_GLYPH_TABLES) {
+      bl_msg_printf("Unable to show U+%x (glyph cache is full)\n", code);
+
+      return NULL;
+    }
+
+    if (!(((u_char**)xfont->glyphs)[xfont->num_glyph_bufs] = calloc(1, glyph_buf_size))) {
+      return NULL;
+    }
+    xfont->num_glyph_bufs++;
+    xfont->glyph_buf_left = glyph_buf_size;
+  }
+
+  glyph = ((u_char**)xfont->glyphs)[xfont->num_glyph_bufs - 1] +
+          (glyph_buf_size - xfont->glyph_buf_left);
+
+  ((u_int32_t*)xfont->glyph_indeces)[code] =
+    ((xfont->num_glyph_bufs - 1) << 23) + (glyph_buf_size - xfont->glyph_buf_left);
+
+#if 0
+  bl_debug_printf("New glyph %p id %x (=%x<<23+%x) size %d\n",
+                  glyph, ((u_int32_t*)xfont->glyph_indeces)[code], xfont->num_glyph_bufs - 1,
+                  glyph_buf_size - xfont->glyph_buf_left, size);
+#endif
+
+  xfont->glyph_buf_left -= size;
+
+  return glyph;
+}
+
 static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph index */,
                                     u_int32_t ch) {
-  u_int16_t *indeces;
   int idx;
-  u_char **glyphs;
   u_char *glyph;
 
   if (code >= xfont->num_indeces) {
-    if (!(indeces = realloc(xfont->glyph_indeces, sizeof(u_int16_t) * (code + 1)))) {
+    u_int32_t *indeces;
+
+    if (!(indeces = realloc(xfont->glyph_indeces, sizeof(u_int32_t) * (code + 1)))) {
       return NULL;
     }
     memset(indeces + xfont->num_indeces, 0,
-           sizeof(u_int16_t) * (code + 1 - xfont->num_indeces));
+           sizeof(u_int32_t) * (code + 1 - xfont->num_indeces));
     xfont->num_indeces = code + 1;
     xfont->glyph_indeces = indeces;
-  } else {
-    indeces = xfont->glyph_indeces;
   }
 
-  glyphs = xfont->glyphs; /* Cast to u_char* to u_char** */
-
-  if (!(idx = indeces[code])) {
+  if (!(idx = ((u_int32_t*)xfont->glyph_indeces)[code])) {
     FT_Face face;
     int y;
     u_char *src;
@@ -968,12 +1097,7 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
     int pitch;
     int rows;
     int32_t format;
-
-    if (xfont->num_glyphs >= GLYPH_TABLE_SIZE * MAX_GLYPH_TABLES - 1) {
-      bl_msg_printf("Unable to show U+%x because glyph cache is full.\n", code);
-
-      return NULL;
-    }
+    int count;
 
     face = xfont->face;
     format = xfont->format;
@@ -1004,31 +1128,28 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
       return NULL;
     }
 
-    if (OFF(xfont->num_glyphs) == 0) {
-      if (!(glyphs[SEG(xfont->num_glyphs)] = calloc(GLYPH_TABLE_SIZE, xfont->glyph_size))) {
-        return NULL;
-      }
-    }
-
-    /* idx can be changed if (pitch + left_pitch - 1) / xfont->glyph_width_bytes > 0. */
-    idx = ++xfont->num_glyphs;
-
 #if 0
     bl_debug_printf("%x %c w %d %d(%d) h %d(%d) at %d %d\n", code, code, face->glyph->bitmap.width,
                     face->glyph->bitmap.pitch, xfont->glyph_width_bytes, face->glyph->bitmap.rows,
                     xfont->height, face->glyph->bitmap_left, face->glyph->bitmap_top);
 #endif
 
-    indeces[code] = idx;
-
     if (xfont->format & FONT_ROTATED) {
       if (!(format & FONT_ROTATED) || face->glyph->format == FT_GLYPH_FORMAT_BITMAP) {
         /* Glyph isn't rotated. */
 
-        if (is_right_aligned_char(ch)) {
+        u_int w;
+
+        if (xfont->is_aa) {
+          w = face->glyph->bitmap.width / 3;
+        } else {
+          w = face->glyph->bitmap.width;
+        }
+
+        if (is_right_aligned_char(ch) && xfont->width > w + face->glyph->bitmap_left) {
           /* XXX Hack for vertical kutouten and sokuon */
-          left_pitch += (xfont->width / 2);
-        } else if (face->glyph->bitmap_left + face->glyph->bitmap.width <= xfont->width / 2) {
+          left_pitch += (xfont->width - w - face->glyph->bitmap_left - 1);
+        } else if (face->glyph->bitmap_left + w <= xfont->width / 2) {
           left_pitch += (xfont->width / 4);
         }
       }
@@ -1041,6 +1162,12 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
         y = 0;
       }
     } else {
+#ifndef MAXIMIZE_HEIGHT
+      y = 0;
+      if ((rows = face->glyph->bitmap.rows) > xfont->height) {
+        rows = xfont->height;
+      }
+#else
       if (xfont->ascent > face->glyph->bitmap_top) {
         y = xfont->ascent - face->glyph->bitmap_top;
       } else {
@@ -1056,164 +1183,190 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
         rows = face->glyph->bitmap.rows;
 
         if (rows + y > xfont->height) {
+#if 1
+          /* baseline is changed to show glyphs fully. */
           y = xfont->height - rows;
+#else
+          /* baseline is not changed. */
+          rows = xfont->height - y;
+#endif
         }
       } else {
         rows = xfont->height;
         y = 0;
       }
+#endif /* MAXIMIZE_HEIGHT */
     }
 
     if (face->glyph->bitmap_left > 0) {
       left_pitch += face->glyph->bitmap_left;
     }
 
+    src = face->glyph->bitmap.buffer;
+
     if (xfont->is_aa) {
       left_pitch *= 3;
 
-      if (HAS_POSITION_INFO_BY_GLYPH(xfont)) {
-        int additional_glyphs;
-        int count;
+      if (xfont->has_each_glyph_width_info) {
+        /* Storing glyph width position info. (ISCII or ISO10646_UCS4_1_V) */
+        u_int tmp;
 
-        pitch = face->glyph->bitmap.pitch;
-
-        additional_glyphs = (pitch + left_pitch - 1) / xfont->glyph_width_bytes;
-#if 0
-        bl_debug_printf("Use %d(=(%d+%d-1)/%d) glyph slots for one glyph.\n",
-                        1 + additional_glyphs, pitch, left_pitch, xfont->glyph_width_bytes);
-#endif
-        for (count = 0; count < additional_glyphs; count++) {
-          if (OFF(xfont->num_glyphs + count) == 0) {
-            if (1 + additional_glyphs > GLYPH_TABLE_SIZE ||
-                !(glyphs[SEG(xfont->num_glyphs + count)] =
-                    calloc(GLYPH_TABLE_SIZE, xfont->glyph_size))) {
-              xfont->num_glyphs--;
-              indeces[code] = 0;
-
-              return NULL;
-            }
-            xfont->num_glyphs += (1 + count);
-            indeces[code] = idx = xfont->num_glyphs;
-          }
+        pitch = face->glyph->bitmap.width; /* XXX Not face->glyph->bitmap.pitch */
+        if (!(glyph = next_glyph_buf(xfont, code,
+                                     GLYPH_HEADER_SIZE_MAX + (pitch + left_pitch) * (y + rows)))) {
+          return NULL;
         }
-        xfont->num_glyphs += additional_glyphs;
-      } else if (face->glyph->bitmap.pitch < xfont->glyph_width_bytes) {
-        pitch = face->glyph->bitmap.pitch;
 
-        if (pitch + left_pitch > xfont->glyph_width_bytes) {
-          left_pitch = xfont->glyph_width_bytes - pitch;
-        }
-      } else {
-        pitch = xfont->glyph_width_bytes;
-        left_pitch = 0;
-      }
-    } else {
-      if (face->glyph->bitmap.pitch <= xfont->glyph_width_bytes) {
-        pitch = face->glyph->bitmap.pitch;
+        tmp = (face->glyph->advance.x >> 6);
+        GLYPH_ADV(glyph) = BL_MIN(255, tmp);
 
-        if (left_pitch >= (xfont->glyph_width_bytes - pitch + 1) * 8) {
-          left_pitch = 7;
-        }
-      } else {
-        pitch = xfont->glyph_width_bytes;
-        left_pitch = 0;
-      }
-    }
-
-    glyph = glyphs[SEG(idx - 1)] + xfont->glyph_size * OFF(idx - 1);
-
-    src = face->glyph->bitmap.buffer;
-    dst = glyph + (xfont->glyph_width_bytes * y);
-
-    if (xfont->is_aa) {
-      if (HAS_POSITION_INFO_BY_GLYPH(xfont)) {
-        /* Storing glyph position info. (ISCII or ISO10646_UCS4_1_V) */
-
-        glyph[0] = (face->glyph->advance.x >> 6);                /* advance */
-        glyph[2] = (face->glyph->bitmap.width + left_pitch) / 3; /* width */
+        tmp = (pitch + left_pitch) / 3;
+        GLYPH_WIDTH(glyph) = BL_MIN(255, tmp);
 
         if (face->glyph->bitmap_left < 0) {
-          glyph[1] = -face->glyph->bitmap_left; /* retreat */
+          tmp = -face->glyph->bitmap_left;
+          GLYPH_RETREAT(glyph) = BL_MIN(255, tmp);
         } else {
-          glyph[1] = 0;
+          GLYPH_RETREAT(glyph) = 0;
         }
 
-        if (glyph[0] == 0 && glyph[2] > glyph[0] + glyph[1]) {
-          glyph[1] = glyph[2] - glyph[0]; /* retreat */
+        if (GLYPH_ADV(glyph) == 0 &&
+            GLYPH_WIDTH(glyph) > /* GLYPH_ADV(glyph) + */ GLYPH_RETREAT(glyph)) {
+          GLYPH_RETREAT(glyph) = GLYPH_WIDTH(glyph) /* - GLYPH_ADV(glyph) */;
         }
 
-        dst = glyph + glyph[2] * 3 * y + 3;
+        dst = glyph + GLYPH_HEADER_SIZE_MAX + (pitch + left_pitch) * y;
 
 #if 0
-        bl_debug_printf("%x %c A %d R %d W %d-> A %d R %d W %d\n", code, code,
+        bl_debug_printf("%x %c A %d R %d W %d-> A %d W %d R %d\n", code, code,
                         face->glyph->advance.x >> 6, face->glyph->bitmap_left,
-                        face->glyph->bitmap.width, glyph[0], glyph[1], glyph[2]);
+                        face->glyph->bitmap.width, GLYPH_ADV(glyph), GLYPH_WIDTH(glyph),
+                        GLYPH_RETREAT(glyph));
 #endif
-        for (y = 0; y < rows; y++) {
+        for (count = 0; count < rows; count++) {
           memcpy(dst + left_pitch, src, pitch);
 
           src += face->glyph->bitmap.pitch;
-          dst += (glyph[2] * 3);
+          dst += (pitch + left_pitch);
         }
       } else {
+        pitch = face->glyph->bitmap.pitch;
+
         if (face->glyph->bitmap_left < 0 && left_pitch == 0 &&
-            xfont->width * 3 < face->glyph->bitmap.width /* pitch? */) {
-          /* For 'A' and 'W' (bitmap_left can be -1) of Incosnolata font */
+            !(xfont->format & FONT_ROTATED)) {
+          /* For 'A' and 'W' (bitmap_left can be -1) of Inconsolata font */
           int left_pitch_minus = face->glyph->bitmap_left * 3;
 
-          if (pitch + left_pitch_minus < 0) {
-            left_pitch_minus = -pitch;
-          }
+          if (pitch + left_pitch_minus > 0) {
+            src += -left_pitch_minus;
+            pitch += left_pitch_minus;
 
-          src -= left_pitch_minus;
-          for (y = 0; y < rows - 1; y++) {
-            memcpy(dst, src, pitch);
+            if (!(glyph = next_glyph_buf(xfont, code,
+                                         GLYPH_HEADER_SIZE_MIN + pitch * (rows + y)))) {
+              return NULL;
+            }
+            dst = glyph + GLYPH_HEADER_SIZE_MIN + (pitch * y);
 
-            src += face->glyph->bitmap.pitch;
-            dst += xfont->glyph_width_bytes;
+            for (count = 0; count < rows; count++) {
+              memcpy(dst, src, pitch);
+
+              src += face->glyph->bitmap.pitch;
+              dst += pitch;
+            }
+          } else {
+            return NULL;
           }
-          memcpy(dst, src, pitch + left_pitch_minus);
         } else {
-          for (y = 0; y < rows; y++) {
+          if (!(glyph = next_glyph_buf(xfont, code,
+                                       GLYPH_HEADER_SIZE_MIN +
+                                       (left_pitch + pitch) * (rows + y)))) {
+            return NULL;
+          }
+
+          dst = glyph + GLYPH_HEADER_SIZE_MIN + (left_pitch + pitch) * y;
+
+          for (count = 0; count < rows; count++) {
             memcpy(dst + left_pitch, src, pitch);
 
             src += face->glyph->bitmap.pitch;
-            dst += xfont->glyph_width_bytes;
+            dst += (left_pitch + pitch);
           }
         }
       }
     } else {
-      int shift;
-      if ((shift = left_pitch / 8) > 0) {
-        left_pitch -= (shift * 8);
-        dst += shift;
+      pitch = face->glyph->bitmap.pitch;
+
+      if (!(glyph = next_glyph_buf(xfont, code,
+                                   GLYPH_HEADER_SIZE_MIN +
+                                   ((left_pitch + 7) / 8 + pitch) * (rows + y)))) {
+        return NULL;
       }
+
+      dst = glyph + GLYPH_HEADER_SIZE_MIN;
 
       if (left_pitch == 0) {
-        for (y = 0; y < rows; y++) {
+#ifdef MAXIMIZE_HEIGHT
+        dst += pitch * y;
+#else
+        /* y is always 0 */
+#endif
+
+        for (count = 0; count < rows; count++) {
           memcpy(dst, src, pitch);
           src += face->glyph->bitmap.pitch;
-          dst += xfont->glyph_width_bytes;
+          dst += pitch;
         }
       } else {
+        int shift;
+        int x;
+
+        if ((shift = left_pitch / 8) > 0) {
+          left_pitch -= (shift * 8);
+        }
+
+#ifdef MAXIMIZE_HEIGHT
+        dst += (shift + (left_pitch > 0 ? 1 : 0) + pitch) * y;
+#else
+        /* y is always 0 */
+#endif
+
         /* XXX TODO: Support face->glyph->bitmap_left < 0 */
-        int count;
-        for (y = 0; y < rows; y++) {
+        for (count = 0; count < rows; count++) {
+          dst += shift;
+
           dst[0] = (src[0] >> left_pitch);
-          for (count = 1; count < pitch; count++) {
-            dst[count] = (src[count - 1] << (8 - left_pitch)) | (src[count] >> left_pitch);
+          for (x = 1; x < pitch; x++) {
+            dst[x] = (src[x - 1] << (8 - left_pitch)) | (src[x] >> left_pitch);
           }
-          if (shift + pitch < xfont->glyph_width_bytes) {
-            dst[count] = (src[count - 1] << (8 - left_pitch));
-          }
+          dst[x] = (src[x - 1] << (8 - left_pitch));
 
           src += face->glyph->bitmap.pitch;
-          dst += xfont->glyph_width_bytes;
+          dst += (x + 1);
         }
+
+        left_pitch = shift + (left_pitch > 0 ? 1 : 0);
       }
     }
+
+    /* left_pitch + pitch is stored in 16bits */
+    glyph[0] = (left_pitch + pitch) >> 8;
+    glyph[1] = (left_pitch + pitch) & 0xff;
+
+#ifndef MAXIMIZE_HEIGHT
+    /* Storing glyph height position info. */
+    if (face->glyph->bitmap_top < 0 || (xfont->format & FONT_ROTATED)) {
+      glyph[2] = 0;
+    } else {
+      glyph[2] = BL_MIN(255, face->glyph->bitmap_top + y);
+    }
+
+    glyph[3] = BL_MIN(255, rows + y);
+#endif
   } else {
-    glyph = glyphs[SEG(idx - 1)] + xfont->glyph_size * OFF(idx - 1);
+    glyph = ((u_char**)xfont->glyphs)[SEG(idx)] + OFF(idx);
+#if 0
+    bl_debug_printf("Get cached glyph %p idx %x (seg %x off %x)\n", glyph, idx, SEG(idx), OFF(idx));
+#endif
   }
 
   return glyph;
@@ -1222,7 +1375,7 @@ static u_char *get_ft_bitmap_intern(XFontStruct *xfont, u_int32_t code /* glyph 
 static int load_xfont(XFontStruct *xfont, const char *file_path, int32_t format,
                       ef_charset_t cs, int is_aa) {
   if (!is_pcf(file_path)) {
-    return load_ft(xfont, file_path, format, is_aa, 0);
+    return load_ft(xfont, file_path, format, is_aa, 0, 0);
   } else {
     return load_pcf(xfont, file_path);
   }
@@ -1676,7 +1829,8 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
            * force_height (xfont->height) forcibly changes the height of the font from natural one
            * to the same one as xfont->height.
            */
-          else if (!load_ft(compl, fc_files[count], xfont->format, xfont->is_aa, xfont->height)) {
+          else if (!load_ft(compl, fc_files[count], xfont->format, xfont->is_aa,
+                            xfont->height, xfont->ascent)) {
             free(compl);
             continue;
           }
@@ -1691,7 +1845,7 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
         compl = xfont->compl_xfonts[count];
       }
 
-      if (HAS_POSITION_INFO_BY_GLYPH(xfont) && !HAS_POSITION_INFO_BY_GLYPH(compl)) {
+      if (xfont->has_each_glyph_width_info && !compl->has_each_glyph_width_info) {
         clear_glyph_cache_ft(compl);
         enable_position_info_by_glyph(compl);
       }
@@ -2038,13 +2192,12 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     is_aa = 0;
   }
 
-  if ((font->xfont = get_cached_xfont(decsp_id ? decsp_id : font_file,
 #ifdef USE_FREETYPE
-                                      format,
+  if ((font->xfont = get_cached_xfont(decsp_id ? decsp_id : font_file, format, is_aa)))
 #else
-                                      0,
+  if ((font->xfont = get_cached_xfont(decsp_id ? decsp_id : font_file, 0, is_aa)))
 #endif
-                                      is_aa))) {
+  {
     goto xfont_loaded;
   }
 
@@ -2110,12 +2263,12 @@ xfont_loaded:
   }
 
 #ifdef USE_FREETYPE
-  if (HAS_POSITION_INFO_BY_GLYPH(font->xfont)) {
+  if (font->xfont->has_each_glyph_width_info) {
     font->is_proportional = 1;
   }
 
   if (IS_ISCII(cs) && font->xfont->is_aa &&
-      (font->xfont->ref_count == 1 || HAS_POSITION_INFO_BY_GLYPH(font->xfont))) {
+      (font->xfont->ref_count == 1 || font->xfont->has_each_glyph_width_info)) {
     /* Proportional glyph is available on ISCII alone for now. */
     font->is_var_col_width = font->is_proportional = 1;
 
@@ -2133,13 +2286,15 @@ xfont_loaded:
     font->is_var_col_width = 1;
 
 #ifdef USE_FREETYPE
-    font->is_proportional = 1;
+    if (font->xfont->face) {
+      font->is_proportional = 1;
 
-    if (font->xfont->ref_count == 1) {
-      enable_position_info_by_glyph(font->xfont);
-    } else if (!HAS_POSITION_INFO_BY_GLYPH(font->xfont)) {
-      clear_glyph_cache_ft(font->xfont);
-      enable_position_info_by_glyph(font->xfont);
+      if (font->xfont->ref_count == 1) {
+        enable_position_info_by_glyph(font->xfont);
+      } else if (!font->xfont->has_each_glyph_width_info) {
+        clear_glyph_cache_ft(font->xfont);
+        enable_position_info_by_glyph(font->xfont);
+      }
     }
 #endif
   }
@@ -2292,14 +2447,20 @@ xfont_loaded:
     font->height = fontsize;
   }
 
-  if (font->ascent == 0) {
+  if (
+#ifdef USE_FREETYPE
+      !(font->xfont->format & FONT_ROTATED) &&
+#endif
+      font->ascent == 0) {
     /* XXX this may be inaccurate. */
     font->ascent = fontsize;
   }
 
-  bl_msg_printf("Load %s (id %x)\n", font->xfont->file, font->id);
+  bl_msg_printf("Load %s (id %x%s)\n", font->xfont->file, font->id,
+                font->xfont->ref_count > 1 ? ", cached" : "");
 #ifdef DEBUG
-  bl_debug_printf(" => CURRENT NUM OF XFONTS %d\n", num_xfonts);
+  bl_debug_printf("=> Max %d bytes/glyph line, height %d, CURRENT NUM OF XFONTS %d\n",
+                  font->xfont->glyph_width_bytes, font->xfont->height, num_xfonts);
 #endif
 
 #ifdef DEBUG
@@ -2337,7 +2498,7 @@ int ui_font_has_ot_layout_table(ui_font_t *font) {
         return 0;
       }
 
-      if (!HAS_POSITION_INFO_BY_GLYPH(font->xfont)) {
+      if (!font->xfont->has_each_glyph_width_info) {
         clear_glyph_cache_ft(font->xfont);
         enable_position_info_by_glyph(font->xfont);
       }
@@ -2376,14 +2537,14 @@ u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, in
   if (font->xfont->is_aa && font->is_proportional && font->is_var_col_width) {
     u_char *glyph;
 
-    if ((glyph = get_ft_bitmap(font->xfont, ch,
 #ifdef USE_OT_LAYOUT
-                               (font->use_ot_layout /* && font->ot_font */)
+    if ((glyph = get_ft_bitmap(font->xfont, ch,
+                               (font->use_ot_layout /* && font->ot_font */), NULL)))
 #else
-                               0
+    if ((glyph = get_ft_bitmap(font->xfont, ch, 0, NULL)))
 #endif
-                               , NULL))) {
-      return glyph[0];
+    {
+      return GLYPH_ADV(glyph);
     }
   }
 #endif
@@ -2451,6 +2612,185 @@ void ui_font_dump(ui_font_t *font) {
 
 #endif
 
+#if defined(USE_FREETYPE) && !defined(MAXIMIZE_HEIGHT)
+/*
+ * Returned bitmaps have following headers.
+ * xfont->is_aa && xfont->has_each_glyph_width_info
+ * -> 3 bytes (1st byte: Adv, 2nd byte: Retreat, 3rd byte: Width)
+ *
+ * xfont->is_aa && !xfont->has_each_glyph_width_info
+ * -> 4 bytes (1st and 2nd bytes: Pitch, 3rd and 4th bytes: Width (Pitch / 3))
+ *
+ * !xfont->is_aa
+ * -> No header
+ */
+int ui_modify_bitmaps(XFontStruct *xfont, u_char **bitmaps, u_int num,
+                      u_int *height, u_int *ascent) {
+  static u_char *new_bitmaps;
+  static size_t new_bitmaps_len;
+  u_int line_width_bytes;
+  u_int count;
+  u_int a;
+  u_int h;
+  u_int dst_pitch;
+  u_char *src;
+  u_char *dst;
+  u_int len;
+
+  if (!xfont->face) {
+    return 1;
+  }
+
+  line_width_bytes = 0;
+  for (count = 0; count < num; count++) {
+    if (bitmaps[count] == NULL) {
+      continue;
+    }
+
+    a = bitmaps[count][2];
+    h = bitmaps[count][3];
+
+    if (*ascent < a) {
+      *height += (a - *ascent);
+      *ascent = a;
+    }
+
+#if 0
+    if (h > a && *height - *ascent < h - a) {
+      *height += ((h - a) - (*height - *ascent));
+    }
+#else
+    /* Same as above */
+    if (*height + a < h + *ascent) {
+      *height += ((h + *ascent) - (*height + a));
+    }
+#endif
+
+    if (xfont->is_aa) {
+      if (xfont->has_each_glyph_width_info) {
+        line_width_bytes += (GLYPH_HEADER_SIZE_MAX - GLYPH_HEADER_SIZE_MIN +
+                             (GLYPH_WIDTH(bitmaps[count]) * 3));
+      } else {
+        line_width_bytes += (GLYPH_HEADER_SIZE_MIN +
+                             ((bitmaps[count][0] << 8) | bitmaps[count][1]));
+      }
+    } else {
+      line_width_bytes += xfont->glyph_width_bytes;
+    }
+  }
+
+  if (line_width_bytes == 0) {
+    return 1;
+  }
+
+  len = line_width_bytes * (*height);
+
+  if (new_bitmaps_len < len) {
+    void *p;
+
+    if ((p = realloc(new_bitmaps, len)) == NULL) {
+      return 0;
+    }
+
+    new_bitmaps = p;
+    new_bitmaps_len = len;
+  }
+
+  dst = new_bitmaps;
+
+  if (xfont->is_aa) {
+    for (count = 0; count < num; count++) {
+      u_char *orig_bitmap = bitmaps[count];
+
+      if (orig_bitmap == NULL) {
+        continue;
+      }
+
+      a = orig_bitmap[2];
+      h = orig_bitmap[3];
+
+      bitmaps[count] = dst;
+
+      if (xfont->has_each_glyph_width_info) {
+        dst_pitch = GLYPH_WIDTH(orig_bitmap) * 3;
+        src = orig_bitmap + GLYPH_HEADER_SIZE_MAX;
+
+        /* GLYPH_HEADER_SIZE_MIN is not copied */
+        memcpy(dst, orig_bitmap + GLYPH_HEADER_SIZE_MIN,
+               GLYPH_HEADER_SIZE_MAX - GLYPH_HEADER_SIZE_MIN);
+        dst += (GLYPH_HEADER_SIZE_MAX - GLYPH_HEADER_SIZE_MIN);
+      } else {
+        dst_pitch = (orig_bitmap[0] << 8) | orig_bitmap[1];
+
+        ((u_int16_t*)dst)[0] = dst_pitch;
+        ((u_int16_t*)dst)[1] = dst_pitch / 3;
+        dst += GLYPH_HEADER_SIZE_MIN;
+
+        src = orig_bitmap + GLYPH_HEADER_SIZE_MIN;
+      }
+
+      if (*ascent > a) {
+        len = (*ascent - a) * dst_pitch;
+        dst = memset(dst, 0, len) + len;
+      }
+
+      len = dst_pitch * h;
+      dst = memcpy(dst, src, len) + len;
+
+      len = (*height - h - (*ascent - a)) * dst_pitch;
+      dst = memset(dst, 0, len) + len;
+    }
+  } else {
+    dst_pitch = xfont->glyph_width_bytes;
+
+    for (count = 0; count < num; count++) {
+      int y;
+      u_int copy_len;
+      u_int src_pitch;
+      u_char *orig_bitmap = bitmaps[count];
+
+      if (orig_bitmap == NULL) {
+        continue;
+      }
+
+      a = orig_bitmap[2];
+      h = orig_bitmap[3];
+
+      bitmaps[count] = dst;
+
+      /* GLYPH_HEADER_SIZE_MIN is not copied */
+      src = orig_bitmap + GLYPH_HEADER_SIZE_MIN;
+
+      if (*ascent > a) {
+        len = (*ascent - a) * dst_pitch;
+        dst = memset(dst, 0, len) + len;
+      }
+
+      src_pitch = (orig_bitmap[0] << 8) | orig_bitmap[1];
+      copy_len = BL_MIN(src_pitch, dst_pitch);
+
+      for (y = 0; y < h; y++) {
+        memcpy(dst, src, copy_len);
+        memset(dst + copy_len, 0, dst_pitch - copy_len);
+        src += src_pitch;
+        dst += dst_pitch;
+      }
+
+      len = (*height - h - (*ascent - a)) * dst_pitch;
+      dst = memset(dst, 0, len) + len;
+    }
+  }
+
+  return 1;
+}
+#else
+int ui_modify_bitmaps(XFontStruct *xfont, u_char **bitmaps, u_int num,
+                      u_int *height, u_int *ascent) {
+  /* XXX Not implemented yet. */
+  return 1;
+}
+#endif
+
 u_char *ui_get_bitmap(XFontStruct *xfont, u_char *ch, size_t len, int use_ot_layout,
                       XFontStruct **compl_xfont) {
   size_t ch_idx;
@@ -2477,7 +2817,7 @@ u_char *ui_get_bitmap(XFontStruct *xfont, u_char *ch, size_t len, int use_ot_lay
 
   if (ch_idx >= (xfont->max_char_or_byte2 - xfont->min_char_or_byte2 + 1)*(xfont->max_byte1 -
                                                                            xfont->min_byte1 + 1) ||
-      (glyph_idx = xfont->glyph_indeces[ch_idx]) == -1) {
+      (glyph_idx = ((int16_t*)xfont->glyph_indeces)[ch_idx]) == -1) {
     return NULL;
   }
 

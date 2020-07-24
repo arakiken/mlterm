@@ -769,9 +769,11 @@ static void redraw_screen(ui_screen_t *screen) {
     screen->mark_drawn = 0;
   }
 
+  end_row = vt_term_get_rows(screen->term) - 1;
   count = 0;
   while (1) {
-    if ((line = vt_term_get_line_in_screen(screen->term, count)) == NULL) {
+    if (count > end_row ||
+        (line = vt_term_get_line_in_screen(screen->term, count)) == NULL) {
 #ifdef __DEBUG
       bl_debug_printf(BL_DEBUG_TAG " nothing is redrawn.\n");
 #endif
@@ -811,7 +813,8 @@ static void redraw_screen(ui_screen_t *screen) {
     count++;
     y += line_height;
 
-    if ((line = vt_term_get_line_in_screen(screen->term, count)) == NULL) {
+    if (count > end_row ||
+        (line = vt_term_get_line_in_screen(screen->term, count)) == NULL) {
       break;
     }
 
@@ -842,7 +845,6 @@ static void redraw_screen(ui_screen_t *screen) {
   }
 
 draw_copymode_pattern:
-  end_row = vt_term_get_rows(screen->term) - 1;
   y = line_height * end_row;
 
   ui_draw_str(&screen->window, screen->font_man, screen->color_man,

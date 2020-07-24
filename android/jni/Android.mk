@@ -89,7 +89,7 @@ LOCAL_SRC_FILES := baselib/src/bl_map.c baselib/src/bl_args.c \
 		uitoolkit/fb/ui_color.c uitoolkit/ui_font_config.c uitoolkit/ui_sb_mode.c \
 		uitoolkit/ui_color_cache.c uitoolkit/ui_font_manager.c uitoolkit/ui_type_engine.c \
 		uitoolkit/ui_color_manager.c uitoolkit/fb/ui_gc.c uitoolkit/fb/ui_decsp_font.c \
-		uitoolkit/fb/ui_connect_dialog.c uitoolkit/ui_im.c \
+		uitoolkit/fb/ui_connect_dialog.c uitoolkit/ui_im.c uitoolkit/ui_copymode.c \
 		uitoolkit/fb/ui_window.c uitoolkit/fb/ui_display.c uitoolkit/ui_im_candidate_screen.c \
 		uitoolkit/ui_screen.c uitoolkit/fb/ui_xic.c uitoolkit/fb/ui_dnd.c \
 		uitoolkit/ui_im_status_screen.c uitoolkit/ui_screen_manager.c uitoolkit/ui_draw_str.c \

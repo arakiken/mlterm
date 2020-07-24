@@ -5,6 +5,9 @@
 
 #include "../ui_font.h"
 
+int ui_modify_bitmaps(XFontStruct *xfont, u_char **bitmaps, u_int num,
+                      u_int *height, u_int *ascent);
+
 u_char *ui_get_bitmap(XFontStruct *xfont, u_char *ch, size_t len, int use_ot_layout,
                       XFontStruct **compl_xfont);
 

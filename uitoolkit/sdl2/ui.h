@@ -5,10 +5,6 @@
 
 #include <SDL.h>
 
-#ifdef USE_FREETYPE
-#include <pobl/bl_types.h> /* u_int32_t etc */
-#endif
-
 #if 0
 #define USE_BG_TEXTURE
 #endif
@@ -132,29 +128,25 @@ typedef struct /* Same as definition in X11/X.h */ {
 
 } XChar2b;
 
+/*
+ * XFontStruct must be the same in fb, wayland, sdl2 and Android.
+ */
 typedef struct _XFontStruct {
   char *file;
 
-#ifdef USE_FREETYPE
-  int32_t format; /* XXX (fontsize|FONT_BOLD|FONT_ITALIC) on freetype. */
-#endif
+  int32_t num_glyphs;  /* Not used on freetype */
+  unsigned char *glyphs; /* Cast to unsigned char** on FreeType */
+  void *glyph_indeces; /* PCF: int16_t*, decsp: int16_t*, FreeType: u_int32_t* */
 
-  int32_t num_glyphs;
-  unsigned char *glyphs;
-
+  /* If is_aa is true, don't use glyph_width_bytes except in next_glyph_buf(). */
   int32_t glyph_width_bytes;
 
-  unsigned char width;
+  uint16_t width;
   /* Width of full width characters or max width of half width characters. */
-  unsigned char width_full;
-  unsigned char height;
-  unsigned char ascent;
-
-#if 0
-  u_int16_t *glyph_indeces;
-#else
-  unsigned short *glyph_indeces;
-#endif
+  uint16_t width_full;
+  uint16_t height;
+  uint16_t ascent;
+  uint8_t has_each_glyph_width_info;
 
   /* for pcf */
   int16_t min_char_or_byte2;
@@ -164,10 +156,17 @@ typedef struct _XFontStruct {
   int32_t *glyph_offsets;
 
 #ifdef USE_FREETYPE
-  /* for freetype */
+  /*
+   * XXX
+   *
+   * (fontsize|FONT_BOLD|FONT_ITALIC|FONT_ROTATED) on freetype.
+   * fontsize is 0-0x1ff.
+   */
+  int32_t format;
   void *face;
-  u_int32_t num_indeces;
-  u_int32_t glyph_size;
+  uint32_t num_indeces;
+  uint32_t num_glyph_bufs;
+  uint32_t glyph_buf_left;
   int is_aa;
 
 #ifdef USE_FONTCONFIG

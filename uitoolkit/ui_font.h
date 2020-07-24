@@ -70,9 +70,9 @@ typedef struct ui_font {
   /*
    * These members are never zero.
    */
-  u_int8_t width;
-  u_int8_t height;
-  u_int8_t ascent;
+  u_int16_t width;
+  u_int16_t height;
+  u_int16_t ascent;
 
   /* This is not zero only when is_proportional is true and xfont is set. */
   int8_t x_off;

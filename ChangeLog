@@ -1,7 +1,50 @@
-2020-06-30  Araki Ken  <arakiken@users.sf.net>
+2020-07-24  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/ui_window.c:
+	  Clipping process for DECDHL is moved from draw_string() to
+	  draw_string_intern() to use ui_modify_bitmaps() well.
+
+	* fb/ui_font.[ch]:
+	  - If MAXIMIZE_HEIGHT is not defined, face->glyph->bitmap_top and
+	    face->glyph->bitmap.rows are stored to cache and adjusting glyph
+	    position is processed by ui_modify_bitmaps().
+	  - The type of XFontStruct::glyph_indeces which stores segment and
+	    offset of each glyph is changed from u_int16_t to u_int32_t, and
+	    segment is expanded from 7bit to 23 bit to get glyph size variable.
+	  - next_glyph_buf() which returns the next buffer to store glyph
+	    bitmap is added.
+	  - If XFontStruct::is_aa is true, 4 bytes header which stores height
+	    position info and pitch is embedded in each glyph buffer.
+
+	* fb/ui.h, sdl2/ui.h, wayland/ui.h, android/jni/ui.h:
+	  - has_each_glyph_width_info, num_glyph_bufs and glyph_buf_left are added
+	    to XFontStruct.
+	  - glyph_size is removed from XFontStruct.
+	  - Type of width, width_full, height and ascent is changed from u_char
+	    to u_int16_t.
+
+	* ui_font.h: The type of width, height and ascent of ui_font_t is changed
+	  from u_int8_t to u_int16_t.
+
+	* ui_font_manager.c: If USE_FREETYPE is defined, the default value of
+	  max_font_size is changed from 10000 to 200.
 
 	* beos.cpp: MLView::MessageReceived() calls BView::MessageReceived()
 	  if it doesn't process the received message.
+
+	* cocoa.m: insertText() sets kev.keysym.
+
+	* ui_screen.c: Lines outside the screen in backscrolling is not drawn.
+
+	* wayland/ui_display.c: ui_display_get_utf8() removes NULL character.
+
+	* vt_shape.c: combine_replacing_code() returns 1 (success) or
+	  0 (vt_char_combine_forcibly() fails).
+
+	* vt_char.[ch]: vt_char_combine_forcibly() which doesn't consider
+	  IS_ZERO_WIDTH() is added.
+
+	* Android.mk: ui_copymode.c is added to LOCAL_SRC_FILES.
 
 2020-06-27  Araki Ken  <arakiken@users.sf.net>
 

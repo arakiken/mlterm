@@ -9,9 +9,12 @@
 * Drop SCROLL_DOWN and PAGE_DOWN shortcut keys.
 * Drop use_extended_scroll_shortcut option and SCROLL_UP shortcut key is enabled
   by default. (If you want to disable it, add UNUSED=SCROLL_UP to ~/.mlterm/key.)
+* Draw some box drawing glyphs and large glyphs accurately with freetype2
+  on framebuffer, SDL2, wayland and Android.
 * Bug fixes:
   Fix a bug which caused a 'mlimgloader' process not to exit after loading a wall picture.
   (Enbugged at 3.8.8)
+  Fix a bug which disabled keyboard and mouse on Haiku R1/beta2.
   Mlconfig starts correctly by Ctrl + RightClick on cygwin 3.1.4.
 
 ver 3.9.0

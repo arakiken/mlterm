@@ -142,6 +142,9 @@ vt_char_t *vt_char_combine(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int i
 
 vt_char_t *vt_char_combine_simple(vt_char_t *ch, vt_char_t *comb);
 
+/* This doesn't check if src is a zero width character or not. (See new_comb()) */
+vt_char_t *vt_char_combine_forcibly(vt_char_t *ch, vt_char_t *src);
+
 vt_char_t *vt_get_base_char(vt_char_t *ch);
 
 vt_char_t *vt_get_combining_chars(vt_char_t *ch, u_int *size);

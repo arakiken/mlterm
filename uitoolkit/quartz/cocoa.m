@@ -1147,8 +1147,20 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 
     kev.type = UI_KEY_PRESS;
     kev.state = currentShiftMask;
-    kev.keysym = 0;
     kev.utf8 = [string UTF8String];
+
+    if (kev.utf8 && kev.utf8[1] == '\0') {
+      int ksym = kev.utf8[0] | 0x20;
+
+      if ('a' <= ksym && ksym <= 'z') {
+        kev.keysym = ksym;
+      } else {
+        /* XXX */
+        kev.keysym = 0;
+      }
+    } else {
+      kev.keysym = 0;
+    }
 
     ui_window_receive_event(uiwindow, (XEvent *)&kev);
 
