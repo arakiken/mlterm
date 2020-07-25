@@ -1,4 +1,27 @@
+2020-07-25  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/ui_window.c: Proportional glyphs are placed at the center of
+	  cells only if CENTER_PROPORTIONAL_GLYPHS is defined,
+
+	* fb/ui_font.c: MAXIMIZE_HEIGHT macro is removed.
+
+	* fb/ui.c: XStringToKeysym() supports 'A' - 'Z'.
+
 2020-07-24  Araki Ken  <arakiken@users.sf.net>
+
+	* cocoa.m: insertText() sets kev.keysym.
+
+	* ui_screen.c: Lines outside the screen in backscrolling is not drawn.
+
+	* wayland/ui_display.c: ui_display_get_utf8() removes NULL character.
+
+	* vt_shape.c: combine_replacing_code() returns 1 (success) or
+	  0 (vt_char_combine_forcibly() fails).
+
+	* vt_char.[ch]: vt_char_combine_forcibly() which doesn't consider
+	  IS_ZERO_WIDTH() is added.
+
+	* Android.mk: ui_copymode.c is added to LOCAL_SRC_FILES.
 
 	* fb/ui_window.c:
 	  Clipping process for DECDHL is moved from draw_string() to
@@ -29,22 +52,10 @@
 	* ui_font_manager.c: If USE_FREETYPE is defined, the default value of
 	  max_font_size is changed from 10000 to 200.
 
+2020-06-30  Araki Ken  <arakiken@users.sf.net>
+
 	* beos.cpp: MLView::MessageReceived() calls BView::MessageReceived()
 	  if it doesn't process the received message.
-
-	* cocoa.m: insertText() sets kev.keysym.
-
-	* ui_screen.c: Lines outside the screen in backscrolling is not drawn.
-
-	* wayland/ui_display.c: ui_display_get_utf8() removes NULL character.
-
-	* vt_shape.c: combine_replacing_code() returns 1 (success) or
-	  0 (vt_char_combine_forcibly() fails).
-
-	* vt_char.[ch]: vt_char_combine_forcibly() which doesn't consider
-	  IS_ZERO_WIDTH() is added.
-
-	* Android.mk: ui_copymode.c is added to LOCAL_SRC_FILES.
 
 2020-06-27  Araki Ken  <arakiken@users.sf.net>
 

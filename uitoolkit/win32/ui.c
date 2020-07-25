@@ -17,16 +17,6 @@ static struct {
   KeySym /* WORD */ ksym; /* 16bit */
 
 } keysym_table[] = {
-    {"0", '0'},
-    {"1", '1'},
-    {"2", '2'},
-    {"3", '3'},
-    {"4", '4'},
-    {"5", '5'},
-    {"6", '6'},
-    {"7", '7'},
-    {"8", '8'},
-    {"9", '9'},
     {"BackSpace", XK_BackSpace},
     {"Delete", XK_Delete},
     {"Down", XK_Down},
@@ -68,33 +58,7 @@ static struct {
     {"Tab", XK_Tab},
     {"Up", XK_Up},
     {"Zenkaku_Hankaku", XK_Zenkaku_Hankaku},
-    {"a", 'a'},
-    {"b", 'b'},
-    {"c", 'c'},
-    {"d", 'd'},
-    {"e", 'e'},
-    {"f", 'f'},
-    {"g", 'g'},
-    {"h", 'h'},
-    {"i", 'i'},
-    {"j", 'j'},
-    {"k", 'k'},
-    {"l", 'l'},
-    {"m", 'm'},
-    {"n", 'n'},
-    {"o", 'o'},
-    {"p", 'p'},
-    {"q", 'q'},
-    {"r", 'r'},
-    {"s", 's'},
     {"space", ' '},
-    {"t", 't'},
-    {"u", 'u'},
-    {"v", 'v'},
-    {"w", 'w'},
-    {"x", 'x'},
-    {"y", 'y'},
-    {"z", 'z'},
 };
 
 /* --- global functions --- */
@@ -131,6 +95,20 @@ KeySym XStringToKeysym(char *str) {
   size_t prev_idx;
   size_t idx;
   size_t distance;
+
+  if (str[1] == '\0') {
+    char c = *str;
+
+    if ('0' <= c && c <= '9') {
+      return c;
+    } else {
+      c |= 0x20; /* lower case */
+
+      if ('a' <= c && c <= 'z') {
+        return *str;
+      }
+    }
+  }
 
   prev_idx = -1;
 

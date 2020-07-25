@@ -625,15 +625,46 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
               }
             } else {
               /* is_var_col_width is false */
-              int padding = font_x_off;
+              int padding;
 
               width += font_x_off;
-              if (width > (len - count) * font_width) {
-                width = (len - count) * font_width;
-              } else if (width + font_x_off < font_width) {
-                int add = (font_width - width - font_x_off) / 2;
-                width += add;
-                padding += add;
+
+              /*
+               * font_x_off is added to width above, so 'width + font_x_off'
+               * means that font_x_off * 2 is added to width.
+               */
+#ifdef CENTER_PROPORTIONAL_GLYPHS
+              if (width + font_x_off < font_width) {
+                int diff = (font_width - width - font_x_off) / 2;
+
+                width += diff;
+                padding = font_x_off + diff;
+              } else
+#endif
+              {
+                if (width + font_x_off > font_width) {
+                  int diff = (width + font_x_off - font_width) / 2;
+
+                  if (diff > font_x_off) {
+                    padding = 0;
+
+                    /*
+                     * If you use Inconsolata font with --otl option, === is shaped
+                     * with garbage by this.
+                     */
+#if 0
+                    bitmap_line += (diff - font_x_off) * 3;
+#endif
+                  } else {
+                    padding = font_x_off - diff;
+                  }
+                } else {
+                  padding = font_x_off;
+                }
+
+                if (width > (len - count) * font_width) {
+                  width = (len - count) * font_width;
+                }
               }
 
               if (padding > 0) {
@@ -718,9 +749,26 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
             }
           } else {
             u_int glyph_end = font_x_off + ((u_int16_t*)bitmaps[count])[1];
+            int padding;
 
-            if (glyph_end > font_width) {
-              glyph_end = font_width;
+            /*
+             * font_x_off is added to width above, so 'width + font_x_off'
+             * means that font_x_off * 2 is added to width.
+             */
+#ifdef CENTER_PROPORTIONAL_GLYPHS
+            if (glyph_end + font_x_off < font_width) {
+              int diff = (font_width - glyph_end - font_x_off) / 2;
+
+              glyph_end += diff;
+              padding = font_x_off + diff;
+            } else
+#endif
+            {
+              padding = font_x_off;
+
+              if (glyph_end > font_width) {
+                glyph_end = font_width;
+              }
             }
 
             bitmap_line = bitmaps[count] + 4 + y_off * ((u_int16_t*)bitmaps[count])[0];
@@ -728,7 +776,7 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
             if (src_bg_is_set) {
               if (picture) {
                 for (x_off = 0; ; x_off++, p += bpp) {
-                  if (font_x_off <= x_off && x_off < glyph_end) {
+                  if (padding <= x_off && x_off < glyph_end) {
                     u_long bg = (bpp == 2) ? *((u_int16_t *)p) : *((u_int32_t *)p);
                     copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg, bpp);
                   } else if (font_width <= x_off) {
@@ -737,7 +785,7 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
                 }
               } else {
                 for (x_off = 0; ; x_off++, p += bpp) {
-                  if (font_x_off <= x_off && x_off < glyph_end) {
+                  if (padding <= x_off && x_off < glyph_end) {
                     copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel,
                                        bg_pixel, bpp);
                   } else if (font_width <= x_off) {
@@ -747,7 +795,7 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
               }
             } else {
               for (x_off = 0; ; x_off++, p += bpp) {
-                if (font_x_off <= x_off && x_off < glyph_end) {
+                if (padding <= x_off && x_off < glyph_end) {
                   u_long bg = ui_display_get_pixel(win->disp, x + x_off, y + y_off);
                   if (copy_blended_pixel(win->disp->display, p, &bitmap_line, fg_pixel, bg, bpp)) {
                     continue;
