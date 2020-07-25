@@ -1,5 +1,13 @@
 2020-07-25  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/ui_font.[ch]: 'get_space_glyph' is added to arguments of
+	  ui_get_bitmap(). (If get_space_glyph is false, ui_get_bitmap()
+	  returns NULL for 0x20.)
+
+	* fb/ui_window.c: Clipping process in draw_string_intern() is fixed.
+
+2020-07-25  Araki Ken  <arakiken@users.sf.net>
+
 	* fb/ui_window.c: Proportional glyphs are placed at the center of
 	  cells only if CENTER_PROPORTIONAL_GLYPHS is defined,
 

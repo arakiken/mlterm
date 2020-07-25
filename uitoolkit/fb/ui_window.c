@@ -151,8 +151,10 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
                                int double_draw_gap, int is_proportional, int is_var_col_width,
                                u_int32_t fg_pixel, u_int32_t bg_pixel,
                                int x, /* win->x and win->hmargin are added. */
-                               int y, u_char **bitmaps, u_int len, u_char *picture,
+                               int y, /* win->y and win->vmargin are added. */
+                               u_char **bitmaps, u_int len, u_char *picture,
                                size_t picture_line_len, int src_bg_is_set, int bpp) {
+  int clip_y;
   u_int clip_bottom;
   size_t size;
   u_char *src;
@@ -173,10 +175,11 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
    * On the other hand, font->width is always the same (or exactly double) for now.
    */
 
+  clip_y = win->y + win->vmargin + win->clip_y;
   if (win->clip_height == 0) {
-    clip_bottom = win->height;
+    clip_bottom = win->y + ACTUAL_HEIGHT(win);
   } else {
-    clip_bottom = win->clip_y + win->clip_height;
+    clip_bottom = clip_y + win->clip_height;
   }
 
   if (y >= clip_bottom) {
@@ -185,10 +188,10 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
     font_height = clip_bottom - y;
   }
 
-  if (y + font_height < win->clip_y) {
+  if (y + font_height < clip_y) {
     return;
-  } else if (y < win->clip_y) {
-    y_off = win->clip_y - y;
+  } else if (y < clip_y) {
+    y_off = clip_y - y;
 
     if (picture) {
       picture += (y_off * picture_line_len);
@@ -832,6 +835,7 @@ static void draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
   u_int count;
   int src_bg_is_set;
   int use_ot_layout;
+  int get_space_glyph;
   int x_off;
 
   if (!win->is_mapped) {
@@ -900,10 +904,13 @@ static void draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
   }
 
   x_off = font->x_off;
+  /* See ui_calculate_char_width() in ui_font.c */
+  get_space_glyph = font->is_proportional && font->is_var_col_width;
 
   if (ch_len == 1) {
     for (count = 0; count < len; count++) {
-      bitmaps[count] = ui_get_bitmap(xfont, str + count, 1, use_ot_layout, NULL);
+      bitmaps[count] = ui_get_bitmap(xfont, str + count, 1, use_ot_layout,
+                                     get_space_glyph, NULL);
     }
   } else /* if(ch_len == 2) */ {
     XFontStruct *compl_xfont;
@@ -957,7 +964,8 @@ static void draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
       }
 
       compl_xfont = NULL;
-      bitmaps[count] = ui_get_bitmap(font->xfont, str, ch_len, use_ot_layout, &compl_xfont);
+      bitmaps[count] = ui_get_bitmap(font->xfont, str, ch_len, use_ot_layout,
+                                     get_space_glyph, &compl_xfont);
       if (compl_xfont && xfont != compl_xfont) {
         u_int w;
 

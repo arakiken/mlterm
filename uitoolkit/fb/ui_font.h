@@ -9,7 +9,7 @@ int ui_modify_bitmaps(XFontStruct *xfont, u_char **bitmaps, u_int num,
                       u_int *height, u_int *ascent);
 
 u_char *ui_get_bitmap(XFontStruct *xfont, u_char *ch, size_t len, int use_ot_layout,
-                      XFontStruct **compl_xfont);
+                      int get_space_glyph, XFontStruct **compl_xfont);
 
 #define ui_get_bitmap_line(xfont, bitmap, offset_bytes, bitmap_line) \
   ((bitmap) &&                                                       \

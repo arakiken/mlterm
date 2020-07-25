@@ -1668,7 +1668,7 @@ static void init_fontconfig(void) {
 #endif /* USE_FONTCONFIG */
 
 static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout,
-                             XFontStruct **compl_xfont) {
+                             int get_space_glyph, XFontStruct **compl_xfont) {
 #ifdef USE_FONTCONFIG
   u_int count;
 #endif
@@ -1677,7 +1677,7 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
 
   if (!use_ot_layout) {
     /* char => glyph index */
-    if (ch == 0x20) {
+    if (!get_space_glyph && ch == 0x20) {
       return NULL;
     }
 
@@ -1692,9 +1692,7 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
   return get_ft_bitmap_intern(xfont, code, ch);
 
  compl_font:
-  /*
-   * Complementary glyphs are searched only if xfont->face && !IS_PROPOTIONAL && !use_ot_layout.
-   */
+  /* Complementary glyphs are searched only if xfont->face && !use_ot_layout. */
 #ifdef USE_FONTCONFIG
   if (!compl_pattern) {
     return NULL;
@@ -2470,9 +2468,13 @@ u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, in
 
 #ifdef USE_OT_LAYOUT
     if ((glyph = get_ft_bitmap(font->xfont, ch,
-                               (font->use_ot_layout /* && font->ot_font */), NULL)))
+                               (font->use_ot_layout /* && font->ot_font */),
+                               1 /* is_proportional && is_var_col_width (See draw_string()) */,
+                               NULL)))
 #else
-    if ((glyph = get_ft_bitmap(font->xfont, ch, 0, NULL)))
+    if ((glyph = get_ft_bitmap(font->xfont, ch, 0,
+                               1 /* is_proportional && is_var_col_width (See draw_string()) */,
+                               NULL)))
 #endif
     {
       return GLYPH_ADV(glyph);
@@ -2723,24 +2725,28 @@ int ui_modify_bitmaps(XFontStruct *xfont, u_char **bitmaps, u_int num,
 #endif
 
 u_char *ui_get_bitmap(XFontStruct *xfont, u_char *ch, size_t len, int use_ot_layout,
-                      XFontStruct **compl_xfont) {
+                      int get_space_glyph, XFontStruct **compl_xfont) {
   size_t ch_idx;
   int16_t glyph_idx;
   int32_t glyph_offset;
 
 #ifdef USE_FREETYPE
   if (xfont->face) {
-    return get_ft_bitmap(xfont, ef_bytes_to_int(ch, len), use_ot_layout, compl_xfont);
+    return get_ft_bitmap(xfont, ef_bytes_to_int(ch, len), use_ot_layout, get_space_glyph,
+                         compl_xfont);
   } else
 #endif
-      if (len == 1) {
+  if (len == 1) {
+    if (!get_space_glyph && ch[0] == 0x20) {
+      return NULL;
+    }
+
     ch_idx = ch[0] - xfont->min_char_or_byte2;
   } else if (len == 2) {
     ch_idx =
         (ch[0] - xfont->min_byte1) * (xfont->max_char_or_byte2 - xfont->min_char_or_byte2 + 1) +
         ch[1] - xfont->min_char_or_byte2;
-  } else /* if( len == 4) */
-  {
+  } else /* if( len == 4) */ {
     ch_idx = (ch[1] * 0x100 + ch[2] - xfont->min_byte1) *
                  (xfont->max_char_or_byte2 - xfont->min_char_or_byte2 + 1) +
              ch[3] - xfont->min_char_or_byte2;
