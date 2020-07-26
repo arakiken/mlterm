@@ -1,5 +1,6 @@
 * Support copy mode which starts by Control+Shift+Return.
 * Support OSC 1337;Setmark ST.
+* Support CSI 3 J (ED) which clears backlog.
 * Add --enable-utmp-suid option to ./configure script.
   (The default value is disabled.)
 * Add --with-utmp option which specifies the way of accessing to utmp database

@@ -5416,6 +5416,20 @@ inline static int parse_vt100_escape_sequence(
         } else if (ps[0] == 2) {
           clear_display_all(vt_parser);
         }
+#if 1
+        /* xterm compatible (Tera Term 4.105 or later also supports) */
+        else if (ps[0] == 3) {
+          u_int size = vt_screen_get_log_size(vt_parser->screen);
+          int unlimited = vt_screen_log_size_is_unlimited(vt_parser->screen);
+
+          vt_screen_change_log_size(vt_parser->screen, 0);
+          if (unlimited) {
+            vt_screen_unlimit_log_size(vt_parser->screen);
+          } else {
+            vt_screen_change_log_size(vt_parser->screen, size);
+          }
+        }
+#endif
       } else if (*str_p == 'K') {
         /* "CSI K" Erase in Line (EL) */
 

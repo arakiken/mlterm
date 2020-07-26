@@ -90,7 +90,7 @@ public class MLPreferenceActivity extends PreferenceActivity {
       while (true) {
         if (value.contentEquals(entries[index])) {
           break;
-        } else if (++index > entries.length) {
+        } else if (++index >= entries.length) {
           index = 0;
           break;
         }
@@ -134,9 +134,10 @@ public class MLPreferenceActivity extends PreferenceActivity {
     addEditText(category, "wall_picture", "Wall picture",
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
     addEditText(category, "alpha", "Alpha", InputType.TYPE_CLASS_NUMBER);
-    CharSequence[] entries1 = { "right", "left", "none" };
+    CharSequence[] entries1 = { "right", "left", "none", "autohide" };
     addList(category, "scrollbar_mode", "Scrollbar", entries1);
     addEditText(category, "logsize", "Backlog size", InputType.TYPE_CLASS_NUMBER);
+    addCheckBox(category, "use_local_echo", "Local echo mode");
     CharSequence[] entries2 = { "none", "cjk", "mongol" };
     addList(category, "vertical_mode", "Vertical mode", entries2);
     addEditText(category, "screen_width_ratio", "Screen size ratio against font size",

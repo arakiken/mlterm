@@ -442,7 +442,7 @@ void Java_mlterm_native_1activity_MLPreferenceActivity_setConfig(JNIEnv *env, jo
       val2 = val;
     }
 
-#if defined(__ANDROID__) && defined(USE_LIBSSH2)
+#ifdef USE_LIBSSH2
     if (strcmp(key, "start_with_local_pty") == 0) {
       start_with_local_pty = (strcmp(val2, "true") == 0);
     } else
