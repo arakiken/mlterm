@@ -1,5 +1,9 @@
 2020-07-26  Araki Ken  <arakiken@users.sf.net>
 
+	* MLPreferenceActivity.java: "Local echo mode" is removed.
+
+2020-07-26  Araki Ken  <arakiken@users.sf.net>
+
 	* MLPreferenceActivity.java:
 	  - ArrayIndexOutOfBoundsException is fixed.
 	  - "Local echo mode" is added.

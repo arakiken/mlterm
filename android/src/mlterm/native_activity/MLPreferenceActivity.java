@@ -137,7 +137,6 @@ public class MLPreferenceActivity extends PreferenceActivity {
     CharSequence[] entries1 = { "right", "left", "none", "autohide" };
     addList(category, "scrollbar_mode", "Scrollbar", entries1);
     addEditText(category, "logsize", "Backlog size", InputType.TYPE_CLASS_NUMBER);
-    addCheckBox(category, "use_local_echo", "Local echo mode");
     CharSequence[] entries2 = { "none", "cjk", "mongol" };
     addList(category, "vertical_mode", "Vertical mode", entries2);
     addEditText(category, "screen_width_ratio", "Screen size ratio against font size",
