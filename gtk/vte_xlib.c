@@ -45,6 +45,135 @@ static gboolean toplevel_configure(gpointer data) {
 
 static void vte_terminal_size_allocate(GtkWidget *widget, GtkAllocation *allocation);
 
+#if GTK_CHECK_VERSION(2, 90, 0) && defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2)
+static u_int xi2_get_state (XIModifierState *mods_state,
+                            XIButtonState   *buttons_state,
+                            XIGroupState    *group_state) {
+  u_int state = 0;
+
+  if (mods_state) {
+    state = mods_state->effective;
+  }
+
+  if (buttons_state) {
+    int count;
+
+    /*
+     * 5 is always less than buttons_state->mask_len * 8,
+     * so skip to check if 5 <= buttons_state->mask_len * 8.
+     */
+    for (count = 1; count <= 5; count++) {
+      if (XIMaskIsSet (buttons_state->mask, count)) {
+        state |= (Button1Mask << (count - 1));
+      }
+    }
+  }
+
+  if (group_state) {
+    state |= (group_state->effective) << 13;
+  }
+
+  return state;
+}
+
+static int xievent_to_xevent(XIDeviceEvent *xiev, XEvent *xev) {
+  switch (xiev->evtype) {
+  case XI_KeyPress:
+    xev->xkey.type = KeyPress;
+    xev->xkey.window = xiev->event;
+    xev->xkey.root = xiev->root;
+    xev->xkey.subwindow = xiev->child;
+    xev->xkey.time = xiev->time;
+    xev->xkey.x = xiev->event_x;
+    xev->xkey.y = xiev->event_y;
+    xev->xkey.x_root = xiev->root_x;
+    xev->xkey.y_root = xiev->root_y;
+    xev->xkey.state = xi2_get_state(&xiev->mods, &xiev->buttons, &xiev->group);
+    xev->xkey.keycode = xiev->detail;
+    xev->xkey.same_screen = True;
+    break;
+
+  case XI_ButtonPress:
+    xev->xbutton.type = ButtonPress;
+    xev->xbutton.window = xiev->event;
+    xev->xbutton.root = xiev->root;
+    xev->xbutton.subwindow = xiev->child;
+    xev->xbutton.time = xiev->time;
+    xev->xbutton.x = xiev->event_x;
+    xev->xbutton.y = xiev->event_y;
+    xev->xbutton.x_root = xiev->root_x;
+    xev->xbutton.y_root = xiev->root_y;
+    xev->xbutton.state = xi2_get_state(&xiev->mods, &xiev->buttons, &xiev->group);
+    xev->xbutton.button = xiev->detail;
+    xev->xbutton.same_screen = True;
+    break;
+
+  case XI_ButtonRelease:
+    xev->xbutton.type = ButtonRelease;
+    xev->xbutton.window = xiev->event;
+    xev->xbutton.root = xiev->root;
+    xev->xbutton.subwindow = xiev->child;
+    xev->xbutton.time = xiev->time;
+    xev->xbutton.x = xiev->event_x;
+    xev->xbutton.y = xiev->event_y;
+    xev->xbutton.x_root = xiev->root_x;
+    xev->xbutton.y_root = xiev->root_y;
+    xev->xbutton.state = xi2_get_state(&xiev->mods, &xiev->buttons, &xiev->group);
+    xev->xbutton.button = xiev->detail;
+    xev->xbutton.same_screen = True;
+    break;
+
+  case XI_Motion:
+    xev->xmotion.type = MotionNotify;
+    xev->xmotion.window = xiev->event;
+    xev->xmotion.root = xiev->root;
+    xev->xmotion.subwindow = xiev->child;
+    xev->xmotion.time = xiev->time;
+    xev->xmotion.x = xiev->event_x;
+    xev->xmotion.y = xiev->event_y;
+    xev->xmotion.x_root = xiev->root_x;
+    xev->xmotion.y_root = xiev->root_y;
+    xev->xmotion.state = xi2_get_state(&xiev->mods, &xiev->buttons, &xiev->group);
+    xev->xmotion.is_hint = 0;
+    xev->xmotion.same_screen = True;
+    break;
+
+#if 0
+  case XI_FocusIn:
+    xev->xfocus.type = FocusIn;
+    xev->xfocus.window = ((XIEnterEvent*)xiev)->event;
+    xev->xfocus.mode = ((XIEnterEvent*)xiev)->mode;
+    xev->xfocus.detail = ((XIEnterEvent*)xiev)->detail;
+    break;
+
+  case XI_FocusOut:
+    xev->xfocus.type = FocusOut;
+    xev->xfocus.window = ((XIEnterEvent*)xiev)->event;
+    xev->xfocus.mode = ((XIEnterEvent*)xiev)->mode;
+    xev->xfocus.detail = ((XIEnterEvent*)xiev)->detail;
+    break;
+#endif
+
+  default:
+    return 0;
+  }
+
+#if 0
+  bl_debug_printf("%s devid %d srcid %d window %d child %d: "
+                  "rootx %0.f rooty %0.f x %0.f y %0.f detail %d serial %d\n",
+                  xiev->evtype == XI_KeyPress ? "KeyPress" :
+                  (xiev->evtype == XI_ButtonPress ? "ButtonPress" :
+                   (xiev->evtype == XI_ButtonRelease ? "ButtonRelease" :
+                    (xiev->evtype == XI_Motion ? "Motion" : "Unknown"))),
+                  xiev->deviceid, xiev->sourceid, xiev->event, xiev->child,
+                  xiev->root_x, xiev->root_y, xiev->event_x, xiev->event_y,
+                  xiev->detail, xev->xany.serial);
+#endif
+
+  return 1;
+}
+#endif
+
 /*
  * Don't call vt_close_dead_terms() before returning GDK_FILTER_CONTINUE,
  * because vt_close_dead_terms() will destroy widget in pty_closed and
@@ -54,6 +183,10 @@ static GdkFilterReturn vte_terminal_filter(GdkXEvent *xevent, GdkEvent *event, /
                                            gpointer data) {
   u_int count;
   int is_key_event;
+#if GTK_CHECK_VERSION(2, 90, 0) && defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2)
+  XEvent new_xev;
+  XGenericEventCookie *cookie;
+#endif
 
   if (XFilterEvent((XEvent *)xevent, None)) {
     return GDK_FILTER_REMOVE;
@@ -61,18 +194,32 @@ static GdkFilterReturn vte_terminal_filter(GdkXEvent *xevent, GdkEvent *event, /
 
 #if GTK_CHECK_VERSION(2, 90, 0) && defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2)
   if (((XEvent *)xevent)->type == GenericEvent) {
-    /*
-     * It is not necessary to replace root, event and child members of XIDeviceEvent.
-     * (((XIDeviceEvent*)((XEvent*)xevent)->xcookie.data)->event)
-     *
-     * XXX TODO
-     * Convert XIDeviceEvent (XI_KeyPress etc) to XEvent (KeyPress etc) and
-     * pass it to ui_window_receive_event().
-     * See _gdk_x11_event_translator_translate() in gdk/x11/gdktranslator.c.
-     *  -> _gdk_x11_device_manager_xi2_translate_event() in gdk/x11/gdkdevicemanager-xi2.c.
-     */
+#if 0
+    static int xi_opcode;
 
-    return GDK_FILTER_CONTINUE;
+    if (xi_opcode == 0) {
+      int xi_error;
+      int xi_event;
+
+      if(!XQueryExtension(disp.display, "XInputExtension", &xi_opcode, &xi_event, &xi_error)) {
+        return GDK_FILTER_CONTINUE;
+      }
+    }
+#endif
+
+    cookie = &((XEvent*)xevent)->xcookie;
+
+#if 0
+    if (cookie->extension != xi_opcode) {
+      return GDK_FILTER_CONTINUE;
+    }
+#endif
+
+    memcpy(&new_xev, xevent, sizeof(XGenericEventCookie));
+    if (!xievent_to_xevent(cookie->data, &new_xev)) {
+      return GDK_FILTER_CONTINUE;
+    }
+    xevent = &new_xev;
   }
 #endif
 
@@ -97,20 +244,28 @@ static GdkFilterReturn vte_terminal_filter(GdkXEvent *xevent, GdkEvent *event, /
        * Key events are ignored if window isn't focused.
        * This processing is added for key binding of popup menu.
        */
-      if (is_key_event && ((XEvent *)xevent)->xany.window == disp.roots[count]->my_window) {
-        if (PVT(terminal)->screen->copymode == NULL) {
-          vt_term_search_reset_position(PVT(terminal)->term);
+      if (is_key_event) {
+        if (((XEvent *)xevent)->xany.window == disp.roots[count]->my_window) {
+          if (PVT(terminal)->screen->copymode == NULL) {
+            vt_term_search_reset_position(PVT(terminal)->term);
+          }
+
+          if (!disp.roots[count]->is_focused) {
+#if GTK_CHECK_VERSION(2, 90, 0) && defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2)
+            if (xevent == &new_xev) {
+              ((XIDeviceEvent*)cookie->data)->event =
+                gdk_x11_drawable_get_xid(gtk_widget_get_window(GTK_WIDGET(terminal)));
+            } else
+#endif
+            {
+              ((XEvent *)xevent)->xany.window =
+                gdk_x11_drawable_get_xid(gtk_widget_get_window(GTK_WIDGET(terminal)));
+            }
+
+            return GDK_FILTER_CONTINUE;
+          }
         }
-
-        if (!disp.roots[count]->is_focused) {
-          ((XEvent *)xevent)->xany.window =
-              gdk_x11_drawable_get_xid(gtk_widget_get_window(GTK_WIDGET(terminal)));
-
-          return GDK_FILTER_CONTINUE;
-        }
-      }
-
-      if (PVT(terminal)->screen->window.is_transparent &&
+      } else if (PVT(terminal)->screen->window.is_transparent &&
           ((XEvent *)xevent)->type == ConfigureNotify &&
           ((XEvent *)xevent)->xconfigure.event ==
               gdk_x11_drawable_get_xid(gtk_widget_get_window(GTK_WIDGET(terminal)))) {
@@ -163,8 +318,16 @@ static GdkFilterReturn vte_terminal_filter(GdkXEvent *xevent, GdkEvent *event, /
       if (is_key_event || ((XEvent *)xevent)->type == ButtonPress ||
           ((XEvent *)xevent)->type == ButtonRelease) {
         /* Hook key and button events for popup menu. */
-        ((XEvent *)xevent)->xany.window =
+#if GTK_CHECK_VERSION(2, 90, 0) && defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2)
+        if (xevent == &new_xev) {
+          ((XIDeviceEvent*)cookie->data)->event =
             gdk_x11_drawable_get_xid(gtk_widget_get_window(GTK_WIDGET(terminal)));
+        } else
+#endif
+        {
+          ((XEvent *)xevent)->xany.window =
+            gdk_x11_drawable_get_xid(gtk_widget_get_window(GTK_WIDGET(terminal)));
+        }
 
         return GDK_FILTER_CONTINUE;
       } else {
@@ -337,6 +500,29 @@ static void show_root(ui_display_t *disp, GtkWidget *widget) {
 #endif
 
   ui_display_show_root(disp, &PVT(terminal)->screen->window, 0, 0, 0, "mlterm", xid);
+
+#if GTK_CHECK_VERSION(2, 90, 0) && defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2)
+  if (is_xinput2) {
+    XIEventMask mask;
+
+    /* If XIAllDevices is set and 'a' key is pressed, 'aa' can be output. */
+    mask.deviceid = XIAllMasterDevices;
+    mask.mask_len = XIMaskLen(XI_LASTEVENT);
+    mask.mask = calloc(mask.mask_len, 1);
+    XISetMask(mask.mask, XI_Motion);
+    XISetMask(mask.mask, XI_ButtonPress);
+    XISetMask(mask.mask, XI_ButtonRelease);
+    XISetMask(mask.mask, XI_KeyPress);
+#if 0
+    XISetMask(mask.mask, XI_KeyRelease);
+    XISetMask(mask.mask, XI_FocusIn);
+    XISetMask(mask.mask, XI_FocusOut);
+#endif
+    XISelectEvents(disp->display, PVT(terminal)->screen->window.my_window, &mask, 1);
+    XSync(disp->display, False);
+    free(mask.mask);
+  }
+#endif
 }
 
 static void init_display(ui_display_t *disp, VteTerminalClass *vclass) {
@@ -347,7 +533,6 @@ static void init_display(ui_display_t *disp, VteTerminalClass *vclass) {
 
   if (G_OBJECT_TYPE(devman) == GDK_TYPE_X11_DEVICE_MANAGER_XI2) {
     is_xinput2 = 1;
-    bl_msg_printf("Set GDK_CORE_DEVICE_EVENTS=1 to disable XInput2 in advance.\n");
   }
 #endif
 

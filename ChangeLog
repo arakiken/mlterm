@@ -1,3 +1,9 @@
+2020-08-01  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/README: Updated.
+
+	* vte_xlib.c: XInput2 event (XIDeviceEvent) is converted to XEvent.
+
 2020-07-26  Araki Ken  <arakiken@users.sf.net>
 
 	* MLPreferenceActivity.java: "Local echo mode" is removed.
