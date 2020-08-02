@@ -1246,6 +1246,12 @@ static int resize_display(ui_display_t *disp, u_int width, u_int height, int rou
   return 1;
 }
 
+static void close_toplevel_window(ui_display_t *disp) {
+  if (disp->roots[0]->window_destroyed) {
+    (*disp->roots[0]->window_destroyed)(disp->roots[0]);
+  }
+}
+
 #ifndef COMPAT_LIBVTE
 static void shell_surface_ping(void *data, struct wl_shell_surface *shell_surface,
                                uint32_t serial) {
@@ -1424,11 +1430,7 @@ static void zxdg_toplevel_configure(void *data, struct zxdg_toplevel_v6 *zxdg_to
 }
 
 static void zxdg_toplevel_close(void *data, struct zxdg_toplevel_v6 *toplevel) {
-  ui_display_t *disp = data;
-
-  if (disp->roots[0]->window_destroyed) {
-    (*disp->roots[0]->window_destroyed)(disp->roots[0]);
-  }
+  close_toplevel_window(data);
 }
 
 const struct zxdg_toplevel_v6_listener zxdg_toplevel_listener = {
@@ -1556,11 +1558,7 @@ static void xdg_toplevel_configure(void *data, struct xdg_toplevel *xdg_toplevel
 }
 
 static void xdg_toplevel_close(void *data, struct xdg_toplevel *toplevel) {
-  ui_display_t *disp = data;
-
-  if (disp->roots[0]->window_destroyed) {
-    (*disp->roots[0]->window_destroyed)(disp->roots[0]);
-  }
+  close_toplevel_window(data);
 }
 
 const struct xdg_toplevel_listener xdg_toplevel_listener = {
@@ -2749,6 +2747,8 @@ skip:
 }
 
 #ifndef COMPAT_LIBVTE
+#include <errno.h>
+
 int ui_display_receive_next_event(ui_display_t *disp) {
   u_int count;
 
@@ -2757,7 +2757,13 @@ int ui_display_receive_next_event(ui_display_t *disp) {
   for (count = 0; count < num_displays; count++) {
     if (displays[count]->display->wlserv == disp->display->wlserv) {
       if (displays[count] == disp) {
-        return (wl_display_dispatch(disp->display->wlserv->display) != -1);
+        if (wl_display_dispatch(disp->display->wlserv->display) == -1 && errno != EAGAIN) {
+          close_toplevel_window(disp);
+
+          return 0;
+        } else {
+          return 1;
+        }
       } else {
         break;
       }

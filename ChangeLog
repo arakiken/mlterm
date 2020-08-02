@@ -1,3 +1,8 @@
+2020-08-02  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_display.c: If wl_display_dispatch() returns -1 (failure),
+	  ui_window_t::window_destroyed() is called.
+
 2020-08-01  Araki Ken  <arakiken@users.sf.net>
 
 	* gtk/README: Updated.
