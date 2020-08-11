@@ -98,5 +98,7 @@ void mc_update_auto_detect(void) {
     mc_set_str_value("auto_detect_encodings", new_encodings);
     free(old_encodings);
     old_encodings = new_encodings;
+  } else {
+    free(new_encodings);
   }
 }

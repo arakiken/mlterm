@@ -30,7 +30,7 @@ int ui_set_font_size_range(u_int min_font_size, u_int max_font_size);
 ui_font_manager_t *ui_font_manager_new(Display *display, ui_type_engine_t type_engine,
                                        ui_font_present_t font_present, u_int font_size,
                                        ef_charset_t usascii_font_cs,
-                                       u_int step_in_changing_font_size, u_int letter_space,
+                                       u_int step_in_changing_font_size, int letter_space,
                                        int use_bold_font, int use_italic_font);
 
 void ui_font_manager_destroy(ui_font_manager_t *font_man);
@@ -59,7 +59,7 @@ int ui_smaller_font(ui_font_manager_t *font_man);
 
 u_int ui_get_font_size(ui_font_manager_t *font_man);
 
-int ui_set_letter_space(ui_font_manager_t *font_man, u_int letter_space);
+int ui_set_letter_space(ui_font_manager_t *font_man, int letter_space);
 
 #define ui_get_letter_space(font_man) ((font_man)->font_cache->letter_space)
 

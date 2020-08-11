@@ -110,6 +110,8 @@ int bl_locale_init(const char *locale) {
     }
 
     result = 0;
+  } else {
+    result = 1;
   }
 
   if (sys_locale) {
@@ -127,7 +129,6 @@ int bl_locale_init(const char *locale) {
    * can be free'ed, so strdup() shoule be called.
    */
   sys_locale = strdup(locale);
-  result = 1;
 
   if ((locale_p = sys_lang_country = strdup(locale)) == NULL) {
     sys_locale = NULL;

@@ -138,7 +138,7 @@ int entry_reset(entry_t *entry) {
  */
 void section_free(section_t *section) {
   section->size--;
-  for (; section->size > 0; (section->size)--) {
+  for (; section->size >= 0; (section->size)--) {
     entry_free(&(section->entry[section->size]));
   }
 }

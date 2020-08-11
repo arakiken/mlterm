@@ -70,7 +70,6 @@ entry_radio_t *entry_radio_new(const char *key, const char *terms) {
   }
   entry->num = i + 1;
   entry->term = malloc(sizeof(char *) * (i + 1));
-  p = src;
   entry->term[i] = NULL; /* garrison */
   for (; i > 0; i--) {
     p = strrchr(src, '/');

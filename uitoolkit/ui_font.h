@@ -79,7 +79,7 @@ typedef struct ui_font {
 
   /*
    * If is_var_col_width is false and is_proportional is true,
-   * characters are drawn one by one. (see {xft_}draw_str())
+   * draw one character at a time to fit column width. (see {xft_}draw_str())
    */
   int8_t is_var_col_width;
   int8_t is_proportional;
@@ -97,7 +97,7 @@ void ui_font_use_fontconfig(void);
 
 ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
                        ui_font_present_t font_present, const char *fontname, u_int fontsize,
-                       u_int col_width, int use_medium_for_bold, u_int letter_space);
+                       u_int col_width, int use_medium_for_bold, int letter_space);
 
 void ui_font_destroy(ui_font_t *font);
 

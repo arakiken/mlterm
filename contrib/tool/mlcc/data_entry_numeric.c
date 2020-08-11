@@ -32,7 +32,7 @@ entry_numeric_t *entry_numeric_new(const char *key, int max, int min, const char
   tmp = mlterm_get_param(key);
   entry = malloc(sizeof(entry_numeric_t));
   if (tmp)
-    entry->initial = atoi(strdup(tmp));
+    entry->initial = atoi(tmp);
   else
     entry->initial = 0;
   entry->current = entry->initial;

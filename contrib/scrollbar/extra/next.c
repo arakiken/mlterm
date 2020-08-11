@@ -305,14 +305,6 @@ static void draw_down_button(ui_sb_view_t *view, int is_pressed) {
   }
 
   if (is_pressed) {
-    arrow = next_sb->arrow_up_pressed;
-    src = arrow_up_pressed_src;
-  } else {
-    arrow = next_sb->arrow_up;
-    src = arrow_up_src;
-  }
-
-  if (is_pressed) {
     arrow = next_sb->arrow_down_pressed;
     src = arrow_down_pressed_src;
   } else {

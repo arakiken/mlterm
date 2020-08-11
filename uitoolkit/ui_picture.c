@@ -188,13 +188,8 @@ static ui_icon_picture_t *create_icon_picture(ui_display_t *disp,
     return NULL;
   }
 
-  if ((pic->file_path = strdup(file_path)) == NULL) {
-    free(pic->file_path);
-
-    return NULL;
-  }
-
-  if (!ui_imagelib_load_file(disp, file_path, &(pic->cardinal), &(pic->pixmap), &(pic->mask),
+  if ((pic->file_path = strdup(file_path)) == NULL ||
+      !ui_imagelib_load_file(disp, file_path, &(pic->cardinal), &(pic->pixmap), &(pic->mask),
                              &icon_size, &icon_size, 0)) {
     free(pic->file_path);
     free(pic);

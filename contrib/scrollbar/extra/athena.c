@@ -35,10 +35,6 @@ static void get_default_color(ui_sb_view_t *view, char **fg_color, char **bg_col
 
 static void realized(ui_sb_view_t *view, Display *display, int screen, Window window, GC gc,
                      unsigned int height) {
-  athena_sb_view_t *athena_sb;
-
-  athena_sb = (athena_sb_view_t *)view;
-
   view->display = display;
   view->screen = screen;
   view->window = window;
@@ -52,23 +48,15 @@ static void resized(ui_sb_view_t *view, Window window, unsigned int height) {
 }
 
 static void destroy(ui_sb_view_t *view) {
-  athena_sb_view_t *athena_sb;
-
-  athena_sb = (athena_sb_view_t *)view;
-
-  if (athena_sb) {
-    free(athena_sb);
-  }
+  free(view);
 }
 
 static void draw_scrollbar(ui_sb_view_t *view, int bar_top_y, unsigned int bar_height) {
-  athena_sb_view_t *athena_sb;
   XPoint *points;
   unsigned short x;
   unsigned short y;
   int i = 0;
   int j;
-  athena_sb = (athena_sb_view_t *)view;
 
   /* clear */
   XClearArea(view->display, view->window, 0, 0, WIDTH, view->height - 1, 0);

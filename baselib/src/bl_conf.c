@@ -490,6 +490,8 @@ int bl_conf_read(bl_conf_t *conf, const char *filename) {
     bl_map_get(conf->conf_entries, key, pair);
     if (!pair) {
       if ((entry = create_new_conf_entry(conf, key)) == NULL) {
+        free(value);
+
         return 0;
       }
     } else {

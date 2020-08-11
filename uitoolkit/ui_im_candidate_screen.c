@@ -397,7 +397,6 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
 static void draw_screen_horizontal(ui_im_candidate_screen_t *cand_screen, u_int top, u_int last,
                                    u_int draw_index, int do_resize) {
   ui_font_t *font;
-  u_int win_width;
   u_int win_height;
   u_int i;
   int x = 0;
@@ -420,7 +419,8 @@ static void draw_screen_horizontal(ui_im_candidate_screen_t *cand_screen, u_int 
 
   if (do_resize) {
     /* width of window */
-    win_width = 0;
+    u_int win_width = 0;
+
     for (i = top; i <= last; i++) {
       if (cand_screen->candidates[i].info) {
         if (((cand_screen->candidates[i].info >> 8) & 0xff) != 0) {
@@ -440,7 +440,6 @@ static void draw_screen_horizontal(ui_im_candidate_screen_t *cand_screen, u_int 
 
     resize(cand_screen, win_width, win_height);
   } else {
-    win_width = cand_screen->window.width;
     win_height = cand_screen->window.height;
   }
 

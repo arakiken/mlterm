@@ -325,7 +325,7 @@ static XFontStruct *load_xfont(Display *display, const char *family, const char 
 
 static int xcore_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
                           u_int col_width, /* if usascii font wants to be set , 0 will be set */
-                          int use_medium_for_bold, u_int letter_space) {
+                          int use_medium_for_bold, int letter_space) {
   XFontStruct *xfont;
   u_int cols;
   char *weight;
@@ -527,23 +527,35 @@ font_found:
   if (col_width == 0) {
     /* standard(usascii) font */
 
-    if (percent > 0) {
+    if (!font->is_var_col_width) {
       u_int ch_width;
 
-      if (font->is_vertical) {
-        /*
-         * !! Notice !!
-         * The width of full and half character font is the same.
-         */
-        ch_width = DIVIDE_ROUNDING(fontsize * percent, 100);
+      if (percent > 0) {
+        if (font->is_vertical) {
+          /* The width of full and half character font is the same. */
+          letter_space *= 2;
+          ch_width = DIVIDE_ROUNDING(fontsize * percent, 100);
+        } else {
+          ch_width = DIVIDE_ROUNDING(fontsize * percent, 200);
+        }
       } else {
-        ch_width = DIVIDE_ROUNDING(fontsize * percent, 200);
+        ch_width = font->width;
+
+        if (font->is_vertical) {
+          /* The width of full and half character font is the same. */
+          letter_space *= 2;
+          ch_width *= 2;
+        }
+      }
+
+      if (letter_space > 0 || ch_width > -letter_space) {
+        ch_width += letter_space;
       }
 
       if (font->width != ch_width) {
         font->is_proportional = 1;
 
-        if (!font->is_var_col_width && font->width < ch_width) {
+        if (font->width < ch_width) {
           /*
            * If width(2) of '1' doesn't match ch_width(4)
            * x_off = (4-2)/2 = 1.
@@ -562,22 +574,6 @@ font_found:
 
         font->width = ch_width;
       }
-    } else if (font->is_vertical) {
-      /*
-       * !! Notice !!
-       * The width of full and half character font is the same.
-       */
-
-      font->is_proportional = 1;
-      font->x_off = font->width / 2;
-      font->width *= 2;
-    }
-
-    /* letter_space is ignored in variable column width mode. */
-    if (!font->is_var_col_width && letter_space > 0) {
-      font->is_proportional = 1;
-      font->width += letter_space;
-      font->x_off += (letter_space / 2);
     }
   } else {
     /* not a standard(usascii) font */
@@ -589,35 +585,29 @@ font_found:
 
     if (font->is_vertical) {
       /*
-       * !! Notice !!
        * The width of full and half character font is the same.
+       * is_var_col_width is always false if is_vertical is true.
        */
-
       if (font->width != col_width) {
-        bl_msg_printf(
-            "Font(id %x) width(%d) is not matched with "
-            "standard width(%d).\n",
-            font->id, font->width, col_width);
+        bl_msg_printf("Font(id %x) width(%d) doesn't fit column width(%d).\n",
+                      font->id, font->width, col_width);
 
         font->is_proportional = 1;
 
-        /* is_var_col_width is always false if is_vertical is true. */
-        if (/* ! font->is_var_col_width && */ font->width < col_width) {
+        if (font->width < col_width) {
           font->x_off = (col_width - font->width) / 2;
         }
 
         font->width = col_width;
       }
-    } else {
-      if (font->width != col_width * cols) {
-        bl_msg_printf(
-            "Font(id %x) width(%d) is not matched with "
-            "standard width(%d).\n",
-            font->id, font->width, col_width * cols);
+    } else if (font->width != col_width * cols) {
+      bl_msg_printf("Font(id %x) width(%d) doesn't fit column width(%d).\n",
+                    font->id, font->width, col_width * cols);
 
-        font->is_proportional = 1;
+      font->is_proportional = 1;
 
-        if (!font->is_var_col_width && font->width < col_width * cols) {
+      if (!font->is_var_col_width) {
+        if (font->width < col_width * cols) {
           font->x_off = (col_width * cols - font->width) / 2;
         }
 
@@ -679,7 +669,7 @@ static u_int xft_calculate_char_width(ui_font_t *font, u_int32_t ch /* US-ASCII 
 
 static int xft_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
                         u_int col_width, /* if usascii font wants to be set , 0 will be set. */
-                        u_int letter_space,
+                        int letter_space,
                         int aa_opt, /* 0 = default , 1 = enable , -1 = disable */
                         int use_point_size, double dpi) {
   int (*func)(ui_font_t *, const char *, u_int, u_int, u_int, int, int, double);
@@ -721,7 +711,7 @@ static u_int xft_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shape_glyphs
 #elif defined(USE_TYPE_XFT)
 u_int xft_calculate_char_width(ui_font_t *font, u_int32_t ch);
 int xft_set_font(ui_font_t *font, const char *fontname, u_int fontsize, u_int col_width,
-                 u_int letter_space, int aa_opt, int use_point_size, double dpi);
+                 int letter_space, int aa_opt, int use_point_size, double dpi);
 int xft_set_ot_font(ui_font_t *font);
 #define xft_convert_text_to_glyphs(font, shape_glyphs, num_shape_glyphs, xoffsets, yoffsets, \
                                    advances, noshape_glyphs, src, src_len, script, features) \
@@ -748,7 +738,7 @@ static u_int cairo_calculate_char_width(ui_font_t *font, u_int32_t ch /* US-ASCI
 
 static int cairo_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
                           u_int col_width, /* if usascii font wants to be set , 0 will be set. */
-                          u_int letter_space,
+                          int letter_space,
                           int aa_opt, /* 0 = default , 1 = enable , -1 = disable */
                           int use_point_size, double dpi) {
   int (*func)(ui_font_t *, const char *, u_int, u_int, u_int, int, int, double);
@@ -789,7 +779,7 @@ static u_int cairo_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shape_glyp
 #elif defined(USE_TYPE_CAIRO)
 u_int cairo_calculate_char_width(ui_font_t *font, u_int32_t ch);
 int cairo_set_font(ui_font_t *font, const char *fontname, u_int fontsize, u_int col_width,
-                   u_int letter_space, int aa_opt, int use_point_size, double dpi);
+                   int letter_space, int aa_opt, int use_point_size, double dpi);
 int cairo_set_ot_font(ui_font_t *font);
 #define cairo_convert_text_to_glyphs(font, shape_glyphs, num_shape_glyphs, xoffsets, yoffsets, \
                                      advances, noshape_glyphs, src, src_len, script, features) \
@@ -806,7 +796,7 @@ u_int ft_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shape_glyphs, int8_t
 static u_int calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs) {
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
   if (font->xft_font) {
-    if (cs != US_ASCII && !IS_ISCII(cs)) {
+    if (cs != US_ASCII && cs != ISO8859_1_R && !IS_ISCII(cs)) {
       if (!(ch = ui_convert_to_xft_ucs4(ch, cs))) {
         return 0;
       }
@@ -818,7 +808,7 @@ static u_int calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
   if (font->cairo_font) {
-    if (cs != US_ASCII && !IS_ISCII(cs)) {
+    if (cs != US_ASCII && cs != ISO8859_1_R && !IS_ISCII(cs)) {
       if (!(ch = ui_convert_to_xft_ucs4(ch, cs))) {
         return 0;
       }
@@ -847,12 +837,12 @@ void ui_compose_dec_special_font(void) {
   compose_dec_special_font = 1;
 }
 
-ui_font_t *ui_font_new(
-    Display *display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
-    ui_font_present_t font_present, /* FONT_VAR_WIDTH is never set if FONT_VERTICAL is set. */
-    const char *fontname, u_int fontsize, u_int col_width, int use_medium_for_bold,
-    u_int letter_space /* ignored in variable column width mode. */
-    ) {
+ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
+                       /* FONT_VAR_WIDTH is never set if FONT_VERTICAL is set. */
+                       ui_font_present_t font_present,
+                       const char *fontname, u_int fontsize, u_int col_width,
+                       int use_medium_for_bold,
+                       int letter_space /* ignored in variable column width mode. */) {
   ui_font_t *font;
 
   if ((font = calloc(1, sizeof(ui_font_t))) == NULL) {
@@ -886,9 +876,6 @@ ui_font_t *ui_font_new(
   }
 
   switch (type_engine) {
-    default:
-      return NULL;
-
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
     case TYPE_XFT:
       if (!xft_set_font(font, fontname, fontsize, col_width, letter_space,
@@ -920,7 +907,7 @@ ui_font_t *ui_font_new(
 #endif
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
-    case TYPE_XCORE:
+    default /* case TYPE_XCORE */:
       if (font_present & FONT_AA) {
         return NULL;
       } else if (!xcore_set_font(font, fontname, fontsize, col_width, use_medium_for_bold,
@@ -967,8 +954,7 @@ end:
   font->size_attr = size_attr;
 
   if (font->is_proportional && !font->is_var_col_width) {
-    bl_msg_printf("Characters (cs %x) are drawn *one by one* to arrange column width.\n",
-                  FONT_CS(font->id));
+    bl_msg_printf("Font(id %x): Draw one char at a time to fit column width.\n", font->id);
   }
 
 #ifdef DEBUG
@@ -1121,9 +1107,33 @@ void ui_font_set_dpi_for_fc(double dpi) { dpi_for_fc = dpi; }
 
 static int use_cp932_ucs_for_xft = 0;
 
-static u_int32_t convert_to_ucs4(u_int32_t ch, ef_charset_t cs) {
+void ui_use_cp932_ucs_for_xft(void) {
+  use_cp932_ucs_for_xft = 1;
+}
+
+/*
+ * used only for xft or cairo.
+ * Don't call this function for US_ASCII, ISO8859_1_R and ISCII.
+ */
+u_int32_t ui_convert_to_xft_ucs4(u_int32_t ch, ef_charset_t cs) {
   if (IS_ISO10646_UCS4(cs) /* || cs == ISO10646_UCS2_1 */) {
     return ch;
+  } else if (use_cp932_ucs_for_xft && cs == JISX0208_1983) {
+    if (ch == 0x2140) {
+      return 0xff3c;
+    } else if (ch == 0x2141) {
+      return 0xff5e;
+    } else if (ch == 0x2142) {
+      return 0x2225;
+    } else if (ch == 0x215d) {
+      return 0xff0d;
+    } else if (ch == 0x2171) {
+      return 0xffe0;
+    } else if (ch == 0x2172) {
+      return 0xffe1;
+    } else if (ch == 0x224c) {
+      return 0xffe2;
+    }
   } else {
     ef_char_t non_ucs;
     ef_char_t ucs4;
@@ -1147,39 +1157,6 @@ static u_int32_t convert_to_ucs4(u_int32_t ch, ef_charset_t cs) {
       return 0;
     }
   }
-}
-
-void ui_use_cp932_ucs_for_xft(void) {
-  use_cp932_ucs_for_xft = 1;
-}
-
-/*
- * used only for xft or cairo.
- */
-u_int32_t ui_convert_to_xft_ucs4(u_int32_t ch,
-                                 ef_charset_t cs /* US_ASCII and ISO8859_1_R is not accepted */
-                                 ) {
-  if (cs == US_ASCII || cs == ISO8859_1_R) {
-    return 0;
-  } else if (use_cp932_ucs_for_xft && cs == JISX0208_1983) {
-    if (ch == 0x2140) {
-      return 0xff3c;
-    } else if (ch == 0x2141) {
-      return 0xff5e;
-    } else if (ch == 0x2142) {
-      return 0x2225;
-    } else if (ch == 0x215d) {
-      return 0xff0d;
-    } else if (ch == 0x2171) {
-      return 0xffe0;
-    } else if (ch == 0x2172) {
-      return 0xffe1;
-    } else if (ch == 0x224c) {
-      return 0xffe2;
-    }
-  }
-
-  return convert_to_ucs4(ch, cs);
 }
 
 #endif

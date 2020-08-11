@@ -297,6 +297,8 @@ char *get_value(char *dev, char *key) {
   ret[count] = '\0';
 
   if (count < 2 + strlen(key) || strcmp(ret, "#error") == 0) {
+    free(ret);
+
     return NULL;
   }
 

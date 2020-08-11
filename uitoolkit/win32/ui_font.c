@@ -10,7 +10,7 @@
 #include <pobl/bl_str.h>    /* bl_str_sep/bl_str_to_int */
 #include <pobl/bl_locale.h> /* bl_get_lang() */
 #include <mef/ef_ucs4_map.h>
-#include <vt_char_encoding.h> /* ui_convert_to_xft_ucs4 */
+#include <vt_char_encoding.h>
 
 #ifdef USE_OT_LAYOUT
 #include "otl.h"
@@ -396,9 +396,7 @@ void ui_compose_dec_special_font(void) {
 
 ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
                        ui_font_present_t font_present, const char *fontname, u_int fontsize,
-                       u_int col_width, int use_medium_for_bold,
-                       u_int letter_space /* Ignored for now. */
-                       ) {
+                       u_int col_width, int use_medium_for_bold, int letter_space) {
   ui_font_t *font;
   u_int cols;
   wincs_info_t *wincsinfo;
@@ -625,24 +623,36 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   if (col_width == 0) {
     /* standard(usascii) font */
 
-    if (percent > 0) {
+    if (!font->is_var_col_width) {
       u_int ch_width;
 
-      if (font->is_vertical) {
-        /*
-         * !! Notice !!
-         * The width of full and half character font is the same.
-         */
-        ch_width = fontsize * percent / 100;
+      if (percent > 0) {
+        if (font->is_vertical) {
+          /* The width of full and half character font is the same. */
+          letter_space *= 2;
+          ch_width = fontsize * percent / 100;
+        } else {
+          ch_width = fontsize * percent / 200;
+        }
       } else {
-        ch_width = fontsize * percent / 200;
+        ch_width = font->width;
+
+        if (font->is_vertical) {
+          /* The width of full and half character font is the same. */
+          letter_space *= 2;
+          ch_width *= 2;
+        }
       }
 
       if (use_point_size) {
         ch_width = -MulDiv(ch_width, GetDeviceCaps(display_gc, LOGPIXELSX), 72);
       }
 
-      if (!font->is_var_col_width && font->width != ch_width) {
+      if (letter_space > 0 || ch_width > -letter_space) {
+        ch_width += letter_space;
+      }
+
+      if (font->width != ch_width) {
         font->is_proportional = 1;
 
         if (font->width < ch_width) {
@@ -651,22 +661,6 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
         font->width = ch_width;
       }
-    } else if (font->is_vertical) {
-      /*
-       * !! Notice !!
-       * The width of full and half character font is the same.
-       */
-
-      font->is_proportional = 1;
-      font->x_off = font->width / 2;
-      font->width *= 2;
-    }
-
-    /* letter_space is ignored in variable column width mode. */
-    if (!font->is_var_col_width && letter_space > 0) {
-      font->is_proportional = 1;
-      font->width += letter_space;
-      font->x_off += (letter_space / 2);
     }
   } else {
     /* not a standard(usascii) font */
@@ -678,30 +672,29 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
     if (font->is_vertical) {
       /*
-       * !! Notice !!
        * The width of full and half character font is the same.
+       * is_var_col_width is always false if is_vertical is true.
        */
-
       if (font->width != col_width) {
+        bl_msg_printf("Font(id %x) width(%d) doesn't fit column width(%d).\n",
+                      font->id, font->width, col_width);
+
         font->is_proportional = 1;
 
-        /* is_var_col_width is always false if is_vertical is true. */
-        if (/* ! font->is_var_col_width && */ font->width < col_width) {
+        if (font->width < col_width) {
           font->x_off = (col_width - font->width) / 2;
         }
 
         font->width = col_width;
       }
-    } else {
-      if (font->width != col_width * cols) {
-        bl_msg_printf(
-            "Font width(%d) is not matched with "
-            "standard width(%d).\n",
-            font->width, col_width * cols);
+    } else if (font->width != col_width * cols) {
+      bl_msg_printf("Font(id %x) width(%d) doesn't fit column width(%d).\n",
+                    font->id, font->width, col_width * cols);
 
-        font->is_proportional = 1;
+      font->is_proportional = 1;
 
-        if (!font->is_var_col_width && font->width < col_width * cols) {
+      if (!font->is_var_col_width) {
+        if (font->width < col_width * cols) {
           font->x_off = (col_width * cols - font->width) / 2;
         }
 
@@ -722,8 +715,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   }
 
   if (font->is_proportional && !font->is_var_col_width) {
-    bl_msg_printf("Characters (cs %x) are drawn *one by one* to arrange column width.\n",
-                  FONT_CS(font->id));
+    bl_msg_printf("Font(id %x): Draw one char at a time to fit column width.\n", font->id);
   }
 
   return font;

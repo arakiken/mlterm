@@ -4,7 +4,8 @@
 
 #define _DATA_H_
 
-#define MAX_ENTRY 8
+/* Check init_data() in main.c */
+#define MAX_ENTRY 9
 
 /*
  * typedefs

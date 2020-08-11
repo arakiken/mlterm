@@ -573,14 +573,13 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
     } else if (state >= 3) {
       if (drcs_glyph) {
         drcs_glyphs[str_len++] = drcs_glyph;
-      } else /* if( pic_glyph) */
-      {
+      } else /* if(pic_glyph) */ {
         pic_glyphs[str_len++] = pic_glyph;
       }
-    } else /* if( state == 2) */
-    {
+    } else /* if(state == 2) */ {
       u_int32_t ucs4;
 
+      /* state == 2 means that ch_cs is not US_ASCII, ISO8859_1_R and IS_ISCII */
       if (!(ucs4 = ui_convert_to_xft_ucs4(ch_code, ch_cs))) {
 #ifdef DEBUG
         bl_warn_printf(BL_DEBUG_TAG " strange character 0x%x, ignored.\n", ch_code);
@@ -1104,20 +1103,20 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       }
 #else /* !USE_SDL2 */
 #ifndef NO_DRAW_IMAGE_STRING
-      if (
+      if (uifont->height != height || state == 3
 #ifdef DRAW_SCREEN_IN_PIXELS
 #ifdef USE_FREETYPE
           /*
            * ISCII or ISO10646_UCS4_1_V
            * (see #ifdef USE_FREETYPE #endif in draw_string() in ui_window.c)
            */
-          (uifont->is_proportional && ui_window_has_wall_picture(window)) ||
+          || (uifont->is_proportional && ui_window_has_wall_picture(window))
 #endif
-          /* draw_alone || */       /* draw_alone is always false on framebuffer. */
+          /* || draw_alone */       /* draw_alone is always false on framebuffer. */
 #else /* DRAW_SCREEN_IN_PIXELS */
-          (ui_window_has_wall_picture(window) && bg_color == VT_BG_COLOR) || draw_alone ||
+          || (ui_window_has_wall_picture(window) && bg_color == VT_BG_COLOR) || draw_alone
 #endif /* DRAW_SCREEN_IN_PIXELS */
-          uifont->height != height || state == 3)
+         )
 #endif /* NO_DRAW_IMAGE_STRING */
       {
         if (bg_color == VT_BG_COLOR) {

@@ -1,3 +1,41 @@
+2020-08-11  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja: Updated.
+
+	* test.c: TEST_bl_str() is added.
+
+	* bl_conf.c, bl_str.c, data_entry_numeric.c, data_entry_string.c,
+	  mlterm-menu.c, mc_auto_detect.c, mc_im.c, ui_picture.c, xlib/ui_imagelib.c:
+	  Memory leak is fixed.
+
+	* bl_debug.c, athena.c, mozmodern.c, motif.c, next.c,
+	  data_entry_radio.c, im_skk.c, ui_sample_sb_view_lib.c, fb/ui_window.c,
+	  ui_im_candidate_screen.c, libctl/vt_bidi.c, libctl/vt_iscii.c,
+	  vt_ot_layout.c: Meaningless code is removed.
+
+	* */ui_font.[ch], ui_font_ft.c, ui_font_manager[ch], ui_font_cache.[ch],
+	  ui_screen.c, ui_main_config.[ch]:
+	  Negative value is accepted for letter_space.
+
+	* vt_parser.c: request_locator() restore the original state of
+	  vt_parser->locator_mode and vt_parser->mouse_mode.
+
+	* wayland/ui_display.c: Untabified.
+
+	* ui_layout.c: 'return 1' is removed from screen_scroll_downward().
+
+	* beos.cpp: view_draw_string() considers font->x_off.
+
+	* im_uim.c: Double free() is fixed.
+
+	* bl_locale.c: bl_locale_init() returns 0 if setlocale() fails.
+
+	* data.h: MAX_ENTRY is changed from 8 to 9.
+
+	* ef_sjis_parser.c: Broken processing JISX0213 is fixed.
+
+	* zmodem.c: get_type_string() is added.
+
 2020-08-02  Araki Ken  <arakiken@users.sf.net>
 
 	* wayland/ui_display.c: If wl_display_dispatch() returns -1 (failure),

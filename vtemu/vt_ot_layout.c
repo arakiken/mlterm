@@ -216,7 +216,7 @@ skip_loop:
        * to 1 visual character) can be skipped.
        */
       dst_pos_tmp - dst_pos == src_len) {
-    return (dst_pos = dst_pos_tmp);
+    return dst_pos_tmp;
   }
 
   state->substituted = 1;
@@ -399,7 +399,7 @@ int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len) {
   state->has_var_width_char = 0;
   state->num_glyphs = 0;
   dst_pos = -1;
-  prev_font = font = UNKNOWN_CS;
+  prev_font = UNKNOWN_CS;
   xfont = NULL;
   cluster_beg = 0;
   for (src_pos = 0; src_pos < src_len; src_pos++) {

@@ -162,7 +162,6 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
   u_int count;
   int y_off;
   int orig_x;
-  int orig_y_off;
   u_char *bitmap_line;
   u_long pixel;
 
@@ -368,7 +367,6 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
 #endif
 
     orig_x = x;
-    orig_y_off = y_off;
 
     for (; y_off < font_height; y_off++) {
       if (src_bg_is_set) {
@@ -440,8 +438,9 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
   }
 #if defined(USE_FREETYPE)
   else {
+    int orig_y_off = y_off;
+
     orig_x = x;
-    orig_y_off = y_off;
 
     for (; y_off < font_height; y_off++) {
       int prev_crowded_out = 0;

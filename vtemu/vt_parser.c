@@ -1499,10 +1499,10 @@ static void request_locator(vt_parser_t *vt_parser) {
 
     (*vt_parser->xterm_listener->request_locator)(vt_parser->xterm_listener->self);
 
-    vt_parser->locator_mode |= LOCATOR_REQUEST;
+    vt_parser->locator_mode &= ~LOCATOR_REQUEST;
 
     if (orig) {
-      orig = vt_parser->mouse_mode;
+      vt_parser->mouse_mode = orig;
     }
 
 #if 0
@@ -2675,6 +2675,7 @@ static void iterm2_proprietary_set(vt_parser_t *vt_parser, char *pt) {
         keep_aspect = 0;
       }
     } else {
+      encoded = args;
       path = get_home_file_path("", vt_pty_get_slave_name(vt_parser->pty) + 5, "img");
     }
 
@@ -3192,10 +3193,8 @@ end:
 static void define_macro(vt_parser_t *vt_parser, u_char *param, u_char *data) {
   u_char *p;
   int ps[3] = {0, 0, 0};
-  int num;
+  int num = 0;
 
-  p = param;
-  num = 0;
   for (p = param; *p != 'z'; p++) {
     if ((*p == ';' || *p == '!') && num < 3) {
       *p = '\0';

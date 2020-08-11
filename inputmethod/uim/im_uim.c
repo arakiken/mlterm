@@ -599,8 +599,6 @@ static void preedit_pushback(void *ptr, int attr, const char *_str) {
   (*uim->parser_term->init)(uim->parser_term);
   (*uim->parser_term->set_str)(uim->parser_term, (u_char *)str, len);
 
-  count = 0;
-
   while ((*uim->parser_term->next_char)(uim->parser_term, &ch)) {
     int is_fullwidth = 0;
     int is_comb = 0;
@@ -1442,12 +1440,9 @@ im_info_t *im_uim_get_info(char *locale, char *encoding) {
   }
 
   result->num_args = uim_get_nr_im(u) + 1;
-  if (!(result->args = calloc(result->num_args, sizeof(char *)))) {
-    goto error;
-  }
-
-  if (!(result->readable_args = calloc(result->num_args, sizeof(char *)))) {
-    free(result->args);
+  result->args = calloc(result->num_args, sizeof(char *));
+  result->readable_args = calloc(result->num_args, sizeof(char *));
+  if (result->args == NULL || result->readable_args == NULL) {
     goto error;
   }
 

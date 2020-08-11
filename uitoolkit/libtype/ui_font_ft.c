@@ -216,14 +216,17 @@ static int parse_fc_font_name(
   return 1;
 }
 
-static u_int get_fc_col_width(ui_font_t *font, double fontsize_d, u_int percent, u_int cols,
-                              u_int letter_space) {
+static u_int get_fc_col_width(ui_font_t *font, double fontsize_d, u_int percent, u_int cols) {
+  if (font->is_var_col_width) {
+    return 0;
+  }
+
   if (percent == 0) {
-    if (letter_space == 0 || font->is_var_col_width) {
 #ifdef USE_TYPE_XFT
-      if (!font->is_vertical)
+    if (!font->is_vertical)
 #endif
-        return 0;
+    {
+      return 0;
     }
 
     percent = 100;
@@ -244,9 +247,9 @@ static u_int get_fc_col_width(ui_font_t *font, double fontsize_d, u_int percent,
       dpi = (widthpix * 254) / (widthmm * 10);
     }
 
-    return DIVIDE_ROUNDINGUP(dpi * fontsize_d * cols * percent, 72 * 100 * 2) + letter_space;
+    return DIVIDE_ROUNDINGUP(dpi * fontsize_d * cols * percent, 72 * 100 * 2);
   } else {
-    return DIVIDE_ROUNDINGUP(fontsize_d * cols * percent, 100 * 2) + letter_space;
+    return DIVIDE_ROUNDINGUP(fontsize_d * cols * percent, 100 * 2);
   }
 }
 
@@ -858,7 +861,8 @@ void xft_unset_font(ui_font_t *font);
 
 static int fc_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
                        u_int col_width, /* if usascii font wants to be set , 0 will be set. */
-                       u_int letter_space, int aa_opt, /* 0 = default , 1 = enable , -1 = disable */
+                       int letter_space, /* if col_width > 0, letter_space is ignored. */
+                       int aa_opt, /* 0 = default , 1 = enable , -1 = disable */
                        int use_xft) {
   char *font_encoding;
   int weight;
@@ -906,11 +910,6 @@ static int fc_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
     cols = 1;
   }
 
-  /*
-   * x_off related to percent is set before ft_font_open while
-   * x_off related to is_vertical and letter_space is set after.
-   */
-
   if (fontname) {
     char *p;
     char *font_family;
@@ -943,35 +942,31 @@ static int fc_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
         /* basic font (e.g. usascii) width */
 
         /* if font->is_var_col_width is true, 0 is returned. */
-        ch_width = get_fc_col_width(font, fontsize_d, percent, cols, letter_space);
+        ch_width = get_fc_col_width(font, fontsize_d, percent, cols);
 
-        if (percent > 100) {
-          /*
-           * Centering
-           * (fontsize * percent / 100 + letter_space = ch_width
-           *  -> fontsize = (ch_width - letter_space) * 100 / percent
-           *  -> fontsize * (percent - 100) / 100
-           *     = (ch_width - letter_space) * (percent - 100)
-           *       / percent)
-           */
-          font->x_off = (ch_width - letter_space) * (percent - 100) / percent / 2;
-        }
+        if (ch_width > 0) {
+          if (letter_space > 0 || ch_width > -letter_space) {
+            ch_width += letter_space;
 
-        if (font->is_vertical) {
-          /*
-           * !! Notice !!
-           * The width of full and half character font is the same.
-           */
-          ch_width *= 2;
+            /*
+             * XFT: Centering is not done because FC_CHAR_WIDTH fits to cell size.
+             * Cairo: 'font->x_off += (ch_width - font->width) / 2' below sets
+             *        each character to the center of each cell.
+             */
+          }
+
+          if (font->is_vertical) {
+            /* The width of full and half character font is the same. */
+            ch_width *= 2;
+          }
         }
       } else {
+        /* Ignore letter_space because is has been already added to col_width. */
+
         if (font->is_var_col_width) {
           ch_width = 0;
         } else if (font->is_vertical) {
-          /*
-           * !! Notice !!
-           * The width of full and half character font is the same.
-           */
+          /* The width of full and half character font is the same. */
           ch_width = col_width;
         } else {
           ch_width = col_width * cols;
@@ -1000,23 +995,32 @@ static int fc_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
   if (col_width == 0) {
     /* basic font (e.g. usascii) width */
 
-    ch_width = get_fc_col_width(font, (double)fontsize, 0, cols, letter_space);
+    /* if font->is_var_col_width is true, 0 is returned. */
+    ch_width = get_fc_col_width(font, (double)fontsize, 0, cols);
 
-    if (font->is_vertical) {
-      /*
-       * !! Notice !!
-       * The width of full and half character font is the same.
-       */
-      ch_width *= 2;
+    if (ch_width > 0) {
+      if (letter_space > 0 || ch_width > -letter_space) {
+        ch_width += letter_space;
+
+        /*
+         * XFT: Centering is not done because FC_CHAR_WIDTH fits to cell size.
+         * Cairo: 'font->x_off += (ch_width - font->width) / 2' below sets
+         *        each character to the center of each cell.
+         */
+      }
+
+      if (font->is_vertical) {
+        /* The width of full and half character font is the same. */
+        ch_width *= 2;
+      }
     }
   } else {
+    /* Ignore letter_space because is has been already added to col_width. */
+
     if (font->is_var_col_width) {
       ch_width = 0;
     } else if (font->is_vertical) {
-      /*
-       * !! Notice !!
-       * The width of full and half character font is the same.
-       */
+      /* The width of full and half character font is the same. */
       ch_width = col_width;
     } else {
       ch_width = col_width * cols;
@@ -1054,8 +1058,8 @@ font_found:
     if (ch_width == 0) {
       /*
        * (US_ASCII)
-       *  font->is_var_col_width is true or letter_space == 0.
-       *  (see get_fc_col_width())
+       *  font->is_var_col_width is true, or
+       *  percent is 0 and is_vertical is false. (see get_fc_col_width())
        * (Other CS)
        *  font->is_var_col_width is true.
        */
@@ -1074,25 +1078,42 @@ font_found:
         if (font->is_var_col_width) {
           font->is_proportional = 1;
         } else {
-          u_int new_width;
+          /* font->is_vertical is always false, so not considered. (see get_fc_col_width()) */
+          u_int new_width = xft_calculate_char_width(font, 'M');
 
-          new_width = xft_calculate_char_width(font, 'M');
-          if (font->is_vertical) {
-            new_width *= 2;
+          if (letter_space > 0 || new_width > -letter_space) {
+            new_width += letter_space;
           }
 
           xft_unset_font(font);
 
-          /* reloading it as mono spacing. */
-          return fc_set_font(font, fontname, fontsize, new_width, letter_space, aa_opt, use_xft);
+#ifdef DEBUG
+          bl_debug_printf(BL_DEBUG_TAG " Reloading %s with %d width (Mismatched width)\n",
+                          fontname, new_width);
+#endif
+
+          /* reloading it as mono spacing with FC_CHAR_WIDTH. */
+          return fc_set_font(font, fontname, fontsize, new_width, 0, aa_opt, use_xft);
         }
+      } else if (!font->is_var_col_width &&
+                 (letter_space > 0 || (letter_space < 0 && font->width > -letter_space))) {
+        /* font->is_vertical is always false, so not considered. (see get_fc_col_width()) */
+        u_int new_width = font->width + letter_space;
+
+        xft_unset_font(font);
+
+#ifdef DEBUG
+        bl_debug_printf(BL_DEBUG_TAG " Reloading %s with %d width (Letter space)\n",
+                        fontname, new_width);
+#endif
+
+        /* reloading it as mono spacing with FC_CHAR_WIDTH. */
+        return fc_set_font(font, fontname, fontsize, new_width, 0, aa_opt, use_xft);
       }
     } else {
       /* Always mono space */
       font->width = ch_width;
     }
-
-    font->x_off += (letter_space * cols / 2);
 
     if (font->is_vertical && cols == 1) {
       font->x_off += (font->width / 4); /* Centering */
@@ -1119,11 +1140,7 @@ font_found:
     } else {
       font->width = cairo_calculate_char_width(font, 'W');
 
-      if (font->is_vertical) {
-        font->is_proportional = 1;
-        font->width *= 2;
-        font->x_off = font->width / 4; /* Centering */
-      } else if (font->width != cairo_calculate_char_width(font, 'l')) {
+      if (font->width != cairo_calculate_char_width(font, 'l')) {
         if (!font->is_var_col_width) {
 #if CAIRO_VERSION_ENCODE(1, 8, 0) <= CAIRO_VERSION
           font->width = cairo_calculate_char_width(font, 'N');
@@ -1132,35 +1149,35 @@ font_found:
 #endif
         }
 
-        /* Regard it as proportional. */
         font->is_proportional = 1;
+      }
+
+      if (font->is_vertical) {
+        font->is_proportional = 1;
+        font->width *= 2;
+        font->x_off = font->width / 4; /* Centering */
       }
     }
 
     if (!font->is_var_col_width) {
-      /*
-       * Set letter_space here because cairo_font_open() ignores it.
-       * (FC_CHAR_WIDTH doesn't make effect in cairo.)
-       * Note that letter_space is ignored in variable column width mode.
-       */
-      if (letter_space > 0) {
-        font->is_proportional = 1;
+      if (ch_width == 0) {
+        /* CS is USASCII and percent is 0 (see get_fc_col_width()) */
+        ch_width = font->width;
 
         if (font->is_vertical) {
           letter_space *= 2;
-        } else {
-          letter_space *= cols;
         }
 
-        font->width += letter_space;
-        font->x_off += (letter_space / 2); /* Centering */
+        if (letter_space > 0 || font->width > -letter_space) {
+          ch_width += letter_space;
+        }
       }
 
-      if (ch_width > 0 && ch_width != font->width) {
-        bl_msg_printf(
-            "Font(id %x) width(%d) is not matched with "
-            "standard width(%d).\n",
-            font->id, font->width, ch_width);
+      if (ch_width != font->width) {
+#if CAIRO_VERSION_ENCODE(1, 8, 0) > CAIRO_VERSION
+        bl_msg_printf("Font(id %x) width(%d) is not matched with standard width(%d).\n",
+                      font->id, font->width, ch_width);
+#endif
 
         /*
          * XXX
@@ -1178,7 +1195,7 @@ font_found:
       }
 
 #if CAIRO_VERSION_ENCODE(1, 8, 0) <= CAIRO_VERSION
-      if (font->is_proportional && !font->is_var_col_width) {
+      if (font->is_proportional /* && !font->is_var_col_width */) {
         font->is_proportional = 0;
       }
 #endif
@@ -1221,7 +1238,7 @@ font_found:
 
 int xft_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
                  u_int col_width, /* if usascii font wants to be set , 0 will be set. */
-                 u_int letter_space, int aa_opt, /* 0 = default , 1 = enable , -1 = disable */
+                 int letter_space, int aa_opt, /* 0 = default , 1 = enable , -1 = disable */
                  int use_point_size, double dpi) {
   if (use_point_size) {
     fc_size_type = FC_SIZE;
@@ -1319,7 +1336,7 @@ int ui_search_next_cairo_font(ui_font_t *font, int ch) {
 
 int cairo_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
                    u_int col_width, /* if usascii font wants to be set , 0 will be set. */
-                   u_int letter_space, int aa_opt, /* 0 = default , 1 = enable , -1 = disable */
+                   int letter_space, int aa_opt, /* 0 = default , 1 = enable , -1 = disable */
                    int use_point_size, double dpi) {
   if (use_point_size) {
     fc_size_type = FC_SIZE;

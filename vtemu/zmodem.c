@@ -165,11 +165,15 @@ struct q_transfer_stats_struct q_transfer_stats = {
 };
 
 #if 0
+#define ZDEBUG
+#endif
+
+#ifdef ZDEBUG
 #define DLOG(A) printf A; fflush(NULL)
 #else
 #define DLOG(A)
 #endif
-#if 0
+#ifdef ZDEBUG
 #define DLOG2(A) printf A; fflush(NULL)
 #else
 #define DLOG2(A)
@@ -1753,6 +1757,54 @@ static void encode_zdata_bytes(unsigned char * output,
 
 #define HEX_PACKET_LENGTH       20
 
+static char *get_type_string(const int type) {
+
+    switch (type) {
+
+    case P_ZRQINIT:
+        return "ZRQINIT";
+    case P_ZRINIT:
+        return "ZRINIT";
+    case P_ZSINIT:
+        return "ZSINIT";
+    case P_ZACK:
+        return "ZACK";
+    case P_ZFILE:
+        return "ZFILE";
+    case P_ZSKIP:
+        return "ZSKIP";
+    case P_ZNAK:
+        return "ZNAK";
+    case P_ZABORT:
+        return "ZABORT";
+    case P_ZFIN:
+        return "ZFIN";
+    case P_ZRPOS:
+        return "ZRPOS";
+    case P_ZDATA:
+        return "ZDATA";
+    case P_ZEOF:
+        return "ZEOF";
+    case P_ZFERR:
+        return "ZFERR";
+    case P_ZCRC:
+        return "ZCRC";
+    case P_ZCHALLENGE:
+        return "ZCHALLENGE";
+    case P_ZCOMPL:
+        return "ZCOMPL";
+    case P_ZCAN:
+        return "ZCAN";
+    case P_ZFREECNT:
+        return "ZFREECNT";
+    case P_ZCOMMAND:
+        return "ZCOMMAND";
+
+    default:
+        return NULL;
+   }
+}
+
 /**
  * Build a Zmodem packet.
  *
@@ -1773,71 +1825,13 @@ static void build_packet(const int type, const long argument,
     unsigned char header[10];
     Q_BOOL do_hex;
     int i;
+#ifdef ZDEBUG
     char * type_string;
 
-    switch (type) {
-
-    case P_ZRQINIT:
-        type_string = "ZRQINIT";
-        break;
-    case P_ZRINIT:
-        type_string = "ZRINIT";
-        break;
-    case P_ZSINIT:
-        type_string = "ZSINIT";
-        break;
-    case P_ZACK:
-        type_string = "ZACK";
-        break;
-    case P_ZFILE:
-        type_string = "ZFILE";
-        break;
-    case P_ZSKIP:
-        type_string = "ZSKIP";
-        break;
-    case P_ZNAK:
-        type_string = "ZNAK";
-        break;
-    case P_ZABORT:
-        type_string = "ZABORT";
-        break;
-    case P_ZFIN:
-        type_string = "ZFIN";
-        break;
-    case P_ZRPOS:
-        type_string = "ZRPOS";
-        break;
-    case P_ZDATA:
-        type_string = "ZDATA";
-        break;
-    case P_ZEOF:
-        type_string = "ZEOF";
-        break;
-    case P_ZFERR:
-        type_string = "ZFERR";
-        break;
-    case P_ZCRC:
-        type_string = "ZCRC";
-        break;
-    case P_ZCHALLENGE:
-        type_string = "ZCHALLENGE";
-        break;
-    case P_ZCOMPL:
-        type_string = "ZCOMPL";
-        break;
-    case P_ZCAN:
-        type_string = "ZCAN";
-        break;
-    case P_ZFREECNT:
-        type_string = "ZFREECNT";
-        break;
-    case P_ZCOMMAND:
-        type_string = "ZCOMMAND";
-        break;
-
-    default:
+    if ((type_string = get_type_string(type)) == NULL) {
         type_string = "Invalid type";
     }
+#endif
 
     DLOG(("build_packet(): type = %s (%d) argument = %08lx\n", type_string,
             type, argument));
@@ -2372,67 +2366,7 @@ static ZM_PARSE_PACKET parse_packet(const unsigned char * input,
     /*
      * Type
      */
-    switch (packet.type) {
-
-    case P_ZRQINIT:
-        type_string = "ZRQINIT";
-        break;
-    case P_ZRINIT:
-        type_string = "ZRINIT";
-        break;
-    case P_ZSINIT:
-        type_string = "ZSINIT";
-        break;
-    case P_ZACK:
-        type_string = "ZACK";
-        break;
-    case P_ZFILE:
-        type_string = "ZFILE";
-        break;
-    case P_ZSKIP:
-        type_string = "ZSKIP";
-        break;
-    case P_ZNAK:
-        type_string = "ZNAK";
-        break;
-    case P_ZABORT:
-        type_string = "ZABORT";
-        break;
-    case P_ZFIN:
-        type_string = "ZFIN";
-        break;
-    case P_ZRPOS:
-        type_string = "ZRPOS";
-        break;
-    case P_ZDATA:
-        type_string = "ZDATA";
-        break;
-    case P_ZEOF:
-        type_string = "ZEOF";
-        break;
-    case P_ZFERR:
-        type_string = "ZFERR";
-        break;
-    case P_ZCRC:
-        type_string = "ZCRC";
-        break;
-    case P_ZCHALLENGE:
-        type_string = "ZCHALLENGE";
-        break;
-    case P_ZCOMPL:
-        type_string = "ZCOMPL";
-        break;
-    case P_ZCAN:
-        type_string = "ZCAN";
-        break;
-    case P_ZFREECNT:
-        type_string = "ZFREECNT";
-        break;
-    case P_ZCOMMAND:
-        type_string = "ZCOMMAND";
-        break;
-
-    default:
+    if ((type_string = get_type_string(packet.type)) == NULL) {
         DLOG(("parse_packet(): INVALID PACKET TYPE %d\n", packet.type));
         return ZM_PP_INVALID;
     }

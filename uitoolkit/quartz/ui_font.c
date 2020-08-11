@@ -15,7 +15,6 @@
 #include <pobl/bl_str.h> /* bl_str_to_uint */
 #include <mef/ef_ucs4_map.h>
 #include <mef/ef_ucs_property.h>
-#include <vt_char_encoding.h> /* ui_convert_to_xft_ucs4 */
 
 #ifdef USE_OT_LAYOUT
 #include <otl.h>
@@ -174,9 +173,7 @@ bool CGFontGetGlyphsForUnichars(CGFontRef, u_int16_t[], CGGlyph[], size_t);
 
 ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
                        ui_font_present_t font_present, const char *fontname, u_int fontsize,
-                       u_int col_width, int use_medium_for_bold,
-                       u_int letter_space /* Ignored for now. */
-                       ) {
+                       u_int col_width, int use_medium_for_bold, int letter_space) {
   ui_font_t *font;
   char *font_family;
   u_int percent;
@@ -299,7 +296,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   fontsize = ((float)fontsize * advance * 2) / ((float)units) + 0.5;
 
   /*
-   * Following processing is same as ui_font.c:set_xfont()
+   * Following processing is similar to ui_font.c:set_xfont()
    */
 
   font->x_off = 0;
@@ -308,39 +305,46 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     /* standard(usascii) font */
 
     if (percent > 0) {
-      u_int ch_width;
-
       if (font->is_vertical) {
-        /*
-         * !! Notice !!
-         * The width of full and half character font is the same.
-         */
-        ch_width = font->height * percent / 100;
+        /* The width of full and half character font is the same. */
+        letter_space *= 2;
+        font->width = font->height * percent / 100;
+        if (font->height / 2 < font->width) {
+          font->x_off += ((font->width - font->height / 2) / 2);
+        }
       } else {
-        ch_width = font->height * percent / 200;
+        font->width = font->height * percent / 200;
       }
-
-      font->width = ch_width;
     } else if (font->is_vertical) {
-      /*
-       * !! Notice !!
-       * The width of full and half character font is the same.
-       */
-
+      /* The width of full and half character font is the same. */
+      letter_space *= 2;
       font->width = fontsize;
       font->x_off += (fontsize / 4);
     } else {
       font->width = fontsize * cols / 2;
     }
 
-    font->width += letter_space;
+    if (letter_space > 0 || font->width > -letter_space) {
+      font->width += letter_space;
+
+      if (letter_space > 0 || font->x_off * 2 > -letter_space) {
+        font->x_off += letter_space / 2;
+      }
+    }
   } else {
     /* not a standard(usascii) font */
 
     if (font->is_vertical) {
+      /* The width of full and half character font is the same. */
       font->width = col_width;
+      if (letter_space > 0) {
+        font->x_off = letter_space;
+      }
     } else {
       font->width = col_width * cols;
+      if (letter_space > 0) {
+        font->x_off = letter_space * cols / 2;
+      }
     }
   }
 

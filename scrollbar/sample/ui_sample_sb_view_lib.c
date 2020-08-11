@@ -33,8 +33,6 @@ Pixmap ui_get_icon_pixmap(ui_sb_view_t *view, GC gc, char **data, unsigned int w
 
       XDrawPoint(view->display, pix, gc, x, y);
     }
-
-    x = 0;
   }
 
   return pix;

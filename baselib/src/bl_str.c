@@ -356,8 +356,7 @@ char *bl_str_replace(const char *str, const char *orig, /* Don't specify "". */
   if ((diff = new_len - orig_len) != 0) {
     int num;
 
-    for (num = 0, p = str; (p = strstr(p, orig)); num++, p += orig_len)
-      ;
+    for (num = 0, p = str; (p = strstr(p, orig)); num++, p += orig_len);
 
     if (num == 0) {
       return NULL;
@@ -366,7 +365,7 @@ char *bl_str_replace(const char *str, const char *orig, /* Don't specify "". */
     diff *= num;
   }
 
-  if (!(dst = new_str = malloc(strlen(str) + diff + 1)) || !(p = strstr(str, orig))) {
+  if (!(p = strstr(str, orig)) || !(dst = new_str = malloc(strlen(str) + diff + 1))) {
     return NULL;
   }
 
@@ -454,3 +453,23 @@ char *bl_str_unescape(const char *str) {
 
   return new_str;
 }
+
+#ifdef BL_DEBUG
+
+#include <assert.h>
+
+void TEST_bl_str(void) {
+  char *str;
+
+  str = bl_str_replace("abcdefabcdef", "abc", "xxxx");
+  assert(strcmp(str, "xxxxdefxxxxdef") == 0);
+  free(str);
+
+  str = bl_str_unescape("abc\\n\\r\\t\\e\\E^A\\x1b");
+  assert(strcmp(str, "abc\n\r\t\x1b\x1b\x01\x1b") == 0);
+  free(str);
+
+  bl_msg_printf("PASS bl_str test.\n");
+}
+
+#endif

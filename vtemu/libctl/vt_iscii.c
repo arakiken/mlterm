@@ -220,7 +220,7 @@ int vt_iscii(vt_iscii_state_t state, vt_char_t *src, u_int src_len) {
 
   state->has_iscii = 0;
   dst_pos = -1;
-  prev_cs = cs = UNKNOWN_CS;
+  prev_cs = UNKNOWN_CS;
   has_ucs = 0;
   for (src_pos = 0; src_pos < src_len; src_pos++) {
     cs = vt_char_cs(src + src_pos);

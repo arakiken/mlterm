@@ -118,7 +118,7 @@ void ui_set_use_leftward_double_drawing(int use) {
 
 ui_font_cache_t *ui_acquire_font_cache(Display *display, u_int font_size,
                                        ef_charset_t usascii_font_cs, ui_font_config_t *font_config,
-                                       u_int letter_space) {
+                                       int letter_space) {
   int count;
   ui_font_cache_t *font_cache;
   void *p;

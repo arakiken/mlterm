@@ -244,6 +244,8 @@ static int unregister_view_conf(ui_sb_view_conf_t *conf) {
         free(view_confs);
         view_confs = NULL;
       }
+
+      break;
     }
   }
 

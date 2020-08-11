@@ -21,7 +21,7 @@ typedef struct ui_font_cache {
   u_int font_size;
   ef_charset_t usascii_font_cs;
   ui_font_config_t *font_config;
-  u_int8_t letter_space;
+  int letter_space;
 
   ui_font_t *usascii_font;
 
@@ -43,7 +43,7 @@ void ui_set_use_leftward_double_drawing(int use);
 
 ui_font_cache_t *ui_acquire_font_cache(Display *display, u_int font_size,
                                        ef_charset_t usascii_font_cs, ui_font_config_t *font_config,
-                                       u_int letter_space);
+                                       int letter_space);
 
 void ui_release_font_cache(ui_font_cache_t *font_cache);
 

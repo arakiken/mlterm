@@ -762,6 +762,9 @@ void view_draw_string(/* BView */ void *view, ui_font_t *font, ui_color_t *fg_co
   ((BView*)view)->SetHighColor((pixel >> 16) & 0xff, (pixel >> 8) & 0xff, pixel & 0xff,
                                (pixel >> 24) & 0xff);
   ((BView*)view)->SetFont((BFont*)font->xfont->fid);
+
+  x += font->x_off;
+
   /*
    * https://www.haiku-os.org/legacy-docs/bebook/BView.html
    * The BeOS draws text one pixel above the logical baseline to maintain

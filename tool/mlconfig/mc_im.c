@@ -330,10 +330,11 @@ static GtkWidget *xim_widget_new(const char *xim_name, const char *xim_locale,
 
   bl_map_get_pairs_array(xim_locale_table, array, size);
 
-  if ((xims = malloc(sizeof(char *) * (size + 1))) == NULL) return NULL;
-
-  if ((locales = malloc(sizeof(char *) * (size + 1))) == NULL) {
+  if ((xims = malloc(sizeof(char *) * (size + 1))) == NULL ||
+      (locales = malloc(sizeof(char *) * (size + 1))) == NULL) {
     free(xims);
+    bl_map_destroy(xim_locale_table);
+
     return NULL;
   }
 

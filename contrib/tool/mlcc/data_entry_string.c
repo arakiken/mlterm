@@ -135,6 +135,7 @@ int string_edit(window_t *window, char *src, char **result) {
       case 10: /* ret */
         *result = strdup(buffer);
         cursor_hide();
+        free(work);
         return 1;
       case KEY_ESC:
         cursor_hide();

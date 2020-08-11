@@ -4094,7 +4094,7 @@ static void change_line_space(ui_screen_t *screen, int line_space) {
 #endif
 }
 
-static void change_letter_space(ui_screen_t *screen, u_int letter_space) {
+static void change_letter_space(ui_screen_t *screen, int letter_space) {
   if (!ui_set_letter_space(screen->font_man, letter_space)) {
     return;
   }
@@ -4115,6 +4115,7 @@ static void change_screen_width_ratio(ui_screen_t *screen, u_int ratio) {
 static void change_font_present(ui_screen_t *screen, ui_type_engine_t type_engine,
                                 ui_font_present_t font_present) {
   if (vt_term_get_vertical_mode(screen->term)) {
+    /* See ui_main_config_init() in ui_main_config.c */
     if (font_present & FONT_VAR_WIDTH) {
       bl_msg_printf("Set use_variable_column_width=false forcibly.\n");
       font_present &= ~FONT_VAR_WIDTH;
@@ -7166,9 +7167,9 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
       change_line_space(screen, line_space);
     }
   } else if (strcmp(key, "letter_space") == 0) {
-    u_int letter_space;
+    int letter_space;
 
-    if (bl_str_to_uint(&letter_space, value)) {
+    if (bl_str_to_int(&letter_space, value)) {
       change_letter_space(screen, letter_space);
     }
   } else if (strcmp(key, "screen_width_ratio") == 0) {

@@ -7,9 +7,6 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h> /* alloca */
 #include <pobl/bl_str.h> /* bl_str_to_int */
-#include <mef/ef_ucs4_map.h>
-#include <mef/ef_ucs_property.h>
-#include <vt_char_encoding.h> /* ui_convert_to_xft_ucs4 */
 
 #ifdef USE_OT_LAYOUT
 #include <otl.h>
@@ -156,14 +153,12 @@ static int parse_font_name(
 /* --- global functions --- */
 
 void ui_compose_dec_special_font(void) {
-  /* Do nothing for now in quartz. */
+  /* Do nothing for now in BeOS. */
 }
 
 ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
                        ui_font_present_t font_present, const char *fontname, u_int fontsize,
-                       u_int col_width, int use_medium_for_bold,
-                       u_int letter_space /* Ignored for now. */
-                       ) {
+                       u_int col_width, int use_medium_for_bold, int letter_space) {
   ui_font_t *font;
   char *font_family;
   u_int percent;
@@ -272,46 +267,49 @@ load_bfont:
     font->ascent = ascent;
   }
 
+  /*
+   * Following processing is same as ui_font.c:set_xfont()
+   */
+
   font->x_off = 0;
 
   if (col_width == 0) {
     /* standard(usascii) font */
 
-    if (percent > 0) {
+    if (!font->is_var_col_width) {
       u_int ch_width;
 
-      if (font->is_vertical) {
-        /*
-         * !! Notice !!
-         * The width of full and half character font is the same.
-         */
-        ch_width = font->width * percent / 50;
+      if (percent > 0) {
+        if (font->is_vertical) {
+          /* The width of full and half character font is the same. */
+          letter_space *= 2;
+          ch_width = font->width * percent / 50;
+        } else {
+          ch_width = font->width * percent / 100;
+        }
       } else {
-        ch_width = font->width * percent / 100;
+        ch_width = font->width;
+
+        if (font->is_vertical) {
+          /* The width of full and half character font is the same. */
+          letter_space *= 2;
+          ch_width *= 2;
+        }
+      }
+
+      if (letter_space > 0 || ch_width > -letter_space) {
+        ch_width += letter_space;
       }
 
       if (ch_width != font->width) {
-        if (ch_width > font->width) {
-          font->x_off += (ch_width - font->width) / 2;
+        font->is_proportional = 1;
+
+        if (font->width < ch_width) {
+          font->x_off = (ch_width - font->width) / 2;
         }
 
         font->width = ch_width;
-        font->is_proportional = 1;
       }
-    } else if (font->is_vertical) {
-      /*
-       * !! Notice !!
-       * The width of full and half character font is the same.
-       */
-      font->is_proportional = 1;
-      font->width *= 2;
-      font->x_off += (font->width / 4);
-    }
-
-    if (!font->is_var_col_width && letter_space > 0) {
-      font->is_proportional = 1;
-      font->width += letter_space;
-      font->x_off += (letter_space / 2);
     }
   } else {
     /* not a standard(usascii) font */
@@ -319,28 +317,45 @@ load_bfont:
     font->width *= cols;
 
     if (font->is_vertical) {
+      /*
+       * The width of full and half character font is the same.
+       * is_var_col_width is always false if is_vertical is true.
+       */
       if (font->width != col_width) {
+        bl_msg_printf("Font(id %x) width(%d) doesn't fit column width(%d).\n",
+                      font->id, font->width, col_width);
+
         font->is_proportional = 1;
-        if (/* !font->is_var_col_width && */ font->width < col_width) {
+
+        if (font->width < col_width) {
           font->x_off = (col_width - font->width) / 2;
         }
+
         font->width = col_width;
       }
-    } else {
-      if (font->width != col_width * cols) {
-        if (is_bold && font->double_draw_gap == 0) {
-          /* Retry */
-          is_bold = 0;
-          font->double_draw_gap = 1;
-          beos_release_font(font->xfont->fid);
+    } else if (font->width != col_width * cols) {
+      if (font->width != (col_width - letter_space /* XXX */) * cols &&
+          is_bold && font->double_draw_gap == 0) {
+        /* Retry */
+        is_bold = 0;
+        font->double_draw_gap = 1;
+        beos_release_font(font->xfont->fid);
 
-          goto load_bfont;
+        bl_msg_printf("Use double drawing to show bold glyphs (font id %x).\n", font->id);
+
+        goto load_bfont;
+      }
+
+      bl_msg_printf("Font(id %x) width(%d) doesn't fit column width(%d).\n",
+                    font->id, font->width, col_width * cols);
+
+      font->is_proportional = 1;
+
+      if (!font->is_var_col_width) {
+        if (font->width < col_width * cols) {
+          font->x_off = (col_width * cols - font->width) / 2;
         }
 
-        font->is_proportional = 1;
-        if (!font->is_var_col_width && font->width < col_width * cols) {
-          font->x_off = (col_width * 2 - font->width) / 2;
-        }
         font->width = col_width * cols;
       }
     }
@@ -355,6 +370,10 @@ load_bfont:
     font->is_var_col_width = 0;
 
     font->size_attr = size_attr;
+  }
+
+  if (font->is_proportional && !font->is_var_col_width) {
+    bl_msg_printf("Font(id %x): Draw one char at a time to fit column width.\n", font->id);
   }
 
 #ifdef DEBUG

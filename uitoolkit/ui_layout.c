@@ -665,8 +665,6 @@ static void screen_scroll_downward(void *p, u_int size) {
   term = p;
 
   ui_screen_scroll_downward(term->screen, size);
-
-  return 1;
 }
 
 static int screen_is_static(void *p) {

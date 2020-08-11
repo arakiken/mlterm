@@ -304,6 +304,8 @@ int init_data(config_data_t *data) {
   data->selected = 0;
   data->filled = 0;
 
+  /* Check the number of entries in each section and change MAX_ENTRY in data.h as necessary. */
+
   section = section_add(data, "Encoding");
   entry_string_add(section, "Encoding", "encoding");
   entry_string_add(section, "Input Method", "input_method");

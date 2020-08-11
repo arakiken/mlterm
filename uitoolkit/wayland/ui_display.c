@@ -53,53 +53,52 @@ int kbd_repeat_N = DEFAULT_KEY_REPEAT_N;
 /* --- static functions --- */
 
 static int create_tmpfile_cloexec(char *tmpname) {
-	int fd;
+  int fd;
 
 #ifdef HAVE_MKOSTEMP
-	if ((fd = mkostemp(tmpname, O_CLOEXEC)) >= 0) {
-		unlink(tmpname);
+  if ((fd = mkostemp(tmpname, O_CLOEXEC)) >= 0) {
+    unlink(tmpname);
   }
 #else
-	if ((fd = mkstemp(tmpname)) >= 0) {
+  if ((fd = mkstemp(tmpname)) >= 0) {
     bl_file_set_cloexec(fd);
-		unlink(tmpname);
-	}
+    unlink(tmpname);
+  }
 #endif
 
-	return fd;
+  return fd;
 }
 
 static int create_anonymous_file(off_t size) {
-	static const char template[] = "/weston-shared-XXXXXX";
-	const char *path;
-	char *name;
-	int fd;
-	int ret;
+  static const char template[] = "/weston-shared-XXXXXX";
+  const char *path;
+  char *name;
+  int fd;
 
-	if (!(path = getenv("XDG_RUNTIME_DIR"))) {
-		return -1;
-	}
-
-	if (!(name = malloc(strlen(path) + sizeof(template)))) {
-		return -1;
+  if (!(path = getenv("XDG_RUNTIME_DIR"))) {
+    return -1;
   }
 
-	strcpy(name, path);
-	strcat(name, template);
-
-	fd = create_tmpfile_cloexec(name);
-	free(name);
-
-	if (fd < 0) {
-		return -1;
+  if (!(name = malloc(strlen(path) + sizeof(template)))) {
+    return -1;
   }
 
-	if ((ret = posix_fallocate(fd, 0, size)) != 0) {
-		close(fd);
-		return -1;
-	}
+  strcpy(name, path);
+  strcat(name, template);
 
-	return fd;
+  fd = create_tmpfile_cloexec(name);
+  free(name);
+
+  if (fd < 0) {
+    return -1;
+  }
+
+  if (posix_fallocate(fd, 0, size) != 0) {
+    close(fd);
+    return -1;
+  }
+
+  return fd;
 }
 
 static ui_window_t *search_focused_window(ui_window_t *win) {

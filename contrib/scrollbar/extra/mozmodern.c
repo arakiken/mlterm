@@ -120,7 +120,6 @@ static Pixmap get_pixmap(ui_sb_view_t *view, GC gc, char **data, unsigned int wi
       }
       XDrawPoint(view->display, pix, gc, x, y);
     }
-    x = 0;
   }
 
   return pix;
@@ -249,16 +248,13 @@ static void destroy(ui_sb_view_t *view) {
 static void draw_up_button(ui_sb_view_t *view, int is_pressed) {
   mozmod_sb_view_t *mozmod_sb;
   Pixmap arrow;
-  char **src;
 
   mozmod_sb = (mozmod_sb_view_t *)view;
 
   if (is_pressed) {
     arrow = mozmod_sb->arrow_up_pressed;
-    src = arrow_up_pressed_src;
   } else {
     arrow = mozmod_sb->arrow_up;
-    src = arrow_up_src;
   }
 
   XCopyArea(view->display, arrow, view->window, view->gc, 0, 0, WIDTH, MARGIN, 0, 0);
@@ -267,16 +263,13 @@ static void draw_up_button(ui_sb_view_t *view, int is_pressed) {
 static void draw_down_button(ui_sb_view_t *view, int is_pressed) {
   mozmod_sb_view_t *mozmod_sb;
   Pixmap arrow;
-  char **src;
 
   mozmod_sb = (mozmod_sb_view_t *)view;
 
   if (is_pressed) {
     arrow = mozmod_sb->arrow_down_pressed;
-    src = arrow_down_pressed_src;
   } else {
     arrow = mozmod_sb->arrow_down;
-    src = arrow_down_src;
   }
 
   XCopyArea(view->display, arrow, view->window, view->gc, 0, 0, WIDTH, MARGIN, 0,

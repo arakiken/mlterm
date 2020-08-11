@@ -527,6 +527,10 @@ static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
       *(out8++) = closest;
     }
 
+#ifdef USE_FS
+    free(diff_cur);
+    free(diff_next);
+#endif
     free(color_list);
   } else {
     XVisualInfo *vinfo;

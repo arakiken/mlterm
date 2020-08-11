@@ -508,6 +508,12 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   if ((value = bl_conf_get_value(conf, "vertical_mode"))) {
     if ((main_config->vertical_mode = vt_get_vertical_mode(value))) {
       main_config->font_present |= main_config->vertical_mode;
+
+      /* See change_font_present() in ui_screen.c */
+      if (main_config->font_present & FONT_VAR_WIDTH) {
+        bl_msg_printf("Set use_variable_column_width=false forcibly.\n");
+        main_config->font_present &= ~FONT_VAR_WIDTH;
+      }
     }
   }
 
@@ -644,9 +650,9 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   }
 
   if ((value = bl_conf_get_value(conf, "letter_space"))) {
-    u_int size;
+    int size;
 
-    if (bl_str_to_uint(&size, value)) {
+    if (bl_str_to_int(&size, value)) {
       main_config->letter_space = size;
     } else {
       bl_msg_printf(invalid_msg, "letter_space", value);

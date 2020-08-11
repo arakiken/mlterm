@@ -154,14 +154,11 @@ int vt_bidi(vt_bidi_state_t state, vt_char_t *src, u_int size, vt_bidi_mode_t bi
   FriBidiChar *fri_src;
   FriBidiCharType fri_type;
   FriBidiStrIndex *fri_order;
-  int had_rtl;
   u_int cur_pos;
   ef_charset_t cs;
   u_int32_t code;
   u_int count;
   int ret;
-
-  had_rtl = HAS_RTL(state);
 
   state->rtl_state = 0;
 

@@ -1895,9 +1895,7 @@ void ui_font_use_fontconfig(void) { use_fontconfig = 1; }
 
 ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
                        ui_font_present_t font_present, const char *fontname, u_int fontsize,
-                       u_int col_width, int use_medium_for_bold,
-                       u_int letter_space /* Ignored for now. */
-                       ) {
+                       u_int col_width, int use_medium_for_bold, int letter_space) {
   ef_charset_t cs;
   char *font_file;
   char *decsp_id = NULL;
@@ -2248,21 +2246,38 @@ xfont_loaded:
   if (col_width == 0) {
     /* standard(usascii) font */
 
-    if (percent > 0) {
+    if (!font->is_var_col_width) {
       u_int ch_width;
 
-      if (font->is_vertical) {
-        /*
-         * !! Notice !!
-         * The width of full and half character font is the same.
-         */
-        ch_width = DIVIDE_ROUNDING(fontsize * percent, 100);
+      if (percent > 0) {
+        if (font->is_vertical) {
+          /* The width of full and half character font is the same. */
+          letter_space *= 2;
+          ch_width = DIVIDE_ROUNDING(fontsize * percent, 100);
+        } else {
+          ch_width = DIVIDE_ROUNDING(fontsize * percent, 200);
+        }
       } else {
-        ch_width = DIVIDE_ROUNDING(fontsize * percent, 200);
+        ch_width = font->width;
+
+        if (font->is_vertical) {
+          /* The width of full and half character font is the same. */
+          letter_space *= 2;
+#ifdef USE_FREETYPE
+          if (!font->xfont->face || !(font->xfont->format & FONT_ROTATED))
+#endif
+          {
+            ch_width *= 2;
+          }
+        }
+      }
+
+      if (letter_space > 0 || ch_width > -letter_space) {
+        ch_width += letter_space;
       }
 
       if (font->width != ch_width) {
-        if (!font->is_var_col_width) {
+        if (font->width < ch_width) {
           /*
            * If width(2) of '1' doesn't match ch_width(4)
            * x_off = (4-2)/2 = 1.
@@ -2276,30 +2291,11 @@ xfont_loaded:
            * |  * |
            * +----+
            */
-          if (font->width < ch_width) {
-            font->x_off = (ch_width - font->width) / 2;
-          }
-
-          font->width = ch_width;
+          font->x_off = (ch_width - font->width) / 2;
         }
-      }
-    } else if (font->is_vertical) {
-#ifdef USE_FREETYPE
-      if (!font->xfont->face || !(font->xfont->format & FONT_ROTATED))
-#endif
-      {
-        /*
-         * !! Notice !!
-         * The width of full and half character font is the same.
-         */
-        font->x_off = font->width / 2;
-        font->width *= 2;
-      }
-    }
 
-    if (letter_space > 0) {
-      font->width += letter_space;
-      font->x_off += (letter_space / 2);
+        font->width = ch_width;
+      }
     }
   } else {
     /* not a standard(usascii) font */
@@ -2311,42 +2307,33 @@ xfont_loaded:
 
     if (font->is_vertical) {
       /*
-       * !! Notice !!
        * The width of full and half character font is the same.
+       * is_var_col_width is always false if is_vertical is true.
        */
-
       if (font->width != col_width) {
-        bl_msg_printf(
-            "Font(id %x) width(%d) is not matched with "
-            "standard width(%d).\n",
-            font->id, font->width, col_width);
-
-/* is_var_col_width is always false if is_vertical is true. */
-#if 0
-        if (!font->is_var_col_width)
+#ifdef DEBUG
+        bl_msg_printf("Font(id %x) width(%d) doesn't fit column width(%d).\n",
+                      font->id, font->width, col_width);
 #endif
-        {
-          if (font->width < col_width) {
-            font->x_off = (col_width - font->width) / 2;
-          }
 
-          font->width = col_width;
+        if (font->width < col_width) {
+          font->x_off = (col_width - font->width) / 2;
         }
+
+        font->width = col_width;
       }
-    } else {
+    } else if (!font->is_var_col_width) {
       if (font->width != col_width * cols) {
-        bl_msg_printf(
-            "Font(id %x) width(%d) is not matched with "
-            "standard width(%d).\n",
-            font->id, font->width, col_width * cols);
+#ifdef DEBUG
+        bl_msg_printf("Font(id %x) width(%d) doesn't fit column width(%d).\n",
+                      font->id, font->width, col_width * cols);
+#endif
 
-        if (!font->is_var_col_width) {
-          if (font->width < col_width * cols) {
-            font->x_off = (col_width * cols - font->width) / 2;
-          }
-
-          font->width = col_width * cols;
+        if (font->width < col_width * cols) {
+          font->x_off = (col_width * cols - font->width) / 2;
         }
+
+        font->width = col_width * cols;
       }
     }
   }

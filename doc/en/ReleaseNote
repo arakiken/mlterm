@@ -10,6 +10,7 @@
 * Drop SCROLL_DOWN and PAGE_DOWN shortcut keys.
 * Drop use_extended_scroll_shortcut option and SCROLL_UP shortcut key is enabled
   by default. (If you want to disable it, add UNUSED=SCROLL_UP to ~/.mlterm/key.)
+* letter_space / --csp option accepts negative value.
 * libvte compatible library supports XInput2.
 * Bug fixes:
   Fix a bug which caused a 'mlimgloader' process not to exit after loading a wall picture.
@@ -17,6 +18,7 @@
   Fix a bug which disabled keyboard and mouse on Haiku R1/beta2.
   Mlconfig starts correctly by Ctrl + RightClick on cygwin 3.1.4.
   Fix https://sourceforge.net/p/mlterm/mailman/message/37033060/
+  Fix segfault of mlcc in exiting after changing configurations.
 
 ver 3.9.0
 * Support CSI>4;1m.

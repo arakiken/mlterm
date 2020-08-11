@@ -71,10 +71,6 @@ static void realized(ui_sb_view_t *view, Display *display, int screen, Window wi
 }
 
 static void resized(ui_sb_view_t *view, Window window, unsigned int height) {
-  motif_sb_view_t *motif_sb;
-
-  motif_sb = (motif_sb_view_t*)view;
-
   view->window = window;
   view->height = height;
 }

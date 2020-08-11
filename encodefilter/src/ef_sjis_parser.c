@@ -110,11 +110,6 @@ static int sjis_parser_next_char_intern(ef_parser_t *sjis_parser, ef_char_t *ch,
        * So , we keep them sjis encoded bytes in ef_char_t as
        * JIS6226_1978_IBM_EXT charset.
        */
-
-      ch->cs = SJIS_IBM_EXT;
-      ch->ch[0] = c1;
-      ch->ch[1] = c2;
-      ch->size = 2;
     } else if (cs == JISX0213_2000_2) {
       u_char sjis_upper_to_jisx02132_map_1[] = {
           /* 0xf0 - 0xfc(sjis) */
@@ -126,7 +121,8 @@ static int sjis_parser_next_char_intern(ef_parser_t *sjis_parser, ef_char_t *ch,
           0x28, 0x24, 0x2c, 0x2e, 0x6e, 0x70, 0x72, 0x74, 0x76, 0x78, 0x7a, 0x7c, 0x7e,
       };
 
-      if (0xf0 <= c1 && c1 <= 0xfc) {
+      /* c1 >= 0xf0 is checked above */
+      if (0xfc < c1) {
 #ifdef DEBUG
         bl_warn_printf(BL_DEBUG_TAG " 0x%.2x is illegal upper byte of jisx0213_2.\n", c1);
 #endif
@@ -135,23 +131,18 @@ static int sjis_parser_next_char_intern(ef_parser_t *sjis_parser, ef_char_t *ch,
       }
 
       if (c2 <= 0x9e) {
-        high = sjis_upper_to_jisx02132_map_1[c1 - 0xf0];
+        c1 = sjis_upper_to_jisx02132_map_1[c1 - 0xf0];
 
         if (c2 > 0x7e) {
-          low = c2 - 0x20;
+          c2 -= 0x20;
         } else {
-          low = c2 - 0x1f;
+          c2 -= 0x1f;
         }
       } else {
-        high = sjis_upper_to_jisx02132_map_2[c1 - 0xf0];
-
+        c1 = sjis_upper_to_jisx02132_map_2[c1 - 0xf0];
         c2 -= 0x7e;
       }
     } else {
-      /*
-       * JISX0213 2000 2
-       */
-
       if (0x81 <= c1 && c1 <= 0x9f) {
         high = c1 - 0x71;
       } else if (0xe0 <= c1 && c1 <= 0xfc) {
@@ -179,11 +170,14 @@ static int sjis_parser_next_char_intern(ef_parser_t *sjis_parser, ef_char_t *ch,
         goto error;
       }
 
-      ch->ch[0] = high;
-      ch->ch[1] = low;
-      ch->size = 2;
-      ch->cs = cs;
+      c1 = high;
+      c2 = low;
     }
+
+    ch->cs = cs;
+    ch->ch[0] = c1;
+    ch->ch[1] = c2;
+    ch->size = 2;
 
     if (cs == JISX0208_1983) {
       ch->property = ef_get_jisx0208_1983_property(ch->ch);

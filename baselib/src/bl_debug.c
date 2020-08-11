@@ -174,11 +174,9 @@ int bl_msg_printf(const char *format, ...) {
 }
 
 int bl_set_msg_log_file_name(const char *name) {
-  char *p;
-
   free(log_file_path);
 
-  if (name && *name && (p = alloca(strlen(name) + DIGIT_STR_LEN(pid_t) + 5))) {
+  if (name && *name) {
     log_file_path = bl_get_user_rc_path(name);
   } else {
     log_file_path = NULL;

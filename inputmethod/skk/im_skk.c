@@ -155,8 +155,10 @@ static void preedit_backup_visual_chars(im_skk_t *skk) {
 }
 
 static void preedit(im_skk_t *skk, ef_char_t *preedit, u_int preedit_len, int rev_len,
-                    char *candidateword, /* already converted to term encoding */
-                    size_t candidateword_len, char *pos) {
+                    char *candidateword /* already converted to term encoding */,
+                    /* 0 means the length of candidateword is 0 or necessity of strlen() */
+                    size_t candidateword_len,
+                    char *pos) {
   int x;
   int y;
   int rev_pos = 0;
@@ -271,7 +273,7 @@ static void preedit(im_skk_t *skk, ef_char_t *preedit, u_int preedit_len, int re
 candidate:
   if (candidateword == NULL) {
     return;
-  } else if (candidateword_len == 0 && (candidateword_len = strlen(candidateword)) == 0) {
+  } else if (candidateword_len == 0 && strlen(candidateword) == 0) {
     if (skk->im.stat_screen) {
       (*skk->im.stat_screen->destroy)(skk->im.stat_screen);
       skk->im.stat_screen = NULL;
