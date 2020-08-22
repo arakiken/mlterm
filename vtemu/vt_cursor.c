@@ -12,7 +12,9 @@ static int cursor_goto(vt_cursor_t *cursor, int col_or_idx, int row, int is_by_c
   u_int cols_rest;
   vt_line_t *line;
 
-  if (row > vt_model_end_row(cursor->model)) {
+  if (row < 0) {
+    row = 0;
+  } else if (row > vt_model_end_row(cursor->model)) {
     /* round row to end of row */
     row = vt_model_end_row(cursor->model);
   }

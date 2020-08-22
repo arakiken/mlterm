@@ -1,5 +1,9 @@
 2020-08-22  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_cursor.c: cursor_goto() checks if row is not less than 0.
+
+2020-08-22  Araki Ken  <arakiken@users.sf.net>
+
 	* gtk/vte.c, MLTermPty.c, vterm.c, ui_picture.c, ui_screen.c,
 	  vt_cursor.c, vt_parser.c, vt_screen.c, vt_term.c:
 	  If vt_term_get_line() always returns non-NULL, NULL check is removed.
