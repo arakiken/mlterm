@@ -394,6 +394,12 @@ int vt_line_bidi_copy_logical_str(vt_line_t *line, vt_char_t *dst, int beg, /* v
   int norm_pos;
   int dst_pos;
 
+#ifdef DEBUG
+  if (((int)len) < 0) {
+    abort();
+  }
+#endif
+
   if (line->ctl_info.bidi->size == 0) {
     return 0;
   }

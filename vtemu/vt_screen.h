@@ -105,7 +105,7 @@ int vt_screen_destroy(vt_screen_t *screen);
 void vt_screen_set_listener(vt_screen_t *screen, vt_screen_event_listener_t *screen_listener);
 
 /* This considers status line */
-int vt_screen_resize(vt_screen_t *screen, u_int cols, u_int rows, int pack);
+int vt_screen_resize(vt_screen_t *screen, u_int cols, u_int rows);
 
 #define vt_screen_set_use_bce(screen, use) \
   vt_edit_set_use_bce(&(screen)->alt_edit, vt_edit_set_use_bce(&(screen)->normal_edit, use))
@@ -175,6 +175,8 @@ int vt_screen_render(vt_screen_t *screen);
 int vt_screen_visual(vt_screen_t *screen);
 
 int vt_screen_logical(vt_screen_t *screen);
+
+#define vt_screen_has_logical_visual(screen) ((screen)->logvis)
 
 #define vt_screen_logical_visual_is_reversible(screen) \
   (!(screen)->logvis || (screen)->logvis->is_reversible)

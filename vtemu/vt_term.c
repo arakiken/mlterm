@@ -553,7 +553,7 @@ int vt_term_resize(vt_term_t *term, u_int cols, u_int rows, u_int width_pix, u_i
   int ret;
 
   vt_screen_logical(term->screen);
-  ret = vt_screen_resize(term->screen, cols, rows, 1);
+  ret = vt_screen_resize(term->screen, cols, rows);
   vt_screen_render(term->screen);
   vt_screen_visual(term->screen);
 

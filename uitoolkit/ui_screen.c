@@ -200,11 +200,11 @@ static int convert_char_index_to_x_with_shape(ui_screen_t *screen, vt_line_t *li
 }
 
 /*
- * If x < 0, return 0 with *ui_rest = 0.
+ * If x < 0, return 0 with *x_rest = 0.
  * If x > screen->width, return screen->width / char_width with
- * *ui_rest = x - screen->width.
+ * *x_rest = x - screen->width.
  */
-static int convert_x_to_char_index(ui_screen_t *screen, vt_line_t *line, u_int *ui_rest, int x) {
+static int convert_x_to_char_index(ui_screen_t *screen, vt_line_t *line, u_int *x_rest, int x) {
   int count;
   u_int width;
   int end_char_index;
@@ -262,21 +262,21 @@ static int convert_x_to_char_index(ui_screen_t *screen, vt_line_t *line, u_int *
     }
   }
 
-  if (ui_rest != NULL) {
-    *ui_rest = x;
+  if (x_rest != NULL) {
+    *x_rest = x;
   }
 
   return count;
 }
 
-static int convert_x_to_char_index_with_shape(ui_screen_t *screen, vt_line_t *line, u_int *ui_rest,
+static int convert_x_to_char_index_with_shape(ui_screen_t *screen, vt_line_t *line, u_int *x_rest,
                                               int x) {
   vt_line_t *orig;
   int char_index;
 
   orig = vt_line_shape(line);
 
-  char_index = convert_x_to_char_index(screen, line, ui_rest, x);
+  char_index = convert_x_to_char_index(screen, line, x_rest, x);
 
   if (orig) {
     vt_line_unshape(line, orig);
@@ -3065,7 +3065,7 @@ static void report_mouse_tracking(ui_screen_t *screen, int x, int y, int button,
   vt_line_t *line;
   int col;
   int row;
-  u_int ui_rest;
+  u_int x_rest;
 
   if (/* is_motion && */ button == 0) {
     /* PointerMotion */
@@ -3130,7 +3130,7 @@ static void report_mouse_tracking(ui_screen_t *screen, int x, int y, int button,
       }
     } else {
       row = vt_convert_char_index_to_col(line,
-              convert_x_to_char_index_with_shape(screen, line, &ui_rest, x), 0);
+              convert_x_to_char_index_with_shape(screen, line, &x_rest, x), 0);
     }
 
     if (vt_term_get_vertical_mode(screen->term) & VERT_RTL) {
@@ -3146,7 +3146,7 @@ static void report_mouse_tracking(ui_screen_t *screen, int x, int y, int button,
       return;
     }
 
-    char_index = convert_x_to_char_index_with_shape(screen, line, &ui_rest, x);
+    char_index = convert_x_to_char_index_with_shape(screen, line, &x_rest, x);
     if (vt_line_is_using_ctl(line)) {
       char_index = vt_line_convert_visual_char_index_to_logical(line, char_index);
     }
@@ -3156,8 +3156,8 @@ static void report_mouse_tracking(ui_screen_t *screen, int x, int y, int button,
     ui_font_manager_set_attr(screen->font_man, line->size_attr,
                              vt_line_has_ot_substitute_glyphs(line));
     width = ui_calculate_vtchar_width(ui_get_font(screen->font_man, US_ASCII), vt_sp_ch(), NULL);
-    if (ui_rest > width) {
-      if ((col += ui_rest / width) >= vt_term_get_cols(screen->term)) {
+    if (x_rest > width) {
+      if ((col += x_rest / width) >= vt_term_get_cols(screen->term)) {
         col = vt_term_get_cols(screen->term) - 1;
       }
     }
@@ -3254,7 +3254,7 @@ static void selecting_with_motion(ui_screen_t *screen, int x, int y, Time time, 
   int char_index;
   int row;
   int ui_is_outside;
-  u_int ui_rest;
+  u_int x_rest;
   vt_line_t *line;
 
   if (x < 0) {
@@ -3295,7 +3295,7 @@ static void selecting_with_motion(ui_screen_t *screen, int x, int y, Time time, 
     return;
   }
 
-  char_index = convert_x_to_char_index_with_shape(screen, line, &ui_rest, x);
+  char_index = convert_x_to_char_index_with_shape(screen, line, &x_rest, x);
 
   if (is_rect || screen->sel.is_rect) {
     /* converting char index to col. */
@@ -3304,11 +3304,11 @@ static void selecting_with_motion(ui_screen_t *screen, int x, int y, Time time, 
 
     if (vt_line_is_rtl(line)) {
       char_index += (vt_term_get_cols(screen->term) - vt_line_get_num_filled_cols(line));
-      char_index -= (ui_rest / ui_col_width(screen));
+      char_index -= (x_rest / ui_col_width(screen));
     } else {
-      char_index += (ui_rest / ui_col_width(screen));
+      char_index += (x_rest / ui_col_width(screen));
     }
-  } else if (char_index == vt_line_end_char_index(line) && ui_rest > 0) {
+  } else if (char_index == vt_line_end_char_index(line) && x_rest > 0) {
     ui_is_outside = 1;
 
     /* Inform vt_screen that the mouse position is outside of the line. */
@@ -3361,7 +3361,7 @@ static int selecting_picture(ui_screen_t *screen, int char_index, int row) {
 static void selecting_word(ui_screen_t *screen, int x, int y, Time time) {
   int char_index;
   int row;
-  u_int ui_rest;
+  u_int x_rest;
   int beg_row;
   int beg_char_index;
   int end_row;
@@ -3374,9 +3374,11 @@ static void selecting_word(ui_screen_t *screen, int x, int y, Time time) {
     return;
   }
 
-  char_index = convert_x_to_char_index_with_shape(screen, line, &ui_rest, x);
+  char_index = convert_x_to_char_index_with_shape(screen, line, &x_rest, x);
 
-  if (vt_line_end_char_index(line) == char_index && ui_rest > 0) {
+  if (vt_line_end_char_index(line) == char_index &&
+      /* XXX ui_calculate_char_width(eol char) should be used instead of ui_col_width(line) */
+      x_rest >= ui_col_width(screen)) {
     /* over end of line */
 
     return;
@@ -5809,11 +5811,14 @@ static void start_vt100_cmd(void *p) {
       ui_restore_selected_region_color(&screen->sel);
     }
 
-    if (!vt_term_logical_visual_is_reversible(screen->term)) {
+    if (vt_term_has_logical_visual(screen->term)) {
       /*
-       * If vertical logical<=>visual conversion is enabled, ui_window_update()
+       * If logical<=>visual conversion is enabled, ui_window_update()
        * in stop_vt100_cmd() can't reflect ui_restore_selected_region_color*()
-       * functions above to screen.
+       * functions above to screen, even if logvis->is_reversible is true as bidi.
+       * (See vt_line_set_updated(line) in set_visual_modified() in vt_line_bidi.c,
+       *  which is added at mlterm-3.8.8, so mlterm-3.8.7 or before doesn't
+       *  need this ui_window_update() for bidi.)
        */
       ui_window_update(&screen->window, UPDATE_SCREEN);
     }
@@ -5878,13 +5883,15 @@ static void interrupt_vt100_cmd(void *p) {
   ui_display_sync(screen->window.disp);
 }
 
-static void xterm_resize(void *p, u_int width, u_int height, int flag) {
+static void xterm_resize(void *p, u_int width, u_int height,
+                         int mx_flag /* maximize */, int sb_flag /* scrollbar */) {
   ui_screen_t *screen;
 
   screen = p;
 
-  if (flag) {
-    ui_window_set_maximize_flag(&screen->window, flag - 1 /* converting to ui_maximize_flag_t */);
+  if (mx_flag) {
+    ui_window_set_maximize_flag(&screen->window,
+                                mx_flag - 1 /* converting to ui_maximize_flag_t */);
 
     return;
   }
@@ -5892,32 +5899,37 @@ static void xterm_resize(void *p, u_int width, u_int height, int flag) {
   if (width == 0 && height == 0) {
     /* vt_term_t is already resized. */
     resize_window(screen);
-
-    return;
-  }
-
-  if (width == 0) {
-    width = screen->width;
-  }
-  if (height == 0) {
-    height = screen->height;
-  }
-
-  if (vt_term_has_status_line(screen->term)) {
-    height += ui_line_height(screen);
-  }
-
-  /* screen will redrawn in window_resized() */
-  if (ui_window_resize(&screen->window, width, height, NOTIFY_TO_PARENT | LIMIT_RESIZE)) {
-    /*
-     * !! Notice !!
-     * ui_window_resize() will invoke ConfigureNotify event but window_resized()
-     * won't be called , since xconfigure.width , xconfigure.height are the same
-     * as the already resized window.
-     */
-    if (screen->window.window_resized) {
-      (*screen->window.window_resized)(&screen->window);
+  } else {
+    if (width == 0) {
+      width = screen->width;
     }
+    if (height == 0) {
+      height = screen->height;
+    }
+
+    if (vt_term_has_status_line(screen->term)) {
+      height += ui_line_height(screen);
+    }
+
+    /* screen will redrawn in window_resized() */
+    if (ui_window_resize(&screen->window, width, height, NOTIFY_TO_PARENT | LIMIT_RESIZE)) {
+      /*
+       * !! Notice !!
+       * ui_window_resize() will invoke ConfigureNotify event but window_resized()
+       * won't be called , since xconfigure.width , xconfigure.height are the same
+       * as the already resized window.
+       */
+      if (screen->window.window_resized) {
+        (*screen->window.window_resized)(&screen->window);
+      }
+    }
+  }
+
+  /* vt_screen_resize() reverts some scrolled out lines to the main screen. */
+  if (sb_flag && HAS_SCROLL_LISTENER(screen, term_changed)) {
+    (*screen->screen_scroll_listener->term_changed)(screen->screen_scroll_listener->self,
+                                                    vt_term_get_log_size(screen->term),
+                                                    vt_term_get_num_logged_lines(screen->term));
   }
 }
 

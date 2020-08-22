@@ -981,9 +981,11 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         URI をダブルクリックすると、word_separators オプションに関わらず、当該
         URI を一単語として選択する。
 
-      o scroll_on_resizing (true/*false*)
-        画面を小さくリサイズした時に、画面に表示されている文字を全てスクロールア
-        ウトする。
+      o resize_mode (none/scroll/*wrap*)
+        リサイズ時における、画面に表示されている文字の表示方法
+
+        scroll の場合は、全ての文字をスクロールアウトし、wrap の場合は、リサイズ
+        後の画面幅に合わせて折り返して表示します。
 
       o secondary_da (*24;279;0*)
         CSI > c に対する応答文字列
@@ -1560,6 +1562,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
        --bc(=bool)     : broadcast
        --ibc(=bool)    : ignore_broadcasted_chars
        --emoji=value   : emoji_path
+       --emojifmt=value: emoji_file_format
+       --rz=value      : resize_mode
        --recvdir=value : receive_directory
        --aafont(=bool) : use_aafont (mlterm-fb, mlterm-wl or mlterm-sdl2 用)
        --multivram(=bool) : separate_wall_picture (mlterm-fb on NetBSD/x68k 用)

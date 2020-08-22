@@ -10,6 +10,14 @@
 #include "vt_model.h"
 #include "vt_cursor.h"
 
+typedef enum vt_resize_mode {
+  RZ_NONE,
+  RZ_SCROLL,
+  RZ_WRAP,
+  RZ_MODE_MAX,
+
+} vt_resize_mode_t;
+
 typedef struct vt_edit_scroll_event_listener {
   void *self;
 
@@ -57,7 +65,9 @@ typedef struct vt_edit {
 
 } vt_edit_t;
 
-void vt_set_scroll_on_resizing(int flag);
+void vt_set_resize_mode(vt_resize_mode_t mode);
+
+vt_resize_mode_t vt_get_resize_mode_by_name(const char *name);
 
 int vt_edit_init(vt_edit_t *edit, vt_edit_scroll_event_listener_t *scroll_listener,
                  u_int num_cols, u_int num_rows, u_int tab_size, int is_logging, int use_bce);
@@ -73,6 +83,9 @@ int vt_edit_insert_chars(vt_edit_t *edit, vt_char_t *chars, u_int num_chars);
 int vt_edit_insert_blank_chars(vt_edit_t *edit, u_int num_blank_chars);
 
 int vt_edit_overwrite_chars(vt_edit_t *edit, vt_char_t *chars, u_int num_chars);
+
+u_int vt_edit_replace(vt_edit_t *edit, int beg_row, vt_char_t *chars, u_int cols,
+                      u_int max_cols_per_line);
 
 int vt_edit_delete_cols(vt_edit_t *edit, u_int delete_cols);
 
@@ -128,6 +141,8 @@ void vt_edit_set_tab_stop(vt_edit_t *edit);
 void vt_edit_clear_tab_stop(vt_edit_t *edit);
 
 void vt_edit_clear_all_tab_stops(vt_edit_t *edit);
+
+#define vt_edit_get_num_filled_rows(edit) vt_model_get_num_filled_rows(&(edit)->model)
 
 #define vt_edit_get_line(edit, row) (vt_model_get_line(&(edit)->model, row))
 

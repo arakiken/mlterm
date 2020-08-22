@@ -958,7 +958,7 @@ vt_logical_visual_t *vt_logvis_vert_new(vt_vertical_mode_t vertical_mode) {
   return (vt_logical_visual_t*)vert_logvis;
 }
 
-vt_vertical_mode_t vt_get_vertical_mode(char *name) {
+vt_vertical_mode_t vt_get_vertical_mode(const char *name) {
   vt_vertical_mode_t mode;
 
   for (mode = 0; mode < VERT_MODE_MAX; mode++) {

@@ -1,3 +1,40 @@
+2020-08-22  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja: Updated.
+
+	* ui_main_config.c: "scroll_on_resizing" option is removed, and
+	  "resize_mode" option is added.
+
+	* ui_screen.c:
+	  - selecting_word() checks whether pressed position is over the end
+	    character of a line or not correctly.
+	  - start_vt100_cmd() calls ui_window_update() if screen->term has
+	    vt_logvis which includes bidi.
+	  - 'int sb_flag' is added to arguments of xterm_resize(), and if it
+	    is true, xterm_resize() calls
+	    screen->screen_scroll_listener->term_changed().
+
+	* vt_term.h: vt_term_has_logical_visual() is added.
+
+	* vt_screen.[ch]:
+	  - vt_screen_resize() wraps each line when it reverts lines from backlog.
+	  - 'int pack' is removed from arguments of vt_screen_resize().
+	  - vt_screen_has_logical_visual() is added.
+
+	* vt_edit.[ch]:
+	  - vt_set_resize_mode(), vt_get_resize_mode_by_name(),
+	    vt_edit_replace() and vt_edit_get_num_filled_rows() are added.
+	  - If resize_mode is RZ_WRAP, vt_edit_resize() wraps text on the screen.
+
+	* vt_model.[ch]:
+	  The type of 'slide' argument of vt_model_resize() is changed from
+	  u_int* to u_int.
+
+	* vt_parser.[ch]: 'int sb_flag' which informs ui_screen of changing
+	  scrollbar size is added to arguments of vt_xterm_event_listener_t::resize().
+
+	* vt_logical_visual.[ch]: char* -> const char*
+
 2020-08-11  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja: Updated.

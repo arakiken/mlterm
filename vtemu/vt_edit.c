@@ -47,7 +47,10 @@
 
 /* --- static variables --- */
 
-static int scroll_on_resizing;
+static char *resize_mode_name_table[] = {
+  "none", "scroll", "wrap",
+};
+static vt_resize_mode_t resize_mode = RZ_WRAP;
 
 /* --- static functions --- */
 
@@ -491,10 +494,277 @@ static int apply_relative_origin(vt_edit_t *edit, int *col, int *row, u_int *num
   return 1;
 }
 
+/*
+ * max_cols is always greater than 0, and it never becomes less than 0 at the last call
+ * of this function.
+ * vt_line_set_modified() should be executed by the caller of this function.
+ */
+static u_int replace_chars_in_line(vt_line_t *line, vt_char_t **chars, u_int max_cols) {
+  u_int num_chars = 0;
+  u_int ow_cols = 0;
+  u_int tmp;
+
+  vt_line_reset(line);
+
+  while (1) {
+    ow_cols += (tmp = vt_char_cols(*chars + (num_chars++)));
+    if (ow_cols >= max_cols) {
+      if (ow_cols > max_cols) {
+        num_chars--;
+        ow_cols -= tmp;
+      }
+
+      break;
+    }
+  }
+
+  vt_line_overwrite(line, 0, *chars, num_chars, ow_cols);
+  (*chars) += num_chars;
+
+  return ow_cols;
+}
+
+static void resize_hadjustment(vt_edit_t *edit, u_int new_cols, u_int old_cols) {
+  int cursor_row = edit->cursor.row;
+  int cursor_col = edit->cursor.col;
+  u_int row;
+  vt_char_t *orig_buffer;
+  u_int max_buf_len = 0;
+
+  for (row = 0; row < edit->model.num_rows;) {
+    vt_line_t *line = vt_model_get_line(&edit->model, row);
+    vt_line_t *line_tmp;
+    int expand_wrap_lines;
+    u_int count;
+    u_int buf_len = 0;
+    u_int line_nchars;
+
+    line_nchars = vt_line_get_num_filled_chars_except_sp(line);
+
+    if (vt_line_is_continued_to_next(line) && old_cols < new_cols) {
+      expand_wrap_lines = 1;
+    } else if (vt_str_cols(line->chars, line_nchars) > new_cols) {
+      expand_wrap_lines = 0;
+    } else {
+      row++;
+      continue;
+    }
+
+    count = 0;
+    line_tmp = line;
+    while (1) {
+      buf_len += line_tmp->num_filled_chars;
+
+      if (!vt_line_is_continued_to_next(line_tmp)) {
+        break;
+      } else if (row + count + 1 >= edit->model.num_rows) {
+        /* XXX The bottom line should not be wrapped, but it can happen. */
+        vt_line_set_continued_to_next(line_tmp, 0);
+        break;
+      }
+
+      line_tmp = vt_model_get_line(&edit->model, row + (++count));
+    }
+
+    if (buf_len > 0 &&
+        (buf_len <= max_buf_len || (orig_buffer = vt_str_alloca((max_buf_len = buf_len))))) {
+      u_int num_wrap_rows;
+      u_int old_num_wrap_rows = 0;
+      u_int num_filled_chars = 0;
+      u_int num_filled_cols = 0;
+      u_int line_ncols;
+      int cursor_adjusted = 0;
+      vt_char_t *buffer = orig_buffer;
+
+      vt_str_init(buffer, buf_len);
+
+      line_tmp = line;
+      count = 0;
+      while (1) {
+        line_nchars = vt_line_get_num_filled_chars_except_sp(line_tmp);
+        line_ncols = vt_str_cols(line_tmp->chars, line_nchars);
+
+        vt_str_copy(buffer + num_filled_chars, line_tmp->chars, line_nchars);
+        num_filled_chars += line_nchars;
+        num_filled_cols += line_ncols;
+
+        /*
+         * cursor_adjusted flag is necessary because 'cursor_row = cursor_row + n - count'
+         * below increments cursor_row and 'row + count == cursor_row' will get true again.
+         */
+        if (!cursor_adjusted && row + count == cursor_row) {
+          int n;
+
+          /*
+           * XXX
+           * This calculation is incorrect if a character at the end of line
+           * is full width.
+           */
+          cursor_col = edit->cursor.col + count * old_cols;
+          n = cursor_col / new_cols;
+          cursor_row = cursor_row + n - count;
+          cursor_col -= (n * new_cols);
+
+          if (edit->cursor.char_index >= line_nchars) {
+            /* Copy trailing spaces */
+            vt_str_copy(buffer + num_filled_chars, line_tmp->chars + line_nchars,
+                        edit->cursor.char_index + 1 - line_nchars);
+            num_filled_chars += (edit->cursor.char_index + 1 - line_ncols);
+            num_filled_cols += vt_str_cols(line_tmp->chars + line_nchars,
+                                      edit->cursor.char_index + 1 - line_nchars);
+          }
+
+          cursor_adjusted = 1;
+        }
+
+        if (!vt_line_is_continued_to_next(line_tmp)) {
+          break;
+        }
+
+        /*
+         * If 'row + count == cursor_row && cursor_col >= line_ncols' above is true,
+         * vt_line_is_continued_to_next(line_tmp) is always false.
+         */
+        vt_str_copy(buffer + num_filled_chars, line_tmp->chars + line_nchars,
+                    line_tmp->num_filled_chars - line_nchars);
+        num_filled_chars += (line_tmp->num_filled_chars - line_nchars);
+        num_filled_cols += (vt_str_cols(line_tmp->chars, line_tmp->num_filled_chars) - line_ncols);
+
+        line_tmp = vt_model_get_line(&edit->model, row + (++count));
+        old_num_wrap_rows ++;
+      }
+
+      if (num_filled_cols == 0) {
+        num_wrap_rows = 0;
+      } else {
+        num_wrap_rows = (num_filled_cols - 1) / new_cols;
+      }
+
+      if (expand_wrap_lines) {
+        u_int next_row = row + vt_edit_replace(edit, row, buffer, num_filled_cols, new_cols);
+
+        if (old_num_wrap_rows > num_wrap_rows) {
+          for (count = row + old_num_wrap_rows + 1; count < edit->model.num_rows; count++) {
+            vt_line_copy(vt_model_get_line(&edit->model,
+                                           count - (old_num_wrap_rows - num_wrap_rows)),
+                         vt_model_get_line(&edit->model, count));
+          }
+
+          for (count -= (old_num_wrap_rows - num_wrap_rows);
+               count < edit->model.num_rows; count++) {
+            vt_line_reset(vt_model_get_line(&edit->model, count));
+          }
+
+          if (cursor_row > row + old_num_wrap_rows) {
+            cursor_row -= (old_num_wrap_rows - num_wrap_rows);
+          }
+        }
+
+        row = next_row;
+      } else {
+        u_int empty_rows;
+
+        /* old_num_wrap_rows is never greater than num_wrap_rows if expand_wrap_lines is false. */
+        num_wrap_rows -= old_num_wrap_rows;
+
+        for (empty_rows = 0; empty_rows < num_wrap_rows; empty_rows++) {
+          line = vt_model_get_line(&edit->model, edit->model.num_rows - empty_rows - 1);
+          if (vt_line_get_num_filled_chars_except_sp(line) > 0) {
+            break;
+          }
+        }
+
+        if (empty_rows > 0) {
+          if (cursor_row > row + old_num_wrap_rows) {
+            cursor_row += empty_rows;
+          }
+
+          num_wrap_rows -= empty_rows;
+
+          for (count = edit->model.num_rows - 1 - empty_rows; count > row; count--) {
+            vt_line_copy(vt_model_get_line(&edit->model, count + empty_rows),
+                         vt_model_get_line(&edit->model, count));
+          }
+        }
+
+        if (num_wrap_rows > 0) {
+          count = 0;
+          do {
+            if (count >= row) {
+              line = vt_model_get_line(&edit->model, row);
+              /*
+               * new_cols is always less than num_filled_cols here because this line is
+               * scrolled out below but at least one line should remain in the screen.
+               */
+              num_filled_cols -= replace_chars_in_line(line, &buffer, new_cols);
+              vt_line_set_continued_to_next(line, 1);
+            } else {
+              line = vt_model_get_line(&edit->model, count);
+              if (cursor_row < row) {
+                cursor_row--;
+              }
+            }
+
+            if (edit->is_logging && edit->scroll_listener->receive_scrolled_out_line) {
+              (*edit->scroll_listener->receive_scrolled_out_line)(edit->scroll_listener->self,
+                                                                  line);
+            }
+          } while (++count < num_wrap_rows);
+
+          if (num_wrap_rows <= row) {
+            for (count = 0; count < row - num_wrap_rows; count++) {
+              vt_line_copy(vt_model_get_line(&edit->model, count),
+                           vt_model_get_line(&edit->model, num_wrap_rows + count));
+            }
+            row -= num_wrap_rows;
+          } else {
+            row = 0;
+          }
+        }
+
+        row += vt_edit_replace(edit, row, buffer, num_filled_cols, new_cols);
+      }
+
+      vt_str_final(orig_buffer, buf_len);
+    }
+  }
+
+  if (cursor_row < 0) {
+    cursor_row = cursor_col = 0;
+  } else if (cursor_row >= edit->model.num_rows) {
+    vt_line_t *line;
+
+    cursor_row = edit->model.num_rows - 1;
+    line = vt_model_get_line(&edit->model, cursor_row);
+    /* cursor_col points space character just after the end character except space. */
+    cursor_col = vt_str_cols(line->chars, vt_line_get_num_filled_chars_except_sp(line));
+  }
+
+#if 0
+  if (edit->cursor.col != cursor_col || edit->cursor.row != cursor_row)
+#endif
+  {
+    vt_cursor_goto_by_col(&edit->cursor, cursor_col, cursor_row);
+  }
+}
+
 /* --- global functions --- */
 
-void vt_set_scroll_on_resizing(int flag) {
-  scroll_on_resizing = flag;
+void vt_set_resize_mode(vt_resize_mode_t mode) {
+  resize_mode = mode;
+}
+
+vt_resize_mode_t vt_get_resize_mode_by_name(const char *name) {
+  vt_resize_mode_t mode;
+
+  for (mode = 0; mode < RZ_MODE_MAX; mode++) {
+    if (strcmp(resize_mode_name_table[mode], name) == 0) {
+      return mode;
+    }
+  }
+
+  /* default value */
+  return RZ_WRAP;
 }
 
 int vt_edit_init(vt_edit_t *edit, vt_edit_scroll_event_listener_t *scroll_listener,
@@ -586,23 +856,35 @@ int vt_edit_clone(vt_edit_t *dst_edit, vt_edit_t *src_edit) {
   return 1;
 }
 
-int vt_edit_resize(vt_edit_t *edit, u_int num_cols, u_int num_rows) {
+int vt_edit_resize(vt_edit_t *edit, u_int new_cols, u_int new_rows) {
   u_int old_cols;
+  u_int row;
+  u_int old_filled_rows;
   u_int slide;
 
 #ifdef CURSOR_DEBUG
   vt_cursor_dump(&edit->cursor);
 #endif
 
+  old_cols = edit->model.num_cols;
+
+  if (resize_mode == RZ_WRAP && old_cols >= new_cols) {
+    resize_hadjustment(edit, new_cols, old_cols);
+  }
+
+  if ((old_filled_rows = vt_model_get_num_filled_rows(&edit->model)) > new_rows) {
+    slide = old_filled_rows - new_rows;
+  } else {
+    slide = 0;
+  }
+
   if (edit->is_logging && edit->scroll_listener->receive_scrolled_out_line) {
-    u_int count;
-    u_int old_filled_rows = vt_model_get_num_filled_rows(&edit->model);
     int scroll_all = 0;
 
-    if (scroll_on_resizing) {
-      for (count = 0; count < old_filled_rows; count++) {
-        vt_line_t *line = vt_model_get_line(&edit->model, count);
-        if (vt_str_cols(line->chars, vt_line_get_num_filled_chars_except_sp(line)) > num_cols) {
+    if (resize_mode == RZ_SCROLL) {
+      for (row = 0; row < old_filled_rows; row++) {
+        vt_line_t *line = vt_model_get_line(&edit->model, row);
+        if (vt_str_cols(line->chars, vt_line_get_num_filled_chars_except_sp(line)) > new_cols) {
           scroll_all = 1;
           break;
         }
@@ -610,23 +892,21 @@ int vt_edit_resize(vt_edit_t *edit, u_int num_cols, u_int num_rows) {
     }
 
     if (scroll_all) {
-      for (count = 0; count < old_filled_rows; count++) {
+      for (row = 0; row < old_filled_rows; row++) {
         (*edit->scroll_listener->receive_scrolled_out_line)(edit->scroll_listener->self,
-                                                            vt_model_get_line(&edit->model, count));
+                                                            vt_model_get_line(&edit->model, row));
       }
       vt_edit_goto_home(edit);
       vt_edit_clear_below(edit);
-    } else if (old_filled_rows > num_rows) {
-      for (count = 0; count < old_filled_rows - num_rows; count++) {
+    } else {
+      for (row = 0; row < slide; row++) {
         (*edit->scroll_listener->receive_scrolled_out_line)(edit->scroll_listener->self,
-                                                            vt_model_get_line(&edit->model, count));
+                                                            vt_model_get_line(&edit->model, row));
       }
     }
   }
 
-  old_cols = edit->model.num_cols;
-
-  if (!vt_model_resize(&edit->model, &slide, num_cols, num_rows)) {
+  if (!vt_model_resize(&edit->model, new_cols, new_rows, slide)) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " vt_model_resize() failed.\n");
 #endif
@@ -635,24 +915,24 @@ int vt_edit_resize(vt_edit_t *edit, u_int num_cols, u_int num_rows) {
   }
 
   if (slide > edit->cursor.row) {
-    vt_cursor_goto_home(&edit->cursor);
-    vt_line_assure_boundary(CURSOR_LINE(edit), 0);
+    vt_cursor_goto_by_char(&edit->cursor, 0, 0);
   } else {
-    edit->cursor.row -= slide;
-
-    if (edit->cursor.row >= num_rows) {
-      /* Forcibly move cursor to the bottom line. */
-      edit->cursor.row = num_rows - 1;
-      edit->cursor.col = edit->cursor.char_index = 0;
+    if ((edit->cursor.row -= slide) >= new_rows) {
+      edit->cursor.col = new_cols;
+      edit->cursor.row = new_rows - 1;
     }
 
-    if (num_cols < old_cols) {
-      if (edit->cursor.col >= num_cols) {
-        edit->cursor.col = num_cols - 1;
-        edit->cursor.char_index = vt_convert_col_to_char_index(
-            CURSOR_LINE(edit), &edit->cursor.col_in_char, edit->cursor.col, 0);
-      }
+    if (edit->cursor.col >= new_cols) {
+      /* col points space character just after the end character except space. */
+      int col = vt_line_get_num_filled_chars_except_sp(
+                  vt_model_get_line(&edit->model,edit->cursor.row));
+
+      vt_cursor_goto_by_col(&edit->cursor, col, edit->cursor.row);
     }
+  }
+
+  if (resize_mode == RZ_WRAP && old_cols < new_cols) {
+    resize_hadjustment(edit, new_cols, old_cols);
   }
 
   reset_wraparound_checker(edit);
@@ -662,7 +942,7 @@ int vt_edit_resize(vt_edit_t *edit, u_int num_cols, u_int num_rows) {
 
   edit->use_margin = 0;
   edit->hmargin_beg = 0;
-  edit->hmargin_end = num_cols - 1;
+  edit->hmargin_end = new_cols - 1;
 
   free(edit->tab_stops);
 
@@ -881,6 +1161,38 @@ int vt_edit_overwrite_chars(vt_edit_t *edit, vt_char_t *ow_chars, u_int num_ow_c
 #endif
 
   return 1;
+}
+
+u_int vt_edit_replace(vt_edit_t *edit, int beg_row /* starting row to be replaced */,
+                      vt_char_t *chars, u_int cols /* > 0 */, u_int max_cols_per_line /* > 0 */) {
+  int row = beg_row;
+  vt_line_t *line;
+
+  while (1) {
+    if ((line = vt_model_get_line(&edit->model, row)) == NULL) {
+      if (edit->is_logging && edit->scroll_listener->receive_scrolled_out_line) {
+        (*edit->scroll_listener->receive_scrolled_out_line)(edit->scroll_listener->self,
+                                                            vt_model_get_line(&edit->model, 0));
+      }
+      vt_model_scroll_upward(&edit->model, 1);
+
+      if ((line = vt_model_get_line(&edit->model, row - 1)) == NULL) {
+        break;
+      }
+    } else {
+      row++;
+    }
+
+    cols -= replace_chars_in_line(line, &chars,
+                                  cols < max_cols_per_line ? cols : max_cols_per_line);
+    if (cols == 0) {
+      break;
+    }
+
+    vt_line_set_continued_to_next(line, 1);
+  }
+
+  return row - beg_row;
 }
 
 /*

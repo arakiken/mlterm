@@ -1332,7 +1332,7 @@ static void restore_cursor(vt_parser_t *vt_parser) {
 static void set_maximize(vt_parser_t *vt_parser, int flag) {
   if (HAS_XTERM_LISTENER(vt_parser, resize)) {
     stop_vt100_cmd(vt_parser, 0);
-    (*vt_parser->xterm_listener->resize)(vt_parser->xterm_listener->self, 0, 0, flag);
+    (*vt_parser->xterm_listener->resize)(vt_parser->xterm_listener->self, 0, 0, flag, 0);
     start_vt100_cmd(vt_parser, 0);
   }
 }
@@ -1362,6 +1362,8 @@ static int get_cell_size(vt_parser_t *vt_parser, u_int *col_width, u_int *line_h
  */
 static void resize(vt_parser_t *vt_parser, int width, int height, int by_char) {
   if (HAS_XTERM_LISTENER(vt_parser, resize)) {
+    int flag = 0;
+
     if (by_char) {
       if (width == 0 || height == 0) {
         u_int col_width;
@@ -1414,7 +1416,9 @@ static void resize(vt_parser_t *vt_parser, int width, int height, int by_char) {
       }
 
     do_resize:
-      vt_screen_resize(vt_parser->screen, width, height, 0);
+      if (vt_screen_resize(vt_parser->screen, width, height) == 2) {
+        flag = 1;
+      }
 
       /*
        * xterm_listener::resize(0,0) means that screen should be
@@ -1445,7 +1449,7 @@ static void resize(vt_parser_t *vt_parser, int width, int height, int by_char) {
     }
 
     stop_vt100_cmd(vt_parser, 0);
-    (*vt_parser->xterm_listener->resize)(vt_parser->xterm_listener->self, width, height, 0);
+    (*vt_parser->xterm_listener->resize)(vt_parser->xterm_listener->self, width, height, 0, flag);
     start_vt100_cmd(vt_parser, 0);
   }
 }

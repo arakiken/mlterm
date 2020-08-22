@@ -329,8 +329,8 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "emoji file format [%.4x.png,%.4x-%.4x.png]");
   bl_conf_add_opt(conf, '\0', "lew", 0, "local_echo_wait",
                   "time (msec) to keep local echo mode [250]");
-  bl_conf_add_opt(conf, '\0', "sr", 1, "scroll_on_resizing",
-                  "scroll screen on resizing [false]");
+  bl_conf_add_opt(conf, '\0', "rz", 0, "resize_mode",
+                  "screen display at resize [wrap]");
   bl_conf_add_opt(conf, '\0', "recvdir", 0, "receive_directory",
                   "directory to save received files [~/.mlterm/recv]");
 #ifdef USE_IM_CURSOR_COLOR
@@ -1404,12 +1404,8 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     ui_emoji_set_file_format(value);
   }
 
-  if ((value = bl_conf_get_value(conf, "scroll_on_resizing"))) {
-    int flag = true_or_false(value);
-
-    if (flag != -1) {
-      vt_set_scroll_on_resizing(flag);
-    }
+  if ((value = bl_conf_get_value(conf, "resize_mode"))) {
+    vt_set_resize_mode(vt_get_resize_mode_by_name(value));
   }
 
   if ((value = bl_conf_get_value(conf, "receive_directory"))) {

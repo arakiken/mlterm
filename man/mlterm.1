@@ -745,6 +745,11 @@ The default is \fBtrue\fR.
 \fB\-\-rv\fR=\fIvalue\fR
 Specify the color to use to display reverse characters.
 .TP
+\fB\-\-rz\fR=\fIvalue\fR
+Specify the way to display text on the screen when it is resized.
+Valid values are: \fBnone\fR, \fBscroll\fR and \fBwrap\fR.
+The default is \fBwrap\fR.
+.TP
 \fB\-\-scp\fR(=\fIbool\fR)
 Allow OSC 5379 scp.
 The default is \fBfalse\fR.
@@ -771,10 +776,6 @@ The default is \fBfalse\fR.
 .TP
 \fB\-\-slp\fR(=\fIbool\fR) (Available for Android)
 Whether to start mlterm with local pty instead of ssh connection.
-The default is \fBfalse\fR.
-.TP
-\fB\-\-sr\fR(=\fIbool\fR)
-Whether to scroll out all lines on resizing.
 The default is \fBfalse\fR.
 .TP
 \fB\-\-trim\fR(=\fIbool\fR)
@@ -1691,6 +1692,9 @@ See \fBSELECTION\fR section below for detail.
 \fBregard_uri_as_word=\fIbool\fR (\fB\-\-uriword\fR)
 Select URI by double clicking it regardless of \-\-W option.
 .TP
+\fBresize_mode=\fIvalue\fR (\fB\-\-sz\fR)
+Specify the way to display text on the screen when it is resized.
+.TP
 \fBrv_color=\fIvalue\fR (\fB\-\-rv\fR)
 Specify the color to use to display reverse characters.
 .TP
@@ -1702,9 +1706,6 @@ Foreground color for scrollbar.
 .TP
 \fBscreen_width_ratio=\fIvalue\fR (\fB\-1\fR, \fB\-\-wscr\fR)
 Specify actual screen width (screen height in vertical mode).
-.TP
-\fBscroll_on_resizing=\fIbool\fR (\fB\-\-sr\fR)
-Scroll out all lines on resizing.
 .TP
 \fBscrollbar_mode=\fImode\fR (\fB\-O\fR, \fB\-\-sbmod\fR)
 Specify scrollbar position.

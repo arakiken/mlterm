@@ -289,6 +289,11 @@ static int reverse_or_restore_color(vt_screen_t *screen, /* visual */
   u_int size_except_sp;
   int beg_regarding_rtl;
 
+#ifdef __DEBUG
+  bl_debug_printf(BL_DEBUG_TAG " reverse/restore region: %d %d %d %d\n", beg_char_index, beg_row,
+                  end_char_index, end_row);
+#endif
+
   if (!modify_region(screen, &end_char_index, &end_row)) {
     return 0;
   }
@@ -456,8 +461,8 @@ static u_int check_or_copy_region(
   int row;
 
 #ifdef __DEBUG
-  bl_debug_printf(BL_DEBUG_TAG "region: %d %d %d %d\n", beg_char_index, beg_row, end_char_index,
-                  end_row);
+  bl_debug_printf(BL_DEBUG_TAG " check/copy region: %d %d %d %d\n", beg_char_index, beg_row,
+                  end_char_index, end_row);
 #endif
 
   if (!modify_region(screen, &end_char_index, &end_row)) {
@@ -567,6 +572,12 @@ static u_int check_or_copy_region(
         end_char_index = beg_regarding_rtl;
       }
 
+      if (beg_row == end_row && beg_char_index < end_char_index) {
+        int tmp = end_char_index;
+        end_char_index = beg_char_index;
+        beg_char_index = tmp;
+      }
+
       size = beg_char_index - end_char_index + 1;
 
       if (chars && num_chars >= region_size + size) {
@@ -671,6 +682,340 @@ static vt_edit_t *status_edit_new(vt_edit_t *main_edit) {
   }
 
   return status_edit;
+}
+
+static u_int get_wrap_lines_in_logs(vt_logs_t *logs, u_int *cols, u_int *rows, int beg) {
+  vt_line_t *line;
+  u_int num_chars = 0;
+  int row;
+  u_int num;
+
+  for (row = beg; row > 0 && vt_line_is_continued_to_next(vt_log_get(logs, row - 1)); row--);
+
+  *rows = beg - row + 1;
+  *cols = 0;
+
+  for(; row < beg; row++) {
+    line = vt_log_get(logs, row);
+    vt_line_ctl_logical(line); /* logged lines are always visualized. */
+    *cols += vt_str_cols(line->chars, line->num_filled_chars);
+    num_chars += line->num_filled_chars;
+    vt_line_ctl_visual(line);
+  }
+
+  line = vt_log_get(logs, row);
+  vt_line_ctl_logical(line); /* logged lines are always visualized. */
+  if (!vt_line_is_continued_to_next(line)) {
+    num = vt_line_get_num_filled_chars_except_sp(line);
+  } else {
+    num = line->num_filled_chars;
+  }
+  *cols += vt_str_cols(line->chars, num);
+  num_chars += num;
+  vt_line_ctl_visual(line);
+
+  return num_chars;
+}
+
+static u_int get_wrap_lines_in_edit(vt_edit_t *edit, vt_char_t *chars,
+                                    u_int *cols, u_int *rows, int beg) {
+  u_int num_chars = 0;
+  vt_line_t *line;
+  int row = beg;
+
+  if (cols) {
+    *cols = 0;
+  }
+
+  while ((line = vt_edit_get_line(edit, row++))) {
+    if (!vt_line_is_continued_to_next(line)) {
+      u_int num = vt_line_get_num_filled_chars_except_sp(line);
+
+      if (chars) {
+        vt_str_copy(chars + num_chars, line->chars, num);
+      } else {
+        *cols += vt_str_cols(line->chars, num);
+      }
+      num_chars += num;
+
+      break;
+    } else {
+      if (chars) {
+        vt_str_copy(chars + num_chars, line->chars, line->num_filled_chars);
+      } else {
+        *cols += vt_str_cols(line->chars, line->num_filled_chars);
+      }
+      num_chars += line->num_filled_chars;
+    }
+  }
+
+  if (rows) {
+    *rows = row - beg;
+  }
+
+  return num_chars;
+}
+
+static void rollback(vt_screen_t *screen, u_int dst_cols, u_int dst_rows) {
+  int src_row;
+  int src_end_row;
+  u_int dst_row;
+  u_int n_scrollback;
+  vt_line_t *line;
+  vt_char_t *chars;
+  vt_char_t *chars_in_edit;
+  u_int src_cols_in_edit;
+  u_int src_nchars_in_edit;
+  u_int src_rows_in_edit;
+  u_int src_nchars;
+  u_int max_nchars;
+  u_int src_cols;
+  u_int count;
+  int cursor_col = vt_cursor_col(&screen->normal_edit);
+  int cursor_row = vt_cursor_row(&screen->normal_edit);
+
+  src_row = src_end_row = vt_get_num_logged_lines(&screen->logs) - 1;
+  if (vt_line_is_continued_to_next(vt_log_get(&screen->logs, src_row))) {
+    src_nchars_in_edit = get_wrap_lines_in_edit(&screen->normal_edit, NULL,
+                                                &src_cols_in_edit, &src_rows_in_edit, 0);
+    src_cols = src_cols_in_edit;
+    dst_rows += src_rows_in_edit;
+
+    if ((chars_in_edit = vt_str_alloca(src_nchars_in_edit)) == NULL) {
+      return;
+    }
+    vt_str_init(chars_in_edit, src_nchars_in_edit);
+
+    get_wrap_lines_in_edit(&screen->normal_edit, chars_in_edit, NULL, NULL, 0);
+  } else {
+    src_nchars_in_edit = src_cols = src_cols_in_edit = src_rows_in_edit = 0;
+  }
+  max_nchars = src_nchars = 0;
+
+  count = 0;
+  while (1) {
+    u_int n;
+    u_int r;
+    u_int c;
+    u_int tmp;
+
+    n = get_wrap_lines_in_logs(&screen->logs, &c, &r, src_row);
+
+    if (src_cols + c == 0) {
+      tmp = 1;
+    } else {
+      tmp = (src_cols + c - 1) / dst_cols + 1;
+    }
+    if (tmp > dst_rows - count) {
+      break;
+    }
+
+    if (count == 0) {
+      n += src_nchars_in_edit;
+
+      if (cursor_row < src_rows_in_edit) {
+        /*
+         * XXX
+         * This calculation is incorrect if a character at the end of line
+         * is full width.
+         */
+        cursor_col += (c + cursor_row * dst_cols);
+        cursor_row = cursor_col / dst_cols;
+        cursor_col -= (cursor_row * dst_cols);
+        /*
+         * The number of rows reverted to the screen is added to cursor_row by
+         * 'cursor_row += (dst_rows - src_rows_in_edit)' below.
+         */
+        cursor_row -= (cursor_row + 1 - src_rows_in_edit);
+      }
+    }
+
+    if (n > max_nchars) {
+      max_nchars = n;
+    }
+
+    count += tmp;
+    src_cols = 0;
+    src_nchars += n;
+    if ((src_row -= r) < 0) {
+      break;
+    }
+  }
+
+  if ((dst_rows = count) == 0) {
+    return;
+  }
+
+  n_scrollback = src_end_row - src_row;
+  src_row++;
+
+  if ((chars = vt_str_alloca(max_nchars)) == NULL) {
+    return;
+  }
+  vt_str_init(chars, max_nchars);
+
+  vt_edit_scroll_downward(&screen->normal_edit, dst_rows - src_rows_in_edit);
+  cursor_row += (dst_rows - src_rows_in_edit);
+
+  dst_row = 0;
+  while (src_row <= src_end_row) {
+    u_int n;
+
+    line = vt_log_get(&screen->logs, src_row++);
+    src_cols = 0;
+    src_nchars = 0;
+
+    /* vt_line_ctl_visual() is not called because vt_log_rollback_index() clears it. */
+    vt_line_ctl_logical(line);
+    while (1) {
+      if (!vt_line_is_continued_to_next(line)) {
+        n = vt_line_get_num_filled_chars_except_sp(line);
+        vt_str_copy(chars + src_nchars, line->chars, n);
+        src_nchars += n;
+        src_cols += vt_str_cols(line->chars, n);
+
+        break;
+      } else {
+        vt_str_copy(chars + src_nchars, line->chars, line->num_filled_chars);
+        src_nchars += line->num_filled_chars;
+        src_cols += vt_str_cols(line->chars, line->num_filled_chars);
+
+        if (src_row > src_end_row) {
+          vt_str_copy(chars + src_nchars, chars_in_edit, src_nchars_in_edit);
+          src_nchars += src_nchars_in_edit;
+          src_cols += src_cols_in_edit;
+
+          break;
+        } else {
+          line = vt_log_get(&screen->logs, src_row++);
+          /* vt_line_ctl_visual() is not called because vt_log_rollback_index() clears it. */
+          vt_line_ctl_logical(line);
+        }
+      }
+    }
+
+    if (src_nchars > 0) {
+      dst_row += vt_edit_replace(&screen->normal_edit, dst_row, chars, src_cols, dst_cols);
+    } else {
+      dst_row++;
+    }
+  }
+
+  vt_edit_goto(&screen->normal_edit, cursor_col, cursor_row);
+
+  vt_str_final(chars, max_nchars);
+  if (src_nchars_in_edit > 0) {
+    vt_str_final(chars_in_edit, src_nchars_in_edit);
+  }
+
+  vt_log_rollback_index(&screen->logs, n_scrollback);
+}
+
+static int resize(vt_screen_t *screen, u_int cols /* > 0 */, u_int rows /* > 0 */, int pack) {
+  /* This considers status line ('rows' contains status line) */
+  u_int old_rows;
+
+  /*
+   * REVERT_BACKLOG_FOR_HADJUST enables to revert backlog to the main screen if
+   * resize_hadjustment() in vt_edit.c make empty spaces at the bottom of the
+   * screen by stretching the screen horizontally.
+   * But backlog lines reverted to the screen are not adjusted according to the
+   * resized screen.
+   *
+   * +---------+                 Resized
+   * |abcdefghi|<backlog>     +-----------+
+   * |jk       |<-wrapped     |abcdefghi  |
+   * +---------+           -> +-----------+
+   * |ABCDEFGHI|<screen>      |jk         |
+   * |JK       |              |ABCDEFGHIJK|
+   * +---------+              +-----------+
+   */
+#ifdef REVERT_BACKLOG_FOR_HADJUST
+  /* XXX */
+  old_rows = vt_edit_get_rows(&screen->normal_edit) -
+             vt_edit_get_num_filled_rows(&screen->normal_edit);
+#else
+  old_rows = vt_edit_get_rows(&screen->normal_edit);
+#endif
+
+  if (screen->status_edit) {
+    vt_edit_resize(screen->status_edit, cols, 1);
+
+    if (vt_screen_has_status_line(screen) && rows >= 2) {
+      rows--;
+    }
+  }
+
+  vt_edit_resize(&screen->normal_edit, cols, rows);
+
+#ifdef DEBUG
+  {
+    vt_line_t *line = vt_edit_get_line(&screen->normal_edit,
+                                       vt_cursor_row(&screen->normal_edit));
+
+    if (line->num_filled_chars <= screen->normal_edit.cursor.char_index) {
+      bl_debug_printf("Cursor posion (%d %d) is over the end of line (%d)\n",
+                      screen->normal_edit.cursor.char_index,
+                      screen->normal_edit.cursor.row,
+                      line->num_filled_chars);
+      abort();
+    }
+  }
+#endif
+
+  vt_edit_resize(&screen->alt_edit, cols, rows);
+
+  if (screen->stored_edit) {
+    vt_edit_resize(&screen->stored_edit->edit, cols, rows);
+  }
+
+  if (screen->page_edits) {
+    u_int count;
+
+    for (count = 0; count < MAX_PAGE_ID; count++) {
+      vt_edit_resize(screen->page_edits + count, cols, rows);
+    }
+  }
+
+#ifdef REVERT_BACKLOG_FOR_HADJUST
+  /* XXX */
+  rows = vt_edit_get_rows(&screen->normal_edit) -
+         vt_edit_get_num_filled_rows(&screen->normal_edit);
+#endif
+
+  if (pack && rows > old_rows) {
+    u_int n_scroll = vt_get_num_logged_lines(&screen->logs);
+
+    if (n_scroll > 0) {
+      if (n_scroll > rows - old_rows) {
+        n_scroll = rows - old_rows;
+      }
+
+#if 0
+      vt_edit_scroll_downward(&screen->normal_edit, n_scroll);
+
+      for (count = 0; count < n_scroll; count++) {
+        vt_line_t *src = vt_log_get(&screen->logs,
+                                    vt_get_num_logged_lines(&screen->logs) - n_scroll + count);
+        vt_line_t *dst = vt_edit_get_line(&screen->normal_edit, count);
+        /* vt_screen_resize() is always called in logical context. */
+        vt_line_ctl_logical(src);
+        vt_line_copy(dst, src);
+        vt_line_set_modified_all(dst);
+
+        vt_edit_go_downward(&screen->normal_edit, 0);
+      }
+
+      vt_log_rollback_index(&screen->logs, n_scroll);
+#else
+      rollback(screen, cols, n_scroll);
+#endif
+
+      return 2;
+    }
+  }
+
+  return 1;
 }
 
 /* --- global functions --- */
@@ -807,64 +1152,15 @@ void vt_screen_set_listener(vt_screen_t *screen, vt_screen_event_listener_t *scr
   screen->screen_listener = screen_listener;
 }
 
-/* This considers status line ('rows' contains status line) */
-int vt_screen_resize(vt_screen_t *screen, u_int cols, u_int rows, int pack) {
-  u_int old_rows = vt_edit_get_rows(&screen->normal_edit);
-
-  if (screen->status_edit) {
-    vt_edit_resize(screen->status_edit, cols, 1);
-
-    if (vt_screen_has_status_line(screen) && rows >= 2) {
-      rows--;
-    }
+int vt_screen_resize(vt_screen_t *screen, u_int cols, u_int rows) {
+  if (cols == 0) {
+    cols = 1;
+  }
+  if (rows == 0) {
+    rows = 1;
   }
 
-  vt_edit_resize(&screen->normal_edit, cols, rows);
-  vt_edit_resize(&screen->alt_edit, cols, rows);
-
-  if (screen->stored_edit) {
-    vt_edit_resize(&screen->stored_edit->edit, cols, rows);
-  }
-
-  if (screen->page_edits) {
-    int count;
-
-    for (count = 0; count < MAX_PAGE_ID; count++) {
-      vt_edit_resize(screen->page_edits + count, cols, rows);
-    }
-  }
-
-  if (pack && rows > old_rows) {
-    u_int n_scroll = vt_get_num_logged_lines(&screen->logs);
-
-    if (n_scroll > 0) {
-      u_int count;
-
-      if (n_scroll > rows - old_rows) {
-        n_scroll = rows - old_rows;
-      }
-
-      vt_edit_scroll_downward(&screen->normal_edit, n_scroll);
-
-      for (count = 0; count < n_scroll; count++) {
-        vt_line_t *src = vt_log_get(&screen->logs,
-                                    vt_get_num_logged_lines(&screen->logs) - n_scroll + count);
-        vt_line_t *dst = vt_edit_get_line(&screen->normal_edit, count);
-        /* vt_screen_resize() is always called in logical context. */
-        vt_line_ctl_logical(src);
-        vt_line_copy(dst, src);
-        vt_line_set_modified_all(dst);
-
-        vt_edit_go_downward(&screen->normal_edit, 0);
-      }
-
-      vt_log_rollback_index(&screen->logs, n_scroll);
-
-      return 2;
-    }
-  }
-
-  return 1;
+  return resize(screen, cols, rows, 1);
 }
 
 /* This considers status line */
@@ -2240,15 +2536,15 @@ void vt_screen_set_use_status_line(vt_screen_t *screen, int use) {
       vt_edit_goto(screen->status_edit, 0, 0);
 #endif
 
-      vt_screen_resize(screen, vt_edit_get_cols(screen->main_edit),
-                       vt_edit_get_rows(screen->main_edit), 0);
+      resize(screen, vt_edit_get_cols(screen->main_edit),
+             vt_edit_get_rows(screen->main_edit), 0);
     }
   } else {
     if (vt_screen_has_status_line(screen)) {
       screen->has_status_line = 0;
 
-      vt_screen_resize(screen, vt_edit_get_cols(screen->main_edit),
-                       vt_edit_get_rows(screen->main_edit) + 1, 0);
+      resize(screen, vt_edit_get_cols(screen->main_edit),
+             vt_edit_get_rows(screen->main_edit) + 1, 0);
       screen->main_edit = NULL;
     }
   }

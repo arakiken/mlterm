@@ -56,13 +56,11 @@ void vt_model_reset(vt_model_t *model) {
   }
 }
 
-int vt_model_resize(vt_model_t *model, u_int *slide, u_int num_cols, u_int num_rows) {
-  int old_row;
+int vt_model_resize(vt_model_t *model, u_int num_cols, u_int num_rows, u_int slide) {
   int new_row;
   u_int count;
   u_int copy_rows;
   vt_line_t *lines_p;
-  u_int filled_rows;
 
   if (num_cols == 0 || num_rows == 0) {
     return 0;
@@ -78,25 +76,17 @@ int vt_model_resize(vt_model_t *model, u_int *slide, u_int num_cols, u_int num_r
     return 0;
   }
 
-  filled_rows = vt_model_get_num_filled_rows(model);
-
-  if (num_rows >= filled_rows) {
-    old_row = 0;
-    copy_rows = filled_rows;
-  } else {
-    old_row = filled_rows - num_rows;
+  if (model->num_rows - slide > num_rows) {
     copy_rows = num_rows;
-  }
-
-  if (slide) {
-    *slide = old_row;
+  } else {
+    copy_rows = model->num_rows - slide;
   }
 
   /* updating existing lines. */
   for (new_row = 0; new_row < copy_rows; new_row++) {
     vt_line_init(&lines_p[new_row], num_cols);
-    vt_line_copy(&lines_p[new_row], vt_model_get_line(model, old_row));
-    old_row++;
+    vt_line_copy(&lines_p[new_row], vt_model_get_line(model, slide));
+    slide++;
     vt_line_set_modified_all(&lines_p[new_row]);
     lines_p[new_row].is_modified = 2; /* XXX See set_real_modified() in vt_line.c */
   }
@@ -111,7 +101,6 @@ int vt_model_resize(vt_model_t *model, u_int *slide, u_int num_cols, u_int num_r
   /* update empty lines. */
   for (; new_row < num_rows; new_row++) {
     vt_line_init(&lines_p[new_row], num_cols);
-
     vt_line_set_modified_all(&lines_p[new_row]);
   }
 
@@ -129,6 +118,7 @@ u_int vt_model_get_num_filled_rows(vt_model_t *model) {
   for (filled_rows = model->num_rows; filled_rows > 0; filled_rows--) {
 #if 1
     /*
+     * XXX
      * This is problematic, since the value of 'slide' can be incorrect when
      * cursor is located at the line which contains white spaces alone.
      */
@@ -137,11 +127,11 @@ u_int vt_model_get_num_filled_rows(vt_model_t *model) {
     if (!vt_line_is_empty(vt_model_get_line(model, filled_rows - 1)))
 #endif
     {
-      return filled_rows;
+      break;
     }
   }
 
-  return 0;
+  return filled_rows;
 }
 
 int vt_model_end_row(vt_model_t *model) { return model->num_rows - 1; }

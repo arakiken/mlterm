@@ -583,8 +583,20 @@ static int vt_line_ot_layout_render(vt_line_t *line, /* is always modified */
 
 #endif /* USE_OT_LAYOUT */
 
+static void set_real_modified(vt_line_t *line, int beg_char_index, int end_char_index) {
+  vt_line_set_modified(line, beg_char_index, end_char_index);
+  line->is_modified = 2;
+}
+
 static void copy_line(vt_line_t *dst, vt_line_t *src, int optimize_ctl_info) {
   u_int copy_len;
+
+#ifdef DEBUG
+  if (dst == src) {
+    bl_error_printf("copy_line() forbids src == dst\n");
+    abort();
+  }
+#endif
 
   copy_len = BL_MIN(src->num_filled_chars, dst->num_chars);
 
@@ -610,6 +622,11 @@ static void copy_line(vt_line_t *dst, vt_line_t *src, int optimize_ctl_info) {
 #ifdef DEBUG
         bl_debug_printf(BL_DEBUG_TAG " Not copy vt_bidi.\n");
 #endif
+        /*
+         * XXX
+         * Isn't set_real_modified(dst, 0, END_CHAR_INDEX(dst)) necessary here
+         * to force ctl_render() ?
+         */
       } else if (vt_bidi_copy(dst->ctl_info.bidi, src->ctl_info.bidi, optimize_ctl_info) == -1) {
         dst->ctl_info_type = 0;
         dst->ctl_info.bidi = NULL;
@@ -631,6 +648,11 @@ static void copy_line(vt_line_t *dst, vt_line_t *src, int optimize_ctl_info) {
 #ifdef DEBUG
         bl_debug_printf(BL_DEBUG_TAG " Not copy vt_iscii.\n");
 #endif
+        /*
+         * XXX
+         * Isn't set_real_modified(dst, 0, END_CHAR_INDEX(dst)) necessary here
+         * to force ctl_render() ?
+         */
       } else if (vt_iscii_copy(dst->ctl_info.iscii, src->ctl_info.iscii, optimize_ctl_info) == -1) {
         dst->ctl_info_type = 0;
         dst->ctl_info.iscii = NULL;
@@ -652,6 +674,11 @@ static void copy_line(vt_line_t *dst, vt_line_t *src, int optimize_ctl_info) {
 #ifdef DEBUG
         bl_debug_printf(BL_DEBUG_TAG " Not copy vt_ot_layout.\n");
 #endif
+        /*
+         * XXX
+         * Isn't set_real_modified(dst, 0, END_CHAR_INDEX(dst)) necessary here
+         * to force ctl_render() ?
+         */
       } else if (vt_ot_layout_copy(dst->ctl_info.ot_layout, src->ctl_info.ot_layout,
                                    optimize_ctl_info) == -1) {
         dst->ctl_info_type = 0;
@@ -662,11 +689,6 @@ static void copy_line(vt_line_t *dst, vt_line_t *src, int optimize_ctl_info) {
     vt_line_set_use_ot_layout(dst, 0);
   }
 #endif
-}
-
-static void set_real_modified(vt_line_t *line, int beg_char_index, int end_char_index) {
-  vt_line_set_modified(line, beg_char_index, end_char_index);
-  line->is_modified = 2;
 }
 
 /* --- global functions --- */

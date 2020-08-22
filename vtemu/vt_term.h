@@ -219,8 +219,8 @@ void vt_term_updated_all(vt_term_t *term);
 
 int vt_term_update_special_visual(vt_term_t *term);
 
-#define vt_term_logical_visual_is_reversible(term) \
-  vt_screen_logical_visual_is_reversible((term)->screen)
+#define vt_term_has_logical_visual(term) \
+  vt_screen_has_logical_visual((term)->screen)
 
 #define vt_term_is_backscrolling(term) vt_screen_is_backscrolling((term)->screen)
 

@@ -65,7 +65,7 @@ vt_logical_visual_t *vt_logvis_comb_new(void);
 
 vt_logical_visual_t *vt_logvis_vert_new(vt_vertical_mode_t vertical_mode);
 
-vt_vertical_mode_t vt_get_vertical_mode(char *name);
+vt_vertical_mode_t vt_get_vertical_mode(const char *name);
 
 char *vt_get_vertical_mode_name(vt_vertical_mode_t mode);
 

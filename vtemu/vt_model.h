@@ -27,7 +27,7 @@ void vt_model_final(vt_model_t *model);
 
 void vt_model_reset(vt_model_t *model);
 
-int vt_model_resize(vt_model_t *model, u_int *slide, u_int num_cols, u_int num_rows);
+int vt_model_resize(vt_model_t *model, u_int num_cols, u_int num_rows, u_int slide);
 
 u_int vt_model_get_num_filled_rows(vt_model_t *model);
 
