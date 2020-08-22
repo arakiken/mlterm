@@ -170,7 +170,7 @@ int vt_screen_add_logical_visual(vt_screen_t *screen, vt_logical_visual_t *logvi
 
 int vt_screen_destroy_logical_visual(vt_screen_t *screen);
 
-int vt_screen_render(vt_screen_t *screen);
+void vt_screen_render(vt_screen_t *screen);
 
 int vt_screen_visual(vt_screen_t *screen);
 

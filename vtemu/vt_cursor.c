@@ -17,9 +17,7 @@ static int cursor_goto(vt_cursor_t *cursor, int col_or_idx, int row, int is_by_c
     row = vt_model_end_row(cursor->model);
   }
 
-  if ((line = vt_model_get_line(cursor->model, row)) == NULL) {
-    return 0;
-  }
+  line = vt_model_get_line(cursor->model, row); /* Always non-NULL */
 
   if (is_by_col) {
     char_index = vt_convert_col_to_char_index(line, &cols_rest, col_or_idx, BREAK_BOUNDARY);

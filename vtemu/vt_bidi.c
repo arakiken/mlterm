@@ -17,7 +17,7 @@ static char *bidi_mode_name_table[] = {
 
 /* --- global functions --- */
 
-vt_bidi_mode_t vt_get_bidi_mode(const char *name) {
+vt_bidi_mode_t vt_get_bidi_mode_by_name(const char *name) {
   vt_bidi_mode_t mode;
 
   for (mode = 0; mode < BIDI_MODE_MAX; mode++) {

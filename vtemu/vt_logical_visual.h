@@ -49,11 +49,11 @@ typedef struct vt_logical_visual {
    * vt_model_t should not be modified from render/viaul until logical.
    * Any modification is done from logical until render/visual.
    */
-  int (*render)(struct vt_logical_visual *);
+  void (*render)(struct vt_logical_visual *);
   int (*visual)(struct vt_logical_visual *);
   int (*logical)(struct vt_logical_visual *);
 
-  int (*visual_line)(struct vt_logical_visual *, vt_line_t *line);
+  void (*visual_line)(struct vt_logical_visual *, vt_line_t *line);
 
 } vt_logical_visual_t;
 
@@ -65,7 +65,7 @@ vt_logical_visual_t *vt_logvis_comb_new(void);
 
 vt_logical_visual_t *vt_logvis_vert_new(vt_vertical_mode_t vertical_mode);
 
-vt_vertical_mode_t vt_get_vertical_mode(const char *name);
+vt_vertical_mode_t vt_get_vertical_mode_by_name(const char *name);
 
 char *vt_get_vertical_mode_name(vt_vertical_mode_t mode);
 

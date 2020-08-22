@@ -1939,11 +1939,10 @@ static int cursor_char_is_picture_and_modified(vt_screen_t *screen) {
 
 /* Don't call this if SIXEL_NO_SCROLLING is false. */
 static int check_sixel_anim(vt_screen_t *screen, u_char *str, size_t left) {
-  vt_line_t *line;
+  vt_line_t *line = vt_screen_get_line(screen, 0); /* Always non-NULL */
   vt_char_t *ch;
 
-  if ((line = vt_screen_get_line(screen, 0)) && (ch = vt_char_at(line, 0)) &&
-      vt_get_picture_char(ch)) {
+  if ((ch = vt_char_at(line, 0)) && vt_get_picture_char(ch)) {
     while (--left > 0) {
       if (*(++str) == '\x1b') {
         if (--left == 0) {

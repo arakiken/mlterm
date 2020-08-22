@@ -1112,50 +1112,50 @@ int ui_animate_inline_pictures(vt_term_t *term) {
 
   num_rows = vt_term_get_rows(term);
   for (row = 0; row < num_rows; row++) {
-    if ((line = vt_term_get_line_in_screen(term, row))) {
-      int char_index;
+    int char_index;
 
-      for (char_index = 0; char_index < line->num_filled_chars; char_index++) {
-        vt_char_t *ch;
+    line = vt_term_get_line_in_screen(term, row); /* Always non-NULL */
 
-        if ((ch = vt_get_picture_char(line->chars + char_index))) {
-          int32_t pos;
-          int idx;
-          int next;
+    for (char_index = 0; char_index < line->num_filled_chars; char_index++) {
+      vt_char_t *ch;
 
-          pos = vt_char_code(ch);
-          idx = vt_char_picture_id(ch);
-          if ((next = inline_pics[idx].next_frame) < 0) {
-            continue;
-          }
+      if ((ch = vt_get_picture_char(line->chars + char_index))) {
+        int32_t pos;
+        int idx;
+        int next;
 
-        retry:
-          if (inline_pics[next].pixmap == DUMMY_PIXMAP) {
-            inline_pic_args_t args;
+        pos = vt_char_code(ch);
+        idx = vt_char_picture_id(ch);
+        if ((next = inline_pics[idx].next_frame) < 0) {
+          continue;
+        }
 
-            args.idx = next;
-            if (!load_file(&args)) {
-              if (inline_pics[next].next_frame == idx) {
-                inline_pics[idx].next_frame = -1;
-                continue;
-              }
+      retry:
+        if (inline_pics[next].pixmap == DUMMY_PIXMAP) {
+          inline_pic_args_t args;
 
-              next = inline_pics[idx].next_frame = inline_pics[next].next_frame;
-              goto retry;
+          args.idx = next;
+          if (!load_file(&args)) {
+            if (inline_pics[next].next_frame == idx) {
+              inline_pics[idx].next_frame = -1;
+              continue;
             }
 
-            /* shorten waiting time. */
-            wait = 2;
+            next = inline_pics[idx].next_frame = inline_pics[next].next_frame;
+            goto retry;
           }
 
-          if ((pos = next_frame_pos(inline_pics + idx, inline_pics + next, pos)) >= 0) {
-            vt_char_set_code(ch, pos);
-            vt_char_set_picture_id(ch, next);
-            vt_line_set_modified(line, char_index, char_index);
+          /* shorten waiting time. */
+          wait = 2;
+        }
 
-            if (wait == 0) {
-              wait = 1;
-            }
+        if ((pos = next_frame_pos(inline_pics + idx, inline_pics + next, pos)) >= 0) {
+          vt_char_set_code(ch, pos);
+          vt_char_set_picture_id(ch, next);
+          vt_line_set_modified(line, char_index, char_index);
+
+          if (wait == 0) {
+            wait = 1;
           }
         }
       }

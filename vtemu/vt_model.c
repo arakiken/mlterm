@@ -152,7 +152,7 @@ vt_line_t *vt_model_get_line(vt_model_t *model, int row) {
   }
 }
 
-int vt_model_scroll_upward(vt_model_t *model, u_int size) {
+void vt_model_scroll_upward(vt_model_t *model, u_int size) {
   if (size > model->num_rows) {
     size = model->num_rows;
   }
@@ -162,11 +162,9 @@ int vt_model_scroll_upward(vt_model_t *model, u_int size) {
   } else {
     model->beg_row += size;
   }
-
-  return 1;
 }
 
-int vt_model_scroll_downward(vt_model_t *model, u_int size) {
+void vt_model_scroll_downward(vt_model_t *model, u_int size) {
   if (size > model->num_rows) {
     size = model->num_rows;
   }
@@ -176,8 +174,6 @@ int vt_model_scroll_downward(vt_model_t *model, u_int size) {
   } else {
     model->beg_row -= size;
   }
-
-  return 1;
 }
 
 #ifdef DEBUG

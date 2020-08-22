@@ -1116,6 +1116,9 @@ void ui_use_cp932_ucs_for_xft(void) {
  * Don't call this function for US_ASCII, ISO8859_1_R and ISCII.
  */
 u_int32_t ui_convert_to_xft_ucs4(u_int32_t ch, ef_charset_t cs) {
+  ef_char_t non_ucs;
+  ef_char_t ucs4;
+
   if (IS_ISO10646_UCS4(cs) /* || cs == ISO10646_UCS2_1 */) {
     return ch;
   } else if (use_cp932_ucs_for_xft && cs == JISX0208_1983) {
@@ -1134,28 +1137,25 @@ u_int32_t ui_convert_to_xft_ucs4(u_int32_t ch, ef_charset_t cs) {
     } else if (ch == 0x224c) {
       return 0xffe2;
     }
+  }
+
+  non_ucs.size = CS_SIZE(cs);
+  non_ucs.property = 0;
+  non_ucs.cs = cs;
+  ef_int_to_bytes(non_ucs.ch, non_ucs.size, ch);
+
+  if (vt_is_msb_set(cs)) {
+    u_int count;
+
+    for (count = 0; count < non_ucs.size; count++) {
+      non_ucs.ch[count] &= 0x7f;
+    }
+  }
+
+  if (ef_map_to_ucs4(&ucs4, &non_ucs)) {
+    return ef_char_to_int(&ucs4);
   } else {
-    ef_char_t non_ucs;
-    ef_char_t ucs4;
-
-    non_ucs.size = CS_SIZE(cs);
-    non_ucs.property = 0;
-    non_ucs.cs = cs;
-    ef_int_to_bytes(non_ucs.ch, non_ucs.size, ch);
-
-    if (vt_is_msb_set(cs)) {
-      u_int count;
-
-      for (count = 0; count < non_ucs.size; count++) {
-        non_ucs.ch[count] &= 0x7f;
-      }
-    }
-
-    if (ef_map_to_ucs4(&ucs4, &non_ucs)) {
-      return ef_char_to_int(&ucs4);
-    } else {
-      return 0;
-    }
+    return 0;
   }
 }
 

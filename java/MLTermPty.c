@@ -696,7 +696,8 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeRead(JNIEnv *env, jobject
       num_mod = 0;
       num_rows = vt_term_get_rows(nativeObj->term);
       for (row = 0; row < num_rows; row++) {
-        if ((line = vt_term_get_line(nativeObj->term, row)) && vt_line_is_modified(line)) {
+        line = vt_term_get_line(nativeObj->term, row); /* Always non-NULL */
+        if (vt_line_is_modified(line)) {
           if (!prev_is_modified) {
             num_skip++;
           }
@@ -714,9 +715,8 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeRead(JNIEnv *env, jobject
        */
       if (num_skip > 2 && num_mod * 5 / 4 > num_rows) {
         for (row = 0; row < num_rows; row++) {
-          if ((line = vt_term_get_line(nativeObj->term, row))) {
-            vt_line_set_modified_all(line);
-          }
+          line = vt_term_get_line(nativeObj->term, row); /* Always non-NULL */
+          vt_line_set_modified_all(line);
         }
       }
 #endif

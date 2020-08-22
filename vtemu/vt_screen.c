@@ -1225,7 +1225,11 @@ int vt_screen_convert_scr_row_to_abs(vt_screen_t *screen, int row) {
   return row - screen->backscroll_rows;
 }
 
-/* This considers status line */
+/*
+ * If 0 <= row && row <= vt_screen_get_rows(), this function always returns
+ * non-NULL value.
+ * This considers status line.
+ */
 vt_line_t *vt_screen_get_line(vt_screen_t *screen, int row) {
   if (row < 0) {
     return vt_log_get(&screen->logs, ROW_IN_LOGS(screen, row));
@@ -1240,7 +1244,11 @@ vt_line_t *vt_screen_get_line(vt_screen_t *screen, int row) {
   }
 }
 
-/* This considers status line */
+/*
+ * If 0 <= row && row <= vt_screen_get_rows(), this function always returns
+ * non-NULL value.
+ * This considers status line.
+ */
 vt_line_t *vt_screen_get_line_in_screen(vt_screen_t *screen, int row) {
   if (screen->is_backscrolling && screen->backscroll_rows > 0) {
     row -= screen->backscroll_rows;
@@ -1267,9 +1275,8 @@ void vt_screen_set_modified_all(vt_screen_t *screen) {
   u_int num_rows = vt_screen_get_rows(screen);
 
   for (row = 0; row < num_rows; row++) {
-    if ((line = vt_screen_get_line_in_screen(screen, row))) {
-      vt_line_set_modified_all(line);
-    }
+    line = vt_screen_get_line_in_screen(screen, row); /* Always non-NULL */
+    vt_line_set_modified_all(line);
   }
 }
 
@@ -1306,11 +1313,9 @@ int vt_screen_destroy_logical_visual(vt_screen_t *screen) {
   }
 }
 
-int vt_screen_render(vt_screen_t *screen) {
+void vt_screen_render(vt_screen_t *screen) {
   if (screen->logvis) {
-    return (*screen->logvis->render)(screen->logvis);
-  } else {
-    return 0;
+    (*screen->logvis->render)(screen->logvis);
   }
 }
 
@@ -2021,10 +2026,9 @@ int vt_screen_blink(vt_screen_t *screen) {
     vt_line_t *line;
     u_int num_rows = vt_screen_get_rows(screen);
 
+    /* '+ screen->backscroll_rows' prohibit backlog lines to blink. */
     for (row = 0; row + screen->backscroll_rows < num_rows; row++) {
-      if ((line = vt_screen_get_line(screen, row)) == NULL) {
-        continue;
-      }
+      line = vt_screen_get_line(screen, row); /* Always non-NULL */
 
       for (char_index = 0; char_index < line->num_filled_chars; char_index++) {
         if (vt_char_is_blinking(line->chars + char_index)) {
@@ -2328,13 +2332,13 @@ int vt_screen_disable_local_echo(vt_screen_t *screen) {
    */
   for (row = 0; row < num_rows; row++) {
     if ((new_line = vt_edit_get_line(&screen->stored_edit->edit, row)) &&
-        (old_line = vt_edit_get_line(screen->edit, row)) &&
-        (vt_line_is_modified(old_line) ||
+        /* old_line is always non-NULL */
+        (vt_line_is_modified((old_line = vt_edit_get_line(screen->edit, row))) ||
          old_line->num_filled_chars != new_line->num_filled_chars
 #if 1
          || !vt_str_bytes_equal(old_line->chars, new_line->chars, new_line->num_filled_chars)
 #endif
-             )) {
+         )) {
       vt_line_set_modified_all(new_line);
     }
   }

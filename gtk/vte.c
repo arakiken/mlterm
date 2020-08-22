@@ -3061,7 +3061,8 @@ void vte_terminal_select_all(VteTerminal *terminal) {
   beg_row = -vt_term_get_num_logged_lines(PVT(terminal)->term);
 
   for (end_row = vt_term_get_rows(PVT(terminal)->term) - 1; end_row >= 0; end_row--) {
-    if ((line = vt_term_get_line(PVT(terminal)->term, end_row)) && !vt_line_is_empty(line)) {
+    line = vt_term_get_line(PVT(terminal)->term, end_row); /* Always non-NULL */
+    if (!vt_line_is_empty(line)) {
       break;
     }
   }

@@ -1,5 +1,27 @@
 2020-08-22  Araki Ken  <arakiken@users.sf.net>
 
+	* gtk/vte.c, MLTermPty.c, vterm.c, ui_picture.c, ui_screen.c,
+	  vt_cursor.c, vt_parser.c, vt_screen.c, vt_term.c:
+	  If vt_term_get_line() always returns non-NULL, NULL check is removed.
+
+	* vt_logical_visual.[ch]:
+	  - The type of the return value of *_render() and *_visual_line() is
+	    changed from int to void.
+	  - comb_render() does nothing instead of calling comb_visual().
+	  - vt_get_vertical_mode() -> vt_get_vertical_mode_by_name()
+	  - Illegal arguments passing to vt_model_resize() is fixed.
+
+	* vt_bidi.[ch]: vt_get_bidi_mode() -> vt_get_bidi_mode_by_name()
+
+	* xlib/ui_font.c: ui_convert_to_xft_ucs4() converts JISX0208_1983
+	  characters correctly.
+	  (Enbugged at 34cdc1ec9f6110cf112b66c720ad41db08deb8df)
+
+	* vt_model.[ch]: The type of the return value of
+	  vt_model_scroll_{up|down}ward() is changed from int to void.
+
+2020-08-22  Araki Ken  <arakiken@users.sf.net>
+
 	* man/mlterm.1, README.ja: Updated.
 
 	* ui_main_config.c: "scroll_on_resizing" option is removed, and

@@ -772,8 +772,7 @@ static void redraw_screen(ui_screen_t *screen) {
   end_row = vt_term_get_rows(screen->term) - 1;
   count = 0;
   while (1) {
-    if (count > end_row ||
-        (line = vt_term_get_line_in_screen(screen->term, count)) == NULL) {
+    if (count > end_row) {
 #ifdef __DEBUG
       bl_debug_printf(BL_DEBUG_TAG " nothing is redrawn.\n");
 #endif
@@ -786,6 +785,8 @@ static void redraw_screen(ui_screen_t *screen) {
         return;
       }
     }
+
+    line = vt_term_get_line_in_screen(screen->term, count); /* Always non-NULL */
 
     if (vt_line_is_modified(line)) {
       break;
@@ -813,10 +814,11 @@ static void redraw_screen(ui_screen_t *screen) {
     count++;
     y += line_height;
 
-    if (count > end_row ||
-        (line = vt_term_get_line_in_screen(screen->term, count)) == NULL) {
+    if (count > end_row) {
       break;
     }
+
+    line = vt_term_get_line_in_screen(screen->term, count); /* Always non-NULL */
 
     if (vt_line_is_modified(line)) {
 #ifdef __DEBUG
@@ -851,10 +853,9 @@ draw_copymode_pattern:
               screen->copymode->pattern, screen->copymode->pattern_len,
               0, y, line_height, ui_line_ascent(screen), line_top_margin(screen), 0, 0);
 
-  if ((line = vt_term_get_line_in_screen(screen->term, end_row))) {
-    /* Clear editing pattern at the next time. */
-    vt_line_set_modified_all(line);
-  }
+  line = vt_term_get_line_in_screen(screen->term, end_row); /* Always non-NULL */
+  /* Clear editing pattern at the next time. */
+  vt_line_set_modified_all(line);
 }
 
 /*
@@ -7199,7 +7200,7 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
   } else if (strcmp(key, "bel_mode") == 0) {
     change_bel_mode(screen, ui_get_bel_mode_by_name(value));
   } else if (strcmp(key, "vertical_mode") == 0) {
-    change_vertical_mode(screen, vt_get_vertical_mode(value));
+    change_vertical_mode(screen, vt_get_vertical_mode_by_name(value));
   } else if (strcmp(key, "scrollbar_mode") == 0) {
     change_sb_mode(screen, ui_get_sb_mode_by_name(value));
   } else if (strcmp(key, "exit_backscroll_by_pty") == 0) {
@@ -7312,7 +7313,7 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
       change_ctl_flag(screen, flag, vt_term_get_bidi_mode(term), vt_term_is_using_ot_layout(term));
     }
   } else if (strcmp(key, "bidi_mode") == 0) {
-    change_ctl_flag(screen, vt_term_is_using_ctl(term), vt_get_bidi_mode(value),
+    change_ctl_flag(screen, vt_term_is_using_ctl(term), vt_get_bidi_mode_by_name(value),
                     vt_term_is_using_ot_layout(term));
   } else if (strcmp(key, "bidi_separators") == 0) {
     vt_term_set_bidi_separators(screen->term, value);

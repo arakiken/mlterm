@@ -138,9 +138,9 @@ static void update_screen(VTerm *vterm) {
   int row;
 
   for (row = 0; row < vt_term_get_rows(vterm->term); row++) {
-    vt_line_t *line;
+    vt_line_t *line = vt_term_get_line_in_screen(vterm->term, row); /* Always non-NULL */
 
-    if ((line = vt_term_get_line_in_screen(vterm->term, row)) && vt_line_is_modified(line)) {
+    if (vt_line_is_modified(line)) {
       VTermRect r;
       r.start_row = r.end_row = row;
       r.start_col = line->change_beg_col;

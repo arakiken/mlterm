@@ -731,10 +731,9 @@ void vt_term_updated_all(vt_term_t *term) {
     vt_screen_logical(term->screen);
   }
 
-  for (row = 0; row < vt_edit_get_rows(term->screen->edit); row++) {
-    if ((line = vt_screen_get_line_in_screen(term->screen, row))) {
-      vt_line_set_updated(line);
-    }
+  for (row = 0; row < vt_screen_get_rows(term->screen); row++) {
+    line = vt_screen_get_line_in_screen(term->screen, row); /* Always non-NULL */
+    vt_line_set_updated(line);
   }
 
   if (!vt_screen_logical_visual_is_reversible(term->screen)) {
