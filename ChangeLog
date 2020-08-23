@@ -1,3 +1,14 @@
+2020-08-23  Araki Ken  <arakiken@users.sf.net>
+
+	* PROTOCOL: Updated.
+
+	* mc_io_pty.c: If "True Transparent" checkbox is applied but isn't saved,
+	  message dialog informs of it.
+
+	* mc_bgtype.c: "True Transparent" checkbox is added.
+
+	* ui_screen.c: "depth" is added to OSC 5380.
+
 2020-08-22  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_cursor.c: cursor_goto() checks if row is not less than 0.

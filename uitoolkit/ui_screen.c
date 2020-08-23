@@ -1906,7 +1906,7 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
     if ((line = vt_term_get_cursor_line(screen->term))) {
       line->mark ^= 1;
 
-      ui_window_update(screen, UPDATE_SCREEN|UPDATE_CURSOR);
+      ui_window_update(&screen->window, UPDATE_SCREEN|UPDATE_CURSOR);
     }
 
     return 1;
@@ -4920,6 +4920,12 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
       value = "";
     }
   }
+#ifdef USE_XLIB
+  else if (strcmp(key, "depth") == 0) {
+    sprintf(digit, "%d", screen->window.disp->depth);
+    value = digit;
+  }
+#endif
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
   else if (strcmp(key, "use_aafont") == 0) {
     if (ui_is_using_aafont()) {
