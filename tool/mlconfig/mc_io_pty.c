@@ -9,6 +9,8 @@
 #include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_def.h> /* USE_WIN32API */
 
+#include <gtk/gtk.h>
+
 /* --- static variables --- */
 
 static char *message;
@@ -149,6 +151,15 @@ void mc_flush_pty(mc_io_t io) {
     printf("\x1b]%d;%s;%s\x07", io, chal, message);
   } else {
     printf("\x1b]%d;%s\x07", io, message);
+  }
+
+  if (strstr(message, "depth=") && io == mc_io_set) {
+    GtkWidget *dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT,
+                                               GTK_MESSAGE_INFO, GTK_BUTTONS_CLOSE,
+                                               "\"True Transprent\" setting is discarded.\n"
+                                               "Press \"Save&Exit\" button.");
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
   }
 
   fflush(stdout);
