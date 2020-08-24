@@ -271,14 +271,19 @@ static int set_transparent(ui_window_t *win) {
     if (update_transparent_picture(win)) {
       return 1;
     } else {
-      bl_msg_printf(
-          "_XROOTPMAP_ID is not found."
-          " Trying ParentRelative for transparency instead.\n");
+      bl_msg_printf("_XROOTPMAP_ID is not found.\n");
+
+      if (win->disp->depth == 32) {
+        /* XSetWindowBackgroundPixmap() fails with BadMatch. (gnome-shell 3.34.4) */
+        unset_transparent(win);
+
+        return 0;
+      }
+
+      bl_msg_printf("Trying ParentRelative for transparency instead.\n");
 
       if (!ui_picture_modifier_is_normal(win->pic_mod)) {
-        bl_msg_printf(
-            "(brightness, contrast, gamma and alpha "
-            "options are ignored)\n");
+        bl_msg_printf("(brightness, contrast, gamma and alpha options are ignored)\n");
 
         win->pic_mod = NULL;
       }
@@ -1126,8 +1131,8 @@ int ui_window_set_transparent(
      */
 
     win->is_transparent = 1;
-  } else {
-    set_transparent(win);
+  } else if (!set_transparent(win)) {
+    return 0;
   }
 
   for (count = 0; count < win->num_children; count++) {

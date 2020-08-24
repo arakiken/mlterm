@@ -4423,8 +4423,7 @@ static void change_transparent_flag(ui_screen_t *screen, int is_transparent) {
        * never
        * happens when it opens new tab.
        */
-      &&
-      screen->window.wall_picture_is_set == is_transparent
+      && screen->window.wall_picture_is_set == is_transparent
 #endif
       ) {
     /* not changed */
@@ -4439,6 +4438,8 @@ static void change_transparent_flag(ui_screen_t *screen, int is_transparent) {
   } else {
     ui_window_unset_transparent(&screen->window);
     set_wall_picture(screen);
+
+    /* True transparency is revived if depth == 32 and alpha < 255. */
   }
 
   if (HAS_SCROLL_LISTENER(screen, transparent_state_changed)) {
@@ -4500,16 +4501,18 @@ static void change_wall_picture(ui_screen_t *screen, char *file_path) {
 
     screen->pic_file_path = NULL;
     ui_window_unset_wall_picture(&screen->window, 1);
+
+    /* True transparency is revived if depth == 32 and alpha < 255. */
   } else {
     screen->pic_file_path = strdup(file_path);
 
     if (set_wall_picture(screen)) {
       return;
     }
-  }
 
-  /* disable true transparency */
-  change_true_transbg_alpha(screen, 255);
+    /* disable true transparency */
+    change_true_transbg_alpha(screen, 255);
+  }
 }
 
 static void picture_modifier_changed(ui_screen_t *screen) {

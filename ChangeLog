@@ -1,3 +1,10 @@
+2020-08-24  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/ui_window.c: "use_transbg" option is disabled if depth is 32.
+
+	* ui_screen.c: True transparency is revived if wall picture is removed
+	  on 32 bit depth.
+
 2020-08-23  Araki Ken  <arakiken@users.sf.net>
 
 	* PROTOCOL: Updated.
