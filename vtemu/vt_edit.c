@@ -668,7 +668,13 @@ static void resize_hadjustment(vt_edit_t *edit, u_int new_cols, u_int old_cols) 
         num_wrap_rows -= old_num_wrap_rows;
 
         for (empty_rows = 0; empty_rows < num_wrap_rows; empty_rows++) {
-          line = vt_model_get_line(&edit->model, edit->model.num_rows - empty_rows - 1);
+          int r = edit->model.num_rows - empty_rows - 1;
+
+          if (r <= cursor_row) {
+            break;
+          }
+
+          line = vt_model_get_line(&edit->model, r);
           if (vt_line_get_num_filled_chars_except_sp(line) > 0) {
             break;
           }
@@ -705,7 +711,7 @@ static void resize_hadjustment(vt_edit_t *edit, u_int new_cols, u_int old_cols) 
               }
             }
 
-            if (edit->is_logging && edit->scroll_listener->receive_scrolled_out_line) {
+            if (edit->is_logging) {
               (*edit->scroll_listener->receive_scrolled_out_line)(edit->scroll_listener->self,
                                                                   line);
             }
@@ -872,13 +878,17 @@ int vt_edit_resize(vt_edit_t *edit, u_int new_cols, u_int new_rows) {
     resize_hadjustment(edit, new_cols, old_cols);
   }
 
-  if ((old_filled_rows = vt_model_get_num_filled_rows(&edit->model)) > new_rows) {
+  if ((old_filled_rows = vt_model_get_num_filled_rows(&edit->model)) <= edit->cursor.row) {
+    old_filled_rows = edit->cursor.row + 1;
+  }
+
+  if (old_filled_rows > new_rows) {
     slide = old_filled_rows - new_rows;
   } else {
     slide = 0;
   }
 
-  if (edit->is_logging && edit->scroll_listener->receive_scrolled_out_line) {
+  if (edit->is_logging) {
     int scroll_all = 0;
 
     if (resize_mode == RZ_SCROLL) {
@@ -932,6 +942,36 @@ int vt_edit_resize(vt_edit_t *edit, u_int new_cols, u_int new_rows) {
   }
 
   if (resize_mode == RZ_WRAP && old_cols < new_cols) {
+    if (edit->is_logging &&
+        (*edit->scroll_listener->top_line_is_wrapped)(edit->scroll_listener->self)) {
+      /*
+       * XXX
+       * +-------+    +---------+    +---------+
+       * |abcdefg|    |abcdefg  |    |abcdefg  | backlog
+       * +-------+ -> +---------+ -> |hij      |
+       * |hij    |    |hij      |    +---------+
+       * +-------+    +---------+    |         | main screen
+       *                             +---------+
+       */
+      u_int count;
+      int continued = 1;
+
+      for (count = 0; continued; count++) {
+        vt_line_t *line = vt_model_get_line(&edit->model, count);
+
+        (*edit->scroll_listener->receive_scrolled_out_line)(edit->scroll_listener->self, line);
+        continued = vt_line_is_continued_to_next(line);
+        vt_line_reset(line);
+      }
+
+      vt_model_scroll_upward(&edit->model, count);
+      if (edit->cursor.row < count) {
+        vt_cursor_goto_by_char(&edit->cursor, 0, 0);
+      } else {
+        vt_cursor_goto_by_col(&edit->cursor, edit->cursor.col, edit->cursor.row - count);
+      }
+    }
+
     resize_hadjustment(edit, new_cols, old_cols);
   }
 
@@ -1170,7 +1210,7 @@ u_int vt_edit_replace(vt_edit_t *edit, int beg_row /* starting row to be replace
 
   while (1) {
     if ((line = vt_model_get_line(&edit->model, row)) == NULL) {
-      if (edit->is_logging && edit->scroll_listener->receive_scrolled_out_line) {
+      if (edit->is_logging) {
         (*edit->scroll_listener->receive_scrolled_out_line)(edit->scroll_listener->self,
                                                             vt_model_get_line(&edit->model, 0));
       }

@@ -27,6 +27,8 @@ typedef struct vt_edit_scroll_event_listener {
   int (*window_scroll_upward_region)(void *, int, int, u_int);
   int (*window_scroll_downward_region)(void *, int, int, u_int);
 
+  int (*top_line_is_wrapped)(void *);
+
 } vt_edit_scroll_event_listener_t;
 
 typedef struct vt_protect_store {
@@ -223,6 +225,8 @@ void vt_edit_clear_size_attr(vt_edit_t *edit);
 int vt_edit_cursor_logical_col(vt_edit_t *edit);
 
 int vt_edit_cursor_logical_row(vt_edit_t *edit);
+
+#define vt_edit_is_logging(edit) ((edit)->is_logging)
 
 #ifdef DEBUG
 

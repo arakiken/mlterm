@@ -180,6 +180,21 @@ static int window_scroll_downward_region(void *p, int beg_row, int end_row, u_in
                                                                    beg_row, end_row, size);
 }
 
+static int top_line_is_wrapped(void *p) {
+  vt_screen_t *screen;
+  u_int num;
+
+  screen = p;
+
+  if ((num = vt_get_num_logged_lines(&screen->logs)) > 0) {
+    if (vt_line_is_continued_to_next(vt_log_get(&screen->logs, num - 1))) {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
 static int modify_region(vt_screen_t *screen, /* visual */
                          int *end_char_index, int *end_row) {
   int row;
@@ -756,9 +771,10 @@ static u_int get_wrap_lines_in_edit(vt_edit_t *edit, vt_char_t *chars,
   return num_chars;
 }
 
+/* Don't call this if vt_edit_is_logging(screen->edit) is false. */
 static void rollback(vt_screen_t *screen, u_int dst_cols, u_int dst_rows) {
   int src_row;
-  int src_end_row;
+  int src_end_row; /* end row in backlog */
   u_int dst_row;
   u_int n_scrollback;
   vt_line_t *line;
@@ -771,12 +787,16 @@ static void rollback(vt_screen_t *screen, u_int dst_cols, u_int dst_rows) {
   u_int max_nchars;
   u_int src_cols;
   u_int count;
-  int cursor_col = vt_cursor_col(&screen->normal_edit);
-  int cursor_row = vt_cursor_row(&screen->normal_edit);
+  int cursor_col = vt_cursor_col(screen->edit);
+  int cursor_row = vt_cursor_row(screen->edit);
 
-  src_row = src_end_row = vt_get_num_logged_lines(&screen->logs) - 1;
+  if ((src_end_row = vt_get_num_logged_lines(&screen->logs)) == 0) {
+    return;
+  }
+  src_row = (--src_end_row);
+
   if (vt_line_is_continued_to_next(vt_log_get(&screen->logs, src_row))) {
-    src_nchars_in_edit = get_wrap_lines_in_edit(&screen->normal_edit, NULL,
+    src_nchars_in_edit = get_wrap_lines_in_edit(screen->edit, NULL,
                                                 &src_cols_in_edit, &src_rows_in_edit, 0);
     src_cols = src_cols_in_edit;
     dst_rows += src_rows_in_edit;
@@ -786,7 +806,7 @@ static void rollback(vt_screen_t *screen, u_int dst_cols, u_int dst_rows) {
     }
     vt_str_init(chars_in_edit, src_nchars_in_edit);
 
-    get_wrap_lines_in_edit(&screen->normal_edit, chars_in_edit, NULL, NULL, 0);
+    get_wrap_lines_in_edit(screen->edit, chars_in_edit, NULL, NULL, 0);
   } else {
     src_nchars_in_edit = src_cols = src_cols_in_edit = src_rows_in_edit = 0;
   }
@@ -854,7 +874,7 @@ static void rollback(vt_screen_t *screen, u_int dst_cols, u_int dst_rows) {
   }
   vt_str_init(chars, max_nchars);
 
-  vt_edit_scroll_downward(&screen->normal_edit, dst_rows - src_rows_in_edit);
+  vt_edit_scroll_downward(screen->edit, dst_rows - src_rows_in_edit);
   cursor_row += (dst_rows - src_rows_in_edit);
 
   dst_row = 0;
@@ -895,13 +915,13 @@ static void rollback(vt_screen_t *screen, u_int dst_cols, u_int dst_rows) {
     }
 
     if (src_nchars > 0) {
-      dst_row += vt_edit_replace(&screen->normal_edit, dst_row, chars, src_cols, dst_cols);
+      dst_row += vt_edit_replace(screen->edit, dst_row, chars, src_cols, dst_cols);
     } else {
       dst_row++;
     }
   }
 
-  vt_edit_goto(&screen->normal_edit, cursor_col, cursor_row);
+  vt_edit_goto(screen->edit, cursor_col, cursor_row);
 
   vt_str_final(chars, max_nchars);
   if (src_nchars_in_edit > 0) {
@@ -913,30 +933,10 @@ static void rollback(vt_screen_t *screen, u_int dst_cols, u_int dst_rows) {
 
 static int resize(vt_screen_t *screen, u_int cols /* > 0 */, u_int rows /* > 0 */, int pack) {
   /* This considers status line ('rows' contains status line) */
-  u_int old_rows;
+  u_int old_empty_rows;
+  u_int empty_rows;
 
-  /*
-   * REVERT_BACKLOG_FOR_HADJUST enables to revert backlog to the main screen if
-   * resize_hadjustment() in vt_edit.c make empty spaces at the bottom of the
-   * screen by stretching the screen horizontally.
-   * But backlog lines reverted to the screen are not adjusted according to the
-   * resized screen.
-   *
-   * +---------+                 Resized
-   * |abcdefghi|<backlog>     +-----------+
-   * |jk       |<-wrapped     |abcdefghi  |
-   * +---------+           -> +-----------+
-   * |ABCDEFGHI|<screen>      |jk         |
-   * |JK       |              |ABCDEFGHIJK|
-   * +---------+              +-----------+
-   */
-#ifdef REVERT_BACKLOG_FOR_HADJUST
-  /* XXX */
-  old_rows = vt_edit_get_rows(&screen->normal_edit) -
-             vt_edit_get_num_filled_rows(&screen->normal_edit);
-#else
-  old_rows = vt_edit_get_rows(&screen->normal_edit);
-#endif
+  old_empty_rows = vt_edit_get_rows(screen->edit) - vt_edit_get_num_filled_rows(screen->edit);
 
   if (screen->status_edit) {
     vt_edit_resize(screen->status_edit, cols, 1);
@@ -977,33 +977,29 @@ static int resize(vt_screen_t *screen, u_int cols /* > 0 */, u_int rows /* > 0 *
     }
   }
 
-#ifdef REVERT_BACKLOG_FOR_HADJUST
-  /* XXX */
-  rows = vt_edit_get_rows(&screen->normal_edit) -
-         vt_edit_get_num_filled_rows(&screen->normal_edit);
-#endif
+  empty_rows = vt_edit_get_rows(screen->edit) - vt_edit_get_num_filled_rows(screen->edit);
 
-  if (pack && rows > old_rows) {
+  if (pack && vt_edit_is_logging(screen->edit) && empty_rows > old_empty_rows) {
     u_int n_scroll = vt_get_num_logged_lines(&screen->logs);
 
     if (n_scroll > 0) {
-      if (n_scroll > rows - old_rows) {
-        n_scroll = rows - old_rows;
+      if (n_scroll > empty_rows - old_empty_rows) {
+        n_scroll = empty_rows - old_empty_rows;
       }
 
 #if 0
-      vt_edit_scroll_downward(&screen->normal_edit, n_scroll);
+      vt_edit_scroll_downward(screen->edit, n_scroll);
 
       for (count = 0; count < n_scroll; count++) {
         vt_line_t *src = vt_log_get(&screen->logs,
                                     vt_get_num_logged_lines(&screen->logs) - n_scroll + count);
-        vt_line_t *dst = vt_edit_get_line(&screen->normal_edit, count);
+        vt_line_t *dst = vt_edit_get_line(screen->edit, count);
         /* vt_screen_resize() is always called in logical context. */
         vt_line_ctl_logical(src);
         vt_line_copy(dst, src);
         vt_line_set_modified_all(dst);
 
-        vt_edit_go_downward(&screen->normal_edit, 0);
+        vt_edit_go_downward(screen->edit, 0);
       }
 
       vt_log_rollback_index(&screen->logs, n_scroll);
@@ -1068,6 +1064,7 @@ vt_screen_t *vt_screen_new(u_int cols, u_int rows, u_int tab_size, u_int num_log
   screen->edit_scroll_listener.scrolled_out_lines_finished = scrolled_out_lines_finished;
   screen->edit_scroll_listener.window_scroll_upward_region = window_scroll_upward_region;
   screen->edit_scroll_listener.window_scroll_downward_region = window_scroll_downward_region;
+  screen->edit_scroll_listener.top_line_is_wrapped = top_line_is_wrapped;
 
   if (!vt_edit_init(&screen->normal_edit, &screen->edit_scroll_listener, cols, rows, tab_size, 1,
                     use_bce)) {

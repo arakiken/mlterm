@@ -1,3 +1,17 @@
+2020-08-29  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_edit.[ch]:
+	  - vt_edit_resize() and resize_hadjustment() don't scroll out
+	    the cursor line.
+	  - top_line_is_wrapped() is added to vt_edit_scroll_event_listener_t.
+	  - vt_edit_resize() fully scrolls out the wrapped lines which are
+	    partially scrolled out if the new number of columns is greater
+	    than the old one.
+
+	* vt_screen.c:
+	  - top_line_is_wrapped() is added.
+	  - REVERT_BACKLOG_FOR_HADJUSTMENT is always enabled.
+
 2020-08-24  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/ui_window.c: "use_transbg" option is disabled if depth is 32.

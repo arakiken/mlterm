@@ -92,7 +92,7 @@ static int scroll_upward_region(vt_edit_t *edit, int boundary_beg, int boundary_
      * all lines within boundary are scrolled out.
      */
 
-    if (edit->is_logging && edit->scroll_listener->receive_scrolled_out_line) {
+    if (edit->is_logging) {
       for (count = boundary_beg; count < boundary_end; count++) {
         (*edit->scroll_listener->receive_scrolled_out_line)(edit->scroll_listener->self,
                                                             vt_model_get_line(&edit->model, count));
@@ -126,7 +126,7 @@ static int scroll_upward_region(vt_edit_t *edit, int boundary_beg, int boundary_
    * positions.
    */
 
-  if (edit->is_logging && edit->scroll_listener->receive_scrolled_out_line) {
+  if (edit->is_logging) {
     for (count = boundary_beg; count < boundary_beg + size; count++) {
       (*edit->scroll_listener->receive_scrolled_out_line)(edit->scroll_listener->self,
                                                           vt_model_get_line(&edit->model, count));
