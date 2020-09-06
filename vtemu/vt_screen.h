@@ -82,8 +82,8 @@ typedef struct vt_screen {
   int8_t is_backscrolling;
 
   int8_t has_blinking_char;
-
   int8_t has_status_line;
+  int8_t need_rewrap_logs;
 
 } vt_screen_t;
 
@@ -187,7 +187,7 @@ void vt_set_backscroll_mode(vt_screen_t *screen, vt_bs_mode_t mode);
 
 #define vt_get_backscroll_mode(screen) ((screen)->backscroll_mode)
 
-void vt_enter_backscroll_mode(vt_screen_t *screen);
+int vt_enter_backscroll_mode(vt_screen_t *screen);
 
 void vt_exit_backscroll_mode(vt_screen_t *screen);
 

@@ -224,7 +224,7 @@ int vt_term_update_special_visual(vt_term_t *term);
 
 #define vt_term_is_backscrolling(term) vt_screen_is_backscrolling((term)->screen)
 
-void vt_term_enter_backscroll_mode(vt_term_t *term);
+int vt_term_enter_backscroll_mode(vt_term_t *term);
 
 #define vt_term_exit_backscroll_mode(term) vt_exit_backscroll_mode((term)->screen)
 

@@ -21,6 +21,8 @@ int vt_str_copy(vt_char_t *dst, vt_char_t *src, u_int size);
 
 u_int vt_str_cols(vt_char_t *chars, u_int len);
 
+u_int vt_str_cols_to_len(vt_char_t *chars, u_int *cols);
+
 int vt_str_equal(vt_char_t *str1, vt_char_t *str2, u_int len);
 
 int vt_str_bytes_equal(vt_char_t *str1, vt_char_t *str2, u_int len);

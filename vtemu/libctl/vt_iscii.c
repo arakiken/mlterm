@@ -71,11 +71,7 @@ static struct {
   { iscii_punjabi_table, sizeof(iscii_punjabi_table) / sizeof(struct tabl), },
   { iscii_tamil_table, sizeof(iscii_tamil_table) / sizeof(struct tabl), },
   { iscii_telugu_table, sizeof(iscii_telugu_table) / sizeof(struct tabl), },
-  { iscii_bengali_table, sizeof(iscii_bengali_table) / sizeof(struct tabl), },
-  { iscii_hindi_table, sizeof(iscii_hindi_table) / sizeof(struct tabl), },
 #else
-  { NULL, 0, },
-  { NULL, 0, },
   { NULL, 0, },
   { NULL, 0, },
   { NULL, 0, },
@@ -104,9 +100,15 @@ static char *iscii_table_files[] = {
     "ind_malayalam", "ind_oriya",   "ind_punjabi",  "ind_tamil", "ind_telugu",
 };
 
+/*
+ * 11 means ISCII_ASSAMESE - ISCII_ROMAN.
+ * ISCII_ROMAN is disabled (see ef_charset.h) and 10 is enough for now.
+ */
 static struct tabl *(*get_iscii_tables[11])(u_int *);
 static struct a2i_tabl *(*get_inscript_table)(u_int *);
 static struct a2i_tabl *(*get_iitkeyb_table)(u_int *);
+
+static int8_t file_not_found_flags[11];
 
 /* --- static functions --- */
 
@@ -130,7 +132,13 @@ static void *load_symbol(char *file) {
 }
 
 static struct tabl *get_iscii_table(int idx, size_t *size) {
+  if (file_not_found_flags[idx]) {
+    return NULL;
+  }
+
   if (!get_iscii_tables[idx] && !(get_iscii_tables[idx] = load_symbol(iscii_table_files[idx]))) {
+    file_not_found_flags[idx] = 1;
+
     return NULL;
   }
 
@@ -139,13 +147,29 @@ static struct tabl *get_iscii_table(int idx, size_t *size) {
 
 static struct a2i_tabl *get_isciikey_table(int is_inscript, size_t *size) {
   if (is_inscript) {
+    static int not_found;
+
+    if (not_found) {
+      return NULL;
+    }
+
     if (!get_inscript_table && !(get_inscript_table = load_symbol("ind_inscript"))) {
+      not_found = 1;
+
       return NULL;
     }
 
     return (*get_inscript_table)(size);
   } else {
+    static int not_found;
+
+    if (not_found) {
+      return NULL;
+    }
+
     if (!get_iitkeyb_table && !(get_iitkeyb_table = load_symbol("ind_iitkeyb"))) {
+      not_found = 1;
+
       return NULL;
     }
 
@@ -245,11 +269,9 @@ int vt_iscii(vt_iscii_state_t state, vt_char_t *src, u_int src_len) {
 
       font_filled = vt_iscii_shape(cs, font_buf, font_buf_len, iscii_buf);
 
-      if (font_filled < prev_font_filled) {
-        if (font_filled == 0) {
-          return 0;
-        }
-
+      if (font_filled == 0) {
+        return 0;
+      } else if (font_filled < prev_font_filled) {
         count = prev_font_filled - font_filled;
         dst_pos -= count;
 

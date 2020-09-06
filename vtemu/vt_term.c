@@ -831,15 +831,15 @@ int vt_term_update_special_visual(vt_term_t *term) {
   }
 }
 
-void vt_term_enter_backscroll_mode(vt_term_t *term) {
+int vt_term_enter_backscroll_mode(vt_term_t *term) {
   /* XXX */
   if (term->vertical_mode) {
     bl_msg_printf("Not supported backscrolling in vertical mode.\n");
 
-    return;
+    return 0;
   }
 
-  vt_enter_backscroll_mode(term->screen);
+  return vt_enter_backscroll_mode(term->screen);
 }
 
 void vt_term_set_icon_path(vt_term_t *term, const char *path) {

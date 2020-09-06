@@ -7,6 +7,7 @@
   to ./configure script.
 * Add SCROLL_UP_TO_MARK, SCROLL_DOWN_TO_MARK and SET_MARK shortcut keys.
 * Add resize_mode / --rz option, and drop scroll_on_resize / --sr option.
+  (If you want to revert to the old behavior, specify --rz=none option.)
 * Add emoji_file_format / --emojifmt option.
 * Drop SCROLL_DOWN and PAGE_DOWN shortcut keys.
 * Drop use_extended_scroll_shortcut option and SCROLL_UP shortcut key is enabled

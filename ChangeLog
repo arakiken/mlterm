@@ -1,3 +1,30 @@
+2020-09-05  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c: If vt_term_enter_backscroll_mode() returns 2,
+	  scrollbar state is reset.
+
+	* vt_term.[ch]: vt_term_enter_backscroll_mode() returns the returned value
+	  of vt_enter_backscroll_mode().
+
+	* vt_screen.[ch]:
+	  - need_rewrap_logs is added to vt_screen_t, and If vt_edit_resize() returns 2,
+	    need_rewrap_logs is set to 1.
+	  - If need_rewap_logs is 1, vt_enter_backscroll_mode() calls rewrap_logs()
+	    which rewraps backlog according to the new number of columns.
+	  - If the number of logged lines is changed by rewrap_logs(),
+	    vt_enter_backscroll_mode() returns 2.
+
+	* vt_edit.c:
+	  - replace_chars_in_line() uses vt_str_cols_to_len().
+	  - vt_edit_resize() returns 2 if old_cols != new_cols and resize_mode == RZ_WRAP.
+
+	* vt_str.[ch]: vt_str_cols_to_len() is added.
+
+	* vt_iscii.c:
+	  - Duplicated entries in tables are removed.
+	  - If load_symbol() fails once, it is never called.
+	  - If vt_iscii_shape() returns 0, vt_iscii() does nothing.
+
 2020-08-29  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_edit.[ch]:

@@ -500,28 +500,14 @@ static int apply_relative_origin(vt_edit_t *edit, int *col, int *row, u_int *num
  * vt_line_set_modified() should be executed by the caller of this function.
  */
 static u_int replace_chars_in_line(vt_line_t *line, vt_char_t **chars, u_int max_cols) {
-  u_int num_chars = 0;
-  u_int ow_cols = 0;
-  u_int tmp;
+  u_int num_chars;
 
   vt_line_reset(line);
-
-  while (1) {
-    ow_cols += (tmp = vt_char_cols(*chars + (num_chars++)));
-    if (ow_cols >= max_cols) {
-      if (ow_cols > max_cols) {
-        num_chars--;
-        ow_cols -= tmp;
-      }
-
-      break;
-    }
-  }
-
-  vt_line_overwrite(line, 0, *chars, num_chars, ow_cols);
+  num_chars = vt_str_cols_to_len(*chars, &max_cols);
+  vt_line_overwrite(line, 0, *chars, num_chars, max_cols);
   (*chars) += num_chars;
 
-  return ow_cols;
+  return max_cols;
 }
 
 static void resize_hadjustment(vt_edit_t *edit, u_int new_cols, u_int old_cols) {
@@ -867,6 +853,7 @@ int vt_edit_resize(vt_edit_t *edit, u_int new_cols, u_int new_rows) {
   u_int row;
   u_int old_filled_rows;
   u_int slide;
+  int ret = 1;
 
 #ifdef CURSOR_DEBUG
   vt_cursor_dump(&edit->cursor);
@@ -874,8 +861,9 @@ int vt_edit_resize(vt_edit_t *edit, u_int new_cols, u_int new_rows) {
 
   old_cols = edit->model.num_cols;
 
-  if (resize_mode == RZ_WRAP && old_cols >= new_cols) {
+  if (resize_mode == RZ_WRAP && old_cols > new_cols) {
     resize_hadjustment(edit, new_cols, old_cols);
+    ret = 2;
   }
 
   if ((old_filled_rows = vt_model_get_num_filled_rows(&edit->model)) <= edit->cursor.row) {
@@ -973,6 +961,7 @@ int vt_edit_resize(vt_edit_t *edit, u_int new_cols, u_int new_rows) {
     }
 
     resize_hadjustment(edit, new_cols, old_cols);
+    ret = 2;
   }
 
   reset_wraparound_checker(edit);
@@ -996,7 +985,7 @@ int vt_edit_resize(vt_edit_t *edit, u_int new_cols, u_int new_rows) {
   vt_cursor_dump(&edit->cursor);
 #endif
 
-  return 1;
+  return ret;
 }
 
 int vt_edit_insert_chars(vt_edit_t *edit, vt_char_t *ins_chars, u_int num_ins_chars) {

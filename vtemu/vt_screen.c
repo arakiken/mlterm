@@ -771,7 +771,11 @@ static u_int get_wrap_lines_in_edit(vt_edit_t *edit, vt_char_t *chars,
   return num_chars;
 }
 
-/* Don't call this if vt_edit_is_logging(screen->edit) is false. */
+/*
+ * Don't call this if vt_edit_is_logging(screen->edit) is false.
+ * comb_logical() is not called for lines reverted to the main screen, so
+ * dynamic combining is corrupt.
+ */
 static void rollback(vt_screen_t *screen, u_int dst_cols, u_int dst_rows) {
   int src_row;
   int src_end_row; /* end row in backlog */
@@ -946,7 +950,9 @@ static int resize(vt_screen_t *screen, u_int cols /* > 0 */, u_int rows /* > 0 *
     }
   }
 
-  vt_edit_resize(&screen->normal_edit, cols, rows);
+  if (vt_edit_resize(&screen->normal_edit, cols, rows) == 2) {
+    screen->need_rewrap_logs = 1;
+  }
 
 #ifdef DEBUG
   {
@@ -1009,6 +1015,152 @@ static int resize(vt_screen_t *screen, u_int cols /* > 0 */, u_int rows /* > 0 *
 
       return 2;
     }
+  }
+
+  return 1;
+}
+
+static int rewrap_logs(vt_screen_t *screen) {
+  vt_logs_t new_logs;
+  u_int src_row;
+  vt_char_t *buf;
+  u_int max_nchars = 0;
+  u_int num_cols;
+  u_int num_log_lines;
+  vt_line_t new_line;
+  int last_line_is_wrapped;
+
+  if ((num_log_lines = vt_get_num_logged_lines(&screen->logs)) == 0) {
+    return 1;
+  }
+
+  vt_log_init(&new_logs, vt_get_log_size(&screen->logs));
+  if (vt_log_size_is_unlimited(&screen->logs)) {
+    vt_unlimit_log_size(&new_logs);
+  }
+
+  num_cols = vt_edit_get_cols(screen->edit);
+  last_line_is_wrapped = vt_line_is_continued_to_next(vt_log_get(&screen->logs, num_log_lines - 1));
+
+  for (src_row = 0; src_row < num_log_lines; src_row++) {
+    vt_line_t *line = vt_log_get(&screen->logs, src_row);
+    vt_char_t *wrap_chars;
+    u_int wrap_ncols;
+    u_int len;
+    u_int cols;
+
+    vt_line_ctl_logical(line);
+
+    if (!vt_line_is_continued_to_next(line)) {
+      wrap_ncols = vt_str_cols(line->chars, vt_line_get_num_filled_chars_except_sp(line));
+      if (wrap_ncols <= num_cols) {
+        vt_line_ctl_visual(line);
+        vt_log_add(&new_logs, line);
+
+        continue;
+      }
+
+      wrap_chars = line->chars;
+    } else {
+      u_int count;
+      u_int count2;
+      u_int nchars = line->num_filled_chars;
+
+      wrap_ncols = vt_str_cols(line->chars, nchars);
+
+      for (count = 1; src_row + count < num_log_lines;) {
+        line = vt_log_get(&screen->logs, src_row + (count++));
+        vt_line_ctl_logical(line);
+        if (!vt_line_is_continued_to_next(line)) {
+          u_int n = vt_line_get_num_filled_chars_except_sp(line);
+          nchars += n;
+          wrap_ncols += vt_str_cols(line->chars, n);
+          break;
+        } else {
+          nchars += line->num_filled_chars;
+          wrap_ncols += vt_str_cols(line->chars, line->num_filled_chars);
+        }
+      }
+
+      if (nchars > max_nchars) {
+        if (max_nchars > 0) {
+          vt_str_final(buf, max_nchars);
+        }
+
+        max_nchars = nchars;
+
+        if ((buf = vt_str_alloca(max_nchars)) == NULL) {
+          return 0;
+        }
+        vt_str_init(buf, max_nchars);
+      }
+
+      for (count2 = 0, len = 0; ; count2++) {
+        /* vt_line_ctl_logical() was applied above. */
+        line = vt_log_get(&screen->logs, src_row + count2);
+
+        if (count2 == count - 1) {
+          u_int n = vt_line_get_num_filled_chars_except_sp(line);
+          vt_str_copy(buf + len, line->chars, n);
+          len += n;
+          break;
+        } else {
+          vt_str_copy(buf + len, line->chars, line->num_filled_chars);
+          len += line->num_filled_chars;
+        }
+      }
+
+      wrap_chars = buf;
+
+      src_row += (count - 1);
+    }
+
+    vt_line_init(&new_line, num_cols);
+    cols = 0;
+    len = 0;
+
+    while (1) {
+      u_int c;
+      u_int n;
+
+      if (cols + num_cols > wrap_ncols) {
+        c = wrap_ncols - cols;
+      } else {
+        c = num_cols;
+      }
+      n = vt_str_cols_to_len(wrap_chars + len, &c);
+
+      vt_line_overwrite(&new_line, 0, wrap_chars + len, n, c);
+      if (screen->logvis) {
+        (*screen->logvis->visual_line)(screen->logvis, &new_line);
+      }
+
+      len += n;
+      cols += c;
+
+      if (cols < wrap_ncols) {
+        vt_line_set_continued_to_next(&new_line, 1);
+        vt_log_add(&new_logs, &new_line);
+        vt_line_reset(&new_line);
+      } else {
+        vt_log_add(&new_logs, &new_line);
+        vt_line_final(&new_line);
+        break;
+      }
+    }
+  }
+
+  vt_str_final(buf, max_nchars);
+
+  if (last_line_is_wrapped) {
+    vt_line_set_continued_to_next(vt_log_get(&new_logs, vt_get_num_logged_lines(&new_logs) - 1), 1);
+  }
+
+  vt_log_final(&screen->logs);
+  screen->logs = new_logs;
+
+  if (num_log_lines != vt_get_num_logged_lines(&screen->logs)) {
+    return 2;
   }
 
   return 1;
@@ -1352,8 +1504,19 @@ void vt_set_backscroll_mode(vt_screen_t *screen, vt_bs_mode_t mode) {
   }
 }
 
-void vt_enter_backscroll_mode(vt_screen_t *screen) {
+int vt_enter_backscroll_mode(vt_screen_t *screen) {
+  int ret;
+
   screen->is_backscrolling = screen->backscroll_mode;
+
+  if (screen->need_rewrap_logs) {
+    ret = rewrap_logs(screen);
+    screen->need_rewrap_logs = 0;
+  } else {
+    ret = 1;
+  }
+
+  return ret;
 }
 
 void vt_exit_backscroll_mode(vt_screen_t *screen) {

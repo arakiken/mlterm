@@ -901,7 +901,13 @@ static void enter_backscroll_mode(ui_screen_t *screen) {
     return;
   }
 
-  vt_term_enter_backscroll_mode(screen->term);
+  if (vt_term_enter_backscroll_mode(screen->term) == 2) {
+    if (HAS_SCROLL_LISTENER(screen, term_changed)) {
+      (*screen->screen_scroll_listener->term_changed)(screen->screen_scroll_listener->self,
+                                                      vt_term_get_log_size(screen->term),
+                                                      vt_term_get_num_logged_lines(screen->term));
+    }
+  }
 
   if (HAS_SCROLL_LISTENER(screen, bs_mode_entered)) {
     (*screen->screen_scroll_listener->bs_mode_entered)(screen->screen_scroll_listener->self);

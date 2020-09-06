@@ -88,6 +88,30 @@ u_int vt_str_cols(vt_char_t *chars, u_int len) {
   return cols;
 }
 
+/* cols must be == vt_str_cols(chars) or <= vt_str_cols(chars) - cols of EOL char. */
+u_int vt_str_cols_to_len(vt_char_t *chars, u_int *cols) {
+  u_int c = *cols;
+  u_int len = 0;
+  u_int tmp;
+
+  while (1) {
+    tmp = vt_char_cols(chars + (len++));
+    /* XXX In case tmp == 0... */
+    if (tmp >= c) {
+      if (tmp > c) {
+        len--;
+        *cols -= c;
+      }
+
+      break;
+    } else {
+      c -= tmp;
+    }
+  }
+
+  return len;
+}
+
 /*
  * XXX
  * Returns inaccurate result in dealing with combined characters.
