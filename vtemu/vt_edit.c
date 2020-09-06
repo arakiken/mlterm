@@ -896,6 +896,7 @@ int vt_edit_resize(vt_edit_t *edit, u_int new_cols, u_int new_rows) {
       }
       vt_edit_goto_home(edit);
       vt_edit_clear_below(edit);
+      ret = 3;
     } else {
       for (row = 0; row < slide; row++) {
         (*edit->scroll_listener->receive_scrolled_out_line)(edit->scroll_listener->self,

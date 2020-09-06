@@ -950,8 +950,14 @@ static int resize(vt_screen_t *screen, u_int cols /* > 0 */, u_int rows /* > 0 *
     }
   }
 
-  if (vt_edit_resize(&screen->normal_edit, cols, rows) == 2) {
+  switch(vt_edit_resize(&screen->normal_edit, cols, rows)) {
+  case 2: /* RZ_WRAP */
     screen->need_rewrap_logs = 1;
+    break;
+
+  case 3: /* RZ_SCROLL */
+    pack = 0;
+    break;
   }
 
 #ifdef DEBUG

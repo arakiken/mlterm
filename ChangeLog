@@ -1,3 +1,9 @@
+2020-09-06  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_screen.c: If vt_edit_resize() returns 3, resize() forcibly set 'pack' to 0.
+
+	* vt_edit.c: vt_edit_resize() returns 3 if RZ_SCROLL scrolls out all lines.
+
 2020-09-05  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.c: If vt_term_enter_backscroll_mode() returns 2,
