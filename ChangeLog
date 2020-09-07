@@ -1,3 +1,7 @@
+2020-09-07  Araki Ken  <arakiken@users.sf.net>
+
+	* vterm.c: vterm_{state|screen}_convert_color_to_rgb() are added.
+
 2020-09-06  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_screen.c: If vt_edit_resize() returns 3, resize() forcibly set 'pack' to 0.

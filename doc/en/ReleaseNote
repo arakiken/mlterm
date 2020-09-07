@@ -9,6 +9,7 @@
 * Add resize_mode / --rz option, and drop scroll_on_resize / --sr option.
   (If you want to revert to the old behavior, specify --rz=none option.)
 * Add emoji_file_format / --emojifmt option.
+* Add libvterm 0.1 API symbols to libvterm compatible library.
 * Drop SCROLL_DOWN and PAGE_DOWN shortcut keys.
 * Drop use_extended_scroll_shortcut option and SCROLL_UP shortcut key is enabled
   by default. (If you want to disable it, add UNUSED=SCROLL_UP to ~/.mlterm/key.)

@@ -21,6 +21,10 @@
 #define SIXEL_1BPP
 #include "../common/c_sixel.c"
 
+#ifdef VTERM_COLOR_IS_INDEXED
+#define VTERM_EXPOSE_COLOR_INDEX
+#endif
+
 typedef struct VTerm {
   vt_term_t *term;
   vt_pty_ptr_t pty;
@@ -493,8 +497,15 @@ VTerm *vterm_new(int rows, int cols) {
 #endif
   vt_term_plug_pty(vterm->term, vterm->pty);
 
+#ifdef VTERM_EXPOSE_COLOR_INDEX
+  vterm->default_fg.type = vterm->default_fg.rgb.type = VTERM_COLOR_RGB | VTERM_COLOR_DEFAULT_FG;
+  vterm->default_fg.rgb.red = vterm->default_fg.rgb.green = vterm->default_fg.rgb.blue = 240;
+  vterm->default_bg.type = vterm->default_bg.rgb.type = VTERM_COLOR_RGB | VTERM_COLOR_DEFAULT_BG;
+  vterm->default_bg.rgb.red = vterm->default_bg.rgb.green = vterm->default_bg.rgb.blue = 0;
+#else
   vterm->default_fg.red = vterm->default_fg.green = vterm->default_fg.blue = 240;
   vterm->default_bg.red = vterm->default_bg.green = vterm->default_bg.blue = 0;
+#endif
 
   return vterm;
 }
@@ -749,9 +760,16 @@ void vterm_state_get_palette_color(const VTermState *state, int index, VTermColo
   u_int8_t r, g, b;
 
   vt_get_color_rgba(index, &r, &g, &b, NULL);
+#ifdef VTERM_EXPOSE_COLOR_INDEX
+  col->type = col->rgb.type = VTERM_COLOR_RGB;
+  col->rgb.red = r;
+  col->rgb.green = g;
+  col->rgb.blue = b;
+#else
   col->red = r;
   col->green = g;
   col->blue = b;
+#endif
 }
 
 void vterm_state_set_default_colors(VTermState *state, const VTermColor *default_fg,
@@ -764,7 +782,15 @@ void vterm_state_set_default_colors(VTermState *state, const VTermColor *default
 
 void vterm_state_set_palette_color(VTermState *state, int index, const VTermColor *col) {
   char rgb[8];
+
+#ifdef VTERM_EXPOSE_COLOR_INDEX
+  if (VTERM_COLOR_IS_INDEXED(col)) {
+    return;
+  }
+  sprintf(rgb, "#%.2x%.2x%.2x", col->rgb.red, col->rgb.green, col->rgb.blue);
+#else
   sprintf(rgb, "#%.2x%.2x%.2x", col->red, col->green, col->blue);
+#endif
   vt_customize_color_file(vt_get_color_name(index), rgb, 0);
 }
 
@@ -784,6 +810,15 @@ const VTermLineInfo *vterm_state_get_lineinfo(const VTermState *state, int row) 
   /* XXX */
   return NULL;
 }
+
+#ifdef VTERM_EXPOSE_COLOR_INDEX
+void vterm_state_convert_color_to_rgb(const VTermState *state, VTermColor *color) {
+  if (VTERM_COLOR_IS_INDEXED(color)) {
+    vterm_state_get_palette_color(state, color->indexed.idx, color);
+    color->type = color->rgb.type = VTERM_COLOR_RGB; /* color->type is reset */
+  }
+}
+#endif
 
 VTermScreen *vterm_obtain_screen(VTerm *vterm) { return vterm; }
 
@@ -919,9 +954,14 @@ int vterm_screen_get_cell(const VTermScreen *screen, VTermPos pos, VTermScreenCe
     cell->fg = vterm->default_bg;
   } else {
     vt_get_color_rgba(fg, &r, &g, &b, NULL);
+#ifdef VTERM_EXPOSE_COLOR_INDEX
+    cell->fg.type = cell->fg.rgb.type = VTERM_COLOR_INDEXED;
+    cell->fg.indexed.idx = fg;
+#else
     cell->fg.red = r;
     cell->fg.green = g;
     cell->fg.blue = b;
+#endif
   }
 
   if (bg == VT_FG_COLOR) {
@@ -930,15 +970,26 @@ int vterm_screen_get_cell(const VTermScreen *screen, VTermPos pos, VTermScreenCe
     cell->bg = vterm->default_bg;
   } else {
     vt_get_color_rgba(bg, &r, &g, &b, NULL);
+#ifdef VTERM_EXPOSE_COLOR_INDEX
+    cell->bg.type = cell->bg.rgb.type = VTERM_COLOR_INDEXED;
+    cell->bg.indexed.idx = bg;
+#else
     cell->bg.red = r;
     cell->bg.green = g;
     cell->bg.blue = b;
+#endif
   }
 
   return 1;
 }
 
 int vterm_screen_is_eol(const VTermScreen *screen, VTermPos pos) { return 0; }
+
+#ifdef VTERM_EXPOSE_COLOR_INDEX
+void vterm_screen_convert_color_to_rgb(const VTermScreen *screen, VTermColor *color) {
+  vterm_state_convert_color_to_rgb(screen, color);
+}
+#endif
 
 VTermValueType vterm_get_attr_type(VTermAttr attr) {
   switch(attr) {
