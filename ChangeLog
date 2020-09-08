@@ -1,3 +1,12 @@
+2020-09-08  Araki Ken  <arakiken@users.sf.net>
+
+	* ef_ucs_property.table: Updated to Unicode 13.0.0 (UnicodeData.txt and
+	  EastAsianWidth.txt)
+
+	* vte.c:
+	  - ui_screen_scroll_event_listener_t::term_changed is implemented.
+	  - log_size_changed() is fixed.
+
 2020-09-07  Araki Ken  <arakiken@users.sf.net>
 
 	* vterm.c: vterm_{state|screen}_convert_color_to_rgb() are added.

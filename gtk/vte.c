@@ -930,14 +930,41 @@ static void scrolled_to(void *p, int row) {
 
 static void log_size_changed(void *p, u_int log_size) {
   VteTerminal *terminal;
+  int upper;
+  int page_size;
 
   terminal = p;
 
+  upper = gtk_adjustment_get_upper(ADJUSTMENT(terminal));
+  page_size = gtk_adjustment_get_page_size(ADJUSTMENT(terminal));
+  if (upper > log_size + page_size) {
 #if GTK_CHECK_VERSION(2, 14, 0)
-  gtk_adjustment_set_upper(ADJUSTMENT(terminal), log_size);
+    gtk_adjustment_set_upper(ADJUSTMENT(terminal), log_size + page_size);
+    gtk_adjustment_set_value(ADJUSTMENT(terminal), log_size);
 #else
-  ADJUSTMENT(terminal)->upper = log_size;
+    ADJUSTMENT(terminal)->upper = log_size + page_size;
+    ADJUSTMENT(terminal)->value = log_size;
+    gtk_adjustment_changed(ADJUSTMENT(terminal));
+    gtk_adjustment_value_changed(ADJUSTMENT(terminal));
+#endif
+  }
+}
+
+static void term_changed(void *p, u_int log_size, u_int logged_lines) {
+  VteTerminal *terminal;
+  int page_size;
+
+  terminal = p;
+
+  page_size = gtk_adjustment_get_page_size(ADJUSTMENT(terminal));
+#if GTK_CHECK_VERSION(2, 14, 0)
+  gtk_adjustment_set_upper(ADJUSTMENT(terminal), logged_lines + page_size);
+  gtk_adjustment_set_value(ADJUSTMENT(terminal), logged_lines);
+#else
+  ADJUSTMENT(terminal)->upper = logged_lines + page_size;
+  ADJUSTMENT(terminal)->value = logged_lines;
   gtk_adjustment_changed(ADJUSTMENT(terminal));
+  gtk_adjustment_value_changed(ADJUSTMENT(terminal));
 #endif
 }
 
@@ -1288,6 +1315,7 @@ static void init_screen(VteTerminal *terminal, ui_font_manager_t *font_man,
   PVT(terminal)->screen_scroll_listener.scrolled_downward = scrolled_downward;
   PVT(terminal)->screen_scroll_listener.scrolled_to = scrolled_to;
   PVT(terminal)->screen_scroll_listener.log_size_changed = log_size_changed;
+  PVT(terminal)->screen_scroll_listener.term_changed = term_changed;
   ui_set_screen_scroll_listener(PVT(terminal)->screen, &PVT(terminal)->screen_scroll_listener);
 
   PVT(terminal)->line_scrolled_out = PVT(terminal)->screen->screen_listener.line_scrolled_out;

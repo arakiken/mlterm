@@ -13,6 +13,8 @@
 * Drop SCROLL_DOWN and PAGE_DOWN shortcut keys.
 * Drop use_extended_scroll_shortcut option and SCROLL_UP shortcut key is enabled
   by default. (If you want to disable it, add UNUSED=SCROLL_UP to ~/.mlterm/key.)
+* Update unicode property table (generated from UnicodeData.txt and
+  EastAsianWidth.txt) to version 13.0.0.
 * letter_space / --csp option accepts negative value.
 * libvte compatible library supports XInput2.
 * Bug fixes:
