@@ -1,3 +1,7 @@
+2020-09-09  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: log_size_changed() and term_changed() set adj_value_changed_by_myself = 1.
+
 2020-09-08  Araki Ken  <arakiken@users.sf.net>
 
 	* ef_ucs_property.table: Updated to Unicode 13.0.0 (UnicodeData.txt and

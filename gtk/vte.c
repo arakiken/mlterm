@@ -935,6 +935,8 @@ static void log_size_changed(void *p, u_int log_size) {
 
   terminal = p;
 
+  PVT(terminal)->adj_value_changed_by_myself = 1;
+
   upper = gtk_adjustment_get_upper(ADJUSTMENT(terminal));
   page_size = gtk_adjustment_get_page_size(ADJUSTMENT(terminal));
   if (upper > log_size + page_size) {
@@ -955,6 +957,8 @@ static void term_changed(void *p, u_int log_size, u_int logged_lines) {
   int page_size;
 
   terminal = p;
+
+  PVT(terminal)->adj_value_changed_by_myself = 1;
 
   page_size = gtk_adjustment_get_page_size(ADJUSTMENT(terminal));
 #if GTK_CHECK_VERSION(2, 14, 0)
