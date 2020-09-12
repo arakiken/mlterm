@@ -1,3 +1,8 @@
+2020-09-12  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c: trim_trailing_newline_in_pasting3() and convert_nl_to_cr3()
+	  which process WCHAR instead of u_char are added for win32.
+
 2020-09-09  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: log_size_changed() and term_changed() set adj_value_changed_by_myself = 1.

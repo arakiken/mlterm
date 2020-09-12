@@ -1655,6 +1655,24 @@ static u_int trim_trailing_newline_in_pasting2(vt_char_t *str, u_int len) {
   return len;
 }
 
+#ifdef USE_WIN32GUI
+static u_int trim_trailing_newline_in_pasting3(WCHAR *str, u_int len) {
+  if (trim_trailing_newline_in_pasting) {
+    size_t count;
+
+    for (count = len; count > 0; count--) {
+      if (str[count - 1] == '\r' || str[count - 1] == '\n') {
+        len--;
+      } else {
+        break;
+      }
+    }
+  }
+
+  return len;
+}
+#endif
+
 #ifdef NL_TO_CR_IN_PAST_TEXT
 static void convert_nl_to_cr1(u_char *str, size_t len) {
   size_t count;
@@ -1675,6 +1693,30 @@ static void convert_nl_to_cr2(vt_char_t *str, u_int len) {
     }
   }
 }
+
+#ifdef USE_WIN32GUI
+static u_int convert_nl_to_cr3(WCHAR *str, u_int len) {
+  size_t count;
+
+  for (count = 0; count < len; count++) {
+    /* '\r\n' can be send by some applications (e.g. ssh on browser window of GCP) on win32. */
+    if (str[count] == '\r') {
+      if (count + 1 < len && str[count + 1] == '\n') {
+        if (count + 2 == len) {
+          return count + 1;
+        } else {
+          memmove(str + count + 1, str + count + 2, (len - count - 2) * 2);
+          len--;
+        }
+      }
+    } else if (str[count] == '\n') {
+      str[count] = '\r';
+    }
+  }
+
+  return count;
+}
+#endif
 #endif
 
 static int yank_event_received(ui_screen_t *screen, Time time) {
@@ -3013,13 +3055,22 @@ static void xct_selection_notified(ui_window_t *win, u_char *str, size_t len) {
 static void utf_selection_notified(ui_window_t *win, u_char *str, size_t len) {
   ui_screen_t *screen;
 
+#ifdef USE_WIN32GUI
+  len = trim_trailing_newline_in_pasting3(str, len / 2) * 2;
+#else
   len = trim_trailing_newline_in_pasting1(str, len);
+#endif
+
 #ifdef NL_TO_CR_IN_PAST_TEXT
   /*
    * Convert normal newline chars to carriage return chars which are
    * common return key sequences.
    */
+#ifdef USE_WIN32GUI
+  len = convert_nl_to_cr3(str, len / 2) * 2;
+#else
   convert_nl_to_cr1(str, len);
+#endif
 #endif
 
   screen = (ui_screen_t *)win;
