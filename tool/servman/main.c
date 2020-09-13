@@ -31,7 +31,8 @@
 #define IDD_USER       126
 #define IDD_ENCODING   127
 #define IDD_EXEC_CMD   128
-#define IDD_X11        129
+#define IDD_SSH_PRIVKEY 129
+#define IDD_X11        130
 
 #define WM_TREEVIEW_LBUTTONUP (WM_USER + 1)
 #define WM_TREEVIEW_MOUSEMOVE (WM_USER + 2)
@@ -50,6 +51,77 @@ static HWND main_window;
 static HTREEITEM drag_src;
 
 /* --- static functions --- */
+
+/* See bl_args.c */
+static int str_to_array(char **argv, int *argc, char *args) {
+  char *args_dup;
+  char *p;
+
+  /*
+   * parsing options.
+   */
+
+  *argc = 0;
+  args_dup = args;
+  if ((args = alloca(strlen(args) + 1)) == NULL) {
+    return 0;
+  }
+  strcpy(args, args_dup);
+
+  p = args_dup;
+
+  while (*args) {
+    int quoted;
+
+    while (*args == ' ' /* || *args == '\t' */) {
+      if (*(++args) == '\0') {
+        goto parse_end;
+      }
+    }
+
+    if (*args == '\"' || *args == '\'') {
+      quoted = 1;
+      args++;
+    } else {
+      quoted = 0;
+    }
+
+    while (*args) {
+      if (quoted) {
+        if (*args == '\"' || *args == '\'') {
+          args++;
+
+          break;
+        }
+      } else {
+        if (*args == ' ' /* || *args == '\t' */) {
+          args++;
+
+          break;
+        }
+      }
+
+      if (*args == '\\' && (args[1] == '\"' || args[1] == '\'' ||
+                            (!quoted && (args[1] == ' ' /* || args[1] == '\t' */)))) {
+        *(p++) = *(++args);
+      } else {
+        *(p++) = *args;
+      }
+
+      args++;
+    }
+
+    *(p++) = '\0';
+    argv[(*argc)++] = args_dup;
+    args_dup = p;
+  }
+
+parse_end:
+  /* NULL terminator (POSIX exec family style) */
+  argv[*argc] = NULL;
+
+  return 1;
+}
 
 /*
  * Parsing "<proto>://<user>@<host>:<port>:<encoding>".
@@ -176,6 +248,40 @@ static size_t copy_str(char *dst, size_t dst_len /* >= 1 */, char prepend, char 
   return pre_len + src_len;
 }
 
+static u_int count_sp_in_str(const char *str) {
+  u_int num = 0;
+
+  while (*str) {
+    if (*str == ' ') {
+      num++;
+    }
+    str++;
+  }
+
+  return num;
+}
+
+static int check_format(const char *str, const char *ngchars) {
+  if (str) {
+    char c;
+
+    while ((c = *(ngchars++))) {
+      if (strchr(str, c)) {
+        char *msg;
+
+        if ((msg = alloca(16 + strlen(str) + 1))) {
+          sprintf(msg, "Illegal format: %s", str);
+          MessageBox(main_window, msg, "Error", MB_OK);
+        }
+
+        return 0;
+      }
+    }
+  }
+
+  return 1;
+}
+
 LRESULT CALLBACK edit_dialog_proc(HWND dialog, UINT msg, WPARAM wparam, LPARAM lparam) {
   static int selected_proto = -1;
   static char *selected_server;
@@ -183,41 +289,51 @@ LRESULT CALLBACK edit_dialog_proc(HWND dialog, UINT msg, WPARAM wparam, LPARAM l
   static char *selected_user;
   static char *selected_encoding;
   static char *selected_exec_cmd;
+  static char *selected_ssh_privkey;
   static int use_x11_forwarding;
 
   switch (msg) {
     case WM_INITDIALOG: {
       char *user_env;
       int item;
+      char **argv;
 
       item = selected_proto = IDD_SSH;
       user_env = getenv("USERNAME");
 
       use_x11_forwarding = 0;
 
-      if (default_server) {
-        char *str;
+      if (default_server &&
+          (argv = alloca(sizeof(char*) * (count_sp_in_str((default_server)) + 2)))) {
+        int num;
+        int count;
         char *user;
         int proto;
         char *server;
         char *port;
         char *encoding;
-        char *p;
-        size_t len;
 
-        len = strlen(default_server);
-        if (len > 4 && strcmp(default_server + len - 4, " x11") == 0) {
-          default_server[(len -= 4)] = '\0';
-          use_x11_forwarding = 1;
+        str_to_array(argv, &num, default_server);
+
+        default_server = argv[0];
+
+        for (count = 1; count < num; count++) {
+          if (strcmp(argv[count], "x11") == 0) {
+            use_x11_forwarding = 1;
+          } else if (strncmp(argv[count], "exec=", 5) == 0) {
+            SetWindowText(GetDlgItem(dialog, IDD_EXEC_CMD), argv[count] + 5);
+          } else if (strncmp(argv[count], "privkey=", 8) == 0) {
+            SetWindowText(GetDlgItem(dialog, IDD_SSH_PRIVKEY), argv[count] + 8);
+          }
+#if 1
+          else if (count == 1) {
+            /* Backward compatible with 3.9.0 or before */
+            SetWindowText(GetDlgItem(dialog, IDD_EXEC_CMD), argv[count]);
+          }
+#endif
         }
 
-        if ((p = strchr(default_server, ' '))) {
-          *p = '\0';
-          SetWindowText(GetDlgItem(dialog, IDD_EXEC_CMD), p + 1);
-        }
-
-        if ((str = alloca(strlen(default_server) + 1)) &&
-            parse(&proto, &user, &server, &port, &encoding, strcpy(str, default_server))) {
+        if (parse(&proto, &user, &server, &port, &encoding, default_server)) {
           SetWindowText(GetDlgItem(dialog, IDD_SERVER), server);
           item = IDD_USER;
 
@@ -268,63 +384,81 @@ LRESULT CALLBACK edit_dialog_proc(HWND dialog, UINT msg, WPARAM wparam, LPARAM l
           selected_user = get_window_text(GetDlgItem(dialog, IDD_USER));
           selected_encoding = get_window_text(GetDlgItem(dialog, IDD_ENCODING));
           selected_exec_cmd = get_window_text(GetDlgItem(dialog, IDD_EXEC_CMD));
+          selected_ssh_privkey = get_window_text(GetDlgItem(dialog, IDD_SSH_PRIVKEY));
 
-          if (selected_server) {
-            size_t total_len;
-#if 0
-            if (selected_proto == IDD_SSH) {
-              strcpy(return_text, "ssh://");
-              total_len = 6;
-            } else
-#endif
-            if (selected_proto == IDD_MOSH) {
-              strcpy(return_text, "mosh://");
-              total_len = 7;
-            } else if (selected_proto == IDD_TELNET) {
-              strcpy(return_text, "telnet://");
-              total_len = 9;
-            } else if (selected_proto == IDD_RLOGIN) {
-              strcpy(return_text, "rlogin://");
-              total_len = 9;
-            } else {
-              return_text[0] = '\0';
-              total_len = 0;
-            }
-
-            if (selected_user) {
-              total_len += copy_str(return_text + total_len, sizeof(return_text) - total_len,
-                                    0, selected_user, strlen(selected_user), '@');
-            }
-
-            total_len += copy_str(return_text + total_len, sizeof(return_text) - total_len,
-                                  0, selected_server, strlen(selected_server), 0);
-
-            if (selected_port) {
-              total_len += copy_str(return_text + total_len,
-                                    sizeof(return_text) - total_len,
-                                    ':', selected_port, strlen(selected_port), 0);
-            }
-
-            if (selected_encoding) {
-              total_len += copy_str(return_text + total_len,
-                                    sizeof(return_text) - total_len,
-                                    ':', selected_encoding, strlen(selected_encoding), 0);
-            }
-
-            if (selected_exec_cmd) {
-              total_len += copy_str(return_text + total_len,
-                                    sizeof(return_text) - total_len,
-                                    ' ', selected_exec_cmd, strlen(selected_exec_cmd), 0);
-            }
-
-            if (use_x11_forwarding) {
-              total_len += copy_str(return_text + total_len,
-                                    sizeof(return_text) - total_len, ' ', "x11", 3, 0);
-            }
-
-            EndDialog(dialog, IDOK);
-          } else {
+          if (!check_format(selected_server, "/\"") ||
+              !check_format(selected_port, "/\"") ||
+              !check_format(selected_user, "/\"") ||
+              !check_format(selected_encoding, "/\"") ||
+              /* exec_cmd and ssh_privkey are enclosed by "" and can contain '/'.*/
+              !check_format(selected_exec_cmd, "\"") ||
+              !check_format(selected_ssh_privkey, "\"")) {
             EndDialog(dialog, IDCANCEL);
+          } else {
+            if (selected_server) {
+              size_t total_len;
+
+#if 0
+              if (selected_proto == IDD_SSH) {
+                strcpy(return_text, "ssh://");
+                total_len = 6;
+              } else
+#endif
+              if (selected_proto == IDD_MOSH) {
+                strcpy(return_text, "mosh://");
+                total_len = 7;
+              } else if (selected_proto == IDD_TELNET) {
+                strcpy(return_text, "telnet://");
+                total_len = 9;
+              } else if (selected_proto == IDD_RLOGIN) {
+                strcpy(return_text, "rlogin://");
+                total_len = 9;
+              } else {
+                return_text[0] = '\0';
+                total_len = 0;
+              }
+
+              if (selected_user) {
+                total_len += copy_str(return_text + total_len, sizeof(return_text) - total_len,
+                                      0, selected_user, strlen(selected_user), '@');
+              }
+
+              total_len += copy_str(return_text + total_len, sizeof(return_text) - total_len,
+                                    0, selected_server, strlen(selected_server), 0);
+
+              if (selected_port) {
+                total_len += copy_str(return_text + total_len, sizeof(return_text) - total_len,
+                                      ':', selected_port, strlen(selected_port), 0);
+              }
+
+              if (selected_encoding) {
+                total_len += copy_str(return_text + total_len, sizeof(return_text) - total_len,
+                                      ':', selected_encoding, strlen(selected_encoding), 0);
+              }
+
+              if (selected_exec_cmd) {
+                total_len += copy_str(return_text + total_len, sizeof(return_text) - total_len,
+                                      ' ', "\"exec=", 6, 0);
+                total_len += copy_str(return_text + total_len, sizeof(return_text) - total_len,
+                                      0, selected_exec_cmd, strlen(selected_exec_cmd), '\"');
+              }
+
+              if (selected_ssh_privkey) {
+                total_len += copy_str(return_text + total_len, sizeof(return_text) - total_len,
+                                      ' ', "\"privkey=", 9, 0);
+                total_len += copy_str(return_text + total_len, sizeof(return_text) - total_len,
+                                      0, selected_ssh_privkey, strlen(selected_ssh_privkey), '\"');
+              }
+
+              if (use_x11_forwarding) {
+                total_len += copy_str(return_text + total_len,
+                                      sizeof(return_text) - total_len, ' ', "x11", 3, 0);
+              }
+
+              EndDialog(dialog, IDOK);
+            } else {
+              EndDialog(dialog, IDCANCEL);
+            }
           }
 
           break;
@@ -470,6 +604,7 @@ static HTREEITEM add_item(HWND tree, HTREEITEM parent, char *name, int is_dir) {
 static void add_path(HWND tree, char *path) {
   char *name;
   HTREEITEM parent = TVI_ROOT;
+  int quoted = 0;
 
   if (*path == '/') {
     path++;
@@ -477,7 +612,15 @@ static void add_path(HWND tree, char *path) {
   name = path;
 
   while (1) {
-    if (*path == '/') {
+    if (*path == '\"') {
+      quoted = !quoted;
+      path++;
+    } else if (*path == '\0') {
+      if (*name != '\0') {
+        parent = add_item(tree, parent, name, 0);
+      }
+      break;
+    } else if (!quoted && *path == '/') {
       if (path[1] == '/') {
         path += 2; /* skip :// */
       } else {
@@ -487,11 +630,6 @@ static void add_path(HWND tree, char *path) {
         *path = orig;
         name = path;
       }
-    } else if (*path == '\0') {
-      if (*name != '\0') {
-        parent = add_item(tree, parent, name, 0);
-      }
-      break;
     } else {
       path++;
     }

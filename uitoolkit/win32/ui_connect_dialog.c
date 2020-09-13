@@ -12,6 +12,7 @@
 #include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_path.h> /* bl_parse_uri */
+#include <pobl/bl_args.h>
 
 #ifdef USE_WIN32API
 #define USE_DRAGDROP
@@ -402,30 +403,43 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
   char *proto;
 
   use_x11_forwarding = *x11_fwd;
+  selected_ssh_privkey = *privkey;
 
   if ((!def_server || *def_server == '\0' || strcmp(def_server, "?") == 0) &&
       (default_server = alloca(1024))) {
     if ((default_server = exec_servman(default_server, 1024))) {
-      size_t len = strlen(default_server);
-      char *p;
+      char **argv;
 
-      if (len > 4 && strcmp(default_server + len - 4, " x11") == 0) {
-        default_server[(len -= 4)] = '\0';
-        use_x11_forwarding = 1;
-      }
+      if ((argv = bl_argv_alloca(default_server))) {
+        int num;
+        int count;
 
+        bl_arg_str_to_array(argv, &num, default_server);
+
+        default_server = argv[0];
+
+        for (count = 1; count < num; count++) {
+          if (strcmp(argv[count], "x11") == 0) {
+            use_x11_forwarding = 1;
+          } else if (strncmp(argv[count], "exec=", 5) == 0) {
+            selected_exec_cmd = argv[count] + 5;
+          } else if (strncmp(argv[count], "privkey=", 8) == 0) {
+            selected_ssh_privkey = argv[count] + 8;
+          }
 #if 1
-      if ((p = strchr(default_server, ' '))) {
-        *p = '\0';
-        selected_exec_cmd = p + 1;
-      }
+          else if (count == 1) {
+            /* Backward compatible with 3.9.0 or before */
+            selected_exec_cmd = argv[count];
+          }
 #endif
+        }
+      }
     }
   } else {
     default_server = def_server;
   }
 
-  if (!(selected_ssh_privkey = *privkey)) {
+  if (selected_ssh_privkey == NULL) {
     char *home;
     char *p;
 

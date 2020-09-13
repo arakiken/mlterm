@@ -1,3 +1,11 @@
+2020-09-13  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/ui_connect_dialog.c: The new format of response of "servman" is
+	  supported.
+
+	* servman/main.c, servman.rc:
+	  SSH private key path is configurable for each server.
+
 2020-09-12  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.c: trim_trailing_newline_in_pasting3() and convert_nl_to_cr3()
