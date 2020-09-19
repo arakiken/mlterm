@@ -82,6 +82,7 @@ typedef struct {
   u_int32_t status;
 } MWMHints_t;
 
+#define MWM_HINTS_ELEMENTS      5
 #define MWM_HINTS_DECORATIONS (1L << 1)
 
 #define MAX_CLICK 3 /* max is triple click */
@@ -1701,7 +1702,7 @@ int ui_window_set_borderless_flag(ui_window_t *win, int flag) {
       MWMHints_t mwmhints = {MWM_HINTS_DECORATIONS, 0, 0, 0, 0};
 
       XChangeProperty(root->disp->display, root->my_window, atom, atom, 32, PropModeReplace,
-                      (u_char *)&mwmhints, sizeof(MWMHints_t) / sizeof(u_long));
+                      (u_char *)&mwmhints, MWM_HINTS_ELEMENTS);
     } else {
       XDeleteProperty(root->disp->display, root->my_window, atom);
     }
