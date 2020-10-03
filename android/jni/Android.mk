@@ -2,7 +2,14 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := mlterm
-ifneq (,$(wildcard fribidi/fribidi.c))
+
+ifneq (,$(wildcard src/main/jni))
+	JNI_PATH := src/main/jni/
+else
+	JNI_PATH :=
+endif
+
+ifneq (,$(wildcard $(JNI_PATH)fribidi/fribidi.c))
 	FRIBIDI_SRC_FILES := fribidi/fribidi.c fribidi/fribidi-arabic.c \
 		fribidi/fribidi-bidi.c fribidi/fribidi-bidi-types.c \
 		fribidi/fribidi-deprecated.c fribidi/fribidi-joining.c \
@@ -11,33 +18,47 @@ ifneq (,$(wildcard fribidi/fribidi.c))
 		vtemu/libctl/vt_bidi.c vtemu/libctl/vt_shape_bidi.c \
 		vtemu/libctl/vt_line_bidi.c
 	FRIBIDI_CFLAGS := -DUSE_FRIBIDI
+	FRIBIDI_INCLUDES := $(JNI_PATH)fribidi
 endif
-ifneq (,$(wildcard freetype/$(TARGET_ARCH_ABI)/lib/libfreetype.a))
-	FT_CFLAGS := -DUSE_FREETYPE -Ifreetype/$(TARGET_ARCH_ABI)/include/freetype2
-	FT_LDLIBS := freetype/$(TARGET_ARCH_ABI)/lib/libfreetype.a
-	ifneq (,$(wildcard libotf/otfopen.c))
-		OTL_SRC_FILES := libotf/otfopen.c libotf/otfdrive.c libotf/otferror.c \
-				uitoolkit/libotl/otf.c
-		OTL_CFLAGS := -Ilibotf -Iuitoolkit/libotl -DUSE_OT_LAYOUT -DNO_DYNAMIC_LOAD_OTL
+ifneq (,$(wildcard $(JNI_PATH)freetype/$(TARGET_ARCH_ABI)/lib/libfreetype.a))
+	FT_CFLAGS := -DUSE_FREETYPE
+	FT_INCLUDES := $(JNI_PATH)freetype/$(TARGET_ARCH_ABI)/include/freetype2
+	FT_LDLIBS := $(JNI_PATH)freetype/$(TARGET_ARCH_ABI)/lib/libfreetype.a
+	#FT_LDLIBS := -L$(JNI_PATH)freetype/$(TARGET_ARCH_ABI)/lib
+	#FT_STATICLIBS := freetype
+	ifneq (,$(wildcard $(JNI_PATH)libotf/otfopen.c))
+		OTL_SRC_FILES := libotf/otfopen.c libotf/otfdrive.c libotf/otferror.c uitoolkit/libotl/otf.c
+		OTL_CFLAGS := -DUSE_OT_LAYOUT -DNO_DYNAMIC_LOAD_OTL
+		OTL_INCLUDES := $(JNI_PATH)libotf $(JNI_PATH)uitoolkit/libotl
 	else
 		OTL_SRC_FILES :=
 		OTL_CFLAGS :=
+		OTL_INCLUDES :=
 	endif
 else
 	FT_CFLAGS :=
+	FT_INCLUDES :=
 	FT_LDLIBS :=
+	#FT_STATICLIBS :=
 	OTL_SRC_FILES :=
 	OTL_CFLAGS :=
 endif
-ifneq (,$(wildcard libssh2/$(TARGET_ARCH_ABI)/lib/libssh2.a))
+
+ifneq (,$(wildcard $(JNI_PATH)libssh2/$(TARGET_ARCH_ABI)/lib/libssh2.a))
 	LIBSSH2_SRC_FILES := vtemu/vt_pty_ssh.c vtemu/vt_pty_mosh.c
-	LIBSSH2_CFLAGS := -DUSE_LIBSSH2 -Ilibssh2/$(TARGET_ARCH_ABI)/include -DNO_DYNAMIC_LOAD_SSH
-	LIBSSH2_LDLIBS := libssh2/$(TARGET_ARCH_ABI)/lib/libssh2.a libssh2/$(TARGET_ARCH_ABI)/lib/libcrypto.a -lz
+	LIBSSH2_CFLAGS := -DUSE_LIBSSH2 -DNO_DYNAMIC_LOAD_SSH
+	LIBSSH2_INCLUDES := $(JNI_PATH)libssh2/$(TARGET_ARCH_ABI)/include
+	LIBSSH2_LDLIBS := $(JNI_PATH)libssh2/$(TARGET_ARCH_ABI)/lib/libssh2.a $(JNI_PATH)libssh2/$(TARGET_ARCH_ABI)/lib/libcrypto.a -lz
+	#LIBSSH2_LDLIBS := -L$(JNI_PATH)libssh2/$(TARGET_ARCH_ABI)/lib -lz
+	#LIBSSH2_STATICLIBS := ssh2 crypto
 else
 	LIBSSH2_SRC_FILES :=
 	LIBSSH2_CFLAGS :=
-	LIBSSH2_LDLIBS :=
+	LIBSSH2_INCLUDES :=
+	#LIBSSH2_LDLIBS :=
+	#LIBSSH2_STATICLIBS :=
 endif
+
 LOCAL_SRC_FILES := baselib/src/bl_map.c baselib/src/bl_args.c \
 		baselib/src/bl_mem.c baselib/src/bl_conf.c baselib/src/bl_file.c \
 		baselib/src/bl_path.c baselib/src/bl_conf_io.c baselib/src/bl_str.c \
@@ -99,10 +120,17 @@ LOCAL_SRC_FILES := baselib/src/bl_map.c baselib/src/bl_args.c \
 		uitoolkit/ui_sb_view_factory.c uitoolkit/ui_scrollbar.c \
 		uitoolkit/fb/ui_selection_encoding.c uitoolkit/ui_emoji.c uitoolkit/test.c \
 		main/daemon.c main/main_loop.c main/main.c
-LOCAL_CFLAGS := -DNO_DYNAMIC_LOAD_TABLE -DNO_DYNAMIC_LOAD_CTL -DSTATIC_LINK_INDIC_TABLES -DUSE_IND -Ilibind $(FRIBIDI_CFLAGS) $(FT_CFLAGS) $(OTL_CFLAGS) $(LIBSSH2_CFLAGS) -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER -DBUILTIN_IMAGELIB -DNO_DYNAMIC_LOAD_TRANSFER #-DBL_DEBUG -DDEBUG
+
+LOCAL_CFLAGS := -DNO_DYNAMIC_LOAD_TABLE -DNO_DYNAMIC_LOAD_CTL -DSTATIC_LINK_INDIC_TABLES -DUSE_IND $(FRIBIDI_CFLAGS) $(FT_CFLAGS) $(OTL_CFLAGS) $(LIBSSH2_CFLAGS) -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER -DBUILTIN_IMAGELIB -DNO_DYNAMIC_LOAD_TRANSFER $(LOCAL_CFLAGS_DEB)
+
 LOCAL_LDLIBS := -llog -landroid $(FT_LDLIBS) $(LIBSSH2_LDLIBS)
-LOCAL_C_INCLUDES := baselib encodefilter vtemu uitoolkit fribidi
-LOCAL_STATIC_LIBRARIES := android_native_app_glue
+
+LOCAL_C_INCLUDES := $(JNI_PATH)baselib $(JNI_PATH)encodefilter $(JNI_PATH)vtemu $(JNI_PATH)uitoolkit $(JNI_PATH)libind $(FRIBIDI_INCLUDES) $(FT_INCLUDES) $(OTL_INCLUDES) $(LIBSSH2_INCLUDES)
+
+LOCAL_STATIC_LIBRARIES := android_native_app_glue #$(FT_STATICLIBS) $(LIBSSH2_STATICLIBS)
+
+#APP_ALLOW_MISSING_DEPS := true
+LOCAL_ALLOW_UNDEFINED_SYMBOLS := true
 
 include $(BUILD_SHARED_LIBRARY)
 

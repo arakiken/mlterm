@@ -1382,6 +1382,8 @@ void ui_screen_manager_final(void) {
 #ifdef __ANDROID__
 static int suspended;
 
+void ui_event_source_final(void); /* ui_event_source.h */
+
 int ui_screen_manager_suspend(void) {
   u_int count;
 
@@ -1396,6 +1398,8 @@ int ui_screen_manager_suspend(void) {
   num_screens = 0;
 
   ui_display_close_all();
+
+  ui_event_source_final();
 
   suspended = 1;
 

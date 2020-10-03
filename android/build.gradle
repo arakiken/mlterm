@@ -1,0 +1,41 @@
+apply plugin: 'com.android.application'
+
+android {
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 24
+        compileSdkVersion 24
+
+        ndk {
+            abiFilters 'x86', 'armeabi-v7a'
+        }
+    }
+
+    externalNativeBuild {
+        ndkBuild {
+            path 'src/main/jni/Android.mk'
+        }
+    }
+
+    buildTypes {
+        debug {
+            externalNativeBuild {
+                ndkBuild {
+                    arguments 'LOCAL_CFLAGS_DEB+=-DBL_DEBUG', 'LOCAL_CFLAGS_DEB+=-DDEBUG'
+                }
+            }
+        }
+
+        release {
+            externalNativeBuild {
+                ndkBuild {
+                }
+            }
+        }
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}

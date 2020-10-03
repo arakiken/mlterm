@@ -1,3 +1,19 @@
+2020-10-03  Araki Ken  <arakiken@users.sf.net>
+
+	* README.android: Updated.
+
+	* prepare-gradle.sh, build-gradle.sh, build.gradle: Added.
+
+	* android/jni/main.c, android/jni/ui_event_source.c, wnnlib.c:
+	  Implicite declaration is fixed.
+
+	* android/jni/Android.mk: Fixes to build with gradle.
+
+	* android/build-ant.sh: Renamed from build.sh.
+
+	* win32/ui_window.c: If ui_layout receives WM_MOUSEWHEEL or WM_MOUSEHWHEEL,
+	  it is dispatched to the focused ui_screen.
+
 2020-09-13  Araki Ken  <arakiken@users.sf.net>
 
 	* win32/ui_connect_dialog.c: The new format of response of "servman" is

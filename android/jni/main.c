@@ -7,7 +7,7 @@
 #if 0
 #include <sys/prctl.h>
 #endif
-#include "uitoolkit/ui_display.h"
+#include "uitoolkit/fb/ui_display.h"
 #include "uitoolkit/ui_event_source.h"
 
 #ifdef SYSCONFDIR

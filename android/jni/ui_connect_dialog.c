@@ -45,7 +45,7 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
     ret = 0;
   }
 
-  d_uri = d_pass = d_exec_cmd = NULL;
+  d_uri = d_pass = d_exec_cmd = d_privkey = NULL;
 
   return ret;
 }

@@ -775,6 +775,18 @@ static void reset_input_focus(ui_window_t *win) {
   }
 }
 
+static ui_window_t *get_focused_child(ui_window_t *win) {
+  u_int count;
+
+  for (count = 0; count < win->num_children; count++) {
+    if (win->children[count]->is_focused) {
+      return win->children[count];
+    }
+  }
+
+  return NULL;
+}
+
 /* --- global functions --- */
 
 int ui_window_init(ui_window_t *win, u_int width, u_int height, u_int min_width, u_int min_height,
@@ -1831,7 +1843,10 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
     case WM_MBUTTONDOWN:
     case WM_RBUTTONDOWN:
       if (!win->button_pressed) {
-        return 1;
+        /* Mouse wheel doesn't work on win8 without this. */
+        if ((win = get_focused_child(win)) == NULL) {
+          return 1;
+        }
       }
 
       goto BUTTON_MSG;

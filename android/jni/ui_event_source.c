@@ -2,6 +2,7 @@
 
 #include "ui_event_source.h"
 
+#include <string.h> /* strstr */
 #include <stdio.h> /* sprintf */
 #include <time.h> /* clock */
 #include <pobl/bl_debug.h>
@@ -10,7 +11,7 @@
 #include <vt_char_encoding.h>
 #include <vt_term_manager.h>
 
-#include "ui_display.h"
+#include "fb/ui_display.h"
 #include "ui_window.h"
 #include "ui_screen.h"
 
@@ -180,7 +181,12 @@ static int need_resize(u_int cur_width,  /* contains scrollbar width and margin 
 
 void ui_event_source_init(void) {}
 
-void ui_event_source_final(void) {}
+void ui_event_source_final(void) {
+  pthread_mutex_init(&mutex, NULL);
+  free(cur_preedit_text);
+  cur_preedit_text = NULL;
+  connect_to_ssh_server = 0;
+}
 
 int ui_event_source_process(void) {
   ALooper *looper;
@@ -515,8 +521,8 @@ jboolean Java_mlterm_native_1activity_MLPreferenceActivity_getBoolConfig(JNIEnv 
     (*env)->ReleaseStringUTFChars(env, jkey, key);
     if (android_config_response) {
       /* XXX */
-      char *true = strstr(android_config_response, "col_size_of_width_a") ? "2" : "true";
-      int flag = (strncmp(android_config_response + 1 + key_len + 1, true, strlen(true)) == 0);
+      char *val = strstr(android_config_response, "col_size_of_width_a") ? "2" : "true";
+      int flag = (strncmp(android_config_response + 1 + key_len + 1, val, strlen(val)) == 0);
 
       free(android_config_response);
       android_config_response = NULL;

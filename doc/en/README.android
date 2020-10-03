@@ -13,13 +13,6 @@ Android support
 * Configuration
   Place configuration files (see README.fb in detail) in /sdcard/.mlterm/.
 
-* Build
-  $ ./prepare.sh /foo/bar
-  $ cd /foo/bar
-  (edit build.sh)
-  $ ./build.sh
-  => Install bin/mlterm-release-unsigned.apk to Android.
-
 * Note
   o Available font formats are pcf and ttf.
   o mlterm uses /system/fonts/DroidSansMono.ttf by default.
@@ -46,7 +39,7 @@ Android support
   o You can rotate display by "rotate_display = right" or "rotate_display = left"
     in /sdcard/.mlterm/main.
   o The default values of following options are as below on Android.
-    "font_size_range"       => 10-50
+    "font_size_range"       => 1-200
     "only_use_unicode_font" => "true"
     "box_drawing_font"      => "unicode"
   o "use_local_echo" option is unavailable.
@@ -55,3 +48,83 @@ Android support
   o Input method plugin is not supported.
   o Scroll upward or downward by flick gesture. If you want to select characters
     instead of scrolling, touch screen for more than 0.5 sec.
+
+* Build
+  o Preparation (Optional)
+    - fribidi
+      Copy following files of fribidi (0.19.6) to jni/fribidi/.
+
+      arabic-misc.tab.i     fribidi-bidi-types.c          fribidi-mem.c
+      arabic-shaping.tab.i  fribidi-bidi-types.h          fribidi-mirroring.c
+      bidi-type.tab.i       fribidi-bidi-types-list.h     fribidi-mirroring.h
+      bidi-types.h          fribidi-common.h              fribidi-run.c
+      common.h              fribidi-config.h              fribidi-shape.c
+      config.h              fribidi-deprecated.c          fribidi-shape.h
+      debug.h               fribidi-deprecated.h          fribidi-types.h
+      fribidi.c             fribidi-enddecls.h            fribidi-unicode.h
+      fribidi.h             fribidi-flags.h               fribidi-unicode-version.h
+      fribidi-arabic.c      fribidi-joining.c             joining-type.tab.i
+      fribidi-arabic.h      fribidi-joining.h             joining-types.h
+      fribidi-begindecls.h  fribidi-joining-types.c       mem.h
+      fribidi-bidi.c        fribidi-joining-types.h       mirroring.tab.i
+      fribidi-bidi.h        fribidi-joining-types-list.h  run.h
+
+    - libotf
+      Copy following files of libotf (0.9.13) to jni/libotf/.
+
+      config.h  internal.h  otf.h  otfdrive.c  otferror.c  otfopen.c
+
+    - freetype2
+      Build static library (libfreetype.a) for Android (*), and place files as follows.
+
+      C Header files: jni/freetype/{armeabi,armeabi-v7,x86,mips}/include/
+      Static library: jni/freetype/{armeabi,armeabi-v7,x86,mips}/lib/
+
+      Specify following options to ./configure script in building freetype2.
+      --with-png=no --with-harfbuzz=no --with-bzip2=no --with-brotli=no
+
+      (*) Read "Autoconf" section in
+          https://developer.android.com/ndk/guides/other_build_systems
+
+    - libssh2
+      Build static libraries (libssh2.a(libssh2), libcrypto.a(libssl or libressl))
+      for Android, and place files as follows.
+
+      C Header files: jni/libssh2/{armeabi,armeabi-v7,x86,mips}/include/
+      Static library: jni/libssh2/{armeabi,armeabi-v7,x86,mips}/lib/
+
+  o Build with apache ant
+    $ cd mlterm-x.x.x/android
+    $ ./prepare-ant.sh /foo/bar
+    $ export ANDROID_HOME=...
+    $ export ANDROID_NDK_HOME=...
+    $ export JAVA_HOME=...
+    $ cd /foo/bar
+      (edit build-ant.sh)
+    $ ./build-ant.sh
+      => Install bin/mlterm-release-unsigned.apk to Android.
+
+  o Build with gradle
+    $ cd mlterm-x.x.x/android
+    $ ./prepare-gradle.sh /foo/bar
+    $ export ANDROID_HOME=...
+    $ export ANDROID_NDK_HOME=...
+    $ export JAVA_HOME=...
+    $ cd /foo/bar
+      (edit build-gradle.sh)
+    $ ./build-gradle.sh
+      => Install bin/mlterm-release-unsigned.apk to Android.
+
+  o If build-gradle.sh exits with a following error message,
+    add "distributionUrl=https\://services.gradle.org/distributions/gradle-4.6-all.zip"
+    to /foo/bar/gradle/wrapper/gradle-wrapper.properties.
+
+    A problem occurred evaluating project ':app'.
+    > Failed to apply plugin [id 'com.android.application']
+      > Minimum supported Gradle version is 4.6. Current version is 3.2.1.
+        If using the gradle wrapper, try editing the distributionUrl in
+        /foo/bar/gradle/wrapper/gradle-wrapper.properties to gradle-4.6-all.zip
+
+  o Note that "LOCAL_ALLOW_UNDEFINED_SYMBOLS := true" is defined in Android.mk.
+    So mlterm can crash by UnsatisfiedLinkedError.
+    Check crash logs with logcat command.

@@ -11,11 +11,11 @@ PROJECT_PATH=$1
 
 echo "Prepare to build for android. (project: ${PROJECT_PATH})"
 echo "Press enter key to continue."
-read
+read IN
 
 mkdir -p ${PROJECT_PATH}
-cp build.sh ${PROJECT_PATH}/
-chmod 755 ${PROJECT_PATH}/build.sh
+cp build-ant.sh ${PROJECT_PATH}/
+chmod 755 ${PROJECT_PATH}/build-ant.sh
 cp *.xml ${PROJECT_PATH}/
 
 mkdir -p ${PROJECT_PATH}/jni/baselib/pobl ${PROJECT_PATH}/jni/baselib/src
