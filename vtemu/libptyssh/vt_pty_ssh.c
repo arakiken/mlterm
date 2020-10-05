@@ -1200,8 +1200,13 @@ static void *
           bl_usleep(1);
           continue;
         } else {
+          bl_dialog(BL_DIALOG_ALERT, "SCP failed.");
           break;
         }
+      }
+
+      if (len > scp->src_size - rd_len) {
+        len = scp->src_size - rd_len;
       }
 
       write(scp->local, buf, len);
@@ -1210,8 +1215,13 @@ static void *
         break;
       }
 
-      while (libssh2_channel_write(scp->remote, buf, len) == LIBSSH2_ERROR_EAGAIN) {
-        bl_usleep(1);
+      while ((len = libssh2_channel_write(scp->remote, buf, len)) < 0) {
+        if (len == LIBSSH2_ERROR_EAGAIN) {
+          bl_usleep(1);
+        } else {
+          bl_dialog(BL_DIALOG_ALERT, "SCP failed.");
+          break;
+        }
       }
     }
 
