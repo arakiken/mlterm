@@ -26,6 +26,7 @@
   Fix https://sourceforge.net/p/mlterm/mailman/message/37033060/
   Fix segfault of mlcc in exiting after changing configurations.
   Fix segfault in double click at RTL characters. (Enbugged at 3.6.2)
+  Fix corruption of data transferred by "OSC 5379; scp ... ST".
 
 ver 3.9.0
 * Support CSI>4;1m.

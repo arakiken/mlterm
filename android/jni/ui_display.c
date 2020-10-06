@@ -622,10 +622,10 @@ void ui_display_close_all(void) {
     }
 
     free(_disp.roots);
-    _disp.roots = NULL;
 
+    memset(&_display, 0, sizeof(_display));
     /* DISP_IS_INITED is false from here. */
-    _disp.display = NULL;
+    memset(&_disp, 0, sizeof(_disp));
   }
 }
 

@@ -77,14 +77,22 @@ Android support
     - freetype2
       Build static library (libfreetype.a) for Android (*), and place files as follows.
 
+      (*) Read "Autoconf" section in
+          https://developer.android.com/ndk/guides/other_build_systems
+
       C Header files: jni/freetype/{armeabi,armeabi-v7,x86,mips}/include/
       Static library: jni/freetype/{armeabi,armeabi-v7,x86,mips}/lib/
 
       Specify following options to ./configure script in building freetype2.
       --with-png=no --with-harfbuzz=no --with-bzip2=no --with-brotli=no
 
-      (*) Read "Autoconf" section in
-          https://developer.android.com/ndk/guides/other_build_systems
+e.g.) freetype2
+export ANDROID_HOME=/usr/lib/android-sdk
+export ANDROID_NDK_HOME=/usr/lib/android-sdk/ndk/XX.X.XXXXXXX
+export JAVA_HOME=/usr/lib/jvm/java-X.X.X-openjdk-amd64/
+CC="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabiXX-clang -fPIC" ./configure --host=armv7a-linux-androideabi --prefix=/tmp --disable-shared --with-png=no
+make
+make install
 
     - libssh2
       Build static libraries (libssh2.a(libssh2), libcrypto.a(libssl or libressl))
@@ -92,6 +100,14 @@ Android support
 
       C Header files: jni/libssh2/{armeabi,armeabi-v7,x86,mips}/include/
       Static library: jni/libssh2/{armeabi,armeabi-v7,x86,mips}/lib/
+
+e.g.) libssh2, libressl
+export ANDROID_HOME=/usr/lib/android-sdk
+export ANDROID_NDK_HOME=/usr/lib/android-sdk/ndk/XX.X.XXXXXXX
+export JAVA_HOME=/usr/lib/jvm/java-X.X.X-openjdk-amd64/
+CC="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabiXX-clang -fPIC" ./configure --host=armv7a-linux-androideabi --prefix=/tmp --disable-shared
+make
+make install
 
   o Build with apache ant
     $ cd mlterm-x.x.x/android
