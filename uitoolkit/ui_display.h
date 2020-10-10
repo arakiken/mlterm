@@ -134,7 +134,7 @@ void ui_display_set_sixel_colors(ui_display_t *disp, const char *colors);
 void ui_display_set_default_cell_size(u_int width, u_int height);
 #endif
 
-#ifdef USE_WIN32API
+#ifdef NO_DISPLAY_FD
 void ui_display_trigger_pty_read(void);
 #endif
 

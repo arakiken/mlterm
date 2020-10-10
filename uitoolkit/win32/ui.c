@@ -171,6 +171,7 @@ KeySym XStringToKeysym(char *str) {
 #ifdef BL_DEBUG
 
 #include <assert.h>
+#include <pobl/bl_debug.h>
 
 void TEST_xstringtokeysym(void) {
   size_t count;

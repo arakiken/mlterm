@@ -15,8 +15,16 @@
 #endif
 
 #if defined(USE_LIBSSH2) && !defined(USE_WIN32API)
+/*
+ * <wchar.h> has already been included without _XOPEN_SOURCE,
+ * so #define _XOPEN_SOURCE here doesn't work.
+ */
+#if 0
 #define _XOPEN_SOURCE
 #include <wchar.h> /* wcwidth */
+#else
+int wcwidth(wchar_t c);
+#endif
 #endif
 
 #include <pobl/bl_debug.h>

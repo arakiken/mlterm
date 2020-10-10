@@ -4,8 +4,16 @@
 #include <linux/keyboard.h>
 #include <linux/vt.h> /* VT_GETSTATE */
 
+/*
+ * <string.h> has already been included without _GNU_SOURCE,
+ * so #define _GNU_SOURCE here doesn't work.
+ */
+#if 0
 #define _GNU_SOURCE /* strcasestr */
 #include <string.h>
+#else
+char *strcasestr(const char *haystack, const char *needle);
+#endif
 
 #if 0
 #define READ_CTRL_KEYMAP

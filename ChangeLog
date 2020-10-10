@@ -1,3 +1,15 @@
+2020-10-10  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c: wcwidth() is declared manually instead of
+	  including <wchar.h>
+
+	* ui_display_linux.c: strcasestr() is declared manually instead of
+	  including <string.h>
+
+	* ui_display.h:
+	  #ifdef USE_WIN32API ui_display_trigger_pty_read() #endif
+	  -> #ifdef NO_DISPLAY_FD ui_display_trigger_pty_read() #endif
+
 2020-10-07  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.android: Updated.
