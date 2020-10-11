@@ -1,3 +1,16 @@
+2020-10-11  Araki Ken  <arakiken@users.sf.net>
+
+	* servman/main.c, win32/ui_connect_dialog.c: X11 checkbox is grayed out
+	  if protocol except ssh is selected.
+
+	* vt_line_shape.c: If open type layout is enabled, vt_shape_ot_layout() is
+	  called directly instead of 'func' because its type is different from
+	  that of vt_shape_arabic and vt_shape_iscii.
+
+	* ui_im.h: The type of return value of vt_char_set is fixed. (int -> void)
+
+	* im_kbd.c, ui_color.c: Fix typo.
+
 2020-10-10  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: wcwidth() is declared manually instead of

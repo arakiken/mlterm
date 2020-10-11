@@ -64,7 +64,7 @@ static int vt_line_ot_layout_need_shape(vt_line_t *line) {
 vt_line_t *vt_line_shape(vt_line_t *line) {
   vt_line_t *orig;
   vt_char_t *shaped;
-  u_int (*func)(vt_char_t *, u_int, vt_char_t *, u_int, ctl_info_t);
+  u_int (*func)(vt_char_t *, u_int, vt_char_t *, u_int);
 
   if (line->ctl_info_type) {
 #ifdef USE_OT_LAYOUT
@@ -73,17 +73,17 @@ vt_line_t *vt_line_shape(vt_line_t *line) {
         return NULL;
       }
 
-      func = vt_shape_ot_layout;
+      /* vt_shape_ot_layout() has ctl_info as an argument. */
+      func = NULL;
     } else
 #endif
-        if (vt_line_is_using_bidi(line)) {
+    if (vt_line_is_using_bidi(line)) {
       if (!vt_line_bidi_need_shape(line)) {
         return NULL;
       }
 
       func = vt_shape_arabic;
-    } else /* if( vt_line_is_using_iscii( line)) */
-    {
+    } else /* if( vt_line_is_using_iscii( line)) */ {
       if (!vt_line_iscii_need_shape(line)) {
         return NULL;
       }
@@ -105,8 +105,13 @@ vt_line_t *vt_line_shape(vt_line_t *line) {
 
 #if !defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND) || defined(USE_FRIBIDI) || \
     defined(USE_OT_LAYOUT)
-    line->num_filled_chars =
-        (*func)(shaped, line->num_chars, line->chars, line->num_filled_chars, line->ctl_info);
+    if (func) {
+      line->num_filled_chars =
+        (*func)(shaped, line->num_chars, line->chars, line->num_filled_chars);
+    } else {
+      line->num_filled_chars = vt_shape_ot_layout(shaped, line->num_chars, line->chars,
+                                                  line->num_filled_chars, line->ctl_info);
+    }
 #else
 /* Never enter here */
 #endif

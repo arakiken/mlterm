@@ -34,7 +34,7 @@ static int alloc_closest_xcolor_pseudo(ui_display_t *disp, int red, /* 0 to 0xff
   int i;
 
   /* FIXME: When visual class is StaticColor, should not be return? */
-  if (!disp->visual->class == PseudoColor && !disp->visual->class == GrayScale) {
+  if (disp->visual->class != PseudoColor && disp->visual->class != GrayScale) {
     return 0;
   }
 

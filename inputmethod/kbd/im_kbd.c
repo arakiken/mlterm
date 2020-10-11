@@ -424,7 +424,6 @@ static int switch_mode(ui_im_t *im) {
 #ifdef IM_KBD_DEBUG
       bl_debug_printf(BL_DEBUG_TAG " switched to inscript.\n");
 #endif
-
     } else if (kbd->mode == KBD_MODE_ISCII_INSCRIPT) {
       kbd->isciikey_state = (*syms->vt_isciikey_state_new)(0);
       kbd->mode = KBD_MODE_ISCII_PHONETIC;
@@ -440,7 +439,7 @@ static int switch_mode(ui_im_t *im) {
 #endif
     }
 
-    if ((kbd->type == KBD_MODE_ISCII_INSCRIPT || kbd->type == KBD_MODE_ISCII_PHONETIC) &&
+    if ((kbd->mode == KBD_MODE_ISCII_INSCRIPT || kbd->mode == KBD_MODE_ISCII_PHONETIC) &&
         (kbd->isciikey_state == NULL)) {
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG " vt_isciikey_state_new() failed.\n");

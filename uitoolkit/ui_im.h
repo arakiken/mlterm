@@ -51,8 +51,8 @@ typedef struct ui_im_export_syms {
   void (*vt_str_destroy)(vt_char_t *, u_int);
   vt_char_t *(*vt_char_combine)(vt_char_t *, u_int32_t, ef_charset_t, int, int, int, vt_color_t,
                                 vt_color_t, int, int, int, int, int);
-  int (*vt_char_set)(vt_char_t *, u_int32_t, ef_charset_t cs, int, int, int, vt_color_t, vt_color_t,
-                     int, int, int, int, int);
+  void (*vt_char_set)(vt_char_t *, u_int32_t, ef_charset_t cs, int, int, int, vt_color_t,
+                      vt_color_t, int, int, int, int, int);
   char *(*vt_get_char_encoding_name)(vt_char_encoding_t);
   vt_char_encoding_t (*vt_get_char_encoding)(const char *);
   int (*vt_convert_to_internal_ch)(void *, ef_char_t *);

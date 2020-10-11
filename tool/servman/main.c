@@ -475,6 +475,12 @@ LRESULT CALLBACK edit_dialog_proc(HWND dialog, UINT msg, WPARAM wparam, LPARAM l
           selected_proto = LOWORD(wparam);
           CheckRadioButton(dialog, IDD_SSH, IDD_RLOGIN, selected_proto);
 
+          if (LOWORD(wparam) != IDD_SSH) {
+            EnableWindow(GetDlgItem(dialog, IDD_X11), FALSE);
+          } else {
+            EnableWindow(GetDlgItem(dialog, IDD_X11), TRUE);
+          }
+
           break;
 
         case IDD_X11:
