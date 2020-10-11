@@ -105,13 +105,19 @@ vt_line_t *vt_line_shape(vt_line_t *line) {
 
 #if !defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND) || defined(USE_FRIBIDI) || \
     defined(USE_OT_LAYOUT)
-    if (func) {
+#ifdef USE_OT_LAYOUT
+    if (func)
+#endif
+    {
       line->num_filled_chars =
         (*func)(shaped, line->num_chars, line->chars, line->num_filled_chars);
-    } else {
+    }
+#ifdef USE_OT_LAYOUT
+    else {
       line->num_filled_chars = vt_shape_ot_layout(shaped, line->num_chars, line->chars,
                                                   line->num_filled_chars, line->ctl_info);
     }
+#endif
 #else
 /* Never enter here */
 #endif

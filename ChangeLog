@@ -1,3 +1,7 @@
+2020-10-12  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_line_shape.c: Compiling error by the previous commit is fixed.
+
 2020-10-11  Araki Ken  <arakiken@users.sf.net>
 
 	* servman/main.c, win32/ui_connect_dialog.c: X11 checkbox is grayed out
