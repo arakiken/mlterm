@@ -251,7 +251,13 @@ static void openssl_lock_callback(int mode, int type, const char *file, int line
 
 #endif
 
+/* '#define CRYPTO_num_locks (0)' on some environments */
+#if 1
+#include <openssl/crypto.h>
+#else
 int CRYPTO_num_locks(void);
+#endif
+
 void CRYPTO_set_locking_callback(void (*func)(int, int, const char *, int));
 
 /* gcrypt is not supported. */

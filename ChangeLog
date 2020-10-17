@@ -1,3 +1,9 @@
+2020-10-17  Araki Ken  <arakiken@users.sf.net>
+
+	* libptyssh/vt_pty_ssh.c: vt_pty_ssh.c includes <openssl/crypto.h> instead
+	  of declaring CRYPTO_num_lock() because CRYPTO_num_lock() is defined as 0
+	  on some environments.
+
 2020-10-12  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_line_shape.c: Compiling error by the previous commit is fixed.
