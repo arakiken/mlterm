@@ -1,3 +1,13 @@
+2020-10-24  Araki Ken  <arakiken@users.sf.net>
+
+	* cocoa.m: window_set_title() and cocoa_clipboard_set() check if utf8 argument
+	  has valid utf8 sequence by is_valid_utf8().
+
+	* sdl2/ui_display.c: SDL_WINDOW_ALWAYS_ON_TOP, SDL_WINDOW_SKIP_TASKBAR and
+	  SDL_WINDOW_UTILITY are used on SDL 2.0.5 or later.
+
+	* libptymosh/vt_pty_mosh.cpp: pty.master = 1000 (dummy value) on win32.
+
 2020-10-17  Araki Ken  <arakiken@users.sf.net>
 
 	* libptyssh/vt_pty_ssh.c: vt_pty_ssh.c includes <openssl/crypto.h> instead

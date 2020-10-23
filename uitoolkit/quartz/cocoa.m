@@ -1488,9 +1488,29 @@ void window_get_position(NSWindow *window, int *x, int *y) {
        [window.contentView frame].size.height;
 }
 
+static int is_valid_utf8(char *str, size_t len) {
+  ef_parser_t *parser;
+
+  /* [window setTitle] can cause segfault if title is non UTF-8 text. */
+  if ((parser = ui_get_selection_parser(1))) /* utf8 parser */ {
+    ef_char_t ucs4;
+
+    (*parser->init)(parser);
+    (*parser->set_str)(parser, str, len);
+    while ((*parser->next_char)(parser, &ucs4));
+    if (parser->is_eos) {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
 void window_set_title(NSWindow *window, const char *title /* utf8 */) {
-  NSString *ns_title = [NSString stringWithCString:title encoding:NSUTF8StringEncoding];
-  [window setTitle:ns_title];
+  if (is_valid_utf8(title, strlen(title))) {
+    NSString *ns_title = [NSString stringWithCString:title encoding:NSUTF8StringEncoding];
+    [window setTitle:ns_title];
+  }
 }
 
 void app_urgent_bell(int on) {
@@ -1566,13 +1586,15 @@ void cocoa_clipboard_own(MLTermView *view) {
 }
 
 void cocoa_clipboard_set(const u_char *utf8, size_t len) {
-  NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
-  NSString *str = [[NSString alloc] initWithBytes:utf8
-                                           length:len
-                                         encoding:NSUTF8StringEncoding];
+  if (is_valid_utf8(utf8, len)) {
+    NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+    NSString *str = [[NSString alloc] initWithBytes:utf8
+                                             length:len
+                                           encoding:NSUTF8StringEncoding];
 
-  [pasteboard setString:str forType:NSPasteboardTypeString];
-  [str release];
+    [pasteboard setString:str forType:NSPasteboardTypeString];
+    [str release];
+  }
 }
 
 const char *cocoa_clipboard_get(void) {

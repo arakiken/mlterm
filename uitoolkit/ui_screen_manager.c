@@ -382,14 +382,13 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
     cmd_argv[1] = NULL;
   }
 
-  ret = vt_term_open_pty(term, cmd_path, cmd_argv, env, uri ? uri : display, main_config.work_dir,
-                         pass,
 #ifdef USE_LIBSSH2
-                         main_config.public_key, privkey,
+  ret = vt_term_open_pty(term, cmd_path, cmd_argv, env, uri ? uri : display, main_config.work_dir,
+                         pass, main_config.public_key, privkey, width_pix, height_pix);
 #else
-                         NULL, NULL,
+  ret = vt_term_open_pty(term, cmd_path, cmd_argv, env, uri ? uri : display, main_config.work_dir,
+                         pass, NULL, NULL, width_pix, height_pix);
 #endif
-                         width_pix, height_pix);
 
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
   if (uri) {
@@ -819,13 +818,12 @@ static void open_pty(void *p, ui_screen_t *screen, char *dev) {
     }
 #endif
 
-    ret = open_pty_intern(new, main_config.cmd_path, main_config.cmd_argv, &screen->window,
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-                          main_config.show_dialog
+    ret = open_pty_intern(new, main_config.cmd_path, main_config.cmd_argv, &screen->window,
+                          main_config.show_dialog);
 #else
-                          0
+    ret = open_pty_intern(new, main_config.cmd_path, main_config.cmd_argv, &screen->window, 0);
 #endif
-                          );
 
     main_config.encoding = encoding;
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)

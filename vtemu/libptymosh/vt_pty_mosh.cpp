@@ -1297,7 +1297,9 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
         }
       }
 
-#ifndef USE_WIN32API
+#ifdef USE_WIN32API
+      pty->pty.master = 10000; /* dummy */
+#else
       pty->pty.master = event_fds[0];
 #endif
       pty->pty.slave = -1;
