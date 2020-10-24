@@ -911,13 +911,14 @@ static void pty_closed(void *p, ui_screen_t *screen /* screen->term was already 
       if ((term = vt_get_detached_term(NULL)) == NULL) {
 #ifdef COCOA_TOUCH
         if (vt_get_all_terms(NULL) == 0 && (term = create_term_intern())) {
-          if (open_pty_intern(term, main_config.cmd_path, main_config.cmd_argv, &screen->window,
 #ifdef USE_LIBSSH2
-                               main_config.show_dialog
+          if (open_pty_intern(term, main_config.cmd_path, main_config.cmd_argv,
+                              &screen->window, main_config.show_dialog))
 #else
-                               0
+          if (open_pty_intern(term, main_config.cmd_path, main_config.cmd_argv,
+                              &screen->window, 0))
 #endif
-                               )) {
+          {
             ui_screen_attach(screen, term);
 
             return;
@@ -986,13 +987,12 @@ static void open_cloned_screen(ui_screen_t *cur_screen, ui_layout_t *layout, int
   }
 #endif
 
-  open_screen_intern(cur_screen->window.disp->name, NULL, layout, horizontal, sep,
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-                     main_config.show_dialog
+  open_screen_intern(cur_screen->window.disp->name, NULL, layout, horizontal, sep,
+                     main_config.show_dialog);
 #else
-                     0
+  open_screen_intern(cur_screen->window.disp->name, NULL, layout, horizontal, sep, 0);
 #endif
-                     );
 
   main_config.encoding = encoding;
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
@@ -1009,25 +1009,22 @@ static void open_cloned_screen(ui_screen_t *cur_screen, ui_layout_t *layout, int
 
 static void open_screen(void *p, ui_screen_t *screen /* Screen which triggers this event. */
                         ) {
-  open_cloned_screen(screen, NULL, 0, NULL,
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-                     main_config.show_dialog
+  open_cloned_screen(screen, NULL, 0, NULL, main_config.show_dialog);
 #else
-                     0
+  open_cloned_screen(screen, NULL, 0, NULL, 0);
 #endif
-                     );
 }
 
 static void split_screen(void *p, ui_screen_t *screen, /* Screen which triggers this event. */
                          int horizontal, const char *sep) {
   if (UI_SCREEN_TO_LAYOUT(screen)) {
-    open_cloned_screen(screen, UI_SCREEN_TO_LAYOUT(screen), horizontal, sep,
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-                       main_config.show_dialog
+    open_cloned_screen(screen, UI_SCREEN_TO_LAYOUT(screen), horizontal, sep,
+                       main_config.show_dialog);
 #else
-                       0
+    open_cloned_screen(screen, UI_SCREEN_TO_LAYOUT(screen), horizontal, sep, 0);
 #endif
-                       );
   }
 }
 
@@ -1205,25 +1202,25 @@ static int mlclient(void *self, ui_screen_t *screen, char *args,
 
     if (screen) {
       if (sep) {
-        open_screen_intern(screen->window.disp->name, NULL, UI_SCREEN_TO_LAYOUT(screen),
-                           horizontal, sep,
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-                           main_config.show_dialog
+        open_screen_intern(screen->window.disp->name, NULL, UI_SCREEN_TO_LAYOUT(screen),
+                           horizontal, sep, main_config.show_dialog);
 #else
-                           0
+        open_screen_intern(screen->window.disp->name, NULL, UI_SCREEN_TO_LAYOUT(screen),
+                           horizontal, sep, 0);
 #endif
-                           );
       } else {
         vt_term_t *term;
 
         if ((term = create_term_intern())) {
-          if (!open_pty_intern(term, main_config.cmd_path, main_config.cmd_argv, &screen->window,
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-                               main_config.show_dialog
+          if (!open_pty_intern(term, main_config.cmd_path, main_config.cmd_argv,
+                               &screen->window, main_config.show_dialog))
 #else
-                               0
+          if (!open_pty_intern(term, main_config.cmd_path, main_config.cmd_argv,
+                               &screen->window, 0))
 #endif
-                               )) {
+          {
             vt_destroy_term(term);
           } else {
             ui_screen_detach(screen);

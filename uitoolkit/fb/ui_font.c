@@ -2,6 +2,11 @@
 
 #define _GNU_SOURCE /* strcasestr */
 
+#if 0
+#define DEBUG
+#define __DEBUG
+#endif
+
 #include "ui_font.h"
 
 #include <stdio.h>
@@ -58,10 +63,6 @@
 #define PCF_SWIDTHS (1 << 6)
 #define PCF_GLYPH_NAMES (1 << 7)
 #define PCF_BDF_ACCELERATORS (1 << 8)
-
-#if 0
-#define __DEBUG
-#endif
 
 /* --- static variables --- */
 
@@ -147,7 +148,7 @@ static int load_bitmaps(XFontStruct *xfont, u_char *p, size_t size, int is_be, i
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG "GLYPH COUNT %d x WIDTH BYTE %d = SIZE %d\n", xfont->num_glyphs,
                   xfont->glyph_width_bytes, bitmap_sizes[glyph_pad_type]);
-
+#if 0
   {
     FILE* fp;
 
@@ -193,6 +194,7 @@ static int load_bitmaps(XFontStruct *xfont, u_char *p, size_t size, int is_be, i
 
     fclose(fp);
   }
+#endif
 #endif
 
   return 1;
@@ -324,6 +326,16 @@ static int get_metrics(u_int16_t *width, u_int16_t *width_full, u_int16_t *heigh
     bl_debug_printf(BL_DEBUG_TAG " NOT COMPRESSED METRICS %d %d %d %d %d\n", num_metrics, *width,
                     *width_full, *height, *ascent);
 #endif
+  }
+
+  if (*width == 0 || *height == 0) {
+    /* XXX The height of mplus_h10r.pcf.gz, mplus_s10r.pcf.gz etc is 0. */
+#ifdef DEBUG
+    bl_debug_printf(BL_DEBUG_TAG " Illegal pcf metrics: width (%d), height (%d)\n",
+                    *width, *height);
+#endif
+
+    return 0;
   }
 
   return 1;
@@ -505,13 +517,18 @@ static int load_pcf(XFontStruct *xfont, const char *file_path) {
 
       table_load_count++;
     }
+#ifdef DEBUG
+    else {
+      bl_debug_printf(BL_DEBUG_TAG " Unsupported table: %x\n", type);
+    }
+#endif
   }
 
 #ifdef __DEBUG
   {
-#if 1
+#if 0
     u_char ch[] = "\x97\xf3";
-#elif 0
+#elif 1
     u_char ch[] = "a";
 #else
     u_char ch[] = "\x06\x22"; /* UCS2 */
@@ -520,14 +537,14 @@ static int load_pcf(XFontStruct *xfont, const char *file_path) {
     int i;
     int j;
 
-    if ((bitmap = ui_get_bitmap(xfont, ch, sizeof(ch) - 1, 0, NULL))) {
+    if ((bitmap = ui_get_bitmap(xfont, ch, sizeof(ch) - 1, 0, 0, NULL))) {
       for (j = 0; j < xfont->height; j++) {
         u_char *line;
 
         ui_get_bitmap_line(xfont, bitmap, j * xfont->glyph_width_bytes, line);
 
         for (i = 0; i < xfont->width; i++) {
-          bl_msg_printf("%d", (line && ui_get_bitmap_cell(line, i)) ? 1 : 0);
+          bl_msg_printf("%c", (line && ui_get_bitmap_cell(line, i)) ? '*' : ' ');
         }
         bl_msg_printf("\n");
       }

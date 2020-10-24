@@ -1,3 +1,8 @@
+2020-10-25  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/ui_font.c: get_metrics() fails if width or height in PCF_METRICS
+	  table is 0.
+
 2020-10-24  Araki Ken  <arakiken@users.sf.net>
 
 	* cocoa.m: window_set_title() and cocoa_clipboard_set() check if utf8 argument
