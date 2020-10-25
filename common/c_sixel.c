@@ -877,6 +877,7 @@ body:
         bl_debug_printf(BL_DEBUG_TAG " EOF.\n.");
 #endif
 
+        /* See is_separated_sixel() in vt_parser.c */
         if (*(p + 1) != '\0') {
           goto restart;
         }
@@ -890,6 +891,7 @@ body:
       bl_debug_printf(BL_DEBUG_TAG " EOF.\n.");
 #endif
 
+        /* See is_separated_sixel() in vt_parser.c */
       if (*(p + 1) != '\0') {
         goto restart;
       }

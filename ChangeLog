@@ -1,5 +1,14 @@
 2020-10-25  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_parser.c:
+	  - is_separated_sixel() is added to fix
+	    https://github.com/arakiken/mlterm/issues/4.
+	  - TEST_vt_parser() is added.
+
+	* test.c: TEST_vt_parser() is called.
+
+2020-10-25  Araki Ken  <arakiken@users.sf.net>
+
 	* fb/ui_font.c: get_metrics() fails if width or height in PCF_METRICS
 	  table is 0.
 

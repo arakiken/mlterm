@@ -2154,6 +2154,78 @@ static void define_drcs_picture(vt_parser_t *vt_parser, char *path, ef_charset_t
   }
 }
 
+/*
+ * The 2nd \x1bP...\x1b\\ in the following sequence (e.g. biplane.six)
+ * overwrites the image of the 1st \x1bP...\x1b\\.
+ * (\x1b[8k moves the cursor upward after drawing the 1st image.)
+ * \x1bP...\x1b\\\x1b[8k\x1bP;1...\x1b\\
+ *                            ^-> Pixel positions specified as 0 remain at their current color
+ *
+ * -> The 1st and 2nd sequences are saved in the same file and
+ *    load_sixel_from_data() in c_sixel.c draws them at once.
+ */
+static int is_separated_sixel(u_char *str, size_t len) {
+  if (len >= 3) {
+    if (*str == '\x1d') {
+      str++;
+      len--;
+    } else if (*str == '\x1b' && *(str + 1) == ']') {
+      str += 2;
+      len -= 2;
+    } else {
+      return 0;
+    }
+
+    while ('0' <= *str && *str <= '9') {
+      str++;
+      if (--len == 0) {
+        return 0;
+      }
+    }
+
+    if (*str == 'A' || *str == 'k') {
+      u_int count = 0;
+
+      str++;
+      len--;
+      while (len >= 3 /* \x90;1 => 3 */) {
+        if (*str == '\x1b' && *(str + 1) == 'P') {
+          str += 2;
+          len -= 2;
+        } else {
+          len--;
+          if (*(str++) != 0x90) {
+            goto next_loop;
+          }
+        }
+
+        if ('0' <= *str && *str <= '9') {
+          str++;
+          len--;
+        }
+
+        if (len >= 2 && *str == ';') {
+          if (*(++str) == '1') {
+            return 1;
+          }
+          len--;
+        }
+
+      next_loop:
+        /*
+         * It is assumed that the distance between 1st and 2nd sequence is
+         * less than about 10 bytes.
+         */
+        if (++count >= 10) {
+          break;
+        }
+      }
+    }
+  }
+
+  return 0;
+}
+
 static int increment_str(u_char **str, size_t *left);
 
 static int save_sixel_or_regis(vt_parser_t *vt_parser, char *path, u_char *dcs_beg,
@@ -2273,20 +2345,8 @@ static int save_sixel_or_regis(vt_parser_t *vt_parser, char *path, u_char *dcs_b
     }
 
     if (is_end == 2) {
-      u_char *p;
-
-      p = str_p;
-
-      /* \x38 == '8' */
-      if (strncmp(p, "\x1d\x38k @\x1f", 6) == 0) {
-        /* XXX Hack for biplane.six */
-        p += 6;
-      }
-
-      if (*p == 0x90 ||
-          /* XXX If left == 0 and next char is 'P'... */
-          (*p == CTL_ESC && left > p - str_p + 1 && *(p + 1) == 'P')) {
-        /* continued ... */
+      if (is_separated_sixel(str_p, left)) {
+        /* continued (XXX Hack for biplane.six) */
         is_end = 0;
       } else {
         str_p--;
@@ -8472,3 +8532,28 @@ void vt_parser_report_mouse_tracking(vt_parser_t *vt_parser, int col, int row,
 #endif
   }
 }
+
+#ifdef BL_DEBUG
+
+#include <assert.h>
+
+void TEST_vt_parser(void) {
+  u_char a[] = "\x1b]8k @\x1f\x1bP;1";
+  u_char b[] = "\x1b]k @\x1f\x90;1";
+  u_char c[] = "\x1b]16k @@@@\x1f\x1bP0;1";
+  u_char d[] = "\x1b]A @\x90;2";
+  u_char e[] = "\x1b]A hogefuga\x1f\x1bP;1";
+  u_char f[] = "\x1b]A hogefug\x1f\x1bP;1";
+
+  assert(is_separated_sixel(a, sizeof(a) - 1) == 1);
+  assert(is_separated_sixel(b, sizeof(b) - 1) == 1);
+  assert(is_separated_sixel(c, sizeof(c) - 1) == 1);
+  assert(is_separated_sixel(d, sizeof(d) - 1) == 0);
+  assert(is_separated_sixel(e, sizeof(e) - 1) == 0);
+  assert(is_separated_sixel(f, sizeof(f) - 1) == 1);
+
+  bl_msg_printf("PASS vt_parser test.\n");
+}
+
+#endif
+
