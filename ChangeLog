@@ -1,5 +1,9 @@
 2020-10-25  Araki Ken  <arakiken@users.sf.net>
 
+	* xlib/ui_imagelib.c: ui_imagelib_get_transparent_background()
+	  calls modify_pixmap() for the entire image.
+	  (Fix http://twitter.com/oshimyja/status/1320251099211649024)
+
 	* vt_parser.c:
 	  - is_separated_sixel() is added to fix
 	    https://github.com/arakiken/mlterm/issues/4.

@@ -2163,6 +2163,9 @@ static void define_drcs_picture(vt_parser_t *vt_parser, char *path, ef_charset_t
  *
  * -> The 1st and 2nd sequences are saved in the same file and
  *    load_sixel_from_data() in c_sixel.c draws them at once.
+ *
+ * XXX
+ * return -1 if len == 0, and wait for the next sequence.
  */
 static int is_separated_sixel(u_char *str, size_t len) {
   if (len >= 3) {

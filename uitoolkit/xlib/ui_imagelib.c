@@ -1670,7 +1670,8 @@ Pixmap ui_imagelib_get_transparent_background(ui_window_t *win, ui_picture_modif
   }
 
   if (!ui_picture_modifier_is_normal(pic_mod)) {
-    if (!modify_pixmap(win->disp, pixmap, pixmap, width, height, pic_mod)) {
+    if (!modify_pixmap(win->disp, pixmap, pixmap, width + pix_x,
+                       height + pix_y, pic_mod)) {
       XFreePixmap(win->disp->display, pixmap);
 
       return None;
