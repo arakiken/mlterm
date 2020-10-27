@@ -4108,9 +4108,14 @@ static void font_size_changed(ui_screen_t *screen) {
   col_width = ui_col_width(screen);
   line_height = ui_line_height(screen);
 
-  ui_window_set_normal_hints(&screen->window, col_width, line_height, col_width, line_height);
-
   resize_window(screen);
+
+  /*
+   * ui_window_set_normal_hints() should be called after ui_window_resize()
+   * because total_min_{width|height}() calculates min_{width|height} by
+   * {RIGHT|BOTTOM}_MARGIN() which uses the current width and height of the window.
+   */
+  ui_window_set_normal_hints(&screen->window, col_width, line_height, col_width, line_height);
 }
 
 static void change_font_size(ui_screen_t *screen, u_int font_size) {

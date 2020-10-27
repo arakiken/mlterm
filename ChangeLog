@@ -1,3 +1,8 @@
+2020-10-27  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c: font_size_changed() sets normal hints correctly
+	  by calling ui_window_set_normal_hints() after resize_window().
+
 2020-10-25  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/ui_imagelib.c: ui_imagelib_get_transparent_background()
