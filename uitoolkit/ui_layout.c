@@ -1562,6 +1562,7 @@ int ui_layout_remove_child(ui_layout_t *layout, ui_screen_t *screen) {
 
   ui_window_remove_child(&layout->window, &term->scrollbar.window);
   ui_window_remove_child(&layout->window, &screen->window);
+  screen->screen_listener.line_scrolled_out = layout->line_scrolled_out;
   ui_window_unmap(&screen->window);
 
   if (layout->bg_pic && !HAS_MULTI_CHILDREN(layout)) {
