@@ -8541,6 +8541,7 @@ void vt_parser_report_mouse_tracking(vt_parser_t *vt_parser, int col, int row,
 #include <assert.h>
 
 void TEST_vt_parser(void) {
+#ifndef NO_IMAGE
   u_char a[] = "\x1b]8k @\x1f\x1bP;1";
   u_char b[] = "\x1b]k @\x1f\x90;1";
   u_char c[] = "\x1b]16k @@@@\x1f\x1bP0;1";
@@ -8556,7 +8557,7 @@ void TEST_vt_parser(void) {
   assert(is_separated_sixel(f, sizeof(f) - 1) == 1);
 
   bl_msg_printf("PASS vt_parser test.\n");
+#endif
 }
 
 #endif
-
