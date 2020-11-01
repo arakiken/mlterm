@@ -1,3 +1,8 @@
+2020-11-01  Araki Ken  <arakiken@users.sf.net>
+
+	* sdl2/ui_display.c: Type miss is fixed.
+	  (SDL_VERSION_AT_LEAST -> SDL_VERSION_ATLEAST)
+
 2020-10-31  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: Compiling error in buidling by ./configure --disable-image.

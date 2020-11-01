@@ -355,7 +355,7 @@ static int init_display(Display *display, char *app_name, int x, int y, int hint
 
     if (display->parent) {
       /* XXX Input Method */
-#ifdef SDL_VERSION_AT_LEAST(2, 0, 5)
+#ifdef SDL_VERSION_ATLEAST(2, 0, 5)
       flag = SDL_WINDOW_SHOWN | SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE |
              SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_SKIP_TASKBAR | SDL_WINDOW_UTILITY;
 #else
