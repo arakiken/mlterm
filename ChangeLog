@@ -1,3 +1,7 @@
+2020-11-06  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_display_x68kgrf.c: conf_1024_768_4.videoc.r1 = 0x24e4
+
 2020-11-01  Araki Ken  <arakiken@users.sf.net>
 
 	* sdl2/ui_display.c: Type miss is fixed.

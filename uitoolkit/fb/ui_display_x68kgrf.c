@@ -152,7 +152,7 @@ static int open_display(u_int depth) {
   fb_reg_conf_t conf_768_512_4 = {{137, 14, 28, 124, 567, 5, 40, 552, 27, 1046},
                                   {4, 0x24e4 /* Graphic vram is prior to text one. */, 0x0010}};
   fb_reg_conf_t conf_1024_768_4 = {{169, 14, 28, 156, 439, 5, 40, 424, 27, 1050},
-                                   {4, 0x21e4, 0x0010}};
+                                   {4, 0x24e4 /* Graphic vram is prior to text one. */, 0x0010}};
   struct rgb_info rgb_info_15bpp = {3, 3, 3, 6, 11, 1};
   struct termios tm;
 
