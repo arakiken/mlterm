@@ -9,7 +9,7 @@ How to build & install libvte compatible library using mlterm engine.
     (gnome-terminal, roxterm, synaptic or etc)
 
 * Supported API
-  vte 0.58
+  vte 0.62
 
 * Build
   $ ./configure (--with-type-engine=cairo --with-imagelib=gdk-pixbuf --enable-pty-helper \
@@ -133,6 +133,8 @@ How to build & install libvte compatible library using mlterm engine.
     - vte_terminal_set_enable_shaping
     - vte_get_encodings
     - vte_get_encoding_supported
+    - vte_terminal_event_check_regex_array
+    - vte_terminal_set_enable_sixel
 
   o Unsupported vte signals and properties
     - signals
@@ -186,15 +188,16 @@ How to build & install libvte compatible library using mlterm engine.
       "visible-bell"
 
 * Tested terminals using vte.
-  o gnome-terminal 3.34.2 on Arch Linux ... OK except transparency
+  o gnome-terminal 3.38.1 on Arch Linux ... OK except transparency
   o gnome-terminal 2.16.0 on CentOS 5   ... OK
   o roxterm 3.3.2 on Arch Linux         ... OK
   o lxterminal 0.3.2 on Arch Linux      ... OK
-  o sakura 3.6.0 on Arch Linux          ... OK
-  o terminator 1.91 on Arch Linux       ... OK (GDK_CORE_DEVICE_EVENTS=1)
+  o sakura 3.7.1 on Arch Linux          ... OK
+  o terminator 1.92 on Arch Linux       ... OK
 
   Following platforms are not actually tested by developers, but were tested
   in the past.
+  o gnome-terminal 3.34.2 on Arch Linux ... OK except transparency
   o gnome-terminal 3.32.2 on Arch Linux ... OK except transparency
   o gnome-terminal 3.30.2 on Arch Linux ... OK except transparency
   o gnome-terminal 3.28.2 on Arch Linux ... OK except transparency
@@ -233,6 +236,7 @@ How to build & install libvte compatible library using mlterm engine.
   o evilvte 0.5.0-1 on Ubuntu 12.04
   o evilvte 0.4.8 on Ubuntu 11.10
   o evilvte 0.4.9pre4 on NetBSD 3.0.1
+  o sakura 3.6.0 on Arch Linux
   o sakura 3.1.5 on Ubuntu 15.04
   o sakura 3.1.0 on Ubuntu 13.10
   o sakura 3.0.4-2 on Ubuntu 13.04
@@ -244,3 +248,4 @@ How to build & install libvte compatible library using mlterm engine.
   o lxterminal 0.1.11-2ubuntu1 on Ubuntu 12.04
   o lxterminal 0.1.11 on Ubuntu 11.10
   o gtkterm2 0.2.3 on NetBSD 3.0.1
+  o terminator 1.91 on Arch Linux

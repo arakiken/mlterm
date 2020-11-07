@@ -2929,6 +2929,34 @@ void vte_terminal_spawn_async(VteTerminal *terminal, VtePtyFlags pty_flags,
 }
 #endif
 
+#if VTE_CHECK_VERSION(0, 62, 0)
+void vte_terminal_spawn_with_fds_async(VteTerminal *terminal, VtePtyFlags pty_flags,
+                                       const char *working_directory,
+                                       char const* const* argv, char const* const* envv,
+                                       int const *fds, int n_fds,
+                                       int const *fd_map_to, int n_fd_map_to,
+                                       GSpawnFlags spawn_flags,
+                                       GSpawnChildSetupFunc child_setup, gpointer child_setup_data,
+                                       GDestroyNotify child_setup_data_destroy,
+                                       int timeout, GCancellable *cancellable,
+                                       VteTerminalSpawnAsyncCallback callback, gpointer user_data) {
+  GPid child_pid;
+  GError *error;
+
+  /* XXX fds and fd_map_to */
+
+  if (n_fds > 0 || n_fd_map_to > 0) {
+    bl_msg_printf("vte_terminal_spawn_with_fds_async() ignores fds and fd_map_to.\n");
+  }
+
+  vte_terminal_spawn_sync(terminal, pty_flags, working_directory, argv, envv, spawn_flags,
+                          child_setup, child_setup_data, &child_pid, cancellable, &error);
+  if (callback) {
+    (*callback)(terminal, child_pid, NULL, user_data);
+  }
+}
+#endif
+
 pid_t vte_terminal_forkpty(VteTerminal *terminal, char **envv, const char *directory,
                            gboolean lastlog, gboolean utmp, gboolean wtmp) {
   /*
@@ -4489,6 +4517,22 @@ void vte_terminal_set_geometry_hints_for_window(VteTerminal *terminal, GtkWindow
 }
 #endif
 
+#if VTE_CHECK_VERSION(0, 62, 0)
+VteFeatureFlags vte_get_feature_flags(void) {
+  return
+#if 1
+    VTE_FEATURE_FLAG_BIDI |
+#endif
+#if 0
+    VTE_FEATURE_FLAG_ICU |
+#endif
+#if 0
+    VTE_FEATURE_FLAG_SYSTEMD
+#endif
+    0;
+}
+#endif
+
 #if VTE_CHECK_VERSION(0, 39, 0)
 guint vte_get_major_version(void) { return VTE_MAJOR_VERSION; }
 
@@ -4658,6 +4702,17 @@ void vte_terminal_set_allow_hyperlink(VteTerminal *terminal, gboolean allow_hype
 char *vte_terminal_hyperlink_check_event(VteTerminal *terminal, GdkEvent *event) { return NULL; }
 #endif
 
+#if VTE_CHECK_VERSION(0, 62, 0)
+char **vte_terminal_event_check_regex_array(VteTerminal *terminal,
+                                            GdkEvent *event,
+                                            VteRegex **regexes,
+                                            gsize n_regexes,
+                                            guint32 match_flags,
+                                            gsize *n_matches) {
+  return NULL;
+}
+#endif
+
 #if VTE_CHECK_VERSION(0, 52, 0)
 void vte_terminal_set_bold_is_bright(VteTerminal *terminal, gboolean bold_is_bright) {};
 
@@ -4687,6 +4742,14 @@ VteTextBlinkMode vte_terminal_get_text_blink_mode(VteTerminal *terminal) {
 void vte_set_test_flags(guint64 flags) {}
 
 void vte_terminal_get_color_background_for_draw(VteTerminal* terminal, GdkRGBA* color) {}
+#endif
+
+#if VTE_CHECK_VERSION(0, 62, 0)
+void vte_terminal_set_enable_sixel(VteTerminal *terminal, gboolean enabled) {}
+
+gboolean vte_terminal_get_enable_sixel(VteTerminal *terminal) {
+  return TRUE;
+}
 #endif
 
 #if VTE_CHECK_VERSION(0, 56, 0)

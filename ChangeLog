@@ -1,3 +1,14 @@
+2020-11-07  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/README: Updated.
+
+	* vte.c: New functions at vte 0.62 (vte_terminal_spawn_with_fds_async(),
+	  vte_get_feature_flags(), vte_terminal_event_check_regex_array(),
+	  vte_terminal_set_enable_sixel() and vte_terminal_get_enable_sixel())
+	  are added.
+
+	* ui_screen.c: get_config_intern() returns correct value if depth < 32.
+
 2020-11-06  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_display_x68kgrf.c: conf_1024_768_4.videoc.r1 = 0x24e4

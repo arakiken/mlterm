@@ -4856,7 +4856,7 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
     sprintf(digit, "%d", screen->pic_mod.gamma);
     value = digit;
   } else if (strcmp(key, "alpha") == 0) {
-    if (screen->window.disp->depth < 32) {
+    if (screen->window.disp->depth == 32) {
       sprintf(digit, "%d", screen->color_man->alpha);
     } else {
       sprintf(digit, "%d", screen->pic_mod.alpha);

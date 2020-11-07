@@ -187,8 +187,12 @@ static int open_display(u_int depth) {
 
   reg = _display.fb;
 
-/* XXX Here reg->crtc.rXX are 0 which will slide the screen unexpectedly on
- * exit. */
+/*
+ * XXX
+ * It is impossible to read CRTC R00-R19. (writeonly)
+ * https://twitter.com/tsutsuii/status/1323283737405136898
+ * http://twitter.com/oshimyja/status/367997139772653568
+ */
 #if 0
   orig_reg.crtc.r00 = reg->crtc.r00;
   orig_reg.crtc.r01 = reg->crtc.r01;
