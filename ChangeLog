@@ -1,5 +1,17 @@
 2020-11-08  Araki Ken  <arakiken@users.sf.net>
 
+	* 3.9.1 released.
+	  (tag "rel-3_9_1")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  mlterm.c, android/jni/version.h:
+	  updated for 3.9.1.
+
+	* README, man/mlterm.1, doc/en/PROTOCOL, etc/main, etc/main.ja,
+	  doc/en/README.fb, doc/ja/README.fb: Updated.
+
+2020-11-08  Araki Ken  <arakiken@users.sf.net>
+
 	* xlib/ui_font.c: ui_font_new() returns NULL if specified type engine
 	  is disabled.
 

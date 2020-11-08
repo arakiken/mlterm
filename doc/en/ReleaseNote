@@ -1,3 +1,4 @@
+ver 3.9.1
 * Support copy mode which starts by Control+Shift+Return.
 * Support OSC 1337;Setmark ST.
 * Support CSI 3 J (ED) which clears backlog.
@@ -11,6 +12,7 @@
   (If you want to revert to the old behavior, specify --rz=none option.)
 * Add emoji_file_format / --emojifmt option.
 * Add libvterm 0.1 API symbols to libvterm compatible library.
+* Add vte 0.62 API symbols to libvte compatible library.
 * Drop SCROLL_DOWN and PAGE_DOWN shortcut keys.
 * Drop use_extended_scroll_shortcut option and SCROLL_UP shortcut key is enabled
   by default. (If you want to disable it, add UNUSED=SCROLL_UP to ~/.mlterm/key.)

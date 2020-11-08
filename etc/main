@@ -211,6 +211,8 @@
 
 # regard_uri_as_word = false
 
+# resize_mode = wrap
+
 # (none,mod1,mod2,mod3,mod4,meta,alt,super,hyper)
 # mod_meta_key = none
 

@@ -238,15 +238,16 @@ Supported platforms
   * FreeBSD 2.2.9 / X (x86)
   * FreeBSD(98) 4.11 / framebuffer (np21w ver.0.86 rev.42)
   * OpenBSD 5.3 / framebuffer (x86)
-  * MS Windows 10 + Cygwin 3.0.7 / GDI, SDL2 (CC=gcc, CC="i686-pc-mingw32-gcc") (x86_64)
+  * MS Windows 10 + Cygwin 3.1.4 / GDI, SDL2 (CC=gcc, CC="i686-pc-mingw32-gcc") (x86_64)
   * MS Windows 10 + MSYS2 3.0.6 / GDI (x86)
   * MacOSX 10.6.8 / X, Cocoa, SDL2 (x86)
   * MacOSX 10.8.5 / X, Cocoa, SDL2 (x86)
   * iOS Simulator 4.3 / CocoaTouch (x86)
   * iOS Simulator 7.1 / CocoaTouch (x86)
   * Android 4.0 (x86)
+  * Android 9.0 (x86)
   * Java 1.8.0 / SWT (x86)
-  * Haiku R1 Beta1 / Interface Kit, SDL2 (x86)
+  * Haiku R1 Beta2 / Interface Kit, SDL2 (x86)
 
   See README.fb, README.win32, README.android, README.cocoa, README.cocoatouch,
   README.console, README.wayland, README.sdl2 and README.beos in

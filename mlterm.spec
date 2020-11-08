@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 3.8.9
+%define version 3.9.1
 %define release 1
 %define prefix /usr
 %define bindir /usr/bin
@@ -82,6 +82,9 @@ rm -rf $RPM_BUILD_ROOT
 %{datadir}/mlterm/scrollbars/sample3/
 
 %changelog
+* Sun Nov 08 2020 Araki Ken <arakiken@users.sf.net>
+- Source version 3.9.1
+
 * Sun Apr 26 2020 Araki Ken <arakiken@users.sf.net>
 - Source version 3.9.0
 

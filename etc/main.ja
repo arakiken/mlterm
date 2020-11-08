@@ -307,6 +307,9 @@ scrollbar_view_name = sample
 # ダブルクリックで URI を選択
 # regard_uri_as_word = false
 
+# リサイズ時における、画面に表示されている文字の表示方法
+# resize_mode = wrap
+
 # Meta キーとして使用するキーを指定
 # (none,mod1,mod2,mod3,mod4,meta,alt,super,hyper)
 # mod_meta_key = none
