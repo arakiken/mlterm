@@ -1,3 +1,8 @@
+2020-11-08  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/ui_font.c: ui_font_new() returns NULL if specified type engine
+	  is disabled.
+
 2020-11-07  Araki Ken  <arakiken@users.sf.net>
 
 	* gtk/README: Updated.
