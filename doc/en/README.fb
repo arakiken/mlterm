@@ -108,11 +108,12 @@ Framebuffer support
   o You can specify --depth=1 (1bpp) or --depth=4 (4bpp) on NetBSD/luna68k.
   o You can change the screen resolution and depth by fb_resolution option in
     ~/.mlterm/main on NetBSD/x68k. Supported resolutions are 512x512x15
-    512x512x8 768x512x4 768x512x1 1024x768x4 1024x768x1.
+    512x512x8 768x512x4 768x512x1 1024x768x4 1024x768x1 640x480x4.
     fb_resolution=512x512x15
   o Unless you specify --multivram=false or separate_wall_picture=false option
-    in fb_resolution=768x512x4 or 1024x768x4, the wall picture is drawn on Text
-    VRAM instead of Graphic VRAM and scrolling performance will be improved.
+    in fb_resolution=768x512x4, 1024x768x4 or 640x480x4, the wall picture is
+    drawn on Text VRAM instead of Graphic VRAM and scrolling performance will
+    be improved.
 
   (for OpenBSD)
   o Enable following options and rebuild kernel.
