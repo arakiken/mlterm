@@ -29,6 +29,12 @@ Memo about mosh
     Control use of speculative local echo.
     The value defaults to "adaptive", and can also be "always" or "never".
 
+  o MOSH_UDP_PORT
+    UDP port number or port-range to bind.
+    This works same as -p option of mosh-server.
+    The value format is "port[:port]".
+    (By default, mosh-server uses a UDP port between 60000 and 61000)
+
 * Note
   o Don't specify a value except "UTF-8" for "encoding" option.
   o It is impossible to change the value of "col_size_of_width_a" option.

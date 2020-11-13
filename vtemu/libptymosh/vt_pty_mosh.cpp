@@ -1043,6 +1043,10 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
   }
 #endif
 
+  if (getenv("MOSH_UDP_PORT")) {
+    argv_count += 2;
+  }
+
   u_int env_count = 0;
   if (env) {
     while (env[env_count++]);
@@ -1059,6 +1063,13 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
       *(argv_p++) = "-t";
     }
 #endif
+
+    /* port:[port2] (Default 60000-6100) (See -p option of mosh-server) */
+    char *udp_port = getenv("MOSH_UDP_PORT");
+    if (udp_port) {
+      *(argv_p++) = "-p";
+      *(argv_p++) = udp_port;
+    }
 
     for (env_count = 0; env[env_count]; env_count++) {
       /* "COLORFGBG=default;default" breaks following environmental variables. */

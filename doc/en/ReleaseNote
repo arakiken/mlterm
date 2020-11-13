@@ -1,3 +1,8 @@
+* Add "MOSH_UDP_PORT" environmental variable to specify UDP port or port-range
+  to communicate with a mosh server.
+* Merge patches:
+  https://github.com/arakiken/mlterm/pull/5
+
 ver 3.9.1
 * Support copy mode which starts by Control+Shift+Return.
 * Support OSC 1337;Setmark ST.
