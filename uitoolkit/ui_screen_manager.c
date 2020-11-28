@@ -961,6 +961,7 @@ static void open_cloned_screen(ui_screen_t *cur_screen, ui_layout_t *layout, int
   vt_char_encoding_t encoding;
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
   char *default_server;
+  char *privkey;
   char *new_cmd_line;
   char *new_cmd_line_dup;
   char *cmd_path;
@@ -973,6 +974,8 @@ static void open_cloned_screen(ui_screen_t *cur_screen, ui_layout_t *layout, int
   if (!show_dialog) {
     default_server = main_config.default_server;
     main_config.default_server = vt_term_get_uri(cur_screen->term);
+    privkey = main_config.private_key;
+    main_config.private_key = vt_term_get_privkey(cur_screen->term);
   }
 
   if ((new_cmd_line = vt_term_get_cmd_line(cur_screen->term)) &&
@@ -1003,6 +1006,7 @@ static void open_cloned_screen(ui_screen_t *cur_screen, ui_layout_t *layout, int
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
   if (!show_dialog) {
     main_config.default_server = default_server;
+    main_config.private_key = privkey;
   }
 
   if (new_cmd_line) {
