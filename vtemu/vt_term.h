@@ -30,6 +30,7 @@ typedef struct vt_term {
    */
   char *icon_path;
   char *uri;
+  char *privkey;
   char *bidi_separators;
 
   /* vt_bidi_mode_t */ int8_t bidi_mode;
@@ -296,6 +297,8 @@ void vt_term_set_icon_path(vt_term_t *term, const char *path);
 #define vt_term_icon_path(term) ((term)->icon_path)
 
 #define vt_term_get_uri(term) ((term)->uri)
+
+#define vt_term_get_privkey(term) ((term)->privkey)
 
 #define vt_term_is_bracketed_paste_mode(term) \
   vt_parser_is_bracketed_paste_mode((term)->parser)

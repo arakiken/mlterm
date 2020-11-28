@@ -1,5 +1,12 @@
 2020-11-28  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_screen_manager.c: The same privkey file is used for mosh connection
+	  in pressing Ctrl+F1 or Ctrl+F2.
+
+	* vt_term.[ch]: vt_term_t stores not only 'uri' but also 'privkey'
+	  to use the same privkey file in pressing Ctrl+F1 or Ctrl+F2
+	  for mosh connection.
+
 	* README.cocoa, README.cocoatouch, README.ja, etc/main.ja: Updated.
 
 	* ui_main_config.c: use_login_shell=false by default on MacOS.

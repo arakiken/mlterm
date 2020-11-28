@@ -780,6 +780,7 @@ static void open_pty(void *p, ui_screen_t *screen, char *dev) {
     vt_char_encoding_t encoding;
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
     char *default_server;
+    char *privkey;
     char *new_cmd_line;
     char *new_cmd_line_dup;
     char *cmd_path;
@@ -800,6 +801,8 @@ static void open_pty(void *p, ui_screen_t *screen, char *dev) {
     if (!main_config.show_dialog) {
       default_server = main_config.default_server;
       main_config.default_server = vt_term_get_uri(screen->term);
+      privkey = main_config.private_key;
+      main_config.private_key = vt_term_get_privkey(screen->term);
     }
 
     if ((new_cmd_line = vt_term_get_cmd_line(screen->term)) &&
@@ -830,6 +833,7 @@ static void open_pty(void *p, ui_screen_t *screen, char *dev) {
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
     if (!main_config.show_dialog) {
       main_config.default_server = default_server;
+      main_config.private_key = privkey;
     }
 
     if (new_cmd_line) {

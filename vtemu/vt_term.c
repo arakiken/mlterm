@@ -187,6 +187,9 @@ static void *
   if (pty) {
     if (args->pass) {
       args->term->uri = strdup(args->host);
+      if (args->privkey) {
+        args->term->privkey = strdup(args->privkey);
+      }
     }
 
     vt_term_plug_pty(args->term, pty);
@@ -315,6 +318,7 @@ void vt_term_destroy(vt_term_t *term) {
   }
 
   free(term->uri);
+  free(term->privkey);
   free(term->icon_path);
   free(term->bidi_separators);
 
@@ -405,6 +409,9 @@ int vt_term_open_pty(vt_term_t *term, const char *cmd_path, char **argv, char **
 
       if (pass) {
         term->uri = strdup(host);
+        if (privkey) {
+          term->privkey = strdup(privkey);
+        }
       }
 
       vt_term_plug_pty(term, pty);
