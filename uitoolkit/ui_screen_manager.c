@@ -332,6 +332,7 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
 #ifdef __APPLE__
     char *user;
 
+    /* Terminal.app uses /usr/bin/login by default. */
     if ((user = getenv("USER")) && (cmd_argv = alloca(sizeof(char *) * 4))) {
       cmd_argv[0] = cmd_path = "login";
       cmd_argv[1] = "-fp";

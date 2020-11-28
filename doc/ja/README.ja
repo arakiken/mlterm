@@ -371,14 +371,14 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         (カンマで区切って複数指定可)
 
       o bidi_mode  (*normal*/left/right)
-        left 又は right を指定すると、全ての行を左寄せ又は右寄せで表示する。
+        left 又は right を指定すると、全ての行を左寄せ又は右寄せで表示
 
       o bidi_separators (#)
-        BiDi レンダリングを行う範囲を区切る文字を指定する。
+        BiDi レンダリングを行う範囲を区切る文字を指定
         ('\x'から始まる16進数の使用も可。指定できる文字は \x00-\xff)
 
       o big5_buggy  (true/*false*)
-        Big5 CTEXT のバグ (XFree86 4.1.0 以前) に対応する
+        Big5 CTEXT のバグ (XFree86 4.1.0 以前) に対応
 
       o col_size_of_width_a  (1/2) (#)
         UNICODE の EastAsianWidth.txt の A プロパティのコラム数
@@ -512,28 +512,28 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         を、一旦 UNICODE を経由してから端末エンコーディングに変換する
 
       o use_auto_detect (#)
-        文字コードの自動判定を行う
+        文字コードを自動的に判定
 
         あらかじめ、auto_detect_encodings オプションで候補とするエンコーディング
         を指定しておく必要があります。
 
       o use_combining  (*true*/false) (#)
-        結合文字を処理する(直前の基底文字に結合する)
+        結合文字を処理(直前の基底文字に結合)
 
         なお、use_dynamic_comb が true の場合は、自動的に false になります。
 
       o use_ctl  (*true*/false) (#)
-        BiDi 及び インド諸語 のレンダリングを行う。
+        BiDi 及び インド諸語 のレンダリングに対応
         (必要ない場合は false に設定することを推奨します。)
 
       o use_dynamic_comb  (true/*false*) (#)
-        結合文字について、1カラム分占有するが、直前の基底文字に結合して表示する。
+        結合文字について、1カラム分占有するが、直前の基底文字に結合して表示
 
         端末アプリケーションが結合文字をサポートしていない場合でも、結合文字を正
         しく表示できるようにします。
 
       o use_multi_column_char  (*true*/false)  (#)
-        1 文字で複数コラムを占有する文字の処理を行なう
+        1 文字で複数コラムを占有する文字に対応
 
         いわゆる全角文字を処理するかどうかを指定します。 w3m-m17n を縦表示で使
         用する場合には、このオプションを無効にしてください。
@@ -620,14 +620,14 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         10 から 24 pixel まで変更できるようになります。
 
       o hide_underline (true/*false*)
-        アンダーラインを描画しない。
+        アンダーラインを描画しません。
 
       o iso88591_font_for_usascii (true/*false*)
-        US_ASCII の表示には、必ず ISO8859-1 フォントを使用する
+        US_ASCII の表示には、必ず ISO8859-1 フォントを使用
 
       o leftward_double_drawing (true/*false*)
         medium フォントを重ね打ちする場合の開始位置を 1 pixel 左(デフォルトは右)
-        からとする。
+        からとします。
 
       o letter_space (*0*) (#)
         字間の広さ
@@ -645,7 +645,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         マイナスの値を指定すると行間が狭くなります。
 
       o not_use_unicode_font  (true/*false*) (#)
-        UNICODE を適当な文字集合にmapして、UNICODE フォントを使わずに表示する
+        UNICODE を適当な文字集合にmapして、UNICODE フォントを使わずに表示
         なお、文字幅及び結合文字の属性は、UNICODE の属性を使用します。
         また、できるだけ LANG 環境変数に設定された言語の文字集合への変換を優先し
         ますが、LANG=C の場合などは、直近で変換に成功した文字集合への変換を優先
@@ -653,7 +653,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         に変換されない場合があります。
 
       o only_use_unicode_font (true/*false*) (#)
-        すべての文字を UNICODE フォントだけを使って表示する
+        すべての文字を UNICODE フォントだけを使って表示
         なお、文字幅の属性は、UNICODE の属性は使いません。
 
       o ot_script (latn) (#)
@@ -670,7 +670,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         larger,smaller ボタンでのフォントサイズの変化量(*1*)
 
       o type_engine (xcore/xft/*cairo*) (#)
-        xcore, xft 又は cairoのいずれによりフォントを描画するかを指定する。
+        xcore, xft 又は cairoのいずれによりフォントを描画するかを指定
         なお、use_anti_alias = true にした場合は、自動的に type_engine = cairo と
         なります。
 
@@ -679,15 +679,17 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
       o unicode_full_width_areas (#)
         EastAsianWidth.txt に関わらず、このオプションで指定した範囲の文字は、常
-        に全角幅とする。範囲の指定方法は、unicode_noconv_areas オプション参照
+        に全角幅とします。
+        範囲の指定方法は、unicode_noconv_areas オプション参照
 
       o unicode_half_width_areas (#)
         EastAsianWidth.txt に関わらず、このオプションで指定した範囲の文字は、常
-        に半角幅とする。範囲の指定方法は、unicode_noconv_areas オプション参照
+        に半角幅とします。
+        範囲の指定方法は、unicode_noconv_areas オプション参照
 
       o unicode_noconv_areas (#)
         not_use_unicode_font を true とした場合でも、このオプションで指定した範
-        囲の文字は、常に UNICODE のまま表示する。
+        囲の文字は、常に UNICODE のまま表示
         範囲の指定方法は次のとおり。
 
         e.g.) U+1234-5678,U+0123-4567
@@ -700,12 +702,12 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         ト値は true
 
       o use_anti_alias (true/false/*default*) (#)
-        アンチエイリアスフォントを強制的に使用する。
+        アンチエイリアスフォントを強制的に使用
         なお、このオプションを指定しなかった場合又は use_anti_alias = default
         にした場合、アンチエイリアスするかどうかは、システムの設定によります。
 
       o use_bold_font (*true*/false)
-        ボールドフォントを使用する。
+        ボールドフォントを使用
 
       o use_cp932_ucs_for_xft (*true*/false)
         Xft 又は cairo 使用時、JISX0208 の Unicode 変換に CP932 の変換テーブル
@@ -716,7 +718,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         ないという場合は、このオプションを有効にしてください。
 
       o use_italic_font (*true*/false)
-        イタリックフォントを使用する。
+        イタリックフォントを使用
 
       o use_ot_layout (true/*false*) (#)
         Open Type フォントの置換グリフ等を使ってテキストを表示します。
@@ -731,7 +733,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         (cairo、xft又はwin32の場合のみ有効)
 
       o use_variable_column_width  (true/*false*) (#)
-        可変長コラム幅を使用する
+        可変長コラム幅に対応
 
         なお、vertical_mode が cjk 又は mongol に設定されている場合は、
         自動的に false に設定されます。
@@ -761,7 +763,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
       o separate_wall_picture (*true*/false) (mlterm-fb on NetBSD/x68k 用)
         壁紙のみ Graphic VRAM ではなく Text VRAM に描画し、スクロール測度を改善
-        する。
 
       o use_transbg (true/*false*) (#)
         擬似的な背景透過を行う。
@@ -798,7 +799,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o vt_color_mode (256/*high*/true)
         CSI 38;2;r;g;b m 又は CSI 48;2;r;g;b m で指定された RGB により表示される
         色について、256色からの近似値とするか、high color 又は true color で表示
-        するかを指定する。
+        するかを指定
 
       -- Scrollbar 関連 --
       o sb_fg_color (#)
@@ -816,7 +817,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         使いたいスクロールバーの名前
 
       o use_mdi (*true*/false)
-        スクロールバー及び画面分割を有効にする。
+        スクロールバー及び画面分割を有効
 
         scrollbar_mode , scrollbar_view_name オプションは、これが true の場合の
         み有効です。
@@ -827,12 +828,12 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         る。
 
       o allow_osc52 (true/*false*)
-        OSC 52 sequence によるクリップボード(セレクション)へのアクセスを許可する。
+        OSC 52 sequence によるクリップボード(セレクション)へのアクセスを許可
         なお、このオプションを動的に変更するには、"proto:allow_osc52=switch"
         ショートカットキーを使用する必要があります。
 
       o allow_scp (true/*false*)
-        ssh 接続時に OSC 5379 scp を許可する。
+        ssh 接続時に OSC 5379 scp を許可
         なお、このオプションを動的に変更するには、"proto:allow_scp=switch"
         ショートカットキーを使用する必要があります。
 
@@ -863,10 +864,10 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
       o broadcast (true/*false*) (#)
         キー入力及びペーストされた文字列を、全ての pty (ignore_broadcasted_chars
-        オプションの値が false なものに限る) に送信する。
+        オプションの値が false なものに限る) に送信
 
       o cipher_list
-        ssh 接続で使用する共通鍵暗号を指定する。
+        ssh 接続で使用する共通鍵暗号を指定
         (コンマ区切りで複数指定)
 
       o click_interval (*250*) (#)
@@ -892,8 +893,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         デフォルトの幅と高さ
 
       o default_server
-        ssh 等により直接ログインするサーバを指定する。
-        MinGW 又は --enable-ssh2 オプションでビルドした場合に有効。
+        ssh 等により直接ログインするサーバを指定
+        MinGW 又は --enable-ssh2 オプションでビルドした場合に有効となります。
         値の形式は、(<protocol>://)(<user>@)<server>(:<port>)(:<encoding>)
 
         例) mlterm --serv ssh://user@host:22:eucjp
@@ -911,7 +912,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         バックスクロール中に、端末出力があった場合、バックスクロールを抜ける。
 
       o fb_resolution (mlterm-fb on NetBSD/x68k or OpenBSD 用)
-        768x512x4 のような形式で解像度を指定する。
+        768x512x4 のような形式で解像度を指定
 
       o geometry
         表示位置を指定
@@ -926,7 +927,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         broadcast オプションが true の場合でも、ブロードキャストを受け付けない。
 
       o init_str
-        pty をオープンしたときに、端末に送られる初期化文字列を指定する。
+        pty をオープンしたときに、端末に送られる初期化文字列を指定
 
       o inner_border (*2*)
         Window の inner border (0-224)
@@ -947,10 +948,10 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         定できます。
 
       o logging_msg (*true*/false)
-        mlterm が出力するメッセージを ~/.mlterm/msg.log に出力する。
+        mlterm が出力するメッセージを ~/.mlterm/msg.log に出力
 
       o logging_vt_seq (true/*false*) (#)
-        pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録する。
+        pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録
 
       o logsize (*128*) (#)
         ログの行数
@@ -979,7 +980,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
       o regard_uri_as_word (true/*false*) (#)
         URI をダブルクリックすると、word_separators オプションに関わらず、当該
-        URI を一単語として選択する。
+        URI を一単語として選択
 
       o resize_mode (none/scroll/*wrap*)
         リサイズ時における、画面に表示されている文字の表示方法
@@ -994,27 +995,27 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         ssh の接続が予期せず切断した場合に、自動的に再接続を試みる。
 
       o ssh_keepalive_interval (0)
-        ssh 接続中に、指定した秒数ごとに、SSH_MSG_IGNORE を送信する。
+        ssh 接続中に、指定した秒数ごとに、SSH_MSG_IGNORE を送信
         (0 の場合は送信しない。)
 
       o ssh_private_key (~/.ssh/id_rsa (win32 では %HOMEPATH%\mlterm\id_rsa))
-        ssh 接続の認証で使用する秘密鍵のファイルを指定する。
+        ssh 接続の認証で使用する秘密鍵のファイルを指定
 
       o ssh_public_key (~/.ssh/id_rsa.pub (win32 では %HOMEPATH%\mlterm\id_rsa.pub))
-        ssh 接続の認証で使用する公開鍵のファイルを指定する。
+        ssh 接続の認証で使用する公開鍵のファイルを指定
 
       o ssh_x11_forwarding (true/*false*)
-        ssh 接続で x11 forwarding を有効にする。
+        ssh 接続で x11 forwarding を有効
 
       o start_with_local_pty (true/*false*) (Android 用)
         default_server オプションが指定されていない場合に、起動時の SSH 接続ダイ
-        アログを表示しないようにする。
+        アログを表示しないようにします。
 
       o startup_screens (*1*)
         起動時に立ち上げるウィンドウの数
 
       o static_backscroll_mode (true/*false*) (#)
-        バックスクロール時に端末出力があっても画面が流れないようにする。
+        バックスクロール時に端末出力があっても画面が流れないようにします。
 
       o tabsize (*8*) (#)
         タブ幅
@@ -1026,32 +1027,32 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         タイトル名
 
       o trim_trailing_newline_in_pasting (true/*false*) (#)
-        ペーストする文字列の末尾の改行を削除する。
+        ペーストする文字列の末尾の改行を削除
 
       o use_alt_buffer (*true*/false)
-        Alternate screen buffer を有効にする。
+        Alternate screen buffer を有効
         xterm の "titeInhibit" 相当のオプションですが、"titeInhibit" とは、
         true/false が逆になるので注意してください。
 
       o use_ansi_colors (*true*/false)
-        ANSI color change escape sequences を有効にする。
+        ANSI color change escape sequences を有効
         xterm の "colorMode" 相当のオプションです。
 
       o use_clipboard (*true*/false) (#)
-        領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。
+        領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用
 
       o use_local_echo (true/*false*) (#)
-        local echo mode を有効にする。
+        local echo mode を有効
 
       o use_login_shell (true/*false*)
         ログインシェルを使うかどうか
 
       o use_urgent_bell (true/*false*)
-        フォーカスを失なった画面上でBEL(0x7)を受け取った時に、ユーザに警告する。
+        フォーカスを失なった画面上でBEL(0x7)を受け取った時に、ユーザに警告
 
       o vt_seq_format (*raw*/ttyrec) (#)
-        ~/.mlterm/[device].log に記録するフォーマットを指定する。
-        rawはそのまま、ttyrecはttyrec形式で保存する。
+        ~/.mlterm/[device].log に記録するフォーマットを指定
+        rawはそのまま、ttyrecはttyrec形式で保存します。
 
       o word_separators ( ,.:;/|@()[]{}) (#)
         単語の区切り文字を指定('\x'から始まる16進数の使用も可)
@@ -1059,7 +1060,12 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         マウスのダブルクリックで、単語選択する際に使用されます。
 
       o working_directory
-        子プロセス(シェル)のカレントディレクトリを指定する。
+        子プロセス(シェル)のカレントディレクトリを指定
+
+      o exec_cmd
+        指定したコマンドを起動
+
+        デフォルトでは、SHELL 環境変数で指定したシェルを起動します。
 
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)
@@ -1569,7 +1575,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
        --multivram(=bool) : separate_wall_picture (mlterm-fb on NetBSD/x68k 用)
        --slp(=bool)    : start_with_local_pty (Android 用)
 
-    -e ... : 指定したコマンドを起動
+    -e ...             : exec_cmd
 
     o オプションは、以下のフォーマットを受け付けます。
       (-E/--km,-J/--dyncombを例に)

@@ -1,3 +1,9 @@
+2020-11-28  Araki Ken  <arakiken@users.sf.net>
+
+	* README.cocoa, README.cocoatouch, README.ja, etc/main.ja: Updated.
+
+	* ui_main_config.c: use_login_shell=false by default on MacOS.
+
 2020-11-13  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_pty_mosh.cpp: "MOSH_UDP_PORT" environmental variable is added to

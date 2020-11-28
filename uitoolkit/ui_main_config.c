@@ -686,16 +686,22 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     }
   }
 
-#if defined(__APPLE__) || defined(USE_BEOS)
+#ifdef USE_BEOS
   main_config->use_login_shell = 1;
 #else
   main_config->use_login_shell = 0;
 #endif
 
   if ((value = bl_conf_get_value(conf, "use_login_shell"))) {
+#ifdef USE_BEOS
+    if (strcmp(value, "false") == 0) {
+      main_config->use_login_shell = 0;
+    }
+#else
     if (strcmp(value, "true") == 0) {
       main_config->use_login_shell = 1;
     }
+#endif
   }
 
   if ((value = bl_conf_get_value(conf, "big5_buggy"))) {

@@ -35,7 +35,9 @@ iOS/Cocoa Touch support (Experimental)
   Click mlterm icon.
 
 * Note
-  o -L/--ls, -u/--onlyucsfont and --boxdraw options are enabled by default.
+  o -u/--onlyucsfont and --boxdraw options are enabled by default.
+  o "login -fp $USER" is executed by default. If you want to execute other shells,
+    specify -e / "exec_cmd" option.
   o It is impossible to disable -s/--mdi option.
   o INSERT_SELECTION shortcut key is Command+v.
   o OPEN_SCREEN, OPEN_PTY, NEXT_PTY and PREV_PTY shortcut keys are
