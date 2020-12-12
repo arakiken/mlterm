@@ -1023,6 +1023,11 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o termtype (*xterm*)
         端末タイプ
 
+        指定した値が、TERM環境変数にセットされるとともに、キー入力等について、
+        termcap ファイルで設定した挙動となります。
+
+        termtype の値として mlterm を指定することは推奨されません。
+
       o title (*mlterm*)
         タイトル名
 
@@ -1412,8 +1417,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
     o termcap
       termcapデータベースもどき
-      様々な TERM ごとに、その挙動を定義できます(なお、例えば、
-      TERM=xterm-256color の場合、本データベースの xterm にマッチします。)。
+      termtype オプションで指定した端末タイプに応じた挙動を定義できます。
+      (なお、例えば、termcap に xterm の設定を定義する場合、termtype=xterm だけ
+      でなく、termtype=xterm-256color などにもマッチします。)
       端末名 '*' で、デフォルトの設定を定義できます。
 
       `\E' , `^A' などが使えます。

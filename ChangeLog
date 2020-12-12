@@ -1,3 +1,17 @@
+2020-12-11  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja, man/mlterm.1, etc/termcap: Updated.
+
+	* test.c: TEST_vt_termcap() is added.
+
+	* vt_termcap.c:
+	  - TEST_vt_termcap() is added.
+	  - read_conf() calls search_termcap() with perfect_match == true,
+	    while vt_termcap_get() calls it with perfect_match == false.
+	  - perfect_match is added to arguments of search_termcap().
+	  - search_termcap() stops to accept multiple terminal types
+	    concated by '|'.
+
 2020-11-29  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen_manager.c: The previous commit didn't work by Ctrl+F1.

@@ -11,6 +11,7 @@ void TEST_bl_str(void);
 void TEST_ui_font_config(void);
 void TEST_ui_emoji(void);
 void TEST_vt_parser(void);
+void TEST_vt_termcap(void);
 
 #ifndef NO_IMAGE
 void TEST_sixel_realloc_pixels(void);
@@ -30,6 +31,7 @@ void test(void) {
   TEST_ui_font_config();
   TEST_ui_emoji();
   TEST_vt_parser();
+  TEST_vt_termcap();
 
 #ifndef NO_IMAGE
   TEST_sixel_realloc_pixels();

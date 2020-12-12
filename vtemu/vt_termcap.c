@@ -135,33 +135,43 @@ static int parse_termcap_db(vt_termcap_t *termcap, char *termcap_db) {
   return 1;
 }
 
-static vt_termcap_t *search_termcap(const char *name) {
+/*
+ * If perfect_match is 0 and name is "xterm-256color", this function can
+ * return "xterm" termcap.
+ */
+static vt_termcap_t *search_termcap(const char *name, int perfect_match) {
   int count;
+  int partial_match_count;
+  size_t partial_match_len = 0;
 
   for (count = 0; count < num_entries; count++) {
     const char *p1;
     const char *p2;
 
     p1 = entries[count].name;
+    p2 = name;
 
-    while (*p1) {
-      p2 = name;
-
-      while (*p1 && *p2 && *p1 != '|' && *p1 == *p2) {
-        p1++;
-        p2++;
-      }
-
-      if (*p1 == '|' || *p1 == '\0') {
-        return &entries[count];
-      } else {
-        if ((p1 = strchr(p1, '|')) == NULL) {
-          break;
+    while (1) {
+      if (*p1 == '\0') {
+        if (*p2 == '\0') {
+          return &entries[count];
+        } else if (!perfect_match && partial_match_len < p2 - name) {
+          partial_match_len = p2 - name;
+          partial_match_count = count;
         }
 
+        break;
+      } else if (*p1 == *p2) {
         p1++;
+        p2++;
+      } else {
+        break;
       }
     }
+  }
+
+  if (partial_match_len > 0) {
+    return &entries[partial_match_count];
   }
 
   return NULL;
@@ -222,7 +232,7 @@ static int read_conf(char *filename) {
       db_p = termcap_db;
 
       if ((field = bl_str_sep(&db_p, ":"))) {
-        if ((termcap = search_termcap(field))) {
+        if ((termcap = search_termcap(field, 1))) {
 #if 0
           entry_final(termcap);
           entry_init(termcap, field);
@@ -318,7 +328,7 @@ vt_termcap_t *vt_termcap_get(const char *name) {
     }
   }
 
-  if ((termcap = search_termcap(name))) {
+  if ((termcap = search_termcap(name, 0))) {
     return termcap;
   }
 
@@ -559,3 +569,71 @@ char *vt_termcap_special_key_to_seq(vt_termcap_t *termcap, vt_special_key_t key,
 
   return escseq;
 }
+
+#ifdef BL_DEBUG
+
+#include <assert.h>
+
+void TEST_vt_termcap(void) {
+  vt_termcap_t *orig_entries = entries;
+  u_int orig_num_entries = num_entries;
+  vt_termcap_t new_entries[10];
+  vt_termcap_t *termcap;
+  char seq1[] = "ut:k4=\E[14~";
+  char seq2[] = "kh=\E[7~";
+  char seq3[] = "kh=\E[7~";
+
+  entries = new_entries;
+  num_entries = 3;
+  entry_init(&entries[0], "xterm");
+  entry_init(&entries[1], "kterm");
+  entry_init(&entries[2], "mlterm");
+
+  assert((termcap = search_termcap("xterm", 1)) != NULL);
+  assert(strcmp(termcap->name, "xterm") == 0);
+
+  parse_termcap_db(termcap, seq1);
+  assert(vt_termcap_bce_is_enabled(termcap));
+  assert(strcmp(vt_termcap_special_key_to_seq(termcap, SPKEY_F4, 0, 0, 0, 0, 0, 0),
+                "\x1b[14~") == 0);
+  assert(strcmp(vt_termcap_special_key_to_seq(termcap, SPKEY_HOME, 0, 0, 1, 0, 0, 0),
+                "\x1bOH") == 0);
+
+  parse_termcap_db(termcap, seq2);
+  assert(strcmp(vt_termcap_special_key_to_seq(termcap, SPKEY_HOME, 0, 0, 1, 0, 0, 0),
+                "\x1b[7~") == 0);
+
+  assert((termcap = search_termcap("kterm", 1)) != NULL);
+  assert(strcmp(termcap->name, "kterm") == 0);
+
+  parse_termcap_db(termcap, seq3);
+  assert(vt_termcap_bce_is_enabled(termcap) == 0);
+  assert(strcmp(vt_termcap_special_key_to_seq(termcap, SPKEY_HOME, 0, 0, 1, 0, 0, 0),
+                "\x1b[7~") == 0);
+
+  assert((termcap = search_termcap("mlterm", 1)) != NULL);
+  assert(strcmp(termcap->name, "mlterm") == 0);
+  assert(vt_termcap_bce_is_enabled(termcap) == 0);
+
+  assert(search_termcap("mlterm1", 1) == NULL);
+
+  assert((termcap = search_termcap("kterm-256color", 0)) != NULL);
+  assert(strcmp(termcap->name, "kterm") == 0);
+
+  assert((termcap = search_termcap("xterm-16color", 0)) != NULL);
+  assert(strcmp(termcap->name, "xterm") == 0);
+
+  assert((termcap = search_termcap("xterm2", 0)) != NULL);
+  assert(strcmp(termcap->name, "xterm") == 0);
+
+  assert(search_termcap("xter", 0) == NULL);
+
+  assert(search_termcap("term", 0) == NULL);
+
+  entries = orig_entries;
+  num_entries = orig_num_entries;
+
+  bl_msg_printf("PASS vt_termcap test.\n");
+}
+
+#endif
