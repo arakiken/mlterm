@@ -622,10 +622,13 @@ void ui_display_close_all(void) {
     }
 
     free(_disp.roots);
+    _disp.roots = NULL;
+    _disp.num_roots = 0;
 
-    memset(&_display, 0, sizeof(_display));
     /* DISP_IS_INITED is false from here. */
-    memset(&_disp, 0, sizeof(_disp));
+    _disp.display = NULL;
+
+    /* Other members in _disp is reset in ui_display_init() */
   }
 }
 

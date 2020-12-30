@@ -1,3 +1,16 @@
+2020-12-30  Araki Ken  <arakiken@users.sf.net>
+
+	* android/jni/ui_display.c:
+	  Fix by 28174359f35290631dbd772be8de03fac78cbd34 commit (2020/10/06) is
+	  reverted.
+
+	* MLActivity.java: Server list dialog is shown at startup.
+
+	* vt_parser.c: write_loopback() allocates at least PTY_RD_BUFFER_SIZE
+	  for vt_parser->r_buf.chars.
+	  (open_pty_intern() in ui_screen_manager.c calls vt_term_write_loopback()
+	   when vt_parser->r_buf.len is still 0).
+
 2020-12-11  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja, man/mlterm.1, etc/termcap: Updated.

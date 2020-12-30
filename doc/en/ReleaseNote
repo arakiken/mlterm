@@ -1,10 +1,13 @@
 * Add "MOSH_UDP_PORT" environmental variable to specify UDP port or port-range
   to communicate with a mosh server.
+* Show server list dialog at startup on Android.
 * It is deprecated to use "mlterm" as the value of termtype / -y option.
 * 'termcap' config file stops to accept multiple terminal types concated by '|'
   (e.g. xterm|xterm-256) as key.
 * Merge patches:
   https://github.com/arakiken/mlterm/pull/5
+* Bug fixes:
+  Fix failure of restarting mlterm on Android. (Enbugged at 3.9.1)
 
 ver 3.9.1
 * Support copy mode which starts by Control+Shift+Return.

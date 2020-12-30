@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.view.ContextMenu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View.OnClickListener;
 import android.text.InputType;
 import android.content.Context;
 import android.content.ClipboardManager;
@@ -27,11 +28,15 @@ import android.graphics.Rect;
 import android.graphics.BitmapFactory;
 import android.graphics.Bitmap;
 import android.util.AttributeSet;
+import java.net.URI;
 import java.net.URL;
 import java.io.*;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.LinearLayout;
+import android.widget.TableLayout;
+import android.widget.TableRow;
+import android.widget.Button;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Toast;
 import android.content.DialogInterface;
@@ -476,14 +481,16 @@ public class MLActivity extends NativeActivity {
   private EditText encoding_edit;
   private EditText cmd_edit;
   private EditText privkey_edit;
-  private LinearLayout dialogLayout;
+  private LinearLayout connectDialogLayout;
+  private TableLayout servListDialogLayout;
+  private boolean openLocalPty = false;
 
   @Override protected Dialog onCreateDialog(int id) {
     if (id == 1) {
       Dialog dialog = new AlertDialog.Builder(this)
         .setIcon(android.R.drawable.ic_dialog_info)
         .setTitle("Connect to SSH Server")
-        .setView(dialogLayout)
+        .setView(connectDialogLayout)
         .setPositiveButton("Connect", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
               dialogOkClicked(user_edit.getText().toString(),
@@ -496,6 +503,34 @@ public class MLActivity extends NativeActivity {
             }
           })
         .setNegativeButton("Local", null)
+        .create();
+
+      dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+          public void onDismiss(DialogInterface dialog) {
+            if (nativeThread != null) {
+              synchronized(nativeThread) {
+                nativeThread.notifyAll();
+              }
+            }
+          }
+        });
+
+      return dialog;
+    } else if (id == 3) {
+      Dialog dialog = new AlertDialog.Builder(this)
+        .setIcon(android.R.drawable.ic_dialog_info)
+        .setTitle("Server List")
+        .setView(servListDialogLayout)
+        .setPositiveButton("Save&Next", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+              writeServerList();
+            }
+          })
+        .setNegativeButton("Local", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+              openLocalPty = true;
+            }
+          })
         .create();
 
       dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
@@ -553,71 +588,350 @@ public class MLActivity extends NativeActivity {
     }
   }
 
+  /* 0: Select, 1:Server, 2:User, 3:Port, 4:Encoding, 5: Privkey, 6: X, 7: + */
+  private final int SERVER_LIST_COLUMNS = 8;
+
+  /* See bl_get_home_dir() in bl_path.c */
+  private String getServerListConfig() throws IOException {
+    String configDir;
+    File file = new File("/sdcard");
+
+    if (file.isDirectory()) {
+      configDir = "/sdcard/.mlterm";
+    } else {
+      file = new File("/mnt/sdcard");
+
+      if (file.isDirectory()) {
+        configDir = "/mnt/sdcard/.mlterm";
+      } else {
+        file = new File("/extsdcard");
+
+        if (file.isDirectory()) {
+          configDir = "/extsdcard";
+        } else {
+          showMessage("Config dir not found");
+
+          throw new IOException();
+        }
+      }
+    }
+
+    file = new File(configDir);
+    if (!file.exists()) {
+      try {
+        file.mkdir();
+      } catch (Exception e) {
+        showMessage("Failed to make " + configDir);
+
+        throw new IOException();
+      }
+    }
+
+    return configDir + "/servers";
+  }
+
+  private void writeServerList() {
+    try {
+      FileWriter out = new FileWriter(getServerListConfig());
+
+      int num = servListDialogLayout.getChildCount();
+      for (int count = 1 /* skip title */; count < num; count++) {
+        TableRow tableRow = (TableRow)servListDialogLayout.getChildAt(count);
+
+        if (tableRow.getChildCount() == SERVER_LIST_COLUMNS) {
+          String server = ((EditText)tableRow.getChildAt(1)).getText().toString();
+
+          if (!server.isEmpty()) {
+            out.write("ssh://");
+
+            String user = ((EditText)tableRow.getChildAt(2)).getText().toString();
+
+            if (!user.isEmpty()) {
+              out.write(user);
+              out.write("@");
+            }
+            out.write(server);
+
+            String port = ((EditText)tableRow.getChildAt(3)).getText().toString();
+            if (!port.isEmpty()) {
+              out.write(":");
+              out.write(port);
+            }
+
+            out.write("\t");
+            out.write(((EditText)tableRow.getChildAt(4)).getText().toString());
+            out.write("\t");
+            out.write(((EditText)tableRow.getChildAt(5)).getText().toString());
+            out.write("\tEOL\n");
+          }
+        }
+      }
+
+      out.close();
+    } catch (IOException e) {
+      //e.printStackTrace();
+    }
+  }
+
+  private void addServerToTable(URI uri, String encoding, String privkey, int index) {
+    final TableRow tableRow = new TableRow(this);
+
+    final EditText e_serv = new EditText(this);
+    final EditText e_user = new EditText(this);
+    final EditText e_port = new EditText(this);
+    final EditText e_encoding = new EditText(this);
+    final EditText e_privkey = new EditText(this);
+
+    if (uri != null) {
+      e_serv.setText(uri.getHost());
+      e_user.setText(uri.getUserInfo());
+      int port = uri.getPort();
+      if (port != -1) {
+        e_port.setText(String.valueOf(port));
+      }
+    }
+    if (encoding != null) {
+      e_encoding.setText(encoding);
+    }
+    if (privkey != null) {
+      e_privkey.setText(privkey);
+    }
+
+    Button button = new Button(this);
+    button.setText("Select");
+    button.setOnClickListener(new OnClickListener() {
+        public void onClick(View v) {
+          writeServerList();
+
+          serv_edit = e_serv;
+          user_edit = e_user;
+          port_edit = e_port;
+          encoding_edit = e_encoding;
+          privkey_edit = e_privkey;
+
+          dismissDialog(3);
+        }
+      });
+    tableRow.addView(button);
+
+    tableRow.addView(e_serv);
+    tableRow.addView(e_user);
+    tableRow.addView(e_port);
+    tableRow.addView(e_encoding);
+    tableRow.addView(e_privkey);
+
+    button = new Button(this);
+    button.setText("X");
+    button.setOnClickListener(new OnClickListener() {
+        public void onClick(View v) {
+          servListDialogLayout.removeView(tableRow);
+        }
+      });
+    tableRow.addView(button);
+
+    button = new Button(this);
+    button.setText("+");
+    button.setOnClickListener(new OnClickListener() {
+        public void onClick(View v) {
+          int num = servListDialogLayout.getChildCount();
+
+          for (int count = 1; count < num; count++) {
+            if (servListDialogLayout.getChildAt(count) == tableRow) {
+              addServerToTable(null, null, null, count);
+              break;
+            }
+          }
+        }
+      });
+    tableRow.addView(button);
+
+    if (index >= 0) {
+      servListDialogLayout.addView(tableRow, index);
+    } else {
+      servListDialogLayout.addView(tableRow);
+    }
+  }
+
+  private void showServerList() {
+    servListDialogLayout = new TableLayout(this);
+
+    TableRow tableRow = new TableRow(this);
+    String title[] = { "", "Server", "User", "Port", "Encoding", "Privkey", "", "" };
+
+    for (int count = 0; count < title.length; count++) {
+      TextView text = new TextView(this);
+      text.setText(title[count]);
+      tableRow.addView(text);
+    }
+
+    servListDialogLayout.addView(tableRow);
+
+    try {
+      BufferedReader in = new BufferedReader(new FileReader(getServerListConfig()));
+      String line;
+
+      while ((line = in.readLine()) != null) {
+        String[] list = line.split("\t");
+
+        if (list.length == 4) { /* list[3] == "EOL" */
+          try {
+            /* Can throw IllegalArgumentException or NullPointerException */
+            URI uri = URI.create(list[0]);
+
+            addServerToTable(uri, list[1], list[2], -1);
+          } catch (Exception e) {
+            //e.printStackTrace();
+          }
+        }
+      }
+
+      in.close();
+    } catch (FileNotFoundException e) {
+    } catch (IOException e) {
+    }
+
+    /* Empty entry at the end */
+    addServerToTable(null, null, null, -1);
+
+    /* 1:Server, 2:User, 3:Port, 4:Encoding, 5: Privkey, 6: X, 7: + */
+    for (int index = 1; index < SERVER_LIST_COLUMNS; index++) {
+      servListDialogLayout.setColumnShrinkable(index, true);
+    }
+
+    synchronized(nativeThread) {
+      runOnUiThread(new Runnable() {
+          @Override public void run() {
+            showDialog(3);
+          }
+        });
+
+      try {
+        nativeThread.wait();
+      } catch (InterruptedException e) {}
+    }
+
+    removeDialog(1);
+  }
+
   /* Called from native activity thread */
   private void showConnectDialog(String user, String serv, String port, String encoding,
                                  String privkey) {
     nativeThread = Thread.currentThread();
 
-    dialogLayout = new LinearLayout(this);
-    dialogLayout.setOrientation(LinearLayout.VERTICAL);
+    if (serv == null) {
+      showServerList();
+
+      if (openLocalPty) {
+        nativeThread = null;
+        openLocalPty = false;
+
+        return;
+      }
+    }
+
+    connectDialogLayout = new LinearLayout(this);
+    connectDialogLayout.setOrientation(LinearLayout.VERTICAL);
 
     LinearLayout.LayoutParams params =
       new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT,
                                     LinearLayout.LayoutParams.FILL_PARENT);
 
+    /*
+     * showServerList() can set serv_edit, user_edit, port_edit, encoding_edit
+     * and privkey_edit.
+     */
+    if (serv_edit != null) {
+      serv = serv_edit.getText().toString();
+    }
+    if (user_edit != null) {
+      user = user_edit.getText().toString();
+    }
+    if (port_edit != null) {
+      port = port_edit.getText().toString();
+    }
+    if (encoding_edit != null) {
+      encoding = encoding_edit.getText().toString();
+    }
+    if (privkey_edit != null) {
+      privkey = privkey_edit.getText().toString();
+    }
+
     serv_edit = new EditText(this);
     serv_edit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
-    dialogLayout.addView(makeTextEntry("Server   ", serv_edit), params);
+    connectDialogLayout.addView(makeTextEntry("Server   ", serv_edit), params);
 
     port_edit = new EditText(this);
     port_edit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
-    dialogLayout.addView(makeTextEntry("Port     ", port_edit), params);
+    connectDialogLayout.addView(makeTextEntry("Port     ", port_edit), params);
 
     user_edit = new EditText(this);
     user_edit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
-    dialogLayout.addView(makeTextEntry("User     ", user_edit), params);
+    connectDialogLayout.addView(makeTextEntry("User     ", user_edit), params);
 
     pass_edit = new EditText(this);
     pass_edit.setInputType(InputType.TYPE_CLASS_TEXT |
                            InputType.TYPE_TEXT_VARIATION_PASSWORD);
-    dialogLayout.addView(makeTextEntry("Password ", pass_edit), params);
+    connectDialogLayout.addView(makeTextEntry("Password ", pass_edit), params);
 
     encoding_edit = new EditText(this);
     encoding_edit.setInputType(InputType.TYPE_CLASS_TEXT |
                                InputType.TYPE_TEXT_VARIATION_URI);
-    dialogLayout.addView(makeTextEntry("Encoding ", encoding_edit), params);
+    connectDialogLayout.addView(makeTextEntry("Encoding ", encoding_edit), params);
 
     cmd_edit = new EditText(this);
     cmd_edit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
-    dialogLayout.addView(makeTextEntry("Exec Cmd ", cmd_edit), params);
+    connectDialogLayout.addView(makeTextEntry("Exec Cmd ", cmd_edit), params);
 
     privkey_edit = new EditText(this);
     privkey_edit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
-    dialogLayout.addView(makeTextEntry("Priv key ", privkey_edit), params);
+    connectDialogLayout.addView(makeTextEntry("Priv key ", privkey_edit), params);
 
-    if (serv != null) {
+    boolean serv_value_is_set;
+
+    if (serv != null && !serv.isEmpty()) {
       serv_edit.setText(serv, TextView.BufferType.NORMAL);
+      serv_value_is_set = true;
+    } else {
+      serv_value_is_set = false;
     }
 
-    if (port != null) {
+    if (port != null && !port.isEmpty()) {
       port_edit.setText(port, TextView.BufferType.NORMAL);
     }
 
-    if (user != null) {
+    final EditText focus_edit;
+
+    if (user != null && !user.isEmpty()) {
       user_edit.setText(user, TextView.BufferType.NORMAL);
+
+      if (serv_value_is_set) {
+        focus_edit = pass_edit;
+      } else {
+        focus_edit = null;
+      }
+    } else {
+      if (serv_value_is_set) {
+        focus_edit = user_edit;
+      } else {
+        focus_edit = null;
+      }
     }
 
-    if (encoding != null) {
+    if (encoding != null && !encoding.isEmpty()) {
       encoding_edit.setText(encoding, TextView.BufferType.NORMAL);
     }
 
-    if (privkey != null) {
+    if (privkey != null && !privkey.isEmpty()) {
       privkey_edit.setText(privkey, TextView.BufferType.NORMAL);
     }
 
     synchronized(nativeThread) {
       runOnUiThread(new Runnable() {
           @Override public void run() {
+            if (focus_edit != null) {
+              focus_edit.requestFocus();
+            }
+
             showDialog(1);
           }
         });
@@ -630,7 +944,7 @@ public class MLActivity extends NativeActivity {
     nativeThread = null;
     removeDialog(1);
 
-    serv_edit = port_edit = user_edit = pass_edit = encoding_edit = privkey_edit = null;
+    serv_edit = port_edit = user_edit = pass_edit = encoding_edit = cmd_edit = privkey_edit = null;
   }
 
   /* Called from native activity thread or UI thread (from context menu) */
