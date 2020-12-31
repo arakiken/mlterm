@@ -2,6 +2,18 @@
 
 #include "ui_virtual_kbd.h"
 
+#ifdef NO_IMAGE
+
+int ui_virtual_kbd_hide(void) { return 0; }
+
+int ui_is_virtual_kbd_event(ui_display_t *disp, XButtonEvent *bev) { return 0; }
+
+int ui_virtual_kbd_read(XKeyEvent *kev, XButtonEvent *bev) { return 0; }
+
+ui_window_t *ui_is_virtual_kbd_area(int y) { return NULL; }
+
+#else /* NO_IMAGE */
+
 #include <pobl/bl_debug.h>
 
 #include "../ui_imagelib.h"
@@ -490,3 +502,5 @@ ui_window_t *ui_is_virtual_kbd_area(int y) {
     return NULL;
   }
 }
+
+#endif
