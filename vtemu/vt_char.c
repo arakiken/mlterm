@@ -196,15 +196,16 @@ static void normalize(vt_char_t *ch, u_int comb_size) {
 }
 #endif
 
-static vt_char_t *combine(vt_char_t *ch, vt_char_t *src, int check_zerowidth) {
+static vt_char_t *combine(vt_char_t *ch, vt_char_t *src /* should be single ch */,
+                          int check_zerowidth) {
   vt_char_t *comb;
   u_int comb_size;
 
-/*
- * This check should be excluded, because characters whose is_comb flag
- * (combining property of mef) is NULL can be combined
- * if vt_is_arabic_combining(them) returns non-NULL.
- */
+  /*
+   * This check should be excluded, because some characters
+   * (e.g. 0x644 - (0x622|0x623|0x625|0x627)) whose is_comb flag (combining
+   * property of mef) is NULL can be combined.
+   */
 #if 0
   if (!is_comb) {
     return NULL;
@@ -473,11 +474,11 @@ vt_char_t *vt_char_combine(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int i
   vt_char_t *comb;
   u_int comb_size;
 
-/*
- * This check should be excluded, because characters whose is_comb flag
- * (combining property of mef) is NULL can be combined
- * if vt_is_arabic_combining(them) returns non-NULL.
- */
+  /*
+   * This check should be excluded, because some characters
+   * (e.g. 0x644 - (0x622|0x623|0x625|0x627)) whose is_comb flag (combining
+   * property of mef) is NULL can be combined.
+   */
 #if 0
   if (!is_comb) {
     return NULL;
@@ -505,11 +506,11 @@ vt_char_t *vt_char_combine(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int i
   return comb;
 }
 
-vt_char_t *vt_char_combine_simple(vt_char_t *ch, vt_char_t *src) {
+vt_char_t *vt_char_combine_simple(vt_char_t *ch, vt_char_t *src /* should be single ch */) {
   return combine(ch, src, 1);
 }
 
-vt_char_t *vt_char_combine_forcibly(vt_char_t *ch, vt_char_t *src) {
+vt_char_t *vt_char_combine_forcibly(vt_char_t *ch, vt_char_t *src /* should be single ch */) {
   return combine(ch, src, 0);
 }
 

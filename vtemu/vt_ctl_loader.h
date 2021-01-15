@@ -15,7 +15,6 @@ typedef enum vt_ctl_bidi_id {
   VT_LINE_BIDI_COPY_LOGICAL_STR,
   VT_LINE_BIDI_IS_RTL,
   VT_SHAPE_ARABIC,
-  VT_IS_ARABIC_COMBINING,
   VT_IS_RTL_CHAR,
   VT_BIDI_COPY,
   VT_BIDI_RESET,
@@ -46,7 +45,7 @@ typedef enum vt_ctl_iscii_id {
 
 } vt_ctl_iscii_id_t;
 
-#define CTL_API_VERSION 0x02
+#define CTL_API_VERSION 0x03
 #define CTL_API_COMPAT_CHECK_MAGIC \
   (((CTL_API_VERSION & 0x0f) << 28) | ((sizeof(vt_line_t) & 0xff) << 20))
 

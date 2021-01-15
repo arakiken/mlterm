@@ -11,6 +11,7 @@
 #include "vt_logs.h"
 #include "vt_logical_visual.h"
 
+/* pageid: 1 - 8 */
 #define MAX_PAGE_ID 8
 
 typedef struct vt_screen_event_listener {

@@ -91,7 +91,6 @@ static u_int get_shape_info(vt_ot_layout_state_t state, u_int32_t **glyphs,
 
 #ifdef __APPLE__
 u_int vt_shape_arabic(vt_char_t *, u_int, vt_char_t *, u_int) __attribute__((weak));
-u_int16_t vt_is_arabic_combining(vt_char_t *, vt_char_t *, vt_char_t *) __attribute__((weak));
 u_int vt_shape_iscii(vt_char_t *, u_int, vt_char_t *, u_int) __attribute__((weak));
 #endif
 
@@ -103,19 +102,6 @@ u_int vt_shape_arabic(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int src_l
   }
 
   return (*func)(dst, dst_len, src, src_len);
-}
-
-u_int16_t vt_is_arabic_combining(vt_char_t *prev2, /* can be NULL */
-                                 vt_char_t *prev,  /* must be ISO10646_UCS4_1 character */
-                                 vt_char_t *ch     /* must be ISO10646_UCS4_1 character */
-                                 ) {
-  u_int16_t (*func)(vt_char_t *, vt_char_t *, vt_char_t *);
-
-  if (!(func = vt_load_ctl_bidi_func(VT_IS_ARABIC_COMBINING))) {
-    return 0;
-  }
-
-  return (*func)(prev2, prev, ch);
 }
 
 u_int vt_shape_iscii(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int src_len) {

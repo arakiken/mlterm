@@ -42,7 +42,6 @@ int wcwidth(wchar_t c);
 
 #include "vt_iscii.h"
 #include "vt_str_parser.h"
-#include "vt_shape.h" /* vt_is_arabic_combining */
 #include "vt_transfer.h"
 
 #if defined(__CYGWIN__) || defined(__MSYS__)
@@ -1171,52 +1170,6 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
        * in x_picture.c.
        */
       flush_buffer(vt_parser);
-    }
-  } else if (vt_parser->use_char_combining) {
-    /*
-     * Arabic combining
-     */
-
-    vt_char_t *prev2;
-    vt_char_t *prev;
-    vt_char_t *cur;
-    int n;
-
-    cur = &vt_parser->w_buf.chars[vt_parser->w_buf.filled_len - 1];
-    n = 0;
-
-    if (vt_parser->w_buf.filled_len >= 2) {
-      prev = cur - 1;
-    } else {
-      if (!(prev = vt_screen_get_n_prev_char(vt_parser->screen, ++n))) {
-        return;
-      }
-    }
-
-    if (vt_parser->w_buf.filled_len >= 3) {
-      prev2 = cur - 2;
-    } else {
-      /* possibly NULL */
-      prev2 = vt_screen_get_n_prev_char(vt_parser->screen, ++n);
-    }
-
-    if (IS_ARABIC_CHAR(ch) && vt_is_arabic_combining(prev2, prev, cur)) {
-      if (vt_parser->w_buf.filled_len >= 2) {
-        if (vt_char_combine(prev, ch, cs, is_fullwidth, is_awidth, is_comb, fg_color, bg_color,
-                            is_bold, is_italic, line_style, is_blinking, is_protected)) {
-          vt_parser->w_buf.filled_len--;
-        }
-      } else {
-        /*
-         * vt_line_set_modified() is done in
-         * vt_screen_combine_with_prev_char() internally.
-         */
-        if (vt_screen_combine_with_prev_char(vt_parser->screen, ch, cs, is_fullwidth, is_awidth,
-                                             is_comb, fg_color, bg_color, is_bold, is_italic,
-                                             line_style, is_blinking, is_protected)) {
-          vt_parser->w_buf.filled_len--;
-        }
-      }
     }
   }
 }
@@ -5227,7 +5180,7 @@ inline static int parse_vt100_escape_sequence(
               checksum = 0;
               for (page = 0; page <= MAX_PAGE_ID; page++) {
                 int i = vt_screen_get_checksum(vt_parser->screen, ps[3] - 1, ps[2] - 1,
-                                                  ps[5] - ps[3] + 1, ps[4] - ps[2] + 1, page);
+                                               ps[5] - ps[3] + 1, ps[4] - ps[2] + 1, page);
                 checksum += i;
               }
             } else {

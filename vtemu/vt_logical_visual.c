@@ -6,7 +6,6 @@
 #include <pobl/bl_debug.h> /* bl_msg_printf */
 #include <pobl/bl_str.h>   /* strcmp */
 #include "vt_ctl_loader.h"
-#include "vt_shape.h" /* vt_is_arabic_combining */
 
 #define CURSOR_LINE(logvis) (vt_model_get_line((logvis)->model, (logvis)->cursor->row))
 
@@ -248,10 +247,7 @@ static int comb_visual(vt_logical_visual_t *logvis) {
     dst_pos = 0;
     cur = line->chars;
     for (src_pos = 0; src_pos < line->num_filled_chars; src_pos++) {
-      if (dst_pos > 0 &&
-          (vt_char_is_comb(cur) ||
-           vt_is_arabic_combining(dst_pos >= 2 ? vt_char_at(line, dst_pos - 2) : NULL,
-                                  vt_char_at(line, dst_pos - 1), cur))) {
+      if (dst_pos > 0 && vt_char_is_comb(cur)) {
         vt_char_combine_simple(vt_char_at(line, dst_pos - 1), cur);
 
 #if 0
@@ -423,9 +419,7 @@ static void comb_visual_line(vt_logical_visual_t *logvis, vt_line_t *line) {
   dst_pos = 0;
   cur = line->chars;
   for (src_pos = 0; src_pos < line->num_filled_chars; src_pos++) {
-    if (dst_pos > 0 && (vt_char_is_comb(cur) ||
-                        vt_is_arabic_combining(dst_pos >= 2 ? vt_char_at(line, dst_pos - 2) : NULL,
-                                               vt_char_at(line, dst_pos - 1), cur))) {
+    if (dst_pos > 0 && vt_char_is_comb(cur)) {
       vt_char_combine_simple(vt_char_at(line, dst_pos - 1), cur);
     } else {
       vt_char_copy(vt_char_at(line, dst_pos++), cur);

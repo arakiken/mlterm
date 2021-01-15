@@ -39,6 +39,44 @@ int vt_bidi_destroy(vt_bidi_state_t state) {
   return 1;
 }
 
+/* vt_shape_bidi.c */
+u_int vt_is_arabic_combining(u_int32_t *str, u_int len);
+
+static void adjust_comb_pos_in_order(FriBidiChar *str, FriBidiStrIndex *order, u_int size) {
+  u_int pos;
+
+  /*
+   *         0x644 0x622
+   * Logical 0     1
+   * Visual  1     0     (fribidi_log2vis)
+   * Visual  0     0
+   */
+  for (pos = 0; pos < size - 1 /* Not necessary to check the last ch */; pos++) {
+    u_int comb_num;
+
+    if ((comb_num = vt_is_arabic_combining(str + pos, size - pos)) > 0) {
+      u_int pos2;
+      u_int count;
+
+      for (pos2 = 0; pos2 < size; pos2++) {
+        if (order[pos2] > order[pos] /* Max in comb */) {
+          order[pos2] -= comb_num;
+        }
+      }
+
+      /*
+       * It is assumed that visual order is ... 3 2 1 0 in
+       * order[pos] ... order[pos + comb_num].
+       */
+      for (count = comb_num, pos2 = pos; count > 0; count--, pos2++) {
+        order[pos2] -= count;
+      }
+
+      pos += comb_num;
+    }
+  }
+}
+
 /*
  * Don't call this functions with type_p == FRIBIDI_TYPE_ON and size == cur_pos.
  */
@@ -72,7 +110,7 @@ static void log2vis(FriBidiChar *str, u_int size, FriBidiCharType *type_p, vt_bi
   if (*type_p == FRIBIDI_TYPE_LTR) {
     if (type == FRIBIDI_TYPE_RTL) {
       /*
-       * (Logical) "LLL/RRRNNN " ('/' is a separator)
+       * (Logical) "LLL/RRRNNN " ('/' is a separator (specified by -bisep option))
        *                      ^-> endsp
        * => (Visual) "LLL/ NNNRRR" => "LLL/NNNRRR "
        */
@@ -110,7 +148,7 @@ static void log2vis(FriBidiChar *str, u_int size, FriBidiCharType *type_p, vt_bi
 
     if (type == FRIBIDI_TYPE_LTR) {
       /*
-       * (Logical) "RRRNNN/LLL " ('/' is a separator)
+       * (Logical) "RRRNNN/LLL " ('/' is a separator (specified by -bisep option))
        *                      ^-> endsp
        * => (Visual) "LLL /NNNRRR" => " LLL/NNNRRR"
        */
@@ -149,6 +187,10 @@ static void log2log(FriBidiStrIndex *order, u_int cur_pos, u_int size) {
   }
 }
 
+#ifdef BL_DEBUG
+void TEST_vt_bidi(void);
+#endif
+
 int vt_bidi(vt_bidi_state_t state, vt_char_t *src, u_int size, vt_bidi_mode_t bidi_mode,
             const char *separators) {
   FriBidiChar *fri_src;
@@ -159,6 +201,14 @@ int vt_bidi(vt_bidi_state_t state, vt_char_t *src, u_int size, vt_bidi_mode_t bi
   u_int32_t code;
   u_int count;
   int ret;
+
+#ifdef BL_DEBUG
+  static int done;
+  if (!done) {
+    TEST_vt_bidi();
+    done = 1;
+  }
+#endif
 
   state->rtl_state = 0;
 
@@ -251,6 +301,8 @@ int vt_bidi(vt_bidi_state_t state, vt_char_t *src, u_int size, vt_bidi_mode_t bi
   if (HAS_RTL(state)) {
     log2vis(fri_src, size, &fri_type, bidi_mode, fri_order, cur_pos, 0);
 
+    adjust_comb_pos_in_order(fri_src, fri_order, size);
+
     count = 0;
 
     if (state->size != size) {
@@ -315,19 +367,19 @@ int vt_bidi(vt_bidi_state_t state, vt_char_t *src, u_int size, vt_bidi_mode_t bi
       }
     }
 #endif
+
+    if (fri_type == FRIBIDI_TYPE_RTL) {
+      SET_BASE_RTL(state);
+    }
+
+    state->bidi_mode = bidi_mode;
+
+    return ret;
   } else {
     state->size = 0;
 
     return -1; /* ot layout */
   }
-
-  if (fri_type == FRIBIDI_TYPE_RTL) {
-    SET_BASE_RTL(state);
-  }
-
-  state->bidi_mode = bidi_mode;
-
-  return ret;
 }
 
 int vt_bidi_copy(vt_bidi_state_t dst, vt_bidi_state_t src, int optimize) {
@@ -373,3 +425,61 @@ u_int32_t vt_bidi_get_mirror_char(u_int32_t ch) {
 int vt_is_rtl_char(u_int32_t ch) {
   return (fribidi_get_bidi_type(ch) & FRIBIDI_MASK_RTL) == FRIBIDI_MASK_RTL;
 }
+
+#ifdef BL_DEBUG
+
+#include <assert.h>
+
+static void TEST_vt_bidi_1(void) {
+  FriBidiChar str[] = { 0x6b1, 0x644, 0x627, 0x644, 0x622, 0x6b3, };
+  FriBidiCharType type = FRIBIDI_TYPE_ON;
+  FriBidiStrIndex order[sizeof(str)/sizeof(str[0])];
+  FriBidiStrIndex order_ok1[] = { 5, 4, 3, 2, 1, 0, };
+  FriBidiStrIndex order_ok2[] = { 3, 2, 2, 1, 1, 0, };
+
+  log2vis(str, sizeof(str)/sizeof(str[0]), &type, BIDI_NORMAL_MODE, order, 0, 0);
+  assert(memcmp(order, order_ok1, sizeof(order)) == 0);
+
+  adjust_comb_pos_in_order(str, order, sizeof(str)/sizeof(str[0]));
+  assert(memcmp(order, order_ok2, sizeof(order)) == 0);
+}
+
+static void TEST_vt_bidi_2(void) {
+  FriBidiChar str[] = { 0x6b1, 0x644, 0x627, 0x644, 0x622, 0x6b3, };
+  FriBidiCharType type = FRIBIDI_TYPE_ON;
+  FriBidiStrIndex order[sizeof(str)/sizeof(str[0])];
+  FriBidiStrIndex order_ok1[] = { 5, 4, 3, 2, 1, 0, };
+  FriBidiStrIndex order_ok2[] = { 3, 2, 2, 1, 1, 0, };
+
+  log2vis(str, 3, &type, BIDI_NORMAL_MODE, order, 0, 0);
+  log2vis(str, sizeof(str)/sizeof(str[0]), &type, BIDI_NORMAL_MODE, order, 3, 0);
+  assert(memcmp(order, order_ok1, sizeof(order)) == 0);
+
+  adjust_comb_pos_in_order(str, order, sizeof(str)/sizeof(str[0]));
+  assert(memcmp(order, order_ok2, sizeof(order)) == 0);
+}
+
+static void TEST_vt_bidi_3(void) {
+  FriBidiChar str[] = { 0x61, 0x6b1, 0x644, 0x627, 0x20, 0x644, 0x622, 0x6b3, };
+  FriBidiCharType type = FRIBIDI_TYPE_ON;
+  FriBidiStrIndex order[sizeof(str)/sizeof(str[0])];
+  FriBidiStrIndex order_ok1[] = { 0, 3, 2, 1, 4, 7, 6, 5, };
+  FriBidiStrIndex order_ok2[] = { 0, 2, 1, 1, 3, 5, 5, 4, };
+
+  log2vis(str, 4, &type, BIDI_NORMAL_MODE, order, 0, 1 /* append */);
+  log2vis(str, sizeof(str)/sizeof(str[0]), &type, BIDI_NORMAL_MODE, order, 5, 0);
+  assert(memcmp(order, order_ok1, sizeof(order)) == 0);
+
+  adjust_comb_pos_in_order(str, order, sizeof(str)/sizeof(str[0]));
+  assert(memcmp(order, order_ok2, sizeof(order)) == 0);
+}
+
+void TEST_vt_bidi(void) {
+  TEST_vt_bidi_1();
+  TEST_vt_bidi_2();
+  TEST_vt_bidi_3();
+
+  bl_msg_printf("PASS vt_bidi test.\n");
+}
+
+#endif

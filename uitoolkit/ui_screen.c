@@ -4525,8 +4525,7 @@ static void change_ctl_flag(ui_screen_t *screen, int use_ctl, vt_bidi_mode_t bid
 
   /*
    * If use_ctl flag is false and not changed, it is not necessary to update
-   * even if
-   * bidi_mode flag and use_ot_layout are changed.
+   * even if bidi_mode flag and use_ot_layout are changed.
    */
   do_update = (use_ctl != vt_term_is_using_ctl(screen->term)) || vt_term_is_using_ctl(screen->term);
 
@@ -6923,6 +6922,10 @@ u_int ui_line_ascent(ui_screen_t *screen) {
   return ui_get_usascii_font(screen->font_man)->ascent + line_top_margin(screen) +
          screen->baseline_offset;
 }
+
+#ifdef BL_DEBUG
+void test(void); /* test.c */
+#endif
 
 /*
  * Return value

@@ -35,7 +35,9 @@ static void copy_char_with_mirror_check(vt_char_t *dst, vt_char_t *src, u_int16_
   }
 }
 
-static void set_visual_modified(vt_line_t *line, int logical_mod_beg, int logical_mod_end) {
+static void set_visual_modified(vt_line_t *line /* HAS_RTL is true */,
+                                int logical_mod_beg /* char index */,
+                                int logical_mod_end /* char index */) {
   int log_pos;
   int visual_mod_beg;
   int visual_mod_end;
@@ -67,6 +69,8 @@ static void set_visual_modified(vt_line_t *line, int logical_mod_beg, int logica
 #endif
 
   vt_line_set_updated(line);
+
+  /* XXX Conversion from char_index to col is omitted. */
   vt_line_set_modified(line, visual_mod_beg, visual_mod_end);
 }
 
@@ -99,6 +103,7 @@ int vt_line_set_use_bidi(vt_line_t *line, int flag) {
 int vt_line_bidi_render(vt_line_t *line, /* is always modified */
                         vt_bidi_mode_t bidi_mode, const char *separators) {
   int ret;
+  int change_end_char_index;
 
   if (vt_line_is_real_modified(line)) {
     int base_was_rtl;
@@ -129,15 +134,17 @@ int vt_line_bidi_render(vt_line_t *line, /* is always modified */
     ret = 1; /* order is not changed */
   }
 
+  change_end_char_index = vt_convert_col_to_char_index(line, NULL,
+                                                       line->change_end_col, BREAK_BOUNDARY);
   if (ret == 2) {
     /* order is changed => force to redraw all */
-    if (vt_line_get_end_of_modified(line) > vt_line_end_char_index(line)) {
+    if (change_end_char_index > vt_line_end_char_index(line)) {
       vt_line_set_modified_all(line);
     } else {
       vt_line_set_modified(line, 0, vt_line_end_char_index(line));
     }
   } else if (HAS_RTL(line->ctl_info.bidi)) {
-    set_visual_modified(line, vt_line_get_beg_of_modified(line), vt_line_get_end_of_modified(line));
+    set_visual_modified(line, vt_line_get_beg_of_modified(line), change_end_char_index);
   }
 
   return 1;
@@ -147,6 +154,7 @@ int vt_line_bidi_render(vt_line_t *line, /* is always modified */
 int vt_line_bidi_visual(vt_line_t *line) {
   int count;
   vt_char_t *src;
+  int prev = -1;
 
   if (line->ctl_info.bidi->size == 0 || !HAS_RTL(line->ctl_info.bidi)) {
 #ifdef __DEBUG
@@ -163,9 +171,27 @@ int vt_line_bidi_visual(vt_line_t *line) {
   vt_str_copy(src, line->chars, line->ctl_info.bidi->size);
 
   for (count = 0; count < line->ctl_info.bidi->size; count++) {
-    copy_char_with_mirror_check(line->chars + line->ctl_info.bidi->visual_order[count], src + count,
-                                line->ctl_info.bidi->visual_order, line->ctl_info.bidi->size,
-                                count);
+    int vis_pos = line->ctl_info.bidi->visual_order[count];
+
+    if (prev == vis_pos) {
+      /* See reorder() in vt_bidi.c */
+      u_int num;
+
+      if (vt_get_combining_chars(src + count, &num) == NULL &&
+          vt_char_combine_simple(line->chars + vis_pos, src + count)) {
+        line->num_filled_chars--;
+      } else {
+        /* XXX Not correctly shown */
+#ifdef DEBUG
+        bl_debug_printf(BL_DEBUG_TAG " Unexpected combination\n");
+#endif
+      }
+    } else {
+      copy_char_with_mirror_check(line->chars + vis_pos, src + count,
+                                  line->ctl_info.bidi->visual_order,
+                                  line->ctl_info.bidi->size, count);
+      prev = vis_pos;
+    }
   }
 
   vt_str_final(src, line->ctl_info.bidi->size);
@@ -177,6 +203,9 @@ int vt_line_bidi_visual(vt_line_t *line) {
 int vt_line_bidi_logical(vt_line_t *line) {
   int count;
   vt_char_t *src;
+  u_int num;
+  vt_char_t *comb;
+  int prev = -1;
 
   if (line->ctl_info.bidi->size == 0 || !HAS_RTL(line->ctl_info.bidi)) {
 #ifdef __DEBUG
@@ -193,10 +222,37 @@ int vt_line_bidi_logical(vt_line_t *line) {
   vt_str_copy(src, line->chars, line->ctl_info.bidi->size);
 
   for (count = 0; count < line->ctl_info.bidi->size; count++) {
-    copy_char_with_mirror_check(line->chars + count, src + line->ctl_info.bidi->visual_order[count],
-                                line->ctl_info.bidi->visual_order, line->ctl_info.bidi->size,
-                                count);
+    int vis_pos = line->ctl_info.bidi->visual_order[count];
+
+    if (vis_pos != prev) {
+      u_int code;
+
+      if ((comb = vt_get_combining_chars(src + vis_pos, &num)) &&
+          (0x600 <= (code = vt_char_code(src + vis_pos)) && code <= 0x6ff) /* Arabic */ &&
+          !vt_char_is_comb(comb) /* arabic comb */) {
+        vt_char_copy(line->chars + count, vt_get_base_char(src + vis_pos));
+
+        do {
+          vt_char_copy(line->chars + (++count), comb++);
+          line->num_filled_chars++;
+        } while (--num > 0);
+      } else {
+        copy_char_with_mirror_check(line->chars + count, src + vis_pos,
+                                    line->ctl_info.bidi->visual_order,
+                                    line->ctl_info.bidi->size, count);
+      }
+
+      prev = vis_pos;
+    }
   }
+
+#ifdef DEBUG
+  if (line->num_filled_chars > line->num_chars) {
+    bl_error_printf(BL_DEBUG_TAG " Bidi visual <=> logical fails."
+                    "(line->num_filled_chars %d > line->num_chars %d)\n",
+                    line->num_filled_chars, line->num_chars);
+  }
+#endif
 
   vt_str_final(src, line->ctl_info.bidi->size);
 
@@ -393,6 +449,7 @@ int vt_line_bidi_copy_logical_str(vt_line_t *line, vt_char_t *dst, int beg, /* v
   int bidi_pos;
   int norm_pos;
   int dst_pos;
+  int prev = -1;
 
 #ifdef DEBUG
   if (((int)len) < 0) {
@@ -419,10 +476,16 @@ int vt_line_bidi_copy_logical_str(vt_line_t *line, vt_char_t *dst, int beg, /* v
   }
 
   for (dst_pos = norm_pos = 0; norm_pos < line->ctl_info.bidi->size; norm_pos++) {
-    if (flags[norm_pos]) {
-      copy_char_with_mirror_check(
-          &dst[dst_pos++], line->chars + line->ctl_info.bidi->visual_order[norm_pos],
-          line->ctl_info.bidi->visual_order, line->ctl_info.bidi->size, norm_pos);
+    int vis_pos = line->ctl_info.bidi->visual_order[norm_pos];
+
+    if (vis_pos != prev) {
+      if (flags[norm_pos]) {
+        copy_char_with_mirror_check(&dst[dst_pos++], line->chars + vis_pos,
+                                    line->ctl_info.bidi->visual_order,
+                                    line->ctl_info.bidi->size, norm_pos);
+      }
+
+      prev = vis_pos;
     }
   }
 

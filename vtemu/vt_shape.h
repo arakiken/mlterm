@@ -16,12 +16,9 @@
 
 u_int vt_shape_arabic(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int src_len);
 
-u_int16_t vt_is_arabic_combining(vt_char_t *prev2, vt_char_t *prev, vt_char_t *ch);
-
 #else
 
 #define vt_shape_arabic (NULL)
-#define vt_is_arabic_combining(a, b, c) (0)
 
 #endif
 

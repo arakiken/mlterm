@@ -215,7 +215,6 @@ char *mc_get_str_value_file(const char *key) {
     { "bd_color", "" },
     { "bel_mode", "sound" },
     { "bg_color", "white" },
-    { "bidi_mode", "normal" },
     { "bidi_separators", "" },
     { "bl_color", "" },
     { "box_drawing_font", "noconv" },
@@ -311,7 +310,6 @@ int mc_get_flag_value_file(const char *key) {
   } options[] = {
     { "allow_osc52", 0 },
     { "allow_scp", 0, },
-    { "auto_detect_encodings", 0 },
     { "borderless", 0 },
     { "logging_vt_seq", 0 },
     { "not_use_unicode_font", 0 },

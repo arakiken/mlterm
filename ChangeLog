@@ -1,3 +1,34 @@
+2021-01-16  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_logical_visual.c, vt_parser.c:
+	  vt_is_arabic_combining() is not used.
+
+	* vt_shape.[ch]: vt_is_arabic_combining() is removed.
+
+	* vt_ctl_loader.h, vt_functbl_bidi.c:
+	  VT_IS_ARABIC_COMBINING is removed from vt_ctl_bidi_id.
+
+	* vt_shape_bidi.c:
+	  - get_arabic_comb2_present_code() is added instead of
+	    vt_is_arabic_combining().
+	  - vt_is_arabic_combining() returns the number of combined characters.
+	  - 0x6BA is added to arabic_present_table.
+
+	* vt_line_bidi.c:
+	  - vt_line_bidi_render() calls vt_line_set_modified() with
+	    vt_convert_col_to_char_index(line->change_end_col, BREAK_BOUNDARY),
+	    not with vt_line_get_end_of_modified() to clear the line correctly.
+	  - vt_line_bidi_visual(), vt_line_bidi_logical() and
+	    vt_line_bidi_copy_logical_str() support dynamic combining.
+
+	* libctl/vt_bidi.c:
+	  - TEST_vt_bidi() is added.
+	  - adjust_comb_pos_in_order() is added for dynamic combining.
+
+	* ui_picture.c: MAX_PAGE_ID macro is used instead of 8.
+
+	* mc_io_file.c: Unnecessary entries are removed from 'options' table.
+
 2020-12-31  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/ui_virtual_kbd.c: Compiling error is fixed if ./configure is

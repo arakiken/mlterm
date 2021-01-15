@@ -6,8 +6,19 @@
 #include <pobl/bl_mem.h>   /* alloca */
 #include <pobl/bl_debug.h> /* bl_msg_printf */
 
+#define ARRAY_ELEMENTS_NUM(array) (sizeof(array) / sizeof(array[0]))
+
+/*
+ * 4 arabic codes -> 1 ligature glyph (Dynamically combined)
+ * It is not enabled for now, because it doesn't match terminal emulators
+ * which assume fixed-pitch columns.
+ */
+#if 0
+#define ENABLE_COMB4
+#endif
+
 typedef struct arabic_present {
-  u_int16_t base_arabic;
+  u_int16_t base;
 
   /* presentations. right or left is visual order's one. */
   u_int16_t no_joining_present;
@@ -17,16 +28,42 @@ typedef struct arabic_present {
 
 } arabic_present_t;
 
-typedef struct arabic_comb {
-  /* first or second is logical order's one */
-  u_int16_t first;
-  u_int16_t second;
-  u_int16_t comb;
-  u_int16_t comb_right;
+typedef struct arabic_comb2_present {
+  u_int16_t base[2]; /* logical order */
+  u_int16_t no_joining_present;
+  u_int16_t right_joining_present;
 
-} arabic_comb_t;
+} arabic_comb2_present_t;
+
+typedef struct arabic_comb4_present {
+  u_int16_t base[4]; /* logical order */
+  u_int16_t no_joining_present;
+
+} arabic_comb4_present_t;
 
 /* --- static variables --- */
+
+/*
+ * Not used (Arabic Presentation Forms-A)
+ * FBDD(0677), FC00-FDF1
+ *
+ * FBEA = FE8B(0626) + FE8E(0627)
+ * FBEB = FE8C(0626) + FE8E(0627)
+ * FBEE = FE8B(0626) + FEEE(0648)
+ * FBEF = FE8C(0626) + FEEE(0648)
+ * FBF0 = FB8B(0626) + FBD8(06C7)
+ * FBF1 = FE8C(0626) + FBD8(06C7)
+ * FBF2 = FB8B(0626) + FBDA(06C6)
+ * FBF3 = FE8C(0626) + FBDA(06C6)
+ * FBF4 = FB8B(0626) + FBDC(06C8)
+ * FBF5 = FB8C(0626) + FBDC(06C8)
+ * FBF6 = FB8B(0626) + FBE5(06D0)
+ * FBF7 = FE8C(0626) + FBE5(06D0)
+ * FBF8 = FE8B(0626) + FBE7(06D0)
+ * FBF9 = FE8B(0626) + FEF0(0649)
+ * FBFA = FE8C(0626) + FEF0(0649)
+ * FBFB = FE8B(0626) + FBE9(0649)
+ */
 
 static arabic_present_t arabic_present_table[] = {
   { 0x0621, 0xFE80, 0x0000, 0x0000, 0x0000, },
@@ -90,6 +127,7 @@ static arabic_present_t arabic_present_table[] = {
   { 0x06AF, 0xFB92, 0xFB93, 0xFB94, 0xFB95, },
   { 0x06B1, 0xFB9A, 0xFB9B, 0xFB9C, 0xFB9D, },
   { 0x06B3, 0xFB96, 0xFB97, 0xFB98, 0xFB99, },
+  { 0x06BA, 0xFB9E, 0xFB9F, 0x0000, 0x0000, },
   { 0x06BB, 0xFBA0, 0xFBA1, 0xFBA2, 0xFBA3, },
   { 0x06BE, 0xFBAA, 0xFBAB, 0xFBAC, 0xFBAD, },
   { 0x06C0, 0xFBA4, 0xFBA5, 0x0000, 0x0000, },
@@ -106,12 +144,25 @@ static arabic_present_t arabic_present_table[] = {
   { 0x06D3, 0xFBB0, 0xFBB1, 0x0000, 0x0000, },
 };
 
-static arabic_comb_t arabic_comb_table[] = {
-  { 0x0644, 0x0622, 0xFEF5, 0xFEF6, },
-  { 0x0644, 0x0623, 0xFEF7, 0xFEF8, },
-  { 0x0644, 0x0625, 0xFEF9, 0xFEFA, },
-  { 0x0644, 0x0627, 0xFEFB, 0xFEFC, },
+/* If you change this table, don't forget to change vt_is_arabic_combining(). */
+static arabic_comb2_present_t arabic_comb2_present_table[] = {
+  /* No mono space fonts have 0xFBEC and 0xFBED glyphs. */
+#if 0
+  { { 0x0626, 0x06D5, }, 0xFBEC, 0xFBED, },
+#endif
+  { { 0x0644, 0x0622, }, 0xFEF5, 0xFEF6, },
+  { { 0x0644, 0x0623, }, 0xFEF7, 0xFEF8, },
+  { { 0x0644, 0x0625, }, 0xFEF9, 0xFEFA, },
+  { { 0x0644, 0x0627, }, 0xFEFB, 0xFEFC, },
 };
+
+#ifdef ENABLE_COMB4
+/* If you change this table, don't forget to change vt_is_arabic_combining(). */
+static arabic_comb4_present_t arabic_comb4_present_table[] = {
+  { { 0x0627, 0x0644, 0x0644, 0x0647, }, 0xFDF2, },
+  { { 0x0645, 0x062D, 0x0645, 0x062F, }, 0xFDF4, },
+};
+#endif
 
 /* --- static functions --- */
 
@@ -125,8 +176,19 @@ static arabic_present_t *get_arabic_present(vt_char_t *ch) {
     return NULL;
   }
 
-  for (count = 0; count < sizeof(arabic_present_table) / sizeof(arabic_present_table[0]); count++) {
-    if (arabic_present_table[count].base_arabic == code) {
+  if (arabic_present_table[0].base <= code &&
+      code <= arabic_present_table[ARRAY_ELEMENTS_NUM(arabic_present_table) - 1].base) {
+    count = ARRAY_ELEMENTS_NUM(arabic_present_table) / 2;
+
+    if (code < arabic_present_table[count].base) {
+      while (code < arabic_present_table[--count].base);
+    } else if (code > arabic_present_table[count].base) {
+      while (code > arabic_present_table[++count].base);
+    } else {
+      return &arabic_present_table[count];
+    }
+
+    if (code == arabic_present_table[count].base) {
       return &arabic_present_table[count];
     }
   }
@@ -134,7 +196,99 @@ static arabic_present_t *get_arabic_present(vt_char_t *ch) {
   return NULL;
 }
 
+static u_int16_t get_arabic_comb2_present_code(vt_char_t *prev, /* can be NULL */
+                                               vt_char_t *base, /* must be ISO10646_UCS4_1 */
+                                               vt_char_t *comb  /* must be ISO10646_UCS4_1 */) {
+  vt_char_t *seq[2];    /* logical order */
+  u_int16_t ucs_seq[4]; /* logical order */
+  int count;
+  arabic_present_t *prev_present;
+
+  if (prev) {
+    vt_char_t *prev_comb;
+    u_int size;
+
+    if ((prev_comb = vt_get_combining_chars(prev, &size))) {
+      /*
+       * No comb chars having left_joining_present
+       *
+       * Comb characters(*) in 0x600-0x6ff don't appear in arabic_present_table,
+       * (*) 0x610-0x061a, 0x64b-0x65f, 0x670, 0x6d6-0x6dc, 0x6df-0x6e4, 0x6e7,
+       *     0x6e8, 0x6ea-0x6ed.
+       *
+       * Characters in arabic_comb2_present_table and arabic_comb4_present_table
+       * don't have left_joining_present.
+       */
+      prev_present = NULL;
+    } else {
+      prev_present = get_arabic_present(prev);
+    }
+  } else {
+    prev_present = NULL;
+  }
+
+  seq[0] = base;
+  seq[1] = comb;
+
+  for (count = 0; count < 2; count++) {
+    if (seq[count] && vt_char_cs(seq[count]) == ISO10646_UCS4_1) {
+      ucs_seq[count] = vt_char_code(seq[count]);
+    } else {
+      ucs_seq[count] = 0;
+    }
+  }
+
+  /* Shape the current combinational character */
+  for (count = 0; count < ARRAY_ELEMENTS_NUM(arabic_comb2_present_table); count++) {
+    if (ucs_seq[0] == arabic_comb2_present_table[count].base[0] &&
+        ucs_seq[1] == arabic_comb2_present_table[count].base[1]) {
+      if (prev_present && prev_present->left_joining_present) {
+        return arabic_comb2_present_table[count].right_joining_present;
+      } else {
+        return arabic_comb2_present_table[count].no_joining_present;
+      }
+    }
+  }
+
+  return 0;
+}
+
+#ifdef ENABLE_COMB4
+static u_int16_t get_arabic_comb4_present_code(vt_char_t *comb, u_int len) {
+  if (len == 3) {
+    u_int count;
+
+    for (count = 0; count < ARRAY_ELEMENTS_NUM(arabic_comb4_present_table); count++) {
+      u_int idx;
+
+      for (idx = 0; idx < 3; idx++) {
+        /*
+         * It is assumed that base char always equals to
+         * arabic_comb4_present_table[count].base[0].
+         */
+        if (vt_char_code(comb + idx) != arabic_comb4_present_table[count].base[idx + 1]) {
+          goto end;
+        }
+      }
+
+      return arabic_comb4_present_table[count].no_joining_present;
+
+    end:
+      ;
+    }
+  }
+
+  return 0;
+}
+#else
+#define get_arabic_comb4_present_code(comb, len) (0)
+#endif
+
 /* --- global functions --- */
+
+#ifdef BL_DEBUG
+void TEST_vt_shape_bidi(void);
+#endif
 
 /*
  * 'src' characters are right to left (visual) order.
@@ -147,6 +301,14 @@ u_int vt_shape_arabic(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int src_l
   vt_char_t *cur;
   vt_char_t *next; /* the same as 'prev' in logical order */
   u_int size;
+
+#ifdef BL_DEBUG
+  static int done;
+  if (!done) {
+    done = 1;
+    TEST_vt_shape_bidi();
+  }
+#endif
 
   if ((list = alloca(sizeof(arabic_present_t*) * (src_len + 2))) == NULL) {
     return 0;
@@ -173,8 +335,10 @@ u_int vt_shape_arabic(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int src_l
   for (count = 0; count < src_len && count < dst_len; count++) {
     comb = vt_get_combining_chars(cur, &size);
 
-    if (comb && (code = vt_is_arabic_combining(count + 1 >= src_len ? NULL : &src[count + 1],
-                                               vt_get_base_char(cur), comb))) {
+    if (comb &&
+        ((code = get_arabic_comb2_present_code(count + 1 >= src_len ? NULL : &src[count + 1],
+                                              vt_get_base_char(cur), comb)) ||
+         (code = get_arabic_comb4_present_code(comb, size)))) {
       vt_char_copy(&dst[count], vt_get_base_char(cur));
       vt_char_set_code(&dst[count], code);
     } else if (list[count]) {
@@ -191,8 +355,8 @@ u_int vt_shape_arabic(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int src_l
       if (list[count - 1] && list[count - 1]->right_joining_present) {
         if ((list[count + 1] && list[count + 1]->left_joining_present) &&
             !(next && (comb = vt_get_combining_chars(next, &size)) &&
-              vt_is_arabic_combining(count + 2 >= src_len ? NULL : &src[count + 2],
-                                     vt_get_base_char(next), comb))) {
+              get_arabic_comb2_present_code(count + 2 >= src_len ? NULL : &src[count + 2],
+                                            vt_get_base_char(next), comb))) {
           if (list[count]->both_joining_present) {
             code = list[count]->both_joining_present;
           } else if (list[count]->left_joining_present) {
@@ -209,8 +373,8 @@ u_int vt_shape_arabic(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int src_l
         }
       } else if ((list[count + 1] && list[count + 1]->left_joining_present) &&
                  !(next && (comb = vt_get_combining_chars(next, &size)) &&
-                   vt_is_arabic_combining(count + 2 >= src_len ? NULL : &src[count + 2],
-                                          vt_get_base_char(next), comb))) {
+                   get_arabic_comb2_present_code(count + 2 >= src_len ? NULL : &src[count + 2],
+                                                 vt_get_base_char(next), comb))) {
         if (list[count]->right_joining_present) {
           code = list[count]->right_joining_present;
         } else {
@@ -234,72 +398,72 @@ u_int vt_shape_arabic(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int src_l
   return count;
 }
 
-u_int16_t vt_is_arabic_combining(vt_char_t *prev2, /* can be NULL */
-                                 vt_char_t *prev,  /* must be ISO10646_UCS4_1 character */
-                                 vt_char_t *ch     /* must be ISO10646_UCS4_1 character */
-                                 ) {
-  vt_char_t *seq[4];    /* reverse order */
-  u_int16_t ucs_seq[4]; /* reverse order */
-  int count;
-  int prev2_is_comb;
-  arabic_present_t *prev2_present;
+u_int vt_is_arabic_combining(u_int32_t *str, u_int len) {
+  if (len >= 2) {
+#if 0
+    if (str[0] == 0x626) {
+      u_int count;
 
-  seq[0] = ch;
-  seq[1] = prev;
-  seq[2] = prev2;
-  seq[3] = NULL;
+      for(count = 0; count < 1; count++) {
+        if (str[1] == arabic_comb2_present_table[count].base[1]) {
+          return 1;
+        }
+      }
+    } else
+#endif
+    if (str[0] == 0x644) {
+      u_int count;
 
-  if (prev2) {
-    vt_char_t *comb;
-    u_int size;
-
-    prev2_present = get_arabic_present(prev2);
-
-    if ((comb = vt_get_combining_chars(prev2, &size))) {
-      seq[3] = vt_get_base_char(prev2);
-      seq[2] = comb;
-    }
-  } else {
-    prev2_present = NULL;
-  }
-
-  for (count = 0; count < 4; count++) {
-    if (seq[count] && vt_char_cs(seq[count]) == ISO10646_UCS4_1) {
-      ucs_seq[count] = vt_char_code(seq[count]);
-    } else if (count < 2) {
-      /* Ignore the previous combinational/two characters */
-
-      return 0;
-    } else {
-      ucs_seq[count] = 0;
-    }
-  }
-
-  prev2_is_comb = 0;
-
-  if (seq[3] && prev2_present) {
-    /* See if the current character was proceeded by combinational character */
-    for (count = 0; count < sizeof(arabic_comb_table) / sizeof(arabic_comb_table[0]); count++) {
-      if ((ucs_seq[3] == arabic_comb_table[count].first &&
-           ucs_seq[2] == arabic_comb_table[count].second)) {
-        prev2_is_comb = 1;
-
-        break;
+      for(count = 0; count < ARRAY_ELEMENTS_NUM(arabic_comb2_present_table); count++) {
+        if (str[1] == arabic_comb2_present_table[count].base[1]) {
+          return 1;
+        }
       }
     }
-  }
+#ifdef ENABLE_COMB4
+    else if (len >= 4) {
+      u_int count;
 
-  /* Shape the current combinational character */
-  for (count = 0; count < sizeof(arabic_comb_table) / sizeof(arabic_comb_table[0]); count++) {
-    if (ucs_seq[1] == arabic_comb_table[count].first &&
-        ucs_seq[0] == arabic_comb_table[count].second) {
-      if (!prev2_is_comb && prev2_present && prev2_present->left_joining_present) {
-        return arabic_comb_table[count].comb_right;
-      } else {
-        return arabic_comb_table[count].comb;
+      for(count = 0; count < ARRAY_ELEMENTS_NUM(arabic_comb4_present_table); count++) {
+        u_int idx;
+
+        for (idx = 0; idx < 4; idx++) {
+          if (str[idx] != arabic_comb4_present_table[count].base[idx]) {
+            goto end;
+          }
+        }
+
+        return 3;
+
+      end:
+        ;
       }
     }
+#endif
   }
 
   return 0;
 }
+
+#ifdef BL_DEBUG
+
+#include <assert.h>
+
+void TEST_vt_shape_bidi(void) {
+  int count;
+  vt_char_t ch;
+  arabic_present_t *present;
+
+  vt_char_init(&ch);
+  vt_char_set_cs(&ch, ISO10646_UCS4_1);
+
+  for (count = 0; count < ARRAY_ELEMENTS_NUM(arabic_present_table); count++) {
+    vt_char_set_code(&ch, arabic_present_table[count].base);
+    present = get_arabic_present(&ch);
+    assert(arabic_present_table[count].base == present->base);
+  }
+
+  bl_msg_printf("PASS vt_shape_bidi test.\n");
+}
+
+#endif

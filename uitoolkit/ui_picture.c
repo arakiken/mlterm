@@ -436,7 +436,11 @@ static int cleanup_inline_pictures(vt_term_t *term) {
     if (term->screen->page_edits) {
       int count = 0;
 
-      for (count = 0; count < 8 /* MAX_PAGE_ID in vt_screen.c */ ; count++) {
+      /*
+       * Page 0 = normal_edit or alt_edit
+       * Page 1-MAX_PAGE_ID = pages
+       */
+      for (count = 0; count < MAX_PAGE_ID ; count++) {
         if ((term->screen->edit = term->screen->page_edits + count) != orig_edit) {
           check_inline_pictures(term, flags, 0, end);
         }
