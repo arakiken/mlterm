@@ -14,6 +14,7 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>
 #include <pobl/bl_dialog.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #include "../ui_window.h"
 #include "../ui_picture.h"
@@ -223,7 +224,7 @@ void ui_display_close_all(void) {
   free(_disp.roots);
 
 #if 0
-  for (count = 0; count < (sizeof(_disp.cursors) / sizeof(_disp.cursors[0])); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(_disp.cursors); count++) {
     if (_disp.cursors[count]) {
       CloseHandle(_disp.cursors[count]);
     }

@@ -2626,7 +2626,7 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
           { XK_KP_Right, XK_KP_Up, },
         };
 
-        ksym = convert_ksym(ksym, table, sizeof(table) / sizeof(table[0]));
+        ksym = convert_ksym(ksym, table, BL_ARRAY_SIZE(table));
       } else if (vt_term_get_vertical_mode(screen->term) & VERT_LTR) {
         ksym_conv_t table[] = {
           { XK_Up, XK_Left, },
@@ -2639,7 +2639,7 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
           { XK_KP_Right, XK_KP_Down, },
         };
 
-        ksym = convert_ksym(ksym, table, sizeof(table) / sizeof(table[0]));
+        ksym = convert_ksym(ksym, table, BL_ARRAY_SIZE(table));
       }
     }
 
@@ -6962,7 +6962,7 @@ int ui_screen_exec_cmd(ui_screen_t *screen, char *cmd) {
          * in case 'cat dangerousfile'.
          */
 
-        for (count = 0; count < sizeof(ign_opts) / sizeof(ign_opts[0]); count++) {
+        for (count = 0; count < BL_ARRAY_SIZE(ign_opts); count++) {
           if ((p = strstr(cmd, ign_opts[count])) &&
               (count > 0 || /* not -e option, or */
                (p[2] < 'A'  /* not match --extkey, --exitbs */ &&

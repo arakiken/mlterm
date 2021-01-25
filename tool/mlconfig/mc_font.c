@@ -7,6 +7,7 @@
 #include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_mem.h> /* free */
 #include <pobl/bl_debug.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 #include <glib.h>
 #include <c_intl.h>
 
@@ -164,7 +165,7 @@ static char *new_fontsize = NULL;
 static char *old_fontsize = NULL;
 static int is_fontsize_changed;
 
-static char *new_fontname_list[sizeof(cs_info_table) / sizeof(cs_info_table[0])];
+static char *new_fontname_list[BL_ARRAY_SIZE(cs_info_table)];
 static int dont_change_new_fontname_list = 0;
 static int selected_cs = 0; /* 0 = DEFAULT */
 static GtkWidget *fontcs_entry;
@@ -183,7 +184,7 @@ static char *noconv_areas;
 static void reset_fontname_list(void) {
   int count;
 
-  for (count = 0; count < sizeof(cs_info_table) / sizeof(cs_info_table[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(cs_info_table); count++) {
     free(new_fontname_list[count]);
     new_fontname_list[count] = NULL;
   }
@@ -214,7 +215,7 @@ static const char *get_correct_cs(int idx) {
     return NULL;
   } else if (1 <= idx && idx <= 15) {
     return unicode_names[idx - 1];
-  } else if (idx < sizeof(cs_info_table) / sizeof(cs_info_table[0])) {
+  } else if (idx < BL_ARRAY_SIZE(cs_info_table)) {
     return cs_info_table[idx].cs;
   } else {
     return NULL;
@@ -441,7 +442,7 @@ static void fontcs_map(GtkWidget *widget, gpointer data) {
 
     selected_cs = 1; /* UNICODE */
   } else {
-    for (count = 0; count < sizeof(cs_info_table) / sizeof(cs_info_table[0]); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(cs_info_table); count++) {
       if (strcmp(cs_info_table[count].cs, "JISX0201_KATA") == 0) {
         break;
       } else if (compare(encoding, cs_info_table[count].cs)) {
@@ -481,7 +482,7 @@ static gint fontcs_selected(GtkWidget *widget, gpointer data) {
 
   cs = gtk_entry_get_text(GTK_ENTRY(widget));
 
-  for (count = 0; count < sizeof(cs_info_table) / sizeof(cs_info_table[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(cs_info_table); count++) {
     if (strcmp(cs, cs_info_table[count].cs) == 0) {
       if (selected_cs != count) {
 #if 0
@@ -782,7 +783,7 @@ GtkWidget *mc_font_config_widget_new(void) {
 
   combo =
       mc_combo_new_with_width(_("Font size (pixels)"), fontlist,
-                              sizeof(fontlist) / sizeof(fontlist[0]), new_fontsize, 1, 30, &entry);
+                              BL_ARRAY_SIZE(fontlist), new_fontsize, 1, 30, &entry);
   g_signal_connect(entry, "changed", G_CALLBACK(fontsize_selected), NULL);
   gtk_box_pack_start(GTK_BOX(hbox), combo, FALSE, FALSE, 0);
 #if GTK_CHECK_VERSION(2, 12, 0)
@@ -836,10 +837,10 @@ GtkWidget *mc_font_config_widget_new(void) {
   hbox = gtk_hbox_new(FALSE, 0);
   gtk_widget_show(hbox);
 
-  if ((cslist = alloca(sizeof(char*) * sizeof(cs_info_table) / sizeof(cs_info_table[0])))) {
+  if ((cslist = alloca(BL_ARRAY_SIZE(char*) * sizeof(cs_info_table)))) {
     int count;
 
-    for (count = 0; count < sizeof(cs_info_table) / sizeof(cs_info_table[0]); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(cs_info_table); count++) {
       cslist[count] = cs_info_table[count].cs;
     }
 
@@ -949,7 +950,7 @@ void mc_update_font_misc(void) {
 void mc_update_font_name(mc_io_t io) {
   size_t count;
 
-  for (count = 0; count < sizeof(cs_info_table) / sizeof(cs_info_table[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(cs_info_table); count++) {
     if (new_fontname_list[count]) {
       mc_set_font_name(io, get_font_file(), get_correct_cs(count), new_fontname_list[count]);
 

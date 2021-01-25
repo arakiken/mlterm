@@ -3443,7 +3443,7 @@ static void report_termcap(vt_parser_t *vt_parser, u_char *key) {
 
     value = NULL;
 
-    for (idx = 0; idx < sizeof(db) / sizeof(db[0]); idx++) {
+    for (idx = 0; idx < BL_ARRAY_SIZE(db); idx++) {
       if (strcmp(deckey, db[idx].tckey) == 0 || strcmp(deckey, db[idx].tikey) == 0) {
         if (db[idx].spkey == -1) {
           value = "256";
@@ -3619,7 +3619,7 @@ static void report_status(vt_parser_t *vt_parser, u_char *key) {
       }
 
       vt_color_force_linear_search(1);
-      for (count = 0; count < sizeof(colors) / sizeof(colors[0]); count++) {
+      for (count = 0; count < BL_ARRAY_SIZE(colors); count++) {
         if (!HAS_XTERM_LISTENER(vt_parser, get_rgb) ||
             !(*vt_parser->xterm_listener->get_rgb)(vt_parser->xterm_listener->self, &red, &green,
                                                    &blue, colors[count])) {
@@ -3751,7 +3751,7 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
   int idx;
 
 #ifdef DEBUG
-  if (VTMODE_NUM != sizeof(vtmodes) / sizeof(vtmodes[0])) {
+  if (VTMODE_NUM != BL_ARRAY_SIZE(vtmodes)) {
     bl_debug_printf(BL_DEBUG_TAG "vtmode table is broken.\n");
   }
 #endif
@@ -6713,6 +6713,11 @@ static int write_loopback(vt_parser_t *vt_parser, const u_char *buf, size_t len,
                           * be called when vt_parser->pty is NULL */
       vt_pty_get_master_fd(vt_parser->pty) != -1) {
     if (vt_parser->r_buf.len < len &&
+        /*
+         * BL_MAX(len, PTY_RD_BUFFER_SIZE) is necessary because
+         * open_pty_intern() in ui_screen_manager.c calls vt_term_write_loopback()
+         * when vt_parser->r_buf.len is still 0.
+         */
         !change_read_buffer_size(&vt_parser->r_buf, BL_MAX(len, PTY_RD_BUFFER_SIZE))) {
       return 0;
     }
@@ -6766,8 +6771,10 @@ static int write_loopback(vt_parser_t *vt_parser, const u_char *buf, size_t len,
 
   if (orig_left > 0) {
     memcpy(vt_parser->r_buf.chars, orig_buf, orig_left);
+    vt_parser->r_buf.filled_len = vt_parser->r_buf.left = orig_left;
+  } else {
+    /* vt_parser->r_buf.left is > 0 or vterm compatible library. */
   }
-  vt_parser->r_buf.filled_len = vt_parser->r_buf.left = orig_left;
 
   return 1;
 }

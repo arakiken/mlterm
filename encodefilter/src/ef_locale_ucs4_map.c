@@ -4,6 +4,7 @@
 
 #include <string.h> /* strncmp */
 #include <pobl/bl_locale.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #include "ef_ucs4_map.h"
 #include "ef_ja_jp_map.h"
@@ -67,8 +68,7 @@ static map_func_t get_map_ucs4_to_func_for_current_locale(void) {
   lang = bl_get_lang();
   country = bl_get_country();
 
-  for (count = 0; count < sizeof(map_ucs4_to_func_table) / sizeof(map_ucs4_to_func_table[0]);
-       count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(map_ucs4_to_func_table); count++) {
     tablep = map_ucs4_to_func_table + count;
 
     if (!strcmp(tablep->lang, lang) && (!tablep->country || !strcmp(tablep->country, country))) {

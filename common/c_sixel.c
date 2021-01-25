@@ -684,7 +684,7 @@ body:
         break;
       }
 
-      n = get_params(params, sizeof(params) / sizeof(params[0]), &p);
+      n = get_params(params, BL_ARRAY_SIZE(params), &p);
 
       if (n > 0) {
         if ((color = params[0]) >= SIXEL_PALETTE_SIZE) {

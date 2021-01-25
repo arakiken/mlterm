@@ -11,6 +11,7 @@
 #ifndef USE_STATUS_LINE
 
 #include <pobl/bl_mem.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 #include <vt_str.h>
 #include <vt_parser.h>
 #include "ui_draw_str.h"
@@ -75,7 +76,7 @@ static int is_nl(vt_char_t *ch) { return vt_char_cs(ch) == US_ASCII && vt_char_c
 static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
                         int modified_beg /* for canna */
                         ) {
-#define MAX_ROWS ((sizeof(stat_screen->head_indexes) / sizeof(stat_screen->head_indexes[0])) - 1)
+#define MAX_ROWS (BL_ARRAY_SIZE(stat_screen->head_indexes) - 1)
   ui_font_t *font;
   u_int line_height;
   int *heads;

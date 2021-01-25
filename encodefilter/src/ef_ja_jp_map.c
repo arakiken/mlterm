@@ -2,6 +2,8 @@
 
 #include <string.h> /* memcpy */
 
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
+
 #include "ef_ja_jp_map.h"
 
 #include "ef_ucs4_map.h"
@@ -13,17 +15,16 @@
 /* --- static variables --- */
 
 static ef_map_ucs4_to_func_t map_ucs4_to_funcs[] = {
-    ef_map_ucs4_to_jisx0201_roman,  ef_map_ucs4_to_jisx0201_kata,
-    ef_map_ucs4_to_jisx0208_1983,   ef_map_ucs4_to_jisx0212_1990,
-    ef_map_ucs4_to_jisx0213_2000_1, ef_map_ucs4_to_jisx0213_2000_2,
-
+  ef_map_ucs4_to_jisx0201_roman,  ef_map_ucs4_to_jisx0201_kata,
+  ef_map_ucs4_to_jisx0208_1983,   ef_map_ucs4_to_jisx0212_1990,
+  ef_map_ucs4_to_jisx0213_2000_1, ef_map_ucs4_to_jisx0213_2000_2,
 };
 
 /* --- global functions --- */
 
 int ef_map_ucs4_to_ja_jp(ef_char_t *jajp, ef_char_t *ucs4) {
   return ef_map_ucs4_to_with_funcs(jajp, ucs4, map_ucs4_to_funcs,
-                                    sizeof(map_ucs4_to_funcs) / sizeof(map_ucs4_to_funcs[0]));
+                                   BL_ARRAY_SIZE(map_ucs4_to_funcs));
 }
 
 int ef_map_jisx0213_2000_1_to_jisx0208_1983(ef_char_t *jis2k, ef_char_t *jis83) {

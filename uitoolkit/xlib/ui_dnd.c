@@ -15,6 +15,7 @@
 #include <X11/Xutil.h>
 #include <pobl/bl_types.h>
 #include <pobl/bl_debug.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 #include <mef/ef_utf8_conv.h>
 #include <mef/ef_utf16_parser.h>
 
@@ -813,7 +814,7 @@ static void TEST_parse_text_uri_list(ui_display_t *disp) {
   memset(&dnd, 0, sizeof(dnd));
   win.dnd = &dnd;
 
-  for (count = 0; count < sizeof(urls) / sizeof(urls[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(urls); count++) {
     strcpy(buf, urls[count]);
     parse_text_uri_list(&win, buf, strlen(urls[count]));
   }

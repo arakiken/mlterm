@@ -14,12 +14,10 @@
 #include "ui_type_loader.h"
 #include "ui_decsp_font.h"
 
-#define FOREACH_FONT_ENCODINGS(csinfo, font_encoding_p)                                      \
-  for ((font_encoding_p) = (csinfo)->encoding_names;                                         \
-       (font_encoding_p) <                                                                   \
-               (csinfo)->encoding_names +                                                    \
-                   sizeof((csinfo)->encoding_names) / sizeof((csinfo)->encoding_names[0]) && \
-           *(font_encoding_p);                                                               \
+#define FOREACH_FONT_ENCODINGS(csinfo, font_encoding_p)                                          \
+  for ((font_encoding_p) = (csinfo)->encoding_names;                                             \
+       (font_encoding_p) < (csinfo)->encoding_names + BL_ARRAY_SIZE((csinfo)->encoding_names) && \
+         *(font_encoding_p);                                                                     \
        (font_encoding_p)++)
 
 #define DIVIDE_ROUNDING(a, b) (((int)((a)*10 + (b)*5)) / ((int)((b)*10)))
@@ -145,7 +143,7 @@ static double dpi_for_fc;
 static cs_info_t *get_cs_info(ef_charset_t cs) {
   int count;
 
-  for (count = 0; count < sizeof(cs_info_table) / sizeof(cs_info_t); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(cs_info_table); count++) {
     if (cs_info_table[count].cs == cs) {
       return &cs_info_table[count];
     }
@@ -420,7 +418,7 @@ static int xcore_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
 
   if ((font->id & FONT_FULLWIDTH) && (FONT_CS(font->id) == ISO10646_UCS4_1)) {
     family = "biwidth";
-    num_spacings = sizeof(spacings) / sizeof(spacings[0]);
+    num_spacings = BL_ARRAY_SIZE(spacings);
   } else {
     family = "fixed";
     num_spacings = 1;
@@ -441,7 +439,7 @@ static int xcore_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
     if (count == 0) {
       width = "*";
       family = "*";
-      num_spacings = sizeof(spacings) / sizeof(spacings[0]);
+      num_spacings = BL_ARRAY_SIZE(spacings);
     } else if (count == 1) {
       slant = "*";
     } else if (count == 2) {

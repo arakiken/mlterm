@@ -14,6 +14,7 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h> /* realloc */
 #include <pobl/bl_str.h> /* bl_str_to_int/memset/strncasecmp */
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 #include <vt_char.h>     /* UTF_MAX_SIZE */
 
 #ifdef USE_OT_LAYOUT
@@ -164,7 +165,7 @@ static int parse_fc_font_name(
           { "semi-condensed", /* XXX This style is ignored. */ 0, 0, },
         };
 
-        for (count = 0; count < sizeof(styles) / sizeof(styles[0]); count++) {
+        for (count = 0; count < BL_ARRAY_SIZE(styles); count++) {
           size_t len_v;
 
           len_v = strlen(styles[count].style);

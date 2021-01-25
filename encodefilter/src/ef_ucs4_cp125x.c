@@ -2,6 +2,8 @@
 
 #include "ef_ucs4_cp125x.h"
 
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
+
 #include "ef_tblfunc_loader.h"
 #include "ef_ucs4_iso8859.h"
 
@@ -60,7 +62,7 @@ int ef_map_cp874_to_ucs4(ef_char_t *ucs4, u_int16_t cp874_code) {
     return 1;
   }
 
-  for (count = 0; count < sizeof(cp874_table) / sizeof(cp874_table[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(cp874_table); count++) {
     if (cp874_table[count].cp874 == cp874_code) {
       ucs4->ch[0] = 0x0;
       ucs4->ch[1] = 0x0;
@@ -87,7 +89,7 @@ int ef_map_ucs4_to_cp874(ef_char_t *non_ucs, u_int32_t ucs4_code) {
     return 1;
   }
 
-  for (count = 0; count < sizeof(cp874_table) / sizeof(cp874_table[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(cp874_table); count++) {
     if (((u_int32_t)cp874_table[count].ucs4) + 0x2000 == ucs4_code) {
       non_ucs->ch[0] = cp874_table[count].cp874;
       non_ucs->size = 1;

@@ -16,6 +16,7 @@
 #include <pobl/bl_unistd.h>    /* bl_getuid */
 #include <pobl/bl_file.h>
 #include <pobl/bl_mem.h> /* alloca */
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #include <vt_color.h>
 
@@ -1008,7 +1009,7 @@ static int receive_stdin_key_event(void) {
     if (buf[0] == '\x1b' && len > 1) {
       buf[len] = '\0';
 
-      for (count = 0; count < sizeof(table) / sizeof(table[0]); count++) {
+      for (count = 0; count < BL_ARRAY_SIZE(table); count++) {
         if (strcmp(buf + 1, table[count].str) == 0) {
           xev.ksym = table[count].ksym;
 

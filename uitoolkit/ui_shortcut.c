@@ -10,6 +10,7 @@
 #include <pobl/bl_file.h>
 #include <pobl/bl_conf_io.h>
 #include <pobl/bl_str.h> /* strdup */
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #ifndef CommandMask
 #define CommandMask (0)
@@ -361,7 +362,7 @@ int ui_shortcut_parse(ui_shortcut_t *shortcut, char *key, char *oper) {
     return 0;
   }
 
-  for (count = 0; count < sizeof(key_func_table) / sizeof(key_func_table_t); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(key_func_table); count++) {
     ui_key_t *map_entry;
 
     map_entry = shortcut->map + key_func_table[count].func;
@@ -401,7 +402,7 @@ int ui_shortcut_parse(ui_shortcut_t *shortcut, char *key, char *oper) {
     shortcut->str_map = str_map;
   } else {
   replace_shortcut_map:
-    for (count = 0; count < sizeof(key_func_table) / sizeof(key_func_table_t); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(key_func_table); count++) {
       if (strcmp(oper, key_func_table[count].name) == 0) {
         if (strcmp(key, "UNUSED") == 0) {
           shortcut->map[key_func_table[count].func].is_used = 0;

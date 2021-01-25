@@ -8,6 +8,7 @@
 #include <pobl/bl_str.h>  /* strdup */
 #include <pobl/bl_file.h> /* bl_file_set_cloexec */
 #include <pobl/bl_dialog.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #include "../ui_window.h"
 #include "../ui_picture.h"
@@ -248,7 +249,7 @@ static void close_display(ui_display_t *disp) {
     XFreeModifiermap(disp->modmap.map);
   }
 
-  for (count = 0; count < (sizeof(disp->cursors) / sizeof(disp->cursors[0])); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(disp->cursors); count++) {
     if (disp->cursors[count]) {
       XFreeCursor(disp->display, disp->cursors[count]);
     }

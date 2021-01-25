@@ -265,7 +265,7 @@ static void get_event_device_num_intern(int *kbd, int *mouse, const char *fmt) {
           static char *mouse_names[] = {"mouse", "touch"};
           u_int idx;
 
-          for (idx = 0; idx < sizeof(mouse_names) / sizeof(mouse_names[0]); idx++) {
+          for (idx = 0; idx < BL_ARRAY_SIZE(mouse_names); idx++) {
             if (strcasestr(buf, mouse_names[idx])) {
               *mouse = count;
 

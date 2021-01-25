@@ -2,6 +2,8 @@
 
 #include "ef_ucs_property.h"
 
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
+
 #ifndef REMOVE_PROPERTY_TABLE
 #include "table/ef_ucs_property.table"
 #endif
@@ -9,7 +11,7 @@
 /* '(i) | 0x2' is done in order for the result of BIT_SHIFT_32() to be over 0.
  */
 #define BIT_SHIFT_32(i) ((((i) | 0x2) >> 1) & 0x7fffffff)
-#define DEFAULT_INTERVAL BIT_SHIFT_32(sizeof(ucs_property_table) / sizeof(ucs_property_table[0]))
+#define DEFAULT_INTERVAL BIT_SHIFT_32(BL_ARRAY_SIZE(ucs_property_table))
 
 #if 0
 #define SELF_TEST
@@ -52,8 +54,7 @@ ef_property_t ef_get_ucs_property(u_int32_t ucs) {
       idx -= interval;
     } else if (ucs_property_table[idx].last < ucs) {
       /*
-       * If idx == max value
-       * ( sizeof(ucs_property_table)/sizeof(ucs_property_table[0]) ),
+       * If idx == max value (BL_ARRAY_SIZE(ucs_property_table)),
        * 'ucs_property_table[idx].last < ucs' is always false because
        * ucs_property_table[max].last is 0xffffffff.
        * So following 'idx + 1' is never over max value.

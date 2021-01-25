@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <pobl/bl_debug.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 /* --- static variables --- */
 
@@ -194,7 +195,7 @@ void ui_release_color_cache(ui_color_cache_t *color_cache) {
 void ui_color_cache_unload(ui_color_cache_t *color_cache) {
   vt_color_t color;
 
-  for (color = 0; color < sizeof(color_cache->xcolors) / sizeof(color_cache->xcolors[0]); color++) {
+  for (color = 0; color < BL_ARRAY_SIZE(color_cache->xcolors); color++) {
     if (color_cache->is_loaded[color]) {
       ui_unload_xcolor(color_cache->disp, &color_cache->xcolors[color]);
       color_cache->is_loaded[color] = 0;
@@ -205,7 +206,7 @@ void ui_color_cache_unload(ui_color_cache_t *color_cache) {
     ui_color_cache_256ext_t *cache_256ext;
 
     cache_256ext = color_cache->cache_256ext;
-    for (color = 0; color < sizeof(cache_256ext->xcolors) / sizeof(cache_256ext->xcolors[0]);
+    for (color = 0; color < BL_ARRAY_SIZE(cache_256ext->xcolors);
          color++) {
       if (cache_256ext->is_loaded[color]) {
         ui_unload_xcolor(color_cache->disp, &cache_256ext->xcolors[color]);

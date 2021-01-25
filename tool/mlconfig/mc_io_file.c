@@ -9,6 +9,7 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_conf_io.h>
 #include <pobl/bl_locale.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #if 0
 #define __DEBUG
@@ -291,7 +292,7 @@ char *mc_get_str_value_file(const char *key) {
   if ((value = main_config_get(key)) == NULL) {
     int count;
 
-    for (count = 0; count < sizeof(options) / sizeof(options[0]); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(options); count++) {
       if (strcmp(options[count].key, key) == 0) {
         return strdup(options[count].value);
       }
@@ -353,7 +354,7 @@ int mc_get_flag_value_file(const char *key) {
   if ((value = main_config_get(key)) == NULL) {
     int count;
 
-    for (count = 0; count < sizeof(options) / sizeof(options[0]); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(options); count++) {
       if (strcmp(options[count].key, key) == 0) {
         return options[count].flag;
       }
@@ -449,7 +450,7 @@ char *mc_get_color_rgb_file(const char *color) {
       p++;
     } while ('0' <= *p && *p <= '9');
   } else {
-    for (color_num = sizeof(vt_colors) / sizeof(vt_colors[0]) - 1; color_num >= 0; color_num--) {
+    for (color_num = BL_ARRAY_SIZE(vt_colors) - 1; color_num >= 0; color_num--) {
       if (strcasecmp(color, vt_colors[color_num] + 3) == 0) {
         goto next_step;
       } else if (strcasecmp(color, vt_colors[color_num]) == 0) {

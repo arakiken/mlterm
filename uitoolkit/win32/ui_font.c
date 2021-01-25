@@ -9,6 +9,7 @@
 #include <pobl/bl_mem.h>    /* alloca */
 #include <pobl/bl_str.h>    /* bl_str_sep/bl_str_to_int */
 #include <pobl/bl_locale.h> /* bl_get_lang() */
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 #include <mef/ef_ucs4_map.h>
 #include <vt_char_encoding.h>
 
@@ -139,13 +140,13 @@ static int use_point_size;
 static wincs_info_t *get_wincs_info(ef_charset_t cs) {
   int count;
 
-  for (count = 0; count < sizeof(cs_info_table) / sizeof(cs_info_t); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(cs_info_table); count++) {
     if (cs_info_table[count].cs == cs) {
       DWORD wincs;
 
       wincs = cs_info_table[count].wincs;
 
-      for (count = 0; count < sizeof(wincs_info_table) / sizeof(wincs_info_t); count++) {
+      for (count = 0; count < BL_ARRAY_SIZE(wincs_info_table); count++) {
         if (wincs_info_table[count].cs == wincs) {
           return &wincs_info_table[count];
         }
@@ -250,7 +251,7 @@ static int parse_font_name(
           { "semi-condensed", /* XXX This style is ignored. */ 0, 0, },
         };
 
-        for (count = 0; count < sizeof(styles) / sizeof(styles[0]); count++) {
+        for (count = 0; count < BL_ARRAY_SIZE(styles); count++) {
           size_t len_v;
 
           len_v = strlen(styles[count].style);

@@ -5,6 +5,7 @@
 #include <pobl/bl_str.h>
 #include <pobl/bl_mem.h> /* free */
 #include <pobl/bl_debug.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 #include <glib.h>
 #include <c_intl.h>
 
@@ -67,7 +68,7 @@ GtkWidget *mc_ratio_config_widget_new(int id) {
   }
   free(value);
 
-  combo = mc_combo_new_with_width(_(labels[id]), ratios, sizeof(ratios) / sizeof(ratios[0]),
+  combo = mc_combo_new_with_width(_(labels[id]), ratios, BL_ARRAY_SIZE(ratios),
                                   new_values[id], 0, 50, &entry);
   g_signal_connect(entry, "changed", G_CALLBACK(ratio_selected), &new_values[id]);
 

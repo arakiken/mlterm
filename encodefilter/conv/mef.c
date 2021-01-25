@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h> /* getopt */
 #include <pobl/bl_debug.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #include <mef/ef_iso8859_parser.h>
 #include <mef/ef_xct_parser.h>
@@ -199,7 +200,7 @@ int main(int argc, char **argv) {
 
   parser = NULL;
 
-  for (count = 0; count < sizeof(factories) / sizeof(factories[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(factories); count++) {
     if (strcmp(factories[count].encoding, in) == 0) {
       parser = (*factories[count].parser_new)();
     }
@@ -214,7 +215,7 @@ int main(int argc, char **argv) {
 
   conv = NULL;
 
-  for (count = 0; count < sizeof(factories) / sizeof(factories[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(factories); count++) {
     if (strcmp(factories[count].encoding, out) == 0) {
       conv = (*factories[count].conv_new)();
     }

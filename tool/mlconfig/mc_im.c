@@ -10,6 +10,7 @@
 #include <pobl/bl_map.h>
 #include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_def.h> /* USE_WIN32API */
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 #include <glib.h>
 #include <c_intl.h>
 #include <dirent.h>
@@ -534,7 +535,7 @@ static GtkWidget *skk_widget_new(char *value) {
   vbox = gtk_vbox_new(FALSE, 5);
   skk_dict_entry = entry_with_label_new(vbox, _("Dictionary"), dict ? dict : "");
   skk_sskey_entry = combo_with_label_new(vbox, _("Sticky shift key"), cands,
-                                         sizeof(cands) / sizeof(cands[0]),
+                                         BL_ARRAY_SIZE(cands),
                                          sskey ? sskey : "");
 
   return vbox;

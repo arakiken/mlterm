@@ -161,7 +161,7 @@ int bl_locale_init(const char *locale) {
 
     int count;
 
-    for (count = 0; count < sizeof(alias_codeset_table) / sizeof(alias_codeset_table[0]); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(alias_codeset_table); count++) {
       if (strcmp(sys_codeset, alias_codeset_table[count].codeset) == 0 &&
           strcmp(locale, alias_codeset_table[count].locale) == 0) {
         sys_codeset = alias_codeset_table[count].alias;
@@ -245,7 +245,7 @@ char *bl_get_codeset(void) {
     bl_debug_printf("lang -> %s\n", lang);
 #endif
 
-    for (count = 0; count < sizeof(lang_codeset_table) / sizeof(lang_codeset_table[0]); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(lang_codeset_table); count++) {
       if (strncmp(lang, lang_codeset_table[count].lang,
                   /* lang_len *- 1* is excluing NULL */
                   BL_MIN(lang_len - 1, strlen(lang_codeset_table[count].lang))) == 0) {
@@ -318,7 +318,7 @@ char *bl_get_codeset_win32(void) {
 
   codepage = GetACP();
 
-  for (count = 0; count < sizeof(cp_cs_table) / sizeof(cp_cs_table_t); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(cp_cs_table); count++) {
     if (cp_cs_table[count].codepage == codepage) {
       return cp_cs_table[count].codeset;
     }

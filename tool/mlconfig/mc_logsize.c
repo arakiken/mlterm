@@ -5,6 +5,7 @@
 #include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_mem.h> /* free */
 #include <pobl/bl_debug.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 #include <glib.h>
 #include <c_intl.h>
 
@@ -48,7 +49,7 @@ GtkWidget *mc_logsize_config_widget_new(void) {
 
   combo =
       mc_combo_new_with_width(_("Backlog size (lines)"), logsizes,
-                              sizeof(logsizes) / sizeof(logsizes[0]), new_logsize, 0, 50, &entry);
+                              BL_ARRAY_SIZE(logsizes), new_logsize, 0, 50, &entry);
   g_signal_connect(entry, "changed", G_CALLBACK(logsize_selected), NULL);
 
   return combo;

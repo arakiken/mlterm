@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <pobl/bl_debug.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #include "ef_ucs4_iso8859.h"
 #include "ef_ucs4_viscii.h"
@@ -122,7 +123,7 @@ int ef_map_ucs4_to_cs(ef_char_t *non_ucs, ef_char_t *ucs4, ef_charset_t cs) {
   if (!(map = cached_map) || map->cs != cs) {
     size_t count;
 
-    for (count = 0; count < sizeof(map_table) / sizeof(map_t); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(map_table); count++) {
       if (map_table[count].cs == cs) {
         cached_map = map = &map_table[count];
 
@@ -202,7 +203,7 @@ int ef_map_ucs4_to(ef_char_t *non_ucs, ef_char_t *ucs4) {
     return 1;
   }
 
-  for (count = 0; count < sizeof(map_table) / sizeof(map_table[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(map_table); count++) {
     if ((*map_table[count].map_ucs4_to)(non_ucs, ucs4_code)) {
       ef_charset_t cs;
 
@@ -255,7 +256,7 @@ int ef_map_ucs4_to_iso2022cs(ef_char_t *non_ucs, ef_char_t *ucs4) {
     return 1;
   }
 
-  for (count = 0; count < sizeof(map_table) / sizeof(map_table[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(map_table); count++) {
     if (IS_CS_BASED_ON_ISO2022(map_table[count].cs)) {
       if ((*map_table[count].map_ucs4_to)(non_ucs, ucs4_code)) {
         cached_map = &map_table[count];
@@ -289,7 +290,7 @@ int ef_map_to_ucs4(ef_char_t *ucs4, ef_char_t *non_ucs) {
   if (!(map = cached_map) || map->cs != non_ucs->cs) {
     size_t count;
 
-    for (count = 0; count < sizeof(map_table) / sizeof(map_t); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(map_table); count++) {
       if (map_table[count].cs == non_ucs->cs) {
         cached_map = map = &map_table[count];
 

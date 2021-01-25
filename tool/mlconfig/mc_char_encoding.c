@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_mem.h> /* free */
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 #include <ctype.h>
 #include <pobl/bl_debug.h>
 #include <glib.h>
@@ -50,7 +51,7 @@ static char *encodings[] = {
     N_("--- simplified Chinese ---"), "EUC-CN (GB2312)", "GBK", "GB18030", "HZ", "ISO-2022-CN",
     NULL};
 
-static char *encodings_l10n[sizeof(encodings) / sizeof(encodings[0])];
+static char *encodings_l10n[BL_ARRAY_SIZE(encodings)];
 
 /* --- static functions --- */
 
@@ -154,7 +155,7 @@ GtkWidget *mc_char_encoding_config_widget_new(void) {
     idx = get_index(encoding);
 
   prepare_encodings_l10n();
-  widget = mc_combo_new(_("Encoding"), encodings_l10n, sizeof(encodings) / sizeof(encodings[0]) - 1,
+  widget = mc_combo_new(_("Encoding"), encodings_l10n, BL_ARRAY_SIZE(encodings) - 1,
                         encodings_l10n[idx], 1, &entry);
   g_signal_connect(entry, "changed", G_CALLBACK(encoding_selected), NULL);
 

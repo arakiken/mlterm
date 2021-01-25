@@ -376,7 +376,7 @@ static void check_inline_pictures_drcs(vt_term_t *term, u_int8_t *flags) {
   if ((drcs = term->parser->drcs)) {
     size_t count;
 
-    for (count = 0; count < sizeof(drcs->fonts) / sizeof(drcs->fonts[0]); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(drcs->fonts); count++) {
       if (drcs->fonts[count] && vt_drcs_has_picture(drcs->fonts[count])) {
         flags[drcs->fonts[count]->pic_id] = 1;
 

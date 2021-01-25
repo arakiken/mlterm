@@ -61,6 +61,8 @@
 
 #define BL_SWAP(t, a, b) { t tmp; tmp = (a); (a) = (b); (b) = tmp; }
 
+#define BL_ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
+
 size_t bl_hex_decode(char *decoded, const char *encoded, size_t e_len);
 
 size_t bl_hex_encode(char *encoded, const char *decoded, size_t d_len);

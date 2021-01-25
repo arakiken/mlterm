@@ -3,6 +3,7 @@
 #include "ef_viet_map.h"
 
 #include <pobl/bl_debug.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #include "ef_ucs4_map.h"
 #include "ef_ucs4_viscii.h"
@@ -11,15 +12,14 @@
 /* --- static variables --- */
 
 static ef_map_ucs4_to_func_t map_ucs4_to_funcs[] = {
-    ef_map_ucs4_to_tcvn5712_3_1993, ef_map_ucs4_to_viscii,
-
+  ef_map_ucs4_to_tcvn5712_3_1993, ef_map_ucs4_to_viscii,
 };
 
 /* --- global functions --- */
 
 int ef_map_ucs4_to_viet(ef_char_t *viet, ef_char_t *ucs4) {
   return ef_map_ucs4_to_with_funcs(viet, ucs4, map_ucs4_to_funcs,
-                                    sizeof(map_ucs4_to_funcs) / sizeof(map_ucs4_to_funcs[0]));
+                                   BL_ARRAY_SIZE(map_ucs4_to_funcs));
 }
 
 int ef_map_viscii_to_tcvn5712_3_1993(ef_char_t *tcvn, ef_char_t *viscii) {

@@ -4,6 +4,8 @@
 * It is deprecated to use "mlterm" as the value of termtype / -y option.
 * 'termcap' config file stops to accept multiple terminal types concated by '|'
   (e.g. xterm|xterm-256) as key.
+* Arabic ligatures (U+644-U+622, U+644-U+622, U+644-U+625, U+644-U+627) occupy
+  two logical columns instead of one even if --dyncomb option isn't specified.
 * Merge patches:
   https://github.com/arakiken/mlterm/pull/5
 * Bug fixes:

@@ -9,6 +9,8 @@
 #include <pobl/bl_unistd.h> /* bl_getuid/bl_getgid */
 #include <pobl/bl_mem.h>
 #include <pobl/bl_str.h>  /* bl_compare_str */
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
+
 #include "../ui_screen_manager.h"
 #include "../ui_event_source.h"
 #include "../ui_selection_encoding.h"
@@ -883,7 +885,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
                                                     action:@selector(keyEvent:)]];
     }
 
-    for (count = 0; count < sizeof(flags) / sizeof(flags[0]); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(flags); count++) {
       [mutable addObject:[UIKeyCommand keyCommandWithInput:UIKeyInputUpArrow
                                              modifierFlags:flags[count]
                                                     action:@selector(keyEvent:)]];

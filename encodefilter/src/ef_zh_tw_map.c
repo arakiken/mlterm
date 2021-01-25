@@ -3,6 +3,7 @@
 #include "ef_zh_tw_map.h"
 
 #include <pobl/bl_debug.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #include "ef_ucs4_map.h"
 #include "ef_ucs4_cns11643.h"
@@ -11,15 +12,15 @@
 /* --- static variables --- */
 
 static ef_map_ucs4_to_func_t map_ucs4_to_funcs[] = {
-    ef_map_ucs4_to_big5, ef_map_ucs4_to_cns11643_1992_1, ef_map_ucs4_to_cns11643_1992_2,
-    ef_map_ucs4_to_cns11643_1992_3,
+  ef_map_ucs4_to_big5, ef_map_ucs4_to_cns11643_1992_1, ef_map_ucs4_to_cns11643_1992_2,
+  ef_map_ucs4_to_cns11643_1992_3,
 };
 
 /* --- global functions --- */
 
 int ef_map_ucs4_to_zh_tw(ef_char_t *zhtw, ef_char_t *ucs4) {
   return ef_map_ucs4_to_with_funcs(zhtw, ucs4, map_ucs4_to_funcs,
-                                    sizeof(map_ucs4_to_funcs) / sizeof(map_ucs4_to_funcs[0]));
+                                   BL_ARRAY_SIZE(map_ucs4_to_funcs));
 }
 
 /*

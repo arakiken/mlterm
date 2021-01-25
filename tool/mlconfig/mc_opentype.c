@@ -9,6 +9,7 @@
 
 #include <pobl/bl_mem.h>
 #include <pobl/bl_str.h> /* bl_str_sep/strdup */
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #include "mc_io.h"
 #include "mc_flags.h"
@@ -76,7 +77,7 @@ static void edit_features(GtkWidget *widget, gpointer data) {
     "ss10", "ss11", "ss12", "ss13", "ss14", "ss15", "ss16", "ss17", "ss18", "ss19", "ss20", "subs",
     "sups", "swsh", "titl", "tnam", "tnum", "trad", "twid", "unic", "valt", "vert", "vhal", "vkna",
     "vpal", "vrt2", "zero", };
-  GtkWidget *buttons[sizeof(features_tbl) / sizeof(features_tbl[0])];
+  GtkWidget *buttons[BL_ARRAY_SIZE(features_tbl)];
   GtkWidget *dialog;
   GtkWidget *vbox;
   GtkWidget *hbox;
@@ -98,7 +99,7 @@ static void edit_features(GtkWidget *widget, gpointer data) {
   gtk_widget_show(vbox);
   gtk_box_pack_start(gtk_dialog_get_content_area(GTK_DIALOG(dialog)), vbox, FALSE, FALSE, 0);
 
-  for (count = 0; count < sizeof(features_tbl) / sizeof(features_tbl[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(features_tbl); count++) {
     if (count % 8 == 0) {
       hbox = gtk_hbox_new(FALSE, 0);
       gtk_widget_show(hbox);
@@ -117,10 +118,10 @@ static void edit_features(GtkWidget *widget, gpointer data) {
     char *new_value;
 
     if ((new_value = malloc((FEATURE_LEN + 1) *
-                            (sizeof(features_tbl) / sizeof(features_tbl[0]))))) {
+                            (BL_ARRAY_SIZE(features_tbl))))) {
       char *p = new_value;
 
-      for (count = 0; count < sizeof(features_tbl) / sizeof(features_tbl[0]); count++) {
+      for (count = 0; count < BL_ARRAY_SIZE(features_tbl); count++) {
         if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(buttons[count]))) {
           strcpy(p, features_tbl[count]);
           p += FEATURE_LEN;
@@ -161,7 +162,7 @@ static void edit_script(GtkWidget *widget, gpointer data) {
     "khoj", "sind", "lina", "mahj", "mani", "mend", "modi", "mroo", "nbat", "narb", "perm", "hmng",
     "palm", "pauc", "phlp", "sidd", "tirh", "wara", "ahom", "hluw", "hatr", "mult", "hung", "sgnw",
   };
-  GtkWidget *buttons[sizeof(scripts_tbl) / sizeof(scripts_tbl[0])];
+  GtkWidget *buttons[BL_ARRAY_SIZE(scripts_tbl)];
   GtkWidget *dialog;
   GtkWidget *vbox;
   GtkWidget *hbox;
@@ -184,7 +185,7 @@ static void edit_script(GtkWidget *widget, gpointer data) {
   gtk_widget_show(vbox);
   gtk_box_pack_start(gtk_dialog_get_content_area(GTK_DIALOG(dialog)), vbox, FALSE, FALSE, 0);
 
-  for (count = 0; count < sizeof(scripts_tbl) / sizeof(scripts_tbl[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(scripts_tbl); count++) {
     if (count % 8 == 0) {
       hbox = gtk_hbox_new(FALSE, 0);
       gtk_widget_show(hbox);
@@ -204,7 +205,7 @@ static void edit_script(GtkWidget *widget, gpointer data) {
     char *new_value;
 
     if ((new_value = malloc(SCRIPT_LEN + 1))) {
-      for (count = 0; count < sizeof(scripts_tbl) / sizeof(scripts_tbl[0]); count++) {
+      for (count = 0; count < BL_ARRAY_SIZE(scripts_tbl); count++) {
         if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(buttons[count]))) {
           strcpy(new_value, scripts_tbl[count]);
           break;

@@ -1462,7 +1462,7 @@ static int parse_fc_font_name(char **font_family,
         char *styles[] = { "italic",  "bold", "oblique", "light", "semi-bold", "heavy",
                            "semi-condensed", };
 
-        for (count = 0; count < sizeof(styles) / sizeof(styles[0]); count++) {
+        for (count = 0; count < BL_ARRAY_SIZE(styles); count++) {
           size_t len_v;
 
           len_v = strlen(styles[count]);

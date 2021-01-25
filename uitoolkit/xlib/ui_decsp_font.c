@@ -4,6 +4,7 @@
 
 #include <string.h>      /* memset */
 #include <pobl/bl_mem.h> /* malloc */
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 /* --- global functions --- */
 
@@ -39,7 +40,7 @@ ui_decsp_font_t *ui_decsp_font_new(Display *display, u_int width, u_int height, 
 
   memset(font->glyphs, 0, sizeof(font->glyphs));
 
-  for (count = 1; count < sizeof(font->glyphs) / sizeof(font->glyphs[0]); count++) {
+  for (count = 1; count < BL_ARRAY_SIZE(font->glyphs); count++) {
     /*
      * Glyph map
      *
@@ -134,7 +135,7 @@ ui_decsp_font_t *ui_decsp_font_new(Display *display, u_int width, u_int height, 
 void ui_decsp_font_destroy(ui_decsp_font_t *font, Display *display) {
   int count;
 
-  for (count = 0; count < sizeof(font->glyphs) / sizeof(font->glyphs[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(font->glyphs); count++) {
     if (font->glyphs[count]) {
       XFreePixmap(display, font->glyphs[count]);
     }

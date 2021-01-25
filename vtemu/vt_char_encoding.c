@@ -8,6 +8,7 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>    /* alloca */
 #include <pobl/bl_locale.h> /* bl_get_codeset */
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #include <mef/ef_iso8859_parser.h>
 #include <mef/ef_8bit_parser.h>
@@ -377,7 +378,7 @@ vt_char_encoding_t vt_get_char_encoding(const char *name /* '_' and '-' are igno
     return VT_UTF8;
   }
 
-  for (count = 0; count < sizeof(encoding_table) / sizeof(encoding_table_t); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(encoding_table); count++) {
     if (strcasecmp(encoding, encoding_table[count].name) == 0) {
       return encoding_table[count].encoding;
     }
@@ -448,10 +449,10 @@ ef_conv_t *vt_char_encoding_conv_new(vt_char_encoding_t encoding) {
 
 int vt_is_msb_set(ef_charset_t cs) {
   if (msb_set_cs_table[0] <= cs &&
-      cs <= msb_set_cs_table[sizeof(msb_set_cs_table) / sizeof(msb_set_cs_table[0]) - 1]) {
+      cs <= msb_set_cs_table[BL_ARRAY_SIZE(msb_set_cs_table) - 1]) {
     int count;
 
-    for (count = 0; count < sizeof(msb_set_cs_table) / sizeof(msb_set_cs_table[0]); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(msb_set_cs_table); count++) {
       if (msb_set_cs_table[count] == cs) {
         return 1;
       }
@@ -520,7 +521,7 @@ u_char vt_convert_ucs_to_decsp(u_int16_t ucs) {
   int idx;
 
   l_idx = 0;
-  h_idx = sizeof(ucs_to_decsp_table) / sizeof(ucs_to_decsp_table[0]) - 1;
+  h_idx = BL_ARRAY_SIZE(ucs_to_decsp_table) - 1;
 
   if (ucs < ucs_to_decsp_table[l_idx].ucs || ucs_to_decsp_table[h_idx].ucs < ucs) {
     return 0;
@@ -548,7 +549,7 @@ u_int16_t vt_convert_decsp_to_ucs(u_char decsp) {
   if ('`' <= decsp && decsp <= 'x') {
     int count;
 
-    for (count = 0; count < sizeof(ucs_to_decsp_table) / sizeof(ucs_to_decsp_table[0]); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(ucs_to_decsp_table); count++) {
       if (ucs_to_decsp_table[count].decsp == decsp) {
         return ucs_to_decsp_table[count].ucs;
       }

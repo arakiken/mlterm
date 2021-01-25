@@ -5,8 +5,7 @@
 #include <string.h>        /* strncpy */
 #include <pobl/bl_mem.h>   /* alloca */
 #include <pobl/bl_debug.h> /* bl_msg_printf */
-
-#define ARRAY_ELEMENTS_NUM(array) (sizeof(array) / sizeof(array[0]))
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 /*
  * 4 arabic codes -> 1 ligature glyph (Dynamically combined)
@@ -177,8 +176,8 @@ static arabic_present_t *get_arabic_present(vt_char_t *ch) {
   }
 
   if (arabic_present_table[0].base <= code &&
-      code <= arabic_present_table[ARRAY_ELEMENTS_NUM(arabic_present_table) - 1].base) {
-    count = ARRAY_ELEMENTS_NUM(arabic_present_table) / 2;
+      code <= arabic_present_table[BL_ARRAY_SIZE(arabic_present_table) - 1].base) {
+    count = BL_ARRAY_SIZE(arabic_present_table) / 2;
 
     if (code < arabic_present_table[count].base) {
       while (code < arabic_present_table[--count].base);
@@ -239,7 +238,7 @@ static u_int16_t get_arabic_comb2_present_code(vt_char_t *prev, /* can be NULL *
   }
 
   /* Shape the current combinational character */
-  for (count = 0; count < ARRAY_ELEMENTS_NUM(arabic_comb2_present_table); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(arabic_comb2_present_table); count++) {
     if (ucs_seq[0] == arabic_comb2_present_table[count].base[0] &&
         ucs_seq[1] == arabic_comb2_present_table[count].base[1]) {
       if (prev_present && prev_present->left_joining_present) {
@@ -258,7 +257,7 @@ static u_int16_t get_arabic_comb4_present_code(vt_char_t *comb, u_int len) {
   if (len == 3) {
     u_int count;
 
-    for (count = 0; count < ARRAY_ELEMENTS_NUM(arabic_comb4_present_table); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(arabic_comb4_present_table); count++) {
       u_int idx;
 
       for (idx = 0; idx < 3; idx++) {
@@ -414,7 +413,7 @@ u_int vt_is_arabic_combining(u_int32_t *str, u_int len) {
     if (str[0] == 0x644) {
       u_int count;
 
-      for(count = 0; count < ARRAY_ELEMENTS_NUM(arabic_comb2_present_table); count++) {
+      for(count = 0; count < BL_ARRAY_SIZE(arabic_comb2_present_table); count++) {
         if (str[1] == arabic_comb2_present_table[count].base[1]) {
           return 1;
         }
@@ -424,7 +423,7 @@ u_int vt_is_arabic_combining(u_int32_t *str, u_int len) {
     else if (len >= 4) {
       u_int count;
 
-      for(count = 0; count < ARRAY_ELEMENTS_NUM(arabic_comb4_present_table); count++) {
+      for(count = 0; count < BL_ARRAY_SIZE(arabic_comb4_present_table); count++) {
         u_int idx;
 
         for (idx = 0; idx < 4; idx++) {
@@ -457,7 +456,7 @@ void TEST_vt_shape_bidi(void) {
   vt_char_init(&ch);
   vt_char_set_cs(&ch, ISO10646_UCS4_1);
 
-  for (count = 0; count < ARRAY_ELEMENTS_NUM(arabic_present_table); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(arabic_present_table); count++) {
     vt_char_set_code(&ch, arabic_present_table[count].base);
     present = get_arabic_present(&ch);
     assert(arabic_present_table[count].base == present->base);

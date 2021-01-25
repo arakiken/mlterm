@@ -33,6 +33,7 @@ extern "C" {
 #include <pobl/bl_str.h> /* bl_str_replace */
 #include <pobl/bl_net.h>
 #include <pobl/bl_locale.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #ifndef USE_WIN32API
 #define _XOPEN_SOURCE
@@ -1056,7 +1057,7 @@ vt_pty_t *vt_pty_mosh_new(const char *cmd_path, /* If NULL, child prcess is not 
   if (argv_count + env_count > 0 &&
       (argv = (char**)alloca(sizeof(base_argv) + sizeof(char*) * (argv_count + env_count * 2)))) {
     memcpy(argv, base_argv, sizeof(base_argv));
-    char **argv_p = argv + sizeof(base_argv) / sizeof(base_argv[0]) - 1;
+    char **argv_p = argv + BL_ARRAY_SIZE(base_argv) - 1;
 
 #ifdef MOSH_SIXEL
     if (getenv("MOSH_NO_TCP")) {

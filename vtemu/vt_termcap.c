@@ -8,6 +8,7 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_file.h>
 #include <pobl/bl_conf_io.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 typedef enum str_field {
   TC_DELETE,
@@ -290,14 +291,14 @@ static int termcap_init(void) {
       void *p;
       char *buf;
 
-      if ((p = realloc(entries, sizeof(vt_termcap_t) * (sizeof(db) / sizeof(db[0]) + 1))) &&
+      if ((p = realloc(entries, sizeof(vt_termcap_t) * (BL_ARRAY_SIZE(db) + 1))) &&
           (buf = alloca(strlen(db[MAX_DB_LEN_IDX]) + 1))) {
         size_t count;
 
         entries = p;
-        num_entries = sizeof(db) / sizeof(db[0]) + 1;
+        num_entries = BL_ARRAY_SIZE(db) + 1;
 
-        for (count = 0; count < sizeof(db) / sizeof(db[0]); count++) {
+        for (count = 0; count < BL_ARRAY_SIZE(db); count++) {
           entry_init(entries + count + 1, names[count]);
           strcpy(buf, db[count]);
           parse_termcap_db(entries + count + 1, buf);

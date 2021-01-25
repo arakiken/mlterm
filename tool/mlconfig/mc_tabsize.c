@@ -5,6 +5,7 @@
 #include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_mem.h> /* free */
 #include <pobl/bl_debug.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 #include <glib.h>
 #include <c_intl.h>
 
@@ -48,7 +49,7 @@ GtkWidget *mc_tabsize_config_widget_new(void) {
 
   combo =
       mc_combo_new_with_width(_("Tab width (columns)"), tabsizes,
-                              sizeof(tabsizes) / sizeof(tabsizes[0]), new_tabsize, 0, 20, &entry);
+                              BL_ARRAY_SIZE(tabsizes), new_tabsize, 0, 20, &entry);
   g_signal_connect(entry, "changed", G_CALLBACK(tabsize_selected), NULL);
 
   return combo;

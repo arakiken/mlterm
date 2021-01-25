@@ -7,6 +7,7 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h> /* alloca */
 #include <pobl/bl_str.h> /* bl_str_to_int */
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #ifdef USE_OT_LAYOUT
 #include <otl.h>
@@ -94,7 +95,7 @@ static int parse_font_name(
         char *styles[] = { "italic",  "bold", "medium", "oblique", "light", "semi-bold", "heavy",
                            "semi-condensed", };
 
-        for (count = 0; count < sizeof(styles) / sizeof(styles[0]); count++) {
+        for (count = 0; count < BL_ARRAY_SIZE(styles); count++) {
           size_t len_v;
 
           len_v = strlen(styles[count]);

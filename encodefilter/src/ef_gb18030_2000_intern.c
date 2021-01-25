@@ -2,6 +2,8 @@
 
 #include "ef_gb18030_2000_intern.h"
 
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
+
 typedef struct gb18030_range {
   u_int32_t u_first;
   u_int32_t u_last;
@@ -46,7 +48,7 @@ int ef_decode_gb18030_2000_to_ucs4(u_char *ucs4,   /* should be 4 bytes. */
 
   linear = bytes_to_linear(gb18030);
 
-  for (count = 0; count < sizeof(gb18030_ranges) / sizeof(gb18030_ranges[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(gb18030_ranges); count++) {
     if (bytes_to_linear(gb18030_ranges[count].b_first) <= linear &&
         linear <= bytes_to_linear(gb18030_ranges[count].b_last)) {
       ucs4_code =
@@ -73,7 +75,7 @@ int ef_encode_ucs4_to_gb18030_2000(u_char *gb18030, /* should be 4 bytes */
   ucs4_code = ((ucs4[0] << 24) & 0xff000000) + ((ucs4[1] << 16) & 0xff0000) +
               ((ucs4[2] << 8) & 0xff00) + ucs4[3];
 
-  for (count = 0; count < sizeof(gb18030_ranges) / sizeof(gb18030_ranges[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(gb18030_ranges); count++) {
     if (gb18030_ranges[count].u_first <= ucs4_code && ucs4_code <= gb18030_ranges[count].u_last) {
       linear_to_bytes(gb18030, bytes_to_linear(gb18030_ranges[count].b_first) +
                                    (ucs4_code - gb18030_ranges[count].u_first));

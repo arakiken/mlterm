@@ -2021,7 +2021,7 @@ static ui_wlserv_t *open_wl_display(char *name) {
     int count;
     int has_cursor = 0;
 
-    for (count = 0; count < sizeof(names) / sizeof(names[0]); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(names); count++) {
       if ((wlserv->cursor[count] = wl_cursor_theme_get_cursor(wlserv->cursor_theme,
                                                               names[count]))) {
         has_cursor = 1;

@@ -3307,7 +3307,7 @@ u_int ui_window_get_mod_ignore_mask(ui_window_t *win, KeySym *keysyms) {
     KeyCode kc;
 
     kc = XKeysymToKeycode(win->disp->display, keysyms[count]);
-    for (ks_count = 0; ks_count < sizeof(masks) / sizeof(masks[0]); ks_count++) {
+    for (ks_count = 0; ks_count < BL_ARRAY_SIZE(masks); ks_count++) {
       int kc_count;
       KeyCode *key_codes;
 
@@ -3343,7 +3343,7 @@ u_int ui_window_get_mod_meta_mask(ui_window_t *win, char *mod_key) {
   if (mod_key) {
     int count;
 
-    for (count = 0; count < sizeof(mod_keys) / sizeof(mod_keys[0]); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(mod_keys); count++) {
       if (strcmp(mod_key, mod_keys[count]) == 0) {
         return mod_masks[count];
       }
@@ -3360,7 +3360,7 @@ u_int ui_window_get_mod_meta_mask(ui_window_t *win, char *mod_key) {
 
   key_codes = mod_map->modifiermap;
 
-  for (mask_count = 0; mask_count < sizeof(mod_masks) / sizeof(mod_masks[0]); mask_count++) {
+  for (mask_count = 0; mask_count < BL_ARRAY_SIZE(mod_masks); mask_count++) {
     int count;
 
     /*

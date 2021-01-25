@@ -225,7 +225,7 @@ static vt_font_t parse_key(const char *key) {
     }
   }
 
-  for (count = 0; count < sizeof(cs_table) / sizeof(cs_table[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(cs_table); count++) {
     size_t nlen;
 
     nlen = strlen(cs_table[count].name);
@@ -239,7 +239,7 @@ static vt_font_t parse_key(const char *key) {
     }
   }
 
-  if (count == sizeof(cs_table) / sizeof(cs_table[0])) {
+  if (count == BL_ARRAY_SIZE(cs_table)) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " %s is not valid charset.\n", key);
 #endif
@@ -1213,7 +1213,7 @@ char *ui_font_config_dump(ui_font_config_t *font_config) {
     } else {
       u_int count2;
 
-      for (count2 = 0; count2 < sizeof(cs_table) / sizeof(cs_table[0]); count2++) {
+      for (count2 = 0; count2 < BL_ARRAY_SIZE(cs_table); count2++) {
         if (FONT_CS(array[count]->key) == cs_table[count2].cs) {
           int min;
           int max;
@@ -1263,7 +1263,7 @@ char *ui_font_config_dump(ui_font_config_t *font_config) {
 char *ui_get_charset_name(ef_charset_t cs) {
   int count;
 
-  for (count = 0; count < sizeof(cs_table) / sizeof(cs_table[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(cs_table); count++) {
     if (cs_table[count].cs == cs) {
       return cs_table[count].name;
     }

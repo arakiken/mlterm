@@ -9,6 +9,7 @@
 #if defined(__CYGWIN__) || defined(__MSYS__)
 #include <pobl/bl_path.h> /* bl_conv_to_posix_path */
 #endif
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #include <mef/ef_utf8_conv.h>
 #include <mef/ef_utf16_parser.h>
@@ -80,7 +81,7 @@ int ui_dnd_filter_event(XEvent *event, ui_window_t *win) {
     UINT path_len;
 
     if ((path_len = DragQueryFileW(drop, count, utf16_path,
-                                   sizeof(utf16_path) / sizeof(utf16_path[0]))) > 0) {
+                                   BL_ARRAY_SIZE(utf16_path))) > 0) {
       u_char utf8_path[MAX_PATH];
 
 #ifdef USE_WIN32API

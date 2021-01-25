@@ -5,12 +5,13 @@
 #include <stdio.h>         /* sscanf */
 #include <string.h>        /* strcmp */
 #include <pobl/bl_types.h> /* size_t */
+#include <pobl/bl_util.h>  /* BL_ARRAY_SIZE */
 
 #if 0
 #define SELF_TEST
 #endif
 
-#define TABLE_SIZE (sizeof(keysym_table) / sizeof(keysym_table[0]))
+#define TABLE_SIZE (BL_ARRAY_SIZE(keysym_table))
 
 static struct {
   char *str;
@@ -189,7 +190,7 @@ void TEST_xstringtokeysym(void) {
     assert(XStringToKeysym(keysym_table[count].str) == keysym_table[count].ksym);
   }
 
-  for (count = 0; count < sizeof(array) / sizeof(array[0]); count++) {
+  for (count = 0; count < BL_ARRAY_SIZE(array); count++) {
     assert(XStringToKeysym(array[count].str) == array[count].ksym);
   }
 

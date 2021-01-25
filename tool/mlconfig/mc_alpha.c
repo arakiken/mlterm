@@ -5,6 +5,7 @@
 #include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_mem.h> /* free */
 #include <pobl/bl_debug.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 #include <glib.h>
 #include <c_intl.h>
 
@@ -46,7 +47,7 @@ GtkWidget *mc_alpha_config_widget_new(void) {
   new_alpha = strdup(old_alpha = mc_get_str_value("alpha"));
   is_changed = 0;
 
-  combo = mc_combo_new_with_width(_("Alpha"), alphas, sizeof(alphas) / sizeof(alphas[0]), new_alpha,
+  combo = mc_combo_new_with_width(_("Alpha"), alphas, BL_ARRAY_SIZE(alphas), new_alpha,
                                   0, 50, &entry);
   g_signal_connect(entry, "changed", G_CALLBACK(alpha_selected), NULL);
 

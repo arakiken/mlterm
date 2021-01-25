@@ -15,6 +15,7 @@ ui_window_t *ui_is_virtual_kbd_area(int y) { return NULL; }
 #else /* NO_IMAGE */
 
 #include <pobl/bl_debug.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #include "../ui_imagelib.h"
 
@@ -434,7 +435,7 @@ int ui_virtual_kbd_read(XKeyEvent *kev, XButtonEvent *bev) {
     x = bev->x - x_off;
 
     for (count = 0, key_group = kbd_key_groups;
-         count < sizeof(kbd_key_groups) / sizeof(kbd_key_groups[0]); count++, key_group++) {
+         count < BL_ARRAY_SIZE(kbd_key_groups); count++, key_group++) {
       if (y < key_group->top) {
         break;
       }

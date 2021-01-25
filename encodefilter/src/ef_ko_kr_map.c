@@ -2,6 +2,8 @@
 
 #include "ef_ko_kr_map.h"
 
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
+
 #include "ef_iso2022_intern.h"
 #include "ef_ucs4_map.h"
 #include "ef_ucs4_ksc5601.h"
@@ -14,15 +16,14 @@
  * ucs4 -> johab conversion is done first of all.
  */
 static ef_map_ucs4_to_func_t map_ucs4_to_funcs[] = {
-    ef_map_ucs4_to_johab, ef_map_ucs4_to_ksc5601_1987, ef_map_ucs4_to_uhc,
-
+  ef_map_ucs4_to_johab, ef_map_ucs4_to_ksc5601_1987, ef_map_ucs4_to_uhc,
 };
 
 /* --- global functions --- */
 
 int ef_map_ucs4_to_ko_kr(ef_char_t *kokr, ef_char_t *ucs4) {
   return ef_map_ucs4_to_with_funcs(kokr, ucs4, map_ucs4_to_funcs,
-                                    sizeof(map_ucs4_to_funcs) / sizeof(map_ucs4_to_funcs[0]));
+                                   BL_ARRAY_SIZE(map_ucs4_to_funcs));
 }
 
 int ef_map_uhc_to_ksc5601_1987(ef_char_t *ksc, ef_char_t *uhc) {

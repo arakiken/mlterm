@@ -6,6 +6,7 @@
 #include <pobl/bl_mem.h> /* free */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_conf_io.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 #include <glib.h>
 #include <c_intl.h>
 #include <pobl/bl_types.h>
@@ -102,7 +103,7 @@ GtkWidget *mc_sb_view_config_widget_new(void) {
   GtkWidget *combo;
   GtkWidget *entry;
 
-  for (n = 0; n < sizeof(sb_view0) / sizeof(sb_view0[0]); n++) {
+  for (n = 0; n < BL_ARRAY_SIZE(sb_view0); n++) {
     sb_view_names[n] = sb_view0[n];
   }
 

@@ -2,6 +2,8 @@
 
 #include "ef_zh_cn_map.h"
 
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
+
 #include "ef_iso2022_intern.h"
 #include "ef_ucs4_map.h"
 #include "ef_ucs4_gb2312.h"
@@ -10,14 +12,14 @@
 /* --- static variables --- */
 
 static ef_map_ucs4_to_func_t map_ucs4_to_funcs[] = {
-    ef_map_ucs4_to_gb2312_80, ef_map_ucs4_to_gbk,
+  ef_map_ucs4_to_gb2312_80, ef_map_ucs4_to_gbk,
 };
 
 /* --- global functions --- */
 
 int ef_map_ucs4_to_zh_cn(ef_char_t *zhcn, ef_char_t *ucs4) {
   return ef_map_ucs4_to_with_funcs(zhcn, ucs4, map_ucs4_to_funcs,
-                                    sizeof(map_ucs4_to_funcs) / sizeof(map_ucs4_to_funcs[0]));
+                                   BL_ARRAY_SIZE(map_ucs4_to_funcs));
 }
 
 int ef_map_gbk_to_gb2312_80(ef_char_t *gb2312, ef_char_t *gbk) {

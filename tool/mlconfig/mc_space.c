@@ -5,6 +5,7 @@
 #include <pobl/bl_str.h>
 #include <pobl/bl_mem.h> /* free */
 #include <pobl/bl_debug.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 #include <glib.h>
 #include <c_intl.h>
 
@@ -71,10 +72,10 @@ GtkWidget *mc_space_config_widget_new(int id) {
   free(value);
 
   if (id == MC_SPACE_LETTER) {
-    combo = mc_combo_new_with_width(_(labels[id]), spaces2, sizeof(spaces2) / sizeof(spaces2[0]),
+    combo = mc_combo_new_with_width(_(labels[id]), spaces2, BL_ARRAY_SIZE(spaces2),
                                     new_values[id], 0, 20, &entry);
   } else {
-    combo = mc_combo_new_with_width(_(labels[id]), spaces, sizeof(spaces) / sizeof(spaces[0]),
+    combo = mc_combo_new_with_width(_(labels[id]), spaces, BL_ARRAY_SIZE(spaces),
                                     new_values[id], 0, 20, &entry);
   }
 

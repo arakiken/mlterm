@@ -91,7 +91,7 @@ static int sticky_shift_ch;
 static void preedit_add(im_skk_t *skk, wchar wch) {
   ef_char_t ch;
 
-  if (skk->preedit_len >= sizeof(skk->preedit) / sizeof(skk->preedit[0])) {
+  if (skk->preedit_len >= BL_ARRAY_SIZE(skk->preedit)) {
     return;
   }
 

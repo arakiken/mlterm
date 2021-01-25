@@ -1307,7 +1307,7 @@ int ui_screen_manager_init(char *_mlterm_version, u_int _depth, u_int _max_scree
     char key3[] = "Button3";
     char *keys[] = {key0, key1, key2, key3};
 
-    for (count = 0; count < sizeof(keys) / sizeof(keys[0]); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(keys); count++) {
       if (main_config.shortcut_strs[count]) {
         ui_shortcut_parse(&shortcut, keys[count], main_config.shortcut_strs[count]);
       }

@@ -4,6 +4,8 @@
 
 #include <string.h> /* strcmp */
 
+#include "bl_util.h" /* BL_ARRAY_SIZE */
+
 /* --- global functions --- */
 
 int bl_map_rehash(int hash_key, u_int size) {
@@ -63,30 +65,29 @@ void TEST_bl_map(void) {
 
   bl_map_new_with_size(int, char *, map, bl_map_hash_int, bl_map_compare_int, DEFAULT_MAP_SIZE);
 
-  for (key = 0; key < sizeof(table) / sizeof(table[0]); key++) {
+  for (key = 0; key < BL_ARRAY_SIZE(table); key++) {
     bl_map_set(result, map, key * 3, table[key]);
   }
 
-  assert(map->map_size ==
-         ((sizeof(table) / sizeof(table[0]) + MAP_MARGIN_SIZE + DEFAULT_MAP_SIZE - 1)
-          / DEFAULT_MAP_SIZE) * DEFAULT_MAP_SIZE); /* 16 */
-  assert(map->filled_size == sizeof(table) / sizeof(table[0]));
+  assert(map->map_size == ((BL_ARRAY_SIZE(table) + MAP_MARGIN_SIZE + DEFAULT_MAP_SIZE - 1)
+                           / DEFAULT_MAP_SIZE) * DEFAULT_MAP_SIZE); /* 16 */
+  assert(map->filled_size == BL_ARRAY_SIZE(table));
 
-  for (key = 0; key < sizeof(table) / sizeof(table[0]); key++) {
+  for (key = 0; key < BL_ARRAY_SIZE(table); key++) {
     bl_map_get(map, key * 3, pair);
     assert(strcmp(table[key], pair->value) == 0);
   }
 
-  for (key = 0; key < sizeof(table) / sizeof(table[0]) - 2; key++) {
+  for (key = 0; key < BL_ARRAY_SIZE(table) - 2; key++) {
     bl_map_erase(result, map, key * 3);
   }
 
   assert(map->map_size == 8);
   assert(map->filled_size == 2);
 
-  for (key = 0; key < sizeof(table) / sizeof(table[0]); key++) {
+  for (key = 0; key < BL_ARRAY_SIZE(table); key++) {
     bl_map_get(map, key * 3, pair);
-    if (key >= sizeof(table) / sizeof(table[0]) - 2) {
+    if (key >= BL_ARRAY_SIZE(table) - 2) {
       assert(strcmp(table[key], pair->value) == 0);
     } else {
       assert(pair == NULL);
@@ -96,7 +97,7 @@ void TEST_bl_map(void) {
   bl_map_get_pairs_array(map, array, size);
 
   for (key = 0; key < size; key++) {
-    assert(strcmp(table[key + sizeof(table) / sizeof(table[0]) - 2], array[key]->value) == 0);
+    assert(strcmp(table[key + BL_ARRAY_SIZE(table) - 2], array[key]->value) == 0);
   }
 
   bl_map_destroy(map);

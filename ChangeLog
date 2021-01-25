@@ -1,3 +1,13 @@
+2021-01-25  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c: write_loopback() doesn't reset vt_parser->r_buf.left
+	  and vt_parser->r_buf.filled_len if mlterm works as libvterm
+	  compatible library.
+
+	* ui_screen.c etc: sizeof(a) / sizeof(a[0]) => BL_ARRAY_SIZE
+
+	* bl_util.h: BL_ARRAY_SIZE is added.
+
 2021-01-16  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_logical_visual.c, vt_parser.c:

@@ -1905,7 +1905,7 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
         key0, key1, key2,
     };
 
-    for (count = 0; count < sizeof(keys) / sizeof(keys[0]); count++) {
+    for (count = 0; count < BL_ARRAY_SIZE(keys); count++) {
       if (main_config.shortcut_strs[count]) {
         ui_shortcut_parse(&shortcut, keys[count], main_config.shortcut_strs[count]);
       }

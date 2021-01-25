@@ -5,6 +5,7 @@
 #include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_mem.h> /* free */
 #include <pobl/bl_debug.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 #include <glib.h>
 #include <c_intl.h>
 
@@ -47,7 +48,7 @@ GtkWidget *mc_click_interval_config_widget_new(void) {
   is_changed = 0;
 
   combo = mc_combo_new_with_width(_("Double click interval (msec)"), click_intervals,
-                                  sizeof(click_intervals) / sizeof(click_intervals[0]),
+                                  BL_ARRAY_SIZE(click_intervals),
                                   new_click_interval, 0, 50, &entry);
   g_signal_connect(entry, "changed", G_CALLBACK(click_interval_selected), NULL);
 

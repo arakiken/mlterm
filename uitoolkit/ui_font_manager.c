@@ -458,7 +458,7 @@ int ui_set_use_italic_font(ui_font_manager_t *font_man, int use_italic_font) {
 
 ef_charset_t ui_get_usascii_font_cs(vt_char_encoding_t encoding) {
   if (encoding < 0 ||
-      sizeof(usascii_font_cs_table) / sizeof(usascii_font_cs_table[0]) <= encoding) {
+      BL_ARRAY_SIZE(usascii_font_cs_table) <= encoding) {
     return ISO8859_1_R;
   }
 #ifdef DEBUG

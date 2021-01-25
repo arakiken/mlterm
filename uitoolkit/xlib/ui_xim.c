@@ -10,6 +10,7 @@
 #include <pobl/bl_str.h>    /* strdup */
 #include <pobl/bl_locale.h> /* bl_locale_init/bl_get_locale/bl_get_codeset */
 #include <pobl/bl_mem.h>    /* alloca/realloc */
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #include "../ui_xic.h" /* refering mutually */
 
@@ -460,13 +461,13 @@ XIMStyle ui_xim_get_style(ui_window_t *win) {
 
   if (!(selected_style =
             search_xim_style(xim_styles, over_the_spot_styles,
-                             sizeof(over_the_spot_styles) / sizeof(over_the_spot_styles[0])))) {
+                             BL_ARRAY_SIZE(over_the_spot_styles)))) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " over the spot style not found.\n");
 #endif
 
     if (!(selected_style = search_xim_style(xim_styles, root_styles,
-                                            sizeof(root_styles) / sizeof(root_styles[0])))) {
+                                            BL_ARRAY_SIZE(root_styles)))) {
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG " root style not found.\n");
 #endif
