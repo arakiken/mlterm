@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ $# != 1 ]; then
+if [ $# != 1 -a $# != 3 ]; then
 	echo "Usage: prepare.sh [android project path]"
 	echo "(prepare.sh ~/work/mlterm-x.x.x/android => setup at ~/work/mlterm-x.x.x/android)"
 	echo "(prepare.sh . => setup at the current directory)"
@@ -13,7 +13,70 @@ echo "Prepare to build for android. (project: ${PROJECT_PATH})"
 echo "Press enter key to continue."
 read IN
 
-mkdir -p ${PROJECT_PATH}/app/src/main
+if [ $# = 3 ]; then
+	MOSH_SRC_PATH=$2
+	OPENSSL_SRC_PATH=$3
+
+	if [ ! -d ${MOSH_SRC_PATH} ]; then
+		echo "${MOSH_SRC_PATH} doesn't exist."
+		exit 1
+	elif [ ! -d ${OPENSSL_SRC_PATH}/include/openssl ]; then
+		echo "${OPENSSL_SRC_PATH}/include/openssl doesn't exist."
+		exit 1
+	fi
+
+	mkdir -p ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
+
+	CRYPTO_FILES="ae.h base64.cc base64.h byteorder.h crypto.cc crypto.h ocb.cc prng.h"
+	STATESYNC_FILES="completeterminal.cc completeterminal.h user.cc user.h"
+	NETWORK_FILES="compressor.cc compressor.h network.cc network.h networktransport.h \
+			networktransport-impl.h transportfragment.cc transportfragment.h \
+			transportsender.h transportsender-impl.h transportstate.h"
+	UTIL_FILES="dos_assert.h fatal_assert.h shared.h timestamp.cc timestamp.h"
+	PROTOBUFS_FILES="hostinput.pb.cc hostinput.pb.h transportinstruction.pb.cc \
+			transportinstruction.pb.h userinput.pb.cc userinput.pb.h"
+	TERMINAL_FILES="parseraction.cc parseraction.h parser.cc parser.h parserstate.cc \
+			parserstatefamily.h parserstate.h parsertransition.h terminal.cc \
+			terminaldispatcher.cc terminaldispatcher.h terminaldisplay.cc terminaldisplay.h \
+			terminalframebuffer.cc terminalframebuffer.h terminalfunctions.cc \
+			terminal.h terminaluserinput.cc terminaluserinput.h"
+	FRONTEND_FILES="terminaloverlay.cc terminaloverlay.h"
+
+	for f in $CRYPTO_FILES; do
+		cp ${MOSH_SRC_PATH}/src/crypto/$f ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
+	done
+
+	for f in $STATESYNC_FILES; do
+		cp ${MOSH_SRC_PATH}/src/statesync/$f ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
+	done
+
+	for f in $NETWORK_FILES; do
+		cp ${MOSH_SRC_PATH}/src/network/$f ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
+	done
+
+	for f in $UTIL_FILES; do
+		cp ${MOSH_SRC_PATH}/src/util/$f ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
+	done
+
+	for f in $PROTOBUFS_FILES; do
+		cp ${MOSH_SRC_PATH}/src/protobufs/$f ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
+	done
+
+	for f in $TERMINAL_FILES; do
+		cp ${MOSH_SRC_PATH}/src/terminal/$f ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
+	done
+
+	for f in $FRONTEND_FILES; do
+		cp ${MOSH_SRC_PATH}/src/frontend/$f ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
+	done
+
+	cp ${MOSH_SRC_PATH}/config.h ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
+	echo "Set HAVE_TR1_MEMORY macro undefined."
+
+	cp -r ${OPENSSL_SRC_PATH}/include/openssl ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
+else
+	mkdir -p ${PROJECT_PATH}/app/src/main
+fi
 
 (cd ${PROJECT_PATH}; rm build.gradle settings.gradle app/build.gradle; gradle init)
 if [ $? != 0 ]; then

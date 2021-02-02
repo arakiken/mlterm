@@ -10,6 +10,8 @@
 
 #include "../ui_connect_dialog.h"
 
+#include "ui_display.h" /* ui_display_show_dialog */
+
 /* --- static variables --- */
 
 static char *d_uri;
@@ -51,7 +53,8 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
 }
 
 void Java_mlterm_native_1activity_MLActivity_dialogOkClicked(JNIEnv *env, jobject this,
-                                                             jstring user, jstring serv,
+                                                             jstring user,
+                                                             jstring serv /* can include proto */,
                                                              jstring port, jstring encoding,
                                                              jstring pass, jstring exec_cmd,
                                                              jstring privkey) {
@@ -66,6 +69,7 @@ void Java_mlterm_native_1activity_MLActivity_dialogOkClicked(JNIEnv *env, jobjec
   u = (*env)->GetStringUTFChars(env, user, NULL);
   p = (*env)->GetStringUTFChars(env, port, NULL);
   e = (*env)->GetStringUTFChars(env, encoding, NULL);
+
   uri_len = strlen(s) + 1;
   if ((len = strlen(u)) > 0) {
     uri_len += (len + 1);
@@ -78,12 +82,22 @@ void Java_mlterm_native_1activity_MLActivity_dialogOkClicked(JNIEnv *env, jobjec
   }
 
   if ((d_uri = malloc(uri_len))) {
-    *d_uri = '\0';
+    const char *s2 = strstr(s, "://");
+
+    if (s2) {
+      s2 += 3;
+      memcpy(d_uri, s, s2 - s); /* copy "<proto>://" */
+      d_uri[s2 - s] = '\0';
+    } else {
+      s2 = s;
+      *d_uri = '\0';
+    }
+
     if (*u) {
       strcat(d_uri, u);
       strcat(d_uri, "@");
     }
-    strcat(d_uri, s);
+    strcat(d_uri, s2);
     if (*p) {
       strcat(d_uri, ":");
       strcat(d_uri, p);
@@ -98,10 +112,6 @@ void Java_mlterm_native_1activity_MLActivity_dialogOkClicked(JNIEnv *env, jobjec
   (*env)->ReleaseStringUTFChars(env, user, u);
   (*env)->ReleaseStringUTFChars(env, port, p);
   (*env)->ReleaseStringUTFChars(env, encoding, e);
-
-  if (*s == '\0') {
-    return ;
-  }
 
   p = (*env)->GetStringUTFChars(env, pass, NULL);
   e = (*env)->GetStringUTFChars(env, exec_cmd, NULL);

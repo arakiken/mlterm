@@ -1,3 +1,22 @@
+2021-02-03  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_pty_mosh.cpp: dead_network >= 0 => dead_network->tcp_sock >= 0
+
+	* android/jni/ui_display.c: proto of bl_parse_uri() is passed to
+	  showConnectDialog().
+
+	* android/jni/ui_connect_dialog.c: 'serv' argument of
+	  Java_mlterm_native_1activity_MLActivity_dialogOkClicked()
+	  can include "<scheme>://".
+
+	* MLActivity.java:
+	  - "mosh://" is supported in 'Server' text field of the connect dialog.
+	  - 'proto' is added to arguments of showConnectDialog().
+
+	* prepare-gradle.sh: mosh is supported.
+
+	* Android.mk: Settings to build libptymosh are added.
+
 2021-01-25  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: write_loopback() doesn't reset vt_parser->r_buf.left

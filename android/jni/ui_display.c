@@ -1013,6 +1013,7 @@ void ui_display_send_text_selection(u_char *sel_data, size_t sel_len) {
 
 void ui_display_show_dialog(char *server, char *privkey) {
   char *server_dup;
+  char *proto;
   char *user;
   char *host;
   char *port;
@@ -1026,8 +1027,8 @@ void ui_display_show_dialog(char *server, char *privkey) {
 
   if (server == NULL ||
       !(server_dup = alloca(strlen(server) + 1)) ||
-      !bl_parse_uri(NULL, &user, &host, &port, NULL, &encoding, strcpy(server_dup, server))) {
-    user = host = port = encoding = NULL;
+      !bl_parse_uri(&proto, &user, &host, &port, NULL, &encoding, strcpy(server_dup, server))) {
+    proto = user = host = port = encoding = NULL;
   }
 
   if (!privkey) {
@@ -1044,7 +1045,8 @@ void ui_display_show_dialog(char *server, char *privkey) {
                                              "showConnectDialog",
                                              "(Ljava/lang/String;Ljava/lang/String;"
                                              "Ljava/lang/String;Ljava/lang/String;"
-                                             "Ljava/lang/String;)V"),
+                                             "Ljava/lang/String;Ljava/lang/String;)V"),
+                         proto ? (*env)->NewStringUTF(env, proto) : NULL,
                          user ? (*env)->NewStringUTF(env, user) : NULL,
                          host ? (*env)->NewStringUTF(env, host) : NULL,
                          port ? (*env)->NewStringUTF(env, port) : NULL,

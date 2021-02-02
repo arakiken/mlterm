@@ -55,7 +55,8 @@ public class MLActivity extends NativeActivity {
   private native void preeditText(String str);
   private native String convertToTmpPath(String path);
   private native void splitAnimationGif(String path);
-  private native void dialogOkClicked(String user, String serv, String port, String encoding,
+  private native void dialogOkClicked(String user, String serv /* can include proto */,
+                                      String port, String encoding,
                                       String pass, String cmd, String privkey);
   private native void updateScreen();
   private native void execCommand(String cmd);
@@ -642,7 +643,14 @@ public class MLActivity extends NativeActivity {
           String server = ((EditText)tableRow.getChildAt(1)).getText().toString();
 
           if (!server.isEmpty()) {
-            out.write("ssh://");
+            int proto_end = server.indexOf("://");
+
+            if (proto_end == -1) {
+              out.write("ssh://");
+            } else {
+              out.write(server.substring(0, proto_end + 3));
+              server = server.substring(proto_end + 3);
+            }
 
             String user = ((EditText)tableRow.getChildAt(2)).getText().toString();
 
@@ -683,7 +691,13 @@ public class MLActivity extends NativeActivity {
     final EditText e_privkey = new EditText(this);
 
     if (uri != null) {
-      e_serv.setText(uri.getHost());
+      String proto = uri.getScheme();
+
+      if (proto.equals("mosh")) {
+        e_serv.setText("mosh://" + uri.getHost());
+      } else {
+        e_serv.setText(uri.getHost());
+      }
       e_user.setText(uri.getUserInfo());
       int port = uri.getPort();
       if (port != -1) {
@@ -814,8 +828,8 @@ public class MLActivity extends NativeActivity {
   }
 
   /* Called from native activity thread */
-  private void showConnectDialog(String user, String serv, String port, String encoding,
-                                 String privkey) {
+  private void showConnectDialog(String proto, String user, String serv, String port,
+                                 String encoding, String privkey) {
     nativeThread = Thread.currentThread();
 
     if (serv == null) {
@@ -842,6 +856,7 @@ public class MLActivity extends NativeActivity {
      */
     if (serv_edit != null) {
       serv = serv_edit.getText().toString();
+      proto = null; /* Prefer the value of showServerList() */
     }
     if (user_edit != null) {
       user = user_edit.getText().toString();
@@ -889,7 +904,11 @@ public class MLActivity extends NativeActivity {
     boolean serv_value_is_set;
 
     if (serv != null && !serv.isEmpty()) {
-      serv_edit.setText(serv, TextView.BufferType.NORMAL);
+      if (proto == null) {
+        serv_edit.setText(serv, TextView.BufferType.NORMAL);
+      } else {
+        serv_edit.setText(proto + "://" + serv, TextView.BufferType.NORMAL);
+      }
       serv_value_is_set = true;
     } else {
       serv_value_is_set = false;

@@ -594,7 +594,7 @@ static int final(vt_pty_t *pty) {
    */
   dead_network = pty_mosh->network;
 #ifdef MOSH_SIXEL
-  if (dead_network >= 0) {
+  if (dead_network->tcp_sock >= 0) {
     closesocket(dead_network->tcp_sock);
     dead_network->tcp_sock = -1; /* for dead_network->tick() not to send via tcp_sock */
   }

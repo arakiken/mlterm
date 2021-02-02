@@ -45,18 +45,41 @@ else
 endif
 
 ifneq (,$(wildcard $(JNI_PATH)libssh2/$(TARGET_ARCH_ABI)/lib/libssh2.a))
-	LIBSSH2_SRC_FILES := vtemu/vt_pty_ssh.c vtemu/vt_pty_mosh.c
+	LIBSSH2_SRC_FILES := vtemu/vt_pty_ssh.c
 	LIBSSH2_CFLAGS := -DUSE_LIBSSH2 -DNO_DYNAMIC_LOAD_SSH
 	LIBSSH2_INCLUDES := $(JNI_PATH)libssh2/$(TARGET_ARCH_ABI)/include
 	LIBSSH2_LDLIBS := $(JNI_PATH)libssh2/$(TARGET_ARCH_ABI)/lib/libssh2.a $(JNI_PATH)libssh2/$(TARGET_ARCH_ABI)/lib/libcrypto.a -lz
 	#LIBSSH2_LDLIBS := -L$(JNI_PATH)libssh2/$(TARGET_ARCH_ABI)/lib -lz
 	#LIBSSH2_STATICLIBS := ssh2 crypto
+
+	ifneq (,$(wildcard $(JNI_PATH)protobuf/$(TARGET_ARCH_ABI)/lib/libprotobuf.a))
+		MOSH_SRC_FILES := vtemu/libptymosh/userinput.pb.cc vtemu/libptymosh/vt_pty_mosh.cpp \
+			vtemu/libptymosh/hostinput.pb.cc vtemu/libptymosh/transportinstruction.pb.cc \
+			vtemu/libptymosh/compressor.cc vtemu/libptymosh/network.cc \
+			vtemu/libptymosh/transportfragment.cc vtemu/libptymosh/base64.cc vtemu/libptymosh/crypto.cc \
+			vtemu/libptymosh/ocb.cc vtemu/libptymosh/parser.cc vtemu/libptymosh/parseraction.cc \
+			vtemu/libptymosh/parserstate.cc vtemu/libptymosh/terminal.cc \
+			vtemu/libptymosh/terminaldispatcher.cc vtemu/libptymosh/terminaldisplay.cc \
+			vtemu/libptymosh/terminaldisplayinit.cc vtemu/libptymosh/terminalframebuffer.cc \
+			vtemu/libptymosh/terminalfunctions.cc vtemu/libptymosh/terminaluserinput.cc \
+			vtemu/libptymosh/timestamp.cc vtemu/libptymosh/completeterminal.cc \
+			vtemu/libptymosh/user.cc vtemu/libptymosh/terminaloverlay.cc
+		MOSH_INCLUDES := $(JNI_PATH)protobuf/$(TARGET_ARCH_ABI)/include $(JNI_PATH)vtemu/libptymosh
+		# If you use -lc++_shared, add "APP_STL := c++_shared" to Aplication.mk
+		# (See https://developer.android.com/ndk/guides/cpp-support?hl=ja)
+		MOSH_LDLIBS := $(JNI_PATH)protobuf/$(TARGET_ARCH_ABI)/lib/libprotobuf.a -lc++_static
+	else
+		MOSH_SRC_FILES := vtemu/vt_pty_mosh.c
+	endif
 else
 	LIBSSH2_SRC_FILES :=
 	LIBSSH2_CFLAGS :=
 	LIBSSH2_INCLUDES :=
 	#LIBSSH2_LDLIBS :=
 	#LIBSSH2_STATICLIBS :=
+	MOSH_SRC_FILES :=
+	MOSH_INCLUDES :=
+	MOSH_LDLIBS :=
 endif
 
 LOCAL_SRC_FILES := baselib/src/bl_map.c baselib/src/bl_args.c \
@@ -104,7 +127,7 @@ LOCAL_SRC_FILES := baselib/src/bl_map.c baselib/src/bl_args.c \
 		libind/indian.c libind/lex.split.c vtemu/libctl/vt_iscii.c \
 		vtemu/libctl/vt_shape_iscii.c vtemu/libctl/vt_line_iscii.c \
 		vtemu/vt_ot_layout.c vtemu/vt_transfer.c vtemu/zmodem.c \
-		$(OTL_SRC_FILES) $(FRIBIDI_SRC_FILES) $(LIBSSH2_SRC_FILES) \
+		$(OTL_SRC_FILES) $(FRIBIDI_SRC_FILES) $(LIBSSH2_SRC_FILES) $(MOSH_SRC_FILES) \
 		uitoolkit/fb/ui.c uitoolkit/fb/ui_font.c uitoolkit/ui_mod_meta_mode.c uitoolkit/ui_shortcut.c \
 		uitoolkit/ui_bel_mode.c uitoolkit/ui_font_cache.c uitoolkit/ui_picture.c \
 		uitoolkit/fb/ui_color.c uitoolkit/ui_font_config.c uitoolkit/ui_sb_mode.c \
@@ -121,16 +144,19 @@ LOCAL_SRC_FILES := baselib/src/bl_map.c baselib/src/bl_args.c \
 		uitoolkit/fb/ui_selection_encoding.c uitoolkit/ui_emoji.c uitoolkit/test.c \
 		main/daemon.c main/main_loop.c main/main.c
 
-LOCAL_CFLAGS := -DNO_DYNAMIC_LOAD_TABLE -DNO_DYNAMIC_LOAD_CTL -DSTATIC_LINK_INDIC_TABLES -DUSE_IND $(FRIBIDI_CFLAGS) $(FT_CFLAGS) $(OTL_CFLAGS) $(LIBSSH2_CFLAGS) -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER -DBUILTIN_IMAGELIB -DNO_DYNAMIC_LOAD_TRANSFER $(LOCAL_CFLAGS_DEB)
+LOCAL_CFLAGS := -DNO_DYNAMIC_LOAD_TABLE -DNO_DYNAMIC_LOAD_CTL -DSTATIC_LINK_INDIC_TABLES -DUSE_IND $(FRIBIDI_CFLAGS) $(FT_CFLAGS) $(OTL_CFLAGS) $(LIBSSH2_CFLAGS) $(MOSH_CFLAGS) -DLIBDIR=\"/sdcard/.mlterm/lib/\" -DNO_DYNAMIC_LOAD_TYPE -DUSE_TYPE_XCORE -DLIBEXECDIR=\"/sdcard/.mlterm/libexec/\" -DUSE_FRAMEBUFFER -DBUILTIN_IMAGELIB -DNO_DYNAMIC_LOAD_TRANSFER $(LOCAL_CFLAGS_DEB)
 
-LOCAL_LDLIBS := -llog -landroid $(FT_LDLIBS) $(LIBSSH2_LDLIBS)
+LOCAL_LDLIBS := $(FT_LDLIBS) $(MOSH_LDLIBS) $(LIBSSH2_LDLIBS) -llog -landroid
 
-LOCAL_C_INCLUDES := $(JNI_PATH)baselib $(JNI_PATH)encodefilter $(JNI_PATH)vtemu $(JNI_PATH)uitoolkit $(JNI_PATH)libind $(FRIBIDI_INCLUDES) $(FT_INCLUDES) $(OTL_INCLUDES) $(LIBSSH2_INCLUDES)
+LOCAL_C_INCLUDES := $(JNI_PATH)baselib $(JNI_PATH)encodefilter $(JNI_PATH)vtemu $(JNI_PATH)uitoolkit $(JNI_PATH)libind $(FRIBIDI_INCLUDES) $(FT_INCLUDES) $(OTL_INCLUDES) $(LIBSSH2_INCLUDES) $(MOSH_INCLUDES)
 
 LOCAL_STATIC_LIBRARIES := android_native_app_glue #$(FT_STATICLIBS) $(LIBSSH2_STATICLIBS)
 
 #APP_ALLOW_MISSING_DEPS := true
 LOCAL_ALLOW_UNDEFINED_SYMBOLS := true
+
+# android ndk disables C++ exception by default.
+LOCAL_CPPFLAGS := -fexceptions -frtti
 
 include $(BUILD_SHARED_LIBRARY)
 
