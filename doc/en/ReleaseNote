@@ -10,6 +10,7 @@
   https://github.com/arakiken/mlterm/pull/5
 * Bug fixes:
   Fix failure of restarting mlterm on Android. (Enbugged at 3.9.1)
+  Fix segfault if mlterm screen with -t option goes outside of the display.
 
 ver 3.9.1
 * Support copy mode which starts by Control+Shift+Return.

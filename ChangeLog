@@ -1,3 +1,8 @@
+2021-02-06  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/ui_window.c: Segfault is fixed if mlterm screen with -t option
+	  goes outside of the display.
+
 2021-02-03  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_pty_mosh.cpp: dead_network >= 0 => dead_network->tcp_sock >= 0

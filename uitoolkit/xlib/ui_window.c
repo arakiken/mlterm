@@ -216,6 +216,19 @@ static int update_transparent_picture(ui_window_t *win) {
   ui_picture_t *pic;
 
   if (!(pic = ui_acquire_bg_picture(win, win->pic_mod, "root"))) {
+    /*
+     * Setting ParentRelative causes segfault on awesome if mlterm window
+     * goes outside of the display.
+     * So if ui_acquire_bg_picture() failes by ui_window_get_visible_geometry()
+     * (see xlib/ui_imagelib.c), return 1 not to set ParentRelative in
+     * set_transparent().
+     */
+    int x, y, pix_x, pix_y, width, height;
+
+    if (!ui_window_get_visible_geometry(win, &x, &y, &pix_x, &pix_y, &width, &height)) {
+      return 1;
+    }
+
     goto error1;
   }
 
