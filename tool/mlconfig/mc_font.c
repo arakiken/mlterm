@@ -837,7 +837,7 @@ GtkWidget *mc_font_config_widget_new(void) {
   hbox = gtk_hbox_new(FALSE, 0);
   gtk_widget_show(hbox);
 
-  if ((cslist = alloca(BL_ARRAY_SIZE(char*) * sizeof(cs_info_table)))) {
+  if ((cslist = alloca(sizeof(char*) * sizeof(cs_info_table)))) {
     int count;
 
     for (count = 0; count < BL_ARRAY_SIZE(cs_info_table); count++) {

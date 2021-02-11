@@ -1,3 +1,7 @@
+2021-02-11  Araki Ken  <arakiken@users.sf.net>
+
+	* mc_font.c: Compiling error is fixed.
+
 2021-02-06  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/ui_window.c: Segfault is fixed if mlterm screen with -t option
