@@ -21,7 +21,7 @@
 
 /* --- global functions --- */
 
-#if !defined(HAVE_BASENAME) || defined(USE_WIN32API)
+#if !defined(HAVE_BASENAME) || defined(USE_WIN32API) || defined(BL_DEBUG)
 
 char* __bl_basename(char *path) {
   char *p;
@@ -466,20 +466,30 @@ static void TEST_bl_path_common(void) {
   assert(strcmp(encoding, "eucjp") == 0);
 }
 
+static void TEST_bl_basename(void) {
+  char path1[] = "/foo/bar/";
+  char path2[] = "/foo/bar";
+  char path3[] = "/f o o/ b a r";
+#ifdef USE_WIN32API
+  /* Hyou (SJIS) = \x95\x5c (0x5c = \) */
+  char path4[] = "/foo/\x95\x5c bar";
+#endif
+
+  assert(strcmp(__bl_basename(path1), "bar") == 0);
+  assert(strcmp(__bl_basename(path2), "bar") == 0);
+  assert(strcmp(__bl_basename(path3), " b a r") == 0);
+#ifdef USE_WIN32API
+  assert(strcmp(__bl_basename(path4), "\x95\x5c bar") == 0);
+#endif
+}
+
 void TEST_bl_path(void) {
 #if defined(__CYGWIN__) || defined(__MSYS__)
   TEST_bl_path_win32();
 #endif
   TEST_bl_path_common();
+  TEST_bl_basename();
 
   bl_msg_printf("PASS bl_path test.\n");
 }
 #endif /* BL_DEBUG */
-
-#ifdef __DEBUG
-int main(int argc, char **argv) {
-  printf("%s\n", __bl_basename(argv[1]));
-
-  return 0;
-}
-#endif

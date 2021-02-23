@@ -35,6 +35,8 @@ ef_conv_t *ef_cp874_conv_new(void);
 
 ef_conv_t *ef_viscii_conv_new(void);
 
+ef_conv_t *ef_tcvn5712_1_1993_conv_new(void);
+
 ef_conv_t *ef_iscii_assamese_conv_new(void);
 
 ef_conv_t *ef_iscii_bengali_conv_new(void);

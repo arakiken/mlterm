@@ -16,21 +16,15 @@
 
 #else
 
-typedef struct gbk_to_ucs4_range
-{
-	u_int32_t  beg ;
-	u_int32_t  end ;
-
-} gbk_to_ucs4_range_t ;
-
 typedef struct gbk_to_ucs4_table
 {
 	u_int16_t *  table ;
-	gbk_to_ucs4_range_t *  range ;
+	u_int16_t  beg;
+	u_int16_t  end;
 
 } gbk_to_ucs4_table_t ;
 
-static u_int16_t gbk_to_ucs4_table_81[] =
+static u_int16_t gbk_to_ucs4_table_102[] =
 {
 	/* 0x8140 */
 	0x4e02 ,
@@ -102,8 +96,10 @@ static u_int16_t gbk_to_ucs4_table_81[] =
 	0x4e85 ,
 	0x4e87 ,
 	0x4e8a ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_103[] =
+{
 	/* 0x8180 */
 	0x4e90 ,
 	0x4e96 ,
@@ -248,12 +244,7 @@ static u_int16_t gbk_to_ucs4_table_81[] =
 	0x4fa2 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_81 =
-{
-	0x8140 , 0x81fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_82[] =
+static u_int16_t gbk_to_ucs4_table_104[] =
 {
 	/* 0x8240 */
 	0x4fa4 ,
@@ -325,8 +316,10 @@ static u_int16_t gbk_to_ucs4_table_82[] =
 	0x5008 ,
 	0x5009 ,
 	0x500a ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_105[] =
+{
 	/* 0x8280 */
 	0x500b ,
 	0x500e ,
@@ -471,12 +464,7 @@ static u_int16_t gbk_to_ucs4_table_82[] =
 	0x50bc ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_82 =
-{
-	0x8240 , 0x82fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_83[] =
+static u_int16_t gbk_to_ucs4_table_106[] =
 {
 	/* 0x8340 */
 	0x50bd ,
@@ -548,8 +536,10 @@ static u_int16_t gbk_to_ucs4_table_83[] =
 	0x5104 ,
 	0x5105 ,
 	0x5108 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_107[] =
+{
 	/* 0x8380 */
 	0x5109 ,
 	0x510a ,
@@ -694,12 +684,7 @@ static u_int16_t gbk_to_ucs4_table_83[] =
 	0x51d7 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_83 =
-{
-	0x8340 , 0x83fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_84[] =
+static u_int16_t gbk_to_ucs4_table_108[] =
 {
 	/* 0x8440 */
 	0x51d8 ,
@@ -771,8 +756,10 @@ static u_int16_t gbk_to_ucs4_table_84[] =
 	0x5255 ,
 	0x5257 ,
 	0x5258 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_109[] =
+{
 	/* 0x8480 */
 	0x5259 ,
 	0x525a ,
@@ -917,12 +904,7 @@ static u_int16_t gbk_to_ucs4_table_84[] =
 	0x530e ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_84 =
-{
-	0x8440 , 0x84fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_85[] =
+static u_int16_t gbk_to_ucs4_table_10a[] =
 {
 	/* 0x8540 */
 	0x5311 ,
@@ -994,8 +976,10 @@ static u_int16_t gbk_to_ucs4_table_85[] =
 	0x538a ,
 	0x538e ,
 	0x538f ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_10b[] =
+{
 	/* 0x8580 */
 	0x5390 ,
 	0x5391 ,
@@ -1140,12 +1124,7 @@ static u_int16_t gbk_to_ucs4_table_85[] =
 	0x54a1 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_85 =
-{
-	0x8540 , 0x85fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_86[] =
+static u_int16_t gbk_to_ucs4_table_10c[] =
 {
 	/* 0x8640 */
 	0x54a2 ,
@@ -1217,8 +1196,10 @@ static u_int16_t gbk_to_ucs4_table_86[] =
 	0x5521 ,
 	0x5525 ,
 	0x5526 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_10d[] =
+{
 	/* 0x8680 */
 	0x5528 ,
 	0x5529 ,
@@ -1363,12 +1344,7 @@ static u_int16_t gbk_to_ucs4_table_86[] =
 	0x5605 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_86 =
-{
-	0x8640 , 0x86fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_87[] =
+static u_int16_t gbk_to_ucs4_table_10e[] =
 {
 	/* 0x8740 */
 	0x5606 ,
@@ -1440,8 +1416,10 @@ static u_int16_t gbk_to_ucs4_table_87[] =
 	0x565f ,
 	0x5660 ,
 	0x5661 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_10f[] =
+{
 	/* 0x8780 */
 	0x5663 ,
 	0x5665 ,
@@ -1586,12 +1564,7 @@ static u_int16_t gbk_to_ucs4_table_87[] =
 	0x5711 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_87 =
-{
-	0x8740 , 0x87fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_88[] =
+static u_int16_t gbk_to_ucs4_table_110[] =
 {
 	/* 0x8840 */
 	0x5712 ,
@@ -1663,8 +1636,10 @@ static u_int16_t gbk_to_ucs4_table_88[] =
 	0x577e ,
 	0x577f ,
 	0x5780 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_111[] =
+{
 	/* 0x8880 */
 	0x5781 ,
 	0x5787 ,
@@ -1809,12 +1784,7 @@ static u_int16_t gbk_to_ucs4_table_88[] =
 	0x583d ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_88 =
-{
-	0x8840 , 0x88fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_89[] =
+static u_int16_t gbk_to_ucs4_table_112[] =
 {
 	/* 0x8940 */
 	0x583e ,
@@ -1886,8 +1856,10 @@ static u_int16_t gbk_to_ucs4_table_89[] =
 	0x588a ,
 	0x588b ,
 	0x588c ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_113[] =
+{
 	/* 0x8980 */
 	0x588d ,
 	0x588e ,
@@ -2032,12 +2004,7 @@ static u_int16_t gbk_to_ucs4_table_89[] =
 	0x593b ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_89 =
-{
-	0x8940 , 0x89fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_8a[] =
+static u_int16_t gbk_to_ucs4_table_114[] =
 {
 	/* 0x8a40 */
 	0x593d ,
@@ -2109,8 +2076,10 @@ static u_int16_t gbk_to_ucs4_table_8a[] =
 	0x59a1 ,
 	0x59a2 ,
 	0x59a6 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_115[] =
+{
 	/* 0x8a80 */
 	0x59a7 ,
 	0x59ac ,
@@ -2255,12 +2224,7 @@ static u_int16_t gbk_to_ucs4_table_8a[] =
 	0x5a60 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_8a =
-{
-	0x8a40 , 0x8afe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_8b[] =
+static u_int16_t gbk_to_ucs4_table_116[] =
 {
 	/* 0x8b40 */
 	0x5a61 ,
@@ -2332,8 +2296,10 @@ static u_int16_t gbk_to_ucs4_table_8b[] =
 	0x5aa9 ,
 	0x5aab ,
 	0x5aac ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_117[] =
+{
 	/* 0x8b80 */
 	0x5aad ,
 	0x5aae ,
@@ -2478,12 +2444,7 @@ static u_int16_t gbk_to_ucs4_table_8b[] =
 	0x5b47 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_8b =
-{
-	0x8b40 , 0x8bfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_8c[] =
+static u_int16_t gbk_to_ucs4_table_118[] =
 {
 	/* 0x8c40 */
 	0x5b48 ,
@@ -2555,8 +2516,10 @@ static u_int16_t gbk_to_ucs4_table_8c[] =
 	0x5bcd ,
 	0x5bce ,
 	0x5bcf ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_119[] =
+{
 	/* 0x8c80 */
 	0x5bd1 ,
 	0x5bd4 ,
@@ -2701,12 +2664,7 @@ static u_int16_t gbk_to_ucs4_table_8c[] =
 	0x5ca8 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_8c =
-{
-	0x8c40 , 0x8cfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_8d[] =
+static u_int16_t gbk_to_ucs4_table_11a[] =
 {
 	/* 0x8d40 */
 	0x5caa ,
@@ -2778,8 +2736,10 @@ static u_int16_t gbk_to_ucs4_table_8d[] =
 	0x5cfe ,
 	0x5cff ,
 	0x5d00 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_11b[] =
+{
 	/* 0x8d80 */
 	0x5d01 ,
 	0x5d04 ,
@@ -2924,12 +2884,7 @@ static u_int16_t gbk_to_ucs4_table_8d[] =
 	0x5da0 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_8d =
-{
-	0x8d40 , 0x8dfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_8e[] =
+static u_int16_t gbk_to_ucs4_table_11c[] =
 {
 	/* 0x8e40 */
 	0x5da1 ,
@@ -3001,8 +2956,10 @@ static u_int16_t gbk_to_ucs4_table_8e[] =
 	0x5dea ,
 	0x5dec ,
 	0x5ded ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_11d[] =
+{
 	/* 0x8e80 */
 	0x5df0 ,
 	0x5df5 ,
@@ -3147,12 +3104,7 @@ static u_int16_t gbk_to_ucs4_table_8e[] =
 	0x5ec5 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_8e =
-{
-	0x8e40 , 0x8efe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_8f[] =
+static u_int16_t gbk_to_ucs4_table_11e[] =
 {
 	/* 0x8f40 */
 	0x5ec6 ,
@@ -3224,8 +3176,10 @@ static u_int16_t gbk_to_ucs4_table_8f[] =
 	0x5f22 ,
 	0x5f23 ,
 	0x5f24 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_11f[] =
+{
 	/* 0x8f80 */
 	0x5f28 ,
 	0x5f2b ,
@@ -3370,12 +3324,7 @@ static u_int16_t gbk_to_ucs4_table_8f[] =
 	0x6007 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_8f =
-{
-	0x8f40 , 0x8ffe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_90[] =
+static u_int16_t gbk_to_ucs4_table_120[] =
 {
 	/* 0x9040 */
 	0x6008 ,
@@ -3447,8 +3396,10 @@ static u_int16_t gbk_to_ucs4_table_90[] =
 	0x6077 ,
 	0x607e ,
 	0x6080 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_121[] =
+{
 	/* 0x9080 */
 	0x6081 ,
 	0x6082 ,
@@ -3593,12 +3544,7 @@ static u_int16_t gbk_to_ucs4_table_90[] =
 	0x6146 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_90 =
-{
-	0x9040 , 0x90fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_91[] =
+static u_int16_t gbk_to_ucs4_table_122[] =
 {
 	/* 0x9140 */
 	0x6147 ,
@@ -3670,8 +3616,10 @@ static u_int16_t gbk_to_ucs4_table_91[] =
 	0x6192 ,
 	0x6193 ,
 	0x6195 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_123[] =
+{
 	/* 0x9180 */
 	0x6196 ,
 	0x6197 ,
@@ -3816,12 +3764,7 @@ static u_int16_t gbk_to_ucs4_table_91[] =
 	0x624a ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_91 =
-{
-	0x9140 , 0x91fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_92[] =
+static u_int16_t gbk_to_ucs4_table_124[] =
 {
 	/* 0x9240 */
 	0x624f ,
@@ -3893,8 +3836,10 @@ static u_int16_t gbk_to_ucs4_table_92[] =
 	0x62be ,
 	0x62c0 ,
 	0x62c1 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_125[] =
+{
 	/* 0x9280 */
 	0x62c3 ,
 	0x62cb ,
@@ -4039,12 +3984,7 @@ static u_int16_t gbk_to_ucs4_table_92[] =
 	0x63c0 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_92 =
-{
-	0x9240 , 0x92fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_93[] =
+static u_int16_t gbk_to_ucs4_table_126[] =
 {
 	/* 0x9340 */
 	0x63c1 ,
@@ -4116,8 +4056,10 @@ static u_int16_t gbk_to_ucs4_table_93[] =
 	0x6422 ,
 	0x6423 ,
 	0x6424 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_127[] =
+{
 	/* 0x9380 */
 	0x6425 ,
 	0x6427 ,
@@ -4262,12 +4204,7 @@ static u_int16_t gbk_to_ucs4_table_93[] =
 	0x64da ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_93 =
-{
-	0x9340 , 0x93fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_94[] =
+static u_int16_t gbk_to_ucs4_table_128[] =
 {
 	/* 0x9440 */
 	0x64db ,
@@ -4339,8 +4276,10 @@ static u_int16_t gbk_to_ucs4_table_94[] =
 	0x651f ,
 	0x6520 ,
 	0x6521 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_129[] =
+{
 	/* 0x9480 */
 	0x6522 ,
 	0x6523 ,
@@ -4485,12 +4424,7 @@ static u_int16_t gbk_to_ucs4_table_94[] =
 	0x65eb ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_94 =
-{
-	0x9440 , 0x94fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_95[] =
+static u_int16_t gbk_to_ucs4_table_12a[] =
 {
 	/* 0x9540 */
 	0x65f2 ,
@@ -4562,8 +4496,10 @@ static u_int16_t gbk_to_ucs4_table_95[] =
 	0x6650 ,
 	0x6651 ,
 	0x6658 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_12b[] =
+{
 	/* 0x9580 */
 	0x6659 ,
 	0x665b ,
@@ -4708,12 +4644,7 @@ static u_int16_t gbk_to_ucs4_table_95[] =
 	0x6703 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_95 =
-{
-	0x9540 , 0x95fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_96[] =
+static u_int16_t gbk_to_ucs4_table_12c[] =
 {
 	/* 0x9640 */
 	0x6704 ,
@@ -4785,8 +4716,10 @@ static u_int16_t gbk_to_ucs4_table_96[] =
 	0x6771 ,
 	0x6774 ,
 	0x6776 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_12d[] =
+{
 	/* 0x9680 */
 	0x6778 ,
 	0x6779 ,
@@ -4931,12 +4864,7 @@ static u_int16_t gbk_to_ucs4_table_96[] =
 	0x685b ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_96 =
-{
-	0x9640 , 0x96fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_97[] =
+static u_int16_t gbk_to_ucs4_table_12e[] =
 {
 	/* 0x9740 */
 	0x685c ,
@@ -5008,8 +4936,10 @@ static u_int16_t gbk_to_ucs4_table_97[] =
 	0x68b6 ,
 	0x68b7 ,
 	0x68b8 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_12f[] =
+{
 	/* 0x9780 */
 	0x68b9 ,
 	0x68ba ,
@@ -5154,12 +5084,7 @@ static u_int16_t gbk_to_ucs4_table_97[] =
 	0x695f ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_97 =
-{
-	0x9740 , 0x97fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_98[] =
+static u_int16_t gbk_to_ucs4_table_130[] =
 {
 	/* 0x9840 */
 	0x6961 ,
@@ -5231,8 +5156,10 @@ static u_int16_t gbk_to_ucs4_table_98[] =
 	0x69ba ,
 	0x69bc ,
 	0x69bd ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_131[] =
+{
 	/* 0x9880 */
 	0x69be ,
 	0x69bf ,
@@ -5377,12 +5304,7 @@ static u_int16_t gbk_to_ucs4_table_98[] =
 	0x6a5a ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_98 =
-{
-	0x9840 , 0x98fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_99[] =
+static u_int16_t gbk_to_ucs4_table_132[] =
 {
 	/* 0x9940 */
 	0x6a5c ,
@@ -5454,8 +5376,10 @@ static u_int16_t gbk_to_ucs4_table_99[] =
 	0x6aa4 ,
 	0x6aa5 ,
 	0x6aa6 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_133[] =
+{
 	/* 0x9980 */
 	0x6aa7 ,
 	0x6aa8 ,
@@ -5600,12 +5524,7 @@ static u_int16_t gbk_to_ucs4_table_99[] =
 	0x6b2e ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_99 =
-{
-	0x9940 , 0x99fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_9a[] =
+static u_int16_t gbk_to_ucs4_table_134[] =
 {
 	/* 0x9a40 */
 	0x6b2f ,
@@ -5677,8 +5596,10 @@ static u_int16_t gbk_to_ucs4_table_9a[] =
 	0x6b80 ,
 	0x6b85 ,
 	0x6b88 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_135[] =
+{
 	/* 0x9a80 */
 	0x6b8c ,
 	0x6b8e ,
@@ -5823,12 +5744,7 @@ static u_int16_t gbk_to_ucs4_table_9a[] =
 	0x6c58 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_9a =
-{
-	0x9a40 , 0x9afe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_9b[] =
+static u_int16_t gbk_to_ucs4_table_136[] =
 {
 	/* 0x9b40 */
 	0x6c59 ,
@@ -5900,8 +5816,10 @@ static u_int16_t gbk_to_ucs4_table_9b[] =
 	0x6cd1 ,
 	0x6cd2 ,
 	0x6cd8 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_137[] =
+{
 	/* 0x9b80 */
 	0x6cd9 ,
 	0x6cda ,
@@ -6046,12 +5964,7 @@ static u_int16_t gbk_to_ucs4_table_9b[] =
 	0x6dca ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_9b =
-{
-	0x9b40 , 0x9bfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_9c[] =
+static u_int16_t gbk_to_ucs4_table_138[] =
 {
 	/* 0x9c40 */
 	0x6dcd ,
@@ -6123,8 +6036,10 @@ static u_int16_t gbk_to_ucs4_table_9c[] =
 	0x6e31 ,
 	0x6e33 ,
 	0x6e35 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_139[] =
+{
 	/* 0x9c80 */
 	0x6e36 ,
 	0x6e37 ,
@@ -6269,12 +6184,7 @@ static u_int16_t gbk_to_ucs4_table_9c[] =
 	0x6eef ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_9c =
-{
-	0x9c40 , 0x9cfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_9d[] =
+static u_int16_t gbk_to_ucs4_table_13a[] =
 {
 	/* 0x9d40 */
 	0x6ef0 ,
@@ -6346,8 +6256,10 @@ static u_int16_t gbk_to_ucs4_table_9d[] =
 	0x6f40 ,
 	0x6f41 ,
 	0x6f42 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_13b[] =
+{
 	/* 0x9d80 */
 	0x6f43 ,
 	0x6f44 ,
@@ -6492,12 +6404,7 @@ static u_int16_t gbk_to_ucs4_table_9d[] =
 	0x6fe5 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_9d =
-{
-	0x9d40 , 0x9dfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_9e[] =
+static u_int16_t gbk_to_ucs4_table_13c[] =
 {
 	/* 0x9e40 */
 	0x6fe6 ,
@@ -6569,8 +6476,10 @@ static u_int16_t gbk_to_ucs4_table_9e[] =
 	0x7028 ,
 	0x7029 ,
 	0x702a ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_13d[] =
+{
 	/* 0x9e80 */
 	0x702b ,
 	0x702c ,
@@ -6715,12 +6624,7 @@ static u_int16_t gbk_to_ucs4_table_9e[] =
 	0x70da ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_9e =
-{
-	0x9e40 , 0x9efe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_9f[] =
+static u_int16_t gbk_to_ucs4_table_13e[] =
 {
 	/* 0x9f40 */
 	0x70dc ,
@@ -6792,8 +6696,10 @@ static u_int16_t gbk_to_ucs4_table_9f[] =
 	0x7132 ,
 	0x7133 ,
 	0x7134 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_13f[] =
+{
 	/* 0x9f80 */
 	0x7135 ,
 	0x7137 ,
@@ -6938,12 +6844,7 @@ static u_int16_t gbk_to_ucs4_table_9f[] =
 	0x71d3 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_9f =
-{
-	0x9f40 , 0x9ffe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_a0[] =
+static u_int16_t gbk_to_ucs4_table_140[] =
 {
 	/* 0xa040 */
 	0x71d6 ,
@@ -7015,8 +6916,10 @@ static u_int16_t gbk_to_ucs4_table_a0[] =
 	0x7218 ,
 	0x7219 ,
 	0x721a ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_141[] =
+{
 	/* 0xa080 */
 	0x721b ,
 	0x721c ,
@@ -7161,12 +7064,7 @@ static u_int16_t gbk_to_ucs4_table_a0[] =
 	0x72db ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_a0 =
-{
-	0xa040 , 0xa0fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_a1[] =
+static u_int16_t gbk_to_ucs4_table_143[] =
 {
 	/* 0xa1a1 */
 	0x3000 ,
@@ -7275,12 +7173,7 @@ static u_int16_t gbk_to_ucs4_table_a1[] =
 	0x3013 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_a1 =
-{
-	0xa1a1 , 0xa1fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_a2[] =
+static u_int16_t gbk_to_ucs4_table_145[] =
 {
 	/* 0xa2a1 */
 	0x2170 ,
@@ -7298,8 +7191,6 @@ static u_int16_t gbk_to_ucs4_table_a2[] =
 	0x00 ,
 	0x00 ,
 	0x00 ,
-
-	/* 0xa2b0 */
 	0x00 ,
 
 	/* 0xa2b1 */
@@ -7372,8 +7263,6 @@ static u_int16_t gbk_to_ucs4_table_a2[] =
 	0x3228 ,
 	0x3229 ,
 	0x00 ,
-
-	/* 0xa2f0 */
 	0x00 ,
 
 	/* 0xa2f1 */
@@ -7391,12 +7280,7 @@ static u_int16_t gbk_to_ucs4_table_a2[] =
 	0x216b ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_a2 =
-{
-	0xa2a1 , 0xa2fc
-} ;
-
-static u_int16_t gbk_to_ucs4_table_a3[] =
+static u_int16_t gbk_to_ucs4_table_147[] =
 {
 	/* 0xa3a1 */
 	0xff01 ,
@@ -7505,12 +7389,7 @@ static u_int16_t gbk_to_ucs4_table_a3[] =
 	0xffe3 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_a3 =
-{
-	0xa3a1 , 0xa3fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_a4[] =
+static u_int16_t gbk_to_ucs4_table_149[] =
 {
 	/* 0xa4a1 */
 	0x3041 ,
@@ -7608,12 +7487,7 @@ static u_int16_t gbk_to_ucs4_table_a4[] =
 	0x3093 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_a4 =
-{
-	0xa4a1 , 0xa4f3
-} ;
-
-static u_int16_t gbk_to_ucs4_table_a5[] =
+static u_int16_t gbk_to_ucs4_table_14b[] =
 {
 	/* 0xa5a1 */
 	0x30a1 ,
@@ -7714,12 +7588,7 @@ static u_int16_t gbk_to_ucs4_table_a5[] =
 	0x30f6 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_a5 =
-{
-	0xa5a1 , 0xa5f6
-} ;
-
-static u_int16_t gbk_to_ucs4_table_a6[] =
+static u_int16_t gbk_to_ucs4_table_14d[] =
 {
 	/* 0xa6a1 */
 	0x0391 ,
@@ -7755,8 +7624,6 @@ static u_int16_t gbk_to_ucs4_table_a6[] =
 	0x00 ,
 	0x00 ,
 	0x00 ,
-
-	/* 0xa6c0 */
 	0x00 ,
 
 	/* 0xa6c1 */
@@ -7821,12 +7688,7 @@ static u_int16_t gbk_to_ucs4_table_a6[] =
 	0xfe34 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_a6 =
-{
-	0xa6a1 , 0xa6f5
-} ;
-
-static u_int16_t gbk_to_ucs4_table_a7[] =
+static u_int16_t gbk_to_ucs4_table_14f[] =
 {
 	/* 0xa7a1 */
 	0x0410 ,
@@ -7880,8 +7742,6 @@ static u_int16_t gbk_to_ucs4_table_a7[] =
 	0x00 ,
 	0x00 ,
 	0x00 ,
-
-	/* 0xa7d0 */
 	0x00 ,
 
 	/* 0xa7d1 */
@@ -7924,12 +7784,7 @@ static u_int16_t gbk_to_ucs4_table_a7[] =
 	0x044f ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_a7 =
-{
-	0xa7a1 , 0xa7f1
-} ;
-
-static u_int16_t gbk_to_ucs4_table_a8[] =
+static u_int16_t gbk_to_ucs4_table_150[] =
 {
 	/* 0xa840 */
 	0x02ca ,
@@ -8001,8 +7856,10 @@ static u_int16_t gbk_to_ucs4_table_a8[] =
 	0x2585 ,
 	0x2586 ,
 	0x2587 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_151[] =
+{
 	/* 0xa880 */
 	0x2588 ,
 	0x2589 ,
@@ -8124,12 +7981,7 @@ static u_int16_t gbk_to_ucs4_table_a8[] =
 	0x3129 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_a8 =
-{
-	0xa840 , 0xa8e9
-} ;
-
-static u_int16_t gbk_to_ucs4_table_a9[] =
+static u_int16_t gbk_to_ucs4_table_152[] =
 {
 	/* 0xa940 */
 	0x3021 ,
@@ -8201,8 +8053,10 @@ static u_int16_t gbk_to_ucs4_table_a9[] =
 	0xfe5f ,
 	0xfe60 ,
 	0xfe61 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_153[] =
+{
 	/* 0xa980 */
 	0xfe62 ,
 	0xfe63 ,
@@ -8330,12 +8184,7 @@ static u_int16_t gbk_to_ucs4_table_a9[] =
 	0x254b ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_a9 =
-{
-	0xa940 , 0xa9ef
-} ;
-
-static u_int16_t gbk_to_ucs4_table_aa[] =
+static u_int16_t gbk_to_ucs4_table_154[] =
 {
 	/* 0xaa40 */
 	0x72dc ,
@@ -8407,8 +8256,10 @@ static u_int16_t gbk_to_ucs4_table_aa[] =
 	0x7346 ,
 	0x7347 ,
 	0x7348 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_155[] =
+{
 	/* 0xaa80 */
 	0x7349 ,
 	0x734a ,
@@ -8449,12 +8300,7 @@ static u_int16_t gbk_to_ucs4_table_aa[] =
 	0x7371 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_aa =
-{
-	0xaa40 , 0xaaa0
-} ;
-
-static u_int16_t gbk_to_ucs4_table_ab[] =
+static u_int16_t gbk_to_ucs4_table_156[] =
 {
 	/* 0xab40 */
 	0x7372 ,
@@ -8526,8 +8372,10 @@ static u_int16_t gbk_to_ucs4_table_ab[] =
 	0x73c5 ,
 	0x73c6 ,
 	0x73c7 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_157[] =
+{
 	/* 0xab80 */
 	0x73cb ,
 	0x73cc ,
@@ -8568,12 +8416,7 @@ static u_int16_t gbk_to_ucs4_table_ab[] =
 	0x73f7 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_ab =
-{
-	0xab40 , 0xaba0
-} ;
-
-static u_int16_t gbk_to_ucs4_table_ac[] =
+static u_int16_t gbk_to_ucs4_table_158[] =
 {
 	/* 0xac40 */
 	0x73f8 ,
@@ -8645,8 +8488,10 @@ static u_int16_t gbk_to_ucs4_table_ac[] =
 	0x744b ,
 	0x744c ,
 	0x744d ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_159[] =
+{
 	/* 0xac80 */
 	0x744e ,
 	0x744f ,
@@ -8687,12 +8532,7 @@ static u_int16_t gbk_to_ucs4_table_ac[] =
 	0x747a ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_ac =
-{
-	0xac40 , 0xaca0
-} ;
-
-static u_int16_t gbk_to_ucs4_table_ad[] =
+static u_int16_t gbk_to_ucs4_table_15a[] =
 {
 	/* 0xad40 */
 	0x747b ,
@@ -8764,8 +8604,10 @@ static u_int16_t gbk_to_ucs4_table_ad[] =
 	0x74c5 ,
 	0x74c6 ,
 	0x74c7 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_15b[] =
+{
 	/* 0xad80 */
 	0x74c8 ,
 	0x74c9 ,
@@ -8806,12 +8648,7 @@ static u_int16_t gbk_to_ucs4_table_ad[] =
 	0x74f2 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_ad =
-{
-	0xad40 , 0xada0
-} ;
-
-static u_int16_t gbk_to_ucs4_table_ae[] =
+static u_int16_t gbk_to_ucs4_table_15c[] =
 {
 	/* 0xae40 */
 	0x74f3 ,
@@ -8883,8 +8720,10 @@ static u_int16_t gbk_to_ucs4_table_ae[] =
 	0x7556 ,
 	0x7557 ,
 	0x7558 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_15d[] =
+{
 	/* 0xae80 */
 	0x755d ,
 	0x755e ,
@@ -8925,12 +8764,7 @@ static u_int16_t gbk_to_ucs4_table_ae[] =
 	0x7587 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_ae =
-{
-	0xae40 , 0xaea0
-} ;
-
-static u_int16_t gbk_to_ucs4_table_af[] =
+static u_int16_t gbk_to_ucs4_table_15e[] =
 {
 	/* 0xaf40 */
 	0x7588 ,
@@ -9002,8 +8836,10 @@ static u_int16_t gbk_to_ucs4_table_af[] =
 	0x7604 ,
 	0x7606 ,
 	0x7607 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_15f[] =
+{
 	/* 0xaf80 */
 	0x7608 ,
 	0x7609 ,
@@ -9044,12 +8880,7 @@ static u_int16_t gbk_to_ucs4_table_af[] =
 	0x7644 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_af =
-{
-	0xaf40 , 0xafa0
-} ;
-
-static u_int16_t gbk_to_ucs4_table_b0[] =
+static u_int16_t gbk_to_ucs4_table_160[] =
 {
 	/* 0xb040 */
 	0x7645 ,
@@ -9121,8 +8952,10 @@ static u_int16_t gbk_to_ucs4_table_b0[] =
 	0x7698 ,
 	0x769a ,
 	0x769b ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_161[] =
+{
 	/* 0xb080 */
 	0x769c ,
 	0x769d ,
@@ -9267,12 +9100,7 @@ static u_int16_t gbk_to_ucs4_table_b0[] =
 	0x5265 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_b0 =
-{
-	0xb040 , 0xb0fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_b1[] =
+static u_int16_t gbk_to_ucs4_table_162[] =
 {
 	/* 0xb140 */
 	0x76c4 ,
@@ -9344,8 +9172,10 @@ static u_int16_t gbk_to_ucs4_table_b1[] =
 	0x7727 ,
 	0x772a ,
 	0x772b ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_163[] =
+{
 	/* 0xb180 */
 	0x772c ,
 	0x772e ,
@@ -9490,12 +9320,7 @@ static u_int16_t gbk_to_ucs4_table_b1[] =
 	0x70b3 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_b1 =
-{
-	0xb140 , 0xb1fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_b2[] =
+static u_int16_t gbk_to_ucs4_table_164[] =
 {
 	/* 0xb240 */
 	0x775d ,
@@ -9567,8 +9392,10 @@ static u_int16_t gbk_to_ucs4_table_b2[] =
 	0x77b8 ,
 	0x77b9 ,
 	0x77ba ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_165[] =
+{
 	/* 0xb280 */
 	0x77bc ,
 	0x77be ,
@@ -9713,12 +9540,7 @@ static u_int16_t gbk_to_ucs4_table_b2[] =
 	0x7316 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_b2 =
-{
-	0xb240 , 0xb2fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_b3[] =
+static u_int16_t gbk_to_ucs4_table_166[] =
 {
 	/* 0xb340 */
 	0x77e6 ,
@@ -9790,8 +9612,10 @@ static u_int16_t gbk_to_ucs4_table_b3[] =
 	0x7858 ,
 	0x7859 ,
 	0x785a ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_167[] =
+{
 	/* 0xb380 */
 	0x785b ,
 	0x785c ,
@@ -9936,12 +9760,7 @@ static u_int16_t gbk_to_ucs4_table_b3[] =
 	0x695a ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_b3 =
-{
-	0xb340 , 0xb3fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_b4[] =
+static u_int16_t gbk_to_ucs4_table_168[] =
 {
 	/* 0xb440 */
 	0x7884 ,
@@ -10013,8 +9832,10 @@ static u_int16_t gbk_to_ucs4_table_b4[] =
 	0x78e1 ,
 	0x78e2 ,
 	0x78e3 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_169[] =
+{
 	/* 0xb480 */
 	0x78e4 ,
 	0x78e5 ,
@@ -10159,12 +9980,7 @@ static u_int16_t gbk_to_ucs4_table_b4[] =
 	0x902e ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_b4 =
-{
-	0xb440 , 0xb4fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_b5[] =
+static u_int16_t gbk_to_ucs4_table_16a[] =
 {
 	/* 0xb540 */
 	0x790d ,
@@ -10236,8 +10052,10 @@ static u_int16_t gbk_to_ucs4_table_b5[] =
 	0x7959 ,
 	0x7961 ,
 	0x7963 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_16b[] =
+{
 	/* 0xb580 */
 	0x7964 ,
 	0x7966 ,
@@ -10382,12 +10200,7 @@ static u_int16_t gbk_to_ucs4_table_b5[] =
 	0x53e0 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_b5 =
-{
-	0xb540 , 0xb5fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_b6[] =
+static u_int16_t gbk_to_ucs4_table_16c[] =
 {
 	/* 0xb640 */
 	0x7993 ,
@@ -10459,8 +10272,10 @@ static u_int16_t gbk_to_ucs4_table_b6[] =
 	0x79e5 ,
 	0x79e8 ,
 	0x79ea ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_16d[] =
+{
 	/* 0xb680 */
 	0x79ec ,
 	0x79ee ,
@@ -10605,12 +10420,7 @@ static u_int16_t gbk_to_ucs4_table_b6[] =
 	0x4e8c ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_b6 =
-{
-	0xb640 , 0xb6fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_b7[] =
+static u_int16_t gbk_to_ucs4_table_16e[] =
 {
 	/* 0xb740 */
 	0x7a1d ,
@@ -10682,8 +10492,10 @@ static u_int16_t gbk_to_ucs4_table_b7[] =
 	0x7a66 ,
 	0x7a67 ,
 	0x7a68 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_16f[] =
+{
 	/* 0xb780 */
 	0x7a69 ,
 	0x7a6a ,
@@ -10828,12 +10640,7 @@ static u_int16_t gbk_to_ucs4_table_b7[] =
 	0x670d ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_b7 =
-{
-	0xb740 , 0xb7fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_b8[] =
+static u_int16_t gbk_to_ucs4_table_170[] =
 {
 	/* 0xb840 */
 	0x7aa3 ,
@@ -10905,8 +10712,10 @@ static u_int16_t gbk_to_ucs4_table_b8[] =
 	0x7af1 ,
 	0x7af2 ,
 	0x7af3 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_171[] =
+{
 	/* 0xb880 */
 	0x7af4 ,
 	0x7af5 ,
@@ -11051,12 +10860,7 @@ static u_int16_t gbk_to_ucs4_table_b8[] =
 	0x7fb9 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_b8 =
-{
-	0xb840 , 0xb8fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_b9[] =
+static u_int16_t gbk_to_ucs4_table_172[] =
 {
 	/* 0xb940 */
 	0x7b2f ,
@@ -11128,8 +10932,10 @@ static u_int16_t gbk_to_ucs4_table_b9[] =
 	0x7b8c ,
 	0x7b8e ,
 	0x7b8f ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_173[] =
+{
 	/* 0xb980 */
 	0x7b91 ,
 	0x7b92 ,
@@ -11274,12 +11080,7 @@ static u_int16_t gbk_to_ucs4_table_b9[] =
 	0x54c8 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_b9 =
-{
-	0xb940 , 0xb9fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_ba[] =
+static u_int16_t gbk_to_ucs4_table_174[] =
 {
 	/* 0xba40 */
 	0x7bc5 ,
@@ -11351,8 +11152,10 @@ static u_int16_t gbk_to_ucs4_table_ba[] =
 	0x7c17 ,
 	0x7c18 ,
 	0x7c19 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_175[] =
+{
 	/* 0xba80 */
 	0x7c1a ,
 	0x7c1b ,
@@ -11497,12 +11300,7 @@ static u_int16_t gbk_to_ucs4_table_ba[] =
 	0x6e56 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_ba =
-{
-	0xba40 , 0xbafe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_bb[] =
+static u_int16_t gbk_to_ucs4_table_176[] =
 {
 	/* 0xbb40 */
 	0x7c43 ,
@@ -11574,8 +11372,10 @@ static u_int16_t gbk_to_ucs4_table_bb[] =
 	0x7c85 ,
 	0x7c86 ,
 	0x7c87 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_177[] =
+{
 	/* 0xbb80 */
 	0x7c88 ,
 	0x7c8a ,
@@ -11720,12 +11520,7 @@ static u_int16_t gbk_to_ucs4_table_bb[] =
 	0x7b95 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_bb =
-{
-	0xbb40 , 0xbbfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_bc[] =
+static u_int16_t gbk_to_ucs4_table_178[] =
 {
 	/* 0xbc40 */
 	0x7cbf ,
@@ -11797,8 +11592,10 @@ static u_int16_t gbk_to_ucs4_table_bc[] =
 	0x7d0e ,
 	0x7d0f ,
 	0x7d10 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_179[] =
+{
 	/* 0xbc80 */
 	0x7d11 ,
 	0x7d12 ,
@@ -11943,12 +11740,7 @@ static u_int16_t gbk_to_ucs4_table_bc[] =
 	0x4ef6 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_bc =
-{
-	0xbc40 , 0xbcfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_bd[] =
+static u_int16_t gbk_to_ucs4_table_17a[] =
 {
 	/* 0xbd40 */
 	0x7d37 ,
@@ -12020,8 +11812,10 @@ static u_int16_t gbk_to_ucs4_table_bd[] =
 	0x7d74 ,
 	0x7d75 ,
 	0x7d76 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_17b[] =
+{
 	/* 0xbd80 */
 	0x7d78 ,
 	0x7d79 ,
@@ -12166,12 +11960,7 @@ static u_int16_t gbk_to_ucs4_table_bd[] =
 	0x6d78 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_bd =
-{
-	0xbd40 , 0xbdfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_be[] =
+static u_int16_t gbk_to_ucs4_table_17c[] =
 {
 	/* 0xbe40 */
 	0x7d99 ,
@@ -12243,8 +12032,10 @@ static u_int16_t gbk_to_ucs4_table_be[] =
 	0x7dd7 ,
 	0x7dd8 ,
 	0x7dd9 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_17d[] =
+{
 	/* 0xbe80 */
 	0x7dda ,
 	0x7ddb ,
@@ -12389,12 +12180,7 @@ static u_int16_t gbk_to_ucs4_table_be[] =
 	0x5cfb ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_be =
-{
-	0xbe40 , 0xbefe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_bf[] =
+static u_int16_t gbk_to_ucs4_table_17e[] =
 {
 	/* 0xbf40 */
 	0x7dfb ,
@@ -12466,8 +12252,10 @@ static u_int16_t gbk_to_ucs4_table_bf[] =
 	0x7e37 ,
 	0x7e38 ,
 	0x7e39 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_17f[] =
+{
 	/* 0xbf80 */
 	0x7e3a ,
 	0x7e3c ,
@@ -12612,12 +12400,7 @@ static u_int16_t gbk_to_ucs4_table_bf[] =
 	0x5080 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_bf =
-{
-	0xbf40 , 0xbffe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_c0[] =
+static u_int16_t gbk_to_ucs4_table_180[] =
 {
 	/* 0xc040 */
 	0x7e5e ,
@@ -12689,8 +12472,10 @@ static u_int16_t gbk_to_ucs4_table_c0[] =
 	0x7e9c ,
 	0x7e9d ,
 	0x7e9e ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_181[] =
+{
 	/* 0xc080 */
 	0x7eae ,
 	0x7eb4 ,
@@ -12835,12 +12620,7 @@ static u_int16_t gbk_to_ucs4_table_c0[] =
 	0x4fd0 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_c0 =
-{
-	0xc040 , 0xc0fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_c1[] =
+static u_int16_t gbk_to_ucs4_table_182[] =
 {
 	/* 0xc140 */
 	0x7f56 ,
@@ -12912,8 +12692,10 @@ static u_int16_t gbk_to_ucs4_table_c1[] =
 	0x7fad ,
 	0x7fae ,
 	0x7fb1 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_183[] =
+{
 	/* 0xc180 */
 	0x7fb3 ,
 	0x7fb4 ,
@@ -13058,12 +12840,7 @@ static u_int16_t gbk_to_ucs4_table_c1[] =
 	0x7abf ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_c1 =
-{
-	0xc140 , 0xc1fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_c2[] =
+static u_int16_t gbk_to_ucs4_table_184[] =
 {
 	/* 0xc240 */
 	0x7fe4 ,
@@ -13135,8 +12912,10 @@ static u_int16_t gbk_to_ucs4_table_c2[] =
 	0x8055 ,
 	0x8056 ,
 	0x8057 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_185[] =
+{
 	/* 0xc280 */
 	0x8059 ,
 	0x805b ,
@@ -13281,12 +13060,7 @@ static u_int16_t gbk_to_ucs4_table_c2[] =
 	0x6f2b ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_c2 =
-{
-	0xc240 , 0xc2fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_c3[] =
+static u_int16_t gbk_to_ucs4_table_186[] =
 {
 	/* 0xc340 */
 	0x807e ,
@@ -13358,8 +13132,10 @@ static u_int16_t gbk_to_ucs4_table_c3[] =
 	0x8107 ,
 	0x8108 ,
 	0x810b ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_187[] =
+{
 	/* 0xc380 */
 	0x810c ,
 	0x8115 ,
@@ -13504,12 +13280,7 @@ static u_int16_t gbk_to_ucs4_table_c3[] =
 	0x6478 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_c3 =
-{
-	0xc340 , 0xc3fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_c4[] =
+static u_int16_t gbk_to_ucs4_table_188[] =
 {
 	/* 0xc440 */
 	0x8140 ,
@@ -13581,8 +13352,10 @@ static u_int16_t gbk_to_ucs4_table_c4[] =
 	0x81a2 ,
 	0x81a4 ,
 	0x81a5 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_189[] =
+{
 	/* 0xc480 */
 	0x81a7 ,
 	0x81a9 ,
@@ -13727,12 +13500,7 @@ static u_int16_t gbk_to_ucs4_table_c4[] =
 	0x5b81 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_c4 =
-{
-	0xc440 , 0xc4fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_c5[] =
+static u_int16_t gbk_to_ucs4_table_18a[] =
 {
 	/* 0xc540 */
 	0x81d4 ,
@@ -13804,8 +13572,10 @@ static u_int16_t gbk_to_ucs4_table_c5[] =
 	0x823c ,
 	0x823d ,
 	0x823f ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_18b[] =
+{
 	/* 0xc580 */
 	0x8240 ,
 	0x8241 ,
@@ -13950,12 +13720,7 @@ static u_int16_t gbk_to_ucs4_table_c5[] =
 	0x6bd7 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_c5 =
-{
-	0xc540 , 0xc5fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_c6[] =
+static u_int16_t gbk_to_ucs4_table_18c[] =
 {
 	/* 0xc640 */
 	0x826a ,
@@ -14027,8 +13792,10 @@ static u_int16_t gbk_to_ucs4_table_c6[] =
 	0x82f5 ,
 	0x82f6 ,
 	0x82f8 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_18d[] =
+{
 	/* 0xc680 */
 	0x82fa ,
 	0x82fc ,
@@ -14173,12 +13940,7 @@ static u_int16_t gbk_to_ucs4_table_c6[] =
 	0x6390 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_c6 =
-{
-	0xc640 , 0xc6fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_c7[] =
+static u_int16_t gbk_to_ucs4_table_18e[] =
 {
 	/* 0xc740 */
 	0x833e ,
@@ -14250,8 +14012,10 @@ static u_int16_t gbk_to_ucs4_table_c7[] =
 	0x83ac ,
 	0x83ad ,
 	0x83ae ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_18f[] =
+{
 	/* 0xc780 */
 	0x83af ,
 	0x83b5 ,
@@ -14396,12 +14160,7 @@ static u_int16_t gbk_to_ucs4_table_c7[] =
 	0x6e20 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_c7 =
-{
-	0xc740 , 0xc7fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_c8[] =
+static u_int16_t gbk_to_ucs4_table_190[] =
 {
 	/* 0xc840 */
 	0x83ee ,
@@ -14473,8 +14232,10 @@ static u_int16_t gbk_to_ucs4_table_c8[] =
 	0x8447 ,
 	0x8448 ,
 	0x8449 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_191[] =
+{
 	/* 0xc880 */
 	0x844a ,
 	0x844b ,
@@ -14619,12 +14380,7 @@ static u_int16_t gbk_to_ucs4_table_c8[] =
 	0x53c1 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_c8 =
-{
-	0xc840 , 0xc8fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_c9[] =
+static u_int16_t gbk_to_ucs4_table_192[] =
 {
 	/* 0xc940 */
 	0x847d ,
@@ -14696,8 +14452,10 @@ static u_int16_t gbk_to_ucs4_table_c9[] =
 	0x84d4 ,
 	0x84d5 ,
 	0x84d7 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_193[] =
+{
 	/* 0xc980 */
 	0x84d8 ,
 	0x84d9 ,
@@ -14842,12 +14600,7 @@ static u_int16_t gbk_to_ucs4_table_c9[] =
 	0x7ef3 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_c9 =
-{
-	0xc940 , 0xc9fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_ca[] =
+static u_int16_t gbk_to_ucs4_table_194[] =
 {
 	/* 0xca40 */
 	0x8503 ,
@@ -14919,8 +14672,10 @@ static u_int16_t gbk_to_ucs4_table_ca[] =
 	0x8553 ,
 	0x8554 ,
 	0x8555 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_195[] =
+{
 	/* 0xca80 */
 	0x8557 ,
 	0x8558 ,
@@ -15065,12 +14820,7 @@ static u_int16_t gbk_to_ucs4_table_ca[] =
 	0x6f31 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_ca =
-{
-	0xca40 , 0xcafe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_cb[] =
+static u_int16_t gbk_to_ucs4_table_196[] =
 {
 	/* 0xcb40 */
 	0x8582 ,
@@ -15142,8 +14892,10 @@ static u_int16_t gbk_to_ucs4_table_cb[] =
 	0x85ce ,
 	0x85d1 ,
 	0x85d2 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_197[] =
+{
 	/* 0xcb80 */
 	0x85d4 ,
 	0x85d6 ,
@@ -15288,12 +15040,7 @@ static u_int16_t gbk_to_ucs4_table_cb[] =
 	0x5854 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_cb =
-{
-	0xcb40 , 0xcbfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_cc[] =
+static u_int16_t gbk_to_ucs4_table_198[] =
 {
 	/* 0xcc40 */
 	0x85f9 ,
@@ -15365,8 +15112,10 @@ static u_int16_t gbk_to_ucs4_table_cc[] =
 	0x863e ,
 	0x863f ,
 	0x8640 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_199[] =
+{
 	/* 0xcc80 */
 	0x8641 ,
 	0x8642 ,
@@ -15511,12 +15260,7 @@ static u_int16_t gbk_to_ucs4_table_cc[] =
 	0x70c3 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_cc =
-{
-	0xcc40 , 0xccfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_cd[] =
+static u_int16_t gbk_to_ucs4_table_19a[] =
 {
 	/* 0xcd40 */
 	0x866d ,
@@ -15588,8 +15332,10 @@ static u_int16_t gbk_to_ucs4_table_cd[] =
 	0x86d7 ,
 	0x86da ,
 	0x86dc ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_19b[] =
+{
 	/* 0xcd80 */
 	0x86dd ,
 	0x86e0 ,
@@ -15734,12 +15480,7 @@ static u_int16_t gbk_to_ucs4_table_cd[] =
 	0x5a01 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_cd =
-{
-	0xcd40 , 0xcdfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_ce[] =
+static u_int16_t gbk_to_ucs4_table_19c[] =
 {
 	/* 0xce40 */
 	0x8719 ,
@@ -15811,8 +15552,10 @@ static u_int16_t gbk_to_ucs4_table_ce[] =
 	0x8772 ,
 	0x8773 ,
 	0x8775 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_19d[] =
+{
 	/* 0xce80 */
 	0x8777 ,
 	0x8778 ,
@@ -15957,12 +15700,7 @@ static u_int16_t gbk_to_ucs4_table_ce[] =
 	0x727a ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_ce =
-{
-	0xce40 , 0xcefe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_cf[] =
+static u_int16_t gbk_to_ucs4_table_19e[] =
 {
 	/* 0xcf40 */
 	0x87a5 ,
@@ -16034,8 +15772,10 @@ static u_int16_t gbk_to_ucs4_table_cf[] =
 	0x87f6 ,
 	0x87f7 ,
 	0x87f8 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_19f[] =
+{
 	/* 0xcf80 */
 	0x87fa ,
 	0x87fb ,
@@ -16180,12 +15920,7 @@ static u_int16_t gbk_to_ucs4_table_cf[] =
 	0x6653 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_cf =
-{
-	0xcf40 , 0xcffe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_d0[] =
+static u_int16_t gbk_to_ucs4_table_1a0[] =
 {
 	/* 0xd040 */
 	0x8824 ,
@@ -16257,8 +15992,10 @@ static u_int16_t gbk_to_ucs4_table_d0[] =
 	0x8878 ,
 	0x8879 ,
 	0x887a ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1a1[] =
+{
 	/* 0xd080 */
 	0x887b ,
 	0x887c ,
@@ -16403,12 +16140,7 @@ static u_int16_t gbk_to_ucs4_table_d0[] =
 	0x7384 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_d0 =
-{
-	0xd040 , 0xd0fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_d1[] =
+static u_int16_t gbk_to_ucs4_table_1a2[] =
 {
 	/* 0xd140 */
 	0x88ac ,
@@ -16480,8 +16212,10 @@ static u_int16_t gbk_to_ucs4_table_d1[] =
 	0x8906 ,
 	0x8907 ,
 	0x8908 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1a3[] =
+{
 	/* 0xd180 */
 	0x8909 ,
 	0x890b ,
@@ -16626,12 +16360,7 @@ static u_int16_t gbk_to_ucs4_table_d1[] =
 	0x7476 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_d1 =
-{
-	0xd140 , 0xd1fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_d2[] =
+static u_int16_t gbk_to_ucs4_table_1a4[] =
 {
 	/* 0xd240 */
 	0x8938 ,
@@ -16703,8 +16432,10 @@ static u_int16_t gbk_to_ucs4_table_d2[] =
 	0x8979 ,
 	0x897a ,
 	0x897c ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1a5[] =
+{
 	/* 0xd280 */
 	0x897d ,
 	0x897e ,
@@ -16849,12 +16580,7 @@ static u_int16_t gbk_to_ucs4_table_d2[] =
 	0x9690 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_d2 =
-{
-	0xd240 , 0xd2fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_d3[] =
+static u_int16_t gbk_to_ucs4_table_1a6[] =
 {
 	/* 0xd340 */
 	0x89a2 ,
@@ -16926,8 +16652,10 @@ static u_int16_t gbk_to_ucs4_table_d3[] =
 	0x89f8 ,
 	0x89f9 ,
 	0x89fa ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1a7[] =
+{
 	/* 0xd380 */
 	0x89fb ,
 	0x89fc ,
@@ -17072,12 +16800,7 @@ static u_int16_t gbk_to_ucs4_table_d3[] =
 	0x8a89 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_d3 =
-{
-	0xd340 , 0xd3fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_d4[] =
+static u_int16_t gbk_to_ucs4_table_1a8[] =
 {
 	/* 0xd440 */
 	0x8a1e ,
@@ -17149,8 +16872,10 @@ static u_int16_t gbk_to_ucs4_table_d4[] =
 	0x8a5c ,
 	0x8a5d ,
 	0x8a5e ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1a9[] =
+{
 	/* 0xd480 */
 	0x8a5f ,
 	0x8a60 ,
@@ -17295,12 +17020,7 @@ static u_int16_t gbk_to_ucs4_table_d4[] =
 	0x8f67 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_d4 =
-{
-	0xd440 , 0xd4fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_d5[] =
+static u_int16_t gbk_to_ucs4_table_1aa[] =
 {
 	/* 0xd540 */
 	0x8a81 ,
@@ -17372,8 +17092,10 @@ static u_int16_t gbk_to_ucs4_table_d5[] =
 	0x8ac0 ,
 	0x8ac1 ,
 	0x8ac2 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1ab[] =
+{
 	/* 0xd580 */
 	0x8ac3 ,
 	0x8ac4 ,
@@ -17518,12 +17240,7 @@ static u_int16_t gbk_to_ucs4_table_d5[] =
 	0x653f ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_d5 =
-{
-	0xd540 , 0xd5fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_d6[] =
+static u_int16_t gbk_to_ucs4_table_1ac[] =
 {
 	/* 0xd640 */
 	0x8ae4 ,
@@ -17595,8 +17312,10 @@ static u_int16_t gbk_to_ucs4_table_d6[] =
 	0x8b21 ,
 	0x8b22 ,
 	0x8b23 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1ad[] =
+{
 	/* 0xd680 */
 	0x8b24 ,
 	0x8b25 ,
@@ -17741,12 +17460,7 @@ static u_int16_t gbk_to_ucs4_table_d6[] =
 	0x7b51 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_d6 =
-{
-	0xd640 , 0xd6fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_d7[] =
+static u_int16_t gbk_to_ucs4_table_1ae[] =
 {
 	/* 0xd740 */
 	0x8b46 ,
@@ -17818,8 +17532,10 @@ static u_int16_t gbk_to_ucs4_table_d7[] =
 	0x8b84 ,
 	0x8b85 ,
 	0x8b86 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1af[] =
+{
 	/* 0xd780 */
 	0x8b87 ,
 	0x8b88 ,
@@ -17959,12 +17675,7 @@ static u_int16_t gbk_to_ucs4_table_d7[] =
 	0x5ea7 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_d7 =
-{
-	0xd740 , 0xd7f9
-} ;
-
-static u_int16_t gbk_to_ucs4_table_d8[] =
+static u_int16_t gbk_to_ucs4_table_1b0[] =
 {
 	/* 0xd840 */
 	0x8c38 ,
@@ -18036,8 +17747,10 @@ static u_int16_t gbk_to_ucs4_table_d8[] =
 	0x8c84 ,
 	0x8c86 ,
 	0x8c87 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1b1[] =
+{
 	/* 0xd880 */
 	0x8c88 ,
 	0x8c8b ,
@@ -18182,12 +17895,7 @@ static u_int16_t gbk_to_ucs4_table_d8[] =
 	0x4f5d ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_d8 =
-{
-	0xd840 , 0xd8fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_d9[] =
+static u_int16_t gbk_to_ucs4_table_1b2[] =
 {
 	/* 0xd940 */
 	0x8cae ,
@@ -18259,8 +17967,10 @@ static u_int16_t gbk_to_ucs4_table_d9[] =
 	0x8cea ,
 	0x8ceb ,
 	0x8cec ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1b3[] =
+{
 	/* 0xd980 */
 	0x8ced ,
 	0x8cee ,
@@ -18405,12 +18115,7 @@ static u_int16_t gbk_to_ucs4_table_d9[] =
 	0x51bc ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_d9 =
-{
-	0xd940 , 0xd9fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_da[] =
+static u_int16_t gbk_to_ucs4_table_1b4[] =
 {
 	/* 0xda40 */
 	0x8d0e ,
@@ -18482,8 +18187,10 @@ static u_int16_t gbk_to_ucs4_table_da[] =
 	0x8d9e ,
 	0x8da0 ,
 	0x8da1 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1b5[] =
+{
 	/* 0xda80 */
 	0x8da2 ,
 	0x8da4 ,
@@ -18628,12 +18335,7 @@ static u_int16_t gbk_to_ucs4_table_da[] =
 	0x90ba ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_da =
-{
-	0xda40 , 0xdafe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_db[] =
+static u_int16_t gbk_to_ucs4_table_1b6[] =
 {
 	/* 0xdb40 */
 	0x8dd5 ,
@@ -18705,8 +18407,10 @@ static u_int16_t gbk_to_ucs4_table_db[] =
 	0x8e3b ,
 	0x8e3c ,
 	0x8e3e ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1b7[] =
+{
 	/* 0xdb80 */
 	0x8e3f ,
 	0x8e43 ,
@@ -18851,12 +18555,7 @@ static u_int16_t gbk_to_ucs4_table_db[] =
 	0x57dd ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_db =
-{
-	0xdb40 , 0xdbfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_dc[] =
+static u_int16_t gbk_to_ucs4_table_1b8[] =
 {
 	/* 0xdc40 */
 	0x8e73 ,
@@ -18928,8 +18627,10 @@ static u_int16_t gbk_to_ucs4_table_dc[] =
 	0x8ec0 ,
 	0x8ec1 ,
 	0x8ec2 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1b9[] =
+{
 	/* 0xdc80 */
 	0x8ec3 ,
 	0x8ec4 ,
@@ -19074,12 +18775,7 @@ static u_int16_t gbk_to_ucs4_table_dc[] =
 	0x8365 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_dc =
-{
-	0xdc40 , 0xdcfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_dd[] =
+static u_int16_t gbk_to_ucs4_table_1ba[] =
 {
 	/* 0xdd40 */
 	0x8ee5 ,
@@ -19151,8 +18847,10 @@ static u_int16_t gbk_to_ucs4_table_dd[] =
 	0x8f21 ,
 	0x8f22 ,
 	0x8f23 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1bb[] =
+{
 	/* 0xdd80 */
 	0x8f24 ,
 	0x8f25 ,
@@ -19297,12 +18995,7 @@ static u_int16_t gbk_to_ucs4_table_dd[] =
 	0x853a ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_dd =
-{
-	0xdd40 , 0xddfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_de[] =
+static u_int16_t gbk_to_ucs4_table_1bc[] =
 {
 	/* 0xde40 */
 	0x8f45 ,
@@ -19374,8 +19067,10 @@ static u_int16_t gbk_to_ucs4_table_de[] =
 	0x8fc0 ,
 	0x8fc3 ,
 	0x8fc6 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1bd[] =
+{
 	/* 0xde80 */
 	0x8fc9 ,
 	0x8fca ,
@@ -19520,12 +19215,7 @@ static u_int16_t gbk_to_ucs4_table_de[] =
 	0x6496 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_de =
-{
-	0xde40 , 0xdefe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_df[] =
+static u_int16_t gbk_to_ucs4_table_1be[] =
 {
 	/* 0xdf40 */
 	0x9019 ,
@@ -19597,8 +19287,10 @@ static u_int16_t gbk_to_ucs4_table_df[] =
 	0x907c ,
 	0x907e ,
 	0x9081 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1bf[] =
+{
 	/* 0xdf80 */
 	0x9084 ,
 	0x9085 ,
@@ -19743,12 +19435,7 @@ static u_int16_t gbk_to_ucs4_table_df[] =
 	0x553c ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_df =
-{
-	0xdf40 , 0xdffe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_e0[] =
+static u_int16_t gbk_to_ucs4_table_1c0[] =
 {
 	/* 0xe040 */
 	0x90c2 ,
@@ -19820,8 +19507,10 @@ static u_int16_t gbk_to_ucs4_table_e0[] =
 	0x911a ,
 	0x911b ,
 	0x911c ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1c1[] =
+{
 	/* 0xe080 */
 	0x911d ,
 	0x911f ,
@@ -19966,12 +19655,7 @@ static u_int16_t gbk_to_ucs4_table_e0[] =
 	0x5e3c ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_e0 =
-{
-	0xe040 , 0xe0fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_e1[] =
+static u_int16_t gbk_to_ucs4_table_1c2[] =
 {
 	/* 0xe140 */
 	0x9145 ,
@@ -20043,8 +19727,10 @@ static u_int16_t gbk_to_ucs4_table_e1[] =
 	0x91b8 ,
 	0x91b9 ,
 	0x91bb ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1c3[] =
+{
 	/* 0xe180 */
 	0x91bc ,
 	0x91bd ,
@@ -20189,12 +19875,7 @@ static u_int16_t gbk_to_ucs4_table_e1[] =
 	0x72fa ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_e1 =
-{
-	0xe140 , 0xe1fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_e2[] =
+static u_int16_t gbk_to_ucs4_table_1c4[] =
 {
 	/* 0xe240 */
 	0x91e6 ,
@@ -20266,8 +19947,10 @@ static u_int16_t gbk_to_ucs4_table_e2[] =
 	0x9222 ,
 	0x9223 ,
 	0x9224 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1c5[] =
+{
 	/* 0xe280 */
 	0x9225 ,
 	0x9226 ,
@@ -20412,12 +20095,7 @@ static u_int16_t gbk_to_ucs4_table_e2[] =
 	0x6042 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_e2 =
-{
-	0xe240 , 0xe2fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_e3[] =
+static u_int16_t gbk_to_ucs4_table_1c6[] =
 {
 	/* 0xe340 */
 	0x9246 ,
@@ -20489,8 +20167,10 @@ static u_int16_t gbk_to_ucs4_table_e3[] =
 	0x9283 ,
 	0x9284 ,
 	0x9285 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1c7[] =
+{
 	/* 0xe380 */
 	0x9286 ,
 	0x9287 ,
@@ -20635,12 +20315,7 @@ static u_int16_t gbk_to_ucs4_table_e3[] =
 	0x6cfe ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_e3 =
-{
-	0xe340 , 0xe3fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_e4[] =
+static u_int16_t gbk_to_ucs4_table_1c8[] =
 {
 	/* 0xe440 */
 	0x92a8 ,
@@ -20712,8 +20387,10 @@ static u_int16_t gbk_to_ucs4_table_e4[] =
 	0x92e6 ,
 	0x92e7 ,
 	0x92e8 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1c9[] =
+{
 	/* 0xe480 */
 	0x92e9 ,
 	0x92ea ,
@@ -20858,12 +20535,7 @@ static u_int16_t gbk_to_ucs4_table_e4[] =
 	0x6fd1 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_e4 =
-{
-	0xe440 , 0xe4fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_e5[] =
+static u_int16_t gbk_to_ucs4_table_1ca[] =
 {
 	/* 0xe540 */
 	0x930a ,
@@ -20935,8 +20607,10 @@ static u_int16_t gbk_to_ucs4_table_e5[] =
 	0x9347 ,
 	0x9348 ,
 	0x9349 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1cb[] =
+{
 	/* 0xe580 */
 	0x934a ,
 	0x934b ,
@@ -21081,12 +20755,7 @@ static u_int16_t gbk_to_ucs4_table_e5[] =
 	0x59a3 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_e5 =
-{
-	0xe540 , 0xe5fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_e6[] =
+static u_int16_t gbk_to_ucs4_table_1cc[] =
 {
 	/* 0xe640 */
 	0x936c ,
@@ -21158,8 +20827,10 @@ static u_int16_t gbk_to_ucs4_table_e6[] =
 	0x93a9 ,
 	0x93aa ,
 	0x93ab ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1cd[] =
+{
 	/* 0xe680 */
 	0x93ac ,
 	0x93ad ,
@@ -21304,12 +20975,7 @@ static u_int16_t gbk_to_ucs4_table_e6[] =
 	0x7ea9 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_e6 =
-{
-	0xe640 , 0xe6fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_e7[] =
+static u_int16_t gbk_to_ucs4_table_1ce[] =
 {
 	/* 0xe740 */
 	0x93ce ,
@@ -21381,8 +21047,10 @@ static u_int16_t gbk_to_ucs4_table_e7[] =
 	0x940b ,
 	0x940c ,
 	0x940d ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1cf[] =
+{
 	/* 0xe780 */
 	0x940e ,
 	0x940f ,
@@ -21527,12 +21195,7 @@ static u_int16_t gbk_to_ucs4_table_e7[] =
 	0x742c ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_e7 =
-{
-	0xe740 , 0xe7fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_e8[] =
+static u_int16_t gbk_to_ucs4_table_1d0[] =
 {
 	/* 0xe840 */
 	0x942f ,
@@ -21604,8 +21267,10 @@ static u_int16_t gbk_to_ucs4_table_e8[] =
 	0x946d ,
 	0x946e ,
 	0x946f ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1d1[] =
+{
 	/* 0xe880 */
 	0x9470 ,
 	0x9471 ,
@@ -21750,12 +21415,7 @@ static u_int16_t gbk_to_ucs4_table_e8[] =
 	0x68f9 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_e8 =
-{
-	0xe840 , 0xe8fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_e9[] =
+static u_int16_t gbk_to_ucs4_table_1d2[] =
 {
 	/* 0xe940 */
 	0x9527 ,
@@ -21827,8 +21487,10 @@ static u_int16_t gbk_to_ucs4_table_e9[] =
 	0x95a8 ,
 	0x95a9 ,
 	0x95aa ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1d3[] =
+{
 	/* 0xe980 */
 	0x95ab ,
 	0x95ac ,
@@ -21973,12 +21635,7 @@ static u_int16_t gbk_to_ucs4_table_e9[] =
 	0x8f8b ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_e9 =
-{
-	0xe940 , 0xe9fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_ea[] =
+static u_int16_t gbk_to_ucs4_table_1d4[] =
 {
 	/* 0xea40 */
 	0x95cc ,
@@ -22050,8 +21707,10 @@ static u_int16_t gbk_to_ucs4_table_ea[] =
 	0x9653 ,
 	0x9656 ,
 	0x9657 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1d5[] =
+{
 	/* 0xea80 */
 	0x9658 ,
 	0x9659 ,
@@ -22196,12 +21855,7 @@ static u_int16_t gbk_to_ucs4_table_ea[] =
 	0x63b0 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_ea =
-{
-	0xea40 , 0xeafe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_eb[] =
+static u_int16_t gbk_to_ucs4_table_1d6[] =
 {
 	/* 0xeb40 */
 	0x968c ,
@@ -22273,8 +21927,10 @@ static u_int16_t gbk_to_ucs4_table_eb[] =
 	0x96e6 ,
 	0x96e7 ,
 	0x96eb ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1d7[] =
+{
 	/* 0xeb80 */
 	0x96ec ,
 	0x96ed ,
@@ -22419,12 +22075,7 @@ static u_int16_t gbk_to_ucs4_table_eb[] =
 	0x81bb ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_eb =
-{
-	0xeb40 , 0xebfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_ec[] =
+static u_int16_t gbk_to_ucs4_table_1d8[] =
 {
 	/* 0xec40 */
 	0x9721 ,
@@ -22496,8 +22147,10 @@ static u_int16_t gbk_to_ucs4_table_ec[] =
 	0x976f ,
 	0x9770 ,
 	0x9771 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1d9[] =
+{
 	/* 0xec80 */
 	0x9772 ,
 	0x9775 ,
@@ -22642,12 +22295,7 @@ static u_int16_t gbk_to_ucs4_table_ec[] =
 	0x5fd0 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_ec =
-{
-	0xec40 , 0xecfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_ed[] =
+static u_int16_t gbk_to_ucs4_table_1da[] =
 {
 	/* 0xed40 */
 	0x979e ,
@@ -22719,8 +22367,10 @@ static u_int16_t gbk_to_ucs4_table_ed[] =
 	0x97e1 ,
 	0x97e2 ,
 	0x97e3 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1db[] =
+{
 	/* 0xed80 */
 	0x97e4 ,
 	0x97e5 ,
@@ -22865,12 +22515,7 @@ static u_int16_t gbk_to_ucs4_table_ed[] =
 	0x7768 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_ed =
-{
-	0xed40 , 0xedfe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_ee[] =
+static u_int16_t gbk_to_ucs4_table_1dc[] =
 {
 	/* 0xee40 */
 	0x980f ,
@@ -22942,8 +22587,10 @@ static u_int16_t gbk_to_ucs4_table_ee[] =
 	0x984b ,
 	0x984c ,
 	0x984d ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1dd[] =
+{
 	/* 0xee80 */
 	0x984e ,
 	0x984f ,
@@ -23088,12 +22735,7 @@ static u_int16_t gbk_to_ucs4_table_ee[] =
 	0x94ea ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_ee =
-{
-	0xee40 , 0xeefe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_ef[] =
+static u_int16_t gbk_to_ucs4_table_1de[] =
 {
 	/* 0xef40 */
 	0x986f ,
@@ -23165,8 +22807,10 @@ static u_int16_t gbk_to_ucs4_table_ef[] =
 	0x98e2 ,
 	0x98e3 ,
 	0x98e4 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1df[] =
+{
 	/* 0xef80 */
 	0x98e5 ,
 	0x98e6 ,
@@ -23311,12 +22955,7 @@ static u_int16_t gbk_to_ucs4_table_ef[] =
 	0x7a14 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_ef =
-{
-	0xef40 , 0xeffe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_f0[] =
+static u_int16_t gbk_to_ucs4_table_1e0[] =
 {
 	/* 0xf040 */
 	0x9908 ,
@@ -23388,8 +23027,10 @@ static u_int16_t gbk_to_ucs4_table_f0[] =
 	0x9947 ,
 	0x9948 ,
 	0x9949 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1e1[] =
+{
 	/* 0xf080 */
 	0x994a ,
 	0x994b ,
@@ -23534,12 +23175,7 @@ static u_int16_t gbk_to_ucs4_table_f0[] =
 	0x7619 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_f0 =
-{
-	0xf040 , 0xf0fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_f1[] =
+static u_int16_t gbk_to_ucs4_table_1e2[] =
 {
 	/* 0xf140 */
 	0x998c ,
@@ -23611,8 +23247,10 @@ static u_int16_t gbk_to_ucs4_table_f1[] =
 	0x99d6 ,
 	0x99d7 ,
 	0x99d8 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1e3[] =
+{
 	/* 0xf180 */
 	0x99d9 ,
 	0x99da ,
@@ -23757,12 +23395,7 @@ static u_int16_t gbk_to_ucs4_table_f1[] =
 	0x9883 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_f1 =
-{
-	0xf140 , 0xf1fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_f2[] =
+static u_int16_t gbk_to_ucs4_table_1e4[] =
 {
 	/* 0xf240 */
 	0x99fa ,
@@ -23834,8 +23467,10 @@ static u_int16_t gbk_to_ucs4_table_f2[] =
 	0x9a36 ,
 	0x9a37 ,
 	0x9a38 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1e5[] =
+{
 	/* 0xf280 */
 	0x9a39 ,
 	0x9a3a ,
@@ -23980,12 +23615,7 @@ static u_int16_t gbk_to_ucs4_table_f2[] =
 	0x87d2 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_f2 =
-{
-	0xf240 , 0xf2fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_f3[] =
+static u_int16_t gbk_to_ucs4_table_1e6[] =
 {
 	/* 0xf340 */
 	0x9a5a ,
@@ -24057,8 +23687,10 @@ static u_int16_t gbk_to_ucs4_table_f3[] =
 	0x9ada ,
 	0x9adb ,
 	0x9adc ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1e7[] =
+{
 	/* 0xf380 */
 	0x9add ,
 	0x9ade ,
@@ -24203,12 +23835,7 @@ static u_int16_t gbk_to_ucs4_table_f3[] =
 	0x7c0b ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_f3 =
-{
-	0xf340 , 0xf3fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_f4[] =
+static u_int16_t gbk_to_ucs4_table_1e8[] =
 {
 	/* 0xf440 */
 	0x9b07 ,
@@ -24280,8 +23907,10 @@ static u_int16_t gbk_to_ucs4_table_f4[] =
 	0x9b58 ,
 	0x9b59 ,
 	0x9b5a ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1e9[] =
+{
 	/* 0xf480 */
 	0x9b5b ,
 	0x9b5c ,
@@ -24426,12 +24055,7 @@ static u_int16_t gbk_to_ucs4_table_f4[] =
 	0x9164 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_f4 =
-{
-	0xf440 , 0xf4fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_f5[] =
+static u_int16_t gbk_to_ucs4_table_1ea[] =
 {
 	/* 0xf540 */
 	0x9b7c ,
@@ -24503,8 +24127,10 @@ static u_int16_t gbk_to_ucs4_table_f5[] =
 	0x9bb8 ,
 	0x9bb9 ,
 	0x9bba ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1eb[] =
+{
 	/* 0xf580 */
 	0x9bbb ,
 	0x9bbc ,
@@ -24649,12 +24275,7 @@ static u_int16_t gbk_to_ucs4_table_f5[] =
 	0x89dc ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_f5 =
-{
-	0xf540 , 0xf5fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_f6[] =
+static u_int16_t gbk_to_ucs4_table_1ec[] =
 {
 	/* 0xf640 */
 	0x9bdc ,
@@ -24726,8 +24347,10 @@ static u_int16_t gbk_to_ucs4_table_f6[] =
 	0x9c18 ,
 	0x9c19 ,
 	0x9c1a ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1ed[] =
+{
 	/* 0xf680 */
 	0x9c1b ,
 	0x9c1c ,
@@ -24872,12 +24495,7 @@ static u_int16_t gbk_to_ucs4_table_f6[] =
 	0x9ccb ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_f6 =
-{
-	0xf640 , 0xf6fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_f7[] =
+static u_int16_t gbk_to_ucs4_table_1ee[] =
 {
 	/* 0xf740 */
 	0x9c3c ,
@@ -24949,8 +24567,10 @@ static u_int16_t gbk_to_ucs4_table_f7[] =
 	0x9c78 ,
 	0x9c79 ,
 	0x9c7a ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1ef[] =
+{
 	/* 0xf780 */
 	0x9c7b ,
 	0x9c7d ,
@@ -25095,12 +24715,7 @@ static u_int16_t gbk_to_ucs4_table_f7[] =
 	0x9f44 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_f7 =
-{
-	0xf740 , 0xf7fe
-} ;
-
-static u_int16_t gbk_to_ucs4_table_f8[] =
+static u_int16_t gbk_to_ucs4_table_1f0[] =
 {
 	/* 0xf840 */
 	0x9ce3 ,
@@ -25172,8 +24787,10 @@ static u_int16_t gbk_to_ucs4_table_f8[] =
 	0x9d1f ,
 	0x9d20 ,
 	0x9d21 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1f1[] =
+{
 	/* 0xf880 */
 	0x9d22 ,
 	0x9d23 ,
@@ -25214,12 +24831,7 @@ static u_int16_t gbk_to_ucs4_table_f8[] =
 	0x9d42 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_f8 =
-{
-	0xf840 , 0xf8a0
-} ;
-
-static u_int16_t gbk_to_ucs4_table_f9[] =
+static u_int16_t gbk_to_ucs4_table_1f2[] =
 {
 	/* 0xf940 */
 	0x9d43 ,
@@ -25291,8 +24903,10 @@ static u_int16_t gbk_to_ucs4_table_f9[] =
 	0x9d7f ,
 	0x9d80 ,
 	0x9d81 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1f3[] =
+{
 	/* 0xf980 */
 	0x9d82 ,
 	0x9d83 ,
@@ -25333,12 +24947,7 @@ static u_int16_t gbk_to_ucs4_table_f9[] =
 	0x9da2 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_f9 =
-{
-	0xf940 , 0xf9a0
-} ;
-
-static u_int16_t gbk_to_ucs4_table_fa[] =
+static u_int16_t gbk_to_ucs4_table_1f4[] =
 {
 	/* 0xfa40 */
 	0x9da3 ,
@@ -25410,8 +25019,10 @@ static u_int16_t gbk_to_ucs4_table_fa[] =
 	0x9ddf ,
 	0x9de0 ,
 	0x9de1 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1f5[] =
+{
 	/* 0xfa80 */
 	0x9de2 ,
 	0x9de3 ,
@@ -25452,12 +25063,7 @@ static u_int16_t gbk_to_ucs4_table_fa[] =
 	0x9e02 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_fa =
-{
-	0xfa40 , 0xfaa0
-} ;
-
-static u_int16_t gbk_to_ucs4_table_fb[] =
+static u_int16_t gbk_to_ucs4_table_1f6[] =
 {
 	/* 0xfb40 */
 	0x9e03 ,
@@ -25529,8 +25135,10 @@ static u_int16_t gbk_to_ucs4_table_fb[] =
 	0x9e7c ,
 	0x9e7d ,
 	0x9e80 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1f7[] =
+{
 	/* 0xfb80 */
 	0x9e81 ,
 	0x9e83 ,
@@ -25571,12 +25179,7 @@ static u_int16_t gbk_to_ucs4_table_fb[] =
 	0x9eaa ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_fb =
-{
-	0xfb40 , 0xfba0
-} ;
-
-static u_int16_t gbk_to_ucs4_table_fc[] =
+static u_int16_t gbk_to_ucs4_table_1f8[] =
 {
 	/* 0xfc40 */
 	0x9eab ,
@@ -25648,8 +25251,10 @@ static u_int16_t gbk_to_ucs4_table_fc[] =
 	0x9f03 ,
 	0x9f04 ,
 	0x9f05 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1f9[] =
+{
 	/* 0xfc80 */
 	0x9f06 ,
 	0x9f07 ,
@@ -25690,12 +25295,7 @@ static u_int16_t gbk_to_ucs4_table_fc[] =
 	0x9f31 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_fc =
-{
-	0xfc40 , 0xfca0
-} ;
-
-static u_int16_t gbk_to_ucs4_table_fd[] =
+static u_int16_t gbk_to_ucs4_table_1fa[] =
 {
 	/* 0xfd40 */
 	0x9f32 ,
@@ -25767,8 +25367,10 @@ static u_int16_t gbk_to_ucs4_table_fd[] =
 	0x9f76 ,
 	0x9f77 ,
 	0x9f78 ,
-	0x00 ,
+} ;
 
+static u_int16_t gbk_to_ucs4_table_1fb[] =
+{
 	/* 0xfd80 */
 	0x9f79 ,
 	0x9f7a ,
@@ -25809,12 +25411,7 @@ static u_int16_t gbk_to_ucs4_table_fd[] =
 	0xf9f1 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_fd =
-{
-	0xfd40 , 0xfda0
-} ;
-
-static u_int16_t gbk_to_ucs4_table_fe[] =
+static u_int16_t gbk_to_ucs4_table_1fc[] =
 {
 	/* 0xfe40 */
 	0xfa0c ,
@@ -25835,147 +25432,266 @@ static u_int16_t gbk_to_ucs4_table_fe[] =
 	0xfa29 ,
 } ;
 
-static gbk_to_ucs4_range_t gbk_to_ucs4_range_fe =
-{
-	0xfe40 , 0xfe4f
-} ;
-
 static u_int32_t  gbk_to_ucs4_beg = 0x8140 ;
 
 static u_int32_t  gbk_to_ucs4_end = 0xfe4f ;
 
 static gbk_to_ucs4_table_t gbk_to_ucs4_tables[] =
 {
-	{ gbk_to_ucs4_table_81 , &gbk_to_ucs4_range_81 } ,
-	{ gbk_to_ucs4_table_82 , &gbk_to_ucs4_range_82 } ,
-	{ gbk_to_ucs4_table_83 , &gbk_to_ucs4_range_83 } ,
-	{ gbk_to_ucs4_table_84 , &gbk_to_ucs4_range_84 } ,
-	{ gbk_to_ucs4_table_85 , &gbk_to_ucs4_range_85 } ,
-	{ gbk_to_ucs4_table_86 , &gbk_to_ucs4_range_86 } ,
-	{ gbk_to_ucs4_table_87 , &gbk_to_ucs4_range_87 } ,
-	{ gbk_to_ucs4_table_88 , &gbk_to_ucs4_range_88 } ,
-	{ gbk_to_ucs4_table_89 , &gbk_to_ucs4_range_89 } ,
-	{ gbk_to_ucs4_table_8a , &gbk_to_ucs4_range_8a } ,
-	{ gbk_to_ucs4_table_8b , &gbk_to_ucs4_range_8b } ,
-	{ gbk_to_ucs4_table_8c , &gbk_to_ucs4_range_8c } ,
-	{ gbk_to_ucs4_table_8d , &gbk_to_ucs4_range_8d } ,
-	{ gbk_to_ucs4_table_8e , &gbk_to_ucs4_range_8e } ,
-	{ gbk_to_ucs4_table_8f , &gbk_to_ucs4_range_8f } ,
-	{ gbk_to_ucs4_table_90 , &gbk_to_ucs4_range_90 } ,
-	{ gbk_to_ucs4_table_91 , &gbk_to_ucs4_range_91 } ,
-	{ gbk_to_ucs4_table_92 , &gbk_to_ucs4_range_92 } ,
-	{ gbk_to_ucs4_table_93 , &gbk_to_ucs4_range_93 } ,
-	{ gbk_to_ucs4_table_94 , &gbk_to_ucs4_range_94 } ,
-	{ gbk_to_ucs4_table_95 , &gbk_to_ucs4_range_95 } ,
-	{ gbk_to_ucs4_table_96 , &gbk_to_ucs4_range_96 } ,
-	{ gbk_to_ucs4_table_97 , &gbk_to_ucs4_range_97 } ,
-	{ gbk_to_ucs4_table_98 , &gbk_to_ucs4_range_98 } ,
-	{ gbk_to_ucs4_table_99 , &gbk_to_ucs4_range_99 } ,
-	{ gbk_to_ucs4_table_9a , &gbk_to_ucs4_range_9a } ,
-	{ gbk_to_ucs4_table_9b , &gbk_to_ucs4_range_9b } ,
-	{ gbk_to_ucs4_table_9c , &gbk_to_ucs4_range_9c } ,
-	{ gbk_to_ucs4_table_9d , &gbk_to_ucs4_range_9d } ,
-	{ gbk_to_ucs4_table_9e , &gbk_to_ucs4_range_9e } ,
-	{ gbk_to_ucs4_table_9f , &gbk_to_ucs4_range_9f } ,
-	{ gbk_to_ucs4_table_a0 , &gbk_to_ucs4_range_a0 } ,
-	{ gbk_to_ucs4_table_a1 , &gbk_to_ucs4_range_a1 } ,
-	{ gbk_to_ucs4_table_a2 , &gbk_to_ucs4_range_a2 } ,
-	{ gbk_to_ucs4_table_a3 , &gbk_to_ucs4_range_a3 } ,
-	{ gbk_to_ucs4_table_a4 , &gbk_to_ucs4_range_a4 } ,
-	{ gbk_to_ucs4_table_a5 , &gbk_to_ucs4_range_a5 } ,
-	{ gbk_to_ucs4_table_a6 , &gbk_to_ucs4_range_a6 } ,
-	{ gbk_to_ucs4_table_a7 , &gbk_to_ucs4_range_a7 } ,
-	{ gbk_to_ucs4_table_a8 , &gbk_to_ucs4_range_a8 } ,
-	{ gbk_to_ucs4_table_a9 , &gbk_to_ucs4_range_a9 } ,
-	{ gbk_to_ucs4_table_aa , &gbk_to_ucs4_range_aa } ,
-	{ gbk_to_ucs4_table_ab , &gbk_to_ucs4_range_ab } ,
-	{ gbk_to_ucs4_table_ac , &gbk_to_ucs4_range_ac } ,
-	{ gbk_to_ucs4_table_ad , &gbk_to_ucs4_range_ad } ,
-	{ gbk_to_ucs4_table_ae , &gbk_to_ucs4_range_ae } ,
-	{ gbk_to_ucs4_table_af , &gbk_to_ucs4_range_af } ,
-	{ gbk_to_ucs4_table_b0 , &gbk_to_ucs4_range_b0 } ,
-	{ gbk_to_ucs4_table_b1 , &gbk_to_ucs4_range_b1 } ,
-	{ gbk_to_ucs4_table_b2 , &gbk_to_ucs4_range_b2 } ,
-	{ gbk_to_ucs4_table_b3 , &gbk_to_ucs4_range_b3 } ,
-	{ gbk_to_ucs4_table_b4 , &gbk_to_ucs4_range_b4 } ,
-	{ gbk_to_ucs4_table_b5 , &gbk_to_ucs4_range_b5 } ,
-	{ gbk_to_ucs4_table_b6 , &gbk_to_ucs4_range_b6 } ,
-	{ gbk_to_ucs4_table_b7 , &gbk_to_ucs4_range_b7 } ,
-	{ gbk_to_ucs4_table_b8 , &gbk_to_ucs4_range_b8 } ,
-	{ gbk_to_ucs4_table_b9 , &gbk_to_ucs4_range_b9 } ,
-	{ gbk_to_ucs4_table_ba , &gbk_to_ucs4_range_ba } ,
-	{ gbk_to_ucs4_table_bb , &gbk_to_ucs4_range_bb } ,
-	{ gbk_to_ucs4_table_bc , &gbk_to_ucs4_range_bc } ,
-	{ gbk_to_ucs4_table_bd , &gbk_to_ucs4_range_bd } ,
-	{ gbk_to_ucs4_table_be , &gbk_to_ucs4_range_be } ,
-	{ gbk_to_ucs4_table_bf , &gbk_to_ucs4_range_bf } ,
-	{ gbk_to_ucs4_table_c0 , &gbk_to_ucs4_range_c0 } ,
-	{ gbk_to_ucs4_table_c1 , &gbk_to_ucs4_range_c1 } ,
-	{ gbk_to_ucs4_table_c2 , &gbk_to_ucs4_range_c2 } ,
-	{ gbk_to_ucs4_table_c3 , &gbk_to_ucs4_range_c3 } ,
-	{ gbk_to_ucs4_table_c4 , &gbk_to_ucs4_range_c4 } ,
-	{ gbk_to_ucs4_table_c5 , &gbk_to_ucs4_range_c5 } ,
-	{ gbk_to_ucs4_table_c6 , &gbk_to_ucs4_range_c6 } ,
-	{ gbk_to_ucs4_table_c7 , &gbk_to_ucs4_range_c7 } ,
-	{ gbk_to_ucs4_table_c8 , &gbk_to_ucs4_range_c8 } ,
-	{ gbk_to_ucs4_table_c9 , &gbk_to_ucs4_range_c9 } ,
-	{ gbk_to_ucs4_table_ca , &gbk_to_ucs4_range_ca } ,
-	{ gbk_to_ucs4_table_cb , &gbk_to_ucs4_range_cb } ,
-	{ gbk_to_ucs4_table_cc , &gbk_to_ucs4_range_cc } ,
-	{ gbk_to_ucs4_table_cd , &gbk_to_ucs4_range_cd } ,
-	{ gbk_to_ucs4_table_ce , &gbk_to_ucs4_range_ce } ,
-	{ gbk_to_ucs4_table_cf , &gbk_to_ucs4_range_cf } ,
-	{ gbk_to_ucs4_table_d0 , &gbk_to_ucs4_range_d0 } ,
-	{ gbk_to_ucs4_table_d1 , &gbk_to_ucs4_range_d1 } ,
-	{ gbk_to_ucs4_table_d2 , &gbk_to_ucs4_range_d2 } ,
-	{ gbk_to_ucs4_table_d3 , &gbk_to_ucs4_range_d3 } ,
-	{ gbk_to_ucs4_table_d4 , &gbk_to_ucs4_range_d4 } ,
-	{ gbk_to_ucs4_table_d5 , &gbk_to_ucs4_range_d5 } ,
-	{ gbk_to_ucs4_table_d6 , &gbk_to_ucs4_range_d6 } ,
-	{ gbk_to_ucs4_table_d7 , &gbk_to_ucs4_range_d7 } ,
-	{ gbk_to_ucs4_table_d8 , &gbk_to_ucs4_range_d8 } ,
-	{ gbk_to_ucs4_table_d9 , &gbk_to_ucs4_range_d9 } ,
-	{ gbk_to_ucs4_table_da , &gbk_to_ucs4_range_da } ,
-	{ gbk_to_ucs4_table_db , &gbk_to_ucs4_range_db } ,
-	{ gbk_to_ucs4_table_dc , &gbk_to_ucs4_range_dc } ,
-	{ gbk_to_ucs4_table_dd , &gbk_to_ucs4_range_dd } ,
-	{ gbk_to_ucs4_table_de , &gbk_to_ucs4_range_de } ,
-	{ gbk_to_ucs4_table_df , &gbk_to_ucs4_range_df } ,
-	{ gbk_to_ucs4_table_e0 , &gbk_to_ucs4_range_e0 } ,
-	{ gbk_to_ucs4_table_e1 , &gbk_to_ucs4_range_e1 } ,
-	{ gbk_to_ucs4_table_e2 , &gbk_to_ucs4_range_e2 } ,
-	{ gbk_to_ucs4_table_e3 , &gbk_to_ucs4_range_e3 } ,
-	{ gbk_to_ucs4_table_e4 , &gbk_to_ucs4_range_e4 } ,
-	{ gbk_to_ucs4_table_e5 , &gbk_to_ucs4_range_e5 } ,
-	{ gbk_to_ucs4_table_e6 , &gbk_to_ucs4_range_e6 } ,
-	{ gbk_to_ucs4_table_e7 , &gbk_to_ucs4_range_e7 } ,
-	{ gbk_to_ucs4_table_e8 , &gbk_to_ucs4_range_e8 } ,
-	{ gbk_to_ucs4_table_e9 , &gbk_to_ucs4_range_e9 } ,
-	{ gbk_to_ucs4_table_ea , &gbk_to_ucs4_range_ea } ,
-	{ gbk_to_ucs4_table_eb , &gbk_to_ucs4_range_eb } ,
-	{ gbk_to_ucs4_table_ec , &gbk_to_ucs4_range_ec } ,
-	{ gbk_to_ucs4_table_ed , &gbk_to_ucs4_range_ed } ,
-	{ gbk_to_ucs4_table_ee , &gbk_to_ucs4_range_ee } ,
-	{ gbk_to_ucs4_table_ef , &gbk_to_ucs4_range_ef } ,
-	{ gbk_to_ucs4_table_f0 , &gbk_to_ucs4_range_f0 } ,
-	{ gbk_to_ucs4_table_f1 , &gbk_to_ucs4_range_f1 } ,
-	{ gbk_to_ucs4_table_f2 , &gbk_to_ucs4_range_f2 } ,
-	{ gbk_to_ucs4_table_f3 , &gbk_to_ucs4_range_f3 } ,
-	{ gbk_to_ucs4_table_f4 , &gbk_to_ucs4_range_f4 } ,
-	{ gbk_to_ucs4_table_f5 , &gbk_to_ucs4_range_f5 } ,
-	{ gbk_to_ucs4_table_f6 , &gbk_to_ucs4_range_f6 } ,
-	{ gbk_to_ucs4_table_f7 , &gbk_to_ucs4_range_f7 } ,
-	{ gbk_to_ucs4_table_f8 , &gbk_to_ucs4_range_f8 } ,
-	{ gbk_to_ucs4_table_f9 , &gbk_to_ucs4_range_f9 } ,
-	{ gbk_to_ucs4_table_fa , &gbk_to_ucs4_range_fa } ,
-	{ gbk_to_ucs4_table_fb , &gbk_to_ucs4_range_fb } ,
-	{ gbk_to_ucs4_table_fc , &gbk_to_ucs4_range_fc } ,
-	{ gbk_to_ucs4_table_fd , &gbk_to_ucs4_range_fd } ,
-	{ gbk_to_ucs4_table_fe , &gbk_to_ucs4_range_fe } ,
+	{ gbk_to_ucs4_table_102 , 0x8140, 0x817e } ,
+	{ gbk_to_ucs4_table_103 , 0x8180, 0x81fe } ,
+	{ gbk_to_ucs4_table_104 , 0x8240, 0x827e } ,
+	{ gbk_to_ucs4_table_105 , 0x8280, 0x82fe } ,
+	{ gbk_to_ucs4_table_106 , 0x8340, 0x837e } ,
+	{ gbk_to_ucs4_table_107 , 0x8380, 0x83fe } ,
+	{ gbk_to_ucs4_table_108 , 0x8440, 0x847e } ,
+	{ gbk_to_ucs4_table_109 , 0x8480, 0x84fe } ,
+	{ gbk_to_ucs4_table_10a , 0x8540, 0x857e } ,
+	{ gbk_to_ucs4_table_10b , 0x8580, 0x85fe } ,
+	{ gbk_to_ucs4_table_10c , 0x8640, 0x867e } ,
+	{ gbk_to_ucs4_table_10d , 0x8680, 0x86fe } ,
+	{ gbk_to_ucs4_table_10e , 0x8740, 0x877e } ,
+	{ gbk_to_ucs4_table_10f , 0x8780, 0x87fe } ,
+	{ gbk_to_ucs4_table_110 , 0x8840, 0x887e } ,
+	{ gbk_to_ucs4_table_111 , 0x8880, 0x88fe } ,
+	{ gbk_to_ucs4_table_112 , 0x8940, 0x897e } ,
+	{ gbk_to_ucs4_table_113 , 0x8980, 0x89fe } ,
+	{ gbk_to_ucs4_table_114 , 0x8a40, 0x8a7e } ,
+	{ gbk_to_ucs4_table_115 , 0x8a80, 0x8afe } ,
+	{ gbk_to_ucs4_table_116 , 0x8b40, 0x8b7e } ,
+	{ gbk_to_ucs4_table_117 , 0x8b80, 0x8bfe } ,
+	{ gbk_to_ucs4_table_118 , 0x8c40, 0x8c7e } ,
+	{ gbk_to_ucs4_table_119 , 0x8c80, 0x8cfe } ,
+	{ gbk_to_ucs4_table_11a , 0x8d40, 0x8d7e } ,
+	{ gbk_to_ucs4_table_11b , 0x8d80, 0x8dfe } ,
+	{ gbk_to_ucs4_table_11c , 0x8e40, 0x8e7e } ,
+	{ gbk_to_ucs4_table_11d , 0x8e80, 0x8efe } ,
+	{ gbk_to_ucs4_table_11e , 0x8f40, 0x8f7e } ,
+	{ gbk_to_ucs4_table_11f , 0x8f80, 0x8ffe } ,
+	{ gbk_to_ucs4_table_120 , 0x9040, 0x907e } ,
+	{ gbk_to_ucs4_table_121 , 0x9080, 0x90fe } ,
+	{ gbk_to_ucs4_table_122 , 0x9140, 0x917e } ,
+	{ gbk_to_ucs4_table_123 , 0x9180, 0x91fe } ,
+	{ gbk_to_ucs4_table_124 , 0x9240, 0x927e } ,
+	{ gbk_to_ucs4_table_125 , 0x9280, 0x92fe } ,
+	{ gbk_to_ucs4_table_126 , 0x9340, 0x937e } ,
+	{ gbk_to_ucs4_table_127 , 0x9380, 0x93fe } ,
+	{ gbk_to_ucs4_table_128 , 0x9440, 0x947e } ,
+	{ gbk_to_ucs4_table_129 , 0x9480, 0x94fe } ,
+	{ gbk_to_ucs4_table_12a , 0x9540, 0x957e } ,
+	{ gbk_to_ucs4_table_12b , 0x9580, 0x95fe } ,
+	{ gbk_to_ucs4_table_12c , 0x9640, 0x967e } ,
+	{ gbk_to_ucs4_table_12d , 0x9680, 0x96fe } ,
+	{ gbk_to_ucs4_table_12e , 0x9740, 0x977e } ,
+	{ gbk_to_ucs4_table_12f , 0x9780, 0x97fe } ,
+	{ gbk_to_ucs4_table_130 , 0x9840, 0x987e } ,
+	{ gbk_to_ucs4_table_131 , 0x9880, 0x98fe } ,
+	{ gbk_to_ucs4_table_132 , 0x9940, 0x997e } ,
+	{ gbk_to_ucs4_table_133 , 0x9980, 0x99fe } ,
+	{ gbk_to_ucs4_table_134 , 0x9a40, 0x9a7e } ,
+	{ gbk_to_ucs4_table_135 , 0x9a80, 0x9afe } ,
+	{ gbk_to_ucs4_table_136 , 0x9b40, 0x9b7e } ,
+	{ gbk_to_ucs4_table_137 , 0x9b80, 0x9bfe } ,
+	{ gbk_to_ucs4_table_138 , 0x9c40, 0x9c7e } ,
+	{ gbk_to_ucs4_table_139 , 0x9c80, 0x9cfe } ,
+	{ gbk_to_ucs4_table_13a , 0x9d40, 0x9d7e } ,
+	{ gbk_to_ucs4_table_13b , 0x9d80, 0x9dfe } ,
+	{ gbk_to_ucs4_table_13c , 0x9e40, 0x9e7e } ,
+	{ gbk_to_ucs4_table_13d , 0x9e80, 0x9efe } ,
+	{ gbk_to_ucs4_table_13e , 0x9f40, 0x9f7e } ,
+	{ gbk_to_ucs4_table_13f , 0x9f80, 0x9ffe } ,
+	{ gbk_to_ucs4_table_140 , 0xa040, 0xa07e } ,
+	{ gbk_to_ucs4_table_141 , 0xa080, 0xa0fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ gbk_to_ucs4_table_143 , 0xa1a1, 0xa1fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ gbk_to_ucs4_table_145 , 0xa2a1, 0xa2fc } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ gbk_to_ucs4_table_147 , 0xa3a1, 0xa3fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ gbk_to_ucs4_table_149 , 0xa4a1, 0xa4f3 } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ gbk_to_ucs4_table_14b , 0xa5a1, 0xa5f6 } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ gbk_to_ucs4_table_14d , 0xa6a1, 0xa6f5 } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ gbk_to_ucs4_table_14f , 0xa7a1, 0xa7f1 } ,
+	{ gbk_to_ucs4_table_150 , 0xa840, 0xa87e } ,
+	{ gbk_to_ucs4_table_151 , 0xa880, 0xa8e9 } ,
+	{ gbk_to_ucs4_table_152 , 0xa940, 0xa97e } ,
+	{ gbk_to_ucs4_table_153 , 0xa980, 0xa9ef } ,
+	{ gbk_to_ucs4_table_154 , 0xaa40, 0xaa7e } ,
+	{ gbk_to_ucs4_table_155 , 0xaa80, 0xaaa0 } ,
+	{ gbk_to_ucs4_table_156 , 0xab40, 0xab7e } ,
+	{ gbk_to_ucs4_table_157 , 0xab80, 0xaba0 } ,
+	{ gbk_to_ucs4_table_158 , 0xac40, 0xac7e } ,
+	{ gbk_to_ucs4_table_159 , 0xac80, 0xaca0 } ,
+	{ gbk_to_ucs4_table_15a , 0xad40, 0xad7e } ,
+	{ gbk_to_ucs4_table_15b , 0xad80, 0xada0 } ,
+	{ gbk_to_ucs4_table_15c , 0xae40, 0xae7e } ,
+	{ gbk_to_ucs4_table_15d , 0xae80, 0xaea0 } ,
+	{ gbk_to_ucs4_table_15e , 0xaf40, 0xaf7e } ,
+	{ gbk_to_ucs4_table_15f , 0xaf80, 0xafa0 } ,
+	{ gbk_to_ucs4_table_160 , 0xb040, 0xb07e } ,
+	{ gbk_to_ucs4_table_161 , 0xb080, 0xb0fe } ,
+	{ gbk_to_ucs4_table_162 , 0xb140, 0xb17e } ,
+	{ gbk_to_ucs4_table_163 , 0xb180, 0xb1fe } ,
+	{ gbk_to_ucs4_table_164 , 0xb240, 0xb27e } ,
+	{ gbk_to_ucs4_table_165 , 0xb280, 0xb2fe } ,
+	{ gbk_to_ucs4_table_166 , 0xb340, 0xb37e } ,
+	{ gbk_to_ucs4_table_167 , 0xb380, 0xb3fe } ,
+	{ gbk_to_ucs4_table_168 , 0xb440, 0xb47e } ,
+	{ gbk_to_ucs4_table_169 , 0xb480, 0xb4fe } ,
+	{ gbk_to_ucs4_table_16a , 0xb540, 0xb57e } ,
+	{ gbk_to_ucs4_table_16b , 0xb580, 0xb5fe } ,
+	{ gbk_to_ucs4_table_16c , 0xb640, 0xb67e } ,
+	{ gbk_to_ucs4_table_16d , 0xb680, 0xb6fe } ,
+	{ gbk_to_ucs4_table_16e , 0xb740, 0xb77e } ,
+	{ gbk_to_ucs4_table_16f , 0xb780, 0xb7fe } ,
+	{ gbk_to_ucs4_table_170 , 0xb840, 0xb87e } ,
+	{ gbk_to_ucs4_table_171 , 0xb880, 0xb8fe } ,
+	{ gbk_to_ucs4_table_172 , 0xb940, 0xb97e } ,
+	{ gbk_to_ucs4_table_173 , 0xb980, 0xb9fe } ,
+	{ gbk_to_ucs4_table_174 , 0xba40, 0xba7e } ,
+	{ gbk_to_ucs4_table_175 , 0xba80, 0xbafe } ,
+	{ gbk_to_ucs4_table_176 , 0xbb40, 0xbb7e } ,
+	{ gbk_to_ucs4_table_177 , 0xbb80, 0xbbfe } ,
+	{ gbk_to_ucs4_table_178 , 0xbc40, 0xbc7e } ,
+	{ gbk_to_ucs4_table_179 , 0xbc80, 0xbcfe } ,
+	{ gbk_to_ucs4_table_17a , 0xbd40, 0xbd7e } ,
+	{ gbk_to_ucs4_table_17b , 0xbd80, 0xbdfe } ,
+	{ gbk_to_ucs4_table_17c , 0xbe40, 0xbe7e } ,
+	{ gbk_to_ucs4_table_17d , 0xbe80, 0xbefe } ,
+	{ gbk_to_ucs4_table_17e , 0xbf40, 0xbf7e } ,
+	{ gbk_to_ucs4_table_17f , 0xbf80, 0xbffe } ,
+	{ gbk_to_ucs4_table_180 , 0xc040, 0xc07e } ,
+	{ gbk_to_ucs4_table_181 , 0xc080, 0xc0fe } ,
+	{ gbk_to_ucs4_table_182 , 0xc140, 0xc17e } ,
+	{ gbk_to_ucs4_table_183 , 0xc180, 0xc1fe } ,
+	{ gbk_to_ucs4_table_184 , 0xc240, 0xc27e } ,
+	{ gbk_to_ucs4_table_185 , 0xc280, 0xc2fe } ,
+	{ gbk_to_ucs4_table_186 , 0xc340, 0xc37e } ,
+	{ gbk_to_ucs4_table_187 , 0xc380, 0xc3fe } ,
+	{ gbk_to_ucs4_table_188 , 0xc440, 0xc47e } ,
+	{ gbk_to_ucs4_table_189 , 0xc480, 0xc4fe } ,
+	{ gbk_to_ucs4_table_18a , 0xc540, 0xc57e } ,
+	{ gbk_to_ucs4_table_18b , 0xc580, 0xc5fe } ,
+	{ gbk_to_ucs4_table_18c , 0xc640, 0xc67e } ,
+	{ gbk_to_ucs4_table_18d , 0xc680, 0xc6fe } ,
+	{ gbk_to_ucs4_table_18e , 0xc740, 0xc77e } ,
+	{ gbk_to_ucs4_table_18f , 0xc780, 0xc7fe } ,
+	{ gbk_to_ucs4_table_190 , 0xc840, 0xc87e } ,
+	{ gbk_to_ucs4_table_191 , 0xc880, 0xc8fe } ,
+	{ gbk_to_ucs4_table_192 , 0xc940, 0xc97e } ,
+	{ gbk_to_ucs4_table_193 , 0xc980, 0xc9fe } ,
+	{ gbk_to_ucs4_table_194 , 0xca40, 0xca7e } ,
+	{ gbk_to_ucs4_table_195 , 0xca80, 0xcafe } ,
+	{ gbk_to_ucs4_table_196 , 0xcb40, 0xcb7e } ,
+	{ gbk_to_ucs4_table_197 , 0xcb80, 0xcbfe } ,
+	{ gbk_to_ucs4_table_198 , 0xcc40, 0xcc7e } ,
+	{ gbk_to_ucs4_table_199 , 0xcc80, 0xccfe } ,
+	{ gbk_to_ucs4_table_19a , 0xcd40, 0xcd7e } ,
+	{ gbk_to_ucs4_table_19b , 0xcd80, 0xcdfe } ,
+	{ gbk_to_ucs4_table_19c , 0xce40, 0xce7e } ,
+	{ gbk_to_ucs4_table_19d , 0xce80, 0xcefe } ,
+	{ gbk_to_ucs4_table_19e , 0xcf40, 0xcf7e } ,
+	{ gbk_to_ucs4_table_19f , 0xcf80, 0xcffe } ,
+	{ gbk_to_ucs4_table_1a0 , 0xd040, 0xd07e } ,
+	{ gbk_to_ucs4_table_1a1 , 0xd080, 0xd0fe } ,
+	{ gbk_to_ucs4_table_1a2 , 0xd140, 0xd17e } ,
+	{ gbk_to_ucs4_table_1a3 , 0xd180, 0xd1fe } ,
+	{ gbk_to_ucs4_table_1a4 , 0xd240, 0xd27e } ,
+	{ gbk_to_ucs4_table_1a5 , 0xd280, 0xd2fe } ,
+	{ gbk_to_ucs4_table_1a6 , 0xd340, 0xd37e } ,
+	{ gbk_to_ucs4_table_1a7 , 0xd380, 0xd3fe } ,
+	{ gbk_to_ucs4_table_1a8 , 0xd440, 0xd47e } ,
+	{ gbk_to_ucs4_table_1a9 , 0xd480, 0xd4fe } ,
+	{ gbk_to_ucs4_table_1aa , 0xd540, 0xd57e } ,
+	{ gbk_to_ucs4_table_1ab , 0xd580, 0xd5fe } ,
+	{ gbk_to_ucs4_table_1ac , 0xd640, 0xd67e } ,
+	{ gbk_to_ucs4_table_1ad , 0xd680, 0xd6fe } ,
+	{ gbk_to_ucs4_table_1ae , 0xd740, 0xd77e } ,
+	{ gbk_to_ucs4_table_1af , 0xd780, 0xd7f9 } ,
+	{ gbk_to_ucs4_table_1b0 , 0xd840, 0xd87e } ,
+	{ gbk_to_ucs4_table_1b1 , 0xd880, 0xd8fe } ,
+	{ gbk_to_ucs4_table_1b2 , 0xd940, 0xd97e } ,
+	{ gbk_to_ucs4_table_1b3 , 0xd980, 0xd9fe } ,
+	{ gbk_to_ucs4_table_1b4 , 0xda40, 0xda7e } ,
+	{ gbk_to_ucs4_table_1b5 , 0xda80, 0xdafe } ,
+	{ gbk_to_ucs4_table_1b6 , 0xdb40, 0xdb7e } ,
+	{ gbk_to_ucs4_table_1b7 , 0xdb80, 0xdbfe } ,
+	{ gbk_to_ucs4_table_1b8 , 0xdc40, 0xdc7e } ,
+	{ gbk_to_ucs4_table_1b9 , 0xdc80, 0xdcfe } ,
+	{ gbk_to_ucs4_table_1ba , 0xdd40, 0xdd7e } ,
+	{ gbk_to_ucs4_table_1bb , 0xdd80, 0xddfe } ,
+	{ gbk_to_ucs4_table_1bc , 0xde40, 0xde7e } ,
+	{ gbk_to_ucs4_table_1bd , 0xde80, 0xdefe } ,
+	{ gbk_to_ucs4_table_1be , 0xdf40, 0xdf7e } ,
+	{ gbk_to_ucs4_table_1bf , 0xdf80, 0xdffe } ,
+	{ gbk_to_ucs4_table_1c0 , 0xe040, 0xe07e } ,
+	{ gbk_to_ucs4_table_1c1 , 0xe080, 0xe0fe } ,
+	{ gbk_to_ucs4_table_1c2 , 0xe140, 0xe17e } ,
+	{ gbk_to_ucs4_table_1c3 , 0xe180, 0xe1fe } ,
+	{ gbk_to_ucs4_table_1c4 , 0xe240, 0xe27e } ,
+	{ gbk_to_ucs4_table_1c5 , 0xe280, 0xe2fe } ,
+	{ gbk_to_ucs4_table_1c6 , 0xe340, 0xe37e } ,
+	{ gbk_to_ucs4_table_1c7 , 0xe380, 0xe3fe } ,
+	{ gbk_to_ucs4_table_1c8 , 0xe440, 0xe47e } ,
+	{ gbk_to_ucs4_table_1c9 , 0xe480, 0xe4fe } ,
+	{ gbk_to_ucs4_table_1ca , 0xe540, 0xe57e } ,
+	{ gbk_to_ucs4_table_1cb , 0xe580, 0xe5fe } ,
+	{ gbk_to_ucs4_table_1cc , 0xe640, 0xe67e } ,
+	{ gbk_to_ucs4_table_1cd , 0xe680, 0xe6fe } ,
+	{ gbk_to_ucs4_table_1ce , 0xe740, 0xe77e } ,
+	{ gbk_to_ucs4_table_1cf , 0xe780, 0xe7fe } ,
+	{ gbk_to_ucs4_table_1d0 , 0xe840, 0xe87e } ,
+	{ gbk_to_ucs4_table_1d1 , 0xe880, 0xe8fe } ,
+	{ gbk_to_ucs4_table_1d2 , 0xe940, 0xe97e } ,
+	{ gbk_to_ucs4_table_1d3 , 0xe980, 0xe9fe } ,
+	{ gbk_to_ucs4_table_1d4 , 0xea40, 0xea7e } ,
+	{ gbk_to_ucs4_table_1d5 , 0xea80, 0xeafe } ,
+	{ gbk_to_ucs4_table_1d6 , 0xeb40, 0xeb7e } ,
+	{ gbk_to_ucs4_table_1d7 , 0xeb80, 0xebfe } ,
+	{ gbk_to_ucs4_table_1d8 , 0xec40, 0xec7e } ,
+	{ gbk_to_ucs4_table_1d9 , 0xec80, 0xecfe } ,
+	{ gbk_to_ucs4_table_1da , 0xed40, 0xed7e } ,
+	{ gbk_to_ucs4_table_1db , 0xed80, 0xedfe } ,
+	{ gbk_to_ucs4_table_1dc , 0xee40, 0xee7e } ,
+	{ gbk_to_ucs4_table_1dd , 0xee80, 0xeefe } ,
+	{ gbk_to_ucs4_table_1de , 0xef40, 0xef7e } ,
+	{ gbk_to_ucs4_table_1df , 0xef80, 0xeffe } ,
+	{ gbk_to_ucs4_table_1e0 , 0xf040, 0xf07e } ,
+	{ gbk_to_ucs4_table_1e1 , 0xf080, 0xf0fe } ,
+	{ gbk_to_ucs4_table_1e2 , 0xf140, 0xf17e } ,
+	{ gbk_to_ucs4_table_1e3 , 0xf180, 0xf1fe } ,
+	{ gbk_to_ucs4_table_1e4 , 0xf240, 0xf27e } ,
+	{ gbk_to_ucs4_table_1e5 , 0xf280, 0xf2fe } ,
+	{ gbk_to_ucs4_table_1e6 , 0xf340, 0xf37e } ,
+	{ gbk_to_ucs4_table_1e7 , 0xf380, 0xf3fe } ,
+	{ gbk_to_ucs4_table_1e8 , 0xf440, 0xf47e } ,
+	{ gbk_to_ucs4_table_1e9 , 0xf480, 0xf4fe } ,
+	{ gbk_to_ucs4_table_1ea , 0xf540, 0xf57e } ,
+	{ gbk_to_ucs4_table_1eb , 0xf580, 0xf5fe } ,
+	{ gbk_to_ucs4_table_1ec , 0xf640, 0xf67e } ,
+	{ gbk_to_ucs4_table_1ed , 0xf680, 0xf6fe } ,
+	{ gbk_to_ucs4_table_1ee , 0xf740, 0xf77e } ,
+	{ gbk_to_ucs4_table_1ef , 0xf780, 0xf7fe } ,
+	{ gbk_to_ucs4_table_1f0 , 0xf840, 0xf87e } ,
+	{ gbk_to_ucs4_table_1f1 , 0xf880, 0xf8a0 } ,
+	{ gbk_to_ucs4_table_1f2 , 0xf940, 0xf97e } ,
+	{ gbk_to_ucs4_table_1f3 , 0xf980, 0xf9a0 } ,
+	{ gbk_to_ucs4_table_1f4 , 0xfa40, 0xfa7e } ,
+	{ gbk_to_ucs4_table_1f5 , 0xfa80, 0xfaa0 } ,
+	{ gbk_to_ucs4_table_1f6 , 0xfb40, 0xfb7e } ,
+	{ gbk_to_ucs4_table_1f7 , 0xfb80, 0xfba0 } ,
+	{ gbk_to_ucs4_table_1f8 , 0xfc40, 0xfc7e } ,
+	{ gbk_to_ucs4_table_1f9 , 0xfc80, 0xfca0 } ,
+	{ gbk_to_ucs4_table_1fa , 0xfd40, 0xfd7e } ,
+	{ gbk_to_ucs4_table_1fb , 0xfd80, 0xfda0 } ,
+	{ gbk_to_ucs4_table_1fc , 0xfe40, 0xfe4f } ,
 } ;
 
-#define  HI(i)  ( ((i)>>8) & 0xff )
-#define  LO(i)  ( (i) & 0xff )
+#define  HI(i)  ( ((i)>>7) & 0x1ff )
 
 static u_int16_t
 CONV_GBK_TO_UCS4(
@@ -25984,8 +25700,8 @@ CONV_GBK_TO_UCS4(
 {
 	u_int32_t  hi_ch ;
 	u_int32_t  hi_beg ;
+	u_int32_t  idx ;
 	u_int16_t *  table ;
-	gbk_to_ucs4_range_t *  range ;
 
 	if( ch < gbk_to_ucs4_beg || gbk_to_ucs4_end < ch)
 	{
@@ -25994,24 +25710,23 @@ CONV_GBK_TO_UCS4(
 	
 	hi_ch = HI(ch) ;
 	hi_beg = HI(gbk_to_ucs4_beg) ;
-	
-	if( ! ( table = gbk_to_ucs4_tables[ hi_ch - hi_beg].table))
+
+	idx = hi_ch - hi_beg;
+	if( ! ( table = gbk_to_ucs4_tables[ idx].table))
 	{
 		return  0 ;
 	}
 
-	range = gbk_to_ucs4_tables[ hi_ch - hi_beg].range ;
-	
-	if( ch < range->beg || range->end < ch)
+	if( ch < gbk_to_ucs4_tables[ idx].beg ||
+	    gbk_to_ucs4_tables[ idx].end < ch)
 	{
 		return  0 ;
 	}
 
-	return  table[ LO(ch) - LO(range->beg)] ;
+	return  table[ ch - gbk_to_ucs4_tables[ idx].beg] ;
 }
 
 #undef  HI
-#undef  LO
 
 #endif	/* REMOVE_MAPPING_TABLE */
 

@@ -16,21 +16,15 @@
 
 #else
 
-typedef struct ucs4_to_viscii_range
-{
-	u_int32_t  beg ;
-	u_int32_t  end ;
-
-} ucs4_to_viscii_range_t ;
-
 typedef struct ucs4_to_viscii_table
 {
 	u_int8_t *  table ;
-	ucs4_to_viscii_range_t *  range ;
+	u_int16_t  beg;
+	u_int16_t  end;
 
 } ucs4_to_viscii_table_t ;
 
-static u_int8_t ucs4_to_viscii_table_0[] =
+static u_int8_t ucs4_to_viscii_table_1[] =
 {
 	/* 0xc0 */
 	0xc0 ,
@@ -103,12 +97,7 @@ static u_int8_t ucs4_to_viscii_table_0[] =
 	0xfd ,
 } ;
 
-static ucs4_to_viscii_range_t ucs4_to_viscii_range_0 =
-{
-	0xc0 , 0xfd
-} ;
-
-static u_int8_t ucs4_to_viscii_table_1[] =
+static u_int8_t ucs4_to_viscii_table_2[] =
 {
 	/* 0x102 */
 	0xc5 ,
@@ -225,66 +214,11 @@ static u_int8_t ucs4_to_viscii_table_1[] =
 	0x00 ,
 	0x9d ,
 	0xfb ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
-	/* 0x170 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
-	/* 0x180 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
-	/* 0x190 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+static u_int8_t ucs4_to_viscii_table_3[] =
+{
+	/* 0x1a0 */
 	0xb4 ,
 	0xbd ,
 	0x00 ,
@@ -301,15 +235,12 @@ static u_int8_t ucs4_to_viscii_table_1[] =
 	0x00 ,
 	0x00 ,
 	0xbf ,
+
+	/* 0x1b0 */
 	0xdf ,
 } ;
 
-static ucs4_to_viscii_range_t ucs4_to_viscii_range_1 =
-{
-	0x102 , 0x1b0
-} ;
-
-static u_int8_t ucs4_to_viscii_table_1e[] =
+static u_int8_t ucs4_to_viscii_table_3d[] =
 {
 	/* 0x1ea0 */
 	0x80 ,
@@ -414,53 +345,78 @@ static u_int8_t ucs4_to_viscii_table_1e[] =
 	0xdb ,
 } ;
 
-static ucs4_to_viscii_range_t ucs4_to_viscii_range_1e =
-{
-	0x1ea0 , 0x1ef9
-} ;
-
 static u_int32_t  ucs4_to_viscii_beg = 0xc0 ;
 
 static u_int32_t  ucs4_to_viscii_end = 0x1ef9 ;
 
 static ucs4_to_viscii_table_t ucs4_to_viscii_tables[] =
 {
-	{ ucs4_to_viscii_table_0 , &ucs4_to_viscii_range_0 } ,
-	{ ucs4_to_viscii_table_1 , &ucs4_to_viscii_range_1 } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ ucs4_to_viscii_table_1e , &ucs4_to_viscii_range_1e } ,
+	{ ucs4_to_viscii_table_1 , 0xc0, 0xfd } ,
+	{ ucs4_to_viscii_table_2 , 0x102, 0x169 } ,
+	{ ucs4_to_viscii_table_3 , 0x1a0, 0x1b0 } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ ucs4_to_viscii_table_3d , 0x1ea0, 0x1ef9 } ,
 } ;
 
 /* 'i' is UCS4(32bit) */
-#define  HI(i)  ( ((i)>>8) & 0xffffff )
-#define  LO(i)  ( (i) & 0xff )
+#define  HI(i)  ( ((i)>>7) & 0x1ffffff )
+#define  LO(i)  ( (i) & 0x7f )
 
 static u_int8_t
 CONV_UCS4_TO_VISCII(
@@ -469,8 +425,8 @@ CONV_UCS4_TO_VISCII(
 {
 	u_int32_t  hi_ch ;
 	u_int32_t  hi_beg ;
+	u_int32_t  idx ;
 	u_int8_t *  table ;
-	ucs4_to_viscii_range_t *  range ;
 
 	if( ch < ucs4_to_viscii_beg || ucs4_to_viscii_end < ch)
 	{
@@ -479,20 +435,20 @@ CONV_UCS4_TO_VISCII(
 	
 	hi_ch = HI(ch) ;
 	hi_beg = HI(ucs4_to_viscii_beg) ;
-	
-	if( ! ( table = ucs4_to_viscii_tables[ hi_ch - hi_beg].table))
+
+	idx = hi_ch - hi_beg;
+	if( ! ( table = ucs4_to_viscii_tables[ idx].table))
 	{
 		return  0 ;
 	}
 
-	range = ucs4_to_viscii_tables[ hi_ch - hi_beg].range ;
-	
-	if( ch < range->beg || range->end < ch)
+	if( ch < ucs4_to_viscii_tables[ idx].beg ||
+	    ucs4_to_viscii_tables[ idx].end < ch)
 	{
 		return  0 ;
 	}
 
-	return  table[ LO(ch) - LO(range->beg)] ;
+	return  table[ LO(ch) - LO(ucs4_to_viscii_tables[ idx].beg)] ;
 }
 
 #undef  HI

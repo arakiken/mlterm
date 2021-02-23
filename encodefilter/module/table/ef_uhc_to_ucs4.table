@@ -16,21 +16,15 @@
 
 #else
 
-typedef struct uhc_to_ucs4_range
-{
-	u_int32_t  beg ;
-	u_int32_t  end ;
-
-} uhc_to_ucs4_range_t ;
-
 typedef struct uhc_to_ucs4_table
 {
 	u_int16_t *  table ;
-	uhc_to_ucs4_range_t *  range ;
+	u_int16_t  beg;
+	u_int16_t  end;
 
 } uhc_to_ucs4_table_t ;
 
-static u_int16_t uhc_to_ucs4_table_81[] =
+static u_int16_t uhc_to_ucs4_table_102[] =
 {
 	/* 0x8141 */
 	0xac02 ,
@@ -97,13 +91,10 @@ static u_int16_t uhc_to_ucs4_table_81[] =
 	0xac52 ,
 	0xac53 ,
 	0xac55 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_103[] =
+{
 	/* 0x8181 */
 	0xac56 ,
 	0xac57 ,
@@ -247,12 +238,7 @@ static u_int16_t uhc_to_ucs4_table_81[] =
 	0xad13 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_81 =
-{
-	0x8141 , 0x81fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_82[] =
+static u_int16_t uhc_to_ucs4_table_104[] =
 {
 	/* 0x8241 */
 	0xad14 ,
@@ -319,13 +305,10 @@ static u_int16_t uhc_to_ucs4_table_82[] =
 	0xad55 ,
 	0xad56 ,
 	0xad57 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_105[] =
+{
 	/* 0x8281 */
 	0xad59 ,
 	0xad5a ,
@@ -469,12 +452,7 @@ static u_int16_t uhc_to_ucs4_table_82[] =
 	0xadf7 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_82 =
-{
-	0x8241 , 0x82fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_83[] =
+static u_int16_t uhc_to_ucs4_table_106[] =
 {
 	/* 0x8341 */
 	0xadfa ,
@@ -541,13 +519,10 @@ static u_int16_t uhc_to_ucs4_table_83[] =
 	0xae39 ,
 	0xae3b ,
 	0xae3c ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_107[] =
+{
 	/* 0x8381 */
 	0xae3d ,
 	0xae3e ,
@@ -691,12 +666,7 @@ static u_int16_t uhc_to_ucs4_table_83[] =
 	0xaee5 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_83 =
-{
-	0x8341 , 0x83fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_84[] =
+static u_int16_t uhc_to_ucs4_table_108[] =
 {
 	/* 0x8441 */
 	0xaee6 ,
@@ -763,13 +733,10 @@ static u_int16_t uhc_to_ucs4_table_84[] =
 	0xaf21 ,
 	0xaf22 ,
 	0xaf23 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_109[] =
+{
 	/* 0x8481 */
 	0xaf24 ,
 	0xaf25 ,
@@ -913,12 +880,7 @@ static u_int16_t uhc_to_ucs4_table_84[] =
 	0xafbe ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_84 =
-{
-	0x8441 , 0x84fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_85[] =
+static u_int16_t uhc_to_ucs4_table_10a[] =
 {
 	/* 0x8541 */
 	0xafbf ,
@@ -985,13 +947,10 @@ static u_int16_t uhc_to_ucs4_table_85[] =
 	0xafff ,
 	0xb002 ,
 	0xb003 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_10b[] =
+{
 	/* 0x8581 */
 	0xb005 ,
 	0xb006 ,
@@ -1135,12 +1094,7 @@ static u_int16_t uhc_to_ucs4_table_85[] =
 	0xb0a4 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_85 =
-{
-	0x8541 , 0x85fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_86[] =
+static u_int16_t uhc_to_ucs4_table_10c[] =
 {
 	/* 0x8641 */
 	0xb0a5 ,
@@ -1207,13 +1161,10 @@ static u_int16_t uhc_to_ucs4_table_86[] =
 	0xb0ee ,
 	0xb0ef ,
 	0xb0f0 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_10d[] =
+{
 	/* 0x8681 */
 	0xb0f1 ,
 	0xb0f2 ,
@@ -1357,12 +1308,7 @@ static u_int16_t uhc_to_ucs4_table_86[] =
 	0xb19d ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_86 =
-{
-	0x8641 , 0x86fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_87[] =
+static u_int16_t uhc_to_ucs4_table_10e[] =
 {
 	/* 0x8741 */
 	0xb19e ,
@@ -1429,13 +1375,10 @@ static u_int16_t uhc_to_ucs4_table_87[] =
 	0xb1d2 ,
 	0xb1d3 ,
 	0xb1d5 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_10f[] =
+{
 	/* 0x8781 */
 	0xb1d6 ,
 	0xb1d7 ,
@@ -1579,12 +1522,7 @@ static u_int16_t uhc_to_ucs4_table_87[] =
 	0xb26e ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_87 =
-{
-	0x8741 , 0x87fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_88[] =
+static u_int16_t uhc_to_ucs4_table_110[] =
 {
 	/* 0x8841 */
 	0xb26f ,
@@ -1651,13 +1589,10 @@ static u_int16_t uhc_to_ucs4_table_88[] =
 	0xb2b5 ,
 	0xb2b6 ,
 	0xb2b7 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_111[] =
+{
 	/* 0x8881 */
 	0xb2b8 ,
 	0xb2b9 ,
@@ -1801,12 +1736,7 @@ static u_int16_t uhc_to_ucs4_table_88[] =
 	0xb363 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_88 =
-{
-	0x8841 , 0x88fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_89[] =
+static u_int16_t uhc_to_ucs4_table_112[] =
 {
 	/* 0x8941 */
 	0xb366 ,
@@ -1873,13 +1803,10 @@ static u_int16_t uhc_to_ucs4_table_89[] =
 	0xb3aa ,
 	0xb3ab ,
 	0xb3ad ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_113[] =
+{
 	/* 0x8981 */
 	0xb3ae ,
 	0xb3af ,
@@ -2023,12 +1950,7 @@ static u_int16_t uhc_to_ucs4_table_89[] =
 	0xb444 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_89 =
-{
-	0x8941 , 0x89fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_8a[] =
+static u_int16_t uhc_to_ucs4_table_114[] =
 {
 	/* 0x8a41 */
 	0xb445 ,
@@ -2095,13 +2017,10 @@ static u_int16_t uhc_to_ucs4_table_8a[] =
 	0xb47f ,
 	0xb481 ,
 	0xb482 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_115[] =
+{
 	/* 0x8a81 */
 	0xb483 ,
 	0xb484 ,
@@ -2245,12 +2164,7 @@ static u_int16_t uhc_to_ucs4_table_8a[] =
 	0xb51d ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_8a =
-{
-	0x8a41 , 0x8afe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_8b[] =
+static u_int16_t uhc_to_ucs4_table_116[] =
 {
 	/* 0x8b41 */
 	0xb51e ,
@@ -2317,13 +2231,10 @@ static u_int16_t uhc_to_ucs4_table_8b[] =
 	0xb568 ,
 	0xb569 ,
 	0xb56a ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_117[] =
+{
 	/* 0x8b81 */
 	0xb56b ,
 	0xb56c ,
@@ -2467,12 +2378,7 @@ static u_int16_t uhc_to_ucs4_table_8b[] =
 	0xb5ff ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_8b =
-{
-	0x8b41 , 0x8bfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_8c[] =
+static u_int16_t uhc_to_ucs4_table_118[] =
 {
 	/* 0x8c41 */
 	0xb600 ,
@@ -2539,13 +2445,10 @@ static u_int16_t uhc_to_ucs4_table_8c[] =
 	0xb638 ,
 	0xb639 ,
 	0xb63a ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_119[] =
+{
 	/* 0x8c81 */
 	0xb63b ,
 	0xb63c ,
@@ -2689,12 +2592,7 @@ static u_int16_t uhc_to_ucs4_table_8c[] =
 	0xb6c2 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_8c =
-{
-	0x8c41 , 0x8cfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_8d[] =
+static u_int16_t uhc_to_ucs4_table_11a[] =
 {
 	/* 0x8d41 */
 	0xb6c3 ,
@@ -2761,13 +2659,10 @@ static u_int16_t uhc_to_ucs4_table_8d[] =
 	0xb6f7 ,
 	0xb6f9 ,
 	0xb6fa ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_11b[] =
+{
 	/* 0x8d81 */
 	0xb6fb ,
 	0xb6fc ,
@@ -2911,12 +2806,7 @@ static u_int16_t uhc_to_ucs4_table_8d[] =
 	0xb79e ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_8d =
-{
-	0x8d41 , 0x8dfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_8e[] =
+static u_int16_t uhc_to_ucs4_table_11c[] =
 {
 	/* 0x8e41 */
 	0xb79f ,
@@ -2983,13 +2873,10 @@ static u_int16_t uhc_to_ucs4_table_8e[] =
 	0xb7db ,
 	0xb7dc ,
 	0xb7dd ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_11d[] =
+{
 	/* 0x8e81 */
 	0xb7de ,
 	0xb7df ,
@@ -3133,12 +3020,7 @@ static u_int16_t uhc_to_ucs4_table_8e[] =
 	0xb884 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_8e =
-{
-	0x8e41 , 0x8efe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_8f[] =
+static u_int16_t uhc_to_ucs4_table_11e[] =
 {
 	/* 0x8f41 */
 	0xb885 ,
@@ -3205,13 +3087,10 @@ static u_int16_t uhc_to_ucs4_table_8f[] =
 	0xb8bb ,
 	0xb8bc ,
 	0xb8bd ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_11f[] =
+{
 	/* 0x8f81 */
 	0xb8be ,
 	0xb8bf ,
@@ -3355,12 +3234,7 @@ static u_int16_t uhc_to_ucs4_table_8f[] =
 	0xb957 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_8f =
-{
-	0x8f41 , 0x8ffe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_90[] =
+static u_int16_t uhc_to_ucs4_table_120[] =
 {
 	/* 0x9041 */
 	0xb95a ,
@@ -3427,13 +3301,10 @@ static u_int16_t uhc_to_ucs4_table_90[] =
 	0xb99c ,
 	0xb99d ,
 	0xb99e ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_121[] =
+{
 	/* 0x9081 */
 	0xb99f ,
 	0xb9a0 ,
@@ -3577,12 +3448,7 @@ static u_int16_t uhc_to_ucs4_table_90[] =
 	0xba46 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_90 =
-{
-	0x9041 , 0x90fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_91[] =
+static u_int16_t uhc_to_ucs4_table_122[] =
 {
 	/* 0x9141 */
 	0xba47 ,
@@ -3649,13 +3515,10 @@ static u_int16_t uhc_to_ucs4_table_91[] =
 	0xba90 ,
 	0xba91 ,
 	0xba92 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_123[] =
+{
 	/* 0x9181 */
 	0xba93 ,
 	0xba94 ,
@@ -3799,12 +3662,7 @@ static u_int16_t uhc_to_ucs4_table_91[] =
 	0xbb27 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_91 =
-{
-	0x9141 , 0x91fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_92[] =
+static u_int16_t uhc_to_ucs4_table_124[] =
 {
 	/* 0x9241 */
 	0xbb28 ,
@@ -3871,13 +3729,10 @@ static u_int16_t uhc_to_ucs4_table_92[] =
 	0xbb6f ,
 	0xbb70 ,
 	0xbb71 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_125[] =
+{
 	/* 0x9281 */
 	0xbb72 ,
 	0xbb73 ,
@@ -4021,12 +3876,7 @@ static u_int16_t uhc_to_ucs4_table_92[] =
 	0xbc01 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_92 =
-{
-	0x9241 , 0x92fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_93[] =
+static u_int16_t uhc_to_ucs4_table_126[] =
 {
 	/* 0x9341 */
 	0xbc03 ,
@@ -4093,13 +3943,10 @@ static u_int16_t uhc_to_ucs4_table_93[] =
 	0xbc57 ,
 	0xbc58 ,
 	0xbc59 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_127[] =
+{
 	/* 0x9381 */
 	0xbc5a ,
 	0xbc5b ,
@@ -4243,12 +4090,7 @@ static u_int16_t uhc_to_ucs4_table_93[] =
 	0xbcfd ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_93 =
-{
-	0x9341 , 0x93fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_94[] =
+static u_int16_t uhc_to_ucs4_table_128[] =
 {
 	/* 0x9441 */
 	0xbcfe ,
@@ -4315,13 +4157,10 @@ static u_int16_t uhc_to_ucs4_table_94[] =
 	0xbd37 ,
 	0xbd38 ,
 	0xbd39 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_129[] =
+{
 	/* 0x9481 */
 	0xbd3a ,
 	0xbd3b ,
@@ -4465,12 +4304,7 @@ static u_int16_t uhc_to_ucs4_table_94[] =
 	0xbdd1 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_94 =
-{
-	0x9441 , 0x94fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_95[] =
+static u_int16_t uhc_to_ucs4_table_12a[] =
 {
 	/* 0x9541 */
 	0xbdd2 ,
@@ -4537,13 +4371,10 @@ static u_int16_t uhc_to_ucs4_table_95[] =
 	0xbe11 ,
 	0xbe12 ,
 	0xbe13 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_12b[] =
+{
 	/* 0x9581 */
 	0xbe15 ,
 	0xbe16 ,
@@ -4687,12 +4518,7 @@ static u_int16_t uhc_to_ucs4_table_95[] =
 	0xbeb7 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_95 =
-{
-	0x9541 , 0x95fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_96[] =
+static u_int16_t uhc_to_ucs4_table_12c[] =
 {
 	/* 0x9641 */
 	0xbeb8 ,
@@ -4759,13 +4585,10 @@ static u_int16_t uhc_to_ucs4_table_96[] =
 	0xbef3 ,
 	0xbef4 ,
 	0xbef5 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_12d[] =
+{
 	/* 0x9681 */
 	0xbef6 ,
 	0xbef7 ,
@@ -4909,12 +4732,7 @@ static u_int16_t uhc_to_ucs4_table_96[] =
 	0xbf82 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_96 =
-{
-	0x9641 , 0x96fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_97[] =
+static u_int16_t uhc_to_ucs4_table_12e[] =
 {
 	/* 0x9741 */
 	0xbf83 ,
@@ -4981,13 +4799,10 @@ static u_int16_t uhc_to_ucs4_table_97[] =
 	0xbfb6 ,
 	0xbfb7 ,
 	0xbfb8 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_12f[] =
+{
 	/* 0x9781 */
 	0xbfb9 ,
 	0xbfba ,
@@ -5131,12 +4946,7 @@ static u_int16_t uhc_to_ucs4_table_97[] =
 	0xc03f ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_97 =
-{
-	0x9741 , 0x97fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_98[] =
+static u_int16_t uhc_to_ucs4_table_130[] =
 {
 	/* 0x9841 */
 	0xc040 ,
@@ -5203,13 +5013,10 @@ static u_int16_t uhc_to_ucs4_table_98[] =
 	0xc077 ,
 	0xc078 ,
 	0xc079 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_131[] =
+{
 	/* 0x9881 */
 	0xc07a ,
 	0xc07b ,
@@ -5353,12 +5160,7 @@ static u_int16_t uhc_to_ucs4_table_98[] =
 	0xc12e ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_98 =
-{
-	0x9841 , 0x98fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_99[] =
+static u_int16_t uhc_to_ucs4_table_132[] =
 {
 	/* 0x9941 */
 	0xc132 ,
@@ -5425,13 +5227,10 @@ static u_int16_t uhc_to_ucs4_table_99[] =
 	0xc179 ,
 	0xc17a ,
 	0xc17b ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_133[] =
+{
 	/* 0x9981 */
 	0xc17c ,
 	0xc17d ,
@@ -5575,12 +5374,7 @@ static u_int16_t uhc_to_ucs4_table_99[] =
 	0xc223 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_99 =
-{
-	0x9941 , 0x99fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_9a[] =
+static u_int16_t uhc_to_ucs4_table_134[] =
 {
 	/* 0x9a41 */
 	0xc224 ,
@@ -5647,13 +5441,10 @@ static u_int16_t uhc_to_ucs4_table_9a[] =
 	0xc263 ,
 	0xc264 ,
 	0xc266 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_135[] =
+{
 	/* 0x9a81 */
 	0xc267 ,
 	0xc268 ,
@@ -5797,12 +5588,7 @@ static u_int16_t uhc_to_ucs4_table_9a[] =
 	0xc30f ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_9a =
-{
-	0x9a41 , 0x9afe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_9b[] =
+static u_int16_t uhc_to_ucs4_table_136[] =
 {
 	/* 0x9b41 */
 	0xc310 ,
@@ -5869,13 +5655,10 @@ static u_int16_t uhc_to_ucs4_table_9b[] =
 	0xc34b ,
 	0xc34c ,
 	0xc34d ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_137[] =
+{
 	/* 0x9b81 */
 	0xc34e ,
 	0xc34f ,
@@ -6019,12 +5802,7 @@ static u_int16_t uhc_to_ucs4_table_9b[] =
 	0xc3da ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_9b =
-{
-	0x9b41 , 0x9bfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_9c[] =
+static u_int16_t uhc_to_ucs4_table_138[] =
 {
 	/* 0x9c41 */
 	0xc3db ,
@@ -6091,13 +5869,10 @@ static u_int16_t uhc_to_ucs4_table_9c[] =
 	0xc418 ,
 	0xc419 ,
 	0xc41a ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_139[] =
+{
 	/* 0x9c81 */
 	0xc41b ,
 	0xc41c ,
@@ -6241,12 +6016,7 @@ static u_int16_t uhc_to_ucs4_table_9c[] =
 	0xc4a9 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_9c =
-{
-	0x9c41 , 0x9cfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_9d[] =
+static u_int16_t uhc_to_ucs4_table_13a[] =
 {
 	/* 0x9d41 */
 	0xc4aa ,
@@ -6313,13 +6083,10 @@ static u_int16_t uhc_to_ucs4_table_9d[] =
 	0xc4dd ,
 	0xc4de ,
 	0xc4df ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_13b[] =
+{
 	/* 0x9d81 */
 	0xc4e0 ,
 	0xc4e1 ,
@@ -6463,12 +6230,7 @@ static u_int16_t uhc_to_ucs4_table_9d[] =
 	0xc594 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_9d =
-{
-	0x9d41 , 0x9dfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_9e[] =
+static u_int16_t uhc_to_ucs4_table_13c[] =
 {
 	/* 0x9e41 */
 	0xc596 ,
@@ -6535,13 +6297,10 @@ static u_int16_t uhc_to_ucs4_table_9e[] =
 	0xc5e4 ,
 	0xc5e6 ,
 	0xc5e7 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_13d[] =
+{
 	/* 0x9e81 */
 	0xc5e8 ,
 	0xc5e9 ,
@@ -6685,12 +6444,7 @@ static u_int16_t uhc_to_ucs4_table_9e[] =
 	0xc6a6 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_9e =
-{
-	0x9e41 , 0x9efe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_9f[] =
+static u_int16_t uhc_to_ucs4_table_13e[] =
 {
 	/* 0x9f41 */
 	0xc6a8 ,
@@ -6757,13 +6511,10 @@ static u_int16_t uhc_to_ucs4_table_9f[] =
 	0xc6ef ,
 	0xc6f1 ,
 	0xc6f2 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_13f[] =
+{
 	/* 0x9f81 */
 	0xc6f3 ,
 	0xc6f4 ,
@@ -6907,12 +6658,7 @@ static u_int16_t uhc_to_ucs4_table_9f[] =
 	0xc7b7 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_9f =
-{
-	0x9f41 , 0x9ffe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_a0[] =
+static u_int16_t uhc_to_ucs4_table_140[] =
 {
 	/* 0xa041 */
 	0xc7b8 ,
@@ -6979,13 +6725,10 @@ static u_int16_t uhc_to_ucs4_table_a0[] =
 	0xc7f8 ,
 	0xc7f9 ,
 	0xc7fa ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_141[] =
+{
 	/* 0xa081 */
 	0xc7fb ,
 	0xc7fc ,
@@ -7129,12 +6872,7 @@ static u_int16_t uhc_to_ucs4_table_a0[] =
 	0xc8a4 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_a0 =
-{
-	0xa041 , 0xa0fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_a1[] =
+static u_int16_t uhc_to_ucs4_table_142[] =
 {
 	/* 0xa141 */
 	0xc8a5 ,
@@ -7201,13 +6939,10 @@ static u_int16_t uhc_to_ucs4_table_a1[] =
 	0xc8e2 ,
 	0xc8e3 ,
 	0xc8e5 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_143[] =
+{
 	/* 0xa181 */
 	0xc8e6 ,
 	0xc8e7 ,
@@ -7351,12 +7086,7 @@ static u_int16_t uhc_to_ucs4_table_a1[] =
 	0xffe2 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_a1 =
-{
-	0xa141 , 0xa1fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_a2[] =
+static u_int16_t uhc_to_ucs4_table_144[] =
 {
 	/* 0xa241 */
 	0xc910 ,
@@ -7423,13 +7153,10 @@ static u_int16_t uhc_to_ucs4_table_a2[] =
 	0xc945 ,
 	0xc946 ,
 	0xc947 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_145[] =
+{
 	/* 0xa281 */
 	0xc948 ,
 	0xc949 ,
@@ -7546,12 +7273,7 @@ static u_int16_t uhc_to_ucs4_table_a2[] =
 	0x2121 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_a2 =
-{
-	0xa241 , 0xa2e5
-} ;
-
-static u_int16_t uhc_to_ucs4_table_a3[] =
+static u_int16_t uhc_to_ucs4_table_146[] =
 {
 	/* 0xa341 */
 	0xc971 ,
@@ -7618,13 +7340,10 @@ static u_int16_t uhc_to_ucs4_table_a3[] =
 	0xc9ac ,
 	0xc9ad ,
 	0xc9ae ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_147[] =
+{
 	/* 0xa381 */
 	0xc9af ,
 	0xc9b0 ,
@@ -7768,12 +7487,7 @@ static u_int16_t uhc_to_ucs4_table_a3[] =
 	0xffe3 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_a3 =
-{
-	0xa341 , 0xa3fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_a4[] =
+static u_int16_t uhc_to_ucs4_table_148[] =
 {
 	/* 0xa441 */
 	0xc9de ,
@@ -7840,13 +7554,10 @@ static u_int16_t uhc_to_ucs4_table_a4[] =
 	0xca23 ,
 	0xca24 ,
 	0xca25 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_149[] =
+{
 	/* 0xa481 */
 	0xca26 ,
 	0xca27 ,
@@ -7990,12 +7701,7 @@ static u_int16_t uhc_to_ucs4_table_a4[] =
 	0x318e ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_a4 =
-{
-	0xa441 , 0xa4fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_a5[] =
+static u_int16_t uhc_to_ucs4_table_14a[] =
 {
 	/* 0xa541 */
 	0xca47 ,
@@ -8062,13 +7768,10 @@ static u_int16_t uhc_to_ucs4_table_a5[] =
 	0xca83 ,
 	0xca85 ,
 	0xca86 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_14b[] =
+{
 	/* 0xa581 */
 	0xca87 ,
 	0xca88 ,
@@ -8206,12 +7909,7 @@ static u_int16_t uhc_to_ucs4_table_a5[] =
 	0x03c9 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_a5 =
-{
-	0xa541 , 0xa5f8
-} ;
-
-static u_int16_t uhc_to_ucs4_table_a6[] =
+static u_int16_t uhc_to_ucs4_table_14c[] =
 {
 	/* 0xa641 */
 	0xcaa8 ,
@@ -8278,13 +7976,10 @@ static u_int16_t uhc_to_ucs4_table_a6[] =
 	0xcae5 ,
 	0xcae6 ,
 	0xcae7 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_14d[] =
+{
 	/* 0xa681 */
 	0xcae8 ,
 	0xcae9 ,
@@ -8400,12 +8095,7 @@ static u_int16_t uhc_to_ucs4_table_a6[] =
 	0x254a ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_a6 =
-{
-	0xa641 , 0xa6e4
-} ;
-
-static u_int16_t uhc_to_ucs4_table_a7[] =
+static u_int16_t uhc_to_ucs4_table_14e[] =
 {
 	/* 0xa741 */
 	0xcb0b ,
@@ -8472,13 +8162,10 @@ static u_int16_t uhc_to_ucs4_table_a7[] =
 	0xcb42 ,
 	0xcb43 ,
 	0xcb44 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_14f[] =
+{
 	/* 0xa781 */
 	0xcb45 ,
 	0xcb46 ,
@@ -8605,12 +8292,7 @@ static u_int16_t uhc_to_ucs4_table_a7[] =
 	0x33c6 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_a7 =
-{
-	0xa741 , 0xa7ef
-} ;
-
-static u_int16_t uhc_to_ucs4_table_a8[] =
+static u_int16_t uhc_to_ucs4_table_150[] =
 {
 	/* 0xa841 */
 	0xcb6d ,
@@ -8677,13 +8359,10 @@ static u_int16_t uhc_to_ucs4_table_a8[] =
 	0xcba1 ,
 	0xcba2 ,
 	0xcba3 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_151[] =
+{
 	/* 0xa881 */
 	0xcba4 ,
 	0xcba5 ,
@@ -8827,12 +8506,7 @@ static u_int16_t uhc_to_ucs4_table_a8[] =
 	0x215e ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_a8 =
-{
-	0xa841 , 0xa8fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_a9[] =
+static u_int16_t uhc_to_ucs4_table_152[] =
 {
 	/* 0xa941 */
 	0xcbc5 ,
@@ -8899,13 +8573,10 @@ static u_int16_t uhc_to_ucs4_table_a9[] =
 	0xcbfa ,
 	0xcbfb ,
 	0xcbfc ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_153[] =
+{
 	/* 0xa981 */
 	0xcbfd ,
 	0xcbfe ,
@@ -9049,12 +8720,7 @@ static u_int16_t uhc_to_ucs4_table_a9[] =
 	0x2084 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_a9 =
-{
-	0xa941 , 0xa9fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_aa[] =
+static u_int16_t uhc_to_ucs4_table_154[] =
 {
 	/* 0xaa41 */
 	0xcc25 ,
@@ -9121,13 +8787,10 @@ static u_int16_t uhc_to_ucs4_table_aa[] =
 	0xcc6f ,
 	0xcc71 ,
 	0xcc72 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_155[] =
+{
 	/* 0xaa81 */
 	0xcc73 ,
 	0xcc74 ,
@@ -9260,12 +8923,7 @@ static u_int16_t uhc_to_ucs4_table_aa[] =
 	0x3093 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_aa =
-{
-	0xaa41 , 0xaaf3
-} ;
-
-static u_int16_t uhc_to_ucs4_table_ab[] =
+static u_int16_t uhc_to_ucs4_table_156[] =
 {
 	/* 0xab41 */
 	0xcc94 ,
@@ -9332,13 +8990,10 @@ static u_int16_t uhc_to_ucs4_table_ab[] =
 	0xccd8 ,
 	0xccd9 ,
 	0xccda ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_157[] =
+{
 	/* 0xab81 */
 	0xccdb ,
 	0xccdc ,
@@ -9474,12 +9129,7 @@ static u_int16_t uhc_to_ucs4_table_ab[] =
 	0x30f6 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_ab =
-{
-	0xab41 , 0xabf6
-} ;
-
-static u_int16_t uhc_to_ucs4_table_ac[] =
+static u_int16_t uhc_to_ucs4_table_158[] =
 {
 	/* 0xac41 */
 	0xccfe ,
@@ -9546,13 +9196,10 @@ static u_int16_t uhc_to_ucs4_table_ac[] =
 	0xcd3c ,
 	0xcd3d ,
 	0xcd3e ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_159[] =
+{
 	/* 0xac81 */
 	0xcd3f ,
 	0xcd40 ,
@@ -9683,12 +9330,7 @@ static u_int16_t uhc_to_ucs4_table_ac[] =
 	0x044f ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_ac =
-{
-	0xac41 , 0xacf1
-} ;
-
-static u_int16_t uhc_to_ucs4_table_ad[] =
+static u_int16_t uhc_to_ucs4_table_15a[] =
 {
 	/* 0xad41 */
 	0xcd61 ,
@@ -9755,13 +9397,10 @@ static u_int16_t uhc_to_ucs4_table_ad[] =
 	0xcd9d ,
 	0xcd9e ,
 	0xcd9f ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_15b[] =
+{
 	/* 0xad81 */
 	0xcda0 ,
 	0xcda1 ,
@@ -9799,12 +9438,7 @@ static u_int16_t uhc_to_ucs4_table_ad[] =
 	0xcdc5 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_ad =
-{
-	0xad41 , 0xada0
-} ;
-
-static u_int16_t uhc_to_ucs4_table_ae[] =
+static u_int16_t uhc_to_ucs4_table_15c[] =
 {
 	/* 0xae41 */
 	0xcdc6 ,
@@ -9871,13 +9505,10 @@ static u_int16_t uhc_to_ucs4_table_ae[] =
 	0xce00 ,
 	0xce01 ,
 	0xce02 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_15d[] =
+{
 	/* 0xae81 */
 	0xce03 ,
 	0xce05 ,
@@ -9915,12 +9546,7 @@ static u_int16_t uhc_to_ucs4_table_ae[] =
 	0xce2b ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_ae =
-{
-	0xae41 , 0xaea0
-} ;
-
-static u_int16_t uhc_to_ucs4_table_af[] =
+static u_int16_t uhc_to_ucs4_table_15e[] =
 {
 	/* 0xaf41 */
 	0xce2c ,
@@ -9987,13 +9613,10 @@ static u_int16_t uhc_to_ucs4_table_af[] =
 	0xce67 ,
 	0xce6a ,
 	0xce6c ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_15f[] =
+{
 	/* 0xaf81 */
 	0xce6e ,
 	0xce6f ,
@@ -10031,12 +9654,7 @@ static u_int16_t uhc_to_ucs4_table_af[] =
 	0xce99 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_af =
-{
-	0xaf41 , 0xafa0
-} ;
-
-static u_int16_t uhc_to_ucs4_table_b0[] =
+static u_int16_t uhc_to_ucs4_table_160[] =
 {
 	/* 0xb041 */
 	0xce9a ,
@@ -10103,13 +9721,10 @@ static u_int16_t uhc_to_ucs4_table_b0[] =
 	0xced3 ,
 	0xced4 ,
 	0xced5 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_161[] =
+{
 	/* 0xb081 */
 	0xced6 ,
 	0xced7 ,
@@ -10253,12 +9868,7 @@ static u_int16_t uhc_to_ucs4_table_b0[] =
 	0xad06 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_b0 =
-{
-	0xb041 , 0xb0fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_b1[] =
+static u_int16_t uhc_to_ucs4_table_162[] =
 {
 	/* 0xb141 */
 	0xcf02 ,
@@ -10325,13 +9935,10 @@ static u_int16_t uhc_to_ucs4_table_b1[] =
 	0xcf42 ,
 	0xcf43 ,
 	0xcf44 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_163[] =
+{
 	/* 0xb181 */
 	0xcf45 ,
 	0xcf46 ,
@@ -10475,12 +10082,7 @@ static u_int16_t uhc_to_ucs4_table_b1[] =
 	0xae78 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_b1 =
-{
-	0xb141 , 0xb1fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_b2[] =
+static u_int16_t uhc_to_ucs4_table_164[] =
 {
 	/* 0xb241 */
 	0xcf6d ,
@@ -10547,13 +10149,10 @@ static u_int16_t uhc_to_ucs4_table_b2[] =
 	0xcfa6 ,
 	0xcfa7 ,
 	0xcfa9 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_165[] =
+{
 	/* 0xb281 */
 	0xcfaa ,
 	0xcfab ,
@@ -10697,12 +10296,7 @@ static u_int16_t uhc_to_ucs4_table_b2[] =
 	0xb059 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_b2 =
-{
-	0xb241 , 0xb2fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_b3[] =
+static u_int16_t uhc_to_ucs4_table_166[] =
 {
 	/* 0xb341 */
 	0xcfcc ,
@@ -10769,13 +10363,10 @@ static u_int16_t uhc_to_ucs4_table_b3[] =
 	0xd008 ,
 	0xd009 ,
 	0xd00a ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_167[] =
+{
 	/* 0xb381 */
 	0xd00b ,
 	0xd00c ,
@@ -10919,12 +10510,7 @@ static u_int16_t uhc_to_ucs4_table_b3[] =
 	0xb1dd ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_b3 =
-{
-	0xb341 , 0xb3fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_b4[] =
+static u_int16_t uhc_to_ucs4_table_168[] =
 {
 	/* 0xb441 */
 	0xd02e ,
@@ -10991,13 +10577,10 @@ static u_int16_t uhc_to_ucs4_table_b4[] =
 	0xd06b ,
 	0xd06e ,
 	0xd06f ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_169[] =
+{
 	/* 0xb481 */
 	0xd071 ,
 	0xd072 ,
@@ -11141,12 +10724,7 @@ static u_int16_t uhc_to_ucs4_table_b4[] =
 	0xb365 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_b4 =
-{
-	0xb441 , 0xb4fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_b5[] =
+static u_int16_t uhc_to_ucs4_table_16a[] =
 {
 	/* 0xb541 */
 	0xd095 ,
@@ -11213,13 +10791,10 @@ static u_int16_t uhc_to_ucs4_table_b5[] =
 	0xd0d8 ,
 	0xd0d9 ,
 	0xd0da ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_16b[] =
+{
 	/* 0xb581 */
 	0xd0db ,
 	0xd0de ,
@@ -11363,12 +10938,7 @@ static u_int16_t uhc_to_ucs4_table_b5[] =
 	0xb538 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_b5 =
-{
-	0xb541 , 0xb5fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_b6[] =
+static u_int16_t uhc_to_ucs4_table_16c[] =
 {
 	/* 0xb641 */
 	0xd105 ,
@@ -11435,13 +11005,10 @@ static u_int16_t uhc_to_ucs4_table_b6[] =
 	0xd13c ,
 	0xd13d ,
 	0xd13e ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_16d[] =
+{
 	/* 0xb681 */
 	0xd13f ,
 	0xd142 ,
@@ -11585,12 +11152,7 @@ static u_int16_t uhc_to_ucs4_table_b6[] =
 	0xb797 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_b6 =
-{
-	0xb641 , 0xb6fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_b7[] =
+static u_int16_t uhc_to_ucs4_table_16e[] =
 {
 	/* 0xb741 */
 	0xd16e ,
@@ -11657,13 +11219,10 @@ static u_int16_t uhc_to_ucs4_table_b7[] =
 	0xd1a5 ,
 	0xd1a6 ,
 	0xd1a7 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_16f[] =
+{
 	/* 0xb781 */
 	0xd1a9 ,
 	0xd1aa ,
@@ -11807,12 +11366,7 @@ static u_int16_t uhc_to_ucs4_table_b7[] =
 	0xb969 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_b7 =
-{
-	0xb741 , 0xb7fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_b8[] =
+static u_int16_t uhc_to_ucs4_table_170[] =
 {
 	/* 0xb841 */
 	0xd1d0 ,
@@ -11879,13 +11433,10 @@ static u_int16_t uhc_to_ucs4_table_b8[] =
 	0xd204 ,
 	0xd205 ,
 	0xd206 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_171[] =
+{
 	/* 0xb881 */
 	0xd208 ,
 	0xd20a ,
@@ -12029,12 +11580,7 @@ static u_int16_t uhc_to_ucs4_table_b8[] =
 	0xbafc ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_b8 =
-{
-	0xb841 , 0xb8fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_b9[] =
+static u_int16_t uhc_to_ucs4_table_172[] =
 {
 	/* 0xb941 */
 	0xd22a ,
@@ -12101,13 +11647,10 @@ static u_int16_t uhc_to_ucs4_table_b9[] =
 	0xd266 ,
 	0xd267 ,
 	0xd268 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_173[] =
+{
 	/* 0xb981 */
 	0xd269 ,
 	0xd26a ,
@@ -12251,12 +11794,7 @@ static u_int16_t uhc_to_ucs4_table_b9[] =
 	0xbc97 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_b9 =
-{
-	0xb941 , 0xb9fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_ba[] =
+static u_int16_t uhc_to_ucs4_table_174[] =
 {
 	/* 0xba41 */
 	0xd28d ,
@@ -12323,13 +11861,10 @@ static u_int16_t uhc_to_ucs4_table_ba[] =
 	0xd2cf ,
 	0xd2d0 ,
 	0xd2d1 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_175[] =
+{
 	/* 0xba81 */
 	0xd2d2 ,
 	0xd2d3 ,
@@ -12473,12 +12008,7 @@ static u_int16_t uhc_to_ucs4_table_ba[] =
 	0xbe64 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_ba =
-{
-	0xba41 , 0xbafe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_bb[] =
+static u_int16_t uhc_to_ucs4_table_176[] =
 {
 	/* 0xbb41 */
 	0xd2fb ,
@@ -12545,13 +12075,10 @@ static u_int16_t uhc_to_ucs4_table_bb[] =
 	0xd347 ,
 	0xd348 ,
 	0xd349 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_177[] =
+{
 	/* 0xbb81 */
 	0xd34a ,
 	0xd34b ,
@@ -12695,12 +12222,7 @@ static u_int16_t uhc_to_ucs4_table_bb[] =
 	0xc0e4 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_bb =
-{
-	0xbb41 , 0xbbfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_bc[] =
+static u_int16_t uhc_to_ucs4_table_178[] =
 {
 	/* 0xbc41 */
 	0xd36a ,
@@ -12767,13 +12289,10 @@ static u_int16_t uhc_to_ucs4_table_bc[] =
 	0xd3aa ,
 	0xd3ac ,
 	0xd3ae ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_179[] =
+{
 	/* 0xbc81 */
 	0xd3af ,
 	0xd3b0 ,
@@ -12917,12 +12436,7 @@ static u_int16_t uhc_to_ucs4_table_bc[] =
 	0xc22d ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_bc =
-{
-	0xbc41 , 0xbcfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_bd[] =
+static u_int16_t uhc_to_ucs4_table_17a[] =
 {
 	/* 0xbd41 */
 	0xd3d7 ,
@@ -12989,13 +12503,10 @@ static u_int16_t uhc_to_ucs4_table_bd[] =
 	0xd414 ,
 	0xd415 ,
 	0xd416 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_17b[] =
+{
 	/* 0xbd81 */
 	0xd417 ,
 	0xd418 ,
@@ -13139,12 +12650,7 @@ static u_int16_t uhc_to_ucs4_table_bd[] =
 	0xc430 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_bd =
-{
-	0xbd41 , 0xbdfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_be[] =
+static u_int16_t uhc_to_ucs4_table_17c[] =
 {
 	/* 0xbe41 */
 	0xd438 ,
@@ -13211,13 +12717,10 @@ static u_int16_t uhc_to_ucs4_table_be[] =
 	0xd470 ,
 	0xd471 ,
 	0xd472 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_17d[] =
+{
 	/* 0xbe81 */
 	0xd473 ,
 	0xd474 ,
@@ -13361,12 +12864,7 @@ static u_int16_t uhc_to_ucs4_table_be[] =
 	0xc5ce ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_be =
-{
-	0xbe41 , 0xbefe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_bf[] =
+static u_int16_t uhc_to_ucs4_table_17e[] =
 {
 	/* 0xbf41 */
 	0xd49e ,
@@ -13433,13 +12931,10 @@ static u_int16_t uhc_to_ucs4_table_bf[] =
 	0xd4d2 ,
 	0xd4d3 ,
 	0xd4d5 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_17f[] =
+{
 	/* 0xbf81 */
 	0xd4d6 ,
 	0xd4d7 ,
@@ -13583,12 +13078,7 @@ static u_int16_t uhc_to_ucs4_table_bf[] =
 	0xc6e8 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_bf =
-{
-	0xbf41 , 0xbffe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_c0[] =
+static u_int16_t uhc_to_ucs4_table_180[] =
 {
 	/* 0xc041 */
 	0xd4fe ,
@@ -13655,13 +13145,10 @@ static u_int16_t uhc_to_ucs4_table_c0[] =
 	0xd535 ,
 	0xd536 ,
 	0xd537 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_181[] =
+{
 	/* 0xc081 */
 	0xd538 ,
 	0xd539 ,
@@ -13805,12 +13292,7 @@ static u_int16_t uhc_to_ucs4_table_c0[] =
 	0xc80a ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_c0 =
-{
-	0xc041 , 0xc0fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_c1[] =
+static u_int16_t uhc_to_ucs4_table_182[] =
 {
 	/* 0xc141 */
 	0xd564 ,
@@ -13877,13 +13359,10 @@ static u_int16_t uhc_to_ucs4_table_c1[] =
 	0xd5a4 ,
 	0xd5a6 ,
 	0xd5a7 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_183[] =
+{
 	/* 0xc181 */
 	0xd5a8 ,
 	0xd5a9 ,
@@ -14027,12 +13506,7 @@ static u_int16_t uhc_to_ucs4_table_c1[] =
 	0xc9d3 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_c1 =
-{
-	0xc141 , 0xc1fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_c2[] =
+static u_int16_t uhc_to_ucs4_table_184[] =
 {
 	/* 0xc241 */
 	0xd5ca ,
@@ -14099,13 +13573,10 @@ static u_int16_t uhc_to_ucs4_table_c2[] =
 	0xd60e ,
 	0xd60f ,
 	0xd612 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_185[] =
+{
 	/* 0xc281 */
 	0xd616 ,
 	0xd617 ,
@@ -14249,12 +13720,7 @@ static u_int16_t uhc_to_ucs4_table_c2[] =
 	0xcc3b ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_c2 =
-{
-	0xc241 , 0xc2fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_c3[] =
+static u_int16_t uhc_to_ucs4_table_186[] =
 {
 	/* 0xc341 */
 	0xd63d ,
@@ -14321,13 +13787,10 @@ static u_int16_t uhc_to_ucs4_table_c3[] =
 	0xd67e ,
 	0xd67f ,
 	0xd680 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_187[] =
+{
 	/* 0xc381 */
 	0xd681 ,
 	0xd682 ,
@@ -14471,12 +13934,7 @@ static u_int16_t uhc_to_ucs4_table_c3[] =
 	0xce35 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_c3 =
-{
-	0xc341 , 0xc3fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_c4[] =
+static u_int16_t uhc_to_ucs4_table_188[] =
 {
 	/* 0xc441 */
 	0xd6ab ,
@@ -14543,13 +14001,10 @@ static u_int16_t uhc_to_ucs4_table_c4[] =
 	0xd6eb ,
 	0xd6ec ,
 	0xd6ed ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_189[] =
+{
 	/* 0xc481 */
 	0xd6ee ,
 	0xd6ef ,
@@ -14693,12 +14148,7 @@ static u_int16_t uhc_to_ucs4_table_c4[] =
 	0xd03c ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_c4 =
-{
-	0xc441 , 0xc4fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_c5[] =
+static u_int16_t uhc_to_ucs4_table_18a[] =
 {
 	/* 0xc541 */
 	0xd715 ,
@@ -14765,13 +14215,10 @@ static u_int16_t uhc_to_ucs4_table_c5[] =
 	0xd75c ,
 	0xd75d ,
 	0xd75e ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
+static u_int16_t uhc_to_ucs4_table_18b[] =
+{
 	/* 0xc581 */
 	0xd75f ,
 	0xd762 ,
@@ -14915,12 +14362,7 @@ static u_int16_t uhc_to_ucs4_table_c5[] =
 	0xd25c ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_c5 =
-{
-	0xc541 , 0xc5fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_c6[] =
+static u_int16_t uhc_to_ucs4_table_18c[] =
 {
 	/* 0xc641 */
 	0xd78d ,
@@ -14943,93 +14385,10 @@ static u_int16_t uhc_to_ucs4_table_c6[] =
 	/* 0xc651 */
 	0xd7a2 ,
 	0xd7a3 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
-	/* 0xc661 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
-	/* 0xc671 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
-	/* 0xc681 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
-	/* 0xc691 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
+static u_int16_t uhc_to_ucs4_table_18d[] =
+{
 	/* 0xc6a1 */
 	0xd264 ,
 	0xd280 ,
@@ -15137,12 +14496,7 @@ static u_int16_t uhc_to_ucs4_table_c6[] =
 	0xd401 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_c6 =
-{
-	0xc641 , 0xc6fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_c7[] =
+static u_int16_t uhc_to_ucs4_table_18f[] =
 {
 	/* 0xc7a1 */
 	0xd408 ,
@@ -15251,12 +14605,7 @@ static u_int16_t uhc_to_ucs4_table_c7[] =
 	0xd620 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_c7 =
-{
-	0xc7a1 , 0xc7fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_c8[] =
+static u_int16_t uhc_to_ucs4_table_191[] =
 {
 	/* 0xc8a1 */
 	0xd624 ,
@@ -15365,12 +14714,7 @@ static u_int16_t uhc_to_ucs4_table_c8[] =
 	0xd79d ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_c8 =
-{
-	0xc8a1 , 0xc8fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_ca[] =
+static u_int16_t uhc_to_ucs4_table_195[] =
 {
 	/* 0xcaa1 */
 	0x4f3d ,
@@ -15479,12 +14823,7 @@ static u_int16_t uhc_to_ucs4_table_ca[] =
 	0x9f95 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_ca =
-{
-	0xcaa1 , 0xcafe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_cb[] =
+static u_int16_t uhc_to_ucs4_table_197[] =
 {
 	/* 0xcba1 */
 	0x5323 ,
@@ -15593,12 +14932,7 @@ static u_int16_t uhc_to_ucs4_table_cb[] =
 	0x6aa2 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_cb =
-{
-	0xcba1 , 0xcbfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_cc[] =
+static u_int16_t uhc_to_ucs4_table_199[] =
 {
 	/* 0xcca1 */
 	0x77bc ,
@@ -15707,12 +15041,7 @@ static u_int16_t uhc_to_ucs4_table_cc[] =
 	0x68b0 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_cc =
-{
-	0xcca1 , 0xccfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_cd[] =
+static u_int16_t uhc_to_ucs4_table_19b[] =
 {
 	/* 0xcda1 */
 	0x68e8 ,
@@ -15821,12 +15150,7 @@ static u_int16_t uhc_to_ucs4_table_cd[] =
 	0x74dc ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_cd =
-{
-	0xcda1 , 0xcdfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_ce[] =
+static u_int16_t uhc_to_ucs4_table_19d[] =
 {
 	/* 0xcea1 */
 	0x79d1 ,
@@ -15935,12 +15259,7 @@ static u_int16_t uhc_to_ucs4_table_ce[] =
 	0x52fe ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_ce =
-{
-	0xcea1 , 0xcefe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_cf[] =
+static u_int16_t uhc_to_ucs4_table_19f[] =
 {
 	/* 0xcfa1 */
 	0x5340 ,
@@ -16049,12 +15368,7 @@ static u_int16_t uhc_to_ucs4_table_cf[] =
 	0x8cb4 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_cf =
-{
-	0xcfa1 , 0xcffe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_d0[] =
+static u_int16_t uhc_to_ucs4_table_1a1[] =
 {
 	/* 0xd0a1 */
 	0x9b3c ,
@@ -16163,12 +15477,7 @@ static u_int16_t uhc_to_ucs4_table_d0[] =
 	0x65e3 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_d0 =
-{
-	0xd0a1 , 0xd0fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_d1[] =
+static u_int16_t uhc_to_ucs4_table_1a3[] =
 {
 	/* 0xd1a1 */
 	0x671e ,
@@ -16277,12 +15586,7 @@ static u_int16_t uhc_to_ucs4_table_d1[] =
 	0xf925 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_d1 =
-{
-	0xd1a1 , 0xd1fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_d2[] =
+static u_int16_t uhc_to_ucs4_table_1a5[] =
 {
 	/* 0xd2a1 */
 	0x7d0d ,
@@ -16391,12 +15695,7 @@ static u_int16_t uhc_to_ucs4_table_d2[] =
 	0x8336 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_d2 =
-{
-	0xd2a1 , 0xd2fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_d3[] =
+static u_int16_t uhc_to_ucs4_table_1a7[] =
 {
 	/* 0xd3a1 */
 	0x4e39 ,
@@ -16505,12 +15804,7 @@ static u_int16_t uhc_to_ucs4_table_d3[] =
 	0x6843 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_d3 =
-{
-	0xd3a1 , 0xd3fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_d4[] =
+static u_int16_t uhc_to_ucs4_table_1a9[] =
 {
 	/* 0xd4a1 */
 	0x68f9 ,
@@ -16619,12 +15913,7 @@ static u_int16_t uhc_to_ucs4_table_d4[] =
 	0x7f85 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_d4 =
-{
-	0xd4a1 , 0xd4fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_d5[] =
+static u_int16_t uhc_to_ucs4_table_1ab[] =
 {
 	/* 0xd5a1 */
 	0x863f ,
@@ -16733,12 +16022,7 @@ static u_int16_t uhc_to_ucs4_table_d5[] =
 	0x6f23 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_d5 =
-{
-	0xd5a1 , 0xd5fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_d6[] =
+static u_int16_t uhc_to_ucs4_table_1ad[] =
 {
 	/* 0xd6a1 */
 	0x7149 ,
@@ -16847,12 +16131,7 @@ static u_int16_t uhc_to_ucs4_table_d6[] =
 	0x84fc ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_d6 =
-{
-	0xd6a1 , 0xd6fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_d7[] =
+static u_int16_t uhc_to_ucs4_table_1af[] =
 {
 	/* 0xd7a1 */
 	0x907c ,
@@ -16961,12 +16240,7 @@ static u_int16_t uhc_to_ucs4_table_d7[] =
 	0x782c ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_d7 =
-{
-	0xd7a1 , 0xd7fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_d8[] =
+static u_int16_t uhc_to_ucs4_table_1b1[] =
 {
 	/* 0xd8a1 */
 	0x7acb ,
@@ -17075,12 +16349,7 @@ static u_int16_t uhc_to_ucs4_table_d8[] =
 	0x6ec5 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_d8 =
-{
-	0xd8a1 , 0xd8fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_d9[] =
+static u_int16_t uhc_to_ucs4_table_1b3[] =
 {
 	/* 0xd9a1 */
 	0x8511 ,
@@ -17189,12 +16458,7 @@ static u_int16_t uhc_to_ucs4_table_d9[] =
 	0x6587 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_d9 =
-{
-	0xd9a1 , 0xd9fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_da[] =
+static u_int16_t uhc_to_ucs4_table_1b5[] =
 {
 	/* 0xdaa1 */
 	0x6c76 ,
@@ -17303,12 +16567,7 @@ static u_int16_t uhc_to_ucs4_table_da[] =
 	0x6f51 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_da =
-{
-	0xdaa1 , 0xdafe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_db[] =
+static u_int16_t uhc_to_ucs4_table_1b7[] =
 {
 	/* 0xdba1 */
 	0x767c ,
@@ -17417,12 +16676,7 @@ static u_int16_t uhc_to_ucs4_table_db[] =
 	0x7656 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_db =
-{
-	0xdba1 , 0xdbfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_dc[] =
+static u_int16_t uhc_to_ucs4_table_1b9[] =
 {
 	/* 0xdca1 */
 	0x78a7 ,
@@ -17531,12 +16785,7 @@ static u_int16_t uhc_to_ucs4_table_dc[] =
 	0x5a66 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_dc =
-{
-	0xdca1 , 0xdcfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_dd[] =
+static u_int16_t uhc_to_ucs4_table_1bb[] =
 {
 	/* 0xdda1 */
 	0x5b5a ,
@@ -17645,12 +16894,7 @@ static u_int16_t uhc_to_ucs4_table_dd[] =
 	0x80a5 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_dd =
-{
-	0xdda1 , 0xddfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_de[] =
+static u_int16_t uhc_to_ucs4_table_1bd[] =
 {
 	/* 0xdea1 */
 	0x813e ,
@@ -17759,12 +17003,7 @@ static u_int16_t uhc_to_ucs4_table_de[] =
 	0xf96a ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_de =
-{
-	0xdea1 , 0xdefe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_df[] =
+static u_int16_t uhc_to_ucs4_table_1bf[] =
 {
 	/* 0xdfa1 */
 	0x5098 ,
@@ -17873,12 +17112,7 @@ static u_int16_t uhc_to_ucs4_table_df[] =
 	0x7f72 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_df =
-{
-	0xdfa1 , 0xdffe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_e0[] =
+static u_int16_t uhc_to_ucs4_table_1c1[] =
 {
 	/* 0xe0a1 */
 	0x80e5 ,
@@ -17987,12 +17221,7 @@ static u_int16_t uhc_to_ucs4_table_e0[] =
 	0x7b6c ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_e0 =
-{
-	0xe0a1 , 0xe0fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_e1[] =
+static u_int16_t uhc_to_ucs4_table_1c3[] =
 {
 	/* 0xe1a1 */
 	0x8056 ,
@@ -18101,12 +17330,7 @@ static u_int16_t uhc_to_ucs4_table_e1[] =
 	0x6101 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_e1 =
-{
-	0xe1a1 , 0xe1fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_e2[] =
+static u_int16_t uhc_to_ucs4_table_1c5[] =
 {
 	/* 0xe2a1 */
 	0x620d ,
@@ -18215,12 +17439,7 @@ static u_int16_t uhc_to_ucs4_table_e2[] =
 	0x5d27 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_e2 =
-{
-	0xe2a1 , 0xe2fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_e3[] =
+static u_int16_t uhc_to_ucs4_table_1c7[] =
 {
 	/* 0xe3a1 */
 	0x5d69 ,
@@ -18329,12 +17548,7 @@ static u_int16_t uhc_to_ucs4_table_e3[] =
 	0x6c81 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_e3 =
-{
-	0xe3a1 , 0xe3fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_e4[] =
+static u_int16_t uhc_to_ucs4_table_1c9[] =
 {
 	/* 0xe4a1 */
 	0xf972 ,
@@ -18443,12 +17657,7 @@ static u_int16_t uhc_to_ucs4_table_e4[] =
 	0x984d ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_e4 =
-{
-	0xe4a1 , 0xe4fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_e5[] =
+static u_int16_t uhc_to_ucs4_table_1cb[] =
 {
 	/* 0xe5a1 */
 	0x6afb ,
@@ -18557,12 +17766,7 @@ static u_int16_t uhc_to_ucs4_table_e5[] =
 	0xf982 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_e5 =
-{
-	0xe5a1 , 0xe5fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_e6[] =
+static u_int16_t uhc_to_ucs4_table_1cd[] =
 {
 	/* 0xe6a1 */
 	0xf983 ,
@@ -18671,12 +17875,7 @@ static u_int16_t uhc_to_ucs4_table_e6[] =
 	0x82d2 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_e6 =
-{
-	0xe6a1 , 0xe6fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_e7[] =
+static u_int16_t uhc_to_ucs4_table_1cf[] =
 {
 	/* 0xe7a1 */
 	0xf9a6 ,
@@ -18785,12 +17984,7 @@ static u_int16_t uhc_to_ucs4_table_e7[] =
 	0x6fb3 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_e7 =
-{
-	0xe7a1 , 0xe7fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_e8[] =
+static u_int16_t uhc_to_ucs4_table_1d1[] =
 {
 	/* 0xe8a1 */
 	0x70cf ,
@@ -18899,12 +18093,7 @@ static u_int16_t uhc_to_ucs4_table_e8[] =
 	0xf9c1 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_e8 =
-{
-	0xe8a1 , 0xe8fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_e9[] =
+static u_int16_t uhc_to_ucs4_table_1d3[] =
 {
 	/* 0xe9a1 */
 	0x7a88 ,
@@ -19013,12 +18202,7 @@ static u_int16_t uhc_to_ucs4_table_e9[] =
 	0x8553 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_e9 =
-{
-	0xe9a1 , 0xe9fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_ea[] =
+static u_int16_t uhc_to_ucs4_table_1d5[] =
 {
 	/* 0xeaa1 */
 	0x904b ,
@@ -19127,12 +18311,7 @@ static u_int16_t uhc_to_ucs4_table_ea[] =
 	0xf9cb ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_ea =
-{
-	0xeaa1 , 0xeafe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_eb[] =
+static u_int16_t uhc_to_ucs4_table_1d7[] =
 {
 	/* 0xeba1 */
 	0x6fe1 ,
@@ -19241,12 +18420,7 @@ static u_int16_t uhc_to_ucs4_table_eb[] =
 	0x8abc ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_eb =
-{
-	0xeba1 , 0xebfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_ec[] =
+static u_int16_t uhc_to_ucs4_table_1d9[] =
 {
 	/* 0xeca1 */
 	0x8b70 ,
@@ -19355,12 +18529,7 @@ static u_int16_t uhc_to_ucs4_table_ec[] =
 	0x5344 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_ec =
-{
-	0xeca1 , 0xecfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_ed[] =
+static u_int16_t uhc_to_ucs4_table_1db[] =
 {
 	/* 0xeda1 */
 	0xf9f7 ,
@@ -19469,12 +18638,7 @@ static u_int16_t uhc_to_ucs4_table_ed[] =
 	0x9577 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_ed =
-{
-	0xeda1 , 0xedfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_ee[] =
+static u_int16_t uhc_to_ucs4_table_1dd[] =
 {
 	/* 0xeea1 */
 	0x969c ,
@@ -19583,12 +18747,7 @@ static u_int16_t uhc_to_ucs4_table_ee[] =
 	0x6fb1 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_ee =
-{
-	0xeea1 , 0xeefe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_ef[] =
+static u_int16_t uhc_to_ucs4_table_1df[] =
 {
 	/* 0xefa1 */
 	0x714e ,
@@ -19697,12 +18856,7 @@ static u_int16_t uhc_to_ucs4_table_ef[] =
 	0x9756 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_ef =
-{
-	0xefa1 , 0xeffe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_f0[] =
+static u_int16_t uhc_to_ucs4_table_1e1[] =
 {
 	/* 0xf0a1 */
 	0x975c ,
@@ -19811,12 +18965,7 @@ static u_int16_t uhc_to_ucs4_table_f0[] =
 	0x816b ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_f0 =
-{
-	0xf0a1 , 0xf0fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_f1[] =
+static u_int16_t uhc_to_ucs4_table_1e3[] =
 {
 	/* 0xf1a1 */
 	0x8e2a ,
@@ -19925,12 +19074,7 @@ static u_int16_t uhc_to_ucs4_table_f1[] =
 	0x53ea ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_f1 =
-{
-	0xf1a1 , 0xf1fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_f2[] =
+static u_int16_t uhc_to_ucs4_table_1e5[] =
 {
 	/* 0xf2a1 */
 	0x54ab ,
@@ -20039,12 +19183,7 @@ static u_int16_t uhc_to_ucs4_table_f2[] =
 	0x8f2f ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_f2 =
-{
-	0xf2a1 , 0xf2fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_f3[] =
+static u_int16_t uhc_to_ucs4_table_1e7[] =
 {
 	/* 0xf3a1 */
 	0x93f6 ,
@@ -20153,12 +19292,7 @@ static u_int16_t uhc_to_ucs4_table_f3[] =
 	0x7b56 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_f3 =
-{
-	0xf3a1 , 0xf3fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_f4[] =
+static u_int16_t uhc_to_ucs4_table_1e9[] =
 {
 	/* 0xf4a1 */
 	0x8cac ,
@@ -20267,12 +19401,7 @@ static u_int16_t uhc_to_ucs4_table_f4[] =
 	0x68a2 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_f4 =
-{
-	0xf4a1 , 0xf4fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_f5[] =
+static u_int16_t uhc_to_ucs4_table_1eb[] =
 {
 	/* 0xf5a1 */
 	0x6912 ,
@@ -20381,12 +19510,7 @@ static u_int16_t uhc_to_ucs4_table_f5[] =
 	0x8403 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_f5 =
-{
-	0xf5a1 , 0xf5fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_f6[] =
+static u_int16_t uhc_to_ucs4_table_1ed[] =
 {
 	/* 0xf6a1 */
 	0x8d05 ,
@@ -20495,12 +19619,7 @@ static u_int16_t uhc_to_ucs4_table_f6[] =
 	0x8a17 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_f6 =
-{
-	0xf6a1 , 0xf6fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_f7[] =
+static u_int16_t uhc_to_ucs4_table_1ef[] =
 {
 	/* 0xf7a1 */
 	0x9438 ,
@@ -20609,12 +19728,7 @@ static u_int16_t uhc_to_ucs4_table_f7[] =
 	0x9211 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_f7 =
-{
-	0xf7a1 , 0xf7fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_f8[] =
+static u_int16_t uhc_to_ucs4_table_1f1[] =
 {
 	/* 0xf8a1 */
 	0x962a ,
@@ -20723,12 +19837,7 @@ static u_int16_t uhc_to_ucs4_table_f8[] =
 	0x9a43 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_f8 =
-{
-	0xf8a1 , 0xf8fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_f9[] =
+static u_int16_t uhc_to_ucs4_table_1f3[] =
 {
 	/* 0xf9a1 */
 	0x54c1 ,
@@ -20837,12 +19946,7 @@ static u_int16_t uhc_to_ucs4_table_f9[] =
 	0x822a ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_f9 =
-{
-	0xf9a1 , 0xf9fe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_fa[] =
+static u_int16_t uhc_to_ucs4_table_1f5[] =
 {
 	/* 0xfaa1 */
 	0xfa08 ,
@@ -20951,12 +20055,7 @@ static u_int16_t uhc_to_ucs4_table_fa[] =
 	0x578b ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_fa =
-{
-	0xfaa1 , 0xfafe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_fb[] =
+static u_int16_t uhc_to_ucs4_table_1f7[] =
 {
 	/* 0xfba1 */
 	0x5f62 ,
@@ -21065,12 +20164,7 @@ static u_int16_t uhc_to_ucs4_table_fb[] =
 	0x7575 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_fb =
-{
-	0xfba1 , 0xfbfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_fc[] =
+static u_int16_t uhc_to_ucs4_table_1f9[] =
 {
 	/* 0xfca1 */
 	0x798d ,
@@ -21179,12 +20273,7 @@ static u_int16_t uhc_to_ucs4_table_fc[] =
 	0x6dc6 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_fc =
-{
-	0xfca1 , 0xfcfe
-} ;
-
-static u_int16_t uhc_to_ucs4_table_fd[] =
+static u_int16_t uhc_to_ucs4_table_1fb[] =
 {
 	/* 0xfda1 */
 	0x723b ,
@@ -21293,146 +20382,265 @@ static u_int16_t uhc_to_ucs4_table_fd[] =
 	0x8a70 ,
 } ;
 
-static uhc_to_ucs4_range_t uhc_to_ucs4_range_fd =
-{
-	0xfda1 , 0xfdfe
-} ;
-
 static u_int32_t  uhc_to_ucs4_beg = 0x8141 ;
 
 static u_int32_t  uhc_to_ucs4_end = 0xfdfe ;
 
 static uhc_to_ucs4_table_t uhc_to_ucs4_tables[] =
 {
-	{ uhc_to_ucs4_table_81 , &uhc_to_ucs4_range_81 } ,
-	{ uhc_to_ucs4_table_82 , &uhc_to_ucs4_range_82 } ,
-	{ uhc_to_ucs4_table_83 , &uhc_to_ucs4_range_83 } ,
-	{ uhc_to_ucs4_table_84 , &uhc_to_ucs4_range_84 } ,
-	{ uhc_to_ucs4_table_85 , &uhc_to_ucs4_range_85 } ,
-	{ uhc_to_ucs4_table_86 , &uhc_to_ucs4_range_86 } ,
-	{ uhc_to_ucs4_table_87 , &uhc_to_ucs4_range_87 } ,
-	{ uhc_to_ucs4_table_88 , &uhc_to_ucs4_range_88 } ,
-	{ uhc_to_ucs4_table_89 , &uhc_to_ucs4_range_89 } ,
-	{ uhc_to_ucs4_table_8a , &uhc_to_ucs4_range_8a } ,
-	{ uhc_to_ucs4_table_8b , &uhc_to_ucs4_range_8b } ,
-	{ uhc_to_ucs4_table_8c , &uhc_to_ucs4_range_8c } ,
-	{ uhc_to_ucs4_table_8d , &uhc_to_ucs4_range_8d } ,
-	{ uhc_to_ucs4_table_8e , &uhc_to_ucs4_range_8e } ,
-	{ uhc_to_ucs4_table_8f , &uhc_to_ucs4_range_8f } ,
-	{ uhc_to_ucs4_table_90 , &uhc_to_ucs4_range_90 } ,
-	{ uhc_to_ucs4_table_91 , &uhc_to_ucs4_range_91 } ,
-	{ uhc_to_ucs4_table_92 , &uhc_to_ucs4_range_92 } ,
-	{ uhc_to_ucs4_table_93 , &uhc_to_ucs4_range_93 } ,
-	{ uhc_to_ucs4_table_94 , &uhc_to_ucs4_range_94 } ,
-	{ uhc_to_ucs4_table_95 , &uhc_to_ucs4_range_95 } ,
-	{ uhc_to_ucs4_table_96 , &uhc_to_ucs4_range_96 } ,
-	{ uhc_to_ucs4_table_97 , &uhc_to_ucs4_range_97 } ,
-	{ uhc_to_ucs4_table_98 , &uhc_to_ucs4_range_98 } ,
-	{ uhc_to_ucs4_table_99 , &uhc_to_ucs4_range_99 } ,
-	{ uhc_to_ucs4_table_9a , &uhc_to_ucs4_range_9a } ,
-	{ uhc_to_ucs4_table_9b , &uhc_to_ucs4_range_9b } ,
-	{ uhc_to_ucs4_table_9c , &uhc_to_ucs4_range_9c } ,
-	{ uhc_to_ucs4_table_9d , &uhc_to_ucs4_range_9d } ,
-	{ uhc_to_ucs4_table_9e , &uhc_to_ucs4_range_9e } ,
-	{ uhc_to_ucs4_table_9f , &uhc_to_ucs4_range_9f } ,
-	{ uhc_to_ucs4_table_a0 , &uhc_to_ucs4_range_a0 } ,
-	{ uhc_to_ucs4_table_a1 , &uhc_to_ucs4_range_a1 } ,
-	{ uhc_to_ucs4_table_a2 , &uhc_to_ucs4_range_a2 } ,
-	{ uhc_to_ucs4_table_a3 , &uhc_to_ucs4_range_a3 } ,
-	{ uhc_to_ucs4_table_a4 , &uhc_to_ucs4_range_a4 } ,
-	{ uhc_to_ucs4_table_a5 , &uhc_to_ucs4_range_a5 } ,
-	{ uhc_to_ucs4_table_a6 , &uhc_to_ucs4_range_a6 } ,
-	{ uhc_to_ucs4_table_a7 , &uhc_to_ucs4_range_a7 } ,
-	{ uhc_to_ucs4_table_a8 , &uhc_to_ucs4_range_a8 } ,
-	{ uhc_to_ucs4_table_a9 , &uhc_to_ucs4_range_a9 } ,
-	{ uhc_to_ucs4_table_aa , &uhc_to_ucs4_range_aa } ,
-	{ uhc_to_ucs4_table_ab , &uhc_to_ucs4_range_ab } ,
-	{ uhc_to_ucs4_table_ac , &uhc_to_ucs4_range_ac } ,
-	{ uhc_to_ucs4_table_ad , &uhc_to_ucs4_range_ad } ,
-	{ uhc_to_ucs4_table_ae , &uhc_to_ucs4_range_ae } ,
-	{ uhc_to_ucs4_table_af , &uhc_to_ucs4_range_af } ,
-	{ uhc_to_ucs4_table_b0 , &uhc_to_ucs4_range_b0 } ,
-	{ uhc_to_ucs4_table_b1 , &uhc_to_ucs4_range_b1 } ,
-	{ uhc_to_ucs4_table_b2 , &uhc_to_ucs4_range_b2 } ,
-	{ uhc_to_ucs4_table_b3 , &uhc_to_ucs4_range_b3 } ,
-	{ uhc_to_ucs4_table_b4 , &uhc_to_ucs4_range_b4 } ,
-	{ uhc_to_ucs4_table_b5 , &uhc_to_ucs4_range_b5 } ,
-	{ uhc_to_ucs4_table_b6 , &uhc_to_ucs4_range_b6 } ,
-	{ uhc_to_ucs4_table_b7 , &uhc_to_ucs4_range_b7 } ,
-	{ uhc_to_ucs4_table_b8 , &uhc_to_ucs4_range_b8 } ,
-	{ uhc_to_ucs4_table_b9 , &uhc_to_ucs4_range_b9 } ,
-	{ uhc_to_ucs4_table_ba , &uhc_to_ucs4_range_ba } ,
-	{ uhc_to_ucs4_table_bb , &uhc_to_ucs4_range_bb } ,
-	{ uhc_to_ucs4_table_bc , &uhc_to_ucs4_range_bc } ,
-	{ uhc_to_ucs4_table_bd , &uhc_to_ucs4_range_bd } ,
-	{ uhc_to_ucs4_table_be , &uhc_to_ucs4_range_be } ,
-	{ uhc_to_ucs4_table_bf , &uhc_to_ucs4_range_bf } ,
-	{ uhc_to_ucs4_table_c0 , &uhc_to_ucs4_range_c0 } ,
-	{ uhc_to_ucs4_table_c1 , &uhc_to_ucs4_range_c1 } ,
-	{ uhc_to_ucs4_table_c2 , &uhc_to_ucs4_range_c2 } ,
-	{ uhc_to_ucs4_table_c3 , &uhc_to_ucs4_range_c3 } ,
-	{ uhc_to_ucs4_table_c4 , &uhc_to_ucs4_range_c4 } ,
-	{ uhc_to_ucs4_table_c5 , &uhc_to_ucs4_range_c5 } ,
-	{ uhc_to_ucs4_table_c6 , &uhc_to_ucs4_range_c6 } ,
-	{ uhc_to_ucs4_table_c7 , &uhc_to_ucs4_range_c7 } ,
-	{ uhc_to_ucs4_table_c8 , &uhc_to_ucs4_range_c8 } ,
-	{ NULL , NULL , } ,
-	{ uhc_to_ucs4_table_ca , &uhc_to_ucs4_range_ca } ,
-	{ uhc_to_ucs4_table_cb , &uhc_to_ucs4_range_cb } ,
-	{ uhc_to_ucs4_table_cc , &uhc_to_ucs4_range_cc } ,
-	{ uhc_to_ucs4_table_cd , &uhc_to_ucs4_range_cd } ,
-	{ uhc_to_ucs4_table_ce , &uhc_to_ucs4_range_ce } ,
-	{ uhc_to_ucs4_table_cf , &uhc_to_ucs4_range_cf } ,
-	{ uhc_to_ucs4_table_d0 , &uhc_to_ucs4_range_d0 } ,
-	{ uhc_to_ucs4_table_d1 , &uhc_to_ucs4_range_d1 } ,
-	{ uhc_to_ucs4_table_d2 , &uhc_to_ucs4_range_d2 } ,
-	{ uhc_to_ucs4_table_d3 , &uhc_to_ucs4_range_d3 } ,
-	{ uhc_to_ucs4_table_d4 , &uhc_to_ucs4_range_d4 } ,
-	{ uhc_to_ucs4_table_d5 , &uhc_to_ucs4_range_d5 } ,
-	{ uhc_to_ucs4_table_d6 , &uhc_to_ucs4_range_d6 } ,
-	{ uhc_to_ucs4_table_d7 , &uhc_to_ucs4_range_d7 } ,
-	{ uhc_to_ucs4_table_d8 , &uhc_to_ucs4_range_d8 } ,
-	{ uhc_to_ucs4_table_d9 , &uhc_to_ucs4_range_d9 } ,
-	{ uhc_to_ucs4_table_da , &uhc_to_ucs4_range_da } ,
-	{ uhc_to_ucs4_table_db , &uhc_to_ucs4_range_db } ,
-	{ uhc_to_ucs4_table_dc , &uhc_to_ucs4_range_dc } ,
-	{ uhc_to_ucs4_table_dd , &uhc_to_ucs4_range_dd } ,
-	{ uhc_to_ucs4_table_de , &uhc_to_ucs4_range_de } ,
-	{ uhc_to_ucs4_table_df , &uhc_to_ucs4_range_df } ,
-	{ uhc_to_ucs4_table_e0 , &uhc_to_ucs4_range_e0 } ,
-	{ uhc_to_ucs4_table_e1 , &uhc_to_ucs4_range_e1 } ,
-	{ uhc_to_ucs4_table_e2 , &uhc_to_ucs4_range_e2 } ,
-	{ uhc_to_ucs4_table_e3 , &uhc_to_ucs4_range_e3 } ,
-	{ uhc_to_ucs4_table_e4 , &uhc_to_ucs4_range_e4 } ,
-	{ uhc_to_ucs4_table_e5 , &uhc_to_ucs4_range_e5 } ,
-	{ uhc_to_ucs4_table_e6 , &uhc_to_ucs4_range_e6 } ,
-	{ uhc_to_ucs4_table_e7 , &uhc_to_ucs4_range_e7 } ,
-	{ uhc_to_ucs4_table_e8 , &uhc_to_ucs4_range_e8 } ,
-	{ uhc_to_ucs4_table_e9 , &uhc_to_ucs4_range_e9 } ,
-	{ uhc_to_ucs4_table_ea , &uhc_to_ucs4_range_ea } ,
-	{ uhc_to_ucs4_table_eb , &uhc_to_ucs4_range_eb } ,
-	{ uhc_to_ucs4_table_ec , &uhc_to_ucs4_range_ec } ,
-	{ uhc_to_ucs4_table_ed , &uhc_to_ucs4_range_ed } ,
-	{ uhc_to_ucs4_table_ee , &uhc_to_ucs4_range_ee } ,
-	{ uhc_to_ucs4_table_ef , &uhc_to_ucs4_range_ef } ,
-	{ uhc_to_ucs4_table_f0 , &uhc_to_ucs4_range_f0 } ,
-	{ uhc_to_ucs4_table_f1 , &uhc_to_ucs4_range_f1 } ,
-	{ uhc_to_ucs4_table_f2 , &uhc_to_ucs4_range_f2 } ,
-	{ uhc_to_ucs4_table_f3 , &uhc_to_ucs4_range_f3 } ,
-	{ uhc_to_ucs4_table_f4 , &uhc_to_ucs4_range_f4 } ,
-	{ uhc_to_ucs4_table_f5 , &uhc_to_ucs4_range_f5 } ,
-	{ uhc_to_ucs4_table_f6 , &uhc_to_ucs4_range_f6 } ,
-	{ uhc_to_ucs4_table_f7 , &uhc_to_ucs4_range_f7 } ,
-	{ uhc_to_ucs4_table_f8 , &uhc_to_ucs4_range_f8 } ,
-	{ uhc_to_ucs4_table_f9 , &uhc_to_ucs4_range_f9 } ,
-	{ uhc_to_ucs4_table_fa , &uhc_to_ucs4_range_fa } ,
-	{ uhc_to_ucs4_table_fb , &uhc_to_ucs4_range_fb } ,
-	{ uhc_to_ucs4_table_fc , &uhc_to_ucs4_range_fc } ,
-	{ uhc_to_ucs4_table_fd , &uhc_to_ucs4_range_fd } ,
+	{ uhc_to_ucs4_table_102 , 0x8141, 0x817a } ,
+	{ uhc_to_ucs4_table_103 , 0x8181, 0x81fe } ,
+	{ uhc_to_ucs4_table_104 , 0x8241, 0x827a } ,
+	{ uhc_to_ucs4_table_105 , 0x8281, 0x82fe } ,
+	{ uhc_to_ucs4_table_106 , 0x8341, 0x837a } ,
+	{ uhc_to_ucs4_table_107 , 0x8381, 0x83fe } ,
+	{ uhc_to_ucs4_table_108 , 0x8441, 0x847a } ,
+	{ uhc_to_ucs4_table_109 , 0x8481, 0x84fe } ,
+	{ uhc_to_ucs4_table_10a , 0x8541, 0x857a } ,
+	{ uhc_to_ucs4_table_10b , 0x8581, 0x85fe } ,
+	{ uhc_to_ucs4_table_10c , 0x8641, 0x867a } ,
+	{ uhc_to_ucs4_table_10d , 0x8681, 0x86fe } ,
+	{ uhc_to_ucs4_table_10e , 0x8741, 0x877a } ,
+	{ uhc_to_ucs4_table_10f , 0x8781, 0x87fe } ,
+	{ uhc_to_ucs4_table_110 , 0x8841, 0x887a } ,
+	{ uhc_to_ucs4_table_111 , 0x8881, 0x88fe } ,
+	{ uhc_to_ucs4_table_112 , 0x8941, 0x897a } ,
+	{ uhc_to_ucs4_table_113 , 0x8981, 0x89fe } ,
+	{ uhc_to_ucs4_table_114 , 0x8a41, 0x8a7a } ,
+	{ uhc_to_ucs4_table_115 , 0x8a81, 0x8afe } ,
+	{ uhc_to_ucs4_table_116 , 0x8b41, 0x8b7a } ,
+	{ uhc_to_ucs4_table_117 , 0x8b81, 0x8bfe } ,
+	{ uhc_to_ucs4_table_118 , 0x8c41, 0x8c7a } ,
+	{ uhc_to_ucs4_table_119 , 0x8c81, 0x8cfe } ,
+	{ uhc_to_ucs4_table_11a , 0x8d41, 0x8d7a } ,
+	{ uhc_to_ucs4_table_11b , 0x8d81, 0x8dfe } ,
+	{ uhc_to_ucs4_table_11c , 0x8e41, 0x8e7a } ,
+	{ uhc_to_ucs4_table_11d , 0x8e81, 0x8efe } ,
+	{ uhc_to_ucs4_table_11e , 0x8f41, 0x8f7a } ,
+	{ uhc_to_ucs4_table_11f , 0x8f81, 0x8ffe } ,
+	{ uhc_to_ucs4_table_120 , 0x9041, 0x907a } ,
+	{ uhc_to_ucs4_table_121 , 0x9081, 0x90fe } ,
+	{ uhc_to_ucs4_table_122 , 0x9141, 0x917a } ,
+	{ uhc_to_ucs4_table_123 , 0x9181, 0x91fe } ,
+	{ uhc_to_ucs4_table_124 , 0x9241, 0x927a } ,
+	{ uhc_to_ucs4_table_125 , 0x9281, 0x92fe } ,
+	{ uhc_to_ucs4_table_126 , 0x9341, 0x937a } ,
+	{ uhc_to_ucs4_table_127 , 0x9381, 0x93fe } ,
+	{ uhc_to_ucs4_table_128 , 0x9441, 0x947a } ,
+	{ uhc_to_ucs4_table_129 , 0x9481, 0x94fe } ,
+	{ uhc_to_ucs4_table_12a , 0x9541, 0x957a } ,
+	{ uhc_to_ucs4_table_12b , 0x9581, 0x95fe } ,
+	{ uhc_to_ucs4_table_12c , 0x9641, 0x967a } ,
+	{ uhc_to_ucs4_table_12d , 0x9681, 0x96fe } ,
+	{ uhc_to_ucs4_table_12e , 0x9741, 0x977a } ,
+	{ uhc_to_ucs4_table_12f , 0x9781, 0x97fe } ,
+	{ uhc_to_ucs4_table_130 , 0x9841, 0x987a } ,
+	{ uhc_to_ucs4_table_131 , 0x9881, 0x98fe } ,
+	{ uhc_to_ucs4_table_132 , 0x9941, 0x997a } ,
+	{ uhc_to_ucs4_table_133 , 0x9981, 0x99fe } ,
+	{ uhc_to_ucs4_table_134 , 0x9a41, 0x9a7a } ,
+	{ uhc_to_ucs4_table_135 , 0x9a81, 0x9afe } ,
+	{ uhc_to_ucs4_table_136 , 0x9b41, 0x9b7a } ,
+	{ uhc_to_ucs4_table_137 , 0x9b81, 0x9bfe } ,
+	{ uhc_to_ucs4_table_138 , 0x9c41, 0x9c7a } ,
+	{ uhc_to_ucs4_table_139 , 0x9c81, 0x9cfe } ,
+	{ uhc_to_ucs4_table_13a , 0x9d41, 0x9d7a } ,
+	{ uhc_to_ucs4_table_13b , 0x9d81, 0x9dfe } ,
+	{ uhc_to_ucs4_table_13c , 0x9e41, 0x9e7a } ,
+	{ uhc_to_ucs4_table_13d , 0x9e81, 0x9efe } ,
+	{ uhc_to_ucs4_table_13e , 0x9f41, 0x9f7a } ,
+	{ uhc_to_ucs4_table_13f , 0x9f81, 0x9ffe } ,
+	{ uhc_to_ucs4_table_140 , 0xa041, 0xa07a } ,
+	{ uhc_to_ucs4_table_141 , 0xa081, 0xa0fe } ,
+	{ uhc_to_ucs4_table_142 , 0xa141, 0xa17a } ,
+	{ uhc_to_ucs4_table_143 , 0xa181, 0xa1fe } ,
+	{ uhc_to_ucs4_table_144 , 0xa241, 0xa27a } ,
+	{ uhc_to_ucs4_table_145 , 0xa281, 0xa2e5 } ,
+	{ uhc_to_ucs4_table_146 , 0xa341, 0xa37a } ,
+	{ uhc_to_ucs4_table_147 , 0xa381, 0xa3fe } ,
+	{ uhc_to_ucs4_table_148 , 0xa441, 0xa47a } ,
+	{ uhc_to_ucs4_table_149 , 0xa481, 0xa4fe } ,
+	{ uhc_to_ucs4_table_14a , 0xa541, 0xa57a } ,
+	{ uhc_to_ucs4_table_14b , 0xa581, 0xa5f8 } ,
+	{ uhc_to_ucs4_table_14c , 0xa641, 0xa67a } ,
+	{ uhc_to_ucs4_table_14d , 0xa681, 0xa6e4 } ,
+	{ uhc_to_ucs4_table_14e , 0xa741, 0xa77a } ,
+	{ uhc_to_ucs4_table_14f , 0xa781, 0xa7ef } ,
+	{ uhc_to_ucs4_table_150 , 0xa841, 0xa87a } ,
+	{ uhc_to_ucs4_table_151 , 0xa881, 0xa8fe } ,
+	{ uhc_to_ucs4_table_152 , 0xa941, 0xa97a } ,
+	{ uhc_to_ucs4_table_153 , 0xa981, 0xa9fe } ,
+	{ uhc_to_ucs4_table_154 , 0xaa41, 0xaa7a } ,
+	{ uhc_to_ucs4_table_155 , 0xaa81, 0xaaf3 } ,
+	{ uhc_to_ucs4_table_156 , 0xab41, 0xab7a } ,
+	{ uhc_to_ucs4_table_157 , 0xab81, 0xabf6 } ,
+	{ uhc_to_ucs4_table_158 , 0xac41, 0xac7a } ,
+	{ uhc_to_ucs4_table_159 , 0xac81, 0xacf1 } ,
+	{ uhc_to_ucs4_table_15a , 0xad41, 0xad7a } ,
+	{ uhc_to_ucs4_table_15b , 0xad81, 0xada0 } ,
+	{ uhc_to_ucs4_table_15c , 0xae41, 0xae7a } ,
+	{ uhc_to_ucs4_table_15d , 0xae81, 0xaea0 } ,
+	{ uhc_to_ucs4_table_15e , 0xaf41, 0xaf7a } ,
+	{ uhc_to_ucs4_table_15f , 0xaf81, 0xafa0 } ,
+	{ uhc_to_ucs4_table_160 , 0xb041, 0xb07a } ,
+	{ uhc_to_ucs4_table_161 , 0xb081, 0xb0fe } ,
+	{ uhc_to_ucs4_table_162 , 0xb141, 0xb17a } ,
+	{ uhc_to_ucs4_table_163 , 0xb181, 0xb1fe } ,
+	{ uhc_to_ucs4_table_164 , 0xb241, 0xb27a } ,
+	{ uhc_to_ucs4_table_165 , 0xb281, 0xb2fe } ,
+	{ uhc_to_ucs4_table_166 , 0xb341, 0xb37a } ,
+	{ uhc_to_ucs4_table_167 , 0xb381, 0xb3fe } ,
+	{ uhc_to_ucs4_table_168 , 0xb441, 0xb47a } ,
+	{ uhc_to_ucs4_table_169 , 0xb481, 0xb4fe } ,
+	{ uhc_to_ucs4_table_16a , 0xb541, 0xb57a } ,
+	{ uhc_to_ucs4_table_16b , 0xb581, 0xb5fe } ,
+	{ uhc_to_ucs4_table_16c , 0xb641, 0xb67a } ,
+	{ uhc_to_ucs4_table_16d , 0xb681, 0xb6fe } ,
+	{ uhc_to_ucs4_table_16e , 0xb741, 0xb77a } ,
+	{ uhc_to_ucs4_table_16f , 0xb781, 0xb7fe } ,
+	{ uhc_to_ucs4_table_170 , 0xb841, 0xb87a } ,
+	{ uhc_to_ucs4_table_171 , 0xb881, 0xb8fe } ,
+	{ uhc_to_ucs4_table_172 , 0xb941, 0xb97a } ,
+	{ uhc_to_ucs4_table_173 , 0xb981, 0xb9fe } ,
+	{ uhc_to_ucs4_table_174 , 0xba41, 0xba7a } ,
+	{ uhc_to_ucs4_table_175 , 0xba81, 0xbafe } ,
+	{ uhc_to_ucs4_table_176 , 0xbb41, 0xbb7a } ,
+	{ uhc_to_ucs4_table_177 , 0xbb81, 0xbbfe } ,
+	{ uhc_to_ucs4_table_178 , 0xbc41, 0xbc7a } ,
+	{ uhc_to_ucs4_table_179 , 0xbc81, 0xbcfe } ,
+	{ uhc_to_ucs4_table_17a , 0xbd41, 0xbd7a } ,
+	{ uhc_to_ucs4_table_17b , 0xbd81, 0xbdfe } ,
+	{ uhc_to_ucs4_table_17c , 0xbe41, 0xbe7a } ,
+	{ uhc_to_ucs4_table_17d , 0xbe81, 0xbefe } ,
+	{ uhc_to_ucs4_table_17e , 0xbf41, 0xbf7a } ,
+	{ uhc_to_ucs4_table_17f , 0xbf81, 0xbffe } ,
+	{ uhc_to_ucs4_table_180 , 0xc041, 0xc07a } ,
+	{ uhc_to_ucs4_table_181 , 0xc081, 0xc0fe } ,
+	{ uhc_to_ucs4_table_182 , 0xc141, 0xc17a } ,
+	{ uhc_to_ucs4_table_183 , 0xc181, 0xc1fe } ,
+	{ uhc_to_ucs4_table_184 , 0xc241, 0xc27a } ,
+	{ uhc_to_ucs4_table_185 , 0xc281, 0xc2fe } ,
+	{ uhc_to_ucs4_table_186 , 0xc341, 0xc37a } ,
+	{ uhc_to_ucs4_table_187 , 0xc381, 0xc3fe } ,
+	{ uhc_to_ucs4_table_188 , 0xc441, 0xc47a } ,
+	{ uhc_to_ucs4_table_189 , 0xc481, 0xc4fe } ,
+	{ uhc_to_ucs4_table_18a , 0xc541, 0xc57a } ,
+	{ uhc_to_ucs4_table_18b , 0xc581, 0xc5fe } ,
+	{ uhc_to_ucs4_table_18c , 0xc641, 0xc652 } ,
+	{ uhc_to_ucs4_table_18d , 0xc6a1, 0xc6fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_18f , 0xc7a1, 0xc7fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_191 , 0xc8a1, 0xc8fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_195 , 0xcaa1, 0xcafe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_197 , 0xcba1, 0xcbfe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_199 , 0xcca1, 0xccfe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_19b , 0xcda1, 0xcdfe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_19d , 0xcea1, 0xcefe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_19f , 0xcfa1, 0xcffe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1a1 , 0xd0a1, 0xd0fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1a3 , 0xd1a1, 0xd1fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1a5 , 0xd2a1, 0xd2fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1a7 , 0xd3a1, 0xd3fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1a9 , 0xd4a1, 0xd4fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1ab , 0xd5a1, 0xd5fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1ad , 0xd6a1, 0xd6fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1af , 0xd7a1, 0xd7fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1b1 , 0xd8a1, 0xd8fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1b3 , 0xd9a1, 0xd9fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1b5 , 0xdaa1, 0xdafe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1b7 , 0xdba1, 0xdbfe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1b9 , 0xdca1, 0xdcfe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1bb , 0xdda1, 0xddfe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1bd , 0xdea1, 0xdefe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1bf , 0xdfa1, 0xdffe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1c1 , 0xe0a1, 0xe0fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1c3 , 0xe1a1, 0xe1fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1c5 , 0xe2a1, 0xe2fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1c7 , 0xe3a1, 0xe3fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1c9 , 0xe4a1, 0xe4fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1cb , 0xe5a1, 0xe5fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1cd , 0xe6a1, 0xe6fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1cf , 0xe7a1, 0xe7fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1d1 , 0xe8a1, 0xe8fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1d3 , 0xe9a1, 0xe9fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1d5 , 0xeaa1, 0xeafe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1d7 , 0xeba1, 0xebfe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1d9 , 0xeca1, 0xecfe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1db , 0xeda1, 0xedfe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1dd , 0xeea1, 0xeefe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1df , 0xefa1, 0xeffe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1e1 , 0xf0a1, 0xf0fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1e3 , 0xf1a1, 0xf1fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1e5 , 0xf2a1, 0xf2fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1e7 , 0xf3a1, 0xf3fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1e9 , 0xf4a1, 0xf4fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1eb , 0xf5a1, 0xf5fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1ed , 0xf6a1, 0xf6fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1ef , 0xf7a1, 0xf7fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1f1 , 0xf8a1, 0xf8fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1f3 , 0xf9a1, 0xf9fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1f5 , 0xfaa1, 0xfafe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1f7 , 0xfba1, 0xfbfe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1f9 , 0xfca1, 0xfcfe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_ucs4_table_1fb , 0xfda1, 0xfdfe } ,
 } ;
 
-#define  HI(i)  ( ((i)>>8) & 0xff )
-#define  LO(i)  ( (i) & 0xff )
+#define  HI(i)  ( ((i)>>7) & 0x1ff )
 
 static u_int16_t
 CONV_UHC_TO_UCS4(
@@ -21441,8 +20649,8 @@ CONV_UHC_TO_UCS4(
 {
 	u_int32_t  hi_ch ;
 	u_int32_t  hi_beg ;
+	u_int32_t  idx ;
 	u_int16_t *  table ;
-	uhc_to_ucs4_range_t *  range ;
 
 	if( ch < uhc_to_ucs4_beg || uhc_to_ucs4_end < ch)
 	{
@@ -21451,24 +20659,23 @@ CONV_UHC_TO_UCS4(
 	
 	hi_ch = HI(ch) ;
 	hi_beg = HI(uhc_to_ucs4_beg) ;
-	
-	if( ! ( table = uhc_to_ucs4_tables[ hi_ch - hi_beg].table))
+
+	idx = hi_ch - hi_beg;
+	if( ! ( table = uhc_to_ucs4_tables[ idx].table))
 	{
 		return  0 ;
 	}
 
-	range = uhc_to_ucs4_tables[ hi_ch - hi_beg].range ;
-	
-	if( ch < range->beg || range->end < ch)
+	if( ch < uhc_to_ucs4_tables[ idx].beg ||
+	    uhc_to_ucs4_tables[ idx].end < ch)
 	{
 		return  0 ;
 	}
 
-	return  table[ LO(ch) - LO(range->beg)] ;
+	return  table[ ch - uhc_to_ucs4_tables[ idx].beg] ;
 }
 
 #undef  HI
-#undef  LO
 
 #endif	/* REMOVE_MAPPING_TABLE */
 

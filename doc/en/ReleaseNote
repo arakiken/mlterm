@@ -1,5 +1,6 @@
 * Add "MOSH_UDP_PORT" environmental variable to specify UDP port or port-range
   to communicate with a mosh server.
+* Add --with-iconv option to ./configure script.
 * Show server list dialog at startup on Android.
 * It is deprecated to use "mlterm" as the value of termtype / -y option.
 * 'termcap' config file stops to accept multiple terminal types concated by '|'

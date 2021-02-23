@@ -23,6 +23,9 @@ Options for configure
   --without-prop-table
     Remove unicode character property table
 
+  --with-iconv
+    Use iconv to convert between different character sets.
+
   --with-gui=(xlib|win32|fb|quartz|console|wayland|sdl2|beos)
     Use specified gui library
     See "Supported platforms" below.

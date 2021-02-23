@@ -2,10 +2,59 @@
 
 #include "../src/ef_ucs4_viscii.h"
 
+#ifdef USE_ICONV
+
+#include "ef_iconv.h"
+
+#else
+
 #include "table/ef_ucs4_to_viscii.table"
 #include "table/ef_viscii_to_ucs4.table"
 
+#endif
+
 /* --- global functions --- */
+
+#ifdef USE_ICONV
+
+int ef_map_viscii_to_ucs4(ef_char_t *ucs4, u_int16_t viscii_code) {
+  static iconv_t cd;
+  u_char src[1];
+
+  ICONV_OPEN(cd, "UTF-32BE", "VISCII");
+
+  src[0] = viscii_code;
+
+  ICONV(cd, src, 1, ucs4->ch, 4);
+
+  ucs4->size = 4;
+  ucs4->cs = ISO10646_UCS4_1;
+  ucs4->property = 0;
+
+  return 1;
+}
+
+int ef_map_ucs4_to_viscii(ef_char_t *non_ucs, u_int32_t ucs4_code) {
+  static iconv_t cd;
+
+  ICONV_OPEN(cd, "VISCII", "UTF-32");
+
+  ICONV(cd, (char*)&ucs4_code, 4, non_ucs->ch, 1);
+
+  non_ucs->size = 1;
+  non_ucs->cs = VISCII;
+
+  /* See also ef_8bit_parser.c */
+  if (0xb0 <= non_ucs->ch[0] && non_ucs->ch[0] <= 0xb4) {
+    non_ucs->property = EF_COMBINING;
+  } else {
+    non_ucs->property = 0;
+  }
+
+  return 1;
+}
+
+#else
 
 int ef_map_viscii_to_ucs4(ef_char_t *ucs4, u_int16_t viscii_code) {
   u_int32_t c;
@@ -46,3 +95,5 @@ int ef_map_ucs4_to_viscii(ef_char_t *non_ucs, u_int32_t ucs4_code) {
 
   return 0;
 }
+
+#endif

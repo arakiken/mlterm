@@ -16,21 +16,15 @@
 
 #else
 
-typedef struct ucs4_to_cp1251_range
-{
-	u_int32_t  beg ;
-	u_int32_t  end ;
-
-} ucs4_to_cp1251_range_t ;
-
 typedef struct ucs4_to_cp1251_table
 {
 	u_int8_t *  table ;
-	ucs4_to_cp1251_range_t *  range ;
+	u_int16_t  beg;
+	u_int16_t  end;
 
 } ucs4_to_cp1251_table_t ;
 
-static u_int8_t ucs4_to_cp1251_table_0[] =
+static u_int8_t ucs4_to_cp1251_table_1[] =
 {
 	/* 0xa0 */
 	0xa0 ,
@@ -65,12 +59,7 @@ static u_int8_t ucs4_to_cp1251_table_0[] =
 	0xbb ,
 } ;
 
-static ucs4_to_cp1251_range_t ucs4_to_cp1251_range_0 =
-{
-	0xa0 , 0xbb
-} ;
-
-static u_int8_t ucs4_to_cp1251_table_4[] =
+static u_int8_t ucs4_to_cp1251_table_8[] =
 {
 	/* 0x401 */
 	0xa8 ,
@@ -180,72 +169,16 @@ static u_int8_t ucs4_to_cp1251_table_4[] =
 	0x00 ,
 	0xa2 ,
 	0x9f ,
+} ;
 
-	/* 0x460 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
-	/* 0x470 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
-	/* 0x480 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+static u_int8_t ucs4_to_cp1251_table_9[] =
+{
+	/* 0x490 */
 	0xa5 ,
-
-	/* 0x491 */
 	0xb4 ,
 } ;
 
-static ucs4_to_cp1251_range_t ucs4_to_cp1251_range_4 =
-{
-	0x401 , 0x491
-} ;
-
-static u_int8_t ucs4_to_cp1251_table_20[] =
+static u_int8_t ucs4_to_cp1251_table_40[] =
 {
 	/* 0x2013 */
 	0x96 ,
@@ -288,142 +221,15 @@ static u_int8_t ucs4_to_cp1251_table_20[] =
 	0x00 ,
 	0x8b ,
 	0x9b ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+} ;
 
-	/* 0x2040 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
-	/* 0x2050 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
-	/* 0x2060 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
-	/* 0x2070 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
-	/* 0x2080 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
-	/* 0x2090 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
-	/* 0x20a0 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+static u_int8_t ucs4_to_cp1251_table_41[] =
+{
+	/* 0x20ac */
 	0x88 ,
 } ;
 
-static ucs4_to_cp1251_range_t ucs4_to_cp1251_range_20 =
-{
-	0x2013 , 0x20ac
-} ;
-
-static u_int8_t ucs4_to_cp1251_table_21[] =
+static u_int8_t ucs4_to_cp1251_table_42[] =
 {
 	/* 0x2116 */
 	0xb9 ,
@@ -443,56 +249,83 @@ static u_int8_t ucs4_to_cp1251_table_21[] =
 	0x99 ,
 } ;
 
-static ucs4_to_cp1251_range_t ucs4_to_cp1251_range_21 =
-{
-	0x2116 , 0x2122
-} ;
-
 static u_int32_t  ucs4_to_cp1251_beg = 0xa0 ;
 
 static u_int32_t  ucs4_to_cp1251_end = 0x2122 ;
 
 static ucs4_to_cp1251_table_t ucs4_to_cp1251_tables[] =
 {
-	{ ucs4_to_cp1251_table_0 , &ucs4_to_cp1251_range_0 } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ ucs4_to_cp1251_table_4 , &ucs4_to_cp1251_range_4 } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ ucs4_to_cp1251_table_20 , &ucs4_to_cp1251_range_20 } ,
-	{ ucs4_to_cp1251_table_21 , &ucs4_to_cp1251_range_21 } ,
+	{ ucs4_to_cp1251_table_1 , 0xa0, 0xbb } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ ucs4_to_cp1251_table_8 , 0x401, 0x45f } ,
+	{ ucs4_to_cp1251_table_9 , 0x490, 0x491 } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ ucs4_to_cp1251_table_40 , 0x2013, 0x203a } ,
+	{ ucs4_to_cp1251_table_41 , 0x20ac, 0x20ac } ,
+	{ ucs4_to_cp1251_table_42 , 0x2116, 0x2122 } ,
 } ;
 
 /* 'i' is UCS4(32bit) */
-#define  HI(i)  ( ((i)>>8) & 0xffffff )
-#define  LO(i)  ( (i) & 0xff )
+#define  HI(i)  ( ((i)>>7) & 0x1ffffff )
+#define  LO(i)  ( (i) & 0x7f )
 
 static u_int8_t
 CONV_UCS4_TO_CP1251(
@@ -501,8 +334,8 @@ CONV_UCS4_TO_CP1251(
 {
 	u_int32_t  hi_ch ;
 	u_int32_t  hi_beg ;
+	u_int32_t  idx ;
 	u_int8_t *  table ;
-	ucs4_to_cp1251_range_t *  range ;
 
 	if( ch < ucs4_to_cp1251_beg || ucs4_to_cp1251_end < ch)
 	{
@@ -511,20 +344,20 @@ CONV_UCS4_TO_CP1251(
 	
 	hi_ch = HI(ch) ;
 	hi_beg = HI(ucs4_to_cp1251_beg) ;
-	
-	if( ! ( table = ucs4_to_cp1251_tables[ hi_ch - hi_beg].table))
+
+	idx = hi_ch - hi_beg;
+	if( ! ( table = ucs4_to_cp1251_tables[ idx].table))
 	{
 		return  0 ;
 	}
 
-	range = ucs4_to_cp1251_tables[ hi_ch - hi_beg].range ;
-	
-	if( ch < range->beg || range->end < ch)
+	if( ch < ucs4_to_cp1251_tables[ idx].beg ||
+	    ucs4_to_cp1251_tables[ idx].end < ch)
 	{
 		return  0 ;
 	}
 
-	return  table[ LO(ch) - LO(range->beg)] ;
+	return  table[ LO(ch) - LO(ucs4_to_cp1251_tables[ idx].beg)] ;
 }
 
 #undef  HI

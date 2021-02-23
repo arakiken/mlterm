@@ -16,21 +16,15 @@
 
 #else
 
-typedef struct ucs4_to_koi8_t_range
-{
-	u_int32_t  beg ;
-	u_int32_t  end ;
-
-} ucs4_to_koi8_t_range_t ;
-
 typedef struct ucs4_to_koi8_t_table
 {
 	u_int8_t *  table ;
-	ucs4_to_koi8_t_range_t *  range ;
+	u_int16_t  beg;
+	u_int16_t  end;
 
 } ucs4_to_koi8_t_table_t ;
 
-static u_int8_t ucs4_to_koi8_t_table_0[] =
+static u_int8_t ucs4_to_koi8_t_table_1[] =
 {
 	/* 0xa4 */
 	0xa4 ,
@@ -61,12 +55,7 @@ static u_int8_t ucs4_to_koi8_t_table_0[] =
 	0xbb ,
 } ;
 
-static ucs4_to_koi8_t_range_t ucs4_to_koi8_t_range_0 =
-{
-	0xa4 , 0xbb
-} ;
-
-static u_int8_t ucs4_to_koi8_t_table_4[] =
+static u_int8_t ucs4_to_koi8_t_table_8[] =
 {
 	/* 0x401 */
 	0xb3 ,
@@ -162,78 +151,11 @@ static u_int8_t ucs4_to_koi8_t_table_4[] =
 
 	/* 0x451 */
 	0xa3 ,
-	0x00 ,
-	0x00 ,
+} ;
 
-	/* 0x454 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
-	/* 0x464 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
-	/* 0x474 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
-	/* 0x484 */
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
+static u_int8_t ucs4_to_koi8_t_table_9[] =
+{
+	/* 0x492 */
 	0x83 ,
 	0x81 ,
 
@@ -270,6 +192,8 @@ static u_int8_t ucs4_to_koi8_t_table_4[] =
 	0x00 ,
 	0x00 ,
 	0x00 ,
+
+	/* 0x4b2 */
 	0x8c ,
 	0x8a ,
 
@@ -324,6 +248,8 @@ static u_int8_t ucs4_to_koi8_t_table_4[] =
 	0x00 ,
 	0x00 ,
 	0x00 ,
+
+	/* 0x4e2 */
 	0xb5 ,
 	0xa5 ,
 
@@ -342,12 +268,7 @@ static u_int8_t ucs4_to_koi8_t_table_4[] =
 	0xa1 ,
 } ;
 
-static ucs4_to_koi8_t_range_t ucs4_to_koi8_t_range_4 =
-{
-	0x401 , 0x4ef
-} ;
-
-static u_int8_t ucs4_to_koi8_t_table_20[] =
+static u_int8_t ucs4_to_koi8_t_table_40[] =
 {
 	/* 0x2013 */
 	0x96 ,
@@ -396,12 +317,7 @@ static u_int8_t ucs4_to_koi8_t_table_20[] =
 	0x9b ,
 } ;
 
-static ucs4_to_koi8_t_range_t ucs4_to_koi8_t_range_20 =
-{
-	0x2013 , 0x203a
-} ;
-
-static u_int8_t ucs4_to_koi8_t_table_21[] =
+static u_int8_t ucs4_to_koi8_t_table_42[] =
 {
 	/* 0x2116 */
 	0xb9 ,
@@ -419,56 +335,83 @@ static u_int8_t ucs4_to_koi8_t_table_21[] =
 	0x99 ,
 } ;
 
-static ucs4_to_koi8_t_range_t ucs4_to_koi8_t_range_21 =
-{
-	0x2116 , 0x2122
-} ;
-
 static u_int32_t  ucs4_to_koi8_t_beg = 0xa4 ;
 
 static u_int32_t  ucs4_to_koi8_t_end = 0x2122 ;
 
 static ucs4_to_koi8_t_table_t ucs4_to_koi8_t_tables[] =
 {
-	{ ucs4_to_koi8_t_table_0 , &ucs4_to_koi8_t_range_0 } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ ucs4_to_koi8_t_table_4 , &ucs4_to_koi8_t_range_4 } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ NULL , NULL , } ,
-	{ ucs4_to_koi8_t_table_20 , &ucs4_to_koi8_t_range_20 } ,
-	{ ucs4_to_koi8_t_table_21 , &ucs4_to_koi8_t_range_21 } ,
+	{ ucs4_to_koi8_t_table_1 , 0xa4, 0xbb } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ ucs4_to_koi8_t_table_8 , 0x401, 0x451 } ,
+	{ ucs4_to_koi8_t_table_9 , 0x492, 0x4ef } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ ucs4_to_koi8_t_table_40 , 0x2013, 0x203a } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ ucs4_to_koi8_t_table_42 , 0x2116, 0x2122 } ,
 } ;
 
 /* 'i' is UCS4(32bit) */
-#define  HI(i)  ( ((i)>>8) & 0xffffff )
-#define  LO(i)  ( (i) & 0xff )
+#define  HI(i)  ( ((i)>>7) & 0x1ffffff )
+#define  LO(i)  ( (i) & 0x7f )
 
 static u_int8_t
 CONV_UCS4_TO_KOI8_T(
@@ -477,8 +420,8 @@ CONV_UCS4_TO_KOI8_T(
 {
 	u_int32_t  hi_ch ;
 	u_int32_t  hi_beg ;
+	u_int32_t  idx ;
 	u_int8_t *  table ;
-	ucs4_to_koi8_t_range_t *  range ;
 
 	if( ch < ucs4_to_koi8_t_beg || ucs4_to_koi8_t_end < ch)
 	{
@@ -487,20 +430,20 @@ CONV_UCS4_TO_KOI8_T(
 	
 	hi_ch = HI(ch) ;
 	hi_beg = HI(ucs4_to_koi8_t_beg) ;
-	
-	if( ! ( table = ucs4_to_koi8_t_tables[ hi_ch - hi_beg].table))
+
+	idx = hi_ch - hi_beg;
+	if( ! ( table = ucs4_to_koi8_t_tables[ idx].table))
 	{
 		return  0 ;
 	}
 
-	range = ucs4_to_koi8_t_tables[ hi_ch - hi_beg].range ;
-	
-	if( ch < range->beg || range->end < ch)
+	if( ch < ucs4_to_koi8_t_tables[ idx].beg ||
+	    ucs4_to_koi8_t_tables[ idx].end < ch)
 	{
 		return  0 ;
 	}
 
-	return  table[ LO(ch) - LO(range->beg)] ;
+	return  table[ LO(ch) - LO(ucs4_to_koi8_t_tables[ idx].beg)] ;
 }
 
 #undef  HI

@@ -1,3 +1,47 @@
+2021-02-21  Araki Ken  <arakiken@users.sf.net>
+
+	* encodefilter/src/Makefile.in: 3.0 -> 3.1
+
+	* encodefilter/src/dexport.map: TEST_encodefilter is added.
+
+	* uitoolkit/test.c: TEST_encodefilter() is called.
+
+	* encodefilter/src/test.c: Added.
+
+	* encodefilter/src/ef_ucs4_map.c: TCVN5712_1_1993 is added to map_table.
+
+	* encodefilter/src/ef_ucs4_tcvn5712_1.c: Typo fixed.
+
+	* encodefilter/src/ef_8bit_conv.[ch], ef_8bit_parser.[ch]:
+	  ef_tcvn5712_1_1993_{conv|parser}_new() are added.
+
+	* encodefilter/src/ef_ucs4_cp125x: ef_map_ucs4_to_cp874() sets
+	  EF_COMBINING property for 0xd1, 0xd4-0xda and 0xe7-0xee.
+
+	* encodefilter/module/table/*.table: Updated.
+
+	* encodefilter/module/ef_ucs4_tcvn5712_1.c:
+	  ef_map_ucs4_to_tcvn5712_1_1993() sets EF_COMBINING property for 0xb0-0xb4.
+
+	* encodefilter/module/ef_ucs4_{cp125x|georgian_ps|koi8|tcvn5712_1|viscii}.c:
+	  ef_map_*_to_ucs() ignores 0x20 - 0x7e.
+
+	* encodefilter/module/ef_ucs4_*.c:
+	  If USE_ICONV is defined, ef_map_*_to_ucs4() and ef_map_ucs4_to_*() use
+	  iconv() instead of table/*.table.
+
+	* encodefilter/module/ef_iconv.h: Added
+
+	* encodefilter/util/*.pl: Fixes by the change of arguments of
+	  output_table_ucs_to() and output_table_to_ucs() in ucs_mapping.pm
+
+	* encodefilter/util/ucs_mapping.pm: The size of mapping table by
+	  output_separated() is shrinked.
+
+	* configure.in, encodefilter/configure.in: --with-iconv option is added.
+
+	* bl_path.c: TEST_bl_basename() is added.
+
 2021-02-11  Araki Ken  <arakiken@users.sf.net>
 
 	* mc_font.c: Compiling error is fixed.

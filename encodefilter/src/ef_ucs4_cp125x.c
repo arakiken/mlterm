@@ -91,10 +91,18 @@ int ef_map_ucs4_to_cp874(ef_char_t *non_ucs, u_int32_t ucs4_code) {
 
   for (count = 0; count < BL_ARRAY_SIZE(cp874_table); count++) {
     if (((u_int32_t)cp874_table[count].ucs4) + 0x2000 == ucs4_code) {
-      non_ucs->ch[0] = cp874_table[count].cp874;
+      u_char c;
+
+      c = non_ucs->ch[0] = cp874_table[count].cp874;
       non_ucs->size = 1;
       non_ucs->cs = CP874;
-      non_ucs->property = 0;
+
+      /* See also ef_8bit_parser.c */
+      if (c == 0xd1 || (0xd4 <= c && c <= 0xda) || (0xe7 <= c && c <= 0xee)) {
+        non_ucs->property = EF_COMBINING;
+      } else {
+        non_ucs->property = 0;
+      }
 
       return 1;
     }

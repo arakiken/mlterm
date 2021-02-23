@@ -11,6 +11,9 @@ $end = 0 ;
 %to_ucs ;
 %ucs_to ;
 
+$max_ucs = 0 ;
+$max_nonucs = 0 ;
+
 sub  reset()
 {
 	%to_ucs = 0 ;
@@ -95,7 +98,13 @@ sub  parse($$;$)
 			}
 
 			$to_ucs{$code} = ${ucs} ;
+			if( $ucs > $max_ucs) {
+				$max_ucs = $ucs ;
+			}
 			$ucs_to{$ucs} = $code ;
+			if( $code > $max_nonucs) {
+				$max_nonucs = $code ;
+			}
 		}
 	}
 }
@@ -107,7 +116,7 @@ sub output($$$$)
 	my $tocs_bytelen = shift ;
 	my $hash = shift ;
 
-	my $bits = $tocs_bytelen * 8 ;
+	my $tocs_bits = $tocs_bytelen * 8 ;
 
 	my @keylist = keys %{$hash} ;
 	if( @keylist eq 0)
@@ -147,7 +156,7 @@ sub output($$$$)
 
 EOF
 
-	print TO  "static u_int${bits}_t  ${fromcs}_to_${tocs}_table[] = \n{" ;
+	print TO  "static u_int${tocs_bits}_t  ${fromcs}_to_${tocs}_table[] = \n{" ;
 
 	my $code = -1 ;
 	my $start = 0 ;
@@ -177,7 +186,8 @@ EOF
 
 		if( $tocs_bytelen eq 4)
 		{
-			printf TO  "	0x%.8x ,\n" , $$hash{$key} & 0xffffffff ;
+#			printf TO  "	0x%.8x ,\n" , $$hash{$key} & 0xffffffff ;
+			printf TO  "	0x%.4x ,\n" , $$hash{$key} & 0xffffffff ;
 		}
 		elsif( $tocs_bytelen eq 2)
 		{
@@ -200,14 +210,25 @@ EOF
 	printf TO  "#endif\n\n\n#endif\n" ;
 }
 
-sub output_separated($$$$)
+sub output_separated($$$$$)
 {
 	my $fromcs = shift ;	# SB charset is not supported.
 	my $tocs = shift ;
+	my $fromcs_bytelen = shift ;
 	my $tocs_bytelen = shift ;
 	my $hash = shift ;
 
-	my $bits = $tocs_bytelen * 8 ;
+	my $fromcs_bits = $fromcs_bytelen * 8 ;
+	if( $fromcs_bytelen eq 3)
+	{
+		$fromcs_bits = 32 ;
+	}
+
+	my $tocs_bits = $tocs_bytelen * 8 ;
+	if( $tocs_bytelen eq 3)
+	{
+		$tocs_bits = 8 ;
+	}
 
 	my @keylist = keys %{$hash} ;
 	if( @keylist eq 0)
@@ -241,62 +262,64 @@ sub output_separated($$$$)
 
 #else
 
-typedef struct ${fromcs}_to_${tocs}_range
-{
-	u_int32_t  beg ;
-	u_int32_t  end ;
-
-} ${fromcs}_to_${tocs}_range_t ;
-
 typedef struct ${fromcs}_to_${tocs}_table
 {
-	u_int${bits}_t *  table ;
-	${fromcs}_to_${tocs}_range_t *  range ;
+	u_int${tocs_bits}_t *  table ;
+	u_int${fromcs_bits}_t  beg;
+	u_int${fromcs_bits}_t  end;
 
 } ${fromcs}_to_${tocs}_table_t ;
 
 EOF
 
 	my @indexes ;
+	my @start_list ;
+	my @end_list ;
 	my $code = -1 ;
 	my $start = 0 ;
 	my $_start = 0 ;
 	my $hi_code = 0 ;
 	foreach $key ( sort {$a <=> $b} keys %{$hash})
 	{
-		my $next_hi_code = ($key >> 8) & 0xff ;
-		
+		my $next_hi_code = ($key >> 7) & 0x1ffffff ;
+
 		if( $code == -1)
 		{
 			$_start = $start = $code = $key ;
 			$hi_code = $next_hi_code ;
-			printf TO  "static u_int${bits}_t ${fromcs}_to_${tocs}_table_%x[] =\n{" ,
+			printf TO  "static u_int${tocs_bits}_t ${fromcs}_to_${tocs}_table_%x[] =\n{" ,
 				${hi_code} ;
 		}
-		
+
 		if( $hi_code < $next_hi_code)
 		{
 			print TO "} ;\n\n" ;
-			printf TO "static ${fromcs}_to_${tocs}_range_t ${fromcs}_to_${tocs}_range_%x =\n{\n" ,
-				${hi_code} ;
-			printf TO "	0x%x , 0x%x\n} ;\n\n" , $_start , $code - 1 ;
+			push( @start_list, $_start) ;
+			push( @end_list, $code - 1) ;
 			push( @indexes , $hi_code) ;
 			
 			$hi_code = $next_hi_code ;
 
-			printf TO  "static u_int${bits}_t ${fromcs}_to_${tocs}_table_%x[] =\n{" ,
+			printf TO  "static u_int${tocs_bits}_t ${fromcs}_to_${tocs}_table_%x[] =\n{" ,
 				${hi_code} ;
 			$_start = $code = $key ;
 		}
 
 		while( $code < $key)
 		{
-			if( $code % 16 == $start % 16)
+			if( $code % 16 == $_start % 16)
 			{
 				printf TO  "\n	/* 0x%x */\n" , $code ;
 			}
 
-			print TO "	0x00 ,\n" ;
+			if( $tocs_bytelen eq 3)
+			{
+				print TO "	0x00 , 0x00 , 0x00 ,\n" ;
+			}
+			else
+			{
+				print TO "	0x00 ,\n" ;
+			}
 
 			$code ++ ;
 		}
@@ -308,7 +331,14 @@ EOF
 
 		if( $tocs_bytelen eq 4)
 		{
-			printf TO  "	0x%.8x ,\n" , ${$hash}{$key} & 0xffffffff ;
+#			printf TO  "	0x%.8x ,\n" , ${$hash}{$key} & 0xffffffff ;
+			printf TO  "	0x%.4x ,\n" , ${$hash}{$key} & 0xffffffff ;
+		}
+		elsif( $tocs_bytelen eq 3)
+		{
+			$c = ${$hash}{$key} & 0xffffffff ;
+			printf TO  "	0x%.2x , 0x%.2x , 0x%.2x ,\n" ,
+						 ($c >> 16) & 0xff , ($c >> 8) & 0xff , $c & 0xff ;
 		}
 		elsif( $tocs_bytelen eq 2)
 		{
@@ -323,9 +353,8 @@ EOF
 	}
 	print TO  "} ;\n\n" ;
 
-	printf TO "static ${fromcs}_to_${tocs}_range_t ${fromcs}_to_${tocs}_range_%x =\n{\n" ,
-		${hi_code} ;
-	printf TO "	0x%x , 0x%x\n} ;\n\n" , $_start , $code - 1 ;
+	push( @start_list, $_start) ;
+	push( @end_list, $code - 1) ;
 	push( @indexes , $hi_code) ;
 
 	printf TO  "static u_int32_t  ${fromcs}_to_${tocs}_beg = 0x%x ;\n\n" , $start ;
@@ -339,15 +368,15 @@ EOF
 		{
 			$prev_idx = $idx ;
 		}
-		
+
 		while( $idx > $prev_idx + 1)
 		{
-			print TO "	{ NULL , NULL , } ,\n" ;
+			print TO "	{ NULL , 0x0 , 0x0 , } ,\n" ;
 			$prev_idx ++ ;
 		}
-		
-		printf TO "	{ ${fromcs}_to_${tocs}_table_%x , &${fromcs}_to_${tocs}_range_%x } ,\n" ,
-			$idx , $idx ;
+
+		printf TO "	{ ${fromcs}_to_${tocs}_table_%x , 0x%x, 0x%x } ,\n" ,
+			$idx , shift @start_list, shift @end_list ;
 		$prev_idx = $idx ;
 	}
 	print TO "} ;\n\n" ;
@@ -356,30 +385,29 @@ EOF
 	{
 		print TO << "EOF" ;
 /* 'i' is UCS4(32bit) */
-#define  HI(i)  ( ((i)>>8) & 0xffffff )
-#define  LO(i)  ( (i) & 0xff )
+#define  HI(i)  ( ((i)>>7) & 0x1ffffff )
 EOF
 	}
 	else  # if( keys %${hash} > 256)
 	{
 		# MB charset (SB charset is not supposed.)
 		print TO << "EOF" ;
-#define  HI(i)  ( ((i)>>8) & 0xff )
-#define  LO(i)  ( (i) & 0xff )
+#define  HI(i)  ( ((i)>>7) & 0x1ff )
 EOF
 	}
-	
-	print TO << "EOF" ;
 
-static u_int${bits}_t
+	if( $tocs_bytelen eq 3) {
+		print TO << "EOF" ;
+
+static u_int32_t
 CONV_${fromcs_uc}_TO_${tocs_uc}(
 	u_int32_t  ch
 	)
 {
 	u_int32_t  hi_ch ;
 	u_int32_t  hi_beg ;
-	u_int${bits}_t *  table ;
-	${fromcs}_to_${tocs}_range_t *  range ;
+	u_int32_t  idx ;
+	u_int8_t *  table ;
 
 	if( ch < ${fromcs}_to_${tocs}_beg || ${fromcs}_to_${tocs}_end < ch)
 	{
@@ -388,47 +416,96 @@ CONV_${fromcs_uc}_TO_${tocs_uc}(
 	
 	hi_ch = HI(ch) ;
 	hi_beg = HI(${fromcs}_to_${tocs}_beg) ;
-	
-	if( ! ( table = ${fromcs}_to_${tocs}_tables[ hi_ch - hi_beg].table))
+
+	idx = hi_ch - hi_beg;
+	if( ! ( table = ${fromcs}_to_${tocs}_tables[ idx].table))
 	{
 		return  0 ;
 	}
 
-	range = ${fromcs}_to_${tocs}_tables[ hi_ch - hi_beg].range ;
-	
-	if( ch < range->beg || range->end < ch)
+	if( ch < ${fromcs}_to_${tocs}_tables[ idx].beg ||
+	    ${fromcs}_to_${tocs}_tables[ idx].end < ch)
 	{
 		return  0 ;
 	}
 
-	return  table[ LO(ch) - LO(range->beg)] ;
+	idx = (ch - ${fromcs}_to_${tocs}_tables[ idx].beg) * 3 ;
+
+	return  (table[idx] << 16) | (table[idx + 1] << 8) | table[idx + 2]  ;
 }
 
 #undef  HI
-#undef  LO
 
 EOF
+	}
+	else
+	{
+		print TO << "EOF" ;
+
+static u_int${tocs_bits}_t
+CONV_${fromcs_uc}_TO_${tocs_uc}(
+	u_int32_t  ch
+	)
+{
+	u_int32_t  hi_ch ;
+	u_int32_t  hi_beg ;
+	u_int32_t  idx ;
+	u_int${tocs_bits}_t *  table ;
+
+	if( ch < ${fromcs}_to_${tocs}_beg || ${fromcs}_to_${tocs}_end < ch)
+	{
+		return  0 ;
+	}
+	
+	hi_ch = HI(ch) ;
+	hi_beg = HI(${fromcs}_to_${tocs}_beg) ;
+
+	idx = hi_ch - hi_beg;
+	if( ! ( table = ${fromcs}_to_${tocs}_tables[ idx].table))
+	{
+		return  0 ;
+	}
+
+	if( ch < ${fromcs}_to_${tocs}_tables[ idx].beg ||
+	    ${fromcs}_to_${tocs}_tables[ idx].end < ch)
+	{
+		return  0 ;
+	}
+
+	return  table[ ch - ${fromcs}_to_${tocs}_tables[ idx].beg] ;
+}
+
+#undef  HI
+
+EOF
+	}
 
 	printf TO  "#endif	/* REMOVE_MAPPING_TABLE */\n\n\n#endif\n" ;
 }
 
-sub output_table_to_ucs($$)
+sub output_table_to_ucs($)
 {
+	$fromcs_bytelen = int(log($max_nonucs) / log(256)) + 1 ;
+	$tocs_bytelen = int(log($max_ucs) / log(256)) + 1 ;
+
 	if( keys %to_ucs > 256)
 	{
 		# MB charset
-		output_separated( shift , "ucs4" , shift , \%to_ucs) ;
+		output_separated( shift , "ucs4" , $fromcs_bytelen , $tocs_bytelen , \%to_ucs) ;
 	}
 	else
 	{
 		# SB charset
-		output( shift , "ucs4" , shift , \%to_ucs) ;
+		output( shift , "ucs4" , $tocs_bytelen , \%to_ucs) ;
 	}
 }
 
-sub output_table_ucs_to($$)
+sub output_table_ucs_to($)
 {
-	output_separated( "ucs4" , shift , shift , \%ucs_to) ;
+	$fromcs_bytelen = int(log($max_ucs) / log(256)) + 1 ;
+	$tocs_bytelen = int(log($max_nonucs) / log(256)) + 1 ;
+
+	output_separated( "ucs4" , shift , $fromcs_bytelen , $tocs_bytelen , \%ucs_to) ;
 }
 
 # module return

@@ -735,6 +735,7 @@ enable_libtool_lock
 enable_debug
 with_map_table
 with_prop_table
+with_iconv
 enable_dl_table
 '
       ac_precious_vars='build_alias
@@ -1380,6 +1381,7 @@ Optional Packages:
                           compiler's sysroot if not specified).
   --without-map-table     mapping table [default=with]
   --without-prop-table    property table [default=with]
+  --with-iconv            use iconv for charset conversion [default=without]
 
 Some influential environment variables:
   CC          C compiler command
@@ -11506,6 +11508,18 @@ fi
 
 if test "$prop_table" = "no" ; then
 	TABLE_CFLAGS="${TABLE_CFLAGS} -DREMOVE_PROPERTY_TABLE"
+fi
+
+
+# Check whether --with-iconv was given.
+if test "${with_iconv+set}" = set; then :
+  withval=$with_iconv; iconv=$with_iconv
+else
+  iconv="no"
+fi
+
+if test "$iconv" = "yes" ; then
+	TABLE_CFLAGS="${TABLE_CFLAGS} -DUSE_ICONV"
 fi
 
 # Check whether --enable-dl-table was given.

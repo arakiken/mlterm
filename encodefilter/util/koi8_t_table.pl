@@ -21,5 +21,5 @@ foreach $line (@all_lines)
 
 ucs_mappings::parse( '^(0x[0-9a-f]*) (0x[0-9A-F]*)$' , \@koi8) ;
 
-ucs_mappings::output_table_to_ucs( ${cs} , 2) ;
-ucs_mappings::output_table_ucs_to( ${cs} , 1) ;
+ucs_mappings::output_table_to_ucs( ${cs}) ;
+ucs_mappings::output_table_ucs_to( ${cs}) ;

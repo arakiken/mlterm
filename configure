@@ -963,6 +963,7 @@ enable_utmp_suid
 enable_pty_helper
 with_map_table
 with_prop_table
+with_iconv
 enable_dl_table
 with_utmp
 '
@@ -1713,7 +1714,8 @@ Optional Packages:
   --with-scrollbars[=ARG] scrollbar plugins (sample, extra, pixmap_engine) [default=sample,extra,pixmap_engine]
   --without-map-table     mapping table [default=with]
   --without-prop-table    property table [default=with]
-  --with-utmp[=ARG]       utmp (sysv,utempter,login,bsd,none)
+  --with-iconv            use iconv for charset conversion [default=without]
+  --with-utmp[=ARG]       utmp (utempter,sysv,login,bsd,none)
 
 Some influential environment variables:
   CC          C compiler command
@@ -25629,6 +25631,12 @@ fi
 # Check whether --with-prop-table was given.
 if test "${with_prop_table+set}" = set; then :
   withval=$with_prop_table;
+fi
+
+
+# Check whether --with-iconv was given.
+if test "${with_iconv+set}" = set; then :
+  withval=$with_iconv;
 fi
 
 # Check whether --enable-dl-table was given.

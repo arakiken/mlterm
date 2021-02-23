@@ -35,6 +35,8 @@ ef_parser_t *ef_cp874_parser_new(void);
 
 ef_parser_t *ef_viscii_parser_new(void);
 
+ef_parser_t *ef_tcvn5712_1_1993_parser_new(void);
+
 ef_parser_t *ef_iscii_assamese_parser_new(void);
 
 ef_parser_t *ef_iscii_bengali_parser_new(void);

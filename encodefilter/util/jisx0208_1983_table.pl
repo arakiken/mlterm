@@ -8,5 +8,5 @@ my @all_lines = <stdin> ;
 
 ucs_mappings::parse( '[^	 ]*[	 ]*([^	 ]*)[	 ]*([^	 ]*).*$' , \@all_lines) ;
 
-ucs_mappings::output_table_to_ucs( ${cs} , 2) ;
-ucs_mappings::output_table_ucs_to( ${cs} , 2) ;
+ucs_mappings::output_table_to_ucs( ${cs}) ;
+ucs_mappings::output_table_ucs_to( ${cs}) ;

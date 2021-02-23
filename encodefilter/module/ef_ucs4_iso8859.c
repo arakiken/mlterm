@@ -11,6 +11,12 @@
 #include <string.h>
 #include <pobl/bl_debug.h>
 
+#ifdef USE_ICONV
+
+#include "ef_iconv.h"
+
+#else
+
 #include "table/ef_iso8859_2_r_to_ucs4.table"
 #include "table/ef_iso8859_3_r_to_ucs4.table"
 #include "table/ef_iso8859_4_r_to_ucs4.table"
@@ -26,6 +32,8 @@
 #include "table/ef_ucs4_to_iso8859_13_r.table"
 #include "table/ef_ucs4_to_iso8859_14_r.table"
 #include "table/ef_ucs4_to_iso8859_16_r.table"
+
+#endif
 
 #include "../src/ef_ucs4_tcvn5712_1.h"
 
@@ -61,11 +69,68 @@ static int convert_iso8859_r_common_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_c
   return 1;
 }
 
+#ifdef USE_ICONV
+
+static int map_ucs4_to_iso8859(iconv_t *cd, ef_char_t *non_ucs,
+                               u_int32_t ucs4_code, char *iso8859, ef_charset_t cs) {
+  ICONV_OPEN(*cd, iso8859, "UTF-32");
+
+  ICONV(*cd, (char*)&ucs4_code, 4, non_ucs->ch, 1);
+
+  non_ucs->ch[0] &= 0x7f;
+  non_ucs->size = 1;
+  non_ucs->cs = cs;
+  non_ucs->property = 0;
+
+  return 1;
+}
+
+static int map_iso8859_to_ucs4(iconv_t *cd, ef_char_t *ucs4,
+                               u_int16_t iso8859_code, char *iso8859) {
+  u_char src[1];
+
+  ICONV_OPEN(*cd, "UTF-32BE", iso8859);
+
+  src[0] = iso8859_code | 0x80;
+
+  ICONV(*cd, src, 1, ucs4->ch, 4);
+
+  ucs4->size = 4;
+  ucs4->cs = ISO10646_UCS4_1;
+  ucs4->property = 0;
+
+  return 1;
+}
+
+#endif
+
 /* --- global functions --- */
 
 int ef_map_ucs4_to_iso8859_1_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   return convert_ucs4_to_iso8859_r_common(non_ucs, ucs4_code, ISO8859_1_R);
 }
+
+#ifdef USE_ICONV
+
+int ef_map_ucs4_to_iso8859_2_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
+  static iconv_t cd;
+
+  return map_ucs4_to_iso8859(&cd, non_ucs, ucs4_code, "ISO_8859-2", ISO8859_2_R);
+}
+
+int ef_map_ucs4_to_iso8859_3_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
+  static iconv_t cd;
+
+  return map_ucs4_to_iso8859(&cd, non_ucs, ucs4_code, "ISO_8859-3", ISO8859_3_R);
+}
+
+int ef_map_ucs4_to_iso8859_4_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
+  static iconv_t cd;
+
+  return map_ucs4_to_iso8859(&cd, non_ucs, ucs4_code, "ISO_8859-4", ISO8859_4_R);
+}
+
+#else
 
 int ef_map_ucs4_to_iso8859_2_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int8_t c;
@@ -111,6 +176,8 @@ int ef_map_ucs4_to_iso8859_4_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
 
   return 0;
 }
+
+#endif
 
 int ef_map_ucs4_to_iso8859_5_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   if (ucs4_code == 0x2116) {
@@ -209,6 +276,16 @@ int ef_map_ucs4_to_iso8859_9_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   return 1;
 }
 
+#ifdef USE_ICONV
+
+int ef_map_ucs4_to_iso8859_10_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
+  static iconv_t cd;
+
+  return map_ucs4_to_iso8859(&cd, non_ucs, ucs4_code, "ISO_8859-10", ISO8859_10_R);
+}
+
+#else
+
 int ef_map_ucs4_to_iso8859_10_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int8_t c;
 
@@ -223,6 +300,8 @@ int ef_map_ucs4_to_iso8859_10_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
 
   return 0;
 }
+
+#endif
 
 int ef_map_ucs4_to_tis620_2533(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   if (ucs4_code == 0xa0) {
@@ -245,6 +324,22 @@ int ef_map_ucs4_to_tis620_2533(ef_char_t *non_ucs, u_int32_t ucs4_code) {
 
   return 1;
 }
+
+#ifdef USE_ICONV
+
+int ef_map_ucs4_to_iso8859_13_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
+  static iconv_t cd;
+
+  return map_ucs4_to_iso8859(&cd, non_ucs, ucs4_code, "ISO_8859-13", ISO8859_13_R);
+}
+
+int ef_map_ucs4_to_iso8859_14_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
+  static iconv_t cd;
+
+  return map_ucs4_to_iso8859(&cd, non_ucs, ucs4_code, "ISO_8859-14", ISO8859_14_R);
+}
+
+#else
 
 int ef_map_ucs4_to_iso8859_13_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int8_t c;
@@ -276,6 +371,8 @@ int ef_map_ucs4_to_iso8859_14_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   return 0;
 }
 
+#endif
+
 int ef_map_ucs4_to_iso8859_15_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   if (ucs4_code == 0x20ac) {
     non_ucs->ch[0] = 0x24;
@@ -302,6 +399,16 @@ int ef_map_ucs4_to_iso8859_15_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   return 1;
 }
 
+#ifdef USE_ICONV
+
+int ef_map_ucs4_to_iso8859_16_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
+  static iconv_t cd;
+
+  return map_ucs4_to_iso8859(&cd, non_ucs, ucs4_code, "ISO_8859-16", ISO8859_16_R);
+}
+
+#else
+
 int ef_map_ucs4_to_iso8859_16_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int8_t c;
 
@@ -316,6 +423,8 @@ int ef_map_ucs4_to_iso8859_16_r(ef_char_t *non_ucs, u_int32_t ucs4_code) {
 
   return 0;
 }
+
+#endif
 
 int ef_map_ucs4_to_tcvn5712_3_1993(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   if (!ef_map_ucs4_to_tcvn5712_1_1993(non_ucs, ucs4_code)) {
@@ -337,6 +446,28 @@ int ef_map_ucs4_to_tcvn5712_3_1993(ef_char_t *non_ucs, u_int32_t ucs4_code) {
 int ef_map_iso8859_1_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   return convert_iso8859_r_common_to_ucs4(ucs4, iso8859_code);
 }
+
+#ifdef USE_ICONV
+
+int ef_map_iso8859_2_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
+  static iconv_t cd;
+
+  return map_iso8859_to_ucs4(&cd, ucs4, iso8859_code, "ISO_8859-2");
+}
+
+int ef_map_iso8859_3_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
+  static iconv_t cd;
+
+  return map_iso8859_to_ucs4(&cd, ucs4, iso8859_code, "ISO_8859-3");
+}
+
+int ef_map_iso8859_4_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
+  static iconv_t cd;
+
+  return map_iso8859_to_ucs4(&cd, ucs4, iso8859_code, "ISO_8859-4");
+}
+
+#else
 
 int ef_map_iso8859_2_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   u_int32_t c;
@@ -382,6 +513,8 @@ int ef_map_iso8859_4_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
 
   return 0;
 }
+
+#endif
 
 int ef_map_iso8859_5_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   if (iso8859_code == 0x70) {
@@ -507,6 +640,16 @@ int ef_map_iso8859_9_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   return 1;
 }
 
+#ifdef USE_ICONV
+
+int ef_map_iso8859_10_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
+  static iconv_t cd;
+
+  return map_iso8859_to_ucs4(&cd, ucs4, iso8859_code, "ISO_8859-10");
+}
+
+#else
+
 int ef_map_iso8859_10_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   u_int32_t c;
 
@@ -521,6 +664,8 @@ int ef_map_iso8859_10_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
 
   return 0;
 }
+
+#endif
 
 int ef_map_tis620_2533_to_ucs4(ef_char_t *ucs4, u_int16_t tis620_code) {
   if (0x20 == tis620_code) {
@@ -543,6 +688,22 @@ int ef_map_tis620_2533_to_ucs4(ef_char_t *ucs4, u_int16_t tis620_code) {
 
   return 1;
 }
+
+#ifdef USE_ICONV
+
+int ef_map_iso8859_13_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
+  static iconv_t cd;
+
+  return map_iso8859_to_ucs4(&cd, ucs4, iso8859_code, "ISO_8859-13");
+}
+
+int ef_map_iso8859_14_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
+  static iconv_t cd;
+
+  return map_iso8859_to_ucs4(&cd, ucs4, iso8859_code, "ISO_8859-14");
+}
+
+#else
 
 int ef_map_iso8859_13_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   u_int32_t c;
@@ -573,6 +734,8 @@ int ef_map_iso8859_14_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
 
   return 0;
 }
+
+#endif
 
 int ef_map_iso8859_15_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   if (iso8859_code == 0x24) {
@@ -610,6 +773,16 @@ int ef_map_iso8859_15_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   return 1;
 }
 
+#ifdef USE_ICONV
+
+int ef_map_iso8859_16_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
+  static iconv_t cd;
+
+  return map_iso8859_to_ucs4(&cd, ucs4, iso8859_code, "ISO_8859-16");
+}
+
+#else
+
 int ef_map_iso8859_16_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
   u_int32_t c;
 
@@ -624,6 +797,8 @@ int ef_map_iso8859_16_r_to_ucs4(ef_char_t *ucs4, u_int16_t iso8859_code) {
 
   return 0;
 }
+
+#endif
 
 int ef_map_tcvn5712_3_1993_to_ucs4(ef_char_t *ucs4, u_int16_t tcvn_code) {
   if (tcvn_code < 0x20) {

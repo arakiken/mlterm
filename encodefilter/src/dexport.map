@@ -26,6 +26,8 @@ global:
 	ef_bytes_to_int ;
 	ef_int_to_bytes ;
 
+	TEST_encodefilter ;
+
 local:
 	* ;
 } ;

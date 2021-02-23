@@ -560,8 +560,10 @@ int ef_iso2022_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
     ch->property = ef_get_jisx0208_1983_property(ch->ch);
   } else if (ch->cs == JISX0213_2000_1) {
     ch->property = ef_get_jisx0213_2000_1_property(ch->ch);
-  } else if (ch->cs == TCVN5712_1_1993) {
+  } else if (ch->cs == TCVN5712_3_1993) {
     if (0x30 <= ch->ch[0] && ch->ch[0] <= 0x34) {
+      /* TCVN5712_2_1993 */
+      /* See parser_next_char_intern() in ef_8bit_parser.c. */
       ch->property = EF_COMBINING;
     }
   } else if (ch->cs == TIS620_2533) {

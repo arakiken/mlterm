@@ -89,7 +89,7 @@ typedef enum ef_charset {
 
   ISO8859_15_R = CS96SB_ID('b'), /* Ft = 6/2 */
   ISO8859_16_R = CS96SB_ID('f'), /* Ft = 6/6 */
-  TCVN5712_3_1993 = CS96SB_ID('Z'),
+  TCVN5712_3_1993 = CS96SB_ID('Z'), /* = TVCVN5712_2_1993 (Subset of TCVN5712_1_1993) */
 
   /* 94 mb cs */
   JISC6226_1978 = CS94MB_ID('@'),
@@ -127,8 +127,8 @@ typedef enum ef_charset {
    * ISO2022.
    * 0xe0 - 0xfa
    */
-  VISCII = 0xe0,          /* Excluding US_ASCII(0x0-0x7f) */
-  TCVN5712_1_1993 = 0xe1, /* ISO2022 compat */
+  VISCII = 0xe0,          /* Excluding most of US_ASCII */
+  TCVN5712_1_1993 = 0xe1, /* Excluding most of US_ASCII. Superset of TCVN5712_3_1993 */
   KOI8_R = 0xe2,          /* Excluding US_ASCII(0x0-0x7f) */
   KOI8_U = 0xe3,          /* Excluding US_ASCII(0x0-0x7f) */
   KOI8_T = 0xe4,          /* Excluding US_ASCII(0x0-0x7f) */
@@ -167,7 +167,7 @@ typedef enum ef_charset {
 
   /*
    * Those who are not ISO2022 registed characterset but confirm to ISO2022.
-   * (Bi-width)
+   * (fullwidth)
    * 0x1e0 - 0xf5
    */
   JISC6226_1978_NEC_EXT = 0x1e0,
@@ -177,7 +177,7 @@ typedef enum ef_charset {
   /*
    * Those who are not ISO2022 registed characterset or do not confirm to
    * ISO2022.
-   * (Bi-width)
+   * (fullwidth)
    * 0x1e3 - 0x1e9
    */
   SJIS_IBM_EXT = 0x1e3,

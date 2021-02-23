@@ -16,21 +16,15 @@
 
 #else
 
-typedef struct uhc_to_johab_range
-{
-	u_int32_t  beg ;
-	u_int32_t  end ;
-
-} uhc_to_johab_range_t ;
-
 typedef struct uhc_to_johab_table
 {
 	u_int16_t *  table ;
-	uhc_to_johab_range_t *  range ;
+	u_int16_t  beg;
+	u_int16_t  end;
 
 } uhc_to_johab_table_t ;
 
-static u_int16_t uhc_to_johab_table_b0[] =
+static u_int16_t uhc_to_johab_table_161[] =
 {
 	/* 0xb0a1 */
 	0x8861 ,
@@ -139,12 +133,7 @@ static u_int16_t uhc_to_johab_table_b0[] =
 	0x89cb ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_b0 =
-{
-	0xb0a1 , 0xb0fe
-} ;
-
-static u_int16_t uhc_to_johab_table_b1[] =
+static u_int16_t uhc_to_johab_table_163[] =
 {
 	/* 0xb1a1 */
 	0x89d1 ,
@@ -253,12 +242,7 @@ static u_int16_t uhc_to_johab_table_b1[] =
 	0x8c91 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_b1 =
-{
-	0xb1a1 , 0xb1fe
-} ;
-
-static u_int16_t uhc_to_johab_table_b2[] =
+static u_int16_t uhc_to_johab_table_165[] =
 {
 	/* 0xb2a1 */
 	0x8c93 ,
@@ -367,12 +351,7 @@ static u_int16_t uhc_to_johab_table_b2[] =
 	0x8f77 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_b2 =
-{
-	0xb2a1 , 0xb2fe
-} ;
-
-static u_int16_t uhc_to_johab_table_b3[] =
+static u_int16_t uhc_to_johab_table_167[] =
 {
 	/* 0xb3a1 */
 	0x8f7b ,
@@ -481,12 +460,7 @@ static u_int16_t uhc_to_johab_table_b3[] =
 	0x9253 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_b3 =
-{
-	0xb3a1 , 0xb3fe
-} ;
-
-static u_int16_t uhc_to_johab_table_b4[] =
+static u_int16_t uhc_to_johab_table_169[] =
 {
 	/* 0xb4a1 */
 	0x9255 ,
@@ -595,12 +569,7 @@ static u_int16_t uhc_to_johab_table_b4[] =
 	0x94f3 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_b4 =
-{
-	0xb4a1 , 0xb4fe
-} ;
-
-static u_int16_t uhc_to_johab_table_b5[] =
+static u_int16_t uhc_to_johab_table_16b[] =
 {
 	/* 0xb5a1 */
 	0x94f5 ,
@@ -709,12 +678,7 @@ static u_int16_t uhc_to_johab_table_b5[] =
 	0x9869 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_b5 =
-{
-	0xb5a1 , 0xb5fe
-} ;
-
-static u_int16_t uhc_to_johab_table_b6[] =
+static u_int16_t uhc_to_johab_table_16d[] =
 {
 	/* 0xb6a1 */
 	0x9871 ,
@@ -823,12 +787,7 @@ static u_int16_t uhc_to_johab_table_b6[] =
 	0x9c7d ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_b6 =
-{
-	0xb6a1 , 0xb6fe
-} ;
-
-static u_int16_t uhc_to_johab_table_b7[] =
+static u_int16_t uhc_to_johab_table_16f[] =
 {
 	/* 0xb7a1 */
 	0x9c81 ,
@@ -937,12 +896,7 @@ static u_int16_t uhc_to_johab_table_b7[] =
 	0x9f53 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_b7 =
-{
-	0xb7a1 , 0xb7fe
-} ;
-
-static u_int16_t uhc_to_johab_table_b8[] =
+static u_int16_t uhc_to_johab_table_171[] =
 {
 	/* 0xb8a1 */
 	0x9f55 ,
@@ -1051,12 +1005,7 @@ static u_int16_t uhc_to_johab_table_b8[] =
 	0xa241 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_b8 =
-{
-	0xb8a1 , 0xb8fe
-} ;
-
-static u_int16_t uhc_to_johab_table_b9[] =
+static u_int16_t uhc_to_johab_table_173[] =
 {
 	/* 0xb9a1 */
 	0xa245 ,
@@ -1165,12 +1114,7 @@ static u_int16_t uhc_to_johab_table_b9[] =
 	0xa4f5 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_b9 =
-{
-	0xb9a1 , 0xb9fe
-} ;
-
-static u_int16_t uhc_to_johab_table_ba[] =
+static u_int16_t uhc_to_johab_table_175[] =
 {
 	/* 0xbaa1 */
 	0xa4f7 ,
@@ -1279,12 +1223,7 @@ static u_int16_t uhc_to_johab_table_ba[] =
 	0xa865 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_ba =
-{
-	0xbaa1 , 0xbafe
-} ;
-
-static u_int16_t uhc_to_johab_table_bb[] =
+static u_int16_t uhc_to_johab_table_177[] =
 {
 	/* 0xbba1 */
 	0xa869 ,
@@ -1393,12 +1332,7 @@ static u_int16_t uhc_to_johab_table_bb[] =
 	0xaca1 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_bb =
-{
-	0xbba1 , 0xbbfe
-} ;
-
-static u_int16_t uhc_to_johab_table_bc[] =
+static u_int16_t uhc_to_johab_table_179[] =
 {
 	/* 0xbca1 */
 	0xaca2 ,
@@ -1507,12 +1441,7 @@ static u_int16_t uhc_to_johab_table_bc[] =
 	0xae97 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_bc =
-{
-	0xbca1 , 0xbcfe
-} ;
-
-static u_int16_t uhc_to_johab_table_bd[] =
+static u_int16_t uhc_to_johab_table_17b[] =
 {
 	/* 0xbda1 */
 	0xae99 ,
@@ -1621,12 +1550,7 @@ static u_int16_t uhc_to_johab_table_bd[] =
 	0xb245 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_bd =
-{
-	0xbda1 , 0xbdfe
-} ;
-
-static u_int16_t uhc_to_johab_table_be[] =
+static u_int16_t uhc_to_johab_table_17d[] =
 {
 	/* 0xbea1 */
 	0xb249 ,
@@ -1735,12 +1659,7 @@ static u_int16_t uhc_to_johab_table_be[] =
 	0xb4fc ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_be =
-{
-	0xbea1 , 0xbefe
-} ;
-
-static u_int16_t uhc_to_johab_table_bf[] =
+static u_int16_t uhc_to_johab_table_17f[] =
 {
 	/* 0xbfa1 */
 	0xb541 ,
@@ -1849,12 +1768,7 @@ static u_int16_t uhc_to_johab_table_bf[] =
 	0xb6c1 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_bf =
-{
-	0xbfa1 , 0xbffe
-} ;
-
-static u_int16_t uhc_to_johab_table_c0[] =
+static u_int16_t uhc_to_johab_table_181[] =
 {
 	/* 0xc0a1 */
 	0xb6c2 ,
@@ -1963,12 +1877,7 @@ static u_int16_t uhc_to_johab_table_c0[] =
 	0xb8eb ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_c0 =
-{
-	0xc0a1 , 0xc0fe
-} ;
-
-static u_int16_t uhc_to_johab_table_c1[] =
+static u_int16_t uhc_to_johab_table_183[] =
 {
 	/* 0xc1a1 */
 	0xb8f1 ,
@@ -2077,12 +1986,7 @@ static u_int16_t uhc_to_johab_table_c1[] =
 	0xbbb5 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_c1 =
-{
-	0xc1a1 , 0xc1fe
-} ;
-
-static u_int16_t uhc_to_johab_table_c2[] =
+static u_int16_t uhc_to_johab_table_185[] =
 {
 	/* 0xc2a1 */
 	0xbbb7 ,
@@ -2191,12 +2095,7 @@ static u_int16_t uhc_to_johab_table_c2[] =
 	0xc075 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_c2 =
-{
-	0xc2a1 , 0xc2fe
-} ;
-
-static u_int16_t uhc_to_johab_table_c3[] =
+static u_int16_t uhc_to_johab_table_187[] =
 {
 	/* 0xc3a1 */
 	0xc076 ,
@@ -2305,12 +2204,7 @@ static u_int16_t uhc_to_johab_table_c3[] =
 	0xc377 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_c3 =
-{
-	0xc3a1 , 0xc3fe
-} ;
-
-static u_int16_t uhc_to_johab_table_c4[] =
+static u_int16_t uhc_to_johab_table_189[] =
 {
 	/* 0xc4a1 */
 	0xc3a1 ,
@@ -2419,12 +2313,7 @@ static u_int16_t uhc_to_johab_table_c4[] =
 	0xc6e9 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_c4 =
-{
-	0xc4a1 , 0xc4fe
-} ;
-
-static u_int16_t uhc_to_johab_table_c5[] =
+static u_int16_t uhc_to_johab_table_18b[] =
 {
 	/* 0xc5a1 */
 	0xc6f1 ,
@@ -2533,12 +2422,7 @@ static u_int16_t uhc_to_johab_table_c5[] =
 	0xcab6 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_c5 =
-{
-	0xc5a1 , 0xc5fe
-} ;
-
-static u_int16_t uhc_to_johab_table_c6[] =
+static u_int16_t uhc_to_johab_table_18d[] =
 {
 	/* 0xc6a1 */
 	0xcac1 ,
@@ -2647,12 +2531,7 @@ static u_int16_t uhc_to_johab_table_c6[] =
 	0xcdb7 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_c6 =
-{
-	0xc6a1 , 0xc6fe
-} ;
-
-static u_int16_t uhc_to_johab_table_c7[] =
+static u_int16_t uhc_to_johab_table_18f[] =
 {
 	/* 0xc7a1 */
 	0xcdc1 ,
@@ -2761,12 +2640,7 @@ static u_int16_t uhc_to_johab_table_c7[] =
 	0xd185 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_c7 =
-{
-	0xc7a1 , 0xc7fe
-} ;
-
-static u_int16_t uhc_to_johab_table_c8[] =
+static u_int16_t uhc_to_johab_table_191[] =
 {
 	/* 0xc8a1 */
 	0xd189 ,
@@ -2875,46 +2749,64 @@ static u_int16_t uhc_to_johab_table_c8[] =
 	0xd3b7 ,
 } ;
 
-static uhc_to_johab_range_t uhc_to_johab_range_c8 =
-{
-	0xc8a1 , 0xc8fe
-} ;
-
 static u_int32_t  uhc_to_johab_beg = 0xb0a1 ;
 
 static u_int32_t  uhc_to_johab_end = 0xc8fe ;
 
 static uhc_to_johab_table_t uhc_to_johab_tables[] =
 {
-	{ uhc_to_johab_table_b0 , &uhc_to_johab_range_b0 } ,
-	{ uhc_to_johab_table_b1 , &uhc_to_johab_range_b1 } ,
-	{ uhc_to_johab_table_b2 , &uhc_to_johab_range_b2 } ,
-	{ uhc_to_johab_table_b3 , &uhc_to_johab_range_b3 } ,
-	{ uhc_to_johab_table_b4 , &uhc_to_johab_range_b4 } ,
-	{ uhc_to_johab_table_b5 , &uhc_to_johab_range_b5 } ,
-	{ uhc_to_johab_table_b6 , &uhc_to_johab_range_b6 } ,
-	{ uhc_to_johab_table_b7 , &uhc_to_johab_range_b7 } ,
-	{ uhc_to_johab_table_b8 , &uhc_to_johab_range_b8 } ,
-	{ uhc_to_johab_table_b9 , &uhc_to_johab_range_b9 } ,
-	{ uhc_to_johab_table_ba , &uhc_to_johab_range_ba } ,
-	{ uhc_to_johab_table_bb , &uhc_to_johab_range_bb } ,
-	{ uhc_to_johab_table_bc , &uhc_to_johab_range_bc } ,
-	{ uhc_to_johab_table_bd , &uhc_to_johab_range_bd } ,
-	{ uhc_to_johab_table_be , &uhc_to_johab_range_be } ,
-	{ uhc_to_johab_table_bf , &uhc_to_johab_range_bf } ,
-	{ uhc_to_johab_table_c0 , &uhc_to_johab_range_c0 } ,
-	{ uhc_to_johab_table_c1 , &uhc_to_johab_range_c1 } ,
-	{ uhc_to_johab_table_c2 , &uhc_to_johab_range_c2 } ,
-	{ uhc_to_johab_table_c3 , &uhc_to_johab_range_c3 } ,
-	{ uhc_to_johab_table_c4 , &uhc_to_johab_range_c4 } ,
-	{ uhc_to_johab_table_c5 , &uhc_to_johab_range_c5 } ,
-	{ uhc_to_johab_table_c6 , &uhc_to_johab_range_c6 } ,
-	{ uhc_to_johab_table_c7 , &uhc_to_johab_range_c7 } ,
-	{ uhc_to_johab_table_c8 , &uhc_to_johab_range_c8 } ,
+	{ uhc_to_johab_table_161 , 0xb0a1, 0xb0fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_163 , 0xb1a1, 0xb1fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_165 , 0xb2a1, 0xb2fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_167 , 0xb3a1, 0xb3fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_169 , 0xb4a1, 0xb4fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_16b , 0xb5a1, 0xb5fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_16d , 0xb6a1, 0xb6fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_16f , 0xb7a1, 0xb7fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_171 , 0xb8a1, 0xb8fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_173 , 0xb9a1, 0xb9fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_175 , 0xbaa1, 0xbafe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_177 , 0xbba1, 0xbbfe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_179 , 0xbca1, 0xbcfe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_17b , 0xbda1, 0xbdfe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_17d , 0xbea1, 0xbefe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_17f , 0xbfa1, 0xbffe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_181 , 0xc0a1, 0xc0fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_183 , 0xc1a1, 0xc1fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_185 , 0xc2a1, 0xc2fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_187 , 0xc3a1, 0xc3fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_189 , 0xc4a1, 0xc4fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_18b , 0xc5a1, 0xc5fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_18d , 0xc6a1, 0xc6fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_18f , 0xc7a1, 0xc7fe } ,
+	{ NULL , 0x0 , 0x0 , } ,
+	{ uhc_to_johab_table_191 , 0xc8a1, 0xc8fe } ,
 } ;
 
-#define  HI(i)  ( ((i)>>8) & 0xff )
-#define  LO(i)  ( (i) & 0xff )
+#define  HI(i)  ( ((i)>>7) & 0x1ff )
 
 static u_int16_t
 CONV_UHC_TO_JOHAB(
@@ -2923,8 +2815,8 @@ CONV_UHC_TO_JOHAB(
 {
 	u_int32_t  hi_ch ;
 	u_int32_t  hi_beg ;
+	u_int32_t  idx ;
 	u_int16_t *  table ;
-	uhc_to_johab_range_t *  range ;
 
 	if( ch < uhc_to_johab_beg || uhc_to_johab_end < ch)
 	{
@@ -2933,24 +2825,23 @@ CONV_UHC_TO_JOHAB(
 	
 	hi_ch = HI(ch) ;
 	hi_beg = HI(uhc_to_johab_beg) ;
-	
-	if( ! ( table = uhc_to_johab_tables[ hi_ch - hi_beg].table))
+
+	idx = hi_ch - hi_beg;
+	if( ! ( table = uhc_to_johab_tables[ idx].table))
 	{
 		return  0 ;
 	}
 
-	range = uhc_to_johab_tables[ hi_ch - hi_beg].range ;
-	
-	if( ch < range->beg || range->end < ch)
+	if( ch < uhc_to_johab_tables[ idx].beg ||
+	    uhc_to_johab_tables[ idx].end < ch)
 	{
 		return  0 ;
 	}
 
-	return  table[ LO(ch) - LO(range->beg)] ;
+	return  table[ ch - uhc_to_johab_tables[ idx].beg] ;
 }
 
 #undef  HI
-#undef  LO
 
 #endif	/* REMOVE_MAPPING_TABLE */
 

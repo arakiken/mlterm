@@ -42,5 +42,5 @@ for $line (@all_lines)
 	}
 }
 
-ucs_mappings::output_separated( "johab" , "uhc" , 2 , \%from_johab) ;
-ucs_mappings::output_separated( "uhc" , "johab" , 2 , \%to_johab) ;
+ucs_mappings::output_separated( "johab" , "uhc" , 2 , 2 , \%from_johab) ;
+ucs_mappings::output_separated( "uhc" , "johab" , 2 , 2 , \%to_johab) ;

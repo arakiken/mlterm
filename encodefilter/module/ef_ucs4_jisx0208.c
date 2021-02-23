@@ -3,14 +3,44 @@
 #include "../src/ef_ucs4_jisx0208.h"
 
 #include "../src/ef_jis_property.h"
-#include "table/ef_jisx0208_1983_to_ucs4.table"
 #include "table/ef_jisx0208_nec_ext_to_ucs4.table"
 #include "table/ef_jisx0208_necibm_ext_to_ucs4.table"
 #include "table/ef_sjis_ibm_ext_to_ucs4.table"
 
+#ifdef USE_ICONV
+
+#include "ef_iconv.h"
+
+#else
+
+#include "table/ef_jisx0208_1983_to_ucs4.table"
 #include "table/ef_ucs4_to_jisx0208_1983.table"
 
+#endif
+
 /* --- global functions --- */
+
+#ifdef USE_ICONV
+
+int ef_map_jisx0208_1983_to_ucs4(ef_char_t *ucs4, u_int16_t jis) {
+  static iconv_t cd;
+  u_char src[2];
+
+  ICONV_OPEN(cd, "UTF-32BE", "EUC-JP");
+
+  src[1] = ((jis & 0x7f) | 0x80);
+  src[0] = (((jis >> 8) & 0x7f) | 0x80);
+
+  ICONV(cd, src, 2, ucs4->ch, 4);
+
+  ucs4->size = 4;
+  ucs4->cs = ISO10646_UCS4_1;
+  ucs4->property = 0;
+
+  return 1;
+}
+
+#else
 
 int ef_map_jisx0208_1983_to_ucs4(ef_char_t *ucs4, u_int16_t jis) {
   u_int32_t c;
@@ -26,6 +56,8 @@ int ef_map_jisx0208_1983_to_ucs4(ef_char_t *ucs4, u_int16_t jis) {
 
   return 0;
 }
+
+#endif
 
 int ef_map_jisx0208_nec_ext_to_ucs4(ef_char_t *ucs4, u_int16_t nec_ext) {
   u_int32_t c;
@@ -72,6 +104,32 @@ int ef_map_sjis_ibm_ext_to_ucs4(ef_char_t *ucs4, u_int16_t ibm_ext) {
   return 0;
 }
 
+#ifdef USE_ICONV
+
+int ef_map_ucs4_to_jisx0208_1983(ef_char_t *non_ucs, u_int32_t ucs4_code) {
+  static iconv_t cd;
+
+  ICONV_OPEN(cd, "EUC-JP", "UTF-32");
+
+  ICONV(cd, (char*)&ucs4_code, 4, non_ucs->ch, 2);
+
+  if (non_ucs->ch[0] == 0x8e) {
+    /* Hankaku Kana */
+    return 0;
+  }
+
+  non_ucs->size = 2;
+  non_ucs->cs = JISX0208_1983;
+  non_ucs->property = ef_get_jisx0208_1983_property(non_ucs->ch);
+
+  non_ucs->ch[0] &= 0x7f;
+  non_ucs->ch[1] &= 0x7f;
+
+  return 1;
+}
+
+#else
+
 int ef_map_ucs4_to_jisx0208_1983(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int16_t c;
 
@@ -86,6 +144,8 @@ int ef_map_ucs4_to_jisx0208_1983(ef_char_t *non_ucs, u_int32_t ucs4_code) {
 
   return 0;
 }
+
+#endif
 
 int ef_map_ucs4_to_jisx0208_nec_ext(ef_char_t *non_ucs, u_int32_t ucs4_code) {
   u_int16_t offset;

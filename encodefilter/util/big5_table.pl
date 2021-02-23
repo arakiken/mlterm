@@ -19,5 +19,5 @@ foreach $line (@all_lines)
 
 ucs_mappings::parse( '([^	 ]*)[	 ]*([^	 ]*).*$' , \@big5_lines) ;
 
-ucs_mappings::output_table_to_ucs( "big5" , 2) ;
-ucs_mappings::output_table_ucs_to( "big5" , 2) ;
+ucs_mappings::output_table_to_ucs( "big5") ;
+ucs_mappings::output_table_ucs_to( "big5") ;

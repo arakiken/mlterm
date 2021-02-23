@@ -11,6 +11,7 @@
 #include "ef_ucs4_koi8.h"
 #include "ef_ucs4_iscii.h"
 #include "ef_ucs4_georgian_ps.h"
+#include "ef_ucs4_tcvn5712_1.h"
 #include "ef_ucs4_cp125x.h"
 #include "ef_ucs4_jisx0201.h"
 #include "ef_ucs4_jisx0208.h"
@@ -52,6 +53,7 @@ static map_t map_table[] = {
     {TCVN5712_3_1993, ef_map_ucs4_to_tcvn5712_3_1993, ef_map_tcvn5712_3_1993_to_ucs4},
 
     {VISCII, ef_map_ucs4_to_viscii, ef_map_viscii_to_ucs4},
+    {TCVN5712_1_1993, ef_map_ucs4_to_tcvn5712_1_1993, ef_map_tcvn5712_1_1993_to_ucs4},
     {KOI8_R, ef_map_ucs4_to_koi8_r, ef_map_koi8_r_to_ucs4},
     {KOI8_U, ef_map_ucs4_to_koi8_u, ef_map_koi8_u_to_ucs4},
     {ISCII_ASSAMESE, ef_map_ucs4_to_iscii, ef_map_iscii_assamese_to_ucs4},

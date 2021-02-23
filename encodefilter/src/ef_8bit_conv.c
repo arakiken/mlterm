@@ -48,13 +48,6 @@ static void remap_unsupported_charset(ef_char_t *ch, ef_charset_t to_cs) {
   } else if (ef_map_via_ucs(&c, ch, to_cs)) {
     *ch = c;
   }
-
-  if (to_cs == VISCII && ch->cs == US_ASCII) {
-    if (ch->ch[0] == 0x02 || ch->ch[0] == 0x05 || ch->ch[0] == 0x06 || ch->ch[0] == 0x14 ||
-        ch->ch[0] == 0x19 || ch->ch[0] == 0x1e) {
-      ch->cs = VISCII;
-    }
-  }
 }
 
 static size_t convert_to_intern(ef_conv_t *conv, u_char *dst, size_t dst_size,
@@ -168,6 +161,11 @@ static size_t convert_to_cp874(ef_conv_t *conv, u_char *dst, size_t dst_size,
 static size_t convert_to_viscii(ef_conv_t *conv, u_char *dst, size_t dst_size,
                                 ef_parser_t *parser) {
   return convert_to_intern(conv, dst, dst_size, parser, VISCII);
+}
+
+static size_t convert_to_tcvn5712_1_1993(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                         ef_parser_t *parser) {
+  return convert_to_intern(conv, dst, dst_size, parser, TCVN5712_1_1993);
 }
 
 static size_t convert_to_iscii(ef_conv_t *conv, u_char *dst, size_t dst_size,
@@ -415,6 +413,21 @@ ef_conv_t *ef_viscii_conv_new(void) {
   }
 
   conv->convert = convert_to_viscii;
+  conv->init = conv_init;
+  conv->destroy = conv_destroy;
+  conv->illegal_char = NULL;
+
+  return conv;
+}
+
+ef_conv_t *ef_tcvn5712_1_1993_conv_new(void) {
+  ef_conv_t *conv;
+
+  if ((conv = malloc(sizeof(ef_conv_t))) == NULL) {
+    return NULL;
+  }
+
+  conv->convert = convert_to_tcvn5712_1_1993;
   conv->init = conv_init;
   conv->destroy = conv_destroy;
   conv->illegal_char = NULL;

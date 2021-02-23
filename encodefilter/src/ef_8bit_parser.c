@@ -26,12 +26,26 @@ static int parser_next_char_intern(ef_parser_t *parser, ef_char_t *ch, ef_charse
   ch->size = 1;
   ch->property = 0;
 
-  if (/* 0x0 <= c && */ c <= 0x7f && (cs != VISCII || (c != 0x02 && c != 0x05 && c != 0x06 &&
-                                                       c != 0x14 && c != 0x19 && c != 0x1e))) {
-    ch->cs = US_ASCII;
+  if (/* 0x0 <= c && */ c <= 0x7f) {
+    if ((cs != VISCII || (c != 0x02 && c != 0x05 && c != 0x06 &&
+                          c != 0x14 && c != 0x19 && c != 0x1e)) &&
+        (cs != TCVN5712_1_1993 || (c == 0x03 || (0x07 <= c && c <= 0x10) || 0x18 <= c))) {
+      ch->cs = US_ASCII;
+    } else {
+      ch->cs = cs;
+    }
   } else {
-    if (cs == CP874 && (c == 0xd1 || (0xd4 <= c && c <= 0xda) || (0xe7 <= c && c <= 0xee))) {
-      ch->property = EF_COMBINING;
+    if (cs == CP874) {
+      /* See also src/ef_ucs4_cp125x.c */
+      if (c == 0xd1 || (0xd4 <= c && c <= 0xda) || (0xe7 <= c && c <= 0xee)) {
+        ch->property = EF_COMBINING;
+      }
+    } else if (cs == TCVN5712_1_1993) {
+      /* See also module/ef_ucs4_tcvn5712_1.c */
+      if (0xb0 <= c && c <= 0xb4) {
+        /* See ef_iso2022_parser_next_char() in ef_iso2022_parser.c. */
+        ch->property = EF_COMBINING;
+      }
     }
 
     ch->cs = cs;
@@ -100,6 +114,10 @@ static int cp874_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
 
 static int viscii_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, VISCII);
+}
+
+static int tcvn5712_1_1993_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
+  return parser_next_char_intern(parser, ch, TCVN5712_1_1993);
 }
 
 static int iscii_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
@@ -388,6 +406,23 @@ ef_parser_t *ef_viscii_parser_new(void) {
   viscii_parser->destroy = parser_destroy;
 
   return viscii_parser;
+}
+
+ef_parser_t *ef_tcvn5712_1_1993_parser_new(void) {
+  ef_parser_t *tcvn5712_parser;
+
+  if ((tcvn5712_parser = malloc(sizeof(ef_parser_t))) == NULL) {
+    return NULL;
+  }
+
+  ef_parser_init(tcvn5712_parser);
+
+  tcvn5712_parser->init = ef_parser_init;
+  tcvn5712_parser->next_char = tcvn5712_1_1993_parser_next_char;
+  tcvn5712_parser->set_str = parser_set_str;
+  tcvn5712_parser->destroy = parser_destroy;
+
+  return tcvn5712_parser;
 }
 
 ef_parser_t *ef_iscii_assamese_parser_new(void) { return iscii_parser_new(ISCII_ASSAMESE); }

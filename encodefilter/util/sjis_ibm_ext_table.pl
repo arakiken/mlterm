@@ -17,4 +17,4 @@ for $line (@all_lines)
 
 ucs_mappings::parse( '^([^	 ]+)[	 ]+([^	 ]+).*$' , \@ibm_lines) ;
 
-ucs_mappings::output_table_to_ucs( ${cs} , 2) ;
+ucs_mappings::output_table_to_ucs( ${cs}) ;

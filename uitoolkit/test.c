@@ -8,6 +8,7 @@ void TEST_bl_args(void);
 void TEST_bl_map(void);
 void TEST_bl_path(void);
 void TEST_bl_str(void);
+void TEST_encodefilter(void);
 void TEST_ui_font_config(void);
 void TEST_ui_emoji(void);
 void TEST_vt_parser(void);
@@ -28,6 +29,7 @@ void test(void) {
   TEST_bl_map();
   TEST_bl_path();
   TEST_bl_str();
+  TEST_encodefilter();
   TEST_ui_font_config();
   TEST_ui_emoji();
   TEST_vt_parser();
