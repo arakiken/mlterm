@@ -98,11 +98,13 @@ sub  parse($$;$)
 			}
 
 			$to_ucs{$code} = ${ucs} ;
-			if( $ucs > $max_ucs) {
+			if( $ucs > $max_ucs)
+			{
 				$max_ucs = $ucs ;
 			}
 			$ucs_to{$ucs} = $code ;
-			if( $code > $max_nonucs) {
+			if( $code > $max_nonucs)
+			{
 				$max_nonucs = $code ;
 			}
 		}
@@ -396,7 +398,8 @@ EOF
 EOF
 	}
 
-	if( $tocs_bytelen eq 3) {
+	if( $tocs_bytelen eq 3)
+	{
 		print TO << "EOF" ;
 
 static u_int32_t

@@ -1,5 +1,7 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
+#ifndef NO_ZMODEM
+
 #include <stdio.h>
 #include <pobl/bl_dlfcn.h>
 #include <pobl/bl_str.h>
@@ -163,3 +165,5 @@ int vt_transfer_get_state(int *progress_cur, int *progress_len) {
     return 0;
   }
 }
+
+#endif

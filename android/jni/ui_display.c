@@ -514,6 +514,10 @@ static void init_window(ANativeWindow *window) {
   }
 }
 
+/* ui_event_source.c */
+void ui_activity_pause(void);
+void ui_activity_resume(void);
+
 static void on_app_cmd(struct android_app *app, int32_t cmd) {
   switch (cmd) {
     case APP_CMD_SAVE_STATE:
@@ -585,6 +589,22 @@ static void on_app_cmd(struct android_app *app, int32_t cmd) {
       if (_display.accel_sensor) {
         ASensorEventQueue_disableSensor(_display.sensor_evqueue, _display.accel_sensor);
       }
+
+      break;
+
+    case APP_CMD_PAUSE:
+#ifdef DEBUG
+      bl_debug_printf("PAUSE\n");
+#endif
+      ui_activity_pause();
+
+      break;
+
+    case APP_CMD_RESUME:
+#ifdef DEBUG
+      bl_debug_printf("RESUME\n");
+#endif
+      ui_activity_resume();
 
       break;
   }

@@ -1,3 +1,41 @@
+2021-03-02  Araki Ken  <arakiken@users.sf.net>
+
+	* README, README.ja: Updated.
+
+	* main_loop.c: bl_init_prot() is called with "no-daemon", "no-split",
+	  "no-image", "no-zmodem" or "no-xdnd" if NO_DAEMON, NO_SPLIT, NO_IMAGE,
+	  NO_ZMODEM or DISABLE_XDND are defined.
+
+	* android/jni/ui_event_source.c:
+	  Java_mlterm_native_1activity_MLActivity_{resume|pause}Native()
+	  -> ui_activity_{resume|pause}()
+
+	* android/jni/ui_display.c: on_app_cmd() processes APP_CMD_PAUSE and
+	  APP_CMD_RESUME.
+
+	* MLActivity.java: onResume() or onPause() doesn't call resumeNative()
+	  or pauseNative().
+
+	* vtemu/Makefile.in: @TRANSFER_CFLAGS@ and @TRANSFER_LIBS@ are added.
+
+	* uitoolkit/Makefile.in: @SPLIT_CFLAGS@ is added.
+
+	* main/Makefile.in: @DAEMON_CFLAGS@, @SPLIT_CFLAGS@, @DND_CFLAGS@
+	  @TRANSFER_CFLAGS@ and @IMAGE_CFLAGS@ are added.
+
+	* vt_transfer.[ch]: If NO_ZMODEM is defined, vt_transfer_* functions
+	  are disabled.
+
+	* ui_layout.[ch]: If NO_SPLIT is defined, ui_layout_*() functions except
+	  ui_layout_{new|delete}() are disabled.
+
+	* daemon.[ch]: If NO_DAEMON is defined, daemon_*() functions are disabled.
+
+	* configure.in: --disable-daemon, --disable-split and --disable-zmodem
+	  options are added.
+
+	* vtemu/mlterm.c: 3.9.1 -> 3.9.2
+
 2021-02-21  Araki Ken  <arakiken@users.sf.net>
 
 	* encodefilter/src/Makefile.in: 3.0 -> 3.1

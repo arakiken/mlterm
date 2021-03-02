@@ -175,6 +175,15 @@ Options for configure
   --with-utmp=(utempter|sysv|login|bsd|none)
     Specify the way of reading from or writing to utmp database.
 
+  --disable-daemon
+    Disable daemon mode
+
+  --disable-split
+    Disable to split screen except on MacOSX/Cocoa and HaikuOS.
+
+  --disable-zmodem
+    Disable zmodem
+
   --disable-shared
     Disable shared libraries
 

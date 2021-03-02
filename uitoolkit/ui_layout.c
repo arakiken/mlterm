@@ -251,6 +251,8 @@ static struct terminal *search_term(struct terminal *term, ui_screen_t *screen) 
   return NULL;
 }
 
+#ifndef NO_SPLIT
+
 static struct terminal *search_parent_term(struct terminal *term, struct terminal *child) {
   struct terminal *parent;
 
@@ -324,6 +326,8 @@ static ui_screen_t *search_prev_screen(struct terminal *term, ui_screen_t *scree
   return NULL;
 }
 
+#endif
+
 static struct terminal *get_current_term(struct terminal *term) {
   struct terminal *current;
 
@@ -348,6 +352,8 @@ static ui_window_t *get_current_window(ui_layout_t *layout) {
     return &layout->term.screen->window;
   }
 }
+
+#ifndef NO_SPLIT
 
 static u_int get_separator_x(ui_screen_t *screen, u_int sb_width, u_int percent /* < 100 */
                              ) {
@@ -389,6 +395,8 @@ static u_int get_separator_y(ui_screen_t *screen, u_int percent /* < 100 */
 
   return sep_y - (sep_y - fixed_height) % ui_line_height(screen);
 }
+
+#endif
 
 /*
  * callbacks of ui_window_t events.
@@ -1082,6 +1090,8 @@ static void destroy_term(struct terminal *term) {
   }
 }
 
+#ifndef NO_SPLIT
+
 static void destroy_screen_bg_pic(ui_screen_t *screen) {
   free(screen->pic_file_path);
   screen->pic_file_path = NULL;
@@ -1114,6 +1124,8 @@ static void restore_screen_bg_pic(ui_layout_t *layout) {
   layout->bg_pic = NULL;
   layout->term.screen->pic_mod = layout->pic_mod;
 }
+
+#endif
 
 /* --- global functions --- */
 
@@ -1269,13 +1281,17 @@ error:
 }
 
 void ui_layout_destroy(ui_layout_t *layout) {
+#ifndef NO_SPLIT
   if (layout->bg_pic) {
     destroy_layout_bg_pic(layout);
   }
+#endif
 
   destroy_term(&layout->term);
   free(layout);
 }
+
+#ifndef NO_SPLIT
 
 int ui_layout_add_child(ui_layout_t *layout, ui_screen_t *screen, int horizontal,
                         const char *sep_str /* "XX%" or "XX" */
@@ -1739,3 +1755,5 @@ int ui_layout_resize(ui_layout_t *layout, ui_screen_t *screen, int horizontal,
 
   return 1;
 }
+
+#endif /* NO_SPLIT */

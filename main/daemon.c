@@ -2,7 +2,7 @@
 
 #include "daemon.h"
 
-#ifndef USE_WIN32API
+#if !defined(USE_WIN32API) && !defined(NO_DAEMON)
 
 #include <stdio.h>
 #include <string.h> /* memset/memcpy */

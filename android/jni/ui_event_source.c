@@ -324,6 +324,22 @@ int ui_event_source_add_fd(int fd, void (*handler)(void)) { return 0; }
 
 void ui_event_source_remove_fd(int fd) {}
 
+/* Called from ui_display.c (APP_CMD_RESUME) */
+void ui_activity_resume(void) {
+  vt_term_t *term;
+  if ((term = get_current_term())) {
+    ui_window_set_mapped_flag(ui_get_root_window(UIWINDOW_OF(term)), 1);
+  }
+}
+
+/* Called from ui_display.c (APP_CMD_PAUSE) */
+void ui_activity_pause(void) {
+  vt_term_t *term;
+  if ((term = get_current_term())) {
+    ui_window_set_mapped_flag(ui_get_root_window(UIWINDOW_OF(term)), 0);
+  }
+}
+
 void Java_mlterm_native_1activity_MLActivity_visibleFrameChanged(JNIEnv *env, jobject this,
                                                                  jint yoffset, jint width,
                                                                  jint height) {
@@ -397,20 +413,6 @@ void Java_mlterm_native_1activity_MLActivity_execCommand(JNIEnv *env, jobject th
     }
 
     (*env)->ReleaseStringUTFChars(env, jcmd, cmd);
-  }
-}
-
-void Java_mlterm_native_1activity_MLActivity_resumeNative(JNIEnv *env, jobject this) {
-  vt_term_t *term;
-  if ((term = get_current_term())) {
-    ui_window_set_mapped_flag(ui_get_root_window(UIWINDOW_OF(term)), 1);
-  }
-}
-
-void Java_mlterm_native_1activity_MLActivity_pauseNative(JNIEnv *env, jobject this) {
-  vt_term_t *term;
-  if ((term = get_current_term())) {
-    ui_window_set_mapped_flag(ui_get_root_window(UIWINDOW_OF(term)), 0);
   }
 }
 

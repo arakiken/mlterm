@@ -165,6 +165,21 @@ int main_loop_init(int argc, char **argv) {
 #ifdef USE_BRLAPI
                " brlapi"
 #endif
+#ifdef NO_DAEMON
+               " no-daemon"
+#endif
+#ifdef NO_SPLIT
+               " no-split"
+#endif
+#ifdef NO_IMAGE
+               " no-image"
+#endif
+#ifdef NO_ZMODEM
+               " no-zmodem"
+#endif
+#ifdef DISABLE_XDND
+               " no-xdnd"
+#endif
   );
 
   if ((conf = bl_conf_new()) == NULL) {

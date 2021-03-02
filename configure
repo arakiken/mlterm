@@ -635,6 +635,10 @@ LTLIBOBJS
 LIBOBJS
 MAKE_DIRS
 PTHREAD_LIB
+TRANSFER_LIBS
+TRANSFER_CFLAGS
+SPLIT_CFLAGS
+DAEMON_CFLAGS
 BRLAPI_CFLAGS
 BRLAPI_LIBS
 CTL_LIBS_FOR_PROG
@@ -959,6 +963,9 @@ enable_vt52
 enable_optimize_redrawing
 enable_ind
 enable_brlapi
+enable_daemon
+enable_split
+enable_zmodem
 enable_utmp_suid
 enable_pty_helper
 with_map_table
@@ -1684,6 +1691,9 @@ Optional Features:
   --enable-optimize-redrawing optimize redrawing a line [default=disabled]
   --disable-ind           libind [default=enabled]
   --enable-brlapi         libbrlapi [default=disabled]
+  --disable-daemon        daemon mode [default=enabled]
+  --disable-split         split screen [default=enabled]
+  --disable-zmodem        zmodem [default=enabled]
   --enable-utmp-suid      install mlterm with SUID or SGID for utmp [default=disabled]
   --enable-pty-helper     use pty helper [default=disabled]
   --disable-dl-table      dynamic loading table [default=enable]
@@ -22840,6 +22850,45 @@ if test "$brlapi" = "yes" ; then
 	if test "$host_os" != "haiku"; then
 		INSTALL_OPT="-m 4755 -o root"
 	fi
+fi
+
+
+
+# Check whether --enable-daemon was given.
+if test "${enable_daemon+set}" = set; then :
+  enableval=$enable_daemon; daemon=$enable_daemon
+else
+  daemon="yes"
+fi
+
+if test "$daemon" = "no" ; then
+	DAEMON_CFLAGS="-DNO_DAEMON"
+fi
+
+
+# Check whether --enable-split was given.
+if test "${enable_split+set}" = set; then :
+  enableval=$enable_split; split=$enable_split
+else
+  split="yes"
+fi
+
+if test "$split" = "no" ; then
+	SPLIT_CFLAGS="-DNO_SPLIT"
+fi
+
+
+# Check whether --enable-zmodem was given.
+if test "${enable_zmodem+set}" = set; then :
+  enableval=$enable_zmodem; zmodem=$enable_zmodem
+else
+  zmodem="yes"
+fi
+
+if test "$zmodem" = "no" ; then
+	TRANSFER_CFLAGS="-DNO_ZMODEM"
+else
+	TRANSFER_LIBS="libzmodem.la"
 fi
 
 

@@ -60,8 +60,6 @@ public class MLActivity extends NativeActivity {
                                       String pass, String cmd, String privkey);
   private native void updateScreen();
   private native void execCommand(String cmd);
-  private native void resumeNative();
-  private native void pauseNative();
   private native boolean isSSH();
 
   private String keyString;
@@ -245,7 +243,7 @@ public class MLActivity extends NativeActivity {
 
     needRedraw = true;
 
-    pauseNative();
+    /* See APP_CMD_PAUSE in ui_display.c */
   }
 
   @Override
@@ -264,7 +262,7 @@ public class MLActivity extends NativeActivity {
       needRedraw = false;
     }
 
-    resumeNative();
+    /* See APP_CMD_RESUME in ui_display.c */
   }
 
   @Override

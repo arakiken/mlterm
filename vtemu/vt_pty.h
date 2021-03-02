@@ -150,13 +150,14 @@ void vt_pty_ssh_set_use_auto_reconnect(int flag);
 void vt_pty_ssh_set_pty_read_trigger(void (*func)(void));
 #endif
 
-#endif
+#endif /* USE_MOSH */
 
 int vt_pty_mosh_set_use_loopback(vt_pty_t *pty, int use);
 
 #ifdef USE_WIN32API
 void vt_pty_mosh_set_pty_read_trigger(void (*func)(void));
 #endif
-#endif
+
+#endif /* USE_LIBSSH2 */
 
 #endif

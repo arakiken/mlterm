@@ -1731,6 +1731,33 @@ fi
 AC_SUBST(BRLAPI_LIBS)
 AC_SUBST(BRLAPI_CFLAGS)
 
+AC_ARG_ENABLE(daemon,
+	[  --disable-daemon        daemon mode @<:@default=enabled@:>@],
+	daemon=$enable_daemon, daemon="yes")
+if test "$daemon" = "no" ; then
+	DAEMON_CFLAGS="-DNO_DAEMON"
+fi
+AC_SUBST(DAEMON_CFLAGS)
+
+AC_ARG_ENABLE(split,
+	[  --disable-split         split screen @<:@default=enabled@:>@],
+	split=$enable_split, split="yes")
+if test "$split" = "no" ; then
+	SPLIT_CFLAGS="-DNO_SPLIT"
+fi
+AC_SUBST(SPLIT_CFLAGS)
+
+AC_ARG_ENABLE(zmodem,
+	[  --disable-zmodem        zmodem @<:@default=enabled@:>@],
+	zmodem=$enable_zmodem, zmodem="yes")
+if test "$zmodem" = "no" ; then
+	TRANSFER_CFLAGS="-DNO_ZMODEM"
+else
+	TRANSFER_LIBS="libzmodem.la"
+fi
+AC_SUBST(TRANSFER_CFLAGS)
+AC_SUBST(TRANSFER_LIBS)
+
 AC_SUBST(PTHREAD_LIB)
 
 AC_SUBST(MAKE_DIRS)

@@ -5,7 +5,7 @@
 
 #include <pobl/bl_def.h> /* USE_WIN32API */
 
-#ifndef USE_WIN32API
+#if !defined(USE_WIN32API) && !defined(NO_DAEMON)
 
 int daemon_init(void);
 

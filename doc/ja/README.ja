@@ -172,6 +172,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       Unicode の文字プロパティテーブルを組み込みません。
       この場合、結合文字等を扱えなくなります。
 
+    --with-iconv
+      文字変換に iconv を使用します。
+
     --with-gui=(xlib|win32|fb|quartz|console|wayland|sdl2)
       GUI ライブラリとして xlib / win32 / fb / quartz / console / wayland / sdl2
       / beos のいずれを使用するか指定します。
@@ -324,6 +327,16 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
     --with-utmp=(utempter|sysv|login|bsd|none)
       utmp を読み書きする方法を指定します。
+
+    --disable-daemon
+      daemon mode を無効にします。
+
+    --disable-split
+      画面分割を無効にします。
+      (MacOSX/Cocoa や HaikuOS では、無効にできません。)
+
+    --disable-zmodem
+      zmodem によるファイル転送を無効にします。
 
     --disable-shared
       共有ライブラリを構築しません。
