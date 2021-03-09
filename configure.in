@@ -302,17 +302,21 @@ AC_SUBST(DEXPORT)
 AC_ARG_WITH(gtk,
 	[  --with-gtk@<:@=ARG@:>@        gtk+ version (2.0|3.0)],
 	gtk_version=$with_gtk)
-if test "$gtk_version" = "" ; then
-	gtk_version=3.0
-fi
-PKG_CHECK_MODULES(GTK, gtk+-$gtk_version, have_gtk=yes, have_gtk=no)
-if test "$have_gtk" != "yes"; then
-	if test "$gtk_version" = "3.0"; then
-		gtk_version=2.0
-	else
+if test "$gtk_version" = "no" ; then
+	have_gtk=no
+else
+	if test "$gtk_version" = "" ; then
 		gtk_version=3.0
 	fi
 	PKG_CHECK_MODULES(GTK, gtk+-$gtk_version, have_gtk=yes, have_gtk=no)
+	if test "$have_gtk" != "yes"; then
+		if test "$gtk_version" = "3.0"; then
+			gtk_version=2.0
+		else
+			gtk_version=3.0
+		fi
+		PKG_CHECK_MODULES(GTK, gtk+-$gtk_version, have_gtk=yes, have_gtk=no)
+	fi
 fi
 
 AC_SUBST(GTK_CFLAGS)

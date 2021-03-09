@@ -16928,9 +16928,12 @@ if test "${with_gtk+set}" = set; then :
   withval=$with_gtk; gtk_version=$with_gtk
 fi
 
-if test "$gtk_version" = "" ; then
-	gtk_version=3.0
-fi
+if test "$gtk_version" = "no" ; then
+	have_gtk=no
+else
+	if test "$gtk_version" = "" ; then
+		gtk_version=3.0
+	fi
 
 
 
@@ -17122,12 +17125,12 @@ else
 $as_echo "yes" >&6; }
 	have_gtk=yes
 fi
-if test "$have_gtk" != "yes"; then
-	if test "$gtk_version" = "3.0"; then
-		gtk_version=2.0
-	else
-		gtk_version=3.0
-	fi
+	if test "$have_gtk" != "yes"; then
+		if test "$gtk_version" = "3.0"; then
+			gtk_version=2.0
+		else
+			gtk_version=3.0
+		fi
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for GTK" >&5
@@ -17199,6 +17202,7 @@ else
 $as_echo "yes" >&6; }
 	have_gtk=yes
 fi
+	fi
 fi
 
 

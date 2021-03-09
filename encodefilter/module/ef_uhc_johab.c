@@ -2,14 +2,54 @@
 
 #include "../src/ef_ko_kr_map.h"
 
+#ifdef USE_ICONV
+
+#include "ef_iconv.h"
+
+#else
+
 #include "table/ef_johab_to_uhc.table"
 #include "table/ef_uhc_to_johab.table"
+
+#endif
 
 #if 0
 #define SELF_TEST
 #endif
 
 /* --- global functions --- */
+
+#ifdef USE_ICONV
+
+int ef_map_johab_to_uhc(ef_char_t *uhc, ef_char_t *johab) {
+  static iconv_t cd;
+
+  ICONV_OPEN(cd, "UHC", "JOHAB");
+
+  ICONV(cd, johab->ch, 2, uhc->ch, 2);
+
+  uhc->size = 2;
+  uhc->cs = UHC;
+  uhc->property = 0;
+
+  return 1;
+}
+
+int ef_map_uhc_to_johab(ef_char_t *johab, ef_char_t *uhc) {
+  static iconv_t cd;
+
+  ICONV_OPEN(cd, "JOHAB", "UHC");
+
+  ICONV(cd, uhc->ch, 2, johab->ch, 2);
+
+  johab->size = 2;
+  johab->cs = UHC;
+  johab->property = 0;
+
+  return 1;
+}
+
+#else
 
 int ef_map_johab_to_uhc(ef_char_t *uhc, ef_char_t *johab) {
   u_int16_t johab_code;
@@ -45,41 +85,4 @@ int ef_map_uhc_to_johab(ef_char_t *johab, ef_char_t *uhc) {
   return 0;
 }
 
-#ifdef SELF_TEST
-int main(void) {
-  ef_char_t src;
-  ef_char_t dst;
-
-  src.size = 2;
-  src.cs = JOHAB;
-  for (src.ch[0] = 0x80; src.ch[0] <= 0xdf; src.ch[0]++) {
-    int i;
-    for (i = 0; i < 0xff; i++) {
-      src.ch[1] = i;
-
-      if (!ef_map_johab_to_uhc(&dst, &src)) {
-        dst.ch[0] = '\0';
-        dst.ch[1] = '\0';
-      }
-
-      printf("JOHAB %.2x%.2x => UHC %.2x%.2x\n", src.ch[0], src.ch[1], dst.ch[0], dst.ch[1]);
-    }
-  }
-
-  src.cs = UHC;
-  for (src.ch[0] = 0xb0; src.ch[0] <= 0xc8; src.ch[0]++) {
-    int i;
-    for (i = 0; i < 0xff; i++) {
-      src.ch[1] = i;
-      src.cs = JOHAB;
-
-      if (!ef_map_uhc_to_johab(&dst, &src)) {
-        dst.ch[0] = '\0';
-        dst.ch[1] = '\0';
-      }
-
-      printf("UHC %.2x%.2x => JOHAB %.2x%.2x\n", src.ch[0], src.ch[1], dst.ch[0], dst.ch[1]);
-    }
-  }
-}
 #endif

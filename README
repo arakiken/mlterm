@@ -25,6 +25,7 @@ Options for configure
 
   --with-iconv
     Use iconv to convert between different character sets.
+    (If --with-iconv is specified, --disable-dl-table is the default.)
 
   --with-gui=(xlib|win32|fb|quartz|console|wayland|sdl2|beos)
     Use specified gui library

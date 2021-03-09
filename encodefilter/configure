@@ -11526,7 +11526,13 @@ fi
 if test "${enable_dl_table+set}" = set; then :
   enableval=$enable_dl_table; dl_table=$enable_dl_table
 else
-  dl_table="yes"
+
+		if test "$iconv" = "yes"; then
+			dl_table="no"
+		else
+			dl_table="yes"
+		fi
+
 fi
 
 if test "$dl_table" = "no" ; then

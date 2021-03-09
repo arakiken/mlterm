@@ -174,6 +174,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
     --with-iconv
       文字変換に iconv を使用します。
+      (--with-iconv を指定した場合、--disable-dl-table がデフォルトとなります。)
 
     --with-gui=(xlib|win32|fb|quartz|console|wayland|sdl2)
       GUI ライブラリとして xlib / win32 / fb / quartz / console / wayland / sdl2

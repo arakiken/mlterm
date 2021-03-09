@@ -1,3 +1,20 @@
+2021-03-08  Araki Ken  <arakiken@users.sf.net>
+
+	* README, README.ja: Updated.
+
+	* encodefilter/test.c:
+	  - TEST_MAP() -> TEST_MAP_UCS4()
+	  - OUTPUT() -> OUTPUT_UCS4()
+	  - TEST_MAP_NON_UCS4() and OUTPUT_NON_UCS4() macros are added.
+
+	* ef_uhc_johab.c: If USE_ICONV macro is defined, ef_map_johab_to_uhc()
+	  and ef_map_uhc_to_johab() use iconv().
+
+	* encodefilter/configure.in: If --with-iconv is specified, --disable-dl-table
+	  is also specified automatically.
+
+	* configure.in: --without-gtk options disables mlconfig etc which use gtk+.
+
 2021-03-02  Araki Ken  <arakiken@users.sf.net>
 
 	* README, README.ja: Updated.
