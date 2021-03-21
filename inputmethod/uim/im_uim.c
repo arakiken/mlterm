@@ -393,7 +393,8 @@ static void helper_disconnected(void) {
 
 static void prop_list_update(void *p, const char *str) {
   im_uim_t *uim = NULL;
-  char buf[BUFSIZ];
+  const char format[] = "prop_list_update\ncharset=%s\n%s";
+  char *buf;
   int len;
 
 #ifdef IM_UIM_DEBUG
@@ -406,22 +407,18 @@ static void prop_list_update(void *p, const char *str) {
     return;
   }
 
-#define PROP_LIST_FORMAT "prop_list_update\ncharset=%s\n%s"
+  len = sizeof(format) - 5 /* %s %s \0 */ + strlen(uim->encoding_name) + strlen(str) + 1;
 
-  len = strlen(PROP_LIST_FORMAT) + strlen(uim->encoding_name) + strlen(str) + 1;
-
-  if (len > sizeof(buf)) {
-#ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " property list string is too long.");
-#endif
+  /* len can be quite long (over 20kb) */
+  if ((buf = malloc(len)) == NULL) {
     return;
   }
 
-  bl_snprintf(buf, sizeof(buf), PROP_LIST_FORMAT, uim->encoding_name, str);
+  bl_snprintf(buf, len, format, uim->encoding_name, str);
 
   uim_helper_send_message(helper_fd, buf);
 
-#undef PROP_LIST_FORMAT
+  free(buf);
 }
 
 static void prop_label_update(void *p, const char *str) {
