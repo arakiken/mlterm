@@ -1344,6 +1344,7 @@ static void unload_xfont(XFontStruct *xfont) {
 static int use_fontconfig;
 static double dpi_for_fc;
 static FcPattern *compl_pattern;
+static int init_compl_pattern;
 static char **fc_files;
 static u_int num_fc_files;
 static FcCharSet **fc_charsets;
@@ -1623,34 +1624,6 @@ static FcPattern *parse_font_name(const char *fontname, int *is_bold, int *is_it
 
     if (compl_pattern == NULL && match) {
       num_fc_files = strip_pattern((compl_pattern = pattern), match);
-
-      /*
-       * XXX
-       * FcFontList() is not used.
-       * If you want to match complementary fonts, add <match target="pattern">...</match>
-       * to ~/.fonts.conf
-       */
-#if 0
-      {
-        FcPattern *pat = FcPatternCreate();
-        FcObjectSet *objset = FcObjectSetBuild(FC_FAMILY, NULL);
-        FcFontSet *fontset = FcFontList(NULL, pat, objset);
-        FcValue val;
-        int count;
-
-        for (count = 0; count < fontset->nfont; count++) {
-          FcPatternGet(fontset->fonts[count], FC_FAMILY, 0, &val);
-
-          if (!is_same_family(compl_pattern, val.u.s)) {
-            FcPatternAdd(compl_pattern, FC_FAMILY, val, FcTrue /* append */);
-            num_fc_files++;
-#if 0
-            bl_debug_printf("Add Font List %s [%]\n", val.u.s);
-#endif
-          }
-        }
-      }
-#endif
     } else {
       FcPatternDestroy(pattern);
     }
@@ -1714,6 +1687,39 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
   if (!compl_pattern) {
     return NULL;
   }
+
+  if (!init_compl_pattern) {
+    /*
+     * XXX
+     * If you want to match complementary fonts without using FcFontList(),
+     * add <match target="pattern">...</match> to ~/.fonts.conf
+     */
+#if 1
+    FcPattern *pat = FcPatternCreate();
+    FcObjectSet *objset = FcObjectSetBuild(FC_FAMILY, NULL);
+    FcFontSet *fontset = FcFontList(NULL, pat, objset);
+    FcValue val;
+    int count2;
+
+    FcPatternDestroy(pat);
+    FcObjectSetDestroy(objset);
+
+    for (count2 = 0; count2 < fontset->nfont; count2++) {
+      FcPatternGet(fontset->fonts[count2], FC_FAMILY, 0, &val);
+
+      if (!is_same_family(compl_pattern, val.u.s)) {
+        FcPatternAdd(compl_pattern, FC_FAMILY, val, FcTrue /* append */);
+        num_fc_files++;
+#if 0
+        bl_debug_printf("Add Font List %s [%]\n", val.u.s);
+#endif
+      }
+    }
+
+    FcFontSetDestroy(fontset);
+    init_compl_pattern = 1;
+  }
+#endif
 
   if (!fc_files) {
     if (!(fc_files = calloc(num_fc_files, sizeof(*fc_charsets) + sizeof(*fc_files)))) {

@@ -86,6 +86,9 @@ typedef struct ui_font {
   int8_t is_vertical;
   int8_t double_draw_gap;
   int8_t size_attr;
+#if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
+  int8_t init_pattern_for_compl;
+#endif
 
 } ui_font_t;
 

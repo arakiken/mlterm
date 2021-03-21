@@ -425,7 +425,7 @@ static cairo_scaled_font_t *cairo_font_open_intern(cairo_t *cairo, FcPattern *ma
                                                    cairo_font_options_t *options) {
   cairo_font_face_t *font_face;
   double pixel_size;
-  int pixel_size2;
+  double pixel_size2;
   cairo_matrix_t font_matrix;
   cairo_matrix_t ctm;
   cairo_scaled_font_t *scaled_font;
@@ -467,6 +467,7 @@ static cairo_scaled_font_t *cairo_font_open(ui_font_t *font, char *family, /* ca
   cairo_scaled_font_t *xfont;
   FcCharSet *charset;
   ef_charset_t cs;
+  double size2;
 
   if (!(pattern = fc_pattern_create(family, size, encoding, weight, slant, ch_width, aa_opt))) {
     return NULL;
@@ -503,11 +504,31 @@ static cairo_scaled_font_t *cairo_font_open(ui_font_t *font, char *family, /* ca
   /* Supply default values for underspecified options */
   FcDefaultSubstitute(pattern);
 
+  if (strcmp(fc_size_type, FC_SIZE) == 0) {
+    FcPatternGetDouble(pattern, FC_PIXEL_SIZE, 0, &size);
+  }
+
   if (!(match = FcFontMatch(NULL, pattern, &result))) {
     cairo_destroy(cairo);
     cairo_font_options_destroy(options);
 
     goto error1;
+  }
+
+  FcPatternGetDouble(match, FC_PIXEL_SIZE, 0, &size2);
+  if (size2 < size * 0.9 || size * 1.1 < size2) {
+#ifdef DEBUG
+    /*
+     * Color emoji fonts such as NotoColorEmoji ignore FC_PIXEL_SIZE or FC_SIZE
+     * which is set before FcFontMatch().
+     * cairo_font_open_intern() uses FC_PIXEL_SIZE to determine glyph size, so
+     * it is necessary to replace it here to show color emoji glyphs correctly.
+     * (Without this replacement, the size of color emoji glyphs gets too large.)
+     */
+    bl_debug_printf(BL_DEBUG_TAG "Replace FC_PIXEL_SIZE: %f -> %f\n", size2, size);
+#endif
+    FcPatternDel(match, FC_PIXEL_SIZE);
+    FcPatternAddDouble(match, FC_PIXEL_SIZE, size);
   }
 
   cs = FONT_CS(font->id);
@@ -781,7 +802,7 @@ static int cairo_compl_font_open(ui_font_t *font, int num_compl_fonts, FcPattern
 
 #ifdef DEBUG
     FcPatternGet(match, FC_FAMILY, 0, &val);
-    bl_debug_printf("Fall back to \"%s\" font.\n", val.u.s);
+    bl_debug_printf("Use \"%s\" for U+%x.\n", val.u.s, ch);
 #if 0
     FcPatternPrint(match);
 #endif
@@ -1324,6 +1345,34 @@ int ui_search_next_cairo_font(ui_font_t *font, int ch) {
       return count;
     }
   }
+
+  /*
+   * XXX
+   * If you want to match complementary fonts without using FcFontList(),
+   * add <match target="pattern">...</match> to ~/.fonts.conf
+   */
+#if 1
+  if (count == 0 && !font->init_pattern_for_compl) {
+    FcPattern *pat = FcPatternCreate();
+    FcObjectSet *objset = FcObjectSetBuild(FC_FAMILY, NULL);
+    FcFontSet *fontset = FcFontList(NULL, pat, objset);
+    FcValue val;
+    int count2;
+
+    FcPatternDestroy(pat);
+    FcObjectSetDestroy(objset);
+
+    for (count2 = 0; count2 < fontset->nfont; count2++) {
+      FcPatternGet(fontset->fonts[count2], FC_FAMILY, 0, &val);
+      if (!is_same_family(font->pattern, val.u.s)) {
+        FcPatternAdd(font->pattern, FC_FAMILY, val, FcTrue /* append */);
+      }
+    }
+
+    FcFontSetDestroy(fontset);
+    font->init_pattern_for_compl = 1;
+  }
+#endif
 
   if (cairo_compl_font_open(font, count + 1, font->pattern, ch)) {
     return count;

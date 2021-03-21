@@ -1,5 +1,11 @@
 2021-03-21  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/ui_font.c, libtype/ui_font_ft.c, ui_font.h:
+	  - get_ft_bitmap() and ui_serach_next_cairo_font() checks all fonts
+	    listed by FcFontList().
+	  - cairo_font_open() adjusts the size of color emoji fonts like
+	    NotoColorEmoji.ttf in opening them.
+
 	* im_uim.c: prop_list_update() uses malloc() instead of BUFSIZE.
 
 2021-03-08  Araki Ken  <arakiken@users.sf.net>

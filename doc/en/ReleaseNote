@@ -13,6 +13,7 @@
 * Bug fixes:
   Fix failure of restarting mlterm on Android. (Enbugged at 3.9.1)
   Fix segfault if mlterm screen with -t option goes outside of the display.
+  Fix emoji glyphs not becoming too large with cairo.
 
 ver 3.9.1
 * Support copy mode which starts by Control+Shift+Return.
