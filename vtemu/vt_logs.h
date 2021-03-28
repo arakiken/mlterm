@@ -28,7 +28,7 @@ int vt_change_log_size(vt_logs_t *logs, u_int num_rows);
 
 #define vt_log_size_is_unlimited(logs) ((logs)->unlimited)
 
-int vt_log_add(vt_logs_t *logs, vt_line_t *line);
+int vt_log_add(vt_logs_t *logs, vt_line_t *line, u_int num_chars);
 
 vt_line_t *vt_log_get(vt_logs_t *logs, int at);
 

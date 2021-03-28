@@ -8,7 +8,7 @@
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>  /* malloc/free */
 #include <pobl/bl_str.h>  /* strdup */
-#include <pobl/bl_util.h> /* BL_MIN */
+#include <pobl/bl_util.h> /* BL_MIN, BL_MAX */
 
 #include "vt_char_encoding.h"
 #include "vt_str_parser.h"
@@ -76,6 +76,7 @@ static int is_word_separator(vt_char_t *ch) {
  */
 static void receive_scrolled_out_line(void *p, vt_line_t *line) {
   vt_screen_t *screen;
+  u_int logical_num_filled_chars;
 
   screen = p;
 
@@ -90,6 +91,8 @@ static void receive_scrolled_out_line(void *p, vt_line_t *line) {
     (*screen->screen_listener->line_scrolled_out)(screen->screen_listener->self);
   }
 
+  logical_num_filled_chars = line->num_filled_chars;
+
   if (screen->logvis) {
     (*screen->logvis->visual_line)(screen->logvis, line);
   } else {
@@ -97,7 +100,7 @@ static void receive_scrolled_out_line(void *p, vt_line_t *line) {
         vt_line_get_num_filled_chars_except_sp_with_func(line, vt_char_equal);
   }
 
-  vt_log_add(&screen->logs, line);
+  vt_log_add(&screen->logs, line, BL_MAX(line->num_filled_chars, logical_num_filled_chars));
 
 /* XXX see vt_line_iscii_visual() */
 #if 1
@@ -952,7 +955,9 @@ static int resize(vt_screen_t *screen, u_int cols /* > 0 */, u_int rows /* > 0 *
 
   switch(vt_edit_resize(&screen->normal_edit, cols, rows)) {
   case 2: /* RZ_WRAP */
-    screen->need_rewrap_logs = 1;
+    if (vt_get_num_logged_lines(&screen->logs) > 0) {
+      screen->need_rewrap_logs = 1;
+    }
     break;
 
   case 3: /* RZ_SCROLL */
@@ -1060,8 +1065,10 @@ static int rewrap_logs(vt_screen_t *screen) {
     if (!vt_line_is_continued_to_next(line)) {
       wrap_ncols = vt_str_cols(line->chars, vt_line_get_num_filled_chars_except_sp(line));
       if (wrap_ncols <= num_cols) {
+        u_int logical_num_filled_chars = line->num_filled_chars;
+
         vt_line_ctl_visual(line);
-        vt_log_add(&new_logs, line);
+        vt_log_add(&new_logs, line, BL_MAX(line->num_filled_chars, logical_num_filled_chars));
 
         continue;
       }
@@ -1128,6 +1135,7 @@ static int rewrap_logs(vt_screen_t *screen) {
     while (1) {
       u_int c;
       u_int n;
+      u_int logical_num_filled_chars;
 
       if (cols + num_cols > wrap_ncols) {
         c = wrap_ncols - cols;
@@ -1137,7 +1145,11 @@ static int rewrap_logs(vt_screen_t *screen) {
       n = vt_str_cols_to_len(wrap_chars + len, &c);
 
       vt_line_overwrite(&new_line, 0, wrap_chars + len, n, c);
+
+      logical_num_filled_chars = new_line.num_filled_chars;
+
       if (screen->logvis) {
+        /* ctl_visual_line() calls not only vt_line_ctl_visual() but also ctl_render_line(). */
         (*screen->logvis->visual_line)(screen->logvis, &new_line);
       }
 
@@ -1146,10 +1158,12 @@ static int rewrap_logs(vt_screen_t *screen) {
 
       if (cols < wrap_ncols) {
         vt_line_set_continued_to_next(&new_line, 1);
-        vt_log_add(&new_logs, &new_line);
+        vt_log_add(&new_logs, &new_line,
+                   BL_MAX(new_line.num_filled_chars, logical_num_filled_chars));
         vt_line_reset(&new_line);
       } else {
-        vt_log_add(&new_logs, &new_line);
+        vt_log_add(&new_logs, &new_line,
+                   BL_MAX(new_line.num_filled_chars, logical_num_filled_chars));
         vt_line_final(&new_line);
         break;
       }

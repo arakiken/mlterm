@@ -203,6 +203,7 @@ int vt_line_bidi_visual(vt_line_t *line) {
 int vt_line_bidi_logical(vt_line_t *line) {
   int count;
   vt_char_t *src;
+  u_int orig_num_filled_chars;
   u_int num;
   vt_char_t *comb;
   int prev = -1;
@@ -215,11 +216,16 @@ int vt_line_bidi_logical(vt_line_t *line) {
     return 0;
   }
 
-  if ((src = vt_str_alloca(line->ctl_info.bidi->size)) == NULL) {
+  /*
+   * line->num_filled_chars can be less than libe->ctl_info.bidi->size.
+   * (See vt_line_bidi_visual())
+   */
+  if ((src = vt_str_alloca(line->num_filled_chars)) == NULL) {
     return 0;
   }
-  vt_str_init(src, line->ctl_info.bidi->size);
-  vt_str_copy(src, line->chars, line->ctl_info.bidi->size);
+  orig_num_filled_chars = line->num_filled_chars;
+  vt_str_init(src, orig_num_filled_chars);
+  vt_str_copy(src, line->chars, orig_num_filled_chars);
 
   for (count = 0; count < line->ctl_info.bidi->size; count++) {
     int vis_pos = line->ctl_info.bidi->visual_order[count];
@@ -254,7 +260,7 @@ int vt_line_bidi_logical(vt_line_t *line) {
   }
 #endif
 
-  vt_str_final(src, line->ctl_info.bidi->size);
+  vt_str_final(src, orig_num_filled_chars);
 
   /*
    * !! Notice !!

@@ -456,6 +456,26 @@ static cairo_scaled_font_t *cairo_font_open_intern(cairo_t *cairo, FcPattern *ma
   return scaled_font;
 }
 
+static void check_pixel_size(FcPattern *match, double orig_size) {
+  double size;
+
+  FcPatternGetDouble(match, FC_PIXEL_SIZE, 0, &size);
+  if (size < orig_size * 0.9 || orig_size * 1.1 < size) {
+#ifdef DEBUG
+    /*
+     * Color emoji fonts such as NotoColorEmoji ignore FC_PIXEL_SIZE or FC_SIZE
+     * which is set before FcFontMatch().
+     * cairo_font_open_intern() uses FC_PIXEL_SIZE to determine glyph size, so
+     * it is necessary to replace it here to show color emoji glyphs correctly.
+     * (Without this replacement, the size of color emoji glyphs gets too large.)
+     */
+    bl_debug_printf(BL_DEBUG_TAG "Replace FC_PIXEL_SIZE: %f -> %f\n", size, orig_size);
+#endif
+    FcPatternDel(match, FC_PIXEL_SIZE);
+    FcPatternAddDouble(match, FC_PIXEL_SIZE, orig_size);
+  }
+}
+
 static cairo_scaled_font_t *cairo_font_open(ui_font_t *font, char *family, /* can be NULL */
                                             double size, char *encoding,   /* can be NULL */
                                             int weight, int slant, int ch_width, int aa_opt) {
@@ -467,7 +487,6 @@ static cairo_scaled_font_t *cairo_font_open(ui_font_t *font, char *family, /* ca
   cairo_scaled_font_t *xfont;
   FcCharSet *charset;
   ef_charset_t cs;
-  double size2;
 
   if (!(pattern = fc_pattern_create(family, size, encoding, weight, slant, ch_width, aa_opt))) {
     return NULL;
@@ -515,21 +534,7 @@ static cairo_scaled_font_t *cairo_font_open(ui_font_t *font, char *family, /* ca
     goto error1;
   }
 
-  FcPatternGetDouble(match, FC_PIXEL_SIZE, 0, &size2);
-  if (size2 < size * 0.9 || size * 1.1 < size2) {
-#ifdef DEBUG
-    /*
-     * Color emoji fonts such as NotoColorEmoji ignore FC_PIXEL_SIZE or FC_SIZE
-     * which is set before FcFontMatch().
-     * cairo_font_open_intern() uses FC_PIXEL_SIZE to determine glyph size, so
-     * it is necessary to replace it here to show color emoji glyphs correctly.
-     * (Without this replacement, the size of color emoji glyphs gets too large.)
-     */
-    bl_debug_printf(BL_DEBUG_TAG "Replace FC_PIXEL_SIZE: %f -> %f\n", size2, size);
-#endif
-    FcPatternDel(match, FC_PIXEL_SIZE);
-    FcPatternAddDouble(match, FC_PIXEL_SIZE, size);
-  }
+  check_pixel_size(match, size);
 
   cs = FONT_CS(font->id);
 
@@ -737,6 +742,7 @@ static int cairo_compl_font_open(ui_font_t *font, int num_compl_fonts, FcPattern
   FcCharSet *charset;
   int count;
   int ret = 0;
+  double orig_size;
 
   if (!(pattern = FcPatternDuplicate(orig_pattern))) {
     return 0;
@@ -745,6 +751,8 @@ static int cairo_compl_font_open(ui_font_t *font, int num_compl_fonts, FcPattern
 #if 0
   FcPatternPrint(orig_pattern);
 #endif
+
+  FcPatternGetDouble(orig_pattern, FC_PIXEL_SIZE, 0, &orig_size);
 
   for (count = 0; FcPatternGet(pattern, FC_FAMILY, 0, &val) == FcResultMatch; count++) {
     void *p;
@@ -799,6 +807,8 @@ static int cairo_compl_font_open(ui_font_t *font, int num_compl_fonts, FcPattern
     } else {
       break;
     }
+
+    check_pixel_size(match, orig_size);
 
 #ifdef DEBUG
     FcPatternGet(match, FC_FAMILY, 0, &val);

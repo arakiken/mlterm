@@ -5,7 +5,6 @@
 #include <string.h>      /* memmove/memset */
 #include <pobl/bl_mem.h> /* malloc */
 #include <pobl/bl_debug.h>
-#include <pobl/bl_util.h>
 #ifdef DEBUG
 #include <stdlib.h> /* abort */
 #endif
@@ -202,7 +201,8 @@ int vt_change_log_size(vt_logs_t *logs, u_int new_num_rows) {
   return 1;
 }
 
-int vt_log_add(vt_logs_t *logs, vt_line_t *line) {
+/* num_chars should be greater than 0 for now. (See following #if 0 #endif) */
+int vt_log_add(vt_logs_t *logs, vt_line_t *line, u_int num_chars) {
   int at;
 
   if (logs->num_rows == 0) {
@@ -219,14 +219,20 @@ int vt_log_add(vt_logs_t *logs, vt_line_t *line) {
 
   at = bl_next_cycle_index(logs->index);
 
+#if 0
+  if (num_chars == 0) {
+    num_chars = line->num_filled_chars;
+  }
+#endif
+
 #ifdef __DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " %d len line logged to index %d.\n", line->num_filled_chars, at);
+  bl_debug_printf(BL_DEBUG_TAG " %d len line logged to index %d.\n", num_chars, at);
 #endif
 
   vt_line_final(&logs->lines[at]);
 
   /* logs->lines[at] becomes completely the same one as line */
-  vt_line_clone(&logs->lines[at], line, line->num_filled_chars);
+  vt_line_clone(&logs->lines[at], line, num_chars);
 
   vt_line_set_updated(&logs->lines[at]);
 

@@ -1,3 +1,17 @@
+2021-03-28  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_screen.c: BL_MAX(line->num_filled_chars, logical_num_filled_chars)
+	  is passed to vt_log_add().
+
+	* vt_logs.[ch]: 'u_int num_chars' is added to arguments of vt_log_add().
+
+	* vt_line_bidi.c: The allocated memory size of 'src' is changed from
+	  line->ctl_info.bidi->size to line->num_filled_chars in
+	  vt_line_bidi_logical() because the former can be greater than the latter.
+
+	* ui_font_ft.c: check_pixel_size() which is moved from cairo_font_open()
+	  is added, and cairo_compl_font_open() also calls it.
+
 2021-03-21  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/ui_font.c, libtype/ui_font_ft.c, ui_font.h:
