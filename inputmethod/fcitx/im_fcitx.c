@@ -1,8 +1,18 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #include <stdio.h>
+
+#ifdef USE_FCITX5
+#include <fcitx-gclient/fcitxgclient.h>
+/* Don't include <fcitx-utils/macros.h> which includes cpp headers. */
+#define _FCITX_UTILS_MACROS_H_
+#define FCITX_C_DECL_BEGIN
+#define FCITX_C_DECL_END
+#include <fcitx-utils/keysymgen.h>
+#else
 #include <fcitx/frontend.h>
 #include <fcitx-gclient/fcitxclient.h>
+#endif
 
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h>
@@ -13,6 +23,32 @@
 #include "../im_info.h"
 
 #define FCITX_ID -3
+
+#ifdef USE_FCITX5
+#define FcitxClient FcitxGClient
+#define FcitxPreeditItem FcitxGPreeditItem
+
+#define fcitx_client_focus_in(client) fcitx_g_client_focus_in(client)
+#define fcitx_client_focus_out(client) fcitx_g_client_focus_out(client)
+#define fcitx_client_process_key_sync fcitx_g_client_process_key_sync
+#define fcitx_client_set_capacity(client, flag) fcitx_g_client_set_capability(client, flag)
+#define fcitx_client_set_cursor_rect fcitx_g_client_set_cursor_rect
+#define fcitx_client_close_ic(client)
+#define fcitx_client_enable_ic(client)
+
+/* See fcitx-utils/keysym.h */
+#define FcitxKeyState_IgnoredMask (1 << 25)
+
+/* The 5th argument of fcitx_g_client_process_key_sync() is 'isRelease' */
+#define FCITX_PRESS_KEY (0)
+#define FCITX_RELEASE_KEY (1)
+
+/* See fcitx-utils/capabilityflags.h */
+#define CAPACITY_CLIENT_SIDE_UI (1ull << 39) //(1 << 0)
+#define CAPACITY_PREEDIT (1 << 1)
+#define CAPACITY_CLIENT_SIDE_CONTROL_STATE (1 << 2)
+#define CAPACITY_FORMATTED_PREEDIT (1 << 4)
+#endif
 
 #if 0
 #define IM_FCITX_DEBUG 1
@@ -67,6 +103,8 @@ static int mod_key_debug = 0;
 #endif
 
 /* --- static functions --- */
+
+static void connection_handler(void) { g_main_context_iteration(g_main_context_default(), FALSE); }
 
 /*
  * methods of ui_im_t
@@ -222,6 +260,11 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
     state = event->state;
   }
 
+#ifdef USE_FCITX5
+  if (!fcitx_g_client_is_valid(fcitx->client)) {
+    connection_handler();
+  } else
+#endif
   if (event->state & FcitxKeyState_IgnoredMask) {
     /* Is put back in forward_key_event */
     event->state &= ~FcitxKeyState_IgnoredMask;
@@ -280,11 +323,26 @@ static void focused(ui_im_t *im) {
 
   fcitx = (im_fcitx_t*)im;
 
-  fcitx_client_focus_in(fcitx->client);
+#ifdef USE_FCITX5
+  if (!fcitx_g_client_is_valid(fcitx->client)) {
+    connection_handler();
+  } else
+#endif
+  {
+    fcitx_client_focus_in(fcitx->client);
+  }
 
+#ifdef USE_IM_CANDIDATE_SCREEN
+#ifdef USE_FCITX5
+  if (fcitx->im.cand_screen) {
+    (*fcitx->im.cand_screen->show)(fcitx->im.cand_screen);
+  }
+#else
   if (fcitx->im.stat_screen) {
     (*fcitx->im.stat_screen->show)(fcitx->im.stat_screen);
   }
+#endif
+#endif
 }
 
 static void unfocused(ui_im_t *im) {
@@ -292,17 +350,36 @@ static void unfocused(ui_im_t *im) {
 
   fcitx = (im_fcitx_t*)im;
 
-  fcitx_client_focus_out(fcitx->client);
+#ifdef USE_FCITX5
+  if (!fcitx_g_client_is_valid(fcitx->client)) {
+    connection_handler();
+  } else
+#endif
+  {
+    fcitx_client_focus_out(fcitx->client);
+  }
 
+#ifdef USE_IM_CANDIDATE_SCREEN
+#ifdef USE_FCITX5
+  if (fcitx->im.cand_screen) {
+    (*fcitx->im.cand_screen->hide)(fcitx->im.cand_screen);
+  }
+#else
   if (fcitx->im.stat_screen) {
     (*fcitx->im.stat_screen->hide)(fcitx->im.stat_screen);
   }
+#endif
+#endif
 }
 
 static void connected(FcitxClient *client, void *data) {
   im_fcitx_t *fcitx;
   int x;
   int y;
+
+#if 1
+  bl_msg_printf("Connected to FCITX server\n");
+#endif
 
   fcitx = data;
 
@@ -330,6 +407,7 @@ static void connected(FcitxClient *client, void *data) {
 #endif
 }
 
+#ifndef USE_FCITX5
 static void disconnected(FcitxClient *client, void *data) {
   im_fcitx_t *fcitx;
 
@@ -348,6 +426,7 @@ static void enable_im(FcitxClient *client, void *data) {}
 #endif
 
 static void close_im(FcitxClient *client, void *data) { disconnected(client, data); }
+#endif
 
 static void commit_string(FcitxClient *client, char *str, void *data) {
   im_fcitx_t *fcitx;
@@ -372,10 +451,17 @@ static void commit_string(FcitxClient *client, char *str, void *data) {
   }
 
 #ifdef USE_IM_CANDIDATE_SCREEN
+#ifdef USE_FCITX5
+  if (fcitx->im.cand_screen) {
+    (*fcitx->im.cand_screen->destroy)(fcitx->im.cand_screen);
+    fcitx->im.cand_screen = NULL;
+  }
+#else
   if (fcitx->im.stat_screen) {
     (*fcitx->im.stat_screen->destroy)(fcitx->im.stat_screen);
     fcitx->im.stat_screen = NULL;
   }
+#endif
 #endif
 }
 
@@ -399,7 +485,252 @@ static void forward_key(FcitxClient *client, guint keyval, guint state, gint typ
   }
 }
 
+#if !defined(USE_IM_CANDIDATE_SCREEN) || defined(USE_FCITX5)
+
+static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int cursor_pos,
+                                     void *data) {
+  im_fcitx_t *fcitx;
+
+  fcitx = data;
+
+  if (list->len > 0) {
+    FcitxPreeditItem *item;
+    ef_char_t ch;
+    vt_char_t *p;
+    u_int num_chars;
+    guint count;
+
+    if (fcitx->im.preedit.filled_len == 0) {
+      /* Start preediting. */
+      int x;
+      int y;
+
+      if ((*fcitx->im.listener->get_spot)(fcitx->im.listener->self, NULL, 0, &x, &y)) {
+        u_int line_height;
+
+        line_height = (*fcitx->im.listener->get_line_height)(fcitx->im.listener->self);
+        fcitx_client_set_cursor_rect(fcitx->client, x, y - line_height, 0, line_height);
+      }
+    }
+
+    fcitx->im.preedit.cursor_offset = num_chars = 0;
+
+    for (count = 0; count < list->len; count++) {
+      size_t str_len;
+
+      item = g_ptr_array_index(list, count);
+
+      str_len = strlen(item->string);
+
+      if (cursor_pos >= 0 && (cursor_pos -= str_len) < 0) {
+        fcitx->im.preedit.cursor_offset = num_chars;
+      }
+
+      (*parser_utf8->init)(parser_utf8);
+      (*parser_utf8->set_str)(parser_utf8, item->string, str_len);
+
+      while ((*parser_utf8->next_char)(parser_utf8, &ch)) {
+        num_chars++;
+      }
+    }
+
+    if ((p = realloc(fcitx->im.preedit.chars, sizeof(vt_char_t) * num_chars)) == NULL) {
+      return;
+    }
+
+    (*syms->vt_str_init)(fcitx->im.preedit.chars = p,
+                         fcitx->im.preedit.num_chars = num_chars);
+    fcitx->im.preedit.filled_len = 0;
+
+    for (count = 0; count < list->len; count++) {
+      item = g_ptr_array_index(list, count);
+
+      (*parser_utf8->init)(parser_utf8);
+      (*parser_utf8->set_str)(parser_utf8, item->string, strlen(item->string));
+
+      while ((*parser_utf8->next_char)(parser_utf8, &ch)) {
+        int is_fullwidth = 0;
+        int is_comb = 0;
+        vt_color_t fg_color;
+        vt_color_t bg_color;
+
+        if (item->type != 0) {
+          fg_color = VT_BG_COLOR;
+          bg_color = VT_FG_COLOR;
+        } else {
+          fg_color = VT_FG_COLOR;
+          bg_color = VT_BG_COLOR;
+        }
+
+        if ((*syms->vt_convert_to_internal_ch)(fcitx->im.vtparser, &ch) <= 0) {
+          continue;
+        }
+
+        if (ch.property & EF_FULLWIDTH) {
+          is_fullwidth = 1;
+        } else if (ch.property & EF_AWIDTH) {
+          /* TODO: check col_size_of_width_a */
+          is_fullwidth = 1;
+        }
+
+        if (ch.property & EF_COMBINING) {
+          is_comb = 1;
+
+          if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth,
+                                       (ch.property & EF_AWIDTH) ? 1 : 0, is_comb,
+                                       fg_color, bg_color, 0, 0, LS_UNDERLINE_SINGLE, 0, 0)) {
+            continue;
+          }
+
+          /*
+           * if combining failed , char is normally appended.
+           */
+        }
+
+        (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth,
+                             (ch.property & EF_AWIDTH) ? 1 : 0, is_comb, fg_color,
+                             bg_color, 0, 0, LS_UNDERLINE_SINGLE, 0, 0);
+
+        p++;
+        fcitx->im.preedit.filled_len++;
+      }
+    }
+  } else {
 #ifdef USE_IM_CANDIDATE_SCREEN
+    /* Fcitx5 */
+    if (fcitx->im.cand_screen) {
+      (*fcitx->im.cand_screen->destroy)(fcitx->im.cand_screen);
+      fcitx->im.cand_screen = NULL;
+    }
+#endif
+
+    if (fcitx->im.preedit.filled_len == 0) {
+      return;
+    }
+
+    /* Stop preediting. */
+    fcitx->im.preedit.filled_len = 0;
+  }
+
+  (*fcitx->im.listener->draw_preedit_str)(fcitx->im.listener->self, fcitx->im.preedit.chars,
+                                          fcitx->im.preedit.filled_len,
+                                          fcitx->im.preedit.cursor_offset);
+}
+
+#endif
+
+#ifdef USE_IM_CANDIDATE_SCREEN
+#ifdef USE_FCITX5
+
+#ifdef IM_FCITX_DEBUG
+static void print_preedit(FcitxGPreeditItem *item) {
+  bl_msg_printf("%d:%s ", item->type, item->string);
+}
+
+static void print_candate(FcitxGCandidateItem *item) {
+  bl_msg_printf("%s:%s ", item->label, item->candidate);
+}
+#endif
+
+static void update_client_side_ui(FcitxClient *client, GPtrArray *preedit_strings,
+                                  int preedit_cursor_pos,
+                                  GPtrArray *aux_up_strings, GPtrArray *aux_down_strings,
+                                  GPtrArray *cand_list, int cand_cursor_pos, void *data) {
+  im_fcitx_t *fcitx;
+  u_int i;
+  int x;
+  int y;
+
+#if 0
+  fcitx = (im_fcitx_t*)data;
+#else
+  /* XXX I don't know why, but 'data' argument of update_client_side_ui() gets NULL. */
+  fcitx = g_object_get_data(G_OBJECT(client), "fcitx");
+#endif
+
+#ifdef IM_FCITX_DEBUG
+  for (int i = 0; i < preedit_strings->len; i++) {
+    print_preedit(g_ptr_array_index(preedit_strings, i));
+  }
+  bl_msg_printf("<= preedit\n");
+
+  for (int i = 0; i < aux_up_strings->len; i++) {
+    print_preedit(g_ptr_array_index(aux_up_strings, i));
+  }
+  bl_msg_printf("<= aux_up\n");
+
+  for (int i = 0; i < aux_down_strings->len; i++) {
+    print_preedit(g_ptr_array_index(aux_down_strings, i));
+  }
+  bl_msg_printf("<= aux_down\n");
+
+  for (int i = 0; i < cand_list->len; i++) {
+    print_candidate(g_ptr_array_index(cand_list, i));
+  }
+  bl_msg_printf("<= cand list\n");
+#endif
+
+  update_formatted_preedit(client, preedit_strings, preedit_cursor_pos, fcitx);
+
+  (*fcitx->im.listener->get_spot)(fcitx->im.listener->self, fcitx->im.preedit.chars,
+                                  fcitx->im.preedit.segment_offset, &x, &y);
+
+  if (cand_list->len == 0) {
+    if (fcitx->im.cand_screen) {
+      (*fcitx->im.cand_screen->destroy)(fcitx->im.cand_screen);
+      fcitx->im.cand_screen = NULL;
+    }
+
+    return;
+  }
+
+  if (fcitx->im.cand_screen == NULL) {
+    if (cand_cursor_pos == 0) {
+      return;
+    }
+
+    if (!(fcitx->im.cand_screen = (*syms->ui_im_candidate_screen_new)(
+              fcitx->im.disp, fcitx->im.font_man, fcitx->im.color_man, fcitx->im.vtparser,
+              (*fcitx->im.listener->is_vertical)(fcitx->im.listener->self), 1,
+              (*fcitx->im.listener->get_line_height)(fcitx->im.listener->self), x, y))) {
+#ifdef DEBUG
+      bl_warn_printf(BL_DEBUG_TAG " ui_im_candidate_screen_new() failed.\n");
+#endif
+
+      return;
+    }
+  } else {
+    (*fcitx->im.cand_screen->show)(fcitx->im.cand_screen);
+  }
+
+  if (!(*fcitx->im.cand_screen->init)(fcitx->im.cand_screen, cand_list->len, 10)) {
+    (*fcitx->im.cand_screen->destroy)(fcitx->im.cand_screen);
+    fcitx->im.cand_screen = NULL;
+
+    return;
+  }
+
+  (*fcitx->im.cand_screen->set_spot)(fcitx->im.cand_screen, x, y);
+
+  for (i = 0; i < cand_list->len; i++) {
+    u_char *str = ((FcitxGCandidateItem*)g_ptr_array_index(cand_list, i))->candidate;
+
+    if (fcitx->term_encoding != VT_UTF8) {
+      u_char *p;
+
+      if (im_convert_encoding(parser_utf8, fcitx->conv, str, &p, strlen(str) + 1)) {
+        (*fcitx->im.cand_screen->set)(fcitx->im.cand_screen, fcitx->parser_term, p, i);
+        free(p);
+      }
+    } else {
+      (*fcitx->im.cand_screen->set)(fcitx->im.cand_screen, fcitx->parser_term, str, i);
+    }
+  }
+
+  (*fcitx->im.cand_screen->select)(fcitx->im.cand_screen, cand_cursor_pos);
+}
+
+#else
 
 static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdown, char *preedit,
                                   char *candidateword, char *imname, int cursor_pos, void *data) {
@@ -579,133 +910,9 @@ static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdow
   }
 }
 
-#else
-
-static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int cursor_pos,
-                                     void *data) {
-  im_fcitx_t *fcitx;
-
-  fcitx = data;
-
-  if (list->len > 0) {
-    FcitxPreeditItem *item;
-    ef_char_t ch;
-    vt_char_t *p;
-    u_int num_chars;
-    guint count;
-
-    if (fcitx->im.preedit.filled_len == 0) {
-      /* Start preediting. */
-      int x;
-      int y;
-
-      if ((*fcitx->im.listener->get_spot)(fcitx->im.listener->self, NULL, 0, &x, &y)) {
-        u_int line_height;
-
-        line_height = (*fcitx->im.listener->get_line_height)(fcitx->im.listener->self);
-        fcitx_client_set_cursor_rect(fcitx->client, x, y - line_height, 0, line_height);
-      }
-    }
-
-    fcitx->im.preedit.cursor_offset = num_chars = 0;
-
-    for (count = 0; count < list->len; count++) {
-      size_t str_len;
-
-      item = g_ptr_array_index(list, count);
-
-      str_len = strlen(item->string);
-
-      if (cursor_pos >= 0 && (cursor_pos -= str_len) < 0) {
-        fcitx->im.preedit.cursor_offset = num_chars;
-      }
-
-      (*parser_utf8->init)(parser_utf8);
-      (*parser_utf8->set_str)(parser_utf8, item->string, str_len);
-
-      while ((*parser_utf8->next_char)(parser_utf8, &ch)) {
-        num_chars++;
-      }
-    }
-
-    if ((p = realloc(fcitx->im.preedit.chars, sizeof(vt_char_t) * num_chars)) == NULL) {
-      return;
-    }
-
-    (*syms->vt_str_init)(fcitx->im.preedit.chars = p,
-                         fcitx->im.preedit.num_chars = num_chars);
-    fcitx->im.preedit.filled_len = 0;
-
-    for (count = 0; count < list->len; count++) {
-      item = g_ptr_array_index(list, count);
-
-      (*parser_utf8->init)(parser_utf8);
-      (*parser_utf8->set_str)(parser_utf8, item->string, strlen(item->string));
-
-      while ((*parser_utf8->next_char)(parser_utf8, &ch)) {
-        int is_fullwidth = 0;
-        int is_comb = 0;
-        vt_color_t fg_color;
-        vt_color_t bg_color;
-
-        if (item->type != 0) {
-          fg_color = VT_BG_COLOR;
-          bg_color = VT_FG_COLOR;
-        } else {
-          fg_color = VT_FG_COLOR;
-          bg_color = VT_BG_COLOR;
-        }
-
-        if ((*syms->vt_convert_to_internal_ch)(fcitx->im.vtparser, &ch) <= 0) {
-          continue;
-        }
-
-        if (ch.property & EF_FULLWIDTH) {
-          is_fullwidth = 1;
-        } else if (ch.property & EF_AWIDTH) {
-          /* TODO: check col_size_of_width_a */
-          is_fullwidth = 1;
-        }
-
-        if (ch.property & EF_COMBINING) {
-          is_comb = 1;
-
-          if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth,
-                                       (ch.property & EF_AWIDTH) ? 1 : 0, is_comb,
-                                       fg_color, bg_color, 0, 0, LS_UNDERLINE_SINGLE, 0, 0)) {
-            continue;
-          }
-
-          /*
-           * if combining failed , char is normally appended.
-           */
-        }
-
-        (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth,
-                             (ch.property & EF_AWIDTH) ? 1 : 0, is_comb, fg_color,
-                             bg_color, 0, 0, LS_UNDERLINE_SINGLE, 0, 0);
-
-        p++;
-        fcitx->im.preedit.filled_len++;
-      }
-    }
-  } else {
-    if (fcitx->im.preedit.filled_len == 0) {
-      return;
-    }
-
-    /* Stop preediting. */
-    fcitx->im.preedit.filled_len = 0;
-  }
-
-  (*fcitx->im.listener->draw_preedit_str)(fcitx->im.listener->self, fcitx->im.preedit.chars,
-                                          fcitx->im.preedit.filled_len,
-                                          fcitx->im.preedit.cursor_offset);
-}
-
+#endif
 #endif
 
-static void connection_handler(void) { g_main_context_iteration(g_main_context_default(), FALSE); }
 
 /* --- global functions --- */
 
@@ -741,21 +948,55 @@ ui_im_t *im_fcitx_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     return NULL;
   }
 
+#ifdef USE_FCITX5
+#if 0
+  {
+    FcitxGWatcher *watcher;
+
+    watcher = fcitx_g_watcher_new();
+    fcitx_g_watcher_set_watch_portal(watcher, TRUE);
+    fcitx_g_watcher_watch(watcher);
+    g_object_ref_sink(watcher);
+
+    if (!(fcitx->client = fcitx_g_client_new_with_watcher(watcher))) {
+      goto error;
+    }
+  }
+#else
+  if (!(fcitx->client = fcitx_g_client_new())) {
+    goto error;
+  }
+#endif
+
+  fcitx_g_client_set_program(fcitx->client, "mlterm");
+#if 0
+  fcitx_g_client_set_display(fcitx->client, "x11:");
+#endif
+#else
   if (!(fcitx->client = fcitx_client_new())) {
     goto error;
   }
+#endif
 
   g_signal_connect(fcitx->client, "connected", G_CALLBACK(connected), fcitx);
+#ifndef USE_FCITX5
   g_signal_connect(fcitx->client, "disconnected", G_CALLBACK(disconnected), fcitx);
+#endif
 #if 0
   g_signal_connect(fcitx->client, "enable-im", G_CALLBACK(enable_im), fcitx);
 #endif
+#ifndef USE_FCITX5
   g_signal_connect(fcitx->client, "close-im", G_CALLBACK(close_im), fcitx);
+#endif
   g_signal_connect(fcitx->client, "forward-key", G_CALLBACK(forward_key), fcitx);
   g_signal_connect(fcitx->client, "commit-string", G_CALLBACK(commit_string), fcitx);
 #ifdef USE_IM_CANDIDATE_SCREEN
   g_signal_connect(fcitx->client, "update-client-side-ui", G_CALLBACK(update_client_side_ui),
                    fcitx);
+#ifdef USE_FCITX5
+  /* XXX I don't know why, but 'data' argument of update_client_side_ui() gets NULL. */
+  g_object_set_data(G_OBJECT(fcitx->client), "fcitx", fcitx);
+#endif
 #else
   g_signal_connect(fcitx->client, "update-formatted-preedit", G_CALLBACK(update_formatted_preedit),
                    fcitx);
@@ -796,6 +1037,11 @@ ui_im_t *im_fcitx_new(u_int64_t magic, vt_char_encoding_t term_encoding,
 
 #ifdef IM_FCITX_DEBUG
   bl_debug_printf("New object was created. ref_count is %d.\n", ref_count);
+#endif
+
+#ifdef USE_FCITX5
+  /* I don't know why, but connected() is not called without this. */
+  usleep(100000);
 #endif
 
   return (ui_im_t*)fcitx;

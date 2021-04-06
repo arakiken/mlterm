@@ -1,3 +1,4 @@
+* Support Fcitx5.
 * Add "MOSH_UDP_PORT" environmental variable to specify UDP port or port-range
   to communicate with a mosh server.
 * Add --with-iconv, --disable-daemon, --disable-split and --disable-zmodem

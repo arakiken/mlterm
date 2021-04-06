@@ -1396,7 +1396,22 @@ if test "$enable_shared" = "no" -o "$gui" = "quartz" ; then
 fi
 
 if test "x$fcitx" != "xno" ; then
-	PKG_CHECK_MODULES(FCITX, fcitx-gclient, has_fcitx=yes, has_fcitx=no)
+	PKG_CHECK_MODULES(FCITX, Fcitx5GClient, has_fcitx=yes, has_fcitx=no)
+	if test "x$has_fcitx" = xyes ; then
+		PKG_CHECK_MODULES(FCITXUTILS, Fcitx5Utils, has_fcitx=yes, has_fcitx=no)
+	fi
+
+	fcitx_result="fcitx"
+	if test "x$has_fcitx" = xno ; then
+		PKG_CHECK_MODULES(FCITX, fcitx-gclient, has_fcitx=yes, has_fcitx=no)
+	else
+		FCITX_CFLAGS="$FCITX_CFLAGS $FCITXUTILS_CFLAGS -DUSE_FCITX5"
+		# 'pkg-config Fcitx5GClient --libs' doesn't output -lFcitx5GClient
+		# (fcitx5-gtk-5.0.6 on archlinux)
+		FCITX_LIBS="$FCITX_LIBS -lFcitx5GClient"
+		fcitx_result="fcitx5"
+	fi
+
 	if test "x$has_fcitx" = xyes ; then
 		MAKE_DIRS="inputmethod/fcitx ${MAKE_DIRS}"
 		OUTPUT_FILES="inputmethod/fcitx/Makefile ${OUTPUT_FILES}"
@@ -1412,7 +1427,7 @@ if test "x$fcitx" != "xno" ; then
 				;;
 			esac
 		fi
-		input_methods_result="$input_methods_result fcitx"
+		input_methods_result="$input_methods_result $fcitx_result"
 	fi
 fi
 AC_SUBST(FCITX_CFLAGS)

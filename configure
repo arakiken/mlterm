@@ -663,6 +663,8 @@ CANNA_LIBS
 CANNA_CFLAGS
 SCIM_LIBS
 SCIM_CFLAGS
+FCITXUTILS_LIBS
+FCITXUTILS_CFLAGS
 FCITX_LIBS
 FCITX_CFLAGS
 IBUS_LIBS
@@ -1032,6 +1034,8 @@ IBUS_CFLAGS
 IBUS_LIBS
 FCITX_CFLAGS
 FCITX_LIBS
+FCITXUTILS_CFLAGS
+FCITXUTILS_LIBS
 SCIM_CFLAGS
 SCIM_LIBS'
 ac_subdirs_all='${SUBDIRS}'
@@ -1801,6 +1805,10 @@ Some influential environment variables:
   FCITX_CFLAGS
               C compiler flags for FCITX, overriding pkg-config
   FCITX_LIBS  linker flags for FCITX, overriding pkg-config
+  FCITXUTILS_CFLAGS
+              C compiler flags for FCITXUTILS, overriding pkg-config
+  FCITXUTILS_LIBS
+              linker flags for FCITXUTILS, overriding pkg-config
   SCIM_CFLAGS C compiler flags for SCIM, overriding pkg-config
   SCIM_LIBS   linker flags for SCIM, overriding pkg-config
 
@@ -22306,6 +22314,153 @@ if test -n "$FCITX_CFLAGS"; then
     pkg_cv_FCITX_CFLAGS="$FCITX_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"Fcitx5GClient\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "Fcitx5GClient") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_FCITX_CFLAGS=`$PKG_CONFIG --cflags "Fcitx5GClient" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$FCITX_LIBS"; then
+    pkg_cv_FCITX_LIBS="$FCITX_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"Fcitx5GClient\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "Fcitx5GClient") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_FCITX_LIBS=`$PKG_CONFIG --libs "Fcitx5GClient" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        FCITX_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "Fcitx5GClient" 2>&1`
+        else
+	        FCITX_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "Fcitx5GClient" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$FCITX_PKG_ERRORS" >&5
+
+	has_fcitx=no
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	has_fcitx=no
+else
+	FCITX_CFLAGS=$pkg_cv_FCITX_CFLAGS
+	FCITX_LIBS=$pkg_cv_FCITX_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	has_fcitx=yes
+fi
+	if test "x$has_fcitx" = xyes ; then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for FCITXUTILS" >&5
+$as_echo_n "checking for FCITXUTILS... " >&6; }
+
+if test -n "$FCITXUTILS_CFLAGS"; then
+    pkg_cv_FCITXUTILS_CFLAGS="$FCITXUTILS_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"Fcitx5Utils\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "Fcitx5Utils") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_FCITXUTILS_CFLAGS=`$PKG_CONFIG --cflags "Fcitx5Utils" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$FCITXUTILS_LIBS"; then
+    pkg_cv_FCITXUTILS_LIBS="$FCITXUTILS_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"Fcitx5Utils\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "Fcitx5Utils") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_FCITXUTILS_LIBS=`$PKG_CONFIG --libs "Fcitx5Utils" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        FCITXUTILS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "Fcitx5Utils" 2>&1`
+        else
+	        FCITXUTILS_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "Fcitx5Utils" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$FCITXUTILS_PKG_ERRORS" >&5
+
+	has_fcitx=no
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	has_fcitx=no
+else
+	FCITXUTILS_CFLAGS=$pkg_cv_FCITXUTILS_CFLAGS
+	FCITXUTILS_LIBS=$pkg_cv_FCITXUTILS_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	has_fcitx=yes
+fi
+	fi
+
+	fcitx_result="fcitx"
+	if test "x$has_fcitx" = xno ; then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for FCITX" >&5
+$as_echo_n "checking for FCITX... " >&6; }
+
+if test -n "$FCITX_CFLAGS"; then
+    pkg_cv_FCITX_CFLAGS="$FCITX_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"fcitx-gclient\""; } >&5
   ($PKG_CONFIG --exists --print-errors "fcitx-gclient") 2>&5
   ac_status=$?
@@ -22368,6 +22523,14 @@ else
 $as_echo "yes" >&6; }
 	has_fcitx=yes
 fi
+	else
+		FCITX_CFLAGS="$FCITX_CFLAGS $FCITXUTILS_CFLAGS -DUSE_FCITX5"
+		# 'pkg-config Fcitx5GClient --libs' doesn't output -lFcitx5GClient
+		# (fcitx5-gtk-5.0.6 on archlinux)
+		FCITX_LIBS="$FCITX_LIBS -lFcitx5GClient"
+		fcitx_result="fcitx5"
+	fi
+
 	if test "x$has_fcitx" = xyes ; then
 		MAKE_DIRS="inputmethod/fcitx ${MAKE_DIRS}"
 		OUTPUT_FILES="inputmethod/fcitx/Makefile ${OUTPUT_FILES}"
@@ -22383,7 +22546,7 @@ fi
 				;;
 			esac
 		fi
-		input_methods_result="$input_methods_result fcitx"
+		input_methods_result="$input_methods_result $fcitx_result"
 	fi
 fi
 

@@ -283,7 +283,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
     --disable-fcitx
       Fcitx を無効にします。
-      fcitx-gclient が必要です。
+      Fcitx を有効にする場合、fcitx-gclient (Fcitx5GClient) が必要です。
 
     --disable-canna
       Canna を無効にします。

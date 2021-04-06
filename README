@@ -137,6 +137,7 @@ Options for configure
 
   --disable-fcitx
     Disable Fcitx
+    If Fcitx is enabled, fcitx-gclient or Fcitx5GClient is necessary.
 
   --disable-canna
     Disable Canna

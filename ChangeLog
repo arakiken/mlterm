@@ -1,3 +1,9 @@
+2021-04-06  Araki Ken  <arakiken@users.sf.net>
+
+	* README, README.ja: Updated.
+
+	* im_fcitx.c, configure.in: fcitx5 is supported.
+
 2021-03-28  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_screen.c: BL_MAX(line->num_filled_chars, logical_num_filled_chars)
