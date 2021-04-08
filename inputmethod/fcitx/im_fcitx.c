@@ -2,13 +2,19 @@
 
 #include <stdio.h>
 
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_SDL2)
+#define NO_XKB
+#endif
+
 #ifdef USE_FCITX5
 #include <fcitx-gclient/fcitxgclient.h>
+#ifdef NO_XKB
 /* Don't include <fcitx-utils/macros.h> which includes cpp headers. */
 #define _FCITX_UTILS_MACROS_H_
 #define FCITX_C_DECL_BEGIN
 #define FCITX_C_DECL_END
 #include <fcitx-utils/keysymgen.h>
+#endif
 #else
 #include <fcitx/frontend.h>
 #include <fcitx-gclient/fcitxclient.h>
@@ -61,10 +67,6 @@
 #if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND) || defined(USE_SDL2)
 #define KeyPress 2 /* see uitoolkit/fb/ui_display.h */
 #define USE_IM_CANDIDATE_SCREEN
-#endif
-
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_SDL2)
-#define NO_XKB
 #endif
 
 /* When fcitx encoding is the same as terminal, conv is NULL. */

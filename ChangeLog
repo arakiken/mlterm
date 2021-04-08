@@ -1,3 +1,7 @@
+2021-04-09  Araki Ken  <arakiken@users.sf.net>
+
+	* im_fcitx.c: fcitx-utils/keysymgen.h is included only if NO_XKB is defined.
+
 2021-04-06  Araki Ken  <arakiken@users.sf.net>
 
 	* README, README.ja: Updated.
