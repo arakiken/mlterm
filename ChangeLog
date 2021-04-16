@@ -1,3 +1,15 @@
+2021-04-16  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_font_cache.[ch]:
+	  - ui_compose_dec_special_font() is added.
+	  - ui_font_cache_get_font() creates a dynamic font for DEC special
+	    characters if compose_dec_special_font option is true or
+	    ui_font_new() fails.
+
+	* */ui_font.c:
+	  - ui_compose_dec_special_font() is removed.
+	  - ui_font_new_for_decsp() (dummy on beos, quartz and win32) is added.
+
 2021-04-09  Araki Ken  <arakiken@users.sf.net>
 
 	* im_fcitx.c: fcitx-utils/keysymgen.h is included only if NO_XKB is defined.

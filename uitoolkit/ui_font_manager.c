@@ -204,7 +204,9 @@ ui_font_manager_t *ui_font_manager_new(Display *display, ui_type_engine_t type_e
       }
     }
 
+#if !defined(USE_FREETYPE) || !defined(USE_FONTCONFIG)
     bl_msg_printf("Fall back to %s.\n", ui_get_type_engine_name(engine));
+#endif
   }
 
   if (max_font_size - min_font_size >= step_in_changing_font_size) {

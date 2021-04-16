@@ -391,14 +391,11 @@ static u_int calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs
 
 /* --- global functions --- */
 
-void ui_compose_dec_special_font(void) {
-  /* Do nothing for now in win32. */
-}
-
 ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
                        ui_font_present_t font_present, const char *fontname, u_int fontsize,
                        u_int col_width, int use_medium_for_bold, int letter_space) {
   ui_font_t *font;
+  ef_charset_t cs;
   u_int cols;
   wincs_info_t *wincsinfo;
   char *font_family;
@@ -410,6 +407,8 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   int height;
   double fontsize_d;
   u_int percent;
+
+  cs = FONT_CS(id);
 
   if (type_engine != TYPE_XCORE ||
       (font = calloc(1, sizeof(ui_font_t) + sizeof(XFontStruct))) == NULL) {
@@ -431,7 +430,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     cols = 1;
   }
 
-  if (IS_ISCII(FONT_CS(font->id)) || FONT_CS(font->id) == ISO10646_UCS4_1_V) {
+  if (IS_ISCII(cs) || cs == ISO10646_UCS4_1_V) {
     /*
      * For exampe, 'W' width and 'l' width of OR-TTSarala font for ISCII_ORIYA
      * are the same by chance, though it is actually a proportional font.
@@ -445,9 +444,9 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     font->is_vertical = 1;
   }
 
-  if ((wincsinfo = get_wincs_info(FONT_CS(font->id))) == NULL) {
+  if ((wincsinfo = get_wincs_info(cs)) == NULL) {
 #ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " charset(0x%.2x) is not supported.\n", FONT_CS(font->id));
+    bl_warn_printf(BL_DEBUG_TAG " charset(0x%.2x) is not supported.\n", cs);
 #endif
 
     free(font);
@@ -490,7 +489,8 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   percent = 0;
   fontsize_d = (double)fontsize;
 
-  if (FONT_CS(font->id) == DEC_SPECIAL) {
+  if (cs == DEC_SPECIAL) {
+    /* Forcibly use "Tera Special" even if DEFAULT or DEC_SPECIAL font is specified. */
     font_family = "Tera Special";
   } else if (fontname) {
     char *p;
@@ -707,7 +707,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   font->size_attr = size_attr;
 
   if (wincsinfo->cs != ANSI_CHARSET && wincsinfo->cs != SYMBOL_CHARSET &&
-      !IS_ISO10646_UCS4(FONT_CS(font->id))) {
+      !IS_ISO10646_UCS4(cs)) {
     if (!(font->xfont->conv = vt_char_encoding_conv_new(wincsinfo->encoding))) {
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG " vt_char_encoding_conv_new(font id %x) failed.\n", font->id);
@@ -720,6 +720,11 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   }
 
   return font;
+}
+
+ui_font_t *ui_font_new_for_decsp(Display *display, vt_font_t id, u_int width, u_int height,
+                                 u_int ascent) {
+  return NULL;
 }
 
 void ui_font_destroy(ui_font_t *font) {

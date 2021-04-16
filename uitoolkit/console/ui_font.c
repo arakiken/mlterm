@@ -32,10 +32,6 @@
 
 /* --- global functions --- */
 
-void ui_compose_dec_special_font(void) {
-  /* Do nothing for now in console. */
-}
-
 ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
                        ui_font_present_t font_present, const char *fontname, u_int fontsize,
                        u_int col_width, int use_medium_for_bold, int letter_space /* ignored */) {
@@ -183,6 +179,11 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 #endif
 
   return font;
+}
+
+ui_font_t *ui_font_new_for_decsp(Display *display, vt_font_t id, u_int width, u_int height,
+                                 u_int ascent) {
+  return NULL;
 }
 
 void ui_font_destroy(ui_font_t *font) {

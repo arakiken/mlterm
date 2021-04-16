@@ -27,8 +27,10 @@ typedef struct _cairo_scaled_font *cairo_scaled_font_ptr_t;
 typedef struct _FcCharSet *fc_charset_ptr_t;
 typedef struct _FcPattern *fc_pattern_ptr_t;
 
+#ifdef USE_XLIB
 /* defined in xlib/ui_decsp_font.h */
 typedef struct ui_decsp_font *ui_decsp_font_ptr_t;
+#endif
 
 typedef struct ui_font {
   /*
@@ -57,7 +59,9 @@ typedef struct ui_font {
   XFontStruct *xfont;
 #endif
 
+#ifdef USE_XLIB
   ui_decsp_font_ptr_t decsp_font;
+#endif
 
 #ifdef USE_OT_LAYOUT
   /* ot_font == NULL and use_ot_layout == true is possible in ISO10646_UCS4_1_V
@@ -92,8 +96,6 @@ typedef struct ui_font {
 
 } ui_font_t;
 
-void ui_compose_dec_special_font(void);
-
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
 void ui_font_use_fontconfig(void);
 #endif
@@ -101,6 +103,9 @@ void ui_font_use_fontconfig(void);
 ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
                        ui_font_present_t font_present, const char *fontname, u_int fontsize,
                        u_int col_width, int use_medium_for_bold, int letter_space);
+
+ui_font_t *ui_font_new_for_decsp(Display *display, vt_font_t id, u_int width, u_int height,
+                                 u_int ascent);
 
 void ui_font_destroy(ui_font_t *font);
 

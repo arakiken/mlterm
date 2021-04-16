@@ -1758,11 +1758,7 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
       }
 
       if (!fc_files[count]) {
-        num_fc_files --;
-        if (fc_charsets[count]) {
-          FcCharSetDestroy(fc_charsets[count]);
-        }
-        continue;
+        goto skip;
       }
     }
 
@@ -1772,8 +1768,9 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
       if (!xfont->compl_xfonts[count]) {
         if (!(compl = get_cached_xfont(fc_files[count], xfont->format, xfont->is_aa))) {
           if (!(compl = calloc(1, sizeof(XFontStruct)))) {
-            continue;
+            goto skip;
           }
+
           /*
            * XXX
            * If xfont->height is 17 and compl->height is 15, garbage is left in drawing glyphs
@@ -1781,14 +1778,18 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
            * force_height (xfont->height) forcibly changes the height of the font from natural one
            * to the same one as xfont->height.
            */
-          else if (!load_ft(compl, fc_files[count], xfont->format, xfont->is_aa,
+          if (!load_ft(compl, fc_files[count], xfont->format, xfont->is_aa,
                             xfont->height, xfont->ascent)) {
             free(compl);
-            continue;
+
+            goto skip;
           }
 
           if (!add_xfont_to_cache(compl)) {
-            continue;
+            unload_ft(compl);
+            free(compl);
+
+            goto skip;
           }
         }
 
@@ -1817,6 +1818,16 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
     }
 
     count++;
+
+    continue;
+
+  skip:
+    num_fc_files --;
+    if (fc_charsets[count]) {
+      FcCharSetDestroy(fc_charsets[count]);
+    }
+    free(fc_files[count]);
+    fc_files[count] = NULL;
   }
 #endif
   return NULL;
@@ -1902,15 +1913,7 @@ static void xfont_unref(XFontStruct *xfont) {
   }
 }
 
-/* --- static variables --- */
-
-static int compose_dec_special_font;
-
 /* --- global functions --- */
-
-void ui_compose_dec_special_font(void) {
-  compose_dec_special_font = 1;
-}
 
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)
 void ui_font_use_fontconfig(void) { use_fontconfig = 1; }
@@ -1921,7 +1924,6 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
                        u_int col_width, int use_medium_for_bold, int letter_space) {
   ef_charset_t cs;
   char *font_file;
-  char *decsp_id = NULL;
   u_int percent;
   ui_font_t *font;
   vt_font_t orig_id = id;
@@ -1941,6 +1943,11 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     int is_italic;
     char *p;
 
+    if (cs == DEC_SPECIAL && (fontname == NULL || strcmp(fontname, "Tera Special") != 0)) {
+      /* Use ui_font_new_for_decsp() */
+      return NULL;
+    }
+
 #ifdef USE_WIN32API
     init_fontconfig();
 #endif
@@ -1957,20 +1964,21 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
     if ((font_file = alloca(strlen(val.u.s) + 1))) {
       strcpy(font_file, val.u.s);
-    }
 
-    /* For 'format = fontsize | (id & (FONT_BOLD | FONT_ITALIC))' below */
-    if ((p = strcasestr(font_file, "bold")) &&
-        strchr(p, '/') == NULL && strchr(p, '\\') == NULL) {
-      id &= ~FONT_BOLD; /* XXX e.g. Inconsolata-Bold.ttf => Don't call FT_Outline_Embolden(). */
-    } else if (is_bold) {
-      id |= FONT_BOLD;
-    }
-    if ((p = strcasestr(font_file, "italic")) &&
-        strchr(p, '/') == NULL && strchr(p, '\\') == NULL) {
-      id &= ~FONT_ITALIC; /* XXX */
-    } else if (is_italic) {
-      id |= FONT_ITALIC;
+      /* For 'format = fontsize | (id & (FONT_BOLD | FONT_ITALIC))' below */
+      if ((p = strcasestr(font_file, "bold")) &&
+          strchr(p, '/') == NULL && strchr(p, '\\') == NULL) {
+        id &= ~FONT_BOLD; /* XXX e.g. Inconsolata-Bold.ttf => Don't call FT_Outline_Embolden(). */
+      } else if (is_bold) {
+        id |= FONT_BOLD;
+      }
+
+      if ((p = strcasestr(font_file, "italic")) &&
+          strchr(p, '/') == NULL && strchr(p, '\\') == NULL) {
+        id &= ~FONT_ITALIC; /* XXX */
+      } else if (is_italic) {
+        id |= FONT_ITALIC;
+      }
     }
 
     FcPatternDestroy(pattern);
@@ -1982,9 +1990,8 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 #endif
 
     if (cs == DEC_SPECIAL) {
-      /* use ui_decsp_font_new() */
-      font_file = NULL;
-      percent = 0;
+      /* Use ui_font_new_for_decsp() */
+      return NULL;
     }
     /*
      * Default font on Androidis is ttf, so charsets except unicode and ISO88591 are available.
@@ -2103,10 +2110,9 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     }
   }
 
-  if (cs == DEC_SPECIAL && (compose_dec_special_font || font_file == NULL || !is_pcf(font_file))) {
-    if (!(decsp_id = alloca(6 + DIGIT_STR_LEN(u_int) + 1 + DIGIT_STR_LEN(u_int) + 1))) {
-      return NULL;
-    }
+  if (cs == DEC_SPECIAL && !is_pcf(font_file)) {
+    /* Use ui_font_new_for_decsp() */
+    return NULL;
   }
 
   if (type_engine != TYPE_XCORE || !(font = calloc(1, sizeof(ui_font_t)))) {
@@ -2132,10 +2138,6 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   }
 #endif
 
-  if (decsp_id) {
-    sprintf(decsp_id, "decsp-%dx%d", col_width, fontsize);
-  }
-
   if (!(font_present & FONT_NOAA) && display->bytes_per_pixel > 1) {
     is_aa = 1;
   } else {
@@ -2143,9 +2145,9 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
   }
 
 #ifdef USE_FREETYPE
-  if ((font->xfont = get_cached_xfont(decsp_id ? decsp_id : font_file, format, is_aa)))
+  if ((font->xfont = get_cached_xfont(font_file, format, is_aa)))
 #else
-  if ((font->xfont = get_cached_xfont(decsp_id ? decsp_id : font_file, 0, is_aa)))
+  if ((font->xfont = get_cached_xfont(font_file, 0, is_aa)))
 #endif
   {
     goto xfont_loaded;
@@ -2159,23 +2161,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
   font->display = display;
 
-  if (decsp_id) {
-    if (!ui_load_decsp_xfont(font->xfont, decsp_id)) {
-      compose_dec_special_font = 0;
-
-      free(font->xfont);
-      free(font);
-
-      if (size_attr >= DOUBLE_HEIGHT_TOP) {
-        fontsize /= 2;
-        col_width /= 2;
-      }
-
-      return ui_font_new(display, id, size_attr, type_engine, font_present,
-                         font_file, fontsize, col_width,
-                         use_medium_for_bold, letter_space);
-    }
-  } else if (!load_xfont(font->xfont, font_file, format, cs, is_aa)) {
+  if (!load_xfont(font->xfont, font_file, format, cs, is_aa)) {
     bl_msg_printf("Failed to load %s.\n", font_file);
 
     free(font->xfont);
@@ -2405,6 +2391,42 @@ xfont_loaded:
 #ifdef DEBUG
   ui_font_dump(font);
 #endif
+
+  return font;
+}
+
+ui_font_t *ui_font_new_for_decsp(Display *display, vt_font_t id, u_int width, u_int height,
+                                 u_int ascent) {
+  ui_font_t *font;
+
+  if ((font = calloc(1, sizeof(ui_font_t)))) {
+    char decsp_id[6 + DIGIT_STR_LEN(u_int) + 1 + DIGIT_STR_LEN(u_int) + 1];
+
+    sprintf(decsp_id, "decsp-%dx%d", width, height);
+
+    if ((font->xfont = get_cached_xfont(decsp_id, 0, 0))) {
+      goto found;
+    } else {
+      if ((font->xfont = calloc(1, sizeof(XFontStruct)))) {
+        if (ui_load_decsp_xfont(font->xfont, decsp_id) && add_xfont_to_cache(font->xfont)) {
+          goto found;
+        }
+
+        free(font->xfont);
+      }
+    }
+
+    free(font);
+  }
+
+  return NULL;
+
+found:
+  font->display = display;
+  font->id = id;
+  font->width = width;
+  font->height = height;
+  font->ascent = ascent;
 
   return font;
 }

@@ -134,7 +134,6 @@ static cs_info_t cs_info_table[] = {
   { CNS11643_1992_7, { "cns11643.1992-7", "cns11643.1992.7-0", }, },
 };
 
-static int compose_dec_special_font;
 static int use_point_size_for_fc;
 static double dpi_for_fc;
 
@@ -183,43 +182,6 @@ static void cairo_unset_font(ui_font_t *font) {
 #elif defined(USE_TYPE_CAIRO)
 void cairo_unset_font(ui_font_t *font);
 #endif
-
-static int set_decsp_font(ui_font_t *font) {
-/*
- * freeing font->xfont or font->xft_font
- */
-#if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
-  if (font->xft_font) {
-    xft_unset_font(font);
-  }
-#endif
-
-#if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
-  if (font->cairo_font) {
-    cairo_unset_font(font);
-  }
-#endif
-
-#if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
-  if (font->xfont) {
-    XFreeFont(font->display, font->xfont);
-    font->xfont = NULL;
-  }
-#endif
-
-  if ((font->decsp_font =
-           ui_decsp_font_new(font->display, font->width, font->height, font->ascent)) == NULL) {
-    return 0;
-  }
-
-  /* decsp_font is impossible to draw double with. */
-  font->double_draw_gap = 0;
-
-  /* decsp_font is always fixed pitch. */
-  font->is_proportional = 0;
-
-  return 1;
-}
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 
@@ -639,14 +601,6 @@ font_found:
     font->ascent = fontsize;
   }
 
-  /*
-   * set_decsp_font() is called after dummy font is loaded to get font metrics.
-   * Since dummy font encoding is "iso8859-1", loading rarely fails.
-   */
-  if (compose_dec_special_font && FONT_CS(font->id) == DEC_SPECIAL) {
-    return set_decsp_font(font);
-  }
-
   return 1;
 }
 
@@ -831,10 +785,6 @@ static u_int calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs
 
 /* --- global functions --- */
 
-void ui_compose_dec_special_font(void) {
-  compose_dec_special_font = 1;
-}
-
 ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_engine_t type_engine,
                        /* FONT_VAR_WIDTH is never set if FONT_VERTICAL is set. */
                        ui_font_present_t font_present,
@@ -879,7 +829,9 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
     case TYPE_XFT:
-      if (!xft_set_font(font, fontname, fontsize, col_width, letter_space,
+      if ((FONT_CS(id) == DEC_SPECIAL &&
+           (fontname == NULL || strcmp(fontname, "Tera Special") != 0)) ||
+          !xft_set_font(font, fontname, fontsize, col_width, letter_space,
                         (font_present & FONT_AA) == FONT_AA
                             ? 1
                             : ((font_present & FONT_NOAA) == FONT_NOAA ? -1 : 0),
@@ -894,7 +846,9 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
     case TYPE_CAIRO:
-      if (!cairo_set_font(font, fontname, fontsize, col_width, letter_space,
+      if ((FONT_CS(id) == DEC_SPECIAL &&
+           (fontname == NULL || strcmp(fontname, "Tera Special") != 0)) ||
+          !cairo_set_font(font, fontname, fontsize, col_width, letter_space,
                           (font_present & FONT_AA) == FONT_AA
                               ? 1
                               : ((font_present & FONT_NOAA) == FONT_NOAA ? -1 : 0),
@@ -910,6 +864,8 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
     case TYPE_XCORE:
       if (font_present & FONT_AA) {
+        free(font);
+
         return NULL;
       } else if (!xcore_set_font(font, fontname, fontsize, col_width, use_medium_for_bold,
                                  letter_space)) {
@@ -926,16 +882,6 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
 
       goto end;
 #endif
-  }
-
-  /*
-   * set_decsp_font() is called after dummy xft/cairo font is loaded to get font
-   * metrics.
-   * Since dummy font encoding is "iso8859-1", loading rarely fails.
-   */
-  /* XXX dec specials must always be composed for now */
-  if (/* compose_dec_special_font && */ FONT_CS(font->id) == DEC_SPECIAL) {
-    set_decsp_font(font);
   }
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
@@ -963,6 +909,27 @@ end:
 #endif
 
   return font;
+}
+
+ui_font_t *ui_font_new_for_decsp(Display *display, vt_font_t id, u_int width, u_int height,
+                                 u_int ascent) {
+  ui_font_t *font;
+
+  if ((font = calloc(1, sizeof(ui_font_t)))) {
+    if ((font->decsp_font = ui_decsp_font_new(display, width, height, ascent))) {
+      font->display = display;
+      font->id = id;
+      font->width = width;
+      font->height = height;
+      font->ascent = ascent;
+
+      return font;
+    }
+
+    free(font);
+  }
+
+  return NULL;
 }
 
 void ui_font_destroy(ui_font_t *font) {

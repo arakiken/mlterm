@@ -10,6 +10,7 @@
 static ui_font_cache_t **font_caches;
 static u_int num_caches;
 static int leftward_double_drawing;
+static int compose_dec_special_font;
 
 /* --- static functions --- */
 
@@ -106,6 +107,24 @@ static char *get_font_name_list_for_fontset(ui_font_cache_t *font_cache) {
 }
 #endif
 
+static ui_font_t *create_decsp_font_decsp(ui_font_t *usascii_font, vt_font_t font, int size_attr) {
+  u_int w = usascii_font->width;
+  u_int h = usascii_font->height;
+  u_int a = usascii_font->ascent;
+
+  if (size_attr) {
+    if (size_attr >= DOUBLE_HEIGHT_TOP) {
+      w *= 2;
+      h *= 2;
+      a *= 2;
+    } else {
+      w *= 2;
+    }
+  }
+
+  return ui_font_new_for_decsp(usascii_font->display, font, w, h, a);
+}
+
 /* --- global functions --- */
 
 void ui_set_use_leftward_double_drawing(int use) {
@@ -114,6 +133,10 @@ void ui_set_use_leftward_double_drawing(int use) {
   } else {
     leftward_double_drawing = use;
   }
+}
+
+void ui_compose_dec_special_font(void) {
+  compose_dec_special_font = 1;
 }
 
 ui_font_cache_t *ui_acquire_font_cache(Display *display, u_int font_size,
@@ -233,6 +256,7 @@ void ui_font_cache_unload_all(void) {
 }
 
 ui_font_t *ui_font_cache_get_font(ui_font_cache_t *font_cache, vt_font_t font) {
+  ef_charset_t cs;
   ui_font_present_t font_present;
   vt_font_t font_for_config;
   int result;
@@ -243,21 +267,27 @@ ui_font_t *ui_font_cache_get_font(ui_font_cache_t *font_cache, vt_font_t font) {
   u_int col_width;
   int size_attr;
 
+  cs = FONT_CS(font);
   font_present = font_cache->font_config->font_present;
 
-  if (FONT_CS(font) == US_ASCII) {
+  if (cs == US_ASCII) {
     font &= ~US_ASCII;
     font |= font_cache->usascii_font_cs;
     font_for_config = font;
+  } else if (cs == DEC_SPECIAL) {
+    /* Bold, Italic etc are ignored. */
+    font_for_config = font = SIZE_ATTR_FONT(DEC_SPECIAL, SIZE_ATTR_OF(font));
   } else {
     font_for_config = font;
 
-    if (FONT_CS(font) == ISO10646_UCS4_1_V) {
+    if (cs == ISO10646_UCS4_1_V) {
       font_present |= FONT_VAR_WIDTH;
       font_for_config &= ~ISO10646_UCS4_1_V;
       font_for_config |= ISO10646_UCS4_1;
     }
   }
+
+  /* Note that 'cs' is not updated above, so be careful to use it below. */
 
   if (font_cache->prev_cache.uifont && font_cache->prev_cache.font == font) {
     return font_cache->prev_cache.uifont;
@@ -266,6 +296,14 @@ ui_font_t *ui_font_cache_get_font(ui_font_cache_t *font_cache, vt_font_t font) {
   bl_map_get(font_cache->uifont_table, font, fn_pair);
   if (fn_pair) {
     return fn_pair->value;
+  }
+
+  size_attr = SIZE_ATTR_OF(font);
+
+  /* If compose_dec_special_font is true, always create decsp font for DEC_SPECIAL. */
+  if (cs == DEC_SPECIAL && compose_dec_special_font &&
+      (uifont = create_decsp_font_decsp(font_cache->usascii_font, font, size_attr))) {
+    goto font_found;
   }
 
   if (font == NORMAL_FONT_OF(font_cache->usascii_font_cs)) {
@@ -319,26 +357,39 @@ ui_font_t *ui_font_cache_get_font(ui_font_cache_t *font_cache, vt_font_t font) {
           use_medium_for_bold = 1;
         }
 
-        goto found;
+        goto font_name_found;
       }
     }
   }
 
-found:
-  size_attr = SIZE_ATTR_OF(font);
-
+font_name_found:
   if ((uifont = ui_font_new(font_cache->display, NO_SIZE_ATTR(font), size_attr,
-                           font_cache->font_config->type_engine, font_present, fontname,
-                           font_cache->font_size, col_width, use_medium_for_bold,
-                           font_cache->letter_space)) ||
-      (size_attr &&
-       (uifont = ui_font_new(font_cache->display, NORMAL_FONT_OF(font_cache->usascii_font_cs),
-                            size_attr, font_cache->font_config->type_engine, font_present, fontname,
+                            font_cache->font_config->type_engine, font_present, fontname,
                             font_cache->font_size, col_width, use_medium_for_bold,
-                            font_cache->letter_space)))) {
-    if (uifont->double_draw_gap && leftward_double_drawing) {
-      uifont->double_draw_gap = -1;
+                            font_cache->letter_space))) {
+    if (size_attr &&
+        (uifont = ui_font_new(font_cache->display, NORMAL_FONT_OF(font_cache->usascii_font_cs),
+                              size_attr, font_cache->font_config->type_engine, font_present,
+                              fontname, font_cache->font_size, col_width, use_medium_for_bold,
+                              font_cache->letter_space))) {
+      if (uifont->double_draw_gap && leftward_double_drawing) {
+        uifont->double_draw_gap = -1;
+      }
     }
+#ifdef DEBUG
+    else {
+      bl_warn_printf(BL_DEBUG_TAG " font for id %x doesn't exist.\n", font);
+    }
+#endif
+  } else if (cs == DEC_SPECIAL) {
+    /*
+     * If ui_font_new() fails, create decsp font for DEC_SPECIAL.
+     * In most cases, if fontname is NULL, create decsp font for DEC_SPECIAL,
+     * but if type_engine is TYPE_XCORE on xlib, don't create it but use
+     * the default pcf font.
+     * (See ui_font.c)
+     */
+    uifont = create_decsp_font_decsp(font_cache->usascii_font, font, size_attr);
   }
 #ifdef DEBUG
   else {
@@ -348,6 +399,7 @@ found:
 
   free(fontname);
 
+font_found:
   /*
    * If this font doesn't exist, NULL(which indicates it) is cached.
    */

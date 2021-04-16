@@ -211,6 +211,9 @@ static int set_transparent_picture(ui_window_t *win, Pixmap pixmap) {
   return 1;
 }
 
+int ui_window_get_visible_geometry(ui_window_t *win, int *x, int *y, int *my_x, int *my_y,
+                                   u_int *width, u_int *height);
+
 /* Only used for set_transparent */
 static int update_transparent_picture(ui_window_t *win) {
   ui_picture_t *pic;
@@ -3229,7 +3232,7 @@ void ui_window_reset_group(ui_window_t *win) {
   XFree(hints);
 }
 
-/* for xlib/ui_imagelib.c */
+/* for xlib/ui_imagelib.c and update_transparent_picture() in this file. */
 int ui_window_get_visible_geometry(ui_window_t *win, int *x, /* x relative to root window */
                                    int *y,                   /* y relative to root window */
                                    int *my_x,                /* x relative to my window */
