@@ -230,11 +230,11 @@ error:
   return 0;
 }
 
-static int receive_mouse_event(void) {
+static int receive_mouse_event(int fd) {
   u_char buf[PACKET_SIZE * 8];
   ssize_t len;
 
-  while ((len = read(_mouse.fd, buf, sizeof(buf))) > 0) {
+  while ((len = read(fd, buf, sizeof(buf))) > 0) {
     static u_char packet[PACKET_SIZE];
     static ssize_t packet_len;
     ssize_t count;
@@ -442,10 +442,10 @@ static int receive_mouse_event(void) {
 }
 
 /* http://kaworu.jpn.org/doc/FreeBSD/jman.ORG/man4/keyboard.4.php */
-static int receive_key_event(void) {
+static int receive_key_event(int fd) {
   u_char code;
 
-  while (read(_display.fd, &code, 1) == 1) {
+  while (read(fd, &code, 1) == 1) {
     static int dead;
     XKeyEvent xev;
     int pressed;

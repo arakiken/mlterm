@@ -340,20 +340,28 @@ static int open_event_device(u_int num, const char *path) {
   return fd;
 }
 
-static void convert_input_num(int *num, const char *str) {
-  if (strcmp(str, "-1") == 0) {
-    *num = -1;
-  } else if ('0' <= *str && *str <= '9') {
-    *num = atoi(str);
-  }
+static void convert_input_num(int *input_num, u_int size, const char *str) {
+  char *p;
+
+  do {
+    if ((p = strchr(str, ','))) {
+      *(p++) = '\0';
+    }
+
+    if ('0' <= *str && *str <= '9') {
+      *(input_num++) = atoi(str);
+    } else {
+      break;
+    }
+  } while (--size > 0 && (str = p));
 }
 
 static int open_display(u_int depth) {
   char *dev;
   struct fb_fix_screeninfo finfo;
   struct fb_var_screeninfo vinfo;
-  int kbd_num;
-  int mouse_num;
+  int kbd_num[] = { -1, -1 };
+  int mouse_num[] = { -1, -1 };
   struct termios tm;
 
   bl_priv_restore_euid();
@@ -425,14 +433,14 @@ static int open_display(u_int depth) {
   _display.rgbinfo.g_offset = vinfo.green.offset;
   _display.rgbinfo.b_offset = vinfo.blue.offset;
 
-  get_event_device_num(&kbd_num, &mouse_num);
+  get_event_device_num(kbd_num, mouse_num);
 
   if ((dev = getenv("KBD_INPUT_NUM"))) {
-    convert_input_num(&kbd_num, dev);
+    convert_input_num(kbd_num, BL_ARRAY_SIZE(kbd_num), dev);
   }
 
   if ((dev = getenv("MOUSE_INPUT_NUM"))) {
-    convert_input_num(&mouse_num, dev);
+    convert_input_num(mouse_num, BL_ARRAY_SIZE(mouse_num), dev);
   }
 
   tcgetattr(STDIN_FILENO, &tm);
@@ -448,9 +456,15 @@ static int open_display(u_int depth) {
   /* Disable backscrolling of default console. */
   set_use_console_backscroll(0);
 
-  if (kbd_num == -1 || (_display.fd = open_event_device(kbd_num, NULL)) == -1) {
+  if (kbd_num[0] == -1 || (_display.fd = open_event_device(kbd_num[0], NULL)) == -1) {
+#ifdef DEBUG
+    bl_debug_printf("KBD1: stdin\n");
+#endif
     _display.fd = STDIN_FILENO;
   } else {
+#ifdef DEBUG
+    bl_debug_printf("KBD1: /dev/input/event%d\n", kbd_num[0]);
+#endif
     bl_file_set_cloexec(_display.fd);
   }
 
@@ -464,15 +478,46 @@ static int open_display(u_int depth) {
 
   _disp.display = &_display;
 
-  if ((mouse_num == -1 || (_mouse.fd = open_event_device(mouse_num, NULL)) == -1) &&
+  if ((mouse_num[0] == -1 || (_mouse.fd = open_event_device(mouse_num[0], NULL)) == -1) &&
       (_mouse.fd = open_event_device(0, "/dev/input/mice")) == -1 &&
       (_mouse.fd = open_event_device(0, "/dev/input/mouse0")) == -1) {
     _mouse.fd = -1;
   } else {
+#ifdef DEBUG
+    bl_debug_printf("MOUSE1: /dev/input/event%d\n", mouse_num[0]);
+#endif
     bl_file_set_cloexec(_mouse.fd);
     _mouse.x = _display.width / 2;
     _mouse.y = _display.height / 2;
     _disp_mouse.display = (Display*)&_mouse;
+    num_opened_displays = 2;
+  }
+
+  if (mouse_num[1] != -1) {
+    static InputDevice _mouse2;
+    static ui_display_t _disp_mouse2;
+
+    if ((_mouse2.fd = open_event_device(mouse_num[1], NULL)) != -1) {
+#ifdef DEBUG
+      bl_debug_printf("MOUSE2: /dev/input/event%d\n", mouse_num[1]);
+#endif
+      _disp_mouse2.display = &_mouse2;
+      opened_disps[num_opened_displays++] = &_disp_mouse2;
+    }
+  }
+
+  if (kbd_num[1] != -1) {
+    static InputDevice _kbd2;
+    static ui_display_t _disp_kbd2;
+
+    if ((_kbd2.fd = open_event_device(kbd_num[1], NULL)) != -1) {
+#ifdef DEBUG
+      bl_debug_printf("KBD2: /dev/input/event%d\n", kbd_num[1]);
+#endif
+      _kbd2.is_kbd = 1;
+      _disp_kbd2.display = &_kbd2;
+      opened_disps[num_opened_displays++] = &_disp_kbd2;
+    }
   }
 
   console_id = get_active_console();
@@ -490,14 +535,14 @@ error:
   return 0;
 }
 
-static int receive_mouse_event(void) {
+static int receive_mouse_event(int fd) {
   struct input_event ev;
 
   if (console_id != get_active_console()) {
     return 0;
   }
 
-  while (read(_mouse.fd, &ev, sizeof(ev)) > 0) {
+  while (read(fd, &ev, sizeof(ev)) > 0) {
     if (ev.type == EV_ABS) {
 #ifdef EVIOCGABS
       static int max_abs_x;
@@ -506,10 +551,10 @@ static int receive_mouse_event(void) {
       if (max_abs_x == 0 /* || max_abs_y == 0 */) {
         struct input_absinfo info;
 
-        ioctl(_mouse.fd, EVIOCGABS(ABS_X), &info);
+        ioctl(fd, EVIOCGABS(ABS_X), &info);
         max_abs_x = info.maximum;
 
-        ioctl(_mouse.fd, EVIOCGABS(ABS_Y), &info);
+        ioctl(fd, EVIOCGABS(ABS_Y), &info);
         max_abs_y = info.maximum;
       }
 
@@ -693,8 +738,8 @@ static int receive_mouse_event(void) {
   return 1;
 }
 
-static int receive_key_event(void) {
-  if (_display.fd == STDIN_FILENO) {
+static int receive_key_event(int fd) {
+  if (fd == STDIN_FILENO) {
     return receive_stdin_key_event();
   } else {
     struct input_event ev;
@@ -703,7 +748,7 @@ static int receive_key_event(void) {
       return 0;
     }
 
-    while (read(_display.fd, &ev, sizeof(ev)) > 0) {
+    while (read(fd, &ev, sizeof(ev)) > 0) {
       if (ev.type == EV_KEY && ev.code < 0x100 /* Key event is less than 0x100 */) {
         if (ev.value == 1 /* Pressed */ || ev.value == 2 /* auto repeat */) {
           if (ev.code == KEY_RIGHTSHIFT || ev.code == KEY_LEFTSHIFT) {

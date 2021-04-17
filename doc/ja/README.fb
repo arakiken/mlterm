@@ -56,6 +56,8 @@ Framebuffer 対応に関するメモ
     /sys/class/input/input<num>/name の文字列に "key" が含まれているかどうかで判
     定しています。
     KBD_INPUT_NUM 環境変数により、<num>の値を指定することもできます。
+    (KBD_INPUT_NUM には、<num>,<num> のようにコンマで区切って複数の <num> を指定
+    することも可能です。)
   o キーボードレイアウトを変更したい場合は "loadkeys jp106" のように loadkeys コ
     マンドを実行してください。
   o ドイツ語などのキーボードで、いわゆるデッドキーを使って、発音記号がついた文字
@@ -68,6 +70,8 @@ Framebuffer 対応に関するメモ
     /sys/class/input/input<num>/name の文字列に "mouse" が含まれているかどうかで
     判定しています。
     MOUSE_INPUT_NUM 環境変数により、<num>の値を指定することもできます。
+    (MOUSE_INPUT_NUM には、<num>,<num> のようにコンマで区切って複数の <num> を指
+    定することも可能です。)
   o マウスを使用する場合、gpm は停止しておいてください。
     (/etc/init.d/gpm stop)
 

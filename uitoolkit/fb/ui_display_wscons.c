@@ -670,7 +670,7 @@ error:
   return 0;
 }
 
-static int receive_mouse_event(void) {
+static int receive_mouse_event(int fd) {
   struct wscons_event ev;
   ssize_t len;
 
@@ -678,7 +678,7 @@ static int receive_mouse_event(void) {
     return 0;
   }
 
-  while ((len = read(_mouse.fd, memset(&ev, 0, sizeof(ev)), sizeof(ev))) > 0) {
+  while ((len = read(fd, memset(&ev, 0, sizeof(ev)), sizeof(ev))) > 0) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " MOUSE event (len)%d (type)%d (val)%d\n", len, ev.type, ev.value);
 #endif
@@ -867,8 +867,8 @@ static int receive_mouse_event(void) {
   return 1;
 }
 
-static int receive_key_event(void) {
-  if (_display.fd == STDIN_FILENO) {
+static int receive_key_event(int fd) {
+  if (fd == STDIN_FILENO) {
     return receive_stdin_key_event();
   } else {
     ssize_t len;
@@ -878,7 +878,7 @@ static int receive_key_event(void) {
       return 0;
     }
 
-    while ((len = read(_display.fd, memset(&ev, 0, sizeof(ev)), sizeof(ev))) > 0) {
+    while ((len = read(fd, memset(&ev, 0, sizeof(ev)), sizeof(ev))) > 0) {
 #ifdef DEBUG
       bl_debug_printf(BL_DEBUG_TAG " KEY event (len)%d (type)%d (val)%d\n", len, ev.type, ev.value);
 #endif

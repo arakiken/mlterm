@@ -105,6 +105,7 @@
  */
 typedef struct {
   int fd; /* Same as Display */
+  int is_kbd; /* 1: kbd, 0: mouse */
 
   int x;
   int y;
@@ -131,13 +132,26 @@ typedef struct {
 
 } Mouse;
 
+/* Abstract struct of Mouse */
+typedef struct {
+  int fd;
+  int is_kbd;
+
+} InputDevice;
+
 /* --- static variables --- */
 
 static Display _display;
 static ui_display_t _disp;
 static Mouse _mouse;
 static ui_display_t _disp_mouse;
-static ui_display_t *opened_disps[] = {&_disp, &_disp_mouse};
+#ifdef __linux__
+static ui_display_t *opened_disps[] = { &_disp, &_disp_mouse, NULL, NULL, };
+static u_int num_opened_displays = 1;
+#else
+static ui_display_t *opened_disps[] = { &_disp, &_disp_mouse };
+#define num_opened_displays (MOUSE_IS_INITED ? 2 : 1)
+#endif
 #ifdef WALL_PICTURE_SIXEL_REPLACES_SYSTEM_PALETTE
 static int use_ansi_colors = 1;
 #endif
@@ -1365,9 +1379,15 @@ void ui_display_close_all(void) {
 
     ui_virtual_kbd_hide();
 
+#ifdef __linux__
+    while (num_opened_displays-- > 1) {
+      close(opened_disps[num_opened_displays]->display->fd);
+    }
+#else
     if (MOUSE_IS_INITED) {
       close(_mouse.fd);
     }
+#endif
 
 #ifdef ENABLE_DOUBLE_BUFFER
     free(_display.back_fb);
@@ -1426,11 +1446,7 @@ ui_display_t **ui_get_opened_displays(u_int *num) {
     return NULL;
   }
 
-  if (MOUSE_IS_INITED) {
-    *num = 2;
-  } else {
-    *num = 1;
-  }
+  *num = num_opened_displays;
 
   return opened_disps;
 }
@@ -1514,10 +1530,10 @@ void ui_display_idling(ui_display_t *disp) {
 }
 
 int ui_display_receive_next_event(ui_display_t *disp) {
-  if (disp == &_disp_mouse) {
-    return receive_mouse_event();
+  if (disp != &_disp && !((InputDevice*)disp->display)->is_kbd) {
+    return receive_mouse_event(disp->display->fd);
   } else {
-    return receive_key_event();
+    return receive_key_event(disp->display->fd);
   }
 }
 

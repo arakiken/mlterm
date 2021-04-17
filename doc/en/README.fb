@@ -47,9 +47,10 @@ Framebuffer support
   (for Linux)
   o If mlterm can't open /dev/input/event<num> of the keyboard, shortcut keys
     are disabled.
-    (If the string in /sys/class/input/input<num>/name contains "key",
+    If the string in /sys/class/input/input<num>/name contains "key",
     /dev/input/event<num> is regarded as the keyboard.
-     You can specify <num> by "KBD_INPUT_NUM" environmental variable.)
+    You can specify <num> by "KBD_INPUT_NUM" environmental variable.
+    ("KBD_INPUT_NUM" accepts multiple <num> separated by comma (<num>,<num>).)
   o If you want to change keyboard layout, execute "loadkeys xxx" command.
     (e.g. loadkeys jp106)
   o You can input accented characters with the use of 'dead' keys, but
@@ -58,9 +59,10 @@ Framebuffer support
     read it again.
   o If mlterm can't open /dev/input/event<num> of the mouse, mouse operation is
     disabled.
-    (If the string in /sys/class/input/input<num>/name contains "mouse",
-     /dev/input/event<num> is regarded as the mouse.
-     You can specify <num> by "MOUSE_INPUT_NUM" environmental variable.)
+    If the string in /sys/class/input/input<num>/name contains "mouse",
+    /dev/input/event<num> is regarded as the mouse.
+    You can specify <num> by "MOUSE_INPUT_NUM" environmental variable.
+    ("MOUSE_INPUT_NUM" accepts multiple <num> separated by comma (<num>,<num>).)
   o If you want to use mouse, disable gpm in advance. (/etc/init.d/gpm stop)
 
   (for FreeBSD)

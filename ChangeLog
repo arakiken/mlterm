@@ -1,3 +1,13 @@
+2021-04-17  Araki Ken  <arakiken@users.sf.net>
+
+	* README.fb: Updated.
+
+	* ui_display_linux.c: The format of KBD_INPUT_NUM and MOUSE_INPUT_NUM
+	  is changed from "%d" to "%d,%d" which enables multiple input devices.
+
+	* fb/ui_display_*.c: 'int fd' is added to arguments of
+	  receive_{key|mouse}_event().
+
 2021-04-16  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_font_cache.[ch]:

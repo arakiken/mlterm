@@ -369,7 +369,7 @@ error:
   return 0;
 }
 
-static int receive_mouse_event(void) {
+static int receive_mouse_event(int fd) {
 #define MS_LEFT 0x7f20     /* left mouse button */
 #define MS_MIDDLE 0x7f21   /* middle mouse button */
 #define MS_RIGHT 0x7f22    /* right mouse button */
@@ -385,7 +385,7 @@ static int receive_mouse_event(void) {
     return 0;
   }
 
-  while ((len = read(_mouse.fd, memset(&ev, 0, sizeof(ev)), sizeof(ev))) > 0) {
+  while ((len = read(fd, memset(&ev, 0, sizeof(ev)), sizeof(ev))) > 0) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " MOUSE event (len)%d (id)%d (val)%d\n", len, ev.id, ev.value);
 #endif
@@ -487,7 +487,7 @@ static int receive_mouse_event(void) {
   return 1;
 }
 
-static int receive_key_event(void) {
+static int receive_key_event(int fd) {
   static u_int16_t keymap[] = {
       XK_Escape, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', '\\', XK_BackSpace,
       XK_Tab, 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '@', '[', XK_Return, 'a', 's', 'd',
@@ -508,7 +508,7 @@ static int receive_key_event(void) {
   };
   Firm_event ev;
 
-  if (_display.fd == STDIN_FILENO) {
+  if (fd == STDIN_FILENO) {
     return receive_stdin_key_event();
   }
 
@@ -516,7 +516,7 @@ static int receive_key_event(void) {
     return 0;
   }
 
-  while (read(_display.fd, memset(&ev, 0, sizeof(ev)), sizeof(ev)) > 0) {
+  while (read(fd, memset(&ev, 0, sizeof(ev)), sizeof(ev)) > 0) {
     XKeyEvent xev;
     int pressed;
     int shift;
