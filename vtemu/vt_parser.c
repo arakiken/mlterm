@@ -4344,7 +4344,7 @@ static char *get_pt_in_esc_seq(
   pt = *str;
 
   while (1) {
-    if ((bel_terminate && **str == CTL_BEL) || (use_c1 && **str == 0x9c)) {
+    if ( (**str < 0x20) || (bel_terminate && **str == CTL_BEL) || (use_c1 && **str == 0x9c)) {
       **str = '\0';
 
       break;
