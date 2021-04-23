@@ -1,3 +1,9 @@
+2021-04-23  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c:
+	  - Failure of parsing "OSC Ps ST" which doesn't contain ';' is fixed.
+	  - 'int want_ctrl' is removed from arguments of inc_str_in_esc_seq().
+
 2021-04-17  Araki Ken  <arakiken@users.sf.net>
 
 	* README.fb: Updated.

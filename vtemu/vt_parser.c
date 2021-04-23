@@ -4299,8 +4299,9 @@ static int increment_str(u_char **str, size_t *left) {
 
 /*
  * For string inside escape sequences.
+ * Don't use in OSC and DSC which are terminated by ST including \x1b.
  */
-static int inc_str_in_esc_seq(vt_screen_t *screen, u_char **str_p, size_t *left, int want_ctrl) {
+static int inc_str_in_esc_seq(vt_screen_t *screen, u_char **str_p, size_t *left) {
   while (1) {
     if (increment_str(str_p, left) == 0) {
       return 0;
@@ -4317,8 +4318,6 @@ static int inc_str_in_esc_seq(vt_screen_t *screen, u_char **str_p, size_t *left,
         vt_screen_goto_beg_of_line(screen);
       } else if (**str_p == CTL_BS) {
         vt_screen_go_back(screen, 1, 0);
-      } else if (want_ctrl) {
-        return 1;
       } else {
 #ifdef DEBUG
         bl_warn_printf(BL_DEBUG_TAG " Ignored 0x%x inside escape sequences.\n", **str_p);
@@ -4389,7 +4388,7 @@ inline static int parse_vt52_escape_sequence(
   str_p = CURRENT_STR_P(vt_parser);
   left = vt_parser->r_buf.left;
 
-  if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left, 0)) {
+  if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left)) {
     return 0;
   }
 
@@ -4421,7 +4420,7 @@ inline static int parse_vt52_escape_sequence(
     int row;
     int col;
 
-    if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left, 0)) {
+    if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left)) {
       return 0;
     }
 
@@ -4431,7 +4430,7 @@ inline static int parse_vt52_escape_sequence(
 
     row = *str_p - ' ';
 
-    if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left, 0)) {
+    if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left)) {
       return 0;
     }
 
@@ -4503,7 +4502,7 @@ inline static int parse_vt100_escape_sequence(
     }
 #endif
 
-    if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left, 0)) {
+    if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left)) {
       return 0;
     }
 
@@ -4603,7 +4602,7 @@ inline static int parse_vt100_escape_sequence(
 
       num = 0;
       while (1) {
-        if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left, 0)) {
+        if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left)) {
           return 0;
         }
 
@@ -4621,8 +4620,7 @@ inline static int parse_vt100_escape_sequence(
           }
         } else {
           if ('0' <= *str_p && *str_p <= '9') {
-            u_char digit[DIGIT_STR_LEN(int)+1];
-            int count;
+            int _ps;
 
             if (*str_p == '0') {
               /* 000000001 -> 01 */
@@ -4632,10 +4630,9 @@ inline static int parse_vt100_escape_sequence(
               }
             }
 
-            digit[0] = *str_p;
-
-            for (count = 1; count < DIGIT_STR_LEN(int); count++) {
-              if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left, 0)) {
+            _ps = *str_p - '0';
+            while (1) {
+              if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left)) {
                 return 0;
               }
 
@@ -4643,17 +4640,16 @@ inline static int parse_vt100_escape_sequence(
                 break;
               }
 
-              digit[count] = *str_p;
+              _ps = _ps * 10 + (*str_p - '0');
             }
 
-            digit[count] = '\0';
             if (num < MAX_NUM_OF_PS) {
-              ps[num++] = atoi(digit);
 #ifdef MAX_PS_DIGIT
-              if (ps[num - 1] > MAX_PS_DIGIT) {
-                ps[num - 1] = MAX_PS_DIGIT;
+              if (_ps > MAX_PS_DIGIT) {
+                _ps = MAX_PS_DIGIT;
               }
 #endif
+              ps[num++] = _ps;
             }
           }
 
@@ -4687,7 +4683,7 @@ inline static int parse_vt100_escape_sequence(
           intmed_ch = *str_p;
         }
 
-        if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left, 0)) {
+        if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left)) {
           return 0;
         }
       }
@@ -5796,46 +5792,42 @@ inline static int parse_vt100_escape_sequence(
       }
     } else if (*str_p == ']') {
       /* "ESC ]" (OSC) */
-
-      char digit[DIGIT_STR_LEN(int)+1];
-      int count;
       int ps;
       u_char *pt;
 
-      if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left, 0)) {
+      /*
+       * OSC 123;456;test ST
+       *     ^^^ ^^^^^^^^-> pt
+       *       +-> ps
+       */
+
+      /* Don't use inc_str_in_esc_seq() in case "OSC ST" etc */
+      if (!increment_str(&str_p, &left)) {
         return 0;
       }
 
-      for (count = 0; count < DIGIT_STR_LEN(int); count++) {
-        if ('0' <= *str_p && *str_p <= '9') {
-          digit[count] = *str_p;
+      if (*str_p < '0' || '9' < *str_p) {
+        ps = -1;
+      } else {
+        ps = 0;
+        do {
+          ps = ps * 10 + ((*str_p) - '0');
 
-          if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left, 0)) {
+          /* Don't use inc_str_in_esc_seq() in case "OSC 123 ST" etc */
+          if (!increment_str(&str_p, &left)) {
             return 0;
           }
-        } else {
-          break;
-        }
-      }
+        } while ('0' <= *str_p && *str_p <= '9');
 
-      if (count > 0 && *str_p == ';') {
-        digit[count] = '\0';
-
-        /* if digit is illegal , ps is set 0. */
-        ps = atoi(digit);
-#ifdef MAX_PS_DIGIT
-        if (ps > MAX_PS_DIGIT) {
-          ps = MAX_PS_DIGIT;
-        }
-#endif
-
-        if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left, 1)) {
+        if (*str_p == ';' && !increment_str(&str_p, &left)) {
           return 0;
         }
-      } else {
-        /* Illegal OSC format */
-        ps = -1;
       }
+#ifdef MAX_PS_DIGIT
+      if (ps > MAX_PS_DIGIT) {
+        ps = MAX_PS_DIGIT;
+      }
+#endif
 
       pt = str_p;
 
@@ -6013,13 +6005,19 @@ inline static int parse_vt100_escape_sequence(
         break;
       }
 
+      /* Skip parameters (0x30-0x3f) */
       do {
+        /* Don't use inc_str_in_esc_seq() in case "DCS 123 ST" etc */
         if (!increment_str(&str_p, &left)) {
           return 0;
         }
-      } while (*str_p == ';' || ('0' <= *str_p && *str_p <= '9'));
+      } while (0x30 <= *str_p && *str_p <= 0x3f);
 
 #ifndef NO_IMAGE
+      /*
+       * Intermediate chars (0x20-0x2f) can appear here as DCS, but
+       * they are invalid as Sixel and Regis format.
+       */
       if (/* sixel */
           (*str_p == 'q' &&
            (path = get_home_file_path("", vt_pty_get_slave_name(vt_parser->pty) + 5, "six"))) ||
@@ -6355,7 +6353,8 @@ inline static int parse_vt100_escape_sequence(
        * "ESC ^" PM
        * "ESC _" APC
        */
-      if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left, 0)) {
+      /* Don't use inc_str_in_esc_seq() in case "SOS ST" etc */
+      if (!increment_str(&str_p, &left)) {
         return 0;
       }
 
@@ -6389,7 +6388,7 @@ inline static int parse_vt100_escape_sequence(
       do {
         ic_num++;
 
-        if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left, 0)) {
+        if (!inc_str_in_esc_seq(vt_parser->screen, &str_p, &left)) {
           return 0;
         }
       } while (0x20 <= *str_p && *str_p <= 0x2f);

@@ -9,6 +9,8 @@
   (e.g. xterm|xterm-256) as key.
 * Arabic ligatures (U+644-U+622, U+644-U+622, U+644-U+625, U+644-U+627) occupy
   two logical columns instead of one even if --dyncomb option isn't specified.
+* KBD_INPUT_NUM and MOUSE_INPUT_NUM environmental variables (for mlterm-fb)
+  accept multiple device numbers by "<num>,<num>".
 * Merge patches:
   https://github.com/arakiken/mlterm/pull/5
 * Bug fixes:
