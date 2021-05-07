@@ -8,6 +8,7 @@
 #include <glib.h>
 #include <c_intl.h>
 
+#include "mc_compat.h"
 #include "mc_io.h"
 
 #if 0
@@ -33,7 +34,7 @@ static char *config_values[MC_RADIOS][4] = {
   { "none", "cjk", "mongol", NULL, },
   { "noconv", "unicode", "decsp", NULL, },
   { "noconv", "unicode", "nounicode", NULL, },
-  { "no", "raw", "ttyrec", },
+  { "no", "raw", "ttyrec", NULL, },
 };
 
 static char *labels[MC_RADIOS][5] = {
@@ -59,36 +60,63 @@ static void update_value(int *data, int num) {
   }
 }
 
-static gint button1_checked(GtkWidget *widget, gpointer data) {
+static void button1_checked(GtkWidget *widget, gpointer data) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
     update_value(data, 0);
   }
-
-  return 1;
 }
 
-static gint button2_checked(GtkWidget *widget, gpointer data) {
+static void button2_checked(GtkWidget *widget, gpointer data) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
     update_value(data, 1);
   }
-
-  return 1;
 }
 
-static gint button3_checked(GtkWidget *widget, gpointer data) {
+static void button3_checked(GtkWidget *widget, gpointer data) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
     update_value(data, 2);
   }
-
-  return 1;
 }
 
-static gint button4_checked(GtkWidget *widget, gpointer data) {
+static void button4_checked(GtkWidget *widget, gpointer data) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
     update_value(data, 3);
   }
+}
 
-  return 1;
+#if GTK_CHECK_VERSION(4, 0, 0)
+static GtkWidget *create_radio_button(int id, int idx, GtkWidget *hbox, GtkWidget **group,
+                                      const char *cur_value)
+#else
+static GtkWidget *create_radio_button(int id, int idx, GtkWidget *hbox, GSList **group,
+                                      const char *cur_value)
+#endif
+{
+  GtkWidget *radio;
+  void (*callbacks[])(GtkWidget *, gpointer) =
+    { button1_checked, button2_checked, button3_checked, button4_checked };
+
+#if GTK_CHECK_VERSION(4, 0, 0)
+  radio = gtk_check_button_new_with_label(_(labels[id][idx + 1]));
+  if (*group) {
+    gtk_check_button_set_group(GTK_CHECK_BUTTON(radio), GTK_CHECK_BUTTON(*group));
+  } else {
+    *group = radio;
+  }
+#else
+  radio = gtk_radio_button_new_with_label(*group, _(labels[id][idx + 1]));
+  *group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
+#endif
+  g_signal_connect(radio, "toggled", G_CALLBACK(callbacks[idx]), &new_values[id]);
+  gtk_widget_show(radio);
+  gtk_box_pack_start(GTK_BOX(hbox), radio, TRUE, FALSE, 0);
+
+  if (strcmp(cur_value, config_values[id][idx]) == 0) {
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
+    new_values[id] = old_values[id] = idx;
+  }
+
+  return radio;
 }
 
 /* --- global functions --- */
@@ -97,7 +125,11 @@ GtkWidget *mc_radio_config_widget_new(int id) {
   GtkWidget *label;
   GtkWidget *hbox;
   GtkWidget *radio;
+#if GTK_CHECK_VERSION(4, 0, 0)
+  GtkWidget *group;
+#else
   GSList *group;
+#endif
   char *value;
 
   value = mc_get_str_value(config_keys[id]);
@@ -110,51 +142,15 @@ GtkWidget *mc_radio_config_widget_new(int id) {
 
   group = NULL;
 
-  radio = gtk_radio_button_new_with_label(group, _(labels[id][1]));
-  group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
-  g_signal_connect(radio, "toggled", G_CALLBACK(button1_checked), &new_values[id]);
-  gtk_widget_show(GTK_WIDGET(radio));
-  gtk_box_pack_start(GTK_BOX(hbox), radio, TRUE, FALSE, 0);
-
-  if (strcmp(value, config_values[id][0]) == 0) {
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
-    new_values[id] = old_values[id] = 0;
-  }
-
-  radio = gtk_radio_button_new_with_label(group, _(labels[id][2]));
-  group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
-  g_signal_connect(radio, "toggled", G_CALLBACK(button2_checked), &new_values[id]);
-  gtk_widget_show(GTK_WIDGET(radio));
-  gtk_box_pack_start(GTK_BOX(hbox), radio, TRUE, FALSE, 0);
-
-  if (strcmp(value, config_values[id][1]) == 0) {
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
-    new_values[id] = old_values[id] = 1;
-  }
-
-  radio = gtk_radio_button_new_with_label(group, _(labels[id][3]));
-  group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
-  g_signal_connect(radio, "toggled", G_CALLBACK(button3_checked), &new_values[id]);
-  gtk_widget_show(GTK_WIDGET(radio));
-  gtk_box_pack_start(GTK_BOX(hbox), radio, TRUE, FALSE, 0);
-
-  if (strcmp(value, config_values[id][2]) == 0) {
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
-    new_values[id] = old_values[id] = 2;
-  }
+  radio = create_radio_button(id, 0, hbox, &group, value);
+  radio = create_radio_button(id, 1, hbox, &group, value);
+  radio = create_radio_button(id, 2, hbox, &group, value);
 
   if (config_values[id][3]) {
-    radio = gtk_radio_button_new_with_label(group, _(labels[id][4]));
-    group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
-    g_signal_connect(radio, "toggled", G_CALLBACK(button4_checked), &new_values[id]);
-    gtk_widget_show(GTK_WIDGET(radio));
-    gtk_box_pack_start(GTK_BOX(hbox), radio, TRUE, FALSE, 0);
-
-    if (strcmp(value, config_values[id][3]) == 0) {
-      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
-      new_values[id] = old_values[id] = 3;
-    }
+    radio = create_radio_button(id, 3, hbox, &group, value);
   }
+
+  free(value);
 
 #if GTK_CHECK_VERSION(2, 12, 0)
   if (id == MC_RADIO_LOG_VTSEQ) {

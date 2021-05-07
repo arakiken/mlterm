@@ -16,6 +16,7 @@
 #include <dirent.h>
 #include <im_info.h>
 
+#include "mc_compat.h"
 #include "mc_combo.h"
 #include "mc_io.h"
 
@@ -239,7 +240,7 @@ static char *get_xim_locale(char *xim) {
   return NULL;
 }
 
-static gint xim_selected(GtkWidget *widget, gpointer data) {
+static void xim_selected(GtkWidget *widget, gpointer data) {
   char *locale;
 
   snprintf(selected_xim_name, STR_LEN, "%s", gtk_entry_get_text(GTK_ENTRY(widget)));
@@ -253,8 +254,6 @@ static gint xim_selected(GtkWidget *widget, gpointer data) {
   snprintf(selected_xim_locale, STR_LEN, "%s", gtk_entry_get_text(GTK_ENTRY(data)));
 
   is_changed = 1;
-
-  return 1;
 }
 
 static int read_xim_conf(BL_MAP(xim_locale) xim_locale_table, char *filename) {
@@ -387,11 +386,11 @@ static GtkWidget *xim_widget_new(const char *xim_name, const char *xim_locale,
  * pluggable ims
  */
 
-static gint im_selected(GtkWidget *widget, gpointer data) {
+static void im_selected(GtkWidget *widget, gpointer data) {
   const char *str;
   int i;
 
-  if (selected_im == NULL) return 1;
+  if (selected_im == NULL) return;
 
   str = (const char *)gtk_entry_get_text(GTK_ENTRY(widget));
 
@@ -399,8 +398,6 @@ static gint im_selected(GtkWidget *widget, gpointer data) {
     if (strcmp(selected_im->readable_args[i], str) == 0) selected_im_arg = i;
 
   is_changed = 1;
-
-  return 1;
 }
 
 static GtkWidget *im_widget_new(int nth_im, const char *value, char *locale) {
@@ -448,10 +445,8 @@ static GtkWidget *im_widget_new(int nth_im, const char *value, char *locale) {
   return combo;
 }
 
-static gint entry_selected(GtkWidget *widget, gpointer data) {
+static void entry_selected(GtkWidget *widget, gpointer data) {
   is_changed = 1;
-
-  return 1;
 }
 
 static GtkWidget *entry_with_label_new(GtkWidget *parent, const char *text, const char *value) {
@@ -612,7 +607,7 @@ static char *wnn_current_value(void) {
 /*
  * callbacks for radio buttons of im type.
  */
-static gint button_xim_checked(GtkWidget *widget, gpointer data) {
+static void button_xim_checked(GtkWidget *widget, gpointer data) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
     if (data) gtk_widget_show(GTK_WIDGET(data));
     im_type = IM_XIM;
@@ -621,11 +616,9 @@ static gint button_xim_checked(GtkWidget *widget, gpointer data) {
   }
 
   is_changed = 1;
-
-  return 1;
 }
 
-static gint button_im_checked(GtkWidget *widget, gpointer data) {
+static void button_im_checked(GtkWidget *widget, gpointer data) {
   int i;
   int idx = 0;
 
@@ -647,8 +640,6 @@ static gint button_im_checked(GtkWidget *widget, gpointer data) {
   }
 
   is_changed = 1;
-
-  return 1;
 }
 
 /* --- global functions --- */
@@ -675,7 +666,11 @@ GtkWidget *mc_im_config_widget_new(void) {
   GtkWidget *vbox;
   GtkWidget *hbox;
   GtkWidget *radio;
+#if GTK_CHECK_VERSION(4, 0, 0)
+  GtkWidget *group;
+#else
   GSList *group;
+#endif
 
   value = mc_get_str_value("input_method");
 
@@ -724,15 +719,24 @@ GtkWidget *mc_im_config_widget_new(void) {
   gtk_widget_show(vbox);
 
   hbox = gtk_hbox_new(FALSE, 5);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  group = radio = gtk_check_button_new_with_label(xim ? "XIM" : "Default");
+#else
   radio = gtk_radio_button_new_with_label(NULL, xim ? "XIM" : "Default");
+#endif
   g_signal_connect(radio, "toggled", G_CALLBACK(button_xim_checked), xim);
   gtk_widget_show(GTK_WIDGET(radio));
   gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
   if (im_type == IM_XIM) gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
 
   for (i = 0; i < num_info; i++) {
+#if GTK_CHECK_VERSION(4, 0, 0)
+    radio = gtk_check_button_new_with_label(im_info_table[i]->name);
+    gtk_check_button_set_group(GTK_CHECK_BUTTON(radio), GTK_CHECK_BUTTON(group));
+#else
     group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
     radio = gtk_radio_button_new_with_label(group, im_info_table[i]->name);
+#endif
     g_signal_connect(radio, "toggled", G_CALLBACK(button_im_checked), im_info_table[i]);
     gtk_widget_show(GTK_WIDGET(radio));
     gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
@@ -741,8 +745,13 @@ GtkWidget *mc_im_config_widget_new(void) {
   }
 
   if (strcmp(mc_get_gui(), "xlib") == 0) {
+#if GTK_CHECK_VERSION(4, 0, 0)
+    radio = gtk_check_button_new_with_label(_("None"));
+    gtk_check_button_set_group(GTK_CHECK_BUTTON(radio), GTK_CHECK_BUTTON(group));
+#else
     group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
     radio = gtk_radio_button_new_with_label(group, _("None"));
+#endif
     g_signal_connect(radio, "toggled", G_CALLBACK(button_im_checked), NULL);
     gtk_widget_show(GTK_WIDGET(radio));
     gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
@@ -781,7 +790,11 @@ GtkWidget *mc_im_config_widget_new(void) {
     if (im_opt_widget[i]) gtk_box_pack_start(GTK_BOX(vbox), im_opt_widget[i], TRUE, TRUE, 0);
 
   gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_frame_set_child(GTK_FRAME(frame), vbox);
+#else
   gtk_container_add(GTK_CONTAINER(frame), vbox);
+#endif
 
   is_changed = 0;
 

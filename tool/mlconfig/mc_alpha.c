@@ -24,15 +24,13 @@ static int is_changed;
 
 /* --- static functions --- */
 
-static gint alpha_selected(GtkWidget *widget, gpointer data) {
+static void alpha_selected(GtkWidget *widget, gpointer data) {
   g_free(new_alpha);
   new_alpha = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
 
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " %s alpha is selected.\n", new_alpha);
 #endif
-
-  return 1;
 }
 
 /* --- global functions --- */

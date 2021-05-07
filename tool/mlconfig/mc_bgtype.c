@@ -7,6 +7,7 @@
 #include <stdlib.h> /* atoi */
 #include <string.h> /* strcmp */
 
+#include "mc_compat.h"
 #include "mc_color.h"
 #include "mc_wall_pic.h"
 #include "mc_io.h"
@@ -72,41 +73,36 @@ static void set_sensitive(void) {
   }
 }
 
-static gint button_true_transbg_checked(GtkWidget *widget, gpointer data) {
+static void button_true_transbg_checked(GtkWidget *widget, gpointer data) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
     true_transbg_state = 1;
   } else {
     true_transbg_state = -1;
   }
-
-  return 1;
 }
 
-static gint button_color_checked(GtkWidget *widget, gpointer data) {
+static void button_color_checked(GtkWidget *widget, gpointer data) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
     bgtype = MC_BG_COLOR;
     is_changed = 1;
     set_sensitive();
   }
-  return 1;
 }
 
-static gint button_pseudo_transbg_checked(GtkWidget *widget, gpointer data) {
+static void button_pseudo_transbg_checked(GtkWidget *widget, gpointer data) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
     bgtype = MC_BG_PSEUDO_TRANSBG;
     is_changed = 1;
     set_sensitive();
   }
-  return 1;
 }
 
-static gint button_picture_checked(GtkWidget *widget, gpointer data) {
+static void button_picture_checked(GtkWidget *widget, gpointer data) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
     bgtype = MC_BG_WALLPICTURE;
     is_changed = 1;
     set_sensitive();
   }
-  return 1;
 }
 
 /* --- global functions --- */
@@ -116,7 +112,11 @@ GtkWidget *mc_bgtype_config_widget_new(void) {
   GtkWidget *vbox;
   GtkWidget *hbox;
   GtkWidget *radio;
+#if GTK_CHECK_VERSION(4, 0, 0)
+  GtkWidget *group;
+#else
   GSList *group;
+#endif
 
   bgtype = get_bgtype();
 
@@ -132,15 +132,24 @@ GtkWidget *mc_bgtype_config_widget_new(void) {
   frame = gtk_frame_new(_("Background type"));
   vbox = gtk_vbox_new(TRUE, 2);
   gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_frame_set_child(GTK_FRAME(frame), vbox);
+#else
   gtk_container_add(GTK_CONTAINER(frame), vbox);
+#endif
   gtk_widget_show(vbox);
 
   /* color button */
+#if GTK_CHECK_VERSION(4, 0, 0)
+  group = radio = gtk_check_button_new_with_label(_("Color"));
+#else
   radio = gtk_radio_button_new_with_label(group, _("Color"));
   group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
+#endif
+  if (bgtype == MC_BG_COLOR) gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
   g_signal_connect(radio, "toggled", G_CALLBACK(button_color_checked), NULL);
   gtk_widget_show(GTK_WIDGET(radio));
-  if (bgtype == MC_BG_COLOR) gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
+
   if (is_true_transbg()) {
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(true_transbg), TRUE);
   }
@@ -149,6 +158,7 @@ GtkWidget *mc_bgtype_config_widget_new(void) {
   gtk_widget_set_tooltip_text(true_transbg,
                               "Modify \"Alpha\", press \"Save&Exit\" and restart mlterm");
 #endif
+
   hbox = gtk_hbox_new(FALSE, 2);
   gtk_widget_show(hbox);
   gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
@@ -157,11 +167,17 @@ GtkWidget *mc_bgtype_config_widget_new(void) {
   gtk_box_pack_start(GTK_BOX(hbox), true_transbg, TRUE, TRUE, 0);
 
   /* picture button */
+#if GTK_CHECK_VERSION(4, 0, 0)
+  radio = gtk_check_button_new_with_label(_("Picture"));
+  gtk_check_button_set_group(GTK_CHECK_BUTTON(radio), GTK_CHECK_BUTTON(group));
+#else
   radio = gtk_radio_button_new_with_label(group, _("Picture"));
   group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
+#endif
+  if (bgtype == MC_BG_WALLPICTURE) gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
   g_signal_connect(radio, "toggled", G_CALLBACK(button_picture_checked), NULL);
   gtk_widget_show(GTK_WIDGET(radio));
-  if (bgtype == MC_BG_WALLPICTURE) gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
+
   hbox = gtk_hbox_new(FALSE, 2);
   gtk_widget_show(hbox);
   gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
@@ -169,17 +185,24 @@ GtkWidget *mc_bgtype_config_widget_new(void) {
   gtk_box_pack_start(GTK_BOX(hbox), wall_picture, TRUE, TRUE, 0);
 
   /* pseudo_transbg button */
+#if GTK_CHECK_VERSION(4, 0, 0)
+  radio = gtk_check_button_new_with_label(_("Pseudo transparent"));
+  gtk_check_button_set_group(GTK_CHECK_BUTTON(radio), GTK_CHECK_BUTTON(group));
+#else
   radio = gtk_radio_button_new_with_label(group, _("Pseudo transparent"));
   group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
+#endif
+  if (bgtype == MC_BG_PSEUDO_TRANSBG) gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
   g_signal_connect(radio, "toggled", G_CALLBACK(button_pseudo_transbg_checked), NULL);
   gtk_widget_show(GTK_WIDGET(radio));
-  if (bgtype == MC_BG_PSEUDO_TRANSBG) gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
+
   hbox = gtk_hbox_new(FALSE, 2);
   gtk_widget_show(hbox);
   gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
 
   set_sensitive();
+
   return frame;
 }
 

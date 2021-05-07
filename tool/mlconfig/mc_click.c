@@ -24,15 +24,13 @@ static int is_changed;
 
 /* --- static functions --- */
 
-static gint click_interval_selected(GtkWidget *widget, gpointer data) {
+static void click_interval_selected(GtkWidget *widget, gpointer data) {
   g_free(new_click_interval);
   new_click_interval = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
 
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " %s click interval is selected.\n", new_click_interval);
 #endif
-
-  return 1;
 }
 
 /* --- global functions --- */

@@ -7,6 +7,7 @@
 #include <glib.h>
 #include <c_intl.h>
 
+#include "mc_compat.h"
 #include "mc_io.h"
 
 /* --- static functions --- */
@@ -17,13 +18,37 @@ static int is_changed;
 
 /* --- static functions --- */
 
-static gint button_clicked(GtkWidget *widget, gpointer data) {
+#if GTK_CHECK_VERSION(4, 0, 0)
+static void dialog_cb(GtkWidget *dialog, int response_id, gpointer user_data) {
+  GtkEntry *entry = user_data;
+
+  if (response_id == GTK_RESPONSE_ACCEPT) {
+    GFile *file;
+    char *path;
+
+    file = gtk_file_chooser_get_file(GTK_FILE_CHOOSER(dialog));
+    if ((path = g_file_get_path(file)) != NULL) {
+      gtk_entry_set_text(GTK_ENTRY(entry), path);
+    }
+    g_object_unref(file);
+  }
+
+  gtk_window_destroy(GTK_WINDOW(dialog));
+}
+#endif
+
+static void button_clicked(GtkWidget *widget, gpointer data) {
   GtkWidget *dialog;
 
   dialog = gtk_file_chooser_dialog_new("Wall Paper", NULL, GTK_FILE_CHOOSER_ACTION_OPEN,
                                        GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN,
                                        GTK_RESPONSE_ACCEPT, NULL);
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
+  g_signal_connect(dialog, "response", G_CALLBACK(dialog_cb), entry);
+  gtk_widget_show(dialog);
+#else
   if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
     gchar *filename;
 
@@ -33,8 +58,7 @@ static gint button_clicked(GtkWidget *widget, gpointer data) {
   }
 
   gtk_widget_destroy(dialog);
-
-  return TRUE;
+#endif
 }
 
 /* --- global functions --- */

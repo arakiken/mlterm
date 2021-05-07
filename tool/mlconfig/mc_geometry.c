@@ -8,6 +8,7 @@
 #include <glib.h>
 #include <c_intl.h>
 
+#include "mc_compat.h"
 #include "mc_io.h"
 
 #if 0
@@ -38,7 +39,7 @@ static char *labels[MC_GEOMETRIES] = {
 
 /* --- static functions --- */
 
-static gint geometry_selected(GtkWidget *widget, gpointer data) {
+static void geometry_selected(GtkWidget *widget, gpointer data) {
   gchar *text;
 
   text = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
@@ -46,8 +47,6 @@ static gint geometry_selected(GtkWidget *widget, gpointer data) {
     strcpy(data, text);
   }
   g_free(text);
-
-  return 1;
 }
 
 /* --- global functions --- */
@@ -74,6 +73,9 @@ GtkWidget *mc_geometry_config_widget_new(void) {
     }
 
     entry = gtk_entry_new();
+#if GTK_CHECK_VERSION(4, 0, 0)
+    gtk_widget_set_halign(entry, GTK_ALIGN_START);
+#endif
     gtk_entry_set_text(GTK_ENTRY(entry), value);
     gtk_widget_show(entry);
 

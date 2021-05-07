@@ -1,4 +1,5 @@
 * Support Fcitx5.
+* Support GTK4 for mlconfig.
 * Add "MOSH_UDP_PORT" environmental variable to specify UDP port or port-range
   to communicate with a mosh server.
 * Add --with-iconv, --disable-daemon, --disable-split and --disable-zmodem
@@ -14,9 +15,11 @@
 * Merge patches:
   https://github.com/arakiken/mlterm/pull/5
 * Bug fixes:
+  Fix https://github.com/arakiken/mlterm/issues/15.
   Fix failure of restarting mlterm on Android. (Enbugged at 3.9.1)
   Fix segfault if mlterm screen with -t option goes outside of the display.
-  Fix emoji glyphs not becoming too large with cairo.
+  Fix emoji glyphs becoming too large with cairo.
+  Fix corrupt value of "word_separator" option which mlconfig outputs.
 
 ver 3.9.1
 * Support copy mode which starts by Control+Shift+Return.
@@ -50,7 +53,7 @@ ver 3.9.1
   Fix segfault in double click at RTL characters. (Enbugged at 3.6.2)
   Fix corruption of data transferred by "OSC 5379; scp ... ST".
   Fix https://github.com/arakiken/mlterm/issues/4.
-  Fix	http://twitter.com/oshimyja/status/1320251099211649024.
+  Fix http://twitter.com/oshimyja/status/1320251099211649024.
 
 ver 3.9.0
 * Support CSI>4;1m.

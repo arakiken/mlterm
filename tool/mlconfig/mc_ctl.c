@@ -8,6 +8,7 @@
 #include <glib.h>
 #include <c_intl.h>
 
+#include "mc_compat.h"
 #include "mc_io.h"
 #include "mc_flags.h"
 
@@ -35,10 +36,8 @@ static void set_str_value(const char *value) {
   free(replaced);
 }
 
-static gint toggled(GtkWidget *widget, gpointer data) {
+static void toggled(GtkWidget *widget, gpointer data) {
   gtk_widget_set_sensitive(entry, gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)));
-
-  return 1;
 }
 
 /* --- global functions --- */

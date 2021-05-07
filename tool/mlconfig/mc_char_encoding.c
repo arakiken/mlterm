@@ -9,8 +9,11 @@
 #include <pobl/bl_debug.h>
 #include <glib.h>
 #include <c_intl.h>
+
+#include "mc_compat.h"
 #include "mc_combo.h"
 #include "mc_io.h"
+
 #if 0
 #define __DEBUG
 #endif
@@ -121,18 +124,16 @@ static char *savename(int index) {
   return buf;
 }
 
-static gint encoding_selected(GtkWidget *widget, gpointer data) {
+static void encoding_selected(GtkWidget *widget, gpointer data) {
   const char *p;
 
   p = gtk_entry_get_text(GTK_ENTRY(widget));
-  if (*p == '-') return 1;
+  if (*p == '-') return;
   new_encoding_idx = get_index(p);
 
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " %s encoding is selected.\n", new_encoding);
 #endif
-
-  return 1;
 }
 
 /* -- global functions --- */

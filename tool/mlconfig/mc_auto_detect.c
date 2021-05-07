@@ -9,6 +9,8 @@
 #include <pobl/bl_locale.h>
 #include <glib.h>
 #include <c_intl.h>
+
+#include "mc_compat.h"
 #include "mc_io.h"
 
 #if 0
@@ -34,7 +36,7 @@ static char *get_default_encodings(void) {
   }
 }
 
-static gint checked(GtkWidget *widget, gpointer data) {
+static void checked(GtkWidget *widget, gpointer data) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
     if (*old_encodings == '\0') {
       if ((old_encodings = get_default_encodings())) {
@@ -47,8 +49,6 @@ static gint checked(GtkWidget *widget, gpointer data) {
     gtk_widget_set_sensitive(entry, FALSE);
     new_flag = 0;
   }
-
-  return 1;
 }
 
 /* -- global functions --- */

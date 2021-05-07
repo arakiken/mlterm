@@ -19,11 +19,9 @@ static char *old_pty = NULL;
 
 /* --- static functions --- */
 
-static gint selected(GtkWidget *widget, gpointer data) {
+static void selected(GtkWidget *widget, gpointer data) {
   g_free(new_pty);
   new_pty = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
-
-  return 1;
 }
 
 static char *get_pty_title(char *dev) {

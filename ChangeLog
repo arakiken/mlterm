@@ -1,3 +1,18 @@
+2021-05-07  Araki Ken  <arakiken@users.sf.net>
+
+	* README, README.ja: Updated.
+
+	* mlterm.1: Comments about features output by 'mlterm -v' are added.
+
+	* configure.in: --with-gtk=4.0 is available.
+
+	* mlconfig/Makefile.in: GTK_{CFLAGS|LIBS} -> GTK_{CFLAGS|LIBS}_FOR_MLCONFIG
+
+	* mlconfig/*.[ch]: GTK-4.x is supported.
+
+	* vt_line.h: ctl_info and ctl_info_type are moved at the end of
+	  vt_line_t to keep binary compatibility if ctl is completely disabled.
+
 2021-04-23  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c:

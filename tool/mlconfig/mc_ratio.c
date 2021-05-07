@@ -35,7 +35,7 @@ static char *labels[MC_RATIOS] = {
 
 /* --- static functions --- */
 
-static gint ratio_selected(GtkWidget *widget, gpointer data) {
+static void ratio_selected(GtkWidget *widget, gpointer data) {
   gchar *text;
 
   text = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
@@ -47,8 +47,6 @@ static gint ratio_selected(GtkWidget *widget, gpointer data) {
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " %s ratio is selected.\n", text);
 #endif
-
-  return 1;
 }
 
 /* --- global functions --- */

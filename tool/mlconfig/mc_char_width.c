@@ -8,6 +8,7 @@
 #include <glib.h>
 #include <c_intl.h>
 
+#include "mc_compat.h"
 #include "mc_unicode_areas.h"
 #include "mc_flags.h"
 #include "mc_io.h"

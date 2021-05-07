@@ -24,15 +24,13 @@ static int is_changed;
 
 /* --- static functions --- */
 
-static gint logsize_selected(GtkWidget *widget, gpointer data) {
+static void logsize_selected(GtkWidget *widget, gpointer data) {
   g_free(new_logsize);
   new_logsize = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
 
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " %s logsize is selected.\n", new_logsize);
 #endif
-
-  return 1;
 }
 
 /* --- global functions --- */
@@ -49,7 +47,7 @@ GtkWidget *mc_logsize_config_widget_new(void) {
 
   combo =
       mc_combo_new_with_width(_("Backlog size (lines)"), logsizes,
-                              BL_ARRAY_SIZE(logsizes), new_logsize, 0, 50, &entry);
+                              BL_ARRAY_SIZE(logsizes), new_logsize, 0, 100, &entry);
   g_signal_connect(entry, "changed", G_CALLBACK(logsize_selected), NULL);
 
   return combo;

@@ -46,6 +46,8 @@ The RGB value's format should be "#RRGGBB", "#RRGGBBAA", "rgb:RR/GG/BB" or "rgba
 Enable complex text layouting on UTF8 encoding to support indic scripts and
 RTL (right-to-left) languages such as Arabic and Hebrew.
 The default is \fBtrue\fR.
+(If mlterm -v outputs "no-indic" or "no-bidi", indic scripts or RTL languages
+are not supported.)
 .TP
 \fB\-E\fR, \fB\-\-km\fR=\fIencoding\fR
 Specify encoding.
@@ -344,6 +346,9 @@ Specify the rendering engine to be used to draw fonts.
 \fBxcore\fR is conventional X11 core font mechanism.
 \fBxft\fR means Xft mechanism and \fBcairo\fR means cairo mechanism.
 The default is \fBcairo\fR.
+On platforms except X11, it is always \fBxcore\fR.
+(If mlterm -v outputs "no-xft" or "no-cairo", \fBxft\fR or \fBcairo\fR is
+unavailable.)
 .TP
 \fB\-#\fR, \fB\-\-initstr\fR=\fIvalue\fR
 Specify a string to be automatically sent after initialization of session.
@@ -420,6 +425,7 @@ Start as a daemon process. Note that mlclient is executed if a daemon process
 has already started.
 Possible \fR=\fIvalue\fRs are "blend" and "genuine".
 See the chapter of \fBDAEMON MODE\fR for details.
+(If mlterm -v outputs "no-daemon", this option is unavailable.)
 .TP
 \fB\-k\fR, \fB\-\-meta\fR=\fImode\fR
 Behavior of META key.  \fBesc\fR for sending ESC
@@ -455,6 +461,7 @@ The default is \fB0\fR.
 \fB\-p\fR, \fB\-\-pic\fR=\fIpath\fR
 Path for a wallpaper (background) image.
 Note that the wallpaper cannot be used with pseudo transparent background.
+(If mlterm -v outputs "no-image", this option is unavailable.)
 .TP
 \fB\-r\fR, \fB\-\-fade\fR=\fIratio\fR
 Specify fading ratio for unfocused windows.
@@ -506,6 +513,7 @@ The default is \fB1\fR.
 \fB\-\-aafont\fR=(\fIbool\fR) (Available for mlterm-fb, mlterm-wl or mlterm-sdl2)
 Whether to use ~/.mlterm/*aafont configurations with the use of fontconfig.
 The default is \fBfalse\fR for mlterm-fb and \fBtrue\fR for mlterm-wl and mlterm-sdl2.
+(If mlterm -v doesn't output "fontconfig", this option is unavailable.)
 .TP
 \fB\-\-ade\fR=\fIvalue\fR
 Specify character encodings detected automatically.
@@ -533,9 +541,11 @@ The default is \fBtrue\fR.
 \fB\-\-bimode\fR=\fIvalue\fR
 Specify bidi mode. Valid values are: \fBnormal\fR, \fBleft\fR and \fBright\fR.
 The default is \fBnormal\fR.
+(If mlterm -v outputs "no-bidi", this option is unavailable.)
 .TP
 \fB\-\-bisep\fR=\fIcharacterlist\fR
 Specify separator characters to render bidi text.
+(If mlterm -v outputs "no-bidi", this option is unavailable.)
 .TP
 \fB\-\-bl\fR=\fIvalue\fR
 Specify the color to use to display blinking characters.
@@ -558,6 +568,7 @@ The default is \fBnoconv\fR which draw them as they are.
 .TP
 \fB\-\-ciphlist\fR=\fIvalue\fR
 Specify ciphers (comma separated list) for encrypting the ssh session.
+(If mlterm -v doesn't output "ssh", this option is unavailable.)
 .TP
 \fB\-\-ckm\fR=\fIencoding\fR (Available for mlterm-con)
 Specify encoding of the console where mlterm-con works.
@@ -650,6 +661,7 @@ The default is \fBtrue\fR.
 \fB\-\-keepalive\fR=\fIvalue\fR
 Specify interval seconds to send keepalive message to ssh server.
 The default is \fB0\fR.
+(If mlterm -v doesn't output "ssh", this option is unavailable.)
 .TP
 \fB\-\-lborder\fR=\fIvalue\fR
 Specify inner border width of a layout manager. The default is \fB0\fR.
@@ -712,6 +724,7 @@ Don't specify \-\-ctl=false if you want to use substituting glyphs.
 \-\-ctl option disables automatic search of alternative glyphs in other fonts on cairo/xlib
 and freetype+fontconfig/{wayland|framebuffer}.
 The default is \fBfalse\fR.
+(If mlterm -v doesn't output "otl", this option is unavailable.)
 .TP
 \fB\-\-parent\fR=\fIvalue\fR
 Specify parent Window ID.
@@ -725,14 +738,17 @@ The default is \fBfalse\fR.
 \fB\-\-pubkey\fR=\fIvalue\fR
 Specify public key file for ssh connection.
 The default is \fB~/.ssh/id_rsa.pub\fR(\fB%HOMEPATH%\mlterm\id_rsa.pub\fR in win32).
+(If mlterm -v doesn't output "ssh", this option is unavailable.)
 .TP
 \fB\-\-privkey\fR=\fIvalue\fR
 Specify private key file for ssh connection.
 The default is \fB~/.ssh/id_rsa\fR(\fB%HOMEPATH%\mlterm\id_rsa\fR in win32).
+(If mlterm -v doesn't output "ssh", this option is unavailable.)
 .TP
 \fB\-\-rcn\fR(=\fIbool\fR)
 Reconnect to ssh server automatically in unexpected disconnection.
 The default is \fBfalse\fR.
+(If mlterm -v doesn't output "ssh", this option is unavailable.)
 .TP
 \fB\-\-recvdir\fR=\fIvalue\fR
 Specify the directory to save received files via zmodem or scp.
@@ -814,6 +830,7 @@ Working directory.
 \fB\-\-x11\fR(=\fIbool\fR)
 Enable x11 forwarding for ssh connection.
 The default is \fBfalse\fR.
+(If mlterm -v doesn't output "ssh", this option is unavailable.)
 
 .\" ********************************************************************
 .SH GUI CONFIGURATOR
@@ -2057,9 +2074,11 @@ Switch to a previous free pty (default \fBCtrl+F4\fR).
 .TP
 \fBHSPLIT_SCREEN\fR
 Open new pty in horizontally split screen (default \fBShift+F1\fR).
+(If mlterm -v outputs "no-split", this shortcut key is unavailable.)
 .TP
 \fBVSPLIT_SCREEN\fR
 Open new pty in vertically split screen (default \fBShift+F2\fR).
+(If mlterm -v outputs "no-split", this shortcut key is unavailable.)
 .TP
 \fBNEXT_SCREEN\fR
 Switch to a next unfocused screen (default \fBShift+F3\fR).
@@ -2072,9 +2091,11 @@ Close current screen (default \fBShift+F5\fR).
 .TP
 \fBHEXPAND_SCREEN\fR
 Expand current screen horizontally (default \fBShift+F6\fR).
+(If mlterm -v outputs "no-split", this shortcut key is unavailable.)
 .TP
 \fBVEXPAND_SCREEN\fR
 Expand current screen vertically (default \fBShift+F7\fR).
+(If mlterm -v outputs "no-split", this shortcut key is unavailable.)
 .TP
 \fBPAGE_UP\fR
 Start backscroll mode and scroll up one page

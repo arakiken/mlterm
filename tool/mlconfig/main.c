@@ -9,6 +9,7 @@
 
 #include <c_intl.h>
 
+#include "mc_compat.h"
 #include "mc_char_encoding.h"
 #include "mc_auto_detect.h"
 #include "mc_ctl.h"
@@ -36,6 +37,12 @@
 #define __DEBUG
 #endif
 
+/* --- static variables --- */
+
+#if GTK_CHECK_VERSION(4, 0, 0)
+static GtkWidget *window;
+#endif
+
 /* --- static functions --- */
 
 #ifdef DEBUG
@@ -44,7 +51,9 @@ static void check_mem_leak(void) {
 }
 #endif
 
+#if !GTK_CHECK_VERSION(4, 0, 0)
 static void end_application(GtkWidget *widget, gpointer data) { gtk_main_quit(); }
+#endif
 
 /*
  *  ********  procedures when buttons are clicked  ********
@@ -125,52 +134,54 @@ static int update(mc_io_t io) {
   return 1;
 }
 
-static gint cancel_clicked(GtkWidget *widget, gpointer data) {
+static void cancel_clicked(GtkWidget *widget, gpointer data) {
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_window_destroy(GTK_WINDOW(window));
+#else
   gtk_main_quit();
-  return FALSE;
+#endif
 }
 
-static gint apply_clicked(GtkWidget *widget, gpointer data) {
+static void apply_clicked(GtkWidget *widget, gpointer data) {
   update(mc_io_set);
-  return 1;
 }
 
-static gint saveexit_clicked(GtkWidget *widget, gpointer data) {
+static void saveexit_clicked(GtkWidget *widget, gpointer data) {
   update(mc_io_set_save);
+
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_window_destroy(GTK_WINDOW(window));
+#else
   gtk_main_quit();
-  return 1;
+#endif
 }
 
-static gint applyexit_clicked(GtkWidget *widget, gpointer data) {
+static void applyexit_clicked(GtkWidget *widget, gpointer data) {
   update(mc_io_set);
+
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_window_destroy(GTK_WINDOW(window));
+#else
   gtk_main_quit();
-  return 1;
+#endif
 }
 
-static gint larger_clicked(GtkWidget *widget, gpointer data) {
+static void larger_clicked(GtkWidget *widget, gpointer data) {
   mc_set_str_value("fontsize", "larger");
   mc_flush(mc_io_set);
-
-  return 1;
 }
 
-static gint smaller_clicked(GtkWidget *widget, gpointer data) {
+static void smaller_clicked(GtkWidget *widget, gpointer data) {
   mc_set_str_value("fontsize", "smaller");
   mc_flush(mc_io_set);
-
-  return 1;
 }
 
-static gint full_reset_clicked(GtkWidget *widget, gpointer data) {
+static void full_reset_clicked(GtkWidget *widget, gpointer data) {
   mc_exec("full_reset");
-
-  return 1;
 }
 
-static gint snapshot_clicked(GtkWidget *widget, gpointer data) {
+static void snapshot_clicked(GtkWidget *widget, gpointer data) {
   mc_exec("snapshot");
-
-  return 1;
 }
 
 #ifdef USE_LIBSSH2
@@ -180,83 +191,9 @@ static gint snapshot_clicked(GtkWidget *widget, gpointer data) {
 #define MY_RESPONSE_SEND 3
 #define MY_RESPONSE_RECV 4
 
-static void drag_data_received(GtkWidget *widget, GdkDragContext *context, gint x, gint y,
-                               GtkSelectionData *data, guint info, guint time) {
-  gchar **uris;
-  gchar *filename;
-
-#if GTK_CHECK_VERSION(2, 14, 0)
-  uris = g_uri_list_extract_uris(gtk_selection_data_get_data(data));
-#else
-  uris = g_uri_list_extract_uris(data->data);
-#endif
-  filename = g_filename_from_uri(uris[0], NULL, NULL);
-  gtk_entry_set_text(GTK_ENTRY(widget), filename);
-  g_free(filename);
-  g_strfreev(uris);
-}
-
-static gint ssh_scp_clicked(GtkWidget *widget, gpointer data) {
-  GtkWidget *dialog;
-  GtkWidget *content_area;
-  GtkWidget *hbox;
-  GtkWidget *label;
-  GtkWidget *local_entry;
-  GtkWidget *remote_entry;
-  gint res;
-  GtkTargetEntry local_targets[] = {
-      {"text/uri-list", 0, 0},
-  };
-
-  gtk_widget_hide(gtk_widget_get_toplevel(widget));
-
-  dialog = gtk_dialog_new();
-  gtk_window_set_title(GTK_WINDOW(dialog), "mlconfig");
-  gtk_dialog_add_button(GTK_DIALOG(dialog), _("Send"), MY_RESPONSE_SEND);
-  gtk_dialog_add_button(GTK_DIALOG(dialog), _("Recv"), MY_RESPONSE_RECV);
-  gtk_dialog_add_button(GTK_DIALOG(dialog), _("Return"), MY_RESPONSE_RETURN);
-  gtk_dialog_add_button(GTK_DIALOG(dialog), _("Exit"), MY_RESPONSE_EXIT);
-
-#if GTK_CHECK_VERSION(2, 14, 0)
-  content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-#else
-  content_area = GTK_DIALOG(dialog)->vbox;
-#endif
-
-  hbox = gtk_hbox_new(FALSE, 0);
-  gtk_widget_show(hbox);
-
-  label = gtk_label_new(_("Local"));
-  gtk_widget_show(label);
-  gtk_widget_set_size_request(label, 70, -1);
-  gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 1);
-
-  local_entry = gtk_entry_new();
-  gtk_widget_show(local_entry);
-  gtk_widget_set_size_request(local_entry, 280, -1);
-  gtk_drag_dest_set(local_entry, GTK_DEST_DEFAULT_ALL, local_targets, 1, GDK_ACTION_COPY);
-  g_signal_connect(local_entry, "drag-data-received", G_CALLBACK(drag_data_received), NULL);
-  gtk_box_pack_start(GTK_BOX(hbox), local_entry, FALSE, FALSE, 1);
-
-  gtk_container_add(GTK_CONTAINER(content_area), hbox);
-
-  hbox = gtk_hbox_new(FALSE, 0);
-  gtk_widget_show(hbox);
-
-  label = gtk_label_new(_("Remote"));
-  gtk_widget_show(label);
-  gtk_widget_set_size_request(label, 70, -1);
-  gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 1);
-
-  remote_entry = gtk_entry_new();
-  gtk_widget_show(remote_entry);
-  gtk_widget_set_size_request(remote_entry, 280, -1);
-
-  gtk_box_pack_start(GTK_BOX(hbox), remote_entry, FALSE, FALSE, 1);
-
-  gtk_container_add(GTK_CONTAINER(content_area), hbox);
-
-  while ((res = gtk_dialog_run(GTK_DIALOG(dialog))) >= MY_RESPONSE_SEND) {
+static int dialog_post_process(GtkWidget *dialog, int response_id, GtkWidget *local_entry,
+                               GtkWidget *remote_entry) {
+  if (response_id >= MY_RESPONSE_SEND) {
     char *cmd;
     const gchar *local_path;
     const gchar *remote_path;
@@ -267,24 +204,19 @@ static gint ssh_scp_clicked(GtkWidget *widget, gpointer data) {
     if ((cmd = alloca(28 + strlen(local_path) + strlen(remote_path)))) {
       char *p;
 
-      if (res == MY_RESPONSE_SEND) {
+      if (response_id == MY_RESPONSE_SEND) {
         if (!*local_path) {
-          bl_msg_printf(
-              "Local file path to send "
-              "is not specified.\n");
+          bl_msg_printf("Local file path to send is not specified.\n");
 
-          continue;
+          return -1;
         }
 
         sprintf(cmd, "scp \"local:%s\" \"remote:%s\" UTF8", local_path, remote_path);
-      } else /* if( res == MY_RESPONSE_RECV) */
-      {
+      } else /* if( res == MY_RESPONSE_RECV) */ {
         if (!*remote_path) {
-          bl_msg_printf(
-              "Remote file path to receive "
-              "is not specified.\n");
+          bl_msg_printf("Remote file path to receive is not specified.\n");
 
-          continue;
+          return -1;
         }
 
         sprintf(cmd, "scp \"remote:%s\" \"local:%s\" UTF8", remote_path, local_path);
@@ -304,41 +236,218 @@ static gint ssh_scp_clicked(GtkWidget *widget, gpointer data) {
     }
   }
 
-  if (res == MY_RESPONSE_EXIT) {
-    gtk_main_quit();
+  if (response_id == MY_RESPONSE_EXIT) {
+    return 0;
+  } else /* if (response_id == MY_RESPONSE_RETURN) */ {
+    return 1;
+  }
+}
 
-    return FALSE;
-  } else /* if (res == MY_RESPONSE_RETURN) */
-  {
+#if GTK_CHECK_VERSION(4, 0, 0)
+
+static struct {
+  GtkWidget *local_entry;
+  GtkWidget *remote_entry;
+} dialog_arg;
+
+static void dialog_cb(GtkDialog *dialog, int response_id, gpointer user_data) {
+  gint res;
+
+  if ((res = dialog_post_process(GTK_WIDGET(dialog), response_id, dialog_arg.local_entry,
+                                 dialog_arg.remote_entry)) != -1) {
+    gtk_window_destroy(GTK_WINDOW(dialog));
+
+    if (res == 0) {
+      gtk_window_destroy(GTK_WINDOW(window));
+    } else {
+      gtk_widget_show(window);
+    }
+  }
+}
+
+static gboolean drop(GtkDropTarget *target, const GValue *value,
+                     double x, double y, gpointer user_data) {
+  GtkEntry *entry = user_data;
+
+  if (G_VALUE_HOLDS(value, G_TYPE_STRING)) {
+    const gchar *str = g_value_get_string(value);
+    char *new_str;
+    char *p;
+
+    if (((p = strchr(str, '\r')) || (p = strchr(str, '\n'))) &&
+        (new_str = alloca(p - str + 1))) {
+      strncpy(new_str, str, p - str);
+      new_str[p - str] = '\0';
+      str = new_str;
+    }
+
+    gtk_entry_set_text(entry, str);
+  }
+
+  /* No further processing is necessary. */
+  return FALSE;
+}
+
+#else
+
+static void drag_data_received(GtkWidget *widget, GdkDragContext *context, gint x, gint y,
+                               GtkSelectionData *data, guint info, guint time) {
+  gchar **uris;
+  gchar *filename;
+
+#if GTK_CHECK_VERSION(2, 14, 0)
+  uris = g_uri_list_extract_uris(gtk_selection_data_get_data(data));
+#else
+  uris = g_uri_list_extract_uris(data->data);
+#endif
+  filename = g_filename_from_uri(uris[0], NULL, NULL);
+  gtk_entry_set_text(GTK_ENTRY(widget), filename);
+  g_free(filename);
+  g_strfreev(uris);
+}
+
+#endif
+
+static void ssh_scp_clicked(GtkWidget *widget, gpointer data) {
+  GtkWidget *dialog;
+  GtkWidget *hbox;
+  GtkWidget *label;
+  GtkWidget *local_entry;
+  GtkWidget *remote_entry;
+#if GTK_CHECK_VERSION(4, 0, 0)
+  GtkWidget *vbox;
+  GtkDropTarget *target;
+
+  gtk_widget_hide(window);
+#else
+  GtkWidget *content_area;
+  gint res;
+  GtkTargetEntry local_targets[] = {
+      {"text/uri-list", 0, 0},
+  };
+
+  gtk_widget_hide(gtk_widget_get_toplevel(widget));
+#endif
+
+  dialog = gtk_dialog_new();
+  gtk_window_set_title(GTK_WINDOW(dialog), "mlconfig");
+  gtk_dialog_add_button(GTK_DIALOG(dialog), _("Send"), MY_RESPONSE_SEND);
+  gtk_dialog_add_button(GTK_DIALOG(dialog), _("Recv"), MY_RESPONSE_RECV);
+  gtk_dialog_add_button(GTK_DIALOG(dialog), _("Return"), MY_RESPONSE_RETURN);
+  gtk_dialog_add_button(GTK_DIALOG(dialog), _("Exit"), MY_RESPONSE_EXIT);
+
+#if GTK_CHECK_VERSION(4, 0, 0)
+  vbox = gtk_vbox_new(FALSE, 0);
+  gtk_widget_show(vbox);
+  gtk_box_append(gtk_dialog_get_content_area(GTK_DIALOG(dialog)), vbox);
+#elif GTK_CHECK_VERSION(2, 14, 0)
+  content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+#else
+  content_area = GTK_DIALOG(dialog)->vbox;
+#endif
+
+  hbox = gtk_hbox_new(FALSE, 0);
+  gtk_widget_show(hbox);
+
+  label = gtk_label_new(_("Local"));
+  gtk_widget_show(label);
+  gtk_widget_set_size_request(label, 70, -1);
+  gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 1);
+
+  local_entry = gtk_entry_new();
+  gtk_widget_show(local_entry);
+  gtk_widget_set_size_request(local_entry, 280, -1);
+
+#if GTK_CHECK_VERSION(4, 0, 0)
+  /*
+   * XXX
+   * I don't know why, but it is impossible to override "drop" event controller of
+   * GtkText which GtkEntry internally uses.
+   * (drop() callback is never called, while accept, enter, move and leave signals
+   *  can be invoked.)
+   */
+  target = gtk_drop_target_new(G_TYPE_STRING, GDK_ACTION_COPY);
+  g_signal_connect(target, "drop", G_CALLBACK(drop), local_entry);
+  gtk_widget_add_controller(local_entry, GTK_EVENT_CONTROLLER(target));
+#else
+  gtk_drag_dest_set(local_entry, GTK_DEST_DEFAULT_ALL, local_targets, 1, GDK_ACTION_COPY);
+  g_signal_connect(local_entry, "drag-data-received", G_CALLBACK(drag_data_received), NULL);
+#endif
+
+  gtk_box_pack_start(GTK_BOX(hbox), local_entry, FALSE, FALSE, 1);
+
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_box_append(GTK_BOX(vbox), hbox);
+#else
+  gtk_container_add(GTK_CONTAINER(content_area), hbox);
+#endif
+
+  hbox = gtk_hbox_new(FALSE, 0);
+  gtk_widget_show(hbox);
+
+  label = gtk_label_new(_("Remote"));
+  gtk_widget_show(label);
+  gtk_widget_set_size_request(label, 70, -1);
+  gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 1);
+
+  remote_entry = gtk_entry_new();
+  gtk_widget_show(remote_entry);
+  gtk_widget_set_size_request(remote_entry, 280, -1);
+
+  gtk_box_pack_start(GTK_BOX(hbox), remote_entry, FALSE, FALSE, 1);
+
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_box_append(GTK_BOX(vbox), hbox);
+#else
+  gtk_container_add(GTK_CONTAINER(content_area), hbox);
+#endif
+
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
+  dialog_arg.local_entry = local_entry;
+  dialog_arg.remote_entry = remote_entry;
+  g_signal_connect(dialog, "response", G_CALLBACK(dialog_cb), NULL);
+  gtk_widget_show(dialog);
+#else
+  while ((res = dialog_post_process(dialog, gtk_dialog_run(GTK_DIALOG(dialog)),
+                                    local_entry, remote_entry)) == -1);
+  if (res == 0) {
+    gtk_main_quit();
+  } else {
     gtk_widget_destroy(dialog);
     gtk_widget_show_all(gtk_widget_get_toplevel(widget));
-
-    return TRUE;
   }
+#endif
 }
 
 #endif /* USE_LIBSSH2 */
 
-static gint pty_new_button_clicked(GtkWidget *widget, gpointer data) {
+static void pty_new_button_clicked(GtkWidget *widget, gpointer data) {
   mc_exec("open_pty");
   mc_flush(mc_io_set);
-  gtk_main_quit();
 
-  return 1;
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_window_destroy(GTK_WINDOW(window));
+#else
+  gtk_main_quit();
+#endif
 }
 
-static gint pty_button_clicked(GtkWidget *widget, gpointer data) {
+static void pty_button_clicked(GtkWidget *widget, gpointer data) {
   mc_select_pty();
 
   /*
    * As soon as  pty changed, stdout is also changed, but mlconfig couldn't
    * follow it.
    */
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_window_destroy(GTK_WINDOW(window));
+#else
   gtk_main_quit();
-
-  return 1;
+#endif
 }
 
+#if !GTK_CHECK_VERSION(4, 0, 0)
 static gboolean event(GtkWidget *widget, GdkEvent *event, gpointer data) {
   if (event->type == GDK_FOCUS_CHANGE && !((GdkEventFocus*)event)->in) {
     gtk_window_set_keep_above(GTK_WINDOW(widget), FALSE);
@@ -347,14 +456,20 @@ static gboolean event(GtkWidget *widget, GdkEvent *event, gpointer data) {
 
   return FALSE;
 }
+#endif
 
 /*
  *  ********  Building GUI (lower part, independent buttons)  ********
  */
 
-static void addbutton(const char *label, gint(func)(GtkWidget*, gpointer), GtkWidget *box) {
+static void addbutton(const char *label, void (func)(GtkWidget*, gpointer), GtkWidget *box) {
   GtkWidget *button;
   button = gtk_button_new_with_label(label);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_widget_set_hexpand(button, TRUE);
+  gtk_widget_set_margin_start(button, 4);
+  gtk_widget_set_margin_end(button, 4);
+#endif
   g_signal_connect(button, "clicked", G_CALLBACK(func), NULL);
   gtk_widget_show(button);
   gtk_box_pack_start(GTK_BOX(box), button, TRUE, TRUE, 0);
@@ -384,11 +499,19 @@ static GtkWidget *font_large_small(void) {
 
   frame = gtk_frame_new(_("Font size (temporary)"));
   gtk_widget_show(frame);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_widget_set_margin_start(frame, 4);
+  gtk_widget_set_margin_end(frame, 4);
+#endif
 
   hbox = gtk_hbox_new(FALSE, 5);
   gtk_container_set_border_width(GTK_CONTAINER(hbox), 5);
   gtk_widget_show(hbox);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_frame_set_child(GTK_FRAME(frame), hbox);
+#else
   gtk_container_add(GTK_CONTAINER(frame), hbox);
+#endif
 
   addbutton(_("Larger"), larger_clicked, hbox);
   addbutton(_("Smaller"), smaller_clicked, hbox);
@@ -408,11 +531,19 @@ static GtkWidget *command(void) {
 
   frame = gtk_frame_new(_("Command"));
   gtk_widget_show(frame);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_widget_set_margin_start(frame, 4);
+  gtk_widget_set_margin_end(frame, 4);
+#endif
 
   hbox = gtk_hbox_new(FALSE, 5);
   gtk_container_set_border_width(GTK_CONTAINER(hbox), 5);
   gtk_widget_show(hbox);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_frame_set_child(GTK_FRAME(frame), hbox);
+#else
   gtk_container_add(GTK_CONTAINER(frame), hbox);
+#endif
 
   addbutton(_("Full reset"), full_reset_clicked, hbox);
   addbutton(_("Snapshot"), snapshot_clicked, hbox);
@@ -435,11 +566,21 @@ static GtkWidget *pty_list(void) {
 
   frame = gtk_frame_new(_("PTY List"));
   gtk_widget_show(frame);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_widget_set_margin_start(frame, 4);
+  gtk_widget_set_margin_end(frame, 4);
+#endif
 
   hbox = gtk_hbox_new(FALSE, 5);
   gtk_container_set_border_width(GTK_CONTAINER(hbox), 5);
   gtk_widget_show(hbox);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_widget_set_margin_start(hbox, 4);
+  gtk_widget_set_margin_end(hbox, 4);
+  gtk_frame_set_child(GTK_FRAME(frame), hbox);
+#else
   gtk_container_add(GTK_CONTAINER(frame), hbox);
+#endif
 
   addbutton(_(" New "), pty_new_button_clicked, hbox);
   addbutton(_("Select"), pty_button_clicked, hbox);
@@ -453,8 +594,12 @@ static GtkWidget *pty_list(void) {
  *  ********  Building GUI (main part, page (tab)-separated widgets)  ********
  */
 
-static int show(void) {
-  GtkWidget *window;
+#if GTK_CHECK_VERSION(4, 0, 0)
+static int show(GtkApplication *app, gpointer user_data)
+#else
+static int show(void)
+#endif
+{
   GtkWidget *vbox;
   GtkWidget *vbox2;
   GtkWidget *hbox;
@@ -465,15 +610,23 @@ static int show(void) {
   GtkWidget *separator;
   const char *gui = mc_get_gui();
 
-  window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  window = gtk_application_window_new(app);
+#else
+  GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   g_signal_connect(window, "destroy", G_CALLBACK(end_application), NULL);
+#endif
   gtk_window_set_title(GTK_WINDOW(window), _("mlterm configuration"));
   gtk_container_set_border_width(GTK_CONTAINER(window), 0);
 
   vbox = gtk_vbox_new(FALSE, 10);
   gtk_widget_show(vbox);
   gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_window_set_child(GTK_WINDOW(window), vbox);
+#else
   gtk_container_add(GTK_CONTAINER(window), vbox);
+#endif
 
   /* whole screen (except for the contents of notebook) */
 
@@ -485,13 +638,26 @@ static int show(void) {
   separator = gtk_hseparator_new();
   gtk_widget_show(separator);
   gtk_box_pack_start(GTK_BOX(vbox), separator, FALSE, FALSE, 0);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_widget_set_margin_start(separator, 2);
+  gtk_widget_set_margin_end(separator, 2);
+#endif
 
   hbox = apply_cancel_button();
   gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_widget_set_margin_start(hbox, 2);
+  gtk_widget_set_margin_end(hbox, 2);
+#endif
 
   hbox = gtk_hbox_new(FALSE, 0);
   gtk_widget_show(hbox);
   gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_widget_set_margin_start(hbox, 2);
+  gtk_widget_set_margin_end(hbox, 2);
+#endif
+
   frame = font_large_small();
   gtk_box_pack_start(GTK_BOX(hbox), frame, TRUE, TRUE, 5);
   frame = command();
@@ -508,6 +674,10 @@ static int show(void) {
   gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, label);
   gtk_widget_show(vbox);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_widget_set_margin_start(vbox, 2);
+  gtk_widget_set_margin_end(vbox, 2);
+#endif
 
   config_widget = mc_char_encoding_config_widget_new();
   gtk_widget_show(config_widget);
@@ -557,6 +727,10 @@ static int show(void) {
   gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, label);
   gtk_widget_show(vbox);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_widget_set_margin_start(vbox, 2);
+  gtk_widget_set_margin_end(vbox, 2);
+#endif
 
   config_widget = mc_font_config_widget_new();
   gtk_widget_show(config_widget);
@@ -594,6 +768,10 @@ static int show(void) {
   gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, label);
   gtk_widget_show(vbox);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_widget_set_margin_start(vbox, 2);
+  gtk_widget_set_margin_end(vbox, 2);
+#endif
 
   config_widget = mc_bgtype_config_widget_new();
   gtk_widget_show(config_widget);
@@ -604,7 +782,11 @@ static int show(void) {
   gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 0);
   vbox2 = gtk_vbox_new(FALSE, 3);
   gtk_widget_show(vbox2);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_frame_set_child(GTK_FRAME(frame), vbox2);
+#else
   gtk_container_add(GTK_CONTAINER(frame), vbox2);
+#endif
   hbox = gtk_hbox_new(FALSE, 0);
   gtk_container_set_border_width(GTK_CONTAINER(hbox), 2);
   gtk_widget_show(hbox);
@@ -643,6 +825,10 @@ static int show(void) {
   gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, label);
   gtk_widget_show(vbox);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_widget_set_margin_start(vbox, 2);
+  gtk_widget_set_margin_end(vbox, 2);
+#endif
 
   config_widget = mc_cursor_color_config_widget_new();
   gtk_widget_show(config_widget);
@@ -664,6 +850,10 @@ static int show(void) {
   gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, label);
   gtk_widget_show(vbox);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_widget_set_margin_start(vbox, 2);
+  gtk_widget_set_margin_end(vbox, 2);
+#endif
 
   config_widget = mc_radio_config_widget_new(MC_RADIO_SB_MODE);
   gtk_widget_show(config_widget);
@@ -695,6 +885,10 @@ static int show(void) {
   gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, label);
   gtk_widget_show(vbox);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_widget_set_margin_start(vbox, 2);
+  gtk_widget_set_margin_end(vbox, 2);
+#endif
 
   hbox = gtk_hbox_new(FALSE, 0);
   gtk_widget_show(hbox);
@@ -774,19 +968,23 @@ static int show(void) {
   gtk_widget_show(config_widget);
   gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
+#if !GTK_CHECK_VERSION(4, 0, 0)
   gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_MOUSE);
+#endif
 #if !GTK_CHECK_VERSION(2, 90, 0)
   gtk_window_set_policy(GTK_WINDOW(window), 0, 0, 0);
 #endif
 
   gtk_widget_show(window);
 
+#if !GTK_CHECK_VERSION(4, 0, 0)
   if (strcmp(gui, "win32") == 0 || strcmp(gui, "quartz") == 0) {
     gtk_window_set_keep_above(GTK_WINDOW(window), TRUE);
     g_signal_connect(window, "event", G_CALLBACK(event), NULL);
   }
 
   gtk_main();
+#endif
 
   return 1;
 }
@@ -795,6 +993,10 @@ static int show(void) {
 
 int main(int argc, char **argv) {
   int is_file_io = 0;
+#if GTK_CHECK_VERSION(4, 0, 0)
+  GtkApplication *app;
+  int status;
+#endif
 
 #ifdef DEBUG
   atexit(check_mem_leak);
@@ -833,6 +1035,14 @@ int main(int argc, char **argv) {
 
   bl_set_msg_log_file_name("mlterm/msg.log");
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+  app = gtk_application_new("jp.mlterm", G_APPLICATION_FLAGS_NONE);
+  g_signal_connect(app, "activate", G_CALLBACK(show), NULL);
+  status = g_application_run(G_APPLICATION(app), argc, argv);
+  g_object_unref(app);
+
+  return status;
+#else
   gtk_init(&argc, &argv);
 
   if (show() == 0) {
@@ -842,4 +1052,5 @@ int main(int argc, char **argv) {
   } else {
     return 0;
   }
+#endif
 }

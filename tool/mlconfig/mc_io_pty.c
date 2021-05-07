@@ -158,8 +158,14 @@ void mc_flush_pty(mc_io_t io) {
                                                GTK_MESSAGE_INFO, GTK_BUTTONS_CLOSE,
                                                "\"True Transprent\" setting is discarded.\n"
                                                "Press \"Save&Exit\" button.");
+#if GTK_CHECK_VERSION(4, 0, 0)
+    gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
+    g_signal_connect_swapped(dialog, "response", G_CALLBACK(gtk_window_destroy), dialog);
+    gtk_widget_show(dialog);
+#else
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
+#endif
   }
 
   fflush(stdout);

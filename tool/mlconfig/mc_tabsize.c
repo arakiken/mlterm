@@ -24,15 +24,13 @@ static int is_changed;
 
 /* --- static functions --- */
 
-static gint tabsize_selected(GtkWidget *widget, gpointer data) {
+static void tabsize_selected(GtkWidget *widget, gpointer data) {
   g_free(new_tabsize);
   new_tabsize = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
 
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " %s tabsize is selected.\n", new_tabsize);
 #endif
-
-  return 1;
 }
 
 /* --- global functions --- */

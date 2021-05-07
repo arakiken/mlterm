@@ -10,6 +10,7 @@
 #include <pobl/bl_mem.h>
 #include <pobl/bl_str.h> /* bl_str_sep/strdup */
 
+#include "mc_compat.h"
 #include "mc_io.h"
 
 #if GTK_CHECK_VERSION(2, 14, 0)
@@ -97,75 +98,35 @@ static void edited(GtkCellRendererText *renderer, gchar *path, gchar *new_text, 
 error1:
   dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
                                   GTK_BUTTONS_CLOSE, "\'%s\' is illegal", new_text);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
+  g_signal_connect_swapped(dialog, "response", G_CALLBACK(gtk_window_destroy), dialog);
+  gtk_widget_show(dialog);
+#else
   gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
+#endif
 
   return;
 
 error2:
   dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
                                   GTK_BUTTONS_CLOSE, "U+%x is larger than U+%x", min, max);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
+  g_signal_connect_swapped(dialog, "response", G_CALLBACK(gtk_window_destroy), dialog);
+  gtk_widget_show(dialog);
+#else
   gtk_dialog_run(GTK_DIALOG(dialog));
   gtk_widget_destroy(dialog);
+#endif
 }
 
-/* --- global functions --- */
-
-char *mc_get_unicode_areas(char *areas) {
-  GtkWidget *dialog;
-  GtkWidget *label;
-  GtkListStore *store;
-  GtkCellRenderer *renderer;
-  GtkWidget *view;
-  GtkWidget *hbox;
-  GtkWidget *button;
+static char *dialog_post_process(GtkListStore *store, int response_id) {
+  char *areas;
   GtkTreeIter itr;
-  char *strp;
-  char *area;
 
-  dialog = gtk_dialog_new_with_buttons(
-      "Edit unicode areas", NULL, GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, GTK_STOCK_OK,
-      GTK_RESPONSE_ACCEPT, GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT, NULL);
-
-  label = gtk_label_new(
-      _("Set unicode area in the following format.\n"
-        "Format: U+XXXX-XXXX or U+XXXX (U+ is optional)"));
-  gtk_widget_show(label);
-  gtk_box_pack_start(gtk_dialog_get_content_area(GTK_DIALOG(dialog)), label, TRUE, TRUE, 1);
-
-  store = gtk_list_store_new(1, G_TYPE_STRING);
-  strp = areas;
-  while ((area = bl_str_sep(&strp, ","))) {
-    gtk_list_store_append(store, &itr);
-    gtk_list_store_set(store, &itr, 0, area, -1);
-  }
-  view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
-  g_object_unref(G_OBJECT(store));
-  renderer = gtk_cell_renderer_text_new();
-  gtk_tree_view_append_column(GTK_TREE_VIEW(view), gtk_tree_view_column_new_with_attributes(
-                                                       NULL, renderer, "text", 0, NULL));
-  gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(view), FALSE);
-  g_object_set(renderer, "editable", TRUE, NULL);
-  g_signal_connect(renderer, "edited", G_CALLBACK(edited), store);
-  gtk_widget_show(view);
-  gtk_box_pack_start(gtk_dialog_get_content_area(GTK_DIALOG(dialog)), view, TRUE, TRUE, 1);
-
-  hbox = gtk_hbox_new(TRUE, 0);
-  gtk_widget_show(hbox);
-
-  button = gtk_button_new_with_label("Add");
-  gtk_widget_show(button);
-  gtk_box_pack_start(GTK_BOX(hbox), button, TRUE, TRUE, 1);
-  g_signal_connect(button, "clicked", G_CALLBACK(add_row), store);
-
-  button = gtk_button_new_with_label("Delete");
-  gtk_widget_show(button);
-  gtk_box_pack_start(GTK_BOX(hbox), button, TRUE, TRUE, 1);
-  g_signal_connect(button, "clicked", G_CALLBACK(delete_row), view);
-
-  gtk_box_pack_start(gtk_dialog_get_content_area(GTK_DIALOG(dialog)), hbox, TRUE, TRUE, 1);
-
-  if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_ACCEPT) {
+  if (response_id != GTK_RESPONSE_ACCEPT) {
     areas = NULL;
   } else if (gtk_tree_model_get_iter_first(GTK_TREE_MODEL(store), &itr)) {
     char *p;
@@ -193,7 +154,104 @@ char *mc_get_unicode_areas(char *areas) {
     areas = strdup("");
   }
 
+  return areas;
+}
+
+#if GTK_CHECK_VERSION(4, 0, 0)
+static GMainLoop *loop;
+static char *new_areas;
+
+static void dialog_cb(GtkDialog *dialog, int response_id, gpointer user_data) {
+  new_areas = dialog_post_process(user_data, response_id);
+  gtk_window_destroy(GTK_WINDOW(dialog));
+  g_main_loop_quit(loop);
+}
+#endif
+
+/* --- global functions --- */
+
+char *mc_get_unicode_areas(char *areas) {
+  GtkWidget *dialog;
+  GtkWidget *label;
+  GtkListStore *store;
+  GtkCellRenderer *renderer;
+  GtkWidget *view;
+  GtkWidget *vbox;
+  GtkWidget *hbox;
+  GtkWidget *button;
+  GtkTreeIter itr;
+  char *strp;
+  char *area;
+
+  dialog = gtk_dialog_new_with_buttons(
+      "Edit unicode areas", NULL, GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, GTK_STOCK_OK,
+      GTK_RESPONSE_ACCEPT, GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT, NULL);
+
+#if GTK_CHECK_VERSION(4, 0, 0)
+  vbox = gtk_vbox_new(FALSE, 0);
+  gtk_widget_show(vbox);
+  gtk_box_append(gtk_dialog_get_content_area(GTK_DIALOG(dialog)), vbox);
+#else
+  vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+#endif
+
+  label = gtk_label_new(
+      _("Set unicode area in the following format.\n"
+        "Format: U+XXXX-XXXX or U+XXXX (U+ is optional)"));
+  gtk_widget_show(label);
+  gtk_box_pack_start(GTK_BOX(vbox), label, TRUE, TRUE, 1);
+
+  store = gtk_list_store_new(1, G_TYPE_STRING);
+  strp = areas;
+  while ((area = bl_str_sep(&strp, ","))) {
+    gtk_list_store_append(store, &itr);
+    gtk_list_store_set(store, &itr, 0, area, -1);
+  }
+  view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
+  g_object_unref(G_OBJECT(store));
+  renderer = gtk_cell_renderer_text_new();
+  gtk_tree_view_append_column(GTK_TREE_VIEW(view), gtk_tree_view_column_new_with_attributes(
+                                                       NULL, renderer, "text", 0, NULL));
+  gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(view), FALSE);
+  g_object_set(renderer, "editable", TRUE, NULL);
+  g_signal_connect(renderer, "edited", G_CALLBACK(edited), store);
+  gtk_widget_show(view);
+  gtk_box_pack_start(GTK_BOX(vbox), view, TRUE, TRUE, 1);
+
+  hbox = gtk_hbox_new(TRUE, 0);
+  gtk_widget_show(hbox);
+
+  button = gtk_button_new_with_label("Add");
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_widget_set_hexpand(button, TRUE);
+#endif
+  gtk_widget_show(button);
+  gtk_box_pack_start(GTK_BOX(hbox), button, TRUE, TRUE, 1);
+  g_signal_connect(button, "clicked", G_CALLBACK(add_row), store);
+
+  button = gtk_button_new_with_label("Delete");
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_widget_set_hexpand(button, TRUE);
+#endif
+  gtk_widget_show(button);
+  gtk_box_pack_start(GTK_BOX(hbox), button, TRUE, TRUE, 1);
+  g_signal_connect(button, "clicked", G_CALLBACK(delete_row), view);
+
+  gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 1);
+
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
+  g_signal_connect(dialog, "response", G_CALLBACK(dialog_cb), store);
+  gtk_widget_show(dialog);
+
+  loop = g_main_loop_new(NULL, FALSE);
+  g_main_loop_run(loop);
+
+  areas = new_areas;
+#else
+  areas = dialog_post_process(store, gtk_dialog_run(GTK_DIALOG(dialog)));
   gtk_widget_destroy(dialog);
+#endif
 
   return areas;
 }

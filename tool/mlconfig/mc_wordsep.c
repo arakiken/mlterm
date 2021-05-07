@@ -8,6 +8,7 @@
 #include <glib.h>
 #include <c_intl.h>
 
+#include "mc_compat.h"
 #include "mc_io.h"
 
 #if 0
@@ -113,13 +114,16 @@ GtkWidget *mc_wordsep_config_widget_new(void) {
   gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 5);
 
   entry = gtk_entry_new();
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_widget_set_halign(entry, GTK_ALIGN_START);
+#endif
   old_wordsep = remove_ff_mark(mc_get_str_value("word_separators"));
   gtk_entry_set_text(GTK_ENTRY(entry), old_wordsep);
   gtk_widget_show(entry);
   gtk_box_pack_start(GTK_BOX(hbox), entry, TRUE, TRUE, 1);
 
 #if GTK_CHECK_VERSION(2, 90, 0)
-  gtk_entry_set_width_chars(GTK_ENTRY(entry), 10);
+  /* gtk_entry_set_width_chars(GTK_ENTRY(entry), 10) truncates text within 10 chars. */
 #else
   gtk_widget_set_size_request(entry, 10 * CHAR_WIDTH, -1);
 #endif

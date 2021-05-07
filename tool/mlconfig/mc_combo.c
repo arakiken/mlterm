@@ -1,6 +1,8 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #include <pobl/bl_str.h>
+
+#include "mc_compat.h"
 #include "mc_combo.h"
 
 #define CHAR_WIDTH 10
@@ -65,11 +67,19 @@ GtkWidget *mc_combo_new_with_width(const char *label_name, char **item_names, u_
   gtk_combo_box_set_active(GTK_COMBO_BOX(combo), 0);
 
   if (entry) {
+#if GTK_CHECK_VERSION(4, 0, 0)
+    *entry = gtk_combo_box_get_child(GTK_COMBO_BOX(combo));
+#else
     *entry = gtk_bin_get_child(GTK_BIN(combo));
+#endif
   }
 
   if (is_readonly) {
+#if GTK_CHECK_VERSION(4, 0, 0)
+    gtk_editable_set_editable(GTK_EDITABLE(gtk_combo_box_get_child(GTK_COMBO_BOX(combo))), FALSE);
+#else
     gtk_editable_set_editable(GTK_EDITABLE(gtk_bin_get_child(GTK_BIN(combo))), FALSE);
+#endif
   }
 
   if (entry_width) {
@@ -82,7 +92,11 @@ GtkWidget *mc_combo_new_with_width(const char *label_name, char **item_names, u_
       width_chars = entry_width / CHAR_WIDTH;
     }
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+    gtk_entry_set_width_chars(gtk_combo_box_get_child(GTK_COMBO_BOX(combo)), width_chars);
+#else
     gtk_entry_set_width_chars(gtk_bin_get_child(GTK_BIN(combo)), width_chars);
+#endif
 #else
     gtk_widget_set_size_request(gtk_bin_get_child(GTK_BIN(combo)), entry_width, -1);
 #endif

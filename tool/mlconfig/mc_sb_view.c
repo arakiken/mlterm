@@ -35,15 +35,13 @@ static int is_changed;
 
 /* --- static functions --- */
 
-static gint sb_view_name_selected(GtkWidget *widget, gpointer data) {
+static void sb_view_name_selected(GtkWidget *widget, gpointer data) {
   free(new_sb_view_name);
   new_sb_view_name = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
 
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " %s sb_view_name is selected.\n", new_sb_view_name);
 #endif
-
-  return 1;
 }
 
 static int has_rc_file(char *dirname, char *sbdirname) {

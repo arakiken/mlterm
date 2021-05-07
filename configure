@@ -685,6 +685,8 @@ EMOJI_LIBS
 EMOJI_CFLAGS
 MLIMGLOADER_LIB
 PERL
+GTK_LIBS_FOR_MLCONFIG
+GTK_CFLAGS_FOR_MLCONFIG
 MKINSTALLDIRS
 POSUB
 POFILES
@@ -806,6 +808,8 @@ GDK_PIXBUF_LIBS
 GDK_PIXBUF_CFLAGS
 GTK_LIBS
 GTK_CFLAGS
+GTK4_LIBS
+GTK4_CFLAGS
 PKG_CONFIG_LIBDIR
 PKG_CONFIG_PATH
 DEXPORT
@@ -994,6 +998,8 @@ XMKMF
 PKG_CONFIG
 PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
+GTK4_CFLAGS
+GTK4_LIBS
 GTK_CFLAGS
 GTK_LIBS
 GDK_PIXBUF_CFLAGS
@@ -1673,7 +1679,7 @@ Optional Features:
   --disable-fontconfig    use fontconfig with freetype on framebuffer or wayland [default=enabled]
   --disable-otl           Open Type layout with the use of harfbuzz or libotf [default=enabled]
   --disable-ssh2          libssh2 [default=enabled]
-  --disable-use-tools     don't build and use external tools [default=enabled]
+  --disable-use-tools     do not build and use external tools [default=enabled]
   --enable-dependency-tracking
                           do not reject slow dependency extractors
   --disable-dependency-tracking
@@ -1718,7 +1724,7 @@ Optional Packages:
                           compiler's sysroot if not specified).
   --with-x                use the X Window System
   --with-gui[=ARG]        gui library (xlib|win32|fb|quartz|console|wayland|sdl2|beos)
-  --with-gtk[=ARG]        gtk+ version (2.0|3.0)
+  --with-gtk[=ARG]        gtk+ version (2.0|3.0|4.0) [default=3.0]
   --with-imagelib[=ARG]   image library (gdk-pixbuf) [default=no]
   --without-pthread       don't use pthread [default=with]
   --with-type-engines[=ARG] type engines (xcore, xft, cairo) [default=xcore,xft,cairo]
@@ -1751,6 +1757,8 @@ Some influential environment variables:
               directories to add to pkg-config's search path
   PKG_CONFIG_LIBDIR
               path overriding pkg-config's built-in search path
+  GTK4_CFLAGS C compiler flags for GTK4, overriding pkg-config
+  GTK4_LIBS   linker flags for GTK4, overriding pkg-config
   GTK_CFLAGS  C compiler flags for GTK, overriding pkg-config
   GTK_LIBS    linker flags for GTK, overriding pkg-config
   GDK_PIXBUF_CFLAGS
@@ -16939,9 +16947,7 @@ fi
 if test "$gtk_version" = "no" ; then
 	have_gtk=no
 else
-	if test "$gtk_version" = "" ; then
-		gtk_version=3.0
-	fi
+	if test "$gtk_version" = "4.0" ; then
 
 
 
@@ -17062,6 +17068,82 @@ $as_echo "no" >&6; }
 		PKG_CONFIG=""
 	fi
 fi
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GTK4" >&5
+$as_echo_n "checking for GTK4... " >&6; }
+
+if test -n "$GTK4_CFLAGS"; then
+    pkg_cv_GTK4_CFLAGS="$GTK4_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk4\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gtk4") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_GTK4_CFLAGS=`$PKG_CONFIG --cflags "gtk4" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$GTK4_LIBS"; then
+    pkg_cv_GTK4_LIBS="$GTK4_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk4\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gtk4") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_GTK4_LIBS=`$PKG_CONFIG --libs "gtk4" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        GTK4_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "gtk4" 2>&1`
+        else
+	        GTK4_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "gtk4" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$GTK4_PKG_ERRORS" >&5
+
+	have_gtk4=no
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	have_gtk4=no
+else
+	GTK4_CFLAGS=$pkg_cv_GTK4_CFLAGS
+	GTK4_LIBS=$pkg_cv_GTK4_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_gtk4=yes
+fi
+		# mlconfig supports gtk4, but mlterm-menu and libvte do not support it
+		gtk_version=3.0
+	elif test "$gtk_version" = "" ; then
+		gtk_version=3.0
+	fi
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for GTK" >&5
@@ -20315,7 +20397,8 @@ fi
 for tool in ${tools} ; do
 case ${tool} in
 mlconfig)
-	if test "${have_gtk}" = "yes" -a "$gui" != "fb" -a "$gui" != "console" ; then
+	if test "$gui" != "fb" -a "$gui" != "console" ; then
+		if test "${have_gtk}" = "yes" -o "${have_gtk4}" = "yes" ; then
 
    for ac_header in locale.h
 do :
@@ -21099,14 +21182,24 @@ $as_echo "$LINGUAS" >&6; }
    sed -e "/^#/d" -e "/^\$/d" -e "s,.*,	$posrcprefix& \\\\," -e "\$s/\(.*\) \\\\/\1/" \
 	< $srcdir/tool/mlconfig/po/POTFILES.in > tool/mlconfig/po/POTFILES
 
-		MAKE_DIRS="tool/mlconfig ${MAKE_DIRS}"
-		OUTPUT_FILES="tool/mlconfig/Makefile tool/mlconfig/po/Makefile.in ${OUTPUT_FILES}"
-		tools_result="$tools_result $tool"
-	else
-		echo ""
-		echo "** WARNING  **"
-		echo " couldn't compile mlconfig since headers/libraries of GTK+-2 are missing."
-		echo ""
+			MAKE_DIRS="tool/mlconfig ${MAKE_DIRS}"
+			OUTPUT_FILES="tool/mlconfig/Makefile tool/mlconfig/po/Makefile.in ${OUTPUT_FILES}"
+			tools_result="$tools_result $tool"
+			if test "$have_gtk4" = "yes" ; then
+				GTK_CFLAGS_FOR_MLCONFIG=$GTK4_CFLAGS
+				GTK_LIBS_FOR_MLCONFIG=$GTK4_LIBS
+			else
+				GTK_CFLAGS_FOR_MLCONFIG=$GTK_CFLAGS
+				GTK_LIBS_FOR_MLCONFIG=$GTK_LIBS
+			fi
+
+
+		else
+			echo ""
+			echo "** WARNING  **"
+			echo " couldn't compile mlconfig since headers/libraries of GTK+ are missing."
+			echo ""
+		fi
 	fi
 	;;
 mlterm-menu)
@@ -25915,9 +26008,17 @@ echo "Scrollbars                        : simple${scrollbars_result}"
 echo "libssh2                           : $ssh2"
 echo "mosh directory                    : $MOSH_DIR"
 if test "$have_gtk" = "yes"; then
-	echo "GTK+                              : yes ($gtk_version)"
+	if test "$have_gtk4" = "yes"; then
+		echo "GTK+                              : yes ($gtk_version, 4.0)"
+	else
+		echo "GTK+                              : yes ($gtk_version)"
+	fi
 else
-	echo "GTK+                              : no"
+	if test "$have_gtk4" = "yes"; then
+		echo "GTK+                              : yes (4.0)"
+	else
+		echo "GTK+                              : no"
+	fi
 fi
 if test "$VTE_ABI" = ""; then
 	vte_version=""

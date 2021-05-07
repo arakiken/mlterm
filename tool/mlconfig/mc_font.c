@@ -15,6 +15,7 @@
 #include "gtkxlfdsel.c"
 #endif
 
+#include "mc_compat.h"
 #include "mc_combo.h"
 #include "mc_flags.h"
 #include "mc_radio.h"
@@ -244,7 +245,7 @@ static char *get_font_file(void) {
   }
 }
 
-static gint aa_flag_checked(GtkWidget *widget, gpointer data) {
+static void aa_flag_checked(GtkWidget *widget, gpointer data) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
     if (!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(xft_flag)) &&
         !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cairo_flag))) {
@@ -257,11 +258,9 @@ static gint aa_flag_checked(GtkWidget *widget, gpointer data) {
                            NULL, NULL));
     }
   }
-
-  return 1;
 }
 
-static gint xft_flag_checked(GtkWidget *widget, gpointer data) {
+static void xft_flag_checked(GtkWidget *widget, gpointer data) {
   if (!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)) &&
       !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cairo_flag))) {
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(aa_flag), 0);
@@ -276,11 +275,9 @@ static gint xft_flag_checked(GtkWidget *widget, gpointer data) {
       GTK_ENTRY(fontname_entry),
       g_locale_to_utf8(mc_get_font_name(get_font_file(), get_correct_cs(selected_cs)), -1, NULL,
                        NULL, NULL));
-
-  return 1;
 }
 
-static gint cairo_flag_checked(GtkWidget *widget, gpointer data) {
+static void cairo_flag_checked(GtkWidget *widget, gpointer data) {
   if (!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)) &&
       !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(xft_flag))) {
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(aa_flag), 0);
@@ -295,18 +292,14 @@ static gint cairo_flag_checked(GtkWidget *widget, gpointer data) {
       GTK_ENTRY(fontname_entry),
       g_locale_to_utf8(mc_get_font_name(get_font_file(), get_correct_cs(selected_cs)), -1, NULL,
                        NULL, NULL));
-
-  return 1;
 }
 
-static gint vcol_flag_checked(GtkWidget *widget, gpointer data) {
+static void vcol_flag_checked(GtkWidget *widget, gpointer data) {
   reset_fontname_list();
   gtk_entry_set_text(
       GTK_ENTRY(fontname_entry),
       g_locale_to_utf8(mc_get_font_name(get_font_file(), get_correct_cs(selected_cs)), -1, NULL,
                        NULL, NULL));
-
-  return 1;
 }
 
 static void vertical_mode_changed(void) {
@@ -324,15 +317,13 @@ static void vertical_mode_changed(void) {
   }
 }
 
-static gint fontsize_selected(GtkWidget *widget, gpointer data) {
+static void fontsize_selected(GtkWidget *widget, gpointer data) {
   g_free(new_fontsize);
   new_fontsize = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
 
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " %s font size is selected.\n", new_fontsize);
 #endif
-
-  return 1;
 }
 
 static void specify_width(GtkWidget *widget, int flag) {
@@ -476,7 +467,7 @@ static void font_policy_changed(void) {
   }
 }
 
-static gint fontcs_selected(GtkWidget *widget, gpointer data) {
+static void fontcs_selected(GtkWidget *widget, gpointer data) {
   const char *cs;
   int count;
 
@@ -497,13 +488,9 @@ static gint fontcs_selected(GtkWidget *widget, gpointer data) {
 #if 0
         bl_debug_printf("After: cs %s fontname %s\n", cs, new_fontname_list[selected_cs]);
 #endif
-
-        return 1;
       }
     }
   }
-
-  return 0;
 }
 
 #if defined(GDK_WINDOWING_X11) && !GTK_CHECK_VERSION(2, 90, 0)
@@ -612,13 +599,22 @@ static void select_xlfd_font(GtkWidget *widget, gpointer label) {
 
 #endif
 
-static char *my_gtk_font_selection_dialog_get_font_name(GtkFontSelectionDialog *dialog) {
+#if GTK_CHECK_VERSION(4, 0, 0)
+static char *my_gtk_font_chooser_get_font_name(GtkFontChooser *dialog)
+#else
+static char *my_gtk_font_selection_dialog_get_font_name(GtkFontSelectionDialog *dialog)
+#endif
+{
   char *str;
   int count;
   char *p;
   char *dup_str;
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+  str = gtk_font_chooser_get_font(dialog);
+#else
   str = gtk_font_selection_dialog_get_font_name(dialog);
+#endif
 
   if ((dup_str = malloc(strlen(str) * 2 + 1)) == NULL) {
     free(str);
@@ -691,11 +687,43 @@ static void fontname_entry_edit(GtkWidget *widget, gpointer p) {
   }
 }
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+static void dialog_cb(GtkDialog *dialog, int response_id, gpointer user_data) {
+  if (response_id == GTK_RESPONSE_OK) {
+    char *name = my_gtk_font_chooser_get_font_name(GTK_FONT_CHOOSER(dialog));
+
+    if (name != NULL) {
+      gtk_entry_set_text(GTK_ENTRY(fontname_entry), name);
+      free(name);
+    }
+  }
+  gtk_window_destroy(GTK_WINDOW(dialog));
+}
+#endif
+
 static void select_fc_font(GtkWidget *widget, gpointer p) {
   GtkWidget *dialog;
   char *font_name;
-  GtkResponseType result;
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+  dialog = gtk_font_chooser_dialog_new("Select Font", NULL);
+
+  font_name = get_gtk_font_name(gtk_entry_get_text(GTK_ENTRY(fontname_entry)));
+  if (!font_name || !*font_name) {
+    if ((font_name = malloc(6 + strlen(new_fontsize))) == NULL) {
+      return;
+    }
+
+    sprintf(font_name, "Sans %s", new_fontsize);
+  }
+  gtk_font_chooser_set_font(GTK_FONT_CHOOSER(dialog), font_name);
+
+  free(font_name);
+
+  gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
+  g_signal_connect(dialog, "response", G_CALLBACK(dialog_cb), NULL);
+  gtk_widget_show(dialog);
+#else
   dialog = gtk_font_selection_dialog_new("Select Font");
 
   font_name = get_gtk_font_name(gtk_entry_get_text(GTK_ENTRY(fontname_entry)));
@@ -714,13 +742,17 @@ static void select_fc_font(GtkWidget *widget, gpointer p) {
 
   free(font_name);
 
-  result = gtk_dialog_run(GTK_DIALOG(dialog));
-  if (result == GTK_RESPONSE_OK) {
-    gtk_entry_set_text(GTK_ENTRY(fontname_entry), my_gtk_font_selection_dialog_get_font_name(
-                                                      GTK_FONT_SELECTION_DIALOG(dialog)));
+  if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK) {
+    char *name = my_gtk_font_selection_dialog_get_font_name(GTK_FONT_SELECTION_DIALOG(dialog));
+
+    if (name != NULL) {
+      gtk_entry_set_text(GTK_ENTRY(fontname_entry), name);
+      free(name);
+    }
   }
 
   gtk_widget_destroy(dialog);
+#endif
 }
 
 static void select_font(GtkWidget *widget, gpointer p) {

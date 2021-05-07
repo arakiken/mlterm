@@ -44,20 +44,25 @@ typedef struct vt_line {
   u_int16_t change_beg_col; /* 0 - 65535 */
   u_int16_t change_end_col; /* 0 - 65535 */
 
-#if !defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND) || defined(USE_FRIBIDI) || \
-    defined(USE_OT_LAYOUT)
-  /* Don't touch from vt_line.c. ctl_info is used by vt_line_bidi.c and
-   * vt_line_iscii.c. */
-  ctl_info_t ctl_info;
-#endif
-  u_int8_t ctl_info_type;
-
   int is_modified : 4; /* 1: need to redraw. 2: was really changed. */
   int is_continued_to_next : 4;
 
   /* public */
   int8_t size_attr;
   int8_t mark;
+
+  u_int8_t ctl_info_type;
+
+  /*
+   * ctl_info should be placed at the end of vt_line_t in order to
+   * keep binary compatibility regardless of #if ... being true or not.
+   */
+#if !defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND) || defined(USE_FRIBIDI) || \
+    defined(USE_OT_LAYOUT)
+  /* Don't touch from vt_line.c. ctl_info is used by vt_line_bidi.c and
+   * vt_line_iscii.c. */
+  ctl_info_t ctl_info;
+#endif
 
 } vt_line_t;
 

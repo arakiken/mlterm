@@ -21,7 +21,7 @@ LIBEXECDIR_win32 = $(DESTDIR)$(bindir)
 LPOBL = @LPOBL@
 
 # XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
-CFLAGS = $(CFLAGS_LOCAL) @GTK_CFLAGS@ @IMAGELIB_CFLAGS@ @DEB_CFLAGS@ \
+CFLAGS = $(CFLAGS_LOCAL) @GTK_CFLAGS_FOR_MLCONFIG@ @IMAGELIB_CFLAGS@ @DEB_CFLAGS@ \
 	@POBL_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-I${top_srcdir}/xwindow -I${top_srcdir}/vtemu \
 	-I${top_builddir}/common -I${top_srcdir}/common \
@@ -30,7 +30,7 @@ CFLAGS = $(CFLAGS_LOCAL) @GTK_CFLAGS@ @IMAGELIB_CFLAGS@ @DEB_CFLAGS@ \
 	-DSYSCONFDIR=\"$(sysconfdir)\" -DLOCALEDIR=\"$(datadir)/locale\" \
 	-DXDATADIR=\"$(datadir)\" -DLIBDIR=\"$(libdir)\"
 
-LIBS1 = $(LIBS_LOCAL) @INTL_LIBS@ @DL_SELF@ @DL_LIBS_IM@ @GTK_LIBS@
+LIBS1 = $(LIBS_LOCAL) @INTL_LIBS@ @DL_SELF@ @DL_LIBS_IM@ @GTK_LIBS_FOR_MLCONFIG@
 
 # -lX11 is for http://fedoraproject.org/wiki/Features/ChangeInImplicitDSOLinking
 LIBS2_xlib = $(LPOBL) -lX11 -L/usr/local/lib -R/usr/local/lib

@@ -303,8 +303,10 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       なお、gnome-pty-helper は ${libexecdir}/ ディレクトリに配置する必要があり
       ます。
 
-    --with-gtk=(2.0|3.0)
+    --with-gtk=(2.0|3.0|4.0)
       使用する GTK+ のバージョンを指定します。
+      (4.0 が使えるのは mlconfig だけです。libvte compatible library 及び
+       mlterm-menu は、これまで同様、2.0 又は 3.0 が必要です。)
 
     --enable-vt52
       VT52 エミュレーション機能をサポートします。

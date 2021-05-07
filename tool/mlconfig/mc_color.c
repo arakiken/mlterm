@@ -8,10 +8,24 @@
 #include <glib.h>
 #include <c_intl.h>
 
+#include "mc_compat.h"
 #include "mc_io.h"
 
 #if 0
 #define __DEBUG
+#endif
+
+#if GTK_CHECK_VERSION(4, 0, 0)
+
+#define gtk_color_button_new_with_color(color) gtk_color_button_new_with_rgba(color)
+#define gtk_color_button_get_color(button, color) \
+  gtk_color_chooser_get_rgba(GTK_COLOR_CHOOSER(button), color)
+
+#define GdkColor GdkRGBA
+/* gdk_rgba_to_string() outputs rgba(r,g,b,a) which mlterm can't parse. */
+#define gdk_color_to_string(color) gdk_rgba_to_string_intern(color)
+#define gdk_color_parse(str, color) gdk_rgba_parse(color, str)
+
 #endif
 
 /* --- static variables --- */
@@ -39,7 +53,25 @@ static char *labelname[MC_COLOR_MODES] = {
 
 /* --- static functions --- */
 
-#if !GTK_CHECK_VERSION(2, 12, 0)
+#if GTK_CHECK_VERSION(4, 0, 0)
+
+static gchar *gdk_rgba_to_string_intern(const GdkRGBA *color) {
+  gchar *str;
+  int red = color->red * 255;
+  int green = color->green * 255;
+  int blue = color->blue * 255;
+
+  if ((str = g_malloc(8)) == NULL) {
+    return NULL;
+  }
+
+  sprintf(str, "#%02x%02x%02x", red, green, blue);
+
+  return str;
+}
+
+#elif !GTK_CHECK_VERSION(2, 12, 0)
+
 /* gdk_color_to_string() was not supported by gtk+ < 2.12. */
 static gchar *gdk_color_to_string(const GdkColor *color) {
   gchar *str;
@@ -146,7 +178,11 @@ GtkWidget *mc_cursor_color_config_widget_new(void) {
   hbox = gtk_hbox_new(FALSE, 1);
   gtk_widget_show(hbox);
   gtk_container_set_border_width(GTK_CONTAINER(hbox), 5);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_frame_set_child(GTK_FRAME(frame), hbox);
+#else
   gtk_container_add(GTK_CONTAINER(frame), hbox);
+#endif
 
   color = mc_color_config_widget_new(MC_COLOR_CURSOR_FG);
   gtk_widget_show(color);
@@ -169,7 +205,11 @@ GtkWidget *mc_substitute_color_config_widget_new(void) {
   vbox = gtk_vbox_new(FALSE, 0);
   gtk_widget_show(vbox);
   gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_frame_set_child(GTK_FRAME(frame), vbox);
+#else
   gtk_container_add(GTK_CONTAINER(frame), vbox);
+#endif
 
   hbox = gtk_hbox_new(FALSE, 1);
   gtk_widget_show(hbox);
@@ -216,7 +256,11 @@ GtkWidget *mc_vtcolor_config_widget_new(void) {
   vbox = gtk_vbox_new(FALSE, 0);
   gtk_widget_show(vbox);
   gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
+#if GTK_CHECK_VERSION(4, 0, 0)
+  gtk_frame_set_child(GTK_FRAME(frame), vbox);
+#else
   gtk_container_add(GTK_CONTAINER(frame), vbox);
+#endif
 
   for (id = 0; id < 16; id++) {
     sprintf(id_str, "%d", id);
@@ -231,7 +275,6 @@ GtkWidget *mc_vtcolor_config_widget_new(void) {
     }
 
     memset(&color, 0, sizeof(color));
-    gdk_color_parse(value, &color);
     button = gtk_color_button_new_with_color(&color);
     gtk_widget_show(button);
     gtk_box_pack_start(GTK_BOX(hbox), button, FALSE, FALSE, 0);
