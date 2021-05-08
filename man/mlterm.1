@@ -2140,6 +2140,9 @@ The specified string is assumed to \fBmlterm\fR's original control
 sequence. A list of sequences should be found in \fBdoc/en/PROTOCOL\fR.
 For example, \fB"proto:encoding=utf8"\fR
 means changing the current character encoding to UTF-8.
+If you want to show issued \fISTRING\fR in the screen in pressing shortcut keys,
+prepend \fB"(echo)"\fR to \fISTRING\fR.
+For example, \fB"proto:(echo)encoding=utf8"\fR shows "Config: encoding=utf8".
 .TP
 \fB"exesel:\fISTRING\fB"\fR
 The specified string is assumed to a command to be executed with selected

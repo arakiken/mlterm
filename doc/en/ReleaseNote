@@ -12,6 +12,8 @@
   two logical columns instead of one even if --dyncomb option isn't specified.
 * KBD_INPUT_NUM and MOUSE_INPUT_NUM environmental variables (for mlterm-fb)
   accept multiple device numbers by "<num>,<num>".
+* Show "Config: key=value" only if shortcut keys whose format is
+  "proto:(echo)key=value" is pressed.
 * Merge patches:
   https://github.com/arakiken/mlterm/pull/5
 * Bug fixes:

@@ -7141,13 +7141,20 @@ int ui_screen_exec_cmd(ui_screen_t *screen, char *cmd) {
  *  1 -> Processed (regardless of processing succeeded or not)
  */
 int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
-                         char *key, char *value          /* can be NULL */
-                         ) {
+                         char *key, char *value) {
   vt_term_t *term;
+  int echo;
 
 #ifdef __DEBUG
   bl_debug_printf(BL_DEBUG_TAG " %s=%s\n", key, value);
 #endif
+
+  if (strncmp(key, "(echo)", 6) == 0) {
+    key += 6;
+    echo = 1;
+  } else {
+    echo = 0;
+  }
 
   if (strcmp(value, "switch") == 0) {
     int flag;
@@ -7526,8 +7533,17 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
    * If processing_vtseq is -1, it is not set 1 in start_vt100_cmd()
    * which is called from vt_term_write_loopback().
    */
-  if (screen->processing_vtseq == -1) {
+  if (echo && screen->processing_vtseq == -1) {
     char *msg;
+
+#if 1
+    if (strcmp(value, "switch") == 0) {
+      if (strcmp(key, "col_size_of_width_a") == 0) {
+        /* XXX */
+        value = screen->term->parser->col_size_of_width_a == 2 ? "2" : "1";
+      }
+    }
+#endif
 
     if ((msg = alloca(8 + strlen(key) + 1 + strlen(value) + 1))) {
       sprintf(msg, "Config: %s=%s", key, value);
