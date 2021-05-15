@@ -29,11 +29,14 @@
 
 /*
  * XXX
- * cairo always uses double drawing fow now, because width of normal font is not
- * always the same as that of bold font in cairo.
+ * cairo (< 1.8.0 which supports adjust_glyphs() in ui_window_cairo.c) always
+ * uses double drawing fow now, because width of normal font is not always
+ * the same as that of bold font in cairo.
  */
-#if 1
+#ifdef USE_TYPE_CAIRO
+#if CAIRO_VERSION_ENCODE(1, 8, 0) > CAIRO_VERSION
 #define CAIRO_FORCE_DOUBLE_DRAWING
+#endif
 #endif
 
 #if 0
@@ -510,7 +513,7 @@ static cairo_scaled_font_t *cairo_font_open(ui_font_t *font, char *family, /* ca
    * column width by boldening etc.
    */
   cairo_font_options_set_hint_metrics(options, CAIRO_HINT_METRICS_OFF);
-#else
+#elif 0
   /* For performance */
   cairo_font_options_set_hint_style(options, CAIRO_HINT_STYLE_NONE);
 #endif

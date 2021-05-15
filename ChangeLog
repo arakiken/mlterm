@@ -1,3 +1,20 @@
+2021-05-15  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja, etc/key: Updated.
+
+	* ui_font_ft.c:
+	  - CAIRO_FORCE_DOUBLE_DRAWING is defined only if cairo < 1.8.0.
+	  - CAIRO_HINT_STYLE_NONE is not used.
+
+	* vte.c: vte_terminal_{set|get}_enable_fallback_scrolling() are added.
+
+2021-05-10  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja, etc/key: Updated.
+
+	* ui_font_ft.c: CAIRO_HINT_STYLE_NONE is not applied to improve
+	  the quality of drawing glyphs.
+
 2021-05-08  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.c: "proto:key=value" shortcut keys don't show

@@ -4793,3 +4793,12 @@ gboolean vte_get_encoding_supported(const char *encoding) {
   return FALSE;
 }
 #endif
+
+#if VTE_CHECK_VERSION(0, 64, 0)
+void vte_terminal_set_enable_fallback_scrolling(VteTerminal *terminal, gboolean enable) {
+}
+
+gboolean vte_terminal_get_enable_fallback_scrolling(VteTerminal *terminal) {
+  return FALSE;
+}
+#endif
