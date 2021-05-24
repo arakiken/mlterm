@@ -143,9 +143,11 @@ static int open_display(u_int depth) {
   _display.rgbinfo.r_limit = 8 - vinfo.vi_pixel_fsizes[0];
   _display.rgbinfo.g_limit = 8 - vinfo.vi_pixel_fsizes[1];
   _display.rgbinfo.b_limit = 8 - vinfo.vi_pixel_fsizes[2];
+  _display.rgbinfo.a_limit = 8 - vinfo.vi_pixel_fsizes[3];
   _display.rgbinfo.r_offset = vinfo.vi_pixel_fields[0];
   _display.rgbinfo.g_offset = vinfo.vi_pixel_fields[1];
   _display.rgbinfo.b_offset = vinfo.vi_pixel_fields[2];
+  _display.rgbinfo.a_offset = vinfo.vi_pixel_fields[3];
 
   tcgetattr(STDIN_FILENO, &tm);
   orig_tm = tm;

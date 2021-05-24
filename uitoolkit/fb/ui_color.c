@@ -68,7 +68,7 @@ int ui_load_rgb_xcolor(ui_display_t *disp, ui_color_t *xcolor, u_int8_t red, u_i
 #endif
 
     xcolor->pixel = RGB_TO_PIXEL(red, green, blue, disp->display->rgbinfo) |
-                    (disp->depth == 32 ? (alpha << 24) : 0);
+                    ALPHA_TO_PIXEL(alpha, disp->display->rgbinfo, disp->depth);
   }
 
   return 1;
