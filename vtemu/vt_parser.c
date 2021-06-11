@@ -276,6 +276,8 @@ static u_int8_t alt_color_idxs[] = { 0, 1, 2, 4, 8, 3, 5, 9, 6, 10, 12, 7, 11, 1
 static char *send_file;
 static char *recv_dir;
 
+static int format_other_keys;
+
 /* --- static functions --- */
 
 #ifdef DEBUG
@@ -7032,6 +7034,10 @@ void vt_set_local_echo_wait(u_int msec) {
   local_echo_wait_msec = msec;
 }
 
+void vt_set_format_other_keys(int flag) {
+  format_other_keys = flag;
+}
+
 void vt_parser_final(void) {
   vt_config_proto_final();
 
@@ -7248,35 +7254,38 @@ size_t vt_parser_write(vt_parser_t *vt_parser, u_char *buf, size_t len) {
 
 int vt_parser_write_modified_key(vt_parser_t *vt_parser,
                                  int key, /* 0 < key < 0x80 */
-                                 int modcode) {
+                                 int ch, int modcode) {
   if (vt_parser->is_transferring_data) {
     return 0;
   }
 
   if (vt_parser->modify_other_keys == 1) {
-    if ((modcode == 5 /* Control */ || modcode == 6 /* Shift+Control */) &&
-        (('@' <= key && key <= 0x7e) || ('2' <= key && key <= '8') || key == '/' || key == ' ')) {
-      return 0;
+    /* Assume cases like key = 0x33, modcode = 5, ch = 0x1b. */
+    if (ch < 0x20 || ch == 0x7f) {
+      if (ch == CTL_BS || (ch != CTL_CR && modcode == 5 /* Control */)) {
+        return 0;
+      }
+    } else {
+      if (modcode == 2 /* Shift */ || modcode == 3 /* Alt */ || modcode == 4 /* Shift+Alt */) {
+        return 0;
+      }
     }
   } else if (vt_parser->modify_other_keys != 2) {
     return 0;
   }
 
-  if (!((modcode - 1) == 1 /* is shift */ &&
+  if (!(modcode == 2 /* Shift */ &&
         (('!' <= key && key < 'A') || ('Z' < key && key < 'a') || ('z' < key && key <= '~')))) {
     size_t len;
-
-#if 1
-    char buf[10];
-
-    /* formatOtherKeys = 1 */
-    sprintf(buf, "\x1b[%d;%du", key, modcode);
-#else
     char buf[12];
 
-    /* formatOtherKeys = 0 */
-    sprintf(buf, "\x1b[27;%d;%d", modcode, key);
-#endif
+    if (format_other_keys) {
+      /* formatOtherKeys = 1 */
+      sprintf(buf, "\x1b[%d;%du" /* 9 */, key, modcode);
+    } else {
+      /* formatOtherKeys = 0 */
+      sprintf(buf, "\x1b[27;%d;%d~" /* 12 */, modcode, key);
+    }
 
     len = strlen(buf);
 
@@ -7989,6 +7998,12 @@ int vt_parser_get_config(
     } else {
       value = "false";
     }
+  } else if (strcmp(key, "format_other_keys") == 0) {
+    if (format_other_keys) {
+      value = "true";
+    } else {
+      value = "false";
+    }
   } else if (strcmp(key, "challenge") == 0) {
     value = vt_get_proto_challenge();
     if (to_menu < 0) {
@@ -8179,6 +8194,12 @@ int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
         vt_screen_disable_local_echo(vt_parser->screen);
         vt_screen_visual(vt_parser->screen);
       }
+    }
+  } else if (strcmp(key, "format_other_keys") == 0) {
+    int flag;
+
+    if ((flag = true_or_false(value)) != -1) {
+      format_other_keys = flag;
     }
   } else if (strncmp(key, "send_file", 9) == 0) {
     if (strstr(value, "..")) {

@@ -333,6 +333,8 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "screen display at resize [wrap]");
   bl_conf_add_opt(conf, '\0', "recvdir", 0, "receive_directory",
                   "directory to save received files [~/.mlterm/recv]");
+  bl_conf_add_opt(conf, '\0', "fk", 1, "format_other_keys",
+                  "send modified keys as parameter for CSI u [false]");
 #ifdef USE_IM_CURSOR_COLOR
   bl_conf_add_opt(conf, '\0', "imcolor", 0, "im_cursor_color",
                   "cursor color when input method is activated. [false]");
@@ -1412,6 +1414,14 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
 
   if ((value = bl_conf_get_value(conf, "resize_mode"))) {
     vt_set_resize_mode(vt_get_resize_mode_by_name(value));
+  }
+
+  if ((value = bl_conf_get_value(conf, "format_other_keys"))) {
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      vt_set_format_other_keys(flag);
+    }
   }
 
   if ((value = bl_conf_get_value(conf, "receive_directory"))) {

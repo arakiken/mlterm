@@ -2,6 +2,10 @@
 * Support GTK4 for mlconfig. (./configure --with-gtk=4.0)
 * Add "MOSH_UDP_PORT" environmental variable to specify UDP port or port-range
   to communicate with a mosh server.
+* Add INSERT_CLIPBOARD shortcut key.
+* Add --fk / format_other_keys option (equivalent to "formatOtherKeys" of xterm), and
+  change the default format of the escape sequence with modifyOtherKeys from
+  CSI Ps; Ps u to CSI 27; Ps; Ps ~.
 * Add --with-iconv, --disable-daemon, --disable-split and --disable-zmodem
   options to ./configure script.
 * Add vte 0.64 API symbols to libvte compatible library.
@@ -24,6 +28,7 @@
   Fix segfault if mlterm screen with -t option goes outside of the display.
   Fix emoji glyphs becoming too large with cairo.
   Fix corrupt value of "word_separator" option which mlconfig outputs.
+  Fix incompatibility with xterm in pressing Shift + a-z keys etc if modifyOtherKeys is 1.
 
 ver 3.9.1
 * Support copy mode which starts by Control+Shift+Return.

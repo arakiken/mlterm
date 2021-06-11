@@ -634,6 +634,11 @@ The default is \fB%.4x.png,%.4x-%.4x.png\fR.
 Whether to exit backscroll mode on receiving data from pty.
 The default is \fBfalse\fR.
 .TP
+\fB\-\-fk\fR(=\fIbool\fR)
+Whether to send modified keys as parameter for CSI u.
+(Equivalent to "formatOtherKeys" of xterm)
+The default is \fBfalse\fR.
+.TP
 \fB\-\-fullwidth\fR=\fIvalue\fR
 Force full width regardless of EastAsianWidth.txt.
 
@@ -1260,7 +1265,7 @@ Scroll down one page.
 .TP
 keys defined in \fBkey\fR configuration file
 Shortcut keys work the same way as in normal mode.
-(\fBINSERT_SELECTION\fR, \fBRESET\fR and \fBCOPY_MODE\fR
+(\fBINSERT_SELECTION\fR, \fBINSERT_CLIPBOARD\fR, \fBRESET\fR and \fBCOPY_MODE\fR
 exit from the backscroll mode.)
 .TP
 
@@ -1591,6 +1596,10 @@ Specify encoding.
 .TP
 \fBexit_backscroll_by_pty=\fIbool\fR (\fB\-\-exitbs\fR)
 Exit backscroll mode on receiving data from pty.
+.TP
+\fBformat_other_keys=\fIbool\fR (\fB\-\-fk\fR)
+Send modified keys as parameter for CSI u.
+(Equivalent to "formatOtherKeys" of xterm)
 .TP
 \fBfade_ratio=\fIratio\fR (\fB\-r\fR, \fB\-\-fade_ratio\fR)
 Specify fading ratio when window is unfocused.
@@ -2045,6 +2054,7 @@ You can specify Button1, Button2, Button3, Button4 or Button5 as \fIKEY\fR.
 \fBSCROLL_DOWN_TO_MARK\fR,
 \fBSET_MARK\fR,
 \fBINSERT_SELECTION\fR,
+\fBINSERT_CLIPBOARD\fR,
 \fBRESET\fR,
 \fBCOPY_MODE\fR,
 \fB"\fISTRING\fB"\fR,
@@ -2118,6 +2128,9 @@ Set mark to the current line (default \fBControl+Shift+m\fR).
 .TP
 \fBINSERT_SELECTION\fR
 Insert selection (default \fBShift+Insert\fR).
+.TP
+\fBINSERT_CLIPBOARD\fR
+Insert clipboard (default \fBUNUSED\fR). (Available on x11 alone)
 .TP
 \fBRESET\fR
 Reset terminal (default \fBPause\fR).

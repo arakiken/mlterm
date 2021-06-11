@@ -59,6 +59,9 @@ static key_func_table_t key_func_table[] = {
   { "SCROLL_UP_TO_MARK", SCROLL_UP_TO_MARK, },
   { "SCROLL_DOWN_TO_MARK", SCROLL_DOWN_TO_MARK, },
   { "INSERT_SELECTION", INSERT_SELECTION, },
+#ifdef USE_XLIB
+  { "INSERT_CLIPBOARD", INSERT_CLIPBOARD, },
+#endif
   { "RESET", RESET, },
   { "COPY_MODE", COPY_MODE, },
   { "SET_MARK", SET_MARK, },
@@ -171,6 +174,11 @@ void ui_shortcut_init(ui_shortcut_t *shortcut) {
     { 'v', CommandMask, 1, },
 #else
     { XK_Insert, ShiftMask, 1, },
+#endif
+
+#ifdef USE_XLIB
+    /* INSERT_CLIPBOARD */
+    { 0, 0, 0, },
 #endif
 
     /* RESET */

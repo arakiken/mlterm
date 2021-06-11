@@ -2000,6 +2000,12 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
 
   if (ui_shortcut_match(screen->shortcut, INSERT_SELECTION, ksym, state)) {
     yank_event_received(screen, CurrentTime);
+  } else if (ui_shortcut_match(screen->shortcut, INSERT_CLIPBOARD, ksym, state)) {
+    int flag = ui_is_using_clipboard_selection();
+
+    ui_set_use_clipboard_selection(2);
+    yank_event_received(screen, CurrentTime);
+  ui_set_use_clipboard_selection(flag);
   } else if (ui_shortcut_match(screen->shortcut, RESET, ksym, state)) {
     vt_term_reset(screen->term, 1);
   } else if (ui_shortcut_match(screen->shortcut, COPY_MODE, ksym, state)) {
@@ -2604,7 +2610,7 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
              * 0x80 on win32, framebuffer and wayland.
              */
             (size == 1 && (key = kstr[0]) < 0x20)) {
-          if (vt_term_write_modified_key(screen->term, key, modcode)) {
+          if (vt_term_write_modified_key(screen->term, key, kstr[0], modcode)) {
             return;
           }
         }
@@ -7026,7 +7032,15 @@ int ui_screen_exec_cmd(ui_screen_t *screen, char *cmd) {
      * processing_vtseq == 0 : stop processing vtseq.
      */
     if (screen->processing_vtseq <= 0) {
+      int flag = ui_is_using_clipboard_selection();
+
+      if (arg && strncmp(arg, "clip", 4) == 0) {
+        ui_set_use_clipboard_selection(2);
+      }
+
       yank_event_received(screen, CurrentTime);
+
+      ui_set_use_clipboard_selection(flag);
     }
   } else if (strcmp(cmd, "open_pty") == 0 || strcmp(cmd, "select_pty") == 0) {
     if (HAS_SYSTEM_LISTENER(screen, open_pty)) {

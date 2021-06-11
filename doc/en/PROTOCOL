@@ -27,7 +27,7 @@ version 20201108
                   hsplit_screen (<rows>|<percent>%) |
                   mlclient "<prefix options>" "<options>" |
                   mlclientx "<prefix options>" "<options>" | mlconfig | next_pty | next_screen |
-                  open_pty | open_screen | paste (*) | prev_pty | prev_screen |
+                  open_pty | open_screen | paste (clipboard) (*) | prev_pty | prev_screen |
                   scp "(local:|remote:)<src file name>" "(local:|remote:)<dst directory name>"
                       "(<encoding name>)" |
                   search_next <pattern> | search_prev <pattern> | select_pty <dev> |
@@ -42,10 +42,11 @@ version 20201108
                   click_interval | co_color | col_size_of_width_a | console_encoding |
                   console_sixel_colors | contrast | cursor_bg_color | cursor_fg_color |
                   emoji_path | encoding | exit_backscroll_by_pty | fade_ratio | fg_color |
-                  fontsize | gamma | geometry | hide_underline | icon_path | input_method |
-                  it_color | letter_space | line_space | local_echo_wait | locale | logging_msg |
-                  logging_vt_seq | logsize | mod_meta_key | mod_meta_mode | not_use_unicode_font |
-                  only_use_unicode_font | ot_features | ot_script | receive_string_via_ucs |
+                  fontsize | format_other_keys | gamma | geometry | hide_underline | icon_path |
+                  input_method | it_color | letter_space | line_space | local_echo_wait |
+                  locale | logging_msg | logging_vt_seq | logsize | mod_meta_key |
+                  mod_meta_mode | not_use_unicode_font | only_use_unicode_font |
+                  ot_features | ot_script | receive_string_via_ucs |
                   regard_uri_as_word | rv_color | sb_bg_color | sb_fg_color | screen_width_ratio |
                   scrollbar_mode | scrollbar_view_name | send_file static_backscroll_mode |
                   tabsize | trim_trailing_newline_in_pasting | type_engine | ul_color |
@@ -62,9 +63,10 @@ version 20201108
                   borderless | box_drawing_font | brightness | click_interval | co_color |
                   col_size_of_width_a | cols | contrast | cursor_bg_color | cursor_fg_color |
                   depth | emoji_path | encoding | fade_ratio | fg_color | fontconfig | fontsize |
-                  gamma | gui | hide_underline | icon_path | input_method | is_auto_encoding |
-                  it_color | letter_space | line_space | local_echo_wait | locale |
-                  logging_vt_seq | logsize | mod_meta_key | mod_meta_mode | not_use_unicode_font |
+                  format_other_keys | gamma | gui | hide_underline | icon_path |
+                  input_method | is_auto_encoding | it_color | letter_space | line_space |
+                  local_echo_wait | locale | logging_vt_seq | logsize | mod_meta_key |
+                  mod_meta_mode | not_use_unicode_font |
                   only_use_unicode_font | ot_features | ot_script | pty_list | pty_name | pwd |
                   receive_directory | receive_string_via_ucs | regard_uri_as_word | rows |
                   rv_color | sb_bg_color | sb_fg_color | screen_width_ratio | scrollbar_mode |
@@ -77,7 +79,7 @@ version 20201108
                   use_ot_layout | use_transbg | use_variable_column_width | use_vertical_cursor |
                   vertical_mode | vt_seq_format | wall_picture | word_separators
 
-                  (*): Works as "proto:xxxx" shortcut in ~/.mlterm/key.
+                  (*): Works as "proto:xxxx" shortcut in ~/.mlterm/key alone.
 
   value         = <values for each key>
   challenge     = <string in ~/.mlterm/challenge>
@@ -118,6 +120,7 @@ version 20201108
   encoding = <encoding name> | auto
   fade_ratio = <any ASCII decimal digit>
   fg_color = <color name> | <color rgb>
+  format_other_keys = true | false
   fontsize = <any ASCII decimal digit> | larger | smaller
   gamma = <any ASCII decimal digit>
   hide_underline = true | false | switch
@@ -205,7 +208,8 @@ version 20201108
     like Control+F1="proto:mlclient -osc52".
   o "selected_text(:encoding)" command returns selected text in which NL is
     replaced to CR.
-  o "paste" command works like INSERT_SELECTION.
+  o "paste" command works like INSERT_SELECTION, and "paste clipboard" command
+    works like INSERT_CLIPBOARD.
   o "\x1b]5379;fontconfig\x07" shows current font settings.
   o See doc/en/README.transfer for "scp" command.
 

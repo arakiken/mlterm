@@ -1,3 +1,27 @@
+2021-06-11  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja, PROTOCOL, mlterm.1: Updated.
+
+	* ui_main_config.c: --fk / format_keys option is added.
+
+	* ui_screen.c:
+	  - INSERT_CLIPBOARD shortcut key is checked.
+	  - "paste" OSC 5379 command accepts "clipboard" argument.
+
+	* ui_shortcut.[ch]: INSERT_CLIPBOARD shortcut is added.
+
+	* xlib/ui_window.c:
+	  ui_set_use_clipboard_selection(2) makes ui_window_{utf|xct}_selection_request()
+	  call XConvertSelection() with XA_CLIPBOARD instead of XA_PRIMARY.
+	  XA_CLIPBOARD is regarded in processing SelectionNotify or PropertyNotify.
+
+	* vt_parser.[ch]:
+	  - vt_set_format_other_keys() which works as "formatOtherKeys" of xterm
+	    is added.
+	  - Compatiblity of the behavior of xterm with modifyOtherKeys = 1 is
+	    improved.
+	  - 'ch' is added to arguments of vt_parser_write_modified_key().
+
 2021-05-15  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja, etc/key: Updated.

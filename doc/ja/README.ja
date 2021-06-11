@@ -930,6 +930,11 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
       o fb_resolution (mlterm-fb on NetBSD/x68k or OpenBSD 用)
         768x512x4 のような形式で解像度を指定
 
+      o format_other_keys (true/*false*)
+        modifyOtherKeys が有効な場合に送られるエスケープシーケンスの形式を
+        CSI 27; Ps; Ps ~ ではなく CSI Ps; Ps u にする。
+        (xterm の formatOtherKeys と同じ)
+
       o geometry
         表示位置を指定
 
@@ -1371,6 +1376,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         現在の行にマーク
       o INSERT_SELECTION(Shift+Insert)
         セレクションのペースト
+      o INSERT_CLIPBOARD(UNUSED) (xlib 用)
+        クリップボードのペースト
       o RESET(Pause)
         端末をリセット
       o COPY_MODE(Control+Shift+Return)

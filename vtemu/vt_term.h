@@ -145,8 +145,8 @@ pid_t vt_term_get_pty_mode(vt_term_t *term);
 
 size_t vt_term_write(vt_term_t *term, u_char *buf, size_t len);
 
-#define vt_term_write_modified_key(term, key, modcode) \
-  ((term)->pty ? vt_parser_write_modified_key((term)->parser, key, modcode) : 0)
+#define vt_term_write_modified_key(term, key, ch, modcode)               \
+  ((term)->pty ? vt_parser_write_modified_key((term)->parser, key, ch, modcode) : 0)
 
 #define vt_term_write_special_key(term, key, modcode, is_numlock) \
   ((term)->pty ? vt_parser_write_special_key((term)->parser, key, modcode, is_numlock) : 0)

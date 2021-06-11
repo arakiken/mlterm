@@ -45,7 +45,7 @@
 #define XA_UTF8_STRING(display) (XInternAtom(display, "UTF8_STRING", False))
 #define XA_BMP(display) (XInternAtom(display, "image/bmp", False))
 #define XA_NONE(display) (XInternAtom(display, "NONE", False))
-#define XA_SELECTION(display) (XInternAtom(display, "MLTERM_SELECTION", False))
+#define XA_SELECTION_PROP(display) (XInternAtom(display, "MLTERM_SELECTION", False))
 #define XA_DELETE_WINDOW(display) (XInternAtom(display, "WM_DELETE_WINDOW", False))
 #define XA_TAKE_FOCUS(display) (XInternAtom(display, "WM_TAKE_FOCUS", False))
 #define XA_INCR(display) (XInternAtom(display, "INCR", False))
@@ -2391,40 +2391,49 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
     Atom xa_utf8_string;
     Atom xa_compound_text;
     Atom xa_text;
-    Atom xa_selection;
+    Atom xa_selection_property;
 
     xa_compound_text = XA_COMPOUND_TEXT(win->disp->display);
     xa_text = XA_TEXT(win->disp->display);
     xa_utf8_string = XA_UTF8_STRING(win->disp->display);
-    xa_selection = XA_SELECTION(win->disp->display);
+    xa_selection_property = XA_SELECTION_PROP(win->disp->display);
 
     if (event->xselection.property == None ||
         event->xselection.property == XA_NONE(win->disp->display)) {
+      Atom xa_selection;
+
+      if (use_clipboard == 2) {
+        xa_selection = XA_CLIPBOARD(win->disp->display);
+      } else {
+        xa_selection = XA_PRIMARY;
+      }
+
       /*
        * Selection request failed.
        * Retrying with xa_compound_text => xa_text => XA_STRING
        */
 
       if (event->xselection.target == xa_utf8_string) {
-        XConvertSelection(win->disp->display, XA_PRIMARY, xa_compound_text, xa_selection,
+        XConvertSelection(win->disp->display, xa_selection, xa_compound_text, xa_selection_property,
                           win->my_window, CurrentTime);
       } else if (event->xselection.target == xa_compound_text) {
-        XConvertSelection(win->disp->display, XA_PRIMARY, xa_text, xa_selection, win->my_window,
-                          CurrentTime);
+        XConvertSelection(win->disp->display, xa_selection, xa_text, xa_selection_property,
+                          win->my_window, CurrentTime);
       } else if (event->xselection.target == xa_text) {
-        XConvertSelection(win->disp->display, XA_PRIMARY, XA_STRING, xa_selection, win->my_window,
-                          CurrentTime);
+        XConvertSelection(win->disp->display, xa_selection, XA_STRING, xa_selection_property,
+                          win->my_window, CurrentTime);
       }
 
       return 1;
     }
 
     /* SELECTION */
-    if (event->xselection.selection == XA_PRIMARY &&
-        (event->xselection.property == xa_selection &&
-         (event->xselection.target == XA_STRING || event->xselection.target == xa_text ||
-          event->xselection.target == xa_compound_text ||
-          event->xselection.target == xa_utf8_string))) {
+    if ((event->xselection.selection == XA_PRIMARY ||
+         event->xselection.selection == XA_CLIPBOARD(win->disp->display)) &&
+        event->xselection.property == xa_selection_property &&
+        (event->xselection.target == XA_STRING || event->xselection.target == xa_text ||
+         event->xselection.target == xa_compound_text ||
+         event->xselection.target == xa_utf8_string)) {
       u_long bytes_after;
       XTextProperty ct;
       int seg;
@@ -2484,7 +2493,7 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
     }
 #endif
   } else if (event->type == PropertyNotify) {
-    if (event->xproperty.atom == XA_SELECTION(win->disp->display) &&
+    if (event->xproperty.atom == XA_SELECTION_PROP(win->disp->display) &&
         event->xproperty.state == PropertyNewValue) {
       XTextProperty ct;
       u_long bytes_after;
@@ -2948,15 +2957,27 @@ int ui_window_set_selection_owner(ui_window_t *win, Time time) {
 }
 
 int ui_window_xct_selection_request(ui_window_t *win, Time time) {
-  XConvertSelection(win->disp->display, XA_PRIMARY, XA_COMPOUND_TEXT(win->disp->display),
-                    XA_SELECTION(win->disp->display), win->my_window, time);
+  Display *display = win->disp->display;
+
+  /*
+   * XXX
+   * XA_COMPOUND_TEXT doesn't work with Cygwin/X11 server 1.20.9.0.
+   * XGetWindowProperty() returns the following 86 bytes.
+   * -> e4bd83e5818de5958fe4918ee5919fe5a185e28194e6bdaee281b4e6b5a9e6b1b0
+   *    e6b5a5e6b9a5e695b464e69593e695ace791a3e6bda9e589aee785a5e695b5e791
+   *    b3e2b4a0e790a0e789a1e695a7e281b4e690a50a
+   */
+  XConvertSelection(display, use_clipboard == 2 ? XA_CLIPBOARD(display) : XA_PRIMARY,
+                    XA_COMPOUND_TEXT(display), XA_SELECTION_PROP(display), win->my_window, time);
 
   return 1;
 }
 
 int ui_window_utf_selection_request(ui_window_t *win, Time time) {
-  XConvertSelection(win->disp->display, XA_PRIMARY, XA_UTF8_STRING(win->disp->display),
-                    XA_SELECTION(win->disp->display), win->my_window, time);
+  Display *display = win->disp->display;
+
+  XConvertSelection(display, use_clipboard == 2 ? XA_CLIPBOARD(display) : XA_PRIMARY,
+                    XA_UTF8_STRING(display), XA_SELECTION_PROP(display), win->my_window, time);
 
   return 1;
 }

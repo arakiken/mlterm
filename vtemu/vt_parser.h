@@ -338,6 +338,8 @@ void vt_set_secondary_da(char *da);
 
 void vt_set_local_echo_wait(u_int msec);
 
+void vt_set_format_other_keys(int flag);
+
 #define vt_parser_init vt_config_proto_init
 
 void vt_parser_final(void);
@@ -370,7 +372,7 @@ int vt_parse_vt100_sequence(vt_parser_t *vt_parser);
 
 size_t vt_parser_write(vt_parser_t *vt_parser, u_char *buf, size_t len);
 
-int vt_parser_write_modified_key(vt_parser_t *vt_parser, int key, int modcode);
+int vt_parser_write_modified_key(vt_parser_t *vt_parser, int key, int ch, int modcode);
 
 int vt_parser_write_special_key(vt_parser_t *vt_parser, vt_special_key_t key,
                                 int modcode, int is_numlock);
