@@ -2000,13 +2000,17 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
 
   if (ui_shortcut_match(screen->shortcut, INSERT_SELECTION, ksym, state)) {
     yank_event_received(screen, CurrentTime);
-  } else if (ui_shortcut_match(screen->shortcut, INSERT_CLIPBOARD, ksym, state)) {
+  }
+#ifdef USE_XLIB
+  else if (ui_shortcut_match(screen->shortcut, INSERT_CLIPBOARD, ksym, state)) {
     int flag = ui_is_using_clipboard_selection();
 
     ui_set_use_clipboard_selection(2);
     yank_event_received(screen, CurrentTime);
   ui_set_use_clipboard_selection(flag);
-  } else if (ui_shortcut_match(screen->shortcut, RESET, ksym, state)) {
+  }
+#endif
+  else if (ui_shortcut_match(screen->shortcut, RESET, ksym, state)) {
     vt_term_reset(screen->term, 1);
   } else if (ui_shortcut_match(screen->shortcut, COPY_MODE, ksym, state)) {
     copymode_start(screen);
