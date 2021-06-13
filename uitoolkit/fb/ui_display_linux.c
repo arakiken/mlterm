@@ -429,9 +429,11 @@ static int open_display(u_int depth) {
   _display.rgbinfo.r_limit = 8 - vinfo.red.length;
   _display.rgbinfo.g_limit = 8 - vinfo.green.length;
   _display.rgbinfo.b_limit = 8 - vinfo.blue.length;
+  _display.rgbinfo.a_limit = 8 - vinfo.transp.length;
   _display.rgbinfo.r_offset = vinfo.red.offset;
   _display.rgbinfo.g_offset = vinfo.green.offset;
   _display.rgbinfo.b_offset = vinfo.blue.offset;
+  _display.rgbinfo.a_offset = vinfo.transp.offset;
 
   get_event_device_num(kbd_num, mouse_num);
 

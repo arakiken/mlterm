@@ -140,7 +140,8 @@ static void modify_pixmap(Display *display, Pixmap pixmap, ui_picture_modifier_t
       *(dst++) = pixel;
 #endif
     } else {
-      pixel = RGB_TO_PIXEL(r, g, b, display->rgbinfo) | (depth == 32 ? (pixel & 0xff000000) : 0);
+      pixel = RGB_TO_PIXEL(r, g, b, display->rgbinfo) | 
+              ALPHA_TO_PIXEL((pixel >> 24) & 0xff, display->rgbinfo, depth);
 
       if (display->bytes_per_pixel == 2) {
         *((u_int16_t *)dst) = pixel;

@@ -505,10 +505,38 @@ static int open_display(u_int depth /* used on luna68k alone. */
     _display.rgbinfo.g_offset = vinfo2.fbi_subtype.fbi_rgbmasks.green_offset;
     _display.rgbinfo.b_offset = vinfo2.fbi_subtype.fbi_rgbmasks.blue_offset;
 
+    /*
+     * XXX
+     * wscons does not correctly set alpha size and offset.
+     * Therefore, we need to guess them below.
+     */
+    {
+      int r = _display.rgbinfo.r_offset,
+          g = _display.rgbinfo.g_offset,
+          b = _display.rgbinfo.b_offset;
+      if (_display.rgbinfo.r_limit != 0 ||
+          _display.rgbinfo.g_limit != 0 ||
+          _display.rgbinfo.b_limit != 0 ||
+          r % 8 != 0 || g % 8 != 0 || b % 8 != 0 ||
+          r == g || g == b || b == r ||
+          r > 24 || g > 24 || b > 24) {
+        _display.rgbinfo.a_limit = 8;
+        _display.rgbinfo.a_offset = 0;
+      } else {
+        int a, mask = (1 << (r / 8)) | (1 << (g / 8)) | (1 << (b / 8));
+        for (a = 0; a < 4; a++) {
+          if ((mask & (1 << a)) == 0)
+            break;
+        }
+        _display.rgbinfo.a_limit = 0;
+        _display.rgbinfo.a_offset = a * 8;
+      }
+    }
+
 #ifdef DEBUG
-    bl_debug_printf("FBINFO: (limit)r%d g%d b%d (offset)r%d g%d b%d\n", _display.rgbinfo.r_limit,
-                    _display.rgbinfo.g_limit, _display.rgbinfo.b_limit, _display.rgbinfo.r_offset,
-                    _display.rgbinfo.g_offset, _display.rgbinfo.b_offset);
+    bl_debug_printf("FBINFO: (limit)r%d g%d b%d a%d (offset)r%d g%d b%d a%d\n",
+      _display.rgbinfo.r_limit, _display.rgbinfo.g_limit, _display.rgbinfo.b_limit, _display.rgbinfo.a_limit,
+      _display.rgbinfo.r_offset, _display.rgbinfo.g_offset, _display.rgbinfo.b_offset, _display.rgbinfo.a_offset);
 #endif
   }
 #endif

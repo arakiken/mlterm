@@ -64,9 +64,11 @@ typedef struct {
     unsigned int r_limit;
     unsigned int g_limit;
     unsigned int b_limit;
+    unsigned int a_limit;
     unsigned int r_offset;
     unsigned int g_offset;
     unsigned int b_offset;
+    unsigned int a_offset;
 
   } rgbinfo;
 
@@ -109,6 +111,8 @@ typedef struct {
   ((((r) >> (rgbinfo).r_limit) << (rgbinfo).r_offset) | \
    (((g) >> (rgbinfo).g_limit) << (rgbinfo).g_offset) | \
    (((b) >> (rgbinfo).b_limit) << (rgbinfo).b_offset))
+#define ALPHA_TO_PIXEL(a, rgbinfo, depth) \
+  ((depth) == 32 ? (((a) >> (rgbinfo).a_limit) << (rgbinfo).a_offset) : 0)
 
 typedef int XIC;      /* dummy */
 typedef void *XID;      /* dummy */
