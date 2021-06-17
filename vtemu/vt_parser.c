@@ -3896,7 +3896,7 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
 
   case DECMODE_80:
     /* DECSDM */
-    vt_parser->sixel_scrolling = (flag ? 0 : 1);
+    vt_parser->sixel_scrolling = !!flag;
     break;
 
   case DECMODE_95:
