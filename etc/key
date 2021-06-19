@@ -16,6 +16,7 @@
 # Control+Shift+Down=SCROLL_DOWN_TO_MARK
 # Control+Shift+m=SET_MARK
 # Shift+Insert=INSERT_SELECTION
+# UNUSED=INSERT_CLIPBOARD
 # Pause=RESET
 # Control+Shift+Return=COPY_MODE
 # Control+Button1="menu:mlterm-menu"

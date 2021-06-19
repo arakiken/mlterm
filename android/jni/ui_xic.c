@@ -4,6 +4,10 @@
 
 #include <pobl/bl_debug.h>
 
+/* --- static variables --- */
+
+static int is_ascii_input;
+
 /* --- global functions --- */
 
 int ui_xic_activate(ui_window_t *win, char *xim_name, char *xim_locale) { return 1; }
@@ -43,12 +47,11 @@ int ui_xic_set_focus(ui_window_t *win) { return 1; }
 
 int ui_xic_unset_focus(ui_window_t *win) { return 1; }
 
-int ui_xic_is_active(ui_window_t *win) { return 1; }
+int ui_xic_is_active(ui_window_t *win) { return is_ascii_input == 0; }
 
 int ui_xic_switch_mode(ui_window_t *win) {
   JNIEnv *env;
   jobject this;
-  jboolean is_active;
 
   if ((*win->disp->display->app->activity->vm)->GetEnv(win->disp->display->app->activity->vm,
                                                        &env, JNI_VERSION_1_6) != JNI_OK) {
@@ -56,8 +59,15 @@ int ui_xic_switch_mode(ui_window_t *win) {
   }
 
   this = win->disp->display->app->activity->clazz;
-  (*env)->CallVoidMethod(env, this, (*env)->GetMethodID(env, (*env)->GetObjectClass(env, this),
-                                                        "forceAsciiInput", "()V"));
+  if (is_ascii_input) {
+    (*env)->CallVoidMethod(env, this, (*env)->GetMethodID(env, (*env)->GetObjectClass(env, this),
+                                                          "normalInput", "()V"));
+    is_ascii_input = 0;
+  } else {
+    (*env)->CallVoidMethod(env, this, (*env)->GetMethodID(env, (*env)->GetObjectClass(env, this),
+                                                          "asciiInput", "()V"));
+    is_ascii_input = 1;
+  }
 }
 
 #if 0

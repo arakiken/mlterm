@@ -1,3 +1,15 @@
+2021-06-19  Araki Ken  <arakiken@users.sf.net>
+
+	* etc/key: Updated.
+
+	* jni/ui_xic.c: ui_xic_switch_mode() calls asciiInput() or
+	  normalInput() alternately.
+
+	* MLActivity.java:
+	  - forceAsciiInput() -> asciiInput()
+	  - normalInput() is added.
+	  - commitCompletion() and commitCorrection() are added.
+
 2021-06-12  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.c: Compiling error is fixed.

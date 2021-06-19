@@ -8,8 +8,10 @@ import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 import android.view.inputmethod.InputMethodManager;
 import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.CompletionInfo;
 import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.CorrectionInfo;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ContextMenu;
@@ -88,6 +90,28 @@ public class MLActivity extends NativeActivity {
     }
 
     @Override
+    public boolean commitCompletion(CompletionInfo text) {
+      super.commitCompletion(text);
+
+      if (nativeThread == null) {
+        commitTextLock(text.getText().toString());
+      }
+
+      return true;
+    }
+
+    @Override
+    public boolean commitCorrection(CorrectionInfo correctionInfo) {
+      super.commitCorrection(correctionInfo);
+
+      if (nativeThread == null) {
+        commitTextLock(correctionInfo.getNewText().toString());
+      }
+
+      return true;
+    }
+
+    @Override
     public boolean setComposingText(CharSequence text, int newCursorPosition) {
       super.setComposingText(text, newCursorPosition);
 
@@ -133,14 +157,28 @@ public class MLActivity extends NativeActivity {
     }
   }
 
-  private void forceAsciiInput() {
-    if (true) {
+  private void asciiInput() {
+    //inputType &= ~InputType.TYPE_TEXT_FLAG_MULTI_LINE;
+    if (false) {
       inputType |= InputType.TYPE_TEXT_VARIATION_URI;
     } else {
       inputType |= InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
     }
 
     imeOptions |= 0x80000000; /* EditorInfo.IME_FLAG_FORCE_ASCII ; (API level 16) */
+
+    ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).restartInput(contentView);
+  }
+
+  private void normalInput() {
+    //inputType |= InputType.TYPE_TEXT_FLAG_MULTI_LINE;
+    if (false) {
+      inputType &= ~InputType.TYPE_TEXT_VARIATION_URI;
+    } else {
+      inputType &= ~InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
+    }
+
+    imeOptions &= ~0x80000000; /* EditorInfo.IME_FLAG_FORCE_ASCII ; (API level 16) */
 
     ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).restartInput(contentView);
   }
