@@ -1954,6 +1954,7 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
       int row;
       int cursor_col;
       int orig_auto_wrap;
+      int orig_visible_cursor;
 
       /* Flush buffer before vt_screen_overwrite_chars(picture data). */
       flush_buffer(vt_parser);
@@ -1988,6 +1989,7 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
 
       if (is_sixel && !vt_parser->sixel_scrolling) {
         vt_screen_save_cursor(vt_parser->screen); /* XXX */
+        orig_visible_cursor = vt_parser->is_visible_cursor;
         vt_parser->is_visible_cursor = 0;
         vt_screen_goto_home(vt_parser->screen);
         vt_screen_goto_beg_of_line(vt_parser->screen);
@@ -2033,7 +2035,7 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
           }
         } else {
           vt_screen_restore_cursor(vt_parser->screen); /* XXX */
-          vt_parser->is_visible_cursor = 1;
+          vt_parser->is_visible_cursor = orig_visible_cursor;
         }
       }
 
@@ -3896,6 +3898,33 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
 
   case DECMODE_80:
     /* DECSDM */
+    /*
+     * See https://github.com/arakiken/mlterm/pull/23
+     *
+     * [arakiken]
+     * As a result of consideration, I merged your patch, thank you.
+     * VT330/340 Programmer Reference Manual https://vt100.net/docs/vt3xx-gp/chapter14.html#S14.4
+     * describes that DECSDM 'set' enables sixel scrolling, and xterm follows this description.
+     * But @ttdoda tested the behavior of DECSDM on actual VT382 and VT330 at 2012 and 2014,
+     * and he confirmed that the behavior of actual machines and the description of VT382 manual
+     * were the opposite of the description of VT330/340 manual.
+     * (@saitoha reported it to Thomas Dickey, but the behavior of xterm hasn't been changed.)
+     * https://twitter.com/ttdoda/status/246407060131020802
+     * https://twitter.com/ttdoda/status/453216088902221824
+     * https://twitter.com/ttdoda/status/479053314412126208
+     *
+     * (Actually, it's more natual to think that DECSDM 'reset' enables Sixel Scrolling Mode because
+     * 'SDM' doesn't mean Sixel Scrolling Mode but Sixel Display Mode.)
+     *
+     * DECSDM of mlterm was implemented according to this result.
+     * It is the same bahavior as RLogin which revived and implemented Sixel Graphics over ten
+     * years ago (at 2010).
+     * https://github.com/kmiya-culti/RLogin/
+     *
+     * But which behavior is the same as the original machines is not a big issue now.
+     * Because xterm compatible behavior has been already widespread, I think that it should be
+     * adjusted to that.
+     */
     vt_parser->sixel_scrolling = !!flag;
     break;
 
