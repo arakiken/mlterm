@@ -1,3 +1,8 @@
+2021-07-03  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c: "CSI > q" (XTVERSION) is supported.
+	  (The response is "DCS > | mlterm(3.9.1) ST")
+
 2021-07-01  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: show_picture() restores vt_parser->is_visible_cursor
