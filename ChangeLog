@@ -1,3 +1,7 @@
+2021-07-07  Araki Ken  <arakiken@users.sf.net>
+
+	* android/jni/ui.h: ALPHA_TO_PIXEL macro is defined.
+
 2021-07-03  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: "CSI > q" (XTVERSION) is supported.

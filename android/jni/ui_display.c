@@ -496,6 +496,10 @@ static void init_window(ANativeWindow *window) {
   _display.bytes_per_pixel = 2;
   _display.rgbinfo = rgbinfo;
 
+  /*
+   * If AndroidBitmapFormat is changed (such as WINDOW_FORMAT_RGBA_8888),
+   * 'rgbinfo' structure and ALPHA_TO_PIXEL() should be changed, too.
+   */
   ANativeWindow_setBuffersGeometry(window, 0, 0, WINDOW_FORMAT_RGB_565);
 
   if (_display.buf.bits) {

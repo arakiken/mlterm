@@ -4,6 +4,7 @@
 * Add "MOSH_UDP_PORT" environmental variable to specify UDP port or port-range
   to communicate with a mosh server.
 * Add INSERT_CLIPBOARD shortcut key.
+  (https://github.com/arakiken/mlterm/issues/19)
 * Add --fk / format_other_keys option (equivalent to "formatOtherKeys" of xterm), and
   change the default format of the escape sequence with modifyOtherKeys from
   CSI Ps; Ps u to CSI 27; Ps; Ps ~.
@@ -21,7 +22,11 @@
 * Show "Config: key=value" only if shortcut keys whose format is
   "proto:(echo)key=value" is pressed.
 * Merge patches:
-  https://github.com/arakiken/mlterm/pull/5
+  https://github.com/arakiken/mlterm/pull/5.
+  https://github.com/arakiken/mlterm/pull/9.
+  https://github.com/arakiken/mlterm/pull/12.
+  https://github.com/arakiken/mlterm/pull/22.
+  https://github.com/arakiken/mlterm/pull/23.
 * Bug fixes:
   Fix https://github.com/arakiken/mlterm/issues/15.
   Fix https://github.com/arakiken/mlterm/issues/18.
@@ -30,6 +35,7 @@
   Fix emoji glyphs becoming too large with cairo.
   Fix corrupt value of "word_separator" option which mlconfig outputs.
   Fix incompatibility with xterm in pressing Shift + a-z keys etc if modifyOtherKeys is 1.
+  (https://github.com/arakiken/mlterm/issues/21)
 
 ver 3.9.1
 * Support copy mode which starts by Control+Shift+Return.

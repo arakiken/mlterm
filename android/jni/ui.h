@@ -14,6 +14,11 @@ typedef struct {
   unsigned int bytes_per_pixel;
   unsigned int yoffset;
 
+  /*
+   * If AndroidBitmapFormat is changed (such as WINDOW_FORMAT_RGBA_8888),
+   * rgb_info structure should be changed, too.
+   * (See uitoolkit/fb/ui.h)
+   */
   struct rgb_info {
     unsigned int r_limit;
     unsigned int g_limit;
@@ -43,6 +48,12 @@ typedef struct {
   ((((r) >> (rgbinfo).r_limit) << (rgbinfo).r_offset) | \
    (((g) >> (rgbinfo).g_limit) << (rgbinfo).g_offset) | \
    (((b) >> (rgbinfo).b_limit) << (rgbinfo).b_offset))
+/*
+ * If AndroidBitmapFormat is changed (such as WINDOW_FORMAT_RGBA_8888),
+ * ALPHA_TO_PIXEL() should be changed, too.
+ * (See uitoolkit/fb/ui.h)
+ */
+#define ALPHA_TO_PIXEL(a, rgbinfo, depth) (0)
 
 typedef int XIC;      /* dummy */
 typedef void *XID;      /* dummy */

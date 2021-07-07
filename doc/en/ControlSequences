@@ -281,7 +281,6 @@ O XTEXTSCRN (Save cursor as in DECSC and use Alternate Screen Buffer)
 O XTBRACKET (Set bracketed paste mode)                      CSI ? 2004 [hl]
 O XTMDKEY                                                   CSI > Pn;Ps m
 O XTMDKYD                                                   CSI > Pn n
-O XTVERSION                                                 CSI > Pn q
 O XTMSEANY (Use All Motion Mouse Tracking)                  CSI ? 1003 [hl]
 O XTMSEBTN (Use Cell Motion Mouse Tracking)                 CSI ? 1002 [hl]
 O XTMSERXVT (Enable urxvt Mouse Mode)                       CSI ? 1015 [hl]
@@ -299,6 +298,7 @@ O XTSAVE (Save DEC Private Mode Values)                     CSI ? Pn s
 O XTSMTT (Set one or more features of the title modes)      CSI > Pn t
 O XTRMTT (Reset one or more features of the title modes to the default value)
                                                             CSI > Pn T
+O XTVERSION                                                 CSI > Ps q
 O XTWOP (Window manipulation)                               CSI Pn;P1;P2 t
 - XTSTCAP (Set Termcap/Terminfo Data)                       DCS + p D...D ST
 O XTRQCAP (Request Termcap/Terminfo String)                 DCS + q D...D ST
