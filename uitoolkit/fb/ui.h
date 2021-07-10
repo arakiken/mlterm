@@ -111,6 +111,7 @@ typedef struct {
   ((((r) >> (rgbinfo).r_limit) << (rgbinfo).r_offset) | \
    (((g) >> (rgbinfo).g_limit) << (rgbinfo).g_offset) | \
    (((b) >> (rgbinfo).b_limit) << (rgbinfo).b_offset))
+/* See https://github.com/arakiken/mlterm/pull/22 */
 #define ALPHA_TO_PIXEL(a, rgbinfo, depth) \
   ((depth) == 32 ? (((a) >> (rgbinfo).a_limit) << (rgbinfo).a_offset) : 0)
 

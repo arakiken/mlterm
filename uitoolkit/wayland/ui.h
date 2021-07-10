@@ -215,6 +215,7 @@ typedef struct {
   ((((r) >> (rgbinfo).r_limit) << (rgbinfo).r_offset) | \
    (((g) >> (rgbinfo).g_limit) << (rgbinfo).g_offset) | \
    (((b) >> (rgbinfo).b_limit) << (rgbinfo).b_offset))
+#define ALPHA_TO_PIXEL(a, rgbinfo, depth) ((depth) == 32 ? ((a) << 24) : 0)
 
 typedef int XIC; /* dummy */
 typedef void *XID; /* dummy */
