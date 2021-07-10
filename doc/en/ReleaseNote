@@ -1,6 +1,6 @@
 * Support Fcitx5.
 * Support GTK4 for mlconfig. (./configure --with-gtk=4.0)
-* Support CSI > Ps q (XTVERSION).
+* Support CSI > Ps q (XTVERSION). (Response: DCS>|mlterm(3.9.2)ST)
 * Add "MOSH_UDP_PORT" environmental variable to specify UDP port or port-range
   to communicate with a mosh server.
 * Add INSERT_CLIPBOARD shortcut key.

@@ -1,5 +1,7 @@
 2021-07-10  Araki Ken  <arakiken@users.sf.net>
 
+	* sdl2/ui.h: ALPHA_TO_PIXEL macro is defined.
+
 	* wayland/ui.h: ALPHA_TO_PIXEL macro is defined.
 
 2021-07-07  Araki Ken  <arakiken@users.sf.net>
