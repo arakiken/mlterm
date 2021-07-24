@@ -1,3 +1,22 @@
+2021-07-24  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/ui_window.c: ui_set_use_clipboard_selection() calls
+	  ui_display_clear_selection() only if use_clipboard == 0 and use_it == 1.
+
+	* wayland/ui_display.c:
+	  - ui_set_use_clipboard_selection() and ui_is_using_clipboard_selection()
+	    are added.
+	  - If disp_name is "", ui_display_open() uses WAYLAND_DISPLAY environmental
+	    variable.
+
+	* ui_screen.c, ui_shortcut.[ch]: INSERT_CLIPBOARD is available on wayland.
+
+	* ui_main_config.c: The default value of "display" option is changed
+	  from "wayland-0" to "" on wayland.
+
+	* MLActivity.java: servListDialogLayout and connectDialogLayout
+	  are set to null after finishing dialogs.
+
 2021-07-10  Araki Ken  <arakiken@users.sf.net>
 
 	* sdl2/ui.h: ALPHA_TO_PIXEL macro is defined.

@@ -59,7 +59,7 @@ static key_func_table_t key_func_table[] = {
   { "SCROLL_UP_TO_MARK", SCROLL_UP_TO_MARK, },
   { "SCROLL_DOWN_TO_MARK", SCROLL_DOWN_TO_MARK, },
   { "INSERT_SELECTION", INSERT_SELECTION, },
-#ifdef USE_XLIB
+#if defined(USE_XLIB) || defined(USE_WAYLAND)
   { "INSERT_CLIPBOARD", INSERT_CLIPBOARD, },
 #endif
   { "RESET", RESET, },
@@ -176,7 +176,7 @@ void ui_shortcut_init(ui_shortcut_t *shortcut) {
     { XK_Insert, ShiftMask, 1, },
 #endif
 
-#ifdef USE_XLIB
+#if defined(USE_XLIB) || defined(USE_WAYLAND)
     /* INSERT_CLIPBOARD */
     { 0, 0, 0, },
 #endif

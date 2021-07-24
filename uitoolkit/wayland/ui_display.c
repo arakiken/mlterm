@@ -47,6 +47,7 @@ static ui_wlserv_t **wlservs;
 static u_int num_displays;
 static ui_display_t **displays;
 static int rotate_display;
+static int use_clipboard = 1;
 int kbd_repeat_1 = DEFAULT_KEY_REPEAT_1;
 int kbd_repeat_N = DEFAULT_KEY_REPEAT_N;
 
@@ -2488,6 +2489,12 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
   displays = p;
   displays[num_displays] = disp;
 
+  if (*disp_name == '\0') {
+    if ((disp_name = getenv("WAYLAND_DISPLAY")) == NULL) {
+      disp_name = "wayland-0";
+    }
+  }
+
   for (count = 0; count < num_displays; count++) {
     if (strcmp(displays[count]->name, disp_name) == 0) {
       disp->selection_owner = displays[count]->selection_owner;
@@ -2815,6 +2822,37 @@ void ui_display_sync(ui_display_t *disp) {
 #endif
 }
 
+void ui_set_use_clipboard_selection(int use_it) {
+  u_int count;
+
+  /* "use_clipboard = false" setting is disabled on wayland. */
+  if (use_it == 0) {
+    bl_msg_printf("use_clipboard=false is ignored on wayland.\n");
+
+    return;
+  } else if (use_clipboard == use_it) {
+    return;
+  }
+
+  if (use_clipboard == 0 && use_it == 1) {
+    /*
+     * disp->selection_owner is reset.
+     * If it isn't reset and value of 'use_clipboard' option is changed from false
+     * to true dynamically, ui_window_set_selection_owner() returns before calling
+     * wl_data_device_manager_create_data_source().
+     */
+    for (count = 0; count < num_displays; count++) {
+      if (displays[count]->selection_owner) {
+        ui_display_clear_selection(NULL, displays[count]->selection_owner);
+      }
+    }
+  }
+
+  use_clipboard = use_it;
+}
+
+int ui_is_using_clipboard_selection(void) { return use_clipboard; }
+
 /*
  * Folloing functions called from ui_window.c
  */
@@ -2848,7 +2886,7 @@ int ui_display_own_selection(ui_display_t *disp, ui_window_t *win) {
                                                wlserv->xsel_source, wlserv->serial);
   }
 
-  if (wlserv->data_device_manager) {
+  if (use_clipboard && wlserv->data_device_manager) {
     wlserv->sel_source = wl_data_device_manager_create_data_source(wlserv->data_device_manager);
     wl_data_source_offer(wlserv->sel_source, "UTF8_STRING");
     /* wl_data_source_offer(wlserv->sel_source, "COMPOUND_TEXT"); */
@@ -3152,7 +3190,7 @@ void ui_display_request_text_selection(ui_display_t *disp) {
   } else {
     ui_wlserv_t *wlserv = disp->display->wlserv;
 
-    if (wlserv->xsel_offer && wlserv->xsel_offer_mime) {
+    if (use_clipboard != 2 && wlserv->xsel_offer && wlserv->xsel_offer_mime) {
       receive_data(disp, wlserv->xsel_offer, wlserv->xsel_offer_mime, 0);
     } else if (wlserv->sel_offer && wlserv->sel_offer_mime) {
       receive_data(disp, wlserv->sel_offer, wlserv->sel_offer_mime, 1);

@@ -2914,15 +2914,17 @@ void ui_set_use_clipboard_selection(int use_it) {
     return;
   }
 
-  use_clipboard = use_it;
+  if (use_clipboard == 0 && use_it == 1) {
+    /*
+     * disp->selection_owner is reset.
+     * If it isn't reset and value of 'use_clipboard' option is changed from false
+     * to true dynamically, ui_window_set_selection_owner() returns before calling
+     * XSetSelectionOwner().
+     */
+    ui_display_clear_selection(NULL, NULL);
+  }
 
-  /*
-   * disp->selection_owner is reset.
-   * If it isn't reset and value of 'use_clipboard' option is changed from false
-   * to true dynamically, ui_window_set_selection_owner() returns before calling
-   * XSetSelectionOwner().
-   */
-  ui_display_clear_selection(NULL, NULL);
+  use_clipboard = use_it;
 }
 
 int ui_is_using_clipboard_selection(void) { return use_clipboard; }

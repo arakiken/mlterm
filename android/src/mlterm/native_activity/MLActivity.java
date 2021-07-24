@@ -861,6 +861,7 @@ public class MLActivity extends NativeActivity {
     }
 
     removeDialog(1);
+    servListDialogLayout = null;
   }
 
   /* Called from native activity thread */
@@ -1000,6 +1001,7 @@ public class MLActivity extends NativeActivity {
     removeDialog(1);
 
     serv_edit = port_edit = user_edit = pass_edit = encoding_edit = cmd_edit = privkey_edit = null;
+    connectDialogLayout = null;
   }
 
   /* Called from native activity thread or UI thread (from context menu) */

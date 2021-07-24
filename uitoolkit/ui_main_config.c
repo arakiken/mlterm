@@ -21,11 +21,7 @@
 
 /* --- static variables --- */
 
-#ifdef USE_WAYLAND
-static char *default_display = "wayland-0";
-#else
 static char *default_display = "";
-#endif
 
 /* --- static functions --- */
 
@@ -362,6 +358,10 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
       !(main_config->disp_name = strdup(value)))
 #endif
   {
+    /*
+     * default_display ("") is replaced by getenv("WAYLAND_DISPLAY") on wayland.
+     * (See ui_display_open() in wayland/ui_display.c)
+     */
     main_config->disp_name = default_display;
 #ifdef USE_XLIB
     /* In case of starting mlterm with "-j genuine" option without X server. */

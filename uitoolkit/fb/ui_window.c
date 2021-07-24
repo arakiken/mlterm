@@ -2372,9 +2372,12 @@ void ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2)
   ui_window_fill_with(win, &win->fg_color, x2, y1, 1, y2 - y1 + 1);
 }
 
+/* These functions are defined in ui_display.c on wayland. */
+#ifndef USE_WAYLAND
 void ui_set_use_clipboard_selection(int use_it) {}
 
 int ui_is_using_clipboard_selection(void) { return 0; }
+#endif
 
 int ui_window_set_selection_owner(ui_window_t *win, Time time) {
 #ifndef USE_SDL2
