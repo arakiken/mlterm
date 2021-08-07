@@ -1,3 +1,11 @@
+2021-08-07  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c: Flick behavior is adjusted in button_motion().
+
+	* beos.cpp: unichar -> u_int16_t (unichar is removed at HaikuOS R1Beta3)
+
+	* sdl2/ui_display.c: #ifdef -> #if
+
 2021-07-24  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/ui_window.c: ui_set_use_clipboard_selection() calls

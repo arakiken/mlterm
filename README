@@ -263,7 +263,7 @@ Supported platforms
   * Android 4.0 (x86)
   * Android 9.0 (x86)
   * Java 1.8.0 / SWT (x86)
-  * Haiku R1 Beta2 / Interface Kit, SDL2 (x86)
+  * Haiku R1 Beta3 / Interface Kit, SDL2 (x86)
 
   See README.fb, README.win32, README.android, README.cocoa, README.cocoatouch,
   README.console, README.wayland, README.sdl2 and README.beos in

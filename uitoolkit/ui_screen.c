@@ -3566,9 +3566,9 @@ static void button_motion(ui_window_t *win, XMotionEvent *event) {
       bl_debug_printf("Motion Time %d %d y %d %d\n", screen->flick_time, event->time,
                       screen->flick_cur_y, event->y);
 #endif
-      if (diff == 0) {
+      if (abs(diff) < 20) {
         return;
-      } else if (screen->flick_time + 500 /* msec */ > event->time) {
+      } else if (screen->flick_time + 250 /* msec */ > event->time) {
         screen->grab_scroll = 1;
       } else {
         screen->flick_time = 0;

@@ -1093,7 +1093,7 @@ void beos_font_get_metrics(void *bfont, u_int *width, u_int *height, u_int *asce
 }
 
 u_int beos_font_get_advance(void *bfont, int size_attr,
-                            unichar *utf16, u_int len, u_int32_t glyph) {
+                            u_int16_t *utf16, u_int len, u_int32_t glyph) {
   if (!utf16_parser) {
     /* XXX leaked */
     utf16_parser = ef_utf16le_parser_new();
