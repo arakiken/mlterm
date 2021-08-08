@@ -123,20 +123,22 @@ public class MLPreferenceActivity extends PreferenceActivity {
     addEditText(category, "fontsize", "Font size", InputType.TYPE_CLASS_NUMBER);
     addFontEditText(category);
     addEditText(category, "encoding", "Encoding",
-                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
     addCheckBox(category, "col_size_of_width_a", "Ambiguouswidth = fullwidth");
     addEditText(category, "line_space", "Line space", InputType.TYPE_CLASS_NUMBER);
     addEditText(category, "letter_space", "Character space", InputType.TYPE_CLASS_NUMBER);
     addEditText(category, "fg_color", "Foreground Color",
-                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
     addEditText(category, "bg_color", "Background Color",
-                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+                InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
     addEditText(category, "wall_picture", "Wall picture",
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
     addEditText(category, "alpha", "Alpha", InputType.TYPE_CLASS_NUMBER);
     CharSequence[] entries1 = { "right", "left", "none", "autohide" };
     addList(category, "scrollbar_mode", "Scrollbar", entries1);
-    addEditText(category, "logsize", "Backlog size", InputType.TYPE_CLASS_NUMBER);
+    /* TYPE_TEXT_VARIATION_VISIBLE_PASSWORD is for "unlimited" */
+    addEditText(category, "logsize", "Backlog size",
+                /* InputType.TYPE_CLASS_NUMBER */ InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
     CharSequence[] entries2 = { "none", "cjk", "mongol" };
     addList(category, "vertical_mode", "Vertical mode", entries2);
     addEditText(category, "screen_width_ratio", "Screen size ratio against font size",

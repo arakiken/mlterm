@@ -927,7 +927,7 @@ public class MLActivity extends NativeActivity {
 
     encoding_edit = new EditText(this);
     encoding_edit.setInputType(InputType.TYPE_CLASS_TEXT |
-                               InputType.TYPE_TEXT_VARIATION_URI);
+                               InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
     connectDialogLayout.addView(makeTextEntry("Encoding ", encoding_edit), params);
 
     cmd_edit = new EditText(this);

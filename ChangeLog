@@ -1,3 +1,15 @@
+2021-08-08  Araki Ken  <arakiken@users.sf.net>
+
+	* MLPreferenceActivity.java:
+	  - TYPE_CLASS_NUMBER -> INPUT_TEXT_VARIATION_VISIBLE_PASSWORD in
+	    "Backlog size" entry to input "unlimited".
+	  - INPUT_TEXT_VARIATION_URI -> INPUT_TEXT_VARIATION_VISIBLE_PASSWORD
+	    in "Encoding", "Foreground Color" and "Background Color" entries.
+
+	* MLActivity.java:
+	  INPUT_TEXT_VARIATION_URI -> INPUT_TEXT_VARIATION_VISIBLE_PASSWORD
+	  in "Encoding" entry of the connect dialog.
+
 2021-08-07  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.c: Flick behavior is adjusted in button_motion().
