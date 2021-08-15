@@ -1,3 +1,18 @@
+2021-08-15  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c:
+	  - main_config.col = main_config.rows = 1 is forced on wayland for
+	    gnome-termnal and sakura.
+	  - vte_terminal_set_size() sets PVT(terminal)->init_char_size = 1
+	    temporarily before calling vte_terminal_get_preferred_height().
+	  - Not only screen->window.{width|height} but also screen->{width|height}
+	    are also set in vte_terminal_set_size().
+
+	* vte_wayland.c: display_move() is added for roxterm.
+
+	* wayland/ui_display.c:
+	  'int dummy' is added to arguments of ui_display_map().
+
 2021-08-08  Araki Ken  <arakiken@users.sf.net>
 
 	* MLPreferenceActivity.java:

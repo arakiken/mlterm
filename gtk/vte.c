@@ -1624,26 +1624,27 @@ static void vte_terminal_get_preferred_height(GtkWidget *widget, gint *minimum_h
   VteTerminal *terminal = VTE_TERMINAL(widget);
 
   /* XXX */
-  if (!PVT(terminal)->init_char_size &&
-      (strstr(g_get_prgname(), "roxterm") ||
-       /*
-        * Hack for roxterm started by "x-terminal-emulator" or
-        * "exo-open --launch TerminalEmulator" (which calls
-        * "x-terminal-emulator" internally)
-        */
-       g_object_get_data(gtk_widget_get_parent(widget), "roxterm_tab"))) {
-    /*
-     * XXX
-     * I don't know why, but the size of roxterm 2.6.5 (GTK+3) is
-     * minimized unless "char-size-changed" signal is emit once in
-     * vte_terminal_get_preferred_height() or
-     * vte_terminal_get_preferred_height() in startup.
-     */
-    g_signal_emit_by_name(widget, "char-size-changed", CHAR_WIDTH(terminal),
-                          CHAR_HEIGHT(terminal));
-  }
+  if (!PVT(terminal)->init_char_size) {
+    if (strstr(g_get_prgname(), "roxterm") ||
+        /*
+         * Hack for roxterm started by "x-terminal-emulator" or
+         * "exo-open --launch TerminalEmulator" (which calls
+         * "x-terminal-emulator" internally)
+         */
+        g_object_get_data(gtk_widget_get_parent(widget), "roxterm_tab")) {
+      /*
+       * XXX
+       * I don't know why, but the size of roxterm 2.6.5 (GTK+3) is
+       * minimized unless "char-size-changed" signal is emit once in
+       * vte_terminal_get_preferred_height() or
+       * vte_terminal_get_preferred_height() in startup.
+       */
+      g_signal_emit_by_name(widget, "char-size-changed", CHAR_WIDTH(terminal),
+                            CHAR_HEIGHT(terminal));
+    }
 
-  PVT(terminal)->init_char_size = 1;
+    PVT(terminal)->init_char_size = 1;
+  }
 
   if (minimum_height) {
     *minimum_height =
@@ -1732,7 +1733,7 @@ static void vte_terminal_size_allocate(GtkWidget *widget, GtkAllocation *allocat
                            allocation->width, allocation->height);
 #ifdef USE_WAYLAND
     /* Multiple displays can coexist on wayland, so '&disp' isn't used. */
-    ui_display_move(PVT(terminal)->screen->window.disp, allocation->x, allocation->y);
+    display_move(terminal, allocation->x, allocation->y);
 #endif
   } else {
     /*
@@ -1937,6 +1938,16 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
   /* Default value of vte "audible-bell" is TRUE, while "visible-bell" is FALSE.
    */
   main_config.bel_mode = BEL_SOUND;
+
+#ifdef USE_WAYLAND
+  /*
+   * XXX
+   * Without this hack, background of the bottom screen is not drawn on
+   * sakura 3.7.1 or gnome-terminal 3.40.0 in starting initially.
+   */
+  main_config.cols = 1;
+  main_config.rows = 1;
+#endif
 
   if ((value = bl_conf_get_value(conf, "compose_dec_special_font"))) {
     if (strcmp(value, "true") == 0) {
@@ -3183,14 +3194,32 @@ void vte_terminal_set_size(VteTerminal *terminal, glong columns, glong rows) {
      */
     gint width;
     gint height;
+    int orig_init_char_size;
+
     vte_terminal_get_preferred_width(GTK_WIDGET(terminal), NULL, &width);
+
+    /*
+     * vte_terminal_get_preferred_height() invokes 'char-size-changed' event
+     * on roxterm if init_char_size is 0.
+     * (See vte_terminal_get_preferred_height()).
+     */
+    orig_init_char_size = PVT(terminal)->init_char_size;
+    PVT(terminal)->init_char_size = 1;
     vte_terminal_get_preferred_height(GTK_WIDGET(terminal), NULL, &height);
+    PVT(terminal)->init_char_size = orig_init_char_size;
+
     ui_window_resize_with_margin(&screen->window, width, height, 0);
 #endif
     gtk_widget_queue_resize_no_redraw(GTK_WIDGET(terminal));
   } else {
-    screen->window.width = CHAR_WIDTH(terminal) * columns;
-    screen->window.height = CHAR_HEIGHT(terminal) * rows;
+    /*
+     * XXX
+     * The same processing as window_resized() in ui_screen.c.
+     * It is assumed that vertical_mode and screen_width_ratio are ignored
+     * in libvte compatible library.
+     */
+    screen->width = screen->window.width = CHAR_WIDTH(terminal) * columns;
+    screen->height = screen->window.height = CHAR_HEIGHT(terminal) * rows;
   }
 }
 

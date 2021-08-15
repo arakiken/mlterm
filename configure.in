@@ -1423,7 +1423,10 @@ if test "x$fcitx" != "xno" ; then
 		FCITX_CFLAGS="$FCITX_CFLAGS $FCITXUTILS_CFLAGS -DUSE_FCITX5"
 		# 'pkg-config Fcitx5GClient --libs' doesn't output -lFcitx5GClient
 		# (fcitx5-gtk-5.0.6 on archlinux)
-		FCITX_LIBS="$FCITX_LIBS -lFcitx5GClient"
+		# fcitx5-gtk-5.0.7 fixed it.
+		if test "`echo $FCITX_LIBS|grep lFcitx5GClient`" = ""; then
+			FCITX_LIBS="$FCITX_LIBS -lFcitx5GClient"
+		fi
 		fcitx_result="fcitx5"
 	fi
 

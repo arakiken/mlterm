@@ -9,10 +9,33 @@ void ui_display_move(ui_display_t *disp, int x, int y);
 
 /* not declared in header files. */
 void ui_display_init_wlserv(ui_wlserv_t *wlserv);
-void ui_display_map(ui_display_t *disp);
+void ui_display_map(ui_display_t *disp, int dummy);
 void ui_display_unmap(ui_display_t *disp);
 
 /* --- static functions --- */
+
+static void display_move(VteTerminal *terminal, int x, int y) {
+  GtkAllocation alloc;
+
+  if (x == 0 && y == 0) {
+    /*
+     * (roxterm-3.11.1)
+     * x and y of VteTerminal's GtkAllocation is 0.
+     * It is necessary to check GtkAllocation of the parent widget.
+     */
+    GtkWidget *parent;
+
+    if ((parent = gtk_widget_get_parent(GTK_WIDGET(terminal))) == NULL) {
+      return;
+    }
+
+    gtk_widget_get_allocation(parent, &alloc);
+    x = alloc.x;
+    y = alloc.y;
+  }
+
+  ui_display_move(PVT(terminal)->screen->window.disp, x, y);
+}
 
 static void show_root(ui_display_t *disp, GtkWidget *widget) {
   GdkWindow *window = gtk_widget_get_window(widget);
@@ -58,14 +81,17 @@ static void show_root(ui_display_t *disp, GtkWidget *widget) {
   gdk_window_set_cursor(window, cursor);
 }
 
+static int is_initial_allocation(GtkAllocation *allocation);
+
 static void vte_terminal_map(GtkWidget *widget) {
   GtkAllocation alloc;
 
   (*GTK_WIDGET_CLASS(vte_terminal_parent_class)->map)(widget);
 
-  ui_display_map(PVT(VTE_TERMINAL(widget))->screen->window.disp);
   gtk_widget_get_allocation(widget, &alloc);
-  ui_display_move(PVT(VTE_TERMINAL(widget))->screen->window.disp, alloc.x, alloc.y);
+  ui_display_map(PVT(VTE_TERMINAL(widget))->screen->window.disp,
+                 is_initial_allocation(&alloc));
+  display_move(VTE_TERMINAL(widget), alloc.x, alloc.y);
 }
 
 static void vte_terminal_unmap(GtkWidget *widget) {

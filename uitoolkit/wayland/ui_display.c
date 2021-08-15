@@ -756,8 +756,9 @@ static void pointer_motion(void *data, struct wl_pointer *pointer,
   ui_wlserv_t *wlserv = data;
   ui_display_t *disp;
 
-#ifdef ____DEBUG
-  bl_debug_printf("pointer_motion (time: %d)\n", time);
+#ifdef __DEBUG
+  bl_debug_printf("pointer_motion (time: %d) x %d y %d\n", time, wl_fixed_to_int(sx_w),
+                  wl_fixed_to_int(sy_w));
 #endif
   disp = surface_to_display(wlserv->current_pointer_surface);
 
@@ -3318,7 +3319,14 @@ void ui_display_init_wlserv(ui_wlserv_t *wlserv) {
   wlserv->sel_fd = -1;
 }
 
-void ui_display_map(ui_display_t *disp) {
+/*
+ * dummy == is_initial_allocation()
+ * vte_terminal_realize() doesn't call ui_window_resize_with_margin()
+ * if is_initial_allocation() is true, so the size of ui_window and vt_term
+ * is incorrect and ui_window_update_all() should be never called here.
+ * (see vte_terminal_realize())
+ */
+void ui_display_map(ui_display_t *disp, int dummy) {
   if (!disp->display->buffer) {
     ui_window_t *win;
 
@@ -3354,8 +3362,9 @@ void ui_display_map(ui_display_t *disp) {
     disp->roots[0]->is_mapped = 0;
     ui_window_show(disp->roots[0], 0);
     disp->roots[0]->is_mapped = 1;
+
     if (!ui_window_resize_with_margin(disp->roots[0], disp->width, disp->height,
-                                      NOTIFY_TO_MYSELF)) {
+                                      NOTIFY_TO_MYSELF) && !dummy) {
       ui_window_update_all(disp->roots[0]);
     }
   }
