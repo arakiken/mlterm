@@ -188,15 +188,6 @@ int main(int argc, char **argv)
 
   bl_set_sys_conf_dir(CONFIG_PATH);
 
-#if (defined(__NetBSD__) || defined(__OpenBSD__)) && defined(USE_FRAMEBUFFER)
-  /*
-   * XXX
-   * It performs well to read as large amount of data as possible
-   * on framebuffer on old machines.
-   */
-  vt_set_timeout_read_pty(0xffff); /* 65535 sec */
-#endif
-
   if (!main_loop_init(argc, argv)) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " ui_term_manager_init() failed.\n");

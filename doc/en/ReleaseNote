@@ -38,6 +38,7 @@
   Fix corrupt value of "word_separator" option which mlconfig outputs.
   Fix incompatibility with xterm in pressing Shift + a-z keys etc if modifyOtherKeys is 1.
   (https://github.com/arakiken/mlterm/issues/21)
+  Fix segfault in opening a new roxterm tab with libvte compatible library on wayland.
 
 ver 3.9.1
 * Support copy mode which starts by Control+Shift+Return.

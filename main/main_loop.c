@@ -116,6 +116,15 @@ int main_loop_init(int argc, char **argv) {
   int use_aafont = 0;
 #endif
 
+#if (defined(__NetBSD__) || defined(__OpenBSD__)) && defined(USE_FRAMEBUFFER)
+  /*
+   * XXX
+   * It performs well to read as large amount of data as possible
+   * on framebuffer on old machines.
+   */
+  vt_set_timeout_read_pty(0xffff); /* 65535 sec */
+#endif
+
   if (!bl_locale_init("")) {
     bl_msg_printf("locale settings failed.\n");
   }

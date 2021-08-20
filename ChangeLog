@@ -1,5 +1,8 @@
 2021-08-20  Araki Ken  <arakiken@users.sf.net>
 
+	* main.c, main_loop.c: main_loop_init() instead of main() calls
+	  vt_set_timeout_read_pty().
+
 	* vt_parser.c: Revert pull request #23.
 
 2021-08-15  Araki Ken  <arakiken@users.sf.net>
