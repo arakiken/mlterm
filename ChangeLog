@@ -1,3 +1,7 @@
+2021-08-20  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c: Revert pull request #23.
+
 2021-08-15  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c:
