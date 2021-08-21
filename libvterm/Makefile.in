@@ -31,7 +31,7 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 all: $(LIBNAME).la
 
 $(LIBNAME).la: $(OBJ)
-	(cd ../vtemu;make mlterm.o)
+	(cd ../vtemu;CFLAGS_LOCAL="-DNO_SIGNAL" make mlterm.o)
 	$(LIBTOOL_LINK) -o $(LIBNAME).la $(OBJ:.o=.lo) ../vtemu/*.lo \
 	@NO_UNDEFINED_FLAG@ -rpath $(libdir) -version-info 0:0:0 $(LIBS)
 

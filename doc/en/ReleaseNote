@@ -26,12 +26,11 @@
   https://github.com/arakiken/mlterm/pull/9.
   https://github.com/arakiken/mlterm/pull/12.
   https://github.com/arakiken/mlterm/pull/22.
-  https://github.com/arakiken/mlterm/pull/23.
-  https://github.com/arakiken/mlterm/pull/24.
-  https://github.com/arakiken/mlterm/pull/28.
 * Bug fixes:
   Fix https://github.com/arakiken/mlterm/issues/15.
   Fix https://github.com/arakiken/mlterm/issues/18.
+  Fix https://github.com/arakiken/mlterm/issues/24.
+  Fix https://github.com/arakiken/mlterm/issues/28.
   Fix failure of restarting mlterm on Android. (Enbugged at 3.9.1)
   Fix segfault if mlterm screen with -t option goes outside of the display.
   Fix emoji glyphs becoming too large with cairo.

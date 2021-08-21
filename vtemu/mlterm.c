@@ -94,7 +94,13 @@ vt_term_t *mlterm_open(char *host, char *pass, int cols, int rows, u_int log_siz
     bl_init_prog("mlterm", "3.9.2");
     bl_set_sys_conf_dir(CONFIG_PATH);
     bl_locale_init("");
+    /*
+     * :terminal with libvterm compatible library on neovim 0.5.0 stops
+     * at exit if SIGCHLD handler is set in libvterm.
+     */
+#ifndef NO_SIGNAL
     bl_sig_child_start();
+#endif
     vt_term_manager_init(1);
     vt_color_config_init();
 
@@ -393,6 +399,8 @@ void mlterm_final(void) {
   vt_term_manager_final();
   vt_color_config_final();
   vt_free_word_separators();
+#ifndef NO_SIGNAL
   bl_sig_child_final();
+#endif
   bl_locale_final();
 }
