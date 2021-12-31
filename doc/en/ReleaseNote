@@ -10,7 +10,7 @@
   CSI Ps; Ps u to CSI 27; Ps; Ps ~.
 * Add --with-iconv, --disable-daemon, --disable-split and --disable-zmodem
   options to ./configure script.
-* Add vte 0.64 API symbols to libvte compatible library.
+* Add vte 0.66 API symbols to libvte compatible library.
 * Show server list dialog at startup on Android.
 * It is deprecated to use "mlterm" as the value of termtype / -y option.
 * 'termcap' config file stops to accept multiple terminal types concated by '|'

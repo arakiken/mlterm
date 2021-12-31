@@ -4831,3 +4831,11 @@ gboolean vte_terminal_get_enable_fallback_scrolling(VteTerminal *terminal) {
   return FALSE;
 }
 #endif
+
+#if VTE_CHECK_VERSION(0, 66, 0)
+void vte_terminal_set_scroll_unit_is_pixels(VteTerminal *terminal, gboolean enable) {}
+
+gboolean vte_terminal_get_scroll_unit_is_pixels(VteTerminal *terminal) {
+  return FALSE;
+}
+#endif
