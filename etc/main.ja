@@ -412,6 +412,9 @@ scrollbar_view_name = sample
 # zmodem や scp で受信したファイルを保存するディレクトリ
 # receive_directory =
 
+# xterm の formatOtherKeys と同じ
+# format_other_keys = false
+
 # default_server オプションが指定されていない場合に、起動時の SSH 接続ダイ
 # アログを表示しないようにします。
 # (mlterm-fb on NetBSD/x68k or OpenBSD 用)

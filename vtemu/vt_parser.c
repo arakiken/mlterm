@@ -4921,7 +4921,7 @@ inline static int parse_vt100_escape_sequence(
         } else if (*str_p == 'q') {
           /* "CSI > q" XTVERSION */
 
-          char xtversion[] = "\x1bP>|mlterm(3.9.1)\x1b\\";
+          char xtversion[] = "\x1bP>|mlterm(3.9.2)\x1b\\";
 
           vt_write_to_pty(vt_parser->pty, xtversion, sizeof(xtversion) - 1);
         } else if (*str_p == 't') {

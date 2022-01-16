@@ -1,3 +1,15 @@
+2022-01-16  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.9.2 released.
+	  (tag "rel-3_9_2")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  mlterm.c, android/jni/version.h, vt_parser.c:
+	  updated for 3.9.2.
+
+	* README, man/mlterm.1, doc/en/PROTOCOL, etc/main, etc/main.ja,
+	  gtk/README, doc/en/README.win32, doc/ja/README.win32 : Updated.
+
 2021-12-31  Araki Ken  <arakiken@users.sf.net>
 
 	* gtk/vte.c: vte_terminal_{set|get}_scroll_unit_is_pixels() are added.

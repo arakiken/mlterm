@@ -284,6 +284,8 @@
 
 # receive_directory =
 
+# format_other_keys = false
+
 # (Available for Android)
 # start_with_local_pty = false
 
