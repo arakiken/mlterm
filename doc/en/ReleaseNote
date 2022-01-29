@@ -1,3 +1,6 @@
+* Bug fixes:
+  Fix https://github.com/arakiken/mlterm/issues/34.
+
 ver 3.9.2
 * Support Fcitx5.
 * Support GTK4 for mlconfig. (./configure --with-gtk=4.0)
