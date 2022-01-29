@@ -933,8 +933,10 @@ static int need_idling_event(struct terminal *term) {
 }
 #endif
 
+static void screen_pointer_motion(ui_window_t *win, XMotionEvent *event);
+
 static void change_sb_mode_intern(struct terminal *term, ui_sb_mode_t new_mode,
-                                  int dynamic_change) {
+                                  int dynamic_change /* true in changing by autohide */) {
   ui_layout_t *layout;
   ui_sb_mode_t old_mode;
 
@@ -947,13 +949,15 @@ static void change_sb_mode_intern(struct terminal *term, ui_sb_mode_t new_mode,
 
     new_mode = SBM_NONE;
     term->autohide_scrollbar = 1;
-    ui_window_add_event_mask(&term->screen->window, PointerMotionMask);
+    term->screen->window.pointer_motion = screen_pointer_motion;
+    ui_screen_set_pointer_motion_event_mask(term->screen, 1);
 #ifndef USE_QUARTZ
     layout->window.idling = window_idling;
 #endif
   } else if (!dynamic_change) {
     term->autohide_scrollbar = 0;
-    ui_window_remove_event_mask(&term->screen->window, PointerMotionMask);
+    term->screen->window.pointer_motion = layout->pointer_motion;
+    ui_screen_set_pointer_motion_event_mask(term->screen, 0);
     (*term->screen->xterm_listener.set_mouse_report)(term->screen->xterm_listener.self);
 
 #ifndef USE_QUARTZ
@@ -1195,14 +1199,14 @@ ui_layout_t *ui_layout_new(ui_screen_t *screen, char *view_name, char *fg_color,
   layout->line_scrolled_out = screen->screen_listener.line_scrolled_out;
   screen->screen_listener.line_scrolled_out = line_scrolled_out;
 
+  layout->pointer_motion = screen->window.pointer_motion;
   if (mode == SBM_AUTOHIDE) {
     layout->term.sb_mode = SBM_NONE;
     layout->term.autohide_scrollbar = 1;
+    screen->window.pointer_motion = screen_pointer_motion;
   } else {
     layout->term.sb_mode = mode;
   }
-  layout->pointer_motion = screen->window.pointer_motion;
-  screen->window.pointer_motion = screen_pointer_motion;
 
   if (layout->term.sb_mode == SBM_NONE) {
     actual_width = ACTUAL_WIDTH(&screen->window);
@@ -1269,7 +1273,7 @@ ui_layout_t *ui_layout_new(ui_screen_t *screen, char *view_name, char *fg_color,
 #ifndef USE_QUARTZ
     layout->window.idling = window_idling;
 #endif
-    ui_window_add_event_mask(&screen->window, PointerMotionMask);
+    ui_screen_set_pointer_motion_event_mask(screen, 1);
   }
 
   return layout;
@@ -1432,9 +1436,9 @@ int ui_layout_add_child(ui_layout_t *layout, ui_screen_t *screen, int horizontal
 
   next->sb_mode = term->sb_mode;
   if ((next->autohide_scrollbar = term->autohide_scrollbar)) {
-    ui_window_add_event_mask(&screen->window, PointerMotionMask);
+    screen->window.pointer_motion = screen_pointer_motion;
+    ui_screen_set_pointer_motion_event_mask(screen, 1);
   }
-  screen->window.pointer_motion = screen_pointer_motion;
 
   reset_layout(&layout->term, 0, 0, layout->window.width, layout->window.height);
 

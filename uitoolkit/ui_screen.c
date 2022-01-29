@@ -2489,6 +2489,10 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
       screen->hide_pointer = 1;
     } else {
       ui_window_add_event_mask(win, PointerMotionMask);
+      /*
+       * Need to remove PointerMotionMask after reviving the pointer in moving it.
+       * (see pointer_motion())
+       */
       screen->hide_pointer = 2;
     }
   }
@@ -3532,18 +3536,20 @@ static void selecting_line(ui_screen_t *screen, int y, Time time) {
 
 static void change_sb_mode(ui_screen_t *screen, ui_sb_mode_t sb_mode);
 
-static void pointer_motion(ui_window_t *win, XMotionEvent *event) {
-  ui_screen_t *screen;
-
-  screen = (ui_screen_t *)win;
-
+static void show_pointer(ui_screen_t *screen) {
   if (screen->hide_pointer) {
-    ui_window_set_cursor(win, XC_xterm);
+    ui_window_set_cursor(&screen->window, XC_xterm);
     if (screen->hide_pointer == 2) {
-      ui_window_remove_event_mask(win, PointerMotionMask);
+      ui_window_remove_event_mask(&screen->window, PointerMotionMask);
     }
     screen->hide_pointer = 0;
   }
+}
+
+static void pointer_motion(ui_window_t *win, XMotionEvent *event) {
+  ui_screen_t *screen = (ui_screen_t *)win;
+
+  show_pointer(screen);
 
   if (!(event->state & (ShiftMask | ControlMask)) &&
       vt_term_get_mouse_report_mode(screen->term) >= ANY_EVENT_MOUSE_REPORT) {
@@ -6054,12 +6060,9 @@ static void xterm_set_mouse_report(void *p) {
   }
 
   if (vt_term_get_mouse_report_mode(screen->term) < ANY_EVENT_MOUSE_REPORT) {
-    /* pointer_motion may be overridden by ui_layout */
-    if (screen->window.pointer_motion == pointer_motion) {
-      ui_window_remove_event_mask(&screen->window, PointerMotionMask);
-    }
+    ui_screen_set_pointer_motion_event_mask(screen, 0);
   } else {
-    ui_window_add_event_mask(&screen->window, PointerMotionMask);
+    ui_screen_set_pointer_motion_event_mask(screen, 1);
   }
 }
 
@@ -7610,5 +7613,20 @@ ui_picture_modifier_t *ui_screen_get_picture_modifier(ui_screen_t *screen) {
     return NULL;
   } else {
     return &screen->pic_mod;
+  }
+}
+
+void ui_screen_set_pointer_motion_event_mask(ui_screen_t *screen, int flag) {
+  if (flag) {
+    ui_window_add_event_mask(&screen->window, PointerMotionMask);
+    if (screen->hide_pointer == 2) {
+      /* No need to remove PointerMotionMask after reviving the pointer in moving it. */
+      screen->hide_pointer = 1;
+    }
+  } else if (vt_term_get_mouse_report_mode(screen->term) != ANY_EVENT_MOUSE_REPORT &&
+             /* pointer_motion may be overridden by ui_layout */
+             screen->window.pointer_motion == pointer_motion) {
+    show_pointer(screen);
+    ui_window_remove_event_mask(&screen->window, PointerMotionMask);
   }
 }

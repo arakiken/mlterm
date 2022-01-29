@@ -221,4 +221,6 @@ void ui_screen_reload_color_cache(ui_screen_t *screen, int do_unload);
 
 ui_picture_modifier_t *ui_screen_get_picture_modifier(ui_screen_t *screen);
 
+void ui_screen_set_pointer_motion_event_mask(ui_screen_t *screen, int flag);
+
 #endif

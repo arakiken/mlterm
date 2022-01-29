@@ -7096,7 +7096,7 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap, vt_cha
   vt_parser->unicode_policy = policy;
   vt_parser->cursor_style = cursor_style;
   vt_parser->is_visible_cursor = 1;
-  vt_parser->hide_pointer_mode = 2; /* Compatible with xterm 344 */
+  vt_parser->hide_pointer_mode = 1; /* Compatible with xterm 370 */
 
   if ((vt_parser->cc_conv = vt_char_encoding_conv_new(encoding)) == NULL) {
     goto error;
