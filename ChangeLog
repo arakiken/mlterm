@@ -1,3 +1,9 @@
+2022-02-04  Araki Ken  <arakiken@users.sf.net>
+
+	* c_sixel.c: Fix segmentation fault when the repeat count in sixel
+	  sequence is over 512.
+	  (https://github.com/arakiken/mlterm/issues/35)
+
 2022-01-29  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/ControlSequences, doc/en/ReleaseNote: Updated.

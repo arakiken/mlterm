@@ -540,10 +540,11 @@ body:
       }
 
       if (width < pix_x + rep) {
+        u_int expand = BL_MAX(rep, 512);
         u_int h;
 
-        new_width = width + 512;
-        stride += (512 * PIXEL_SIZE);
+        new_width = width + expand;
+        stride += (expand * PIXEL_SIZE);
         h = width * height / new_width;
         /*
          * h=17, pix_y=6
