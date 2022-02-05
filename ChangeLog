@@ -1,3 +1,7 @@
+2022-02-05  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen_manager.c: Set COLORTERM environmental variable.
+
 2022-02-04  Araki Ken  <arakiken@users.sf.net>
 
 	* c_sixel.c: Fix segmentation fault when the repeat count in sixel

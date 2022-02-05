@@ -142,7 +142,7 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
   Window window;
   u_int width_pix;
   u_int height_pix;
-  char *env[7]; /* MLTERM,TERM,WINDOWID,WAYLAND_DISPLAY,DISPLAY,COLORFGBG,NULL */
+  char *env[8]; /* MLTERM,TERM,WINDOWID,WAYLAND_DISPLAY,DISPLAY,COLORFGBG,COLORTERM,NULL */
   char **env_p;
   char wid_env[9 + DIGIT_STR_LEN(Window) + 1]; /* "WINDOWID="(9) + [32bit digit] + NULL(1) */
   char *disp_env;
@@ -195,6 +195,7 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
     *(env_p++) = term_env;
   }
 
+  *(env_p++) = "COLORTERM=truecolor";
   *(env_p++) = "COLORFGBG=default;default";
 
   /* NULL terminator */

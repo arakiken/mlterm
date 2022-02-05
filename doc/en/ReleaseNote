@@ -1,5 +1,8 @@
+* Set "COLORTERM=truecolor" environmental variable.
+  (https://github.com/arakiken/mlterm/issues/36)
 * Bug fixes:
   Fix https://github.com/arakiken/mlterm/issues/34.
+  Fix https://github.com/arakiken/mlterm/issues/35.
 
 ver 3.9.2
 * Support Fcitx5.
