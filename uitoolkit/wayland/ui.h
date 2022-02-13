@@ -16,6 +16,7 @@
 #include "gtk-primary-selection.h"
 #ifdef XDG_SHELL
 #include "xdg-shell-client-protocol.h"
+#include "xdg-decoration-unstable-v1-client-protocol.h"
 #endif
 #ifdef ZXDG_SHELL_V6
 #include "xdg-shell-unstable-v6-client-protocol.h"
@@ -138,6 +139,7 @@ typedef struct {
 #else
   struct wl_shell *shell;
 #ifdef XDG_SHELL
+  struct zxdg_decoration_manager_v1 *decoration_manager;
   struct xdg_wm_base *xdg_shell;
 #endif
 #ifdef ZXDG_SHELL_V6
@@ -203,6 +205,7 @@ typedef struct {
   struct xdg_toplevel *xdg_toplevel;
   struct xdg_popup *xdg_popup;
   int xdg_surface_configured;
+  struct zxdg_toplevel_decoration_v1 *toplevel_decoration;
 #endif
 #endif /* COMPAT_LIBVTE */
 

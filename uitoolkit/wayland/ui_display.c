@@ -383,6 +383,9 @@ static void registry_global(void *data, struct wl_registry *registry, uint32_t n
   } else if (strcmp(interface, "gtk_primary_selection_device_manager") == 0) {
     wlserv->xsel_device_manager =
       wl_registry_bind(registry, name, &gtk_primary_selection_device_manager_interface, 1);
+  } else if (strcmp(interface, "zxdg_decoration_manager_v1") == 0) {
+    wlserv->decoration_manager =
+      wl_registry_bind(registry, name, &zxdg_decoration_manager_v1_interface, 1);
   }
 #ifdef __DEBUG
   else {
@@ -2087,6 +2090,10 @@ static void close_wl_display(ui_wlserv_t *wlserv) {
     wlserv->xsel_source = NULL;
   }
 
+  if (wlserv->decoration_manager) {
+    zxdg_decoration_manager_v1_destroy(wlserv->decoration_manager);
+  }
+
 #ifdef COMPAT_LIBVTE
   wl_subcompositor_destroy(wlserv->subcompositor);
 #else
@@ -2198,6 +2205,10 @@ static void close_display(ui_display_t *disp) {
 #endif
 #ifdef XDG_SHELL
   if (disp->display->xdg_surface) {
+    if (disp->display->toplevel_decoration) {
+      zxdg_toplevel_decoration_v1_destroy(disp->display->toplevel_decoration);
+    }
+
     destroy_shm_buffer(disp->display);
     disp->display->buffer = NULL;
     if (disp->display->xdg_toplevel) {
@@ -2350,6 +2361,19 @@ static int flush_display(Display *display) {
   }
 }
 
+static void decoration_configure(void *data,
+                                 struct zxdg_toplevel_decoration_v1 *zxdg_toplevel_decoration_v1,
+                                 uint32_t mode)
+{
+  Display *display = data;
+
+  xdg_surface_ack_configure(display->xdg_surface, display->wlserv->serial);
+}
+
+static const struct zxdg_toplevel_decoration_v1_listener decoration_listener = {
+  decoration_configure
+};
+
 static void create_surface(ui_display_t *disp, int x, int y, u_int width, u_int height,
                            char *app_name) {
   Display *display = disp->display;
@@ -2435,6 +2459,16 @@ static void create_surface(ui_display_t *disp, int x, int y, u_int width, u_int 
 #if 0
       xdg_surface_set_window_geometry(display->xdg_surface, x, y, width, height);
 #endif
+
+      if (wlserv->decoration_manager) {
+        display->toplevel_decoration =
+          zxdg_decoration_manager_v1_get_toplevel_decoration(wlserv->decoration_manager,
+                                                             display->xdg_toplevel);
+        zxdg_toplevel_decoration_v1_add_listener(display->toplevel_decoration,
+                                                 &decoration_listener, display);
+        zxdg_toplevel_decoration_v1_set_mode(display->toplevel_decoration,
+                                             ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
+      }
     }
     wl_surface_commit(display->surface);
   } else

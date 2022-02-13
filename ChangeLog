@@ -1,3 +1,9 @@
+2022-02-13  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui.h, wayland/ui_display.c, Makefile.in: xdg-decoration is supported.
+
+	* wayland/xdg-decoration-unstable-v1-client-protocol.[ch]: Added.
+
 2022-02-05  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen_manager.c: Set COLORTERM environmental variable.
