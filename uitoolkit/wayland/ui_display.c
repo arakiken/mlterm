@@ -1325,7 +1325,9 @@ static void shell_surface_configure(void *data, struct wl_shell_surface *shell_s
                   disp->display->width, disp->display->height, width, height);
 #endif
 
-  if (check_resize(disp->display->width, disp->display->height, &width, &height,
+  /* mutter and gnome-shell 41.3 can invoke configure event with width == 0 and height == 0. */
+  if (width != 0 && height != 0 &&
+      check_resize(disp->display->width, disp->display->height, &width, &height,
                    total_min_width(disp->roots[0]), total_min_height(disp->roots[0]),
                    max_width_inc(disp->roots[0]), max_height_inc(disp->roots[0]),
                    disp->display->is_resizing)) {

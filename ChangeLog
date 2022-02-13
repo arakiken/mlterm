@@ -1,5 +1,10 @@
 2022-02-13  Araki Ken  <arakiken@users.sf.net>
 
+	* wayland/ui_display.c: shell_surface_configure() does nothing if width or height
+	  argument is 0.
+
+2022-02-13  Araki Ken  <arakiken@users.sf.net>
+
 	* wayland/ui.h, wayland/ui_display.c, Makefile.in: xdg-decoration is supported.
 
 	* wayland/xdg-decoration-unstable-v1-client-protocol.[ch]: Added.
