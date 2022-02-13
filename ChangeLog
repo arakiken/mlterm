@@ -1,5 +1,9 @@
 2022-02-13  Araki Ken  <arakiken@users.sf.net>
 
+	* xdg-shell-client-protocol.[ch]: Updated.
+
+2022-02-13  Araki Ken  <arakiken@users.sf.net>
+
 	* wayland/ui_display.c: shell_surface_configure() does nothing if width or height
 	  argument is 0.
 
