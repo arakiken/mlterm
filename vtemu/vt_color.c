@@ -307,7 +307,7 @@ static struct {
   u_int8_t blue;
 
 } * ext_color_table;
-static u_int ext_color_mark = 1;
+static u_int ext_color_mark = 2;
 
 static int color_distance_threshold = COLOR_DISTANCE_THRESHOLD;
 static int use_pseudo_color = 0;
@@ -650,6 +650,19 @@ vt_color_t vt_get_color(const char *name) {
 int vt_get_color_rgba(vt_color_t color, u_int8_t *red, u_int8_t *green, u_int8_t *blue,
                       u_int8_t *alpha /* can be NULL */
                       ) {
+#ifndef USE_COMPACT_TRUECOLOR
+  if (IS_TRUE_COLOR(color)) {
+    *red = (color >> 16) & 0xff;
+    *green = (color >> 8) & 0xff;
+    *blue = color & 0xff;
+    if (alpha) {
+      *alpha = 0xff;
+    }
+
+    return 1;
+  }
+#endif
+
   if (!IS_VALID_COLOR_EXCEPT_SPECIAL_COLORS(color)) {
     return 0;
   }
@@ -864,6 +877,7 @@ u_int vt_get_closest_256_color(vt_color_t *closest, u_int *min_diff, u_int8_t re
 }
 
 vt_color_t vt_get_closest_color(u_int8_t red, u_int8_t green, u_int8_t blue) {
+#ifdef USE_COMPACT_TRUECOLOR
   vt_color_t closest = VT_UNKNOWN_COLOR;
   vt_color_t color;
   u_int linear_search_max;
@@ -939,40 +953,30 @@ vt_color_t vt_get_closest_color(u_int8_t red, u_int8_t green, u_int8_t blue) {
     return closest;
   }
 
+  /* '/ 2': ext_color_table[n].mark is 7 bits, while n is 0..MAX_EXT_COLORS(240). */
   if ((oldest_mark = ext_color_mark / 2) == MAX_EXT_COLORS / 2) {
     oldest_mark = 1;
   } else {
     oldest_mark++;
   }
 
-  if (ext_color_mark == MAX_EXT_COLORS) {
-    ext_color_mark = 2;
-  } else {
-    ext_color_mark++;
-  }
-
   color = 0;
   while (ext_color_table[color].mark) {
-    u_int diff;
     int diff_r, diff_g, diff_b;
 
     /* lazy color-space conversion */
     diff_r = red - ext_color_table[color].red;
     diff_g = green - ext_color_table[color].green;
     diff_b = blue - ext_color_table[color].blue;
-    diff = COLOR_DISTANCE(diff_r, diff_g, diff_b);
-    if (diff < min) {
-      min = diff;
-      if (diff < color_distance_threshold) {
-        /* Set new mark */
-        ext_color_table[color].mark = ext_color_mark / 2;
+    if (COLOR_DISTANCE(diff_r, diff_g, diff_b) < color_distance_threshold) {
+      /* Set new mark */
+      ext_color_table[color].mark = ext_color_mark / 2;
 
 #ifdef __DEBUG
-        bl_debug_printf(BL_DEBUG_TAG " Use cached ext color %x\n", INDEX_TO_EXT_COLOR(color));
+      bl_debug_printf(BL_DEBUG_TAG " Use cached ext color %x mark %x\n", INDEX_TO_EXT_COLOR(color), ext_color_mark / 2);
 #endif
 
-        return INDEX_TO_EXT_COLOR(color);
-      }
+      return INDEX_TO_EXT_COLOR(color);
     }
 
     if (max == MAX_EXT_COLORS / 2) {
@@ -981,9 +985,11 @@ vt_color_t vt_get_closest_color(u_int8_t red, u_int8_t green, u_int8_t blue) {
       max = MAX_EXT_COLORS / 2;
       oldest_color = color;
     } else {
+      u_int diff;
+
       if (ext_color_table[color].mark < oldest_mark) {
         diff = oldest_mark - ext_color_table[color].mark;
-      } else /* if( ext_color_table[color].mark > oldest_mark) */
+      } else /* if (ext_color_table[color].mark > oldest_mark) */
       {
         diff = oldest_mark + (MAX_EXT_COLORS / 2) - ext_color_table[color].mark;
       }
@@ -999,25 +1005,36 @@ vt_color_t vt_get_closest_color(u_int8_t red, u_int8_t green, u_int8_t blue) {
       ext_color_table[color].is_changed = 1;
 
 #ifdef DEBUG
-      bl_debug_printf(BL_DEBUG_TAG " Destroy ext color %x mark %x\n", INDEX_TO_EXT_COLOR(color),
-                      ext_color_table[color].mark);
+      bl_debug_printf(BL_DEBUG_TAG " Destroy ext color %x mark %x (nearest to %x)\n",
+                      INDEX_TO_EXT_COLOR(color),
+                      ext_color_table[color].mark, oldest_mark);
 #endif
 
       break;
     }
   }
 
+  if (ext_color_table[color].mark != oldest_mark) {
+    if (ext_color_mark == MAX_EXT_COLORS) {
+      ext_color_mark = 2;
+    } else {
+      ext_color_mark++;
+    }
+  }
   ext_color_table[color].mark = ext_color_mark / 2;
   ext_color_table[color].red = red;
   ext_color_table[color].green = green;
   ext_color_table[color].blue = blue;
 
 #ifdef DEBUG
-  bl_debug_printf(BL_DEBUG_TAG "New ext color %.2x: r%.2x g%x b%.2x mark %x\n",
+  bl_debug_printf(BL_DEBUG_TAG " New ext color %.2x: r%.2x g%x b%.2x mark %x\n",
                   INDEX_TO_EXT_COLOR(color), red, green, blue, ext_color_table[color].mark);
 #endif
 
   return INDEX_TO_EXT_COLOR(color);
+#else
+  return 0x1000000 | (red << 16) | (green << 8) | (blue);
+#endif
 }
 
 int vt_ext_color_is_changed(vt_color_t color) {

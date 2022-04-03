@@ -341,6 +341,12 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
     --disable-zmodem
       zmodem によるファイル転送を無効にします。
 
+    --disable-compact-truecolor
+      CSI 38 ... m 等により指定された 24 ビットカラーを表示する際に、240個のパレ
+      ットを使い回す方法を無効にします。
+      このオプションを無効にすると、パレットの使い回しをしない代わりに、
+      vt_char_t のサイズが 8 バイトから 12 バイトに増えます。
+
     --disable-shared
       共有ライブラリを構築しません。
 

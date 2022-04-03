@@ -14,6 +14,14 @@
 #define CTLLIB_DIR LIBDIR "/mlterm/"
 #endif
 
+#ifdef USE_COMPACT_TRUECOLOR
+#define LIBBIDI "ctl_bidi"
+#define LIBISCII "ctl_iscii"
+#else
+#define LIBBIDI "ctlx_bidi"
+#define LIBISCII "ctlx_iscii"
+#endif
+
 /* --- global functions --- */
 
 void *vt_load_ctl_bidi_func(vt_ctl_bidi_id_t id) {
@@ -25,8 +33,8 @@ void *vt_load_ctl_bidi_func(vt_ctl_bidi_id_t id) {
 
     is_tried = 1;
 
-    if ((!(handle = bl_dl_open(CTLLIB_DIR, "ctl_bidi")) &&
-         !(handle = bl_dl_open("", "ctl_bidi")))) {
+    if ((!(handle = bl_dl_open(CTLLIB_DIR, LIBBIDI)) &&
+         !(handle = bl_dl_open("", LIBBIDI)))) {
       bl_error_printf("BiDi: Could not load.\n");
 
       return NULL;
@@ -63,8 +71,8 @@ void *vt_load_ctl_iscii_func(vt_ctl_iscii_id_t id) {
 
     is_tried = 1;
 
-    if ((!(handle = bl_dl_open(CTLLIB_DIR, "ctl_iscii")) &&
-         !(handle = bl_dl_open("", "ctl_iscii")))) {
+    if ((!(handle = bl_dl_open(CTLLIB_DIR, LIBISCII)) &&
+         !(handle = bl_dl_open("", LIBISCII)))) {
       bl_error_printf("iscii: Could not load.\n");
 
       return NULL;

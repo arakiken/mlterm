@@ -6,6 +6,15 @@
 #include <vt_color.h>
 #include "ui_color.h"
 
+#ifndef USE_COMPACT_TRUECOLOR
+typedef struct ui_color_cache_true {
+  ui_color_t xcolors[128];
+  int next_idx;
+  int need_unload;
+
+} ui_color_cache_true_t;
+#endif
+
 typedef struct ui_color_cache_256ext {
   ui_color_t xcolors[MAX_256EXT_COLORS];
   u_int8_t is_loaded[MAX_256EXT_COLORS];
@@ -21,6 +30,9 @@ typedef struct ui_color_cache {
   u_int8_t is_loaded[MAX_VTSYS_COLORS];
 
   ui_color_cache_256ext_t *cache_256ext;
+#ifndef USE_COMPACT_TRUECOLOR
+  ui_color_cache_true_t *cache_true;
+#endif
 
   ui_color_t black;
 

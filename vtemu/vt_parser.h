@@ -178,8 +178,13 @@ typedef struct vt_storable_states {
   int last_column_flag : 1;
 
   /* vt_line_style_t */ int line_style : 7;
-  /* vt_color_t */ u_int16_t fg_color;
-  /* vt_color_t */ u_int16_t bg_color;
+#ifdef USE_COMPACT_TRUECOLOR
+  u_int16_t fg_color;
+  u_int16_t bg_color;
+#else
+  vt_color_t fg_color;
+  vt_color_t bg_color;
+#endif
   ef_charset_t cs;
 
 } vt_storable_states_t;
@@ -211,8 +216,13 @@ typedef struct vt_parser {
   /* vt_char_encoding_t */ u_int16_t encoding;
   /* ef_charset_t */ u_int16_t cs;
 
-  /* vt_color_t */ u_int16_t fg_color;
-  /* vt_color_t */ u_int16_t bg_color;
+#ifdef USE_COMPACT_TRUECOLOR
+  u_int16_t fg_color;
+  u_int16_t bg_color;
+#else
+  vt_color_t fg_color;
+  vt_color_t bg_color;
+#endif
 
   vt_xterm_event_listener_t *xterm_listener;
   vt_config_event_listener_t *config_listener;

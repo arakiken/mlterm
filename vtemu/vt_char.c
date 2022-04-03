@@ -56,6 +56,14 @@
 #define IS_AWIDTH(c) ((c)->u.ch.attr2 & 0x2) /* Ambiguous width */
 #define IS_ZEROWIDTH(c) ((c)->u.ch.attr2 & 0x1)
 
+#ifdef USE_COMPACT_TRUECOLOR
+#define FG_COLOR(ch) ((ch)->u.ch.fg_color)
+#define BG_COLOR(ch) ((ch)->u.ch.bg_color)
+#else
+#define FG_COLOR(ch) ((ch)->u.ch.fg_color | ((ch)->u.ch.fg_color2 << 9))
+#define BG_COLOR(ch) ((ch)->u.ch.bg_color | ((ch)->u.ch.bg_color2 << 9))
+#endif
+
 /* --- static variables --- */
 
 static int use_multi_col_char = 1;
@@ -368,8 +376,15 @@ void vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidt
 
   ch->u.ch.attr = COMPOUND_ATTR(cs, is_fullwidth != 0, is_bold != 0, is_italic != 0, idx > 0,
                                 line_style, is_blinking != 0, is_protected != 0, is_comb != 0);
+#ifdef USE_COMPACT_TRUECOLOR
   ch->u.ch.fg_color = fg_color;
   ch->u.ch.bg_color = bg_color;
+#else
+  ch->u.ch.fg_color = fg_color & 0x1ff;
+  ch->u.ch.bg_color = bg_color & 0x1ff;
+  ch->u.ch.fg_color2 = (fg_color >> 9) & 0xffff;
+  ch->u.ch.bg_color2 = (bg_color >> 9) & 0xffff;
+#endif
 }
 
 void vt_char_change_attr(vt_char_t *ch, int is_bold, /* 0: don't change, 1: set, -1: unset */
@@ -709,6 +724,7 @@ int vt_char_is_comb(vt_char_t *ch) {
   }
 }
 
+
 vt_color_t vt_char_fg_color(vt_char_t *ch) {
   u_int attr;
 
@@ -716,9 +732,9 @@ vt_color_t vt_char_fg_color(vt_char_t *ch) {
 
   if (IS_SINGLE_CH(attr)) {
     if (IS_REVERSED(attr)) {
-      return (!IS_BLINKING(attr) || blink_visible) ? ch->u.ch.bg_color : ch->u.ch.fg_color;
+      return (!IS_BLINKING(attr) || blink_visible) ? BG_COLOR(ch) : FG_COLOR(ch);
     } else {
-      return (!IS_BLINKING(attr) || blink_visible) ? ch->u.ch.fg_color : ch->u.ch.bg_color;
+      return (!IS_BLINKING(attr) || blink_visible) ? FG_COLOR(ch) : BG_COLOR(ch);
     }
   } else {
     return vt_char_fg_color(ch->u.multi_ch);
@@ -727,7 +743,12 @@ vt_color_t vt_char_fg_color(vt_char_t *ch) {
 
 void vt_char_set_fg_color(vt_char_t *ch, vt_color_t color) {
   if (IS_SINGLE_CH(ch->u.ch.attr)) {
+#ifdef USE_COMPACT_TRUECOLOR
     ch->u.ch.fg_color = color;
+#else
+    ch->u.ch.fg_color = color & 0x1ff;
+    ch->u.ch.fg_color2 = (color >> 9) & 0xffff;
+#endif
   } else {
     u_int count;
     u_int comb_size;
@@ -749,7 +770,7 @@ void vt_char_set_fg_color(vt_char_t *ch, vt_color_t color) {
 
 vt_color_t vt_char_bg_color(vt_char_t *ch) {
   if (IS_SINGLE_CH(ch->u.ch.attr)) {
-    return IS_REVERSED(ch->u.ch.attr) ? ch->u.ch.fg_color : ch->u.ch.bg_color;
+    return IS_REVERSED(ch->u.ch.attr) ? FG_COLOR(ch) : BG_COLOR(ch);
   } else {
     return vt_char_bg_color(ch->u.multi_ch);
   }
@@ -757,7 +778,12 @@ vt_color_t vt_char_bg_color(vt_char_t *ch) {
 
 void vt_char_set_bg_color(vt_char_t *ch, vt_color_t color) {
   if (IS_SINGLE_CH(ch->u.ch.attr)) {
+#ifdef USE_COMPACT_TRUECOLOR
     ch->u.ch.bg_color = color;
+#else
+    ch->u.ch.bg_color = color & 0x1ff;
+    ch->u.ch.bg_color2 = (color >> 9) & 0xffff;
+#endif
   } else {
     u_int count;
     u_int comb_size;

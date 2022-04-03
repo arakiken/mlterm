@@ -188,6 +188,11 @@ Options for configure
   --disable-zmodem
     Disable zmodem
 
+  --disable-compact-truecolor
+    Disable to reuse 240 palettes in displaying true color.
+    Disabling this option supports true color completely, but sizeof(vt_char_t)
+    is changed from 8 bytes to 12 bytes.
+
   --disable-shared
     Disable shared libraries
 

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <pobl/bl_debug.h>
 #include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
+#include <pobl/bl_mem.h>
 
 /* --- static variables --- */
 
@@ -12,6 +13,44 @@ static ui_color_cache_t **color_caches;
 static u_int num_caches;
 
 /* --- static functions --- */
+
+#ifndef USE_COMPACT_TRUECOLOR
+static ui_color_t *get_cached_true_xcolor(ui_color_cache_t *color_cache, vt_color_t color) {
+  u_int8_t red;
+  u_int8_t green;
+  u_int8_t blue;
+  u_int8_t alpha;
+
+  if (!IS_TRUE_COLOR(color)) {
+    return NULL;
+  }
+
+  if (color_cache->cache_true == NULL &&
+      (color_cache->cache_true = calloc(1, sizeof(ui_color_cache_true_t))) == NULL) {
+    return NULL;
+  }
+
+  if (vt_get_color_rgba(color, &red, &green, &blue, &alpha)) {
+    int idx = color_cache->cache_true->next_idx;
+
+    if (color_cache->cache_true->need_unload) {
+      ui_unload_xcolor(color_cache->disp, color_cache->cache_true->xcolors + idx);
+    }
+
+    ui_load_rgb_xcolor(color_cache->disp, color_cache->cache_true->xcolors + idx,
+                       red, green, blue, alpha);
+
+    if (++color_cache->cache_true->next_idx == BL_ARRAY_SIZE(color_cache->cache_true->xcolors)) {
+      color_cache->cache_true->next_idx = 0;
+      color_cache->cache_true->need_unload = 1;
+    }
+
+    return color_cache->cache_true->xcolors + idx;
+  }
+
+  return NULL;
+}
+#endif
 
 static ui_color_cache_256ext_t *acquire_color_cache_256ext(ui_display_t *disp) {
   u_int count;
@@ -261,6 +300,12 @@ ui_color_t *ui_get_cached_xcolor(ui_color_cache_t *color_cache, vt_color_t color
   if ((xcolor = get_cached_256ext_xcolor(color_cache, color))) {
     return xcolor;
   }
+
+#ifndef USE_COMPACT_TRUECOLOR
+  if ((xcolor = get_cached_true_xcolor(color_cache, color))) {
+    return xcolor;
+  }
+#endif
 
   bl_msg_printf("Loading color 0x%x failed. Using black color instead.\n", color);
 

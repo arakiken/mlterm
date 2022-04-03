@@ -43,6 +43,9 @@ typedef enum {
   LS_CROSSED_OUT = 0x8,
 } vt_line_style_t;
 
+#ifndef USE_COMPACT_TRUECOLOR
+#pragma pack(push, 4)
+#endif
 /*
  * This object size should be kept as small as possible.
  * (ILP32: 64bit) (LP64: 64bit)
@@ -85,6 +88,10 @@ typedef struct vt_char {
  * 1 bit : is_zerowidth(0 or 1)
  */
 #ifdef WORDS_BIGENDIAN
+#ifndef USE_COMPACT_TRUECOLOR
+      u_int fg_color2 : 16;
+      u_int bg_color2 : 16;
+#endif
       u_int code : 21;
       u_int attr2 : 2;
       u_int fg_color : 9;
@@ -96,6 +103,10 @@ typedef struct vt_char {
       u_int bg_color : 9;
       u_int attr2 : 2;
       u_int code : 21;
+#ifndef USE_COMPACT_TRUECOLOR
+      u_int fg_color2 : 16;
+      u_int bg_color2 : 16;
+#endif
 #endif
     } ch;
 
@@ -108,6 +119,9 @@ typedef struct vt_char {
   } u;
 
 } vt_char_t;
+#ifndef USE_COMPACT_TRUECOLOR
+#pragma pack(pop)
+#endif
 
 void vt_set_use_multi_col_char(int use_it);
 

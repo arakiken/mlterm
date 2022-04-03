@@ -9,7 +9,7 @@ LIBDIR = $(DESTDIR)$(libdir)/mlterm
 VPATH = ${top_srcdir}/vtemu/libctl
 
 CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @POBL_CFLAGS@ @MEF_CFLAGS@ \
-	@FRIBIDI_CFLAGS@ @IND_CFLAGS@ @CTL_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+	@FRIBIDI_CFLAGS@ @IND_CFLAGS@ @CTL_CFLAGS@ @TRUECOLOR_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-I/usr/local/include -DLIBDIR=\"$(libdir)\" \
 
 LIBS = $(LIBS_LOCAL) @LPOBL@
@@ -29,23 +29,23 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 all: @CTL_LIBS@
 
-libctl_bidi.la: $(BIDI_OBJ) vt_functbl_bidi.o
-	$(LIBTOOL_LINK) -o libctl_bidi.la $(BIDI_OBJ:.o=.lo) vt_functbl_bidi.lo \
+libctl@TRUECOLOR_TAG@_bidi.la: $(BIDI_OBJ) vt_functbl_bidi.o
+	$(LIBTOOL_LINK) -o libctl@TRUECOLOR_TAG@_bidi.la $(BIDI_OBJ:.o=.lo) vt_functbl_bidi.lo \
 	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ @DEXPORT@ ../@LMLTERM_CORE@ \
 	$(LIBS) $(LIBS_BIDI)
 
-libctl_iscii.la: $(ISCII_OBJ) vt_functbl_iscii.o
-	$(LIBTOOL_LINK) -o libctl_iscii.la $(ISCII_OBJ:.o=.lo) vt_functbl_iscii.lo \
-	-rpath $(libdir)/mlterm \
+libctl@TRUECOLOR_TAG@_iscii.la: $(ISCII_OBJ) vt_functbl_iscii.o
+	$(LIBTOOL_LINK) -o libctl@TRUECOLOR_TAG@_iscii.la $(ISCII_OBJ:.o=.lo) \
+	vt_functbl_iscii.lo -rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ @DEXPORT@ ../@LMLTERM_CORE@ \
 	$(LIBS) $(LIBS_ISCII)
 
-libctl_bidi.a: $(BIDI_OBJ)
-	$(LIBTOOL_LINK) -o libctl_bidi.a $(BIDI_OBJ:.o=.lo)
+libctl@TRUECOLOR_TAG@_bidi.a: $(BIDI_OBJ)
+	$(LIBTOOL_LINK) -o libctl@TRUECOLOR_TAG@_bidi.a $(BIDI_OBJ:.o=.lo)
 
-libctl_iscii.a: $(ISCII_OBJ)
-	$(LIBTOOL_LINK) -o libctl_iscii.a $(ISCII_OBJ:.o=.lo) $(LIBS_ISCII)
+libctl@TRUECOLOR_TAG@_iscii.a: $(ISCII_OBJ)
+	$(LIBTOOL_LINK) -o libctl@TRUECOLOR_TAG@_iscii.a $(ISCII_OBJ:.o=.lo) $(LIBS_ISCII)
 
 .SUFFIXES: .o .c
 
@@ -65,7 +65,7 @@ uninstall:
 
 clean:
 	rm -rf $(BIDI_OBJ) $(BIDI_OBJ:.o=.lo) $(ISCII_OBJ) $(ISCII_OBJ:.o=.lo) \
-		vt_functbl_*.o vt_functbl_*.lo libctl_bidi.* libctl_iscii.* .libs
+		vt_functbl_*.o vt_functbl_*.lo libctl*_bidi.* libctl*_iscii.* .libs
 
 distclean: clean
 	rm -f Makefile

@@ -1,3 +1,21 @@
+2022-04-03  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.[ch]: vt_parser->yield = 1 if CSI 38 ... m or CSI 48 ... m is
+	  processed and USE_COMPACT_TRUECOLOR is defined, because it reuses at
+	  most 240 color palettes.
+
+	* vt_color.[ch]:
+	  - IS_TRUE_COLOR() macro is added.
+	  - vt_get_closest_color() is fixed.
+
+	* vt_char.[ch]: fg_color2 and bg_color2 are added to vt_char_t.
+
+	* ui_color_config.[ch]:
+	  - ui_color_cache_true_t is added.
+	  - get_cached_true_xcolor() is added.
+
+	* configure.in: --disable-compact-truecolor option is added.
+
 2022-02-13  Araki Ken  <arakiken@users.sf.net>
 
 	* xdg-shell-client-protocol.[ch]: Updated.

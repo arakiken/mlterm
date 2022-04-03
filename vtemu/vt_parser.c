@@ -1932,7 +1932,15 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
   if (is_sixel == 2) {
     (*vt_parser->xterm_listener->show_tmp_picture)(vt_parser->xterm_listener->self, file_path);
 
+    /*
+     * If only one window is shown on screen, it is not necessary to process
+     * pending events for other windows.
+     * But multiple windows can be shown even on framebuffer now, so it is
+     * commented out.
+     */
+#if 0
     vt_parser->yield = 1;
+#endif
 
     return;
   }
@@ -1998,7 +2006,15 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
       if (cursor_char_is_picture_and_modified(vt_parser->screen)) {
         /* Perhaps it is animation. */
         interrupt_vt100_cmd(vt_parser);
+        /*
+         * If only one window is shown on screen, it is not necessary to process
+         * pending events for other windows.
+         * But multiple windows can be shown even on framebuffer now, so it is
+         * commented out.
+         */
+#if 0
         vt_parser->yield = 1;
+#endif
       }
 
       orig_auto_wrap = vt_screen_is_auto_wrap(vt_parser->screen);
@@ -2043,10 +2059,18 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
 
       vt_screen_set_auto_wrap(vt_parser->screen, orig_auto_wrap);
 
+      /*
+       * If only one window is shown on screen, it is not necessary to process
+       * pending events for other windows.
+       * But multiple windows can be shown even on framebuffer now, so it is
+       * commented out.
+       */
+#if 0
       if (strstr(file_path, "://")) {
         /* Showing remote image is very heavy. */
         vt_parser->yield = 1;
       }
+#endif
     }
   }
 }
@@ -2291,8 +2315,16 @@ static int save_sixel_or_regis(vt_parser_t *vt_parser, char *path, u_char *dcs_b
         vt_parser->r_buf.chars[4] = is_end;
         vt_parser->r_buf.filled_len = vt_parser->r_buf.left = 5;
 
+        /*
+         * If only one window is shown on screen, it is not necessary to process
+         * pending events for other windows.
+         * But multiple windows can be shown even on framebuffer now, so it is
+         * commented out.
+         */
+#if 0
         /* No more data in pty. */
         vt_parser->yield = 1;
+#endif
 
         *body = str_p;
         *body_len = left;
@@ -2755,6 +2787,9 @@ static int change_char_fine_color(vt_parser_t *vt_parser, int *ps, int num) {
     proceed = 5;
     color = vt_get_closest_color(ps[2] <= 0 ? 0 : ps[2], ps[3] <= 0 ? 0 : ps[3],
                                  ps[4] <= 0 ? 0 : ps[4]);
+#ifdef USE_COMPACT_TRUECOLOR
+    vt_parser->yield = 1;
+#endif
   } else {
     return 1;
   }
@@ -6698,19 +6733,11 @@ static int parse_vt100_sequence(vt_parser_t *vt_parser) {
     }
   }
 
-/*
- * If only one window is shown on screen, it is not necessary to process
- * pending events for other windows.
- * But multiple windows can be shown even on framebuffer now, so it is
- * commented out.
- */
-#if 0
   if (vt_parser->yield) {
     vt_parser->yield = 0;
 
     return 0;
   }
-#endif
 
   return 1;
 }

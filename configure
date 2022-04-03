@@ -778,6 +778,8 @@ FRIBIDI_LIBS
 FRIBIDI_CFLAGS
 CTL_LOADER_OBJ
 LMLTERM_CORE
+TRUECOLOR_TAG
+TRUECOLOR_CFLAGS
 REGEX_CFLAGS
 GUI_CFLAGS
 GUI
@@ -938,6 +940,7 @@ with_gui
 with_gtk
 with_imagelib
 enable_image
+enable_compact_truecolor
 enable_dl_ctl
 enable_fribidi
 with_pthread
@@ -1671,6 +1674,7 @@ Optional Features:
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-debug          debug [default=disabled]
   --disable-image         show image [default=enabled]
+  --disable-compact-truecolor true color support by reusing 240 palettes [default=enabled]
   --disable-dl-ctl        dynamic loading ctl library [default=enable]
   --disable-fribidi       bidi [default=enabled]
   --disable-dl-type       dynamic loading type engine library [default=enable]
@@ -18230,6 +18234,21 @@ fi
 
 
 
+# Check whether --enable-compact-truecolor was given.
+if test "${enable_compact_truecolor+set}" = set; then :
+  enableval=$enable_compact_truecolor; compact_truecolor=$enable_compact_truecolor
+else
+  compact_truecolor="yes"
+fi
+
+if test "$compact_truecolor" = "yes" ; then
+	TRUECOLOR_CFLAGS="-DUSE_COMPACT_TRUECOLOR"
+else
+	TRUECOLOR_TAG="x"
+fi
+
+
+
 # Check whether --enable-dl-ctl was given.
 if test "${enable_dl_ctl+set}" = set; then :
   enableval=$enable_dl_ctl; dl_ctl=$enable_dl_ctl
@@ -18242,10 +18261,10 @@ if test "$enable_shared" = "no" ; then
 fi
 
 if test "$dl_ctl" = "yes" ; then
-	LMLTERM_CORE=libmlterm_core.la
+	LMLTERM_CORE=libmlterm${TRUECOLOR_TAG}_core.la
 	CTL_LOADER_OBJ=vt_ctl_loader.o
 else
-	LMLTERM_CORE=libmlterm_core.a
+	LMLTERM_CORE=libmlterm${TRUECOLOR_TAG}_core.a
 	CTL_CFLAGS="-DNO_DYNAMIC_LOAD_CTL"
 	CTL_LIBS_FOR_VTE="../vtemu/libctl/*.lo"
 fi
@@ -18381,11 +18400,11 @@ else
 fi
 if test "$have_fribidi" = "yes" ; then
 	if test "$dl_ctl" = "yes" ; then
-		CTL_LIBS="libctl_bidi.la ${CTL_LIBS}"
+		CTL_LIBS="libctl${TRUECOLOR_TAG}_bidi.la ${CTL_LIBS}"
 	else
 		CTL_CFLAGS="-DUSE_FRIBIDI ${CTL_CFLAGS}"
-		CTL_LIBS="libctl_bidi.a ${CTL_LIBS}"
-		CTL_LIBS_FOR_PROG="../vtemu/libctl/libctl_bidi.a ${FRIBIDI_LIBS} ${CTL_LIBS_FOR_PROG}"
+		CTL_LIBS="libctl${TRUECOLOR_TAG}_bidi.a ${CTL_LIBS}"
+		CTL_LIBS_FOR_PROG="../vtemu/libctl/libctl${TRUECOLOR_TAG}_bidi.a ${FRIBIDI_LIBS} ${CTL_LIBS_FOR_PROG}"
 		CTL_LIBS_FOR_VTE="${FRIBIDI_LIBS} ${CTL_LIBS_FOR_VTE}"
 	fi
 fi
@@ -19093,8 +19112,8 @@ fi
 		OT_LAYOUT_LIBS_FOR_PROG="$OT_LAYOUT_LIBS"
 	fi
 
-  if test "$OT_LAYOUT_OBJ" != "" -a "$LMLTERM_CORE" = "libmlterm_core.la" ; then
-		 LMLTERM_CORE="libmlterm_coreotl.la"
+  if test "$OT_LAYOUT_OBJ" != "" -a "$LMLTERM_CORE" = "libmlterm${TRUECOLOR_TAG}_core.la" ; then
+		 LMLTERM_CORE="libmlterm${TRUECOLOR_TAG}_coreotl.la"
 	fi
 fi
 
@@ -23087,11 +23106,11 @@ if test "$ind" = "yes" ; then
 	MAKE_DIRS="libind ${MAKE_DIRS}"
 	OUTPUT_FILES="libind/Makefile ${OUTPUT_FILES}"
 	if test "$dl_ctl" = "yes" ; then
-		CTL_LIBS="libctl_iscii.la ${CTL_LIBS}"
+		CTL_LIBS="libctl${TRUECOLOR_TAG}_iscii.la ${CTL_LIBS}"
 	else
 		CTL_CFLAGS="-DUSE_IND ${CTL_CFLAGS}"
-		CTL_LIBS="libctl_iscii.a ${CTL_LIBS}"
-		CTL_LIBS_FOR_PROG="../vtemu/libctl/libctl_iscii.a ${CTL_LIBS_FOR_PROG}"
+		CTL_LIBS="libctl${TRUECOLOR_TAG}_iscii.a ${CTL_LIBS}"
+		CTL_LIBS_FOR_PROG="../vtemu/libctl/libctl${TRUECOLOR_TAG}_iscii.a ${CTL_LIBS_FOR_PROG}"
 	fi
 fi
 
@@ -26032,6 +26051,7 @@ echo "libvte                            : $have_vte$vte_version"
 echo "brlapi                            : $brlapi"
 echo "VT52                              : $vt52"
 echo "Permission of mlterm binary       : $INSTALL_OPT"
+echo "Compact true color                : $compact_truecolor"
 echo
 
 # This should be called at the end of configure.
