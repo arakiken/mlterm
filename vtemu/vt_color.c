@@ -299,6 +299,7 @@ static char *color_file = "mlterm/color";
 static BL_MAP(color_rgb) color_config;
 static u_int num_changed_256_colors;
 
+#ifdef USE_COMPACT_TRUECOLOR
 static struct {
   u_int is_changed : 1;
   u_int mark : 7;
@@ -311,6 +312,7 @@ static u_int ext_color_mark = 2;
 
 static int color_distance_threshold = COLOR_DISTANCE_THRESHOLD;
 static int use_pseudo_color = 0;
+#endif
 
 /* --- static functions --- */
 
@@ -532,6 +534,7 @@ static void read_conf(const char *filename) {
 /* --- global functions --- */
 
 void vt_set_color_mode(const char *mode) {
+#ifdef USE_COMPACT_TRUECOLOR
   if (strcmp(mode, "256") == 0) {
     color_distance_threshold = COLOR_DISTANCE_THRESHOLD;
     use_pseudo_color = 1;
@@ -544,9 +547,11 @@ void vt_set_color_mode(const char *mode) {
     }
     use_pseudo_color = 0;
   }
+#endif
 }
 
 char *vt_get_color_mode(void) {
+#ifdef USE_COMPACT_TRUECOLOR
   if (use_pseudo_color) {
     return "256";
   } else if (color_distance_threshold == 40) {
@@ -554,6 +559,9 @@ char *vt_get_color_mode(void) {
   } else {
     return "high";
   }
+#else
+  return "true";
+#endif
 }
 
 void vt_color_config_init(void) {
@@ -668,6 +676,7 @@ int vt_get_color_rgba(vt_color_t color, u_int8_t *red, u_int8_t *green, u_int8_t
   }
 
   if (IS_EXT_COLOR(color)) {
+#ifdef USE_COMPACT_TRUECOLOR
     if (!ext_color_table || ext_color_table[EXT_COLOR_TO_INDEX(color)].mark == 0) {
       return 0;
     }
@@ -675,6 +684,9 @@ int vt_get_color_rgba(vt_color_t color, u_int8_t *red, u_int8_t *green, u_int8_t
     *red = ext_color_table[EXT_COLOR_TO_INDEX(color)].red;
     *green = ext_color_table[EXT_COLOR_TO_INDEX(color)].green;
     *blue = ext_color_table[EXT_COLOR_TO_INDEX(color)].blue;
+#else
+    return 0;
+#endif
   } else if (color_config && color_config_get_rgb(color, red, green, blue, alpha)) {
     return 1;
   } else {
@@ -1038,11 +1050,14 @@ vt_color_t vt_get_closest_color(u_int8_t red, u_int8_t green, u_int8_t blue) {
 }
 
 int vt_ext_color_is_changed(vt_color_t color) {
+#ifdef USE_COMPACT_TRUECOLOR
   if (ext_color_table[EXT_COLOR_TO_INDEX(color)].is_changed) {
     ext_color_table[EXT_COLOR_TO_INDEX(color)].is_changed = 0;
 
     return 1;
-  } else {
+  } else
+#endif
+  {
     return 0;
   }
 }

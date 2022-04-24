@@ -3605,7 +3605,7 @@ static void report_status(vt_parser_t *vt_parser, u_char *key) {
             vt_parser->screen->edit->hmargin_end + 1);
   } else if (strcmp(key, " q") == 0) {
     /* DECSCUR */
-    char vals[] = {'2', '4', '6', '\0', '1', '3', '5'};
+    const char vals[] = {'2', '4', '6', '\0', '1', '3', '5'};
     digits[0] = vals[vt_parser->cursor_style];
     digits[1] = '\0';
     val = digits;
@@ -4485,7 +4485,7 @@ inline static int parse_vt52_escape_sequence(
 
     vt_screen_goto(vt_parser->screen, col, row);
   } else if (*str_p == 'Z') {
-    char msg[] = "\x1b/Z";
+    const char msg[] = "\x1b/Z";
 
     vt_write_to_pty(vt_parser->pty, msg, sizeof(msg) - 1);
   } else if (*str_p == '=') {
@@ -4956,7 +4956,7 @@ inline static int parse_vt100_escape_sequence(
         } else if (*str_p == 'q') {
           /* "CSI > q" XTVERSION */
 
-          char xtversion[] = "\x1bP>|mlterm(3.9.2)\x1b\\";
+          const char xtversion[] = "\x1bP>|mlterm(3.9.2)\x1b\\";
 
           vt_write_to_pty(vt_parser->pty, xtversion, sizeof(xtversion) - 1);
         } else if (*str_p == 't') {
@@ -5744,7 +5744,7 @@ inline static int parse_vt100_escape_sequence(
         } else if (ps[0] == 10) {
           /* XXX full screen is not supported for now. */
         } else if (ps[0] == 7) {
-          char cmd[] = "update_all";
+          const char cmd[] = "update_all";
           config_protocol_set(vt_parser, cmd, 0);
         } else if (ps[0] == 11) {
           vt_write_to_pty(vt_parser->pty, "\x1b[1t", 4); /* XXX always non-iconified */

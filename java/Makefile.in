@@ -23,7 +23,7 @@ CYGPATHW = @CYGPATHW@
 
 LIBDIR = $(DESTDIR)$(libdir)
 
-CFLAGS = @CFLAGS@ @POBL_CFLAGS@ @MEF_CFLAGS@ @SSH2_CFLAGS@ \
+CFLAGS = @CFLAGS@ @POBL_CFLAGS@ @MEF_CFLAGS@ @TRUECOLOR_CFLAGS@ @SSH2_CFLAGS@ \
 	-DSYSCONFDIR=\"$(sysconfdir)\" -D_JNI_IMPLEMENTATION \
 	-I../baselib/include -I../encodefilter/include -I$(top_srcdir)/vtemu -I. \
 	-I$(JAVA_HOME@WIN32TAG@)/include -I$(JAVA_HOME@WIN32TAG@)/include/win32 \

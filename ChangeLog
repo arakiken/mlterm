@@ -1,3 +1,20 @@
+2022-04-24  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja, doc/{en,ja}/README.fb: Updated.
+
+	* inputmethod/*/Makefile.in, java/Makefile.in, libvterm/Makefile.in,
+	  gtk/Makefile.in: @TRUECOLOR_CFLAGS@ is added.
+
+	* Android.mk: -DUSE_COMPACT_TRUECOLOR is added to LOCAL_CFLAGS.
+
+	* c_animgif.c, skk/dict.c, daemon.c, mc_font.c, vt_parser.c,
+	  xlib/ui_display.c, vt_pty_ssh.c, vt_config_menu.c, vt_termcap.c:
+	  char [] -> const char [].
+
+	* vt_color.c: #ifdef USE_COMPACT_TRUECOLOR ... #endif is added.
+
+	* vterm.c: VTermStateFallbacks (introduced at libvterm-0.2) is supported.
+
 2022-04-03  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.[ch]: vt_parser->yield = 1 if CSI 38 ... m or CSI 48 ... m is

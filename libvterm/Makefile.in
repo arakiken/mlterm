@@ -15,8 +15,8 @@ LIBDIR = $(DESTDIR)$(libdir)
 
 VPATH = $(top_srcdir)/libvterm
 
-CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @POBL_CFLAGS@ @MEF_CFLAGS@ @SSH2_CFLAGS@ \
-	@CFLAGS@ @CPPFLAGS@ -I$(top_srcdir)/vtemu -I/usr/local/include
+CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @POBL_CFLAGS@ @MEF_CFLAGS@ @TRUECOLOR_CFLAGS@ \
+	@SSH2_CFLAGS@ @CFLAGS@ @CPPFLAGS@ -I$(top_srcdir)/vtemu -I/usr/local/include
 
 LIBS = $(LIBS_LOCAL) @LPOBL@ @LMEF@
 

@@ -822,6 +822,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         CSI 38;2;r;g;b m 又は CSI 48;2;r;g;b m で指定された RGB により表示される
         色について、256色からの近似値とするか、high color 又は true color で表示
         するかを指定
+        (./configure で --disable-compact-truecolor オプションを指定してビルドし
+         た場合は、常に vt_color_mode=true となります。)
 
       -- Scrollbar 関連 --
       o sb_fg_color (#)

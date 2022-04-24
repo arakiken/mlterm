@@ -436,7 +436,7 @@ char *vt_termcap_special_key_to_seq(vt_termcap_t *termcap, vt_special_key_t key,
     default:
       if (key <= SPKEY_KP_F4) {
         if (is_app_keypad) {
-          char final_chs[] = {
+          const char final_chs[] = {
               'j', /* MULTIPLY */
               'k', /* ADD */
               'l', /* SEPARATOR */
@@ -510,7 +510,7 @@ char *vt_termcap_special_key_to_seq(vt_termcap_t *termcap, vt_special_key_t key,
           return seq;
         }
       } else /* if( key <= SPKEY_F37) */ {
-        char params[] = {
+        const char params[] = {
             /* F6 - F15 */
             17, 18, 19, 20, 21, 23, 24, 25, 26, 28,
             /* F16 - F25 */

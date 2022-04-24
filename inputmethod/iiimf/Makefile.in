@@ -17,8 +17,9 @@ CFLAGS = $(CFLAGS_LOCAL)		\
 	 @MEF_CFLAGS@			\
 	 @DEB_CFLAGS@			\
 	 @X_CFLAGS@			\
-	 @GUI_CFLAGS@		\
-	 @SDL2_CFLAGS@		\
+	 @GUI_CFLAGS@			\
+	 @SDL2_CFLAGS@			\
+	 @TRUECOLOR_CFLAGS@		\
 	 @TYPE_CFLAGS@			\
 	 @CFLAGS@			\
 	 @CPPFLAGS@			\

@@ -171,7 +171,7 @@ static vt_char_t *new_comb(vt_char_t *ch, u_int *comb_size_ptr, int check_zerowi
   SET_COMB_TRAILING((multi_ch[comb_size - 1]).u.ch.attr);
 
   ch->u.multi_ch = multi_ch;
-  USE_MULTI_CH(ch->u.ch.attr); /* necessary for 64bit big endian */
+  USE_MULTI_CH(ch->u.ch.attr); /* necessary for 64bit big endian or for non-USE_COMPACT_TRUECOLOR */
 
   *comb_size_ptr = comb_size;
 
@@ -302,7 +302,7 @@ void vt_set_blink_chars_visible(int visible) {
 
 void vt_char_init(vt_char_t *ch) {
   if (sizeof(vt_char_t *) != sizeof(vt_char_t)) {
-    /*ILP32*/
+    /*ILP32 or USE_COMPACT_TRUECOLOR is not defined */
     memset(ch, 0, sizeof(vt_char_t));
     /* set u.ch.is_single_ch */
     ch->u.ch.attr = 0x1;

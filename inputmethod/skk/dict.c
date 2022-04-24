@@ -494,7 +494,7 @@ static void set_nonblocking(int fd, int nonblock) {
 }
 
 static int check_protocol_4(int sock) {
-  char msg[] = "4ab \n";
+  const char msg[] = "4ab \n";
   char p;
   int count;
 

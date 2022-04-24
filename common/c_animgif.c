@@ -39,7 +39,7 @@ static void save_gif(const char *path, u_char *header, size_t header_size, u_cha
     write(fd, body, body_size);
 #ifdef USE_WIN32GUI
     if (colorkey >= 0) {
-      u_char append[] = "\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x08\x01\x00\x00";
+      const u_char append[] = "\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x08\x01\x00\x00";
 
       append[12] = colorkey;
       write(fd, append, sizeof(append) - 1);

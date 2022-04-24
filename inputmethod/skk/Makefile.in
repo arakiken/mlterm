@@ -16,7 +16,8 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @DEB_CFLAGS@			\
 	 @X_CFLAGS@			\
 	 @GUI_CFLAGS@			\
-	 @SDL2_CFLAGS@		\
+	 @SDL2_CFLAGS@			\
+	 @TRUECOLOR_CFLAGS@		\
 	 @CFLAGS@			\
 	 @CPPFLAGS@			\
 	 -I$(top_srcdir)/vtemu		\

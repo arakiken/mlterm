@@ -128,7 +128,7 @@ int vt_config_menu_start(vt_config_menu_t *config_menu, char *cmd_path, int x, i
   PROCESS_INFORMATION pi;
   STARTUPINFO si;
   char *cmd_line;
-  char geometry[] = "--geometry";
+  const char geometry[] = "--geometry";
   DWORD tid;
   int pty_fd;
 
@@ -393,7 +393,7 @@ error2:
     /* If program name was specified without directory, prepend LIBEXECDIR to it. */
     if (strchr(cmd_path, '/') == NULL) {
       char *p;
-      char dir[] = BL_LIBEXECDIR("mlterm");
+      const char dir[] = BL_LIBEXECDIR("mlterm");
 
       if ((p = alloca(sizeof(dir) + strlen(cmd_path) + 1))) {
         sprintf(p, "%s/%s", dir, cmd_path);

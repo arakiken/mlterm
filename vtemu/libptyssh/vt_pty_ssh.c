@@ -1171,9 +1171,9 @@ static void *
   size_t rd_len;
   char buf[8192];
   int progress;
-  char msg1[] = "\x1b[?25l\r\nTransferring data.\r\n|";
+  const char msg1[] = "\x1b[?25l\r\nTransferring data.\r\n|";
   char *msg2;
-  char err_msg[] = "\r\nInterrupted.\x1b[?25h\r\n";
+  const char err_msg[] = "\r\nInterrupted.\x1b[?25h\r\n";
 
 #if !defined(USE_WIN32API) && defined(HAVE_PTHREAD)
   pthread_detach(pthread_self());

@@ -155,7 +155,7 @@ static void client_connected(void) {
   return;
 
 error : {
-  char msg[] = "Error happened.\n";
+  const char msg[] = "Error happened.\n";
 
   write(fd, msg, sizeof(msg) - 1);
 }

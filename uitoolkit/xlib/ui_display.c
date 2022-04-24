@@ -92,7 +92,7 @@ static int dialog_cb(bl_dialog_style_t style, const char *msg) {
   u_int width;
   u_int height;
   u_int len;
-  char title[] = "** Warning **";
+  const char title[] = "** Warning **";
 
   if (style != BL_DIALOG_ALERT) {
     return -1;

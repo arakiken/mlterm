@@ -729,8 +729,18 @@ void vterm_state_set_callbacks(VTermState *state, const VTermStateCallbacks *cal
 
 void *vterm_state_get_cbdata(VTermState *state) { return NULL; }
 
+#if defined(VTERM_VERSION_MAJOR) && defined(VTERM_VERSION_MINOR) && \
+    (VTERM_VERSION_MAJOR * 1000 + VTERM_VERSION_MINOR >= 2)
+/*
+ * VTermStateFallbacks is introduced at revision 759.
+ * https://bazaar.launchpad.net/~libvterm/libvterm/trunk/revision/759
+ */
+void vterm_state_set_unrecognised_fallbacks(VTermState *state,
+                                             const VTermStateFallbacks *fallbacks, void *user) {}
+#else
 void vterm_state_set_unrecognised_fallbacks(VTermState *state,
                                              const VTermParserCallbacks *fallbacks, void *user) {}
+#endif
 
 void *vterm_state_get_unrecognised_fbdata(VTermState *state) { return NULL; }
 
@@ -832,8 +842,18 @@ void  vterm_screen_set_callbacks(VTermScreen *screen, const VTermScreenCallbacks
 
 void *vterm_screen_get_cbdata(VTermScreen *screen) { return NULL; }
 
+#if defined(VTERM_VERSION_MAJOR) && defined(VTERM_VERSION_MINOR) && \
+    (VTERM_VERSION_MAJOR * 1000 + VTERM_VERSION_MINOR >= 2)
+/*
+ * VTermStateFallbacks is introduced at revision 759.
+ * https://bazaar.launchpad.net/~libvterm/libvterm/trunk/revision/759
+ */
+void  vterm_screen_set_unrecognised_fallbacks(VTermScreen *screen,
+                                              const VTermStateFallbacks *fallbacks, void *user) {}
+#else
 void  vterm_screen_set_unrecognised_fallbacks(VTermScreen *screen,
                                               const VTermParserCallbacks *fallbacks, void *user) {}
+#endif
 
 void *vterm_screen_get_unrecognised_fbdata(VTermScreen *screen) { return NULL; }
 
