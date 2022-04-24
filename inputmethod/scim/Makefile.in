@@ -59,13 +59,13 @@ $(LIBDIR):
 	mkdir -p $(LIBDIR)
 
 install: $(LIBDIR)
-	$(LIBTOOL_INSTALL) libim-scim.la $(LIBDIR)
+	$(LIBTOOL_INSTALL) $(TARGET) $(LIBDIR)
 
 uninstall:
-	rm -f $(LIBDIR)/*im-scim*
+	rm -f $(LIBDIR)/*im*-scim*
 
 clean:
-	rm -rf $(IM_SCIM_OBJ) $(IM_SCIM_OBJ:.o=.lo) *im-scim* *.core .libs
+	rm -rf $(IM_SCIM_OBJ) $(IM_SCIM_OBJ:.o=.lo) *im*-scim* *.core .libs
 
 distclean: clean
 	rm -f Makefile

@@ -63,10 +63,10 @@ install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) $(TARGET) $(LIBDIR)
 
 uninstall:
-	rm -f $(LIBDIR)/*im-m17nlib*
+	rm -f $(LIBDIR)/*im*-m17nlib*
 
 clean:
-	rm -rf $(IM_M17NLIB_OBJ) $(IM_M17NLIB_OBJ:.o=.lo) *im-m17nlib* *.core .libs
+	rm -rf $(IM_M17NLIB_OBJ) $(IM_M17NLIB_OBJ:.o=.lo) *im*-m17nlib* *.core .libs
 
 distclean: clean
 	rm -f Makefile

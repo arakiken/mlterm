@@ -63,10 +63,10 @@ install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) $(TARGET) $(LIBDIR)
 
 uninstall:
-	rm -f $(LIBDIR)/*im-fcitx*
+	rm -f $(LIBDIR)/*im*-fcitx*
 
 clean:
-	rm -rf $(IM_FCITX_OBJ) $(IM_FCITX_OBJ:.o=.lo) *im-fcitx* *.core .libs
+	rm -rf $(IM_FCITX_OBJ) $(IM_FCITX_OBJ:.o=.lo) *im*-fcitx* *.core .libs
 
 distclean: clean
 	rm -f Makefile

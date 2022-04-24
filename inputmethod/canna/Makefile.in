@@ -65,10 +65,10 @@ install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) $(TARGET) $(LIBDIR)
 
 uninstall:
-	rm -f $(LIBDIR)/*im-canna*
+	rm -f $(LIBDIR)/*im*-canna*
 
 clean:
-	rm -rf $(IM_CANNA_OBJ) $(IM_CANNA_OBJ:.o=.lo) *im-canna* *.core .libs
+	rm -rf $(IM_CANNA_OBJ) $(IM_CANNA_OBJ:.o=.lo) *im*-canna* *.core .libs
 
 distclean: clean
 	rm -f Makefile

@@ -66,10 +66,10 @@ install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) $(TARGET) $(LIBDIR)
 
 uninstall:
-	rm -f $(LIBDIR)/*im-wnn*
+	rm -f $(LIBDIR)/*im*-wnn*
 
 clean:
-	rm -rf $(IM_WNN_OBJ) $(IM_WNN_OBJ:.o=.lo) *im-wnn* *.core .libs
+	rm -rf $(IM_WNN_OBJ) $(IM_WNN_OBJ:.o=.lo) *im*-wnn* *.core .libs
 
 distclean: clean
 	rm -f Makefile
