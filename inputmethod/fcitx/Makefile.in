@@ -28,11 +28,11 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 
 LIBS = $(LIBS_LOCAL) @LPOBL@ @FCITX_LIBS@
 
-TARGET_xlib = libim-fcitx.la
-TARGET_fb = libim-fcitx-fb.la
-TARGET_console = libim-fcitx-fb.la
-TARGET_wayland = libim-fcitx-wl.la
-TARGET_sdl2 = libim-fcitx-sdl2.la
+TARGET_xlib = libim@TRUECOLOR_TAG@-fcitx.la
+TARGET_fb = libim@TRUECOLOR_TAG@-fcitx-fb.la
+TARGET_console = libim@TRUECOLOR_TAG@-fcitx-fb.la
+TARGET_wayland = libim@TRUECOLOR_TAG@-fcitx-wl.la
+TARGET_sdl2 = libim@TRUECOLOR_TAG@-fcitx-sdl2.la
 
 TARGET = $(TARGET_@GUI@)
 

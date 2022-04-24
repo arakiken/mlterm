@@ -44,7 +44,7 @@ static void *im_dlopen(char *im_name) {
   char *libname;
   void *handle;
 
-  if (!(libname = alloca(strlen(im_name) + 4))) {
+  if (!(libname = alloca(strlen(im_name) + 5))) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " alloca() failed.\n");
 #endif
@@ -52,7 +52,11 @@ static void *im_dlopen(char *im_name) {
     return NULL;
   }
 
+#ifdef USE_COMPACT_TRUECOLOR
   sprintf(libname, "im-%s", im_name);
+#else
+  sprintf(libname, "imx-%s", im_name);
+#endif
 
   if (!(handle = bl_dl_open(IM_DIR, libname))) {
     handle = bl_dl_open("", libname);

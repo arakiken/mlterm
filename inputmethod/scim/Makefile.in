@@ -29,6 +29,7 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 
 LIBS = $(LIBS_LOCAL) @LPOBL@ @SCIM_LIBS@
 
+TARGET = libim@TRUECOLOR_TAG@-scim.la
 CC      = @CC@
 CXX     = @CXX@
 INSTALL = @INSTALL@
@@ -41,10 +42,10 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 .SUFFIXES: .o .c .cpp
 
-all: libim-scim.la
+all: $(TARGET)
 
-libim-scim.la: $(IM_SCIM_OBJ)
-	$(LIBTOOL_LINK) -o libim-scim.la $(IM_SCIM_OBJ:.o=.lo) \
+$(TARGET): $(IM_SCIM_OBJ)
+	$(LIBTOOL_LINK) -o $(TARGET) $(IM_SCIM_OBJ:.o=.lo) \
 	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
 

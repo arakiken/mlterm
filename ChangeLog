@@ -1,5 +1,10 @@
 2022-04-24  Araki Ken  <arakiken@users.sf.net>
 
+	* inputmethod/*/Makefile.in, ui_im.c: The dll file name is changed from
+	  libim-xxx to libimx-xxx if USE_COMPACT_TRUECOLOR is not defined.
+
+2022-04-24  Araki Ken  <arakiken@users.sf.net>
+
 	* README.ja, doc/{en,ja}/README.fb: Updated.
 
 	* inputmethod/*/Makefile.in, java/Makefile.in, libvterm/Makefile.in,

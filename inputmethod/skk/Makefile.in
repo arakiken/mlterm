@@ -27,14 +27,14 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 
 LIBS = $(LIBS_LOCAL) @LPOBL@ @LMEF@ @SKK_LIBS@
 
-TARGET_win32 = libim-skk.la
-TARGET_xlib = libim-skk.la
-TARGET_quartz = libim-skk.la
-TARGET_beos = libim-skk.la
-TARGET_fb = libim-skk-fb.la
-TARGET_console = libim-skk-fb.la
-TARGET_wayland = libim-skk-wl.la
-TARGET_sdl2 = libim-skk-sdl2.la
+TARGET_win32 = libim@TRUECOLOR_TAG@-skk.la
+TARGET_xlib = libim@TRUECOLOR_TAG@-skk.la
+TARGET_quartz = libim@TRUECOLOR_TAG@-skk.la
+TARGET_beos = libim@TRUECOLOR_TAG@-skk.la
+TARGET_fb = libim@TRUECOLOR_TAG@-skk-fb.la
+TARGET_console = libim@TRUECOLOR_TAG@-skk-fb.la
+TARGET_wayland = libim@TRUECOLOR_TAG@-skk-wl.la
+TARGET_sdl2 = libim@TRUECOLOR_TAG@-skk-sdl2.la
 
 TARGET = $(TARGET_@GUI@)
 

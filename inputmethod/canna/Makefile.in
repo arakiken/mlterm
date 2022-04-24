@@ -28,13 +28,13 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 
 LIBS = $(LIBS_LOCAL) @LPOBL@ @CANNA_LIBS@
 
-TARGET_win32 = libim-canna.la
-TARGET_xlib = libim-canna.la
-TARGET_quartz = libim-canna.la
-TARGET_fb = libim-canna-fb.la
-TARGET_console = libim-canna-fb.la
-TARGET_wayland = libim-canna-wl.la
-TARGET_sdl2 = libim-canna-sdl2.la
+TARGET_win32 = libim@TRUECOLOR_TAG@-canna.la
+TARGET_xlib = libim@TRUECOLOR_TAG@-canna.la
+TARGET_quartz = libim@TRUECOLOR_TAG@-canna.la
+TARGET_fb = libim@TRUECOLOR_TAG@-canna-fb.la
+TARGET_console = libim@TRUECOLOR_TAG@-canna-fb.la
+TARGET_wayland = libim@TRUECOLOR_TAG@-canna-wl.la
+TARGET_sdl2 = libim@TRUECOLOR_TAG@-canna-sdl2.la
 
 TARGET = $(TARGET_@GUI@)
 
