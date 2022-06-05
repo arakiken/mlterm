@@ -49,7 +49,7 @@ char *bl_get_user_rc_path(const char *rcfile) {
   char *dotrcpath;
 #ifndef USE_WIN32API
   char *xdg_cfg;
-  size_t len;
+  size_t base_len;
 #endif
 
 #ifdef DEBUG
@@ -69,18 +69,20 @@ char *bl_get_user_rc_path(const char *rcfile) {
     sprintf(dotrcpath, "%s\\%s", homedir, rcfile);
   }
 #else
-  len = strlen(homedir) + 9; /* %s/.config/ */
-  if ((xdg_cfg = getenv("XDG_CONFIG_HOME")) && *xdg_cfg) {
-    size_t l = strlen(xdg_cfg);
-    if (len < l + 1) {
-      len = l + 1; /* %s/ */
+  base_len = strlen(homedir) + 9; /* %s/.config/ */
+  if ((xdg_cfg = getenv("XDG_CONFIG_HOME"))) {
+    if (*xdg_cfg) {
+      size_t len = strlen(xdg_cfg);
+      if (base_len < len + 1) {
+        base_len = len + 1; /* %s/ */
+      }
+    } else {
+      xdg_cfg = NULL;
     }
   }
-  len += (strlen(rcfile) + 1);
 
   /* Enough for "%s/.config/%s" */
-  if ((dotrcpath = malloc(len))) {
-    struct stat st;
+  if ((dotrcpath = malloc(base_len + strlen(rcfile) + 1))) {
     char *p;
 
     if (xdg_cfg) {
@@ -89,7 +91,9 @@ char *bl_get_user_rc_path(const char *rcfile) {
       sprintf(dotrcpath, "%s/.config/%s", homedir, rcfile);
     }
     p = strrchr(dotrcpath, '/');
-    if (p > dotrcpath + strlen(homedir) + 8) {
+    if (p >= dotrcpath + base_len) {
+      struct stat st;
+
       *p = '\0';
       if (stat(dotrcpath, &st) == 0) {
         *p = '/';
