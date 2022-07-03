@@ -580,6 +580,11 @@ static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
   image = XCreateImage(disp->display, disp->visual, disp->depth, ZPixmap, 0, data, w, h,
                        /* in case depth isn't multiple of 8 */
                        bytes_per_pixel * 8, w * bytes_per_pixel);
+#ifdef WORDS_BIGENDIAN
+  image->byte_order = MSBFirst;
+#else
+  image->byte_order = LSBFirst;
+#endif
 
   *pixmap = XCreatePixmap(disp->display, ui_display_get_group_leader(disp), w, h, disp->depth);
 
@@ -944,6 +949,11 @@ static XImage *pixbuf_to_ximage_truecolor(ui_display_t *disp, GdkPixbuf *pixbuf)
 
     return NULL;
   }
+#ifdef WORDS_BIGENDIAN
+  image->byte_order = MSBFirst;
+#else
+  image->byte_order = LSBFirst;
+#endif
 
   /* set num of bytes per pixel of pixbuf */
   bytes_per_pixel = (gdk_pixbuf_get_has_alpha(pixbuf)) ? 4 : 3;
@@ -1617,6 +1627,11 @@ Pixmap ui_imagelib_get_transparent_background(ui_window_t *win, ui_picture_modif
 
       return None;
     }
+#ifdef WORDS_BIGENDIAN
+    image->byte_order = MSBFirst;
+#else
+    image->byte_order = LSBFirst;
+#endif
 
     vinfo_template.visualid =
         XVisualIDFromVisual(DefaultVisual(win->disp->display, DefaultScreen(win->disp->display)));
