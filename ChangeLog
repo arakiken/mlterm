@@ -1,3 +1,9 @@
+2022-07-03  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_display.c: decoration_configure() doesn't call
+	  xdg_surface_ack_configure().
+	  (https://github.com/arakiken/mlterm/issues/44)
+
 2022-06-05  Araki Ken  <arakiken@users.sf.net>
 
 	* bl_conf_io.c: XDG_CONFIG_HOME is supported.

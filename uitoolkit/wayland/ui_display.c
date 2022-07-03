@@ -2365,11 +2365,10 @@ static int flush_display(Display *display) {
 
 static void decoration_configure(void *data,
                                  struct zxdg_toplevel_decoration_v1 *zxdg_toplevel_decoration_v1,
-                                 uint32_t mode)
-{
-  Display *display = data;
-
-  xdg_surface_ack_configure(display->xdg_surface, display->wlserv->serial);
+                                 uint32_t mode) {
+#ifdef __DEBUG
+  bl_debug_printf("decoration mode: %d\n", mode);
+#endif
 }
 
 static const struct zxdg_toplevel_decoration_v1_listener decoration_listener = {
