@@ -1,3 +1,7 @@
+2022-07-10  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in: libregex is checked if regex.h is found.
+
 2022-07-03  Araki Ken  <arakiken@users.sf.net>
 
 	* wayland/ui_display.c: decoration_configure() doesn't call

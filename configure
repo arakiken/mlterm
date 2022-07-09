@@ -780,6 +780,7 @@ CTL_LOADER_OBJ
 LMLTERM_CORE
 TRUECOLOR_TAG
 TRUECOLOR_CFLAGS
+REGEX_LIBS
 REGEX_CFLAGS
 GUI_CFLAGS
 GUI
@@ -18227,8 +18228,51 @@ fi
 
 ac_fn_c_check_header_mongrel "$LINENO" "regex.h" "ac_cv_header_regex_h" "$ac_includes_default"
 if test "x$ac_cv_header_regex_h" = xyes; then :
-  REGEX_CFLAGS="-DHAVE_REGEX"
+
+	REGEX_CFLAGS="-DHAVE_REGEX"
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for regcomp in -lregex" >&5
+$as_echo_n "checking for regcomp in -lregex... " >&6; }
+if ${ac_cv_lib_regex_regcomp+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lregex  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char regcomp ();
+int
+main ()
+{
+return regcomp ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_regex_regcomp=yes
+else
+  ac_cv_lib_regex_regcomp=no
 fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_regex_regcomp" >&5
+$as_echo "$ac_cv_lib_regex_regcomp" >&6; }
+if test "x$ac_cv_lib_regex_regcomp" = xyes; then :
+  REGEX_LIBS=-lregex
+fi
+
+
+fi
+
 
 
 
