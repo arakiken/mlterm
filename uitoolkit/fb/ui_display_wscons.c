@@ -380,8 +380,17 @@ static int open_display(u_int depth /* used on luna68k alone. */
   _display.height = _disp.height = vinfo.height;
   _disp.depth = vinfo.depth;
 
-#ifdef WSDISPLAY_TYPE_LUNA
-  if (wstype == WSDISPLAY_TYPE_LUNA) {
+#if defined(WSDISPLAY_TYPE_LUNA) && defined(WSDISPLAY_TYPE_AMIGACC)
+#define	WSTYPE_PLANAR(wstype)	\
+  ((wstype) == WSDISPLAY_TYPE_LUNA || (wstype) == WSDISPLAY_TYPE_AMIGACC)
+#elif defined(WSDISPLAY_TYPE_LUNA)
+#define	WSTYPE_PLANAR(wstype)	((wstype) == WSDISPLAY_TYPE_LUNA)
+#elif defined(WSDISPLAY_TYPE_AMIGACC)
+#define	WSTYPE_PLANAR(wstype)	((wstype) == WSDISPLAY_TYPE_AMIGACC)
+#endif
+
+#ifdef WSTYPE_PLANAR
+  if (WSTYPE_PLANAR(wstype)) {
     /* always 8 or less bpp */
 
     if (_disp.depth > 8) {
@@ -441,6 +450,19 @@ static int open_display(u_int depth /* used on luna68k alone. */
 
     for (plane = 0; plane < _disp.depth; plane++) {
       _display.plane_offset[plane] = 0x40000 * plane;
+    }
+  } else
+#endif
+#ifdef WSDISPLAY_TYPE_AMIGACC
+  if (wstype == WSDISPLAY_TYPE_AMIGACC &&
+      (_disp.depth == 4 || _disp.depth == 8)) {
+    u_int len_per_plane, plane;
+
+    len_per_plane = _display.line_length * _display.height;
+    _display.smem_len = fboffset + len_per_plane * _disp.depth;
+
+    for (plane = 0; plane < _disp.depth; plane++) {
+      _display.plane_offset[plane] = len_per_plane * plane;
     }
   } else
 #endif
