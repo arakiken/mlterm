@@ -644,6 +644,10 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
   }
 }
 
-void vt_pty_set_pty_read_trigger(void (*func)(void)) {
+void vt_pty_ssh_set_pty_read_trigger(void (*func)(void)) {
+  trigger_pty_read = func;
+}
+
+void vt_pty_mosh_set_pty_read_trigger(void (*func)(void)) {
   trigger_pty_read = func;
 }
