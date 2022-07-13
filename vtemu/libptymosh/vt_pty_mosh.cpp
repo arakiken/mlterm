@@ -170,7 +170,7 @@ static ssize_t lo_send_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
 }
 
 /* Same as vt_pty_ssh.cpp */
-static int _socketpair(int af, int type, int proto, SOCKET sock[2]) {
+static int _socketpair(int af, int type, int proto, int sock[2]) {
   SOCKET listen_sock;
   SOCKADDR_IN addr;
   int addr_len;
@@ -284,7 +284,7 @@ static int use_loopback(vt_pty_t *pty) {
   pty->stored->write = pty->write;
 
 #ifdef USE_WIN32API
-  if (_socketpair(AF_INET, SOCK_STREAM, 0, (SOCKET*)fds) == 0) {
+  if (_socketpair(AF_INET, SOCK_STREAM, 0, fds) == 0) {
     u_long val;
 
     val = 1;

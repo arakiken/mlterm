@@ -235,9 +235,13 @@ int vt_config_menu_start(vt_config_menu_t *config_menu, char *cmd_path, int x, i
 
   sprintf(cmd_line, "%s %s +%d+%d", cmd_path, geometry, x, y);
 
-  if (!CreateProcess(cmd_path, cmd_line, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
+  /*
+   * The 1st argument should be NULL instead of cmd_path because cmd_path which doesn't contain
+   * ".exe" by default makes CreateProcess() fail in windows 11.
+   * */
+  if (!CreateProcess(NULL, cmd_line, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
 #ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " CreateProcess() failed.\n");
+    bl_warn_printf(BL_DEBUG_TAG " CreateProcess(%s) failed.\n", cmd_line);
 #endif
 
     goto error1;

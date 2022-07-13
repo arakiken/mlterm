@@ -1,3 +1,12 @@
+2022-07-13  Araki Ken  <arakiken@users.sf.net>
+
+	* libptyssh/vt_pty_ssh.c, libptymosh/vt_pty_mosh.cpp:
+	  _socketpair(..., SOCKET*) -> _socketpair(..., int*) for 64-bit
+	  windows.
+
+	* vt_config_menu.c: The 1st argument of CreateProcess() is changed
+	  from cmd_path (which causes failure in windows 11) to NULL.
+
 2022-07-10  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen_manager.c, vt_pty_pipewin32.c:
