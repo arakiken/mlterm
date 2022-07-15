@@ -1,3 +1,9 @@
+2022-07-16  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui_display.c, uitoolkit/Makefile.in:
+	  - xdg-decoration is removed if COMPAT_LIBVTE is defined.
+	  - vte_terminal_paste_text() is added.
+
 2022-07-13  Araki Ken  <arakiken@users.sf.net>
 
 	* libptyssh/vt_pty_ssh.c, libptymosh/vt_pty_mosh.cpp:

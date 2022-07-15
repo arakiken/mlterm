@@ -63,6 +63,7 @@ $(TARGET).la: $(OBJ) $(UI_DISPLAY_OBJ_@GUI@)
 	sed 's/..\/uitoolkit\/ui_simple_sb_view.lo//g' | \
 	sed 's/..\/uitoolkit\/ui_screen_manager.lo//g' | \
 	sed 's/..\/uitoolkit\/ui_event_source.lo//g' | \
+	sed 's/..\/uitoolkit\/xdg-decoration-unstable-v1-client-protocol.lo//g' | \
 	sed 's/..\/uitoolkit\/xdg-shell-unstable-v6-client-protocol.lo//g' | \
 	sed 's/..\/uitoolkit\/xdg-shell-client-protocol.lo//g'` \
 	$(LIBS) -rpath $(libdir) -version-info $(LIB_VERSION)

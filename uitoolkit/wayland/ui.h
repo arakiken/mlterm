@@ -16,10 +16,12 @@
 #include "gtk-primary-selection.h"
 #ifdef XDG_SHELL
 #include "xdg-shell-client-protocol.h"
-#include "xdg-decoration-unstable-v1-client-protocol.h"
 #endif
 #ifdef ZXDG_SHELL_V6
 #include "xdg-shell-unstable-v6-client-protocol.h"
+#endif
+#ifndef COMPAT_LIBVTE
+#include "xdg-decoration-unstable-v1-client-protocol.h"
 #endif
 
 typedef int KeyCode; /* Same as type of wparam */
@@ -138,8 +140,8 @@ typedef struct {
   int shell_type; /* 0: Not determined, 1: wl_shell, 2: zxdg_shell, 3: xdg_shell */
 #else
   struct wl_shell *shell;
-#ifdef XDG_SHELL
   struct zxdg_decoration_manager_v1 *decoration_manager;
+#ifdef XDG_SHELL
   struct xdg_wm_base *xdg_shell;
 #endif
 #ifdef ZXDG_SHELL_V6

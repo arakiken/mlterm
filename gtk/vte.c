@@ -3116,6 +3116,12 @@ void vte_terminal_paste_clipboard(VteTerminal *terminal) {
   }
 }
 
+#if VTE_CHECK_VERSION(0, 68, 0)
+void vte_terminal_paste_text(VteTerminal *terminal, const char *text) {
+  vte_terminal_feed_child(terminal, text, strlen(text));
+}
+#endif
+
 void vte_terminal_copy_primary(VteTerminal *terminal) {}
 
 void vte_terminal_paste_primary(VteTerminal *terminal) { vte_terminal_paste_clipboard(terminal); }

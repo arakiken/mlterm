@@ -383,10 +383,13 @@ static void registry_global(void *data, struct wl_registry *registry, uint32_t n
   } else if (strcmp(interface, "gtk_primary_selection_device_manager") == 0) {
     wlserv->xsel_device_manager =
       wl_registry_bind(registry, name, &gtk_primary_selection_device_manager_interface, 1);
-  } else if (strcmp(interface, "zxdg_decoration_manager_v1") == 0) {
+  }
+#ifndef COMPAT_LIBVTE
+  else if (strcmp(interface, "zxdg_decoration_manager_v1") == 0) {
     wlserv->decoration_manager =
       wl_registry_bind(registry, name, &zxdg_decoration_manager_v1_interface, 1);
   }
+#endif
 #ifdef __DEBUG
   else {
     bl_debug_printf("Unknown interface: %s\n", interface);
@@ -2092,9 +2095,11 @@ static void close_wl_display(ui_wlserv_t *wlserv) {
     wlserv->xsel_source = NULL;
   }
 
+#ifndef COMPAT_LIBVTE
   if (wlserv->decoration_manager) {
     zxdg_decoration_manager_v1_destroy(wlserv->decoration_manager);
   }
+#endif
 
 #ifdef COMPAT_LIBVTE
   wl_subcompositor_destroy(wlserv->subcompositor);
@@ -2207,9 +2212,11 @@ static void close_display(ui_display_t *disp) {
 #endif
 #ifdef XDG_SHELL
   if (disp->display->xdg_surface) {
+#ifndef COMPAT_LIBVTE
     if (disp->display->toplevel_decoration) {
       zxdg_toplevel_decoration_v1_destroy(disp->display->toplevel_decoration);
     }
+#endif
 
     destroy_shm_buffer(disp->display);
     disp->display->buffer = NULL;
@@ -2363,6 +2370,7 @@ static int flush_display(Display *display) {
   }
 }
 
+#ifndef COMPAT_LIBVTE
 static void decoration_configure(void *data,
                                  struct zxdg_toplevel_decoration_v1 *zxdg_toplevel_decoration_v1,
                                  uint32_t mode) {
@@ -2374,6 +2382,7 @@ static void decoration_configure(void *data,
 static const struct zxdg_toplevel_decoration_v1_listener decoration_listener = {
   decoration_configure
 };
+#endif
 
 static void create_surface(ui_display_t *disp, int x, int y, u_int width, u_int height,
                            char *app_name) {
@@ -2461,6 +2470,7 @@ static void create_surface(ui_display_t *disp, int x, int y, u_int width, u_int 
       xdg_surface_set_window_geometry(display->xdg_surface, x, y, width, height);
 #endif
 
+#ifndef COMPAT_LIBVTE
       if (wlserv->decoration_manager) {
         display->toplevel_decoration =
           zxdg_decoration_manager_v1_get_toplevel_decoration(wlserv->decoration_manager,
@@ -2470,6 +2480,7 @@ static void create_surface(ui_display_t *disp, int x, int y, u_int width, u_int 
         zxdg_toplevel_decoration_v1_set_mode(display->toplevel_decoration,
                                              ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
       }
+#endif
     }
     wl_surface_commit(display->surface);
   } else
