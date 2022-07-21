@@ -4900,8 +4900,10 @@ inline static int parse_vt100_escape_sequence(
 
           vt_parser->im_is_active = im_is_active(vt_parser);
         } else if (*str_p == 't') {
-          /* ps[0] = 0 (Close), ps[0] = 1 (Open) */
+          /* ps[0] = 0, -1 (Close), ps[0] = 1 (Open) */
 
+          if (ps[0] == -1)
+            ps[0] = 0;
           if (ps[0] != im_is_active(vt_parser)) {
             switch_im_mode(vt_parser);
           }
