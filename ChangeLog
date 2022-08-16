@@ -1,3 +1,7 @@
+2022-08-16  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: Fix https://github.com/arakiken/mlterm/pull/49.
+
 2022-07-16  Araki Ken  <arakiken@users.sf.net>
 
 	* wayland/ui_display.c, uitoolkit/Makefile.in:

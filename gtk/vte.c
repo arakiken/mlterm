@@ -806,7 +806,7 @@ static void line_scrolled_out(void *p /* must be ui_screen_t */
     gtk_adjustment_changed(ADJUSTMENT(terminal));
 #endif
 
-    if (vte_terminal_get_scroll_on_output(terminal)) {
+    if (vt_term_is_backscrolling(PVT(terminal)->term) != BSM_STATIC) {
 #if GTK_CHECK_VERSION(2, 14, 0)
       gtk_adjustment_set_value(ADJUSTMENT(terminal), value + 1);
 #else
@@ -814,7 +814,7 @@ static void line_scrolled_out(void *p /* must be ui_screen_t */
       gtk_adjustment_value_changed(ADJUSTMENT(terminal));
 #endif
     }
-  } else if (!vte_terminal_get_scroll_on_output(terminal) && value > 0) {
+  } else if (vt_term_is_backscrolling(PVT(terminal)->term) == BSM_STATIC && value > 0) {
 #if GTK_CHECK_VERSION(2, 14, 0)
     gtk_adjustment_set_value(ADJUSTMENT(terminal), value - 1);
 #else
@@ -3273,6 +3273,7 @@ void vte_terminal_set_scroll_on_output(VteTerminal *terminal, gboolean scroll) {
   ui_exit_backscroll_by_pty(scroll);
 }
 
+#if VTE_CHECK_VERSION(0, 52, 0)
 gboolean vte_terminal_get_scroll_on_output(VteTerminal *terminal) {
   if (vt_term_is_backscrolling(PVT(terminal)->term) == BSM_STATIC) {
     return FALSE;
@@ -3280,6 +3281,7 @@ gboolean vte_terminal_get_scroll_on_output(VteTerminal *terminal) {
     return TRUE;
   }
 }
+#endif
 
 void vte_terminal_set_scroll_on_keystroke(VteTerminal *terminal, gboolean scroll) {}
 
