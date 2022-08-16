@@ -43,7 +43,7 @@ static char *is_otf_emoji(const char *path) {
 
       return p + 5;
     }
-    path = p + 5;
+    path = p + 1;
   }
 
   return NULL;

@@ -1,5 +1,8 @@
 2022-08-16  Araki Ken  <arakiken@users.sf.net>
 
+	* c_imagelib.c: Fix buffer over-read.
+	  (https://twitter.com/isaki68k/status/1555895011991883783)
+
 	* vte.c: Fix https://github.com/arakiken/mlterm/pull/49.
 
 2022-07-16  Araki Ken  <arakiken@users.sf.net>
