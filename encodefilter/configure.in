@@ -95,16 +95,15 @@ if test "x$allow_undefined_flag" = "xunsupported" ; then
 	NO_UNDEFINED_FLAG="-no-undefined"
 	# link ef_char.lo to module/*.dll to resolve addresses in creating dll.
 	EF_CHAR_LO="../src/ef_char.lo"
-	if test "x${POBL_BUILDDIR}" != "x" ; then
-		POBL_LIBS="${POBL_BUILDDIR}/src/libpobl.la"
-	else
-		POBL_LIBS='-lpobl'
-	fi
 else
 	AC_MSG_RESULT(supported)
 	NO_UNDEFINED_FLAG=""
 	EF_CHAR_LO=""
-	POBL_LIBS=""
+fi
+if test "x${POBL_BUILDDIR}" != "x" ; then
+	POBL_LIBS="${POBL_BUILDDIR}/src/libpobl.la"
+else
+	POBL_LIBS='-lpobl'
 fi
 AC_SUBST(NO_UNDEFINED_FLAG)
 AC_SUBST(EF_CHAR_LO)

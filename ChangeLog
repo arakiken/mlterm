@@ -1,3 +1,7 @@
+2022-10-30  Araki Ken  <arakiken@users.sf.net>
+
+	* encodefilter/configure.in: POBL_LIBS is never "".
+
 2022-08-16  Araki Ken  <arakiken@users.sf.net>
 
 	* c_imagelib.c: Fix buffer over-read.

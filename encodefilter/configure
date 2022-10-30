@@ -11555,17 +11555,16 @@ $as_echo "not supported" >&6; }
 	NO_UNDEFINED_FLAG="-no-undefined"
 	# link ef_char.lo to module/*.dll to resolve addresses in creating dll.
 	EF_CHAR_LO="../src/ef_char.lo"
-	if test "x${POBL_BUILDDIR}" != "x" ; then
-		POBL_LIBS="${POBL_BUILDDIR}/src/libpobl.la"
-	else
-		POBL_LIBS='-lpobl'
-	fi
 else
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: supported" >&5
 $as_echo "supported" >&6; }
 	NO_UNDEFINED_FLAG=""
 	EF_CHAR_LO=""
-	POBL_LIBS=""
+fi
+if test "x${POBL_BUILDDIR}" != "x" ; then
+	POBL_LIBS="${POBL_BUILDDIR}/src/libpobl.la"
+else
+	POBL_LIBS='-lpobl'
 fi
 
 
