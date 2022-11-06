@@ -268,37 +268,35 @@ AC_SUBST(NO_UNDEFINED_FLAG)
 # --- pty check ---
 #
 AC_MSG_CHECKING(for pty/tty type)
-AC_CACHE_VAL(bl_cv_pty,
-	[
-	if test "$bl_cv_win32" = "yes" ; then
-		bl_cv_pty=none
-	elif test "$bl_cv_mingw" = "yes" ; then
-		bl_cv_pty=streams
-	elif test "$host" = "$build" ; then
-		AC_CHECK_FUNC(posix_openpt,
-			[AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <fcntl.h>],
-				[return posix_openpt(O_RDWR | O_NOCTTY) == -1;])],
+if test "$bl_cv_win32" = "yes" ; then
+	bl_cv_pty=none
+elif test "$bl_cv_mingw" = "yes" ; then
+	bl_cv_pty=streams
+elif test "$host" = "$build" ; then
+	AC_CHECK_FUNC(posix_openpt,
+		[AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <fcntl.h>],
+						[return posix_openpt(O_RDWR | O_NOCTTY) == -1;])],
 				[
-				AC_DEFINE(HAVE_POSIX_OPENPT,,"HAVE_POSIX_OPENPT")
-				bl_cv_pty=streams
+					AC_DEFINE(HAVE_POSIX_OPENPT,,"HAVE_POSIX_OPENPT")
+					bl_cv_pty=streams
 				],
 				[bl_cv_pty=bsd])],
-			[bl_cv_pty=bsd])
-		if test "$bl_cv_pty" = "bsd" ; then
-			AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <fcntl.h>],
-				[return open( "/dev/ptmx", O_RDWR | O_NOCTTY, 0) == -1;])],
-				[bl_cv_pty=streams])
-		fi
-	else
-    # cross compiling
-		AC_CHECK_FUNC(posix_openpt,
-			[
-				AC_DEFINE(HAVE_POSIX_OPENPT,,"HAVE_POSIX_OPENPT")
-				bl_cv_pty=streams
-			],
-			[bl_cv_pty=bsd])
+		[bl_cv_pty=bsd])
+	if test "$bl_cv_pty" = "bsd" ; then
+		AC_RUN_IFELSE(
+			[AC_LANG_PROGRAM([#include <fcntl.h>],
+					[return open( "/dev/ptmx", O_RDWR | O_NOCTTY, 0) == -1;])],
+			[bl_cv_pty=streams])
 	fi
-	])
+else
+  # cross compiling
+	AC_CHECK_FUNC(posix_openpt,
+		[
+			AC_DEFINE(HAVE_POSIX_OPENPT,,"HAVE_POSIX_OPENPT")
+			bl_cv_pty=streams
+			],
+		[bl_cv_pty=bsd])
+fi
 AC_ARG_ENABLE(pty_helper,
 	[  --enable-pty-helper     use pty helper @<:@default=disabled@:>@],
 	pty_helper=$enable_pty_helper)

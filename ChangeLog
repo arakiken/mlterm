@@ -1,3 +1,9 @@
+2022-11-05  Araki Ken  <arakiken@users.sf.net>
+
+	* aclocal.m4: Update to automake-1.16.5 and libtool-2.4.7.
+
+	* ltmain.sh, install-sh, missing: Updated.
+
 2022-10-30  Araki Ken  <arakiken@users.sf.net>
 
 	* config.sub, config.guess: Updated.
