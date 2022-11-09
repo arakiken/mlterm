@@ -1,3 +1,8 @@
+2022-11-09  Araki Ken  <arakiken@users.sf.net>
+
+	* cocoa/install.sh, cocoa/install-sdl2.sh:
+	  mkdir -p $HOME/mlterm(-sdl2).app/Contents/MacOS in advance.
+
 2022-11-05  Araki Ken  <arakiken@users.sf.net>
 
 	* aclocal.m4: Update to automake-1.16.5 and libtool-2.4.7.
