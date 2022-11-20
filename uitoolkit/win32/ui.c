@@ -89,7 +89,7 @@ int XParseGeometry(char *str, int *xpos, int *ypos, unsigned int *width, unsigne
   }
 }
 
-KeySym XStringToKeysym(char *str) {
+KeySym XStringToKeysym(const char *str) {
 #ifdef SELF_TEST
   int debug_count = 0;
 #endif

@@ -47,17 +47,17 @@
     (map)->pairs_array = NULL;                                                           \
     (map)->map_size = size;                                                              \
     (map)->filled_size = 0;                                                              \
-    if (__hash_func == bl_map_hash_int) {                                                \
+    if ((int (*)(int, u_int))__hash_func == bl_map_hash_int) {                           \
       if (size & (size - 1)) {                                                           \
-        (map)->hash_func = bl_map_hash_int;                                              \
+        (map)->hash_func = (int (*)(key_type, u_int))bl_map_hash_int;                    \
       } else {                                                                           \
         /* new_size == 2^n */                                                            \
-        (map)->hash_func = bl_map_hash_int_fast;                                         \
+        (map)->hash_func = (int (*)(key_type, u_int))bl_map_hash_int_fast;               \
       }                                                                                  \
     } else {                                                                             \
-      (map)->hash_func = __hash_func;                                                    \
+      (map)->hash_func = (int (*)(key_type, u_int))__hash_func;                          \
     }                                                                                    \
-    (map)->compare_func = __compare_func;                                                \
+    (map)->compare_func = (int (*)(key_type, key_type))__compare_func;                   \
   }
 
 #define bl_map_new(key_type, val_type, map, __hash_func, __compare_func) \
@@ -138,12 +138,15 @@
                                                                                                \
         __old = (map)->pairs;                                                                  \
                                                                                                \
-        if ((map)->hash_func == bl_map_hash_int || (map)->hash_func == bl_map_hash_int_fast) { \
+        if ((int (*)(int, u_int))(map)->hash_func == bl_map_hash_int ||                        \
+            (int (*)(int, u_int))(map)->hash_func == bl_map_hash_int_fast) {                   \
           if (__new_size & (__new_size - 1)) {                                                 \
-            (map)->hash_func = bl_map_hash_int;                                                \
+            /* XXX int (*)() should be int (*)(key_type, u_int) */                             \
+            (map)->hash_func = (int (*)())bl_map_hash_int;                                     \
           } else {                                                                             \
             /* __new_size == 2^n */                                                            \
-            (map)->hash_func = bl_map_hash_int_fast;                                           \
+            /* XXX int (*)() should be int (*)(key_type, u_int) */                             \
+            (map)->hash_func = (int (*)())bl_map_hash_int_fast;                                \
           }                                                                                    \
         }                                                                                      \
                                                                                                \
@@ -256,12 +259,15 @@
       if ((__new = calloc(__new_size, sizeof(*(map)->pairs)))) {                               \
         __old = (map)->pairs;                                                                  \
                                                                                                \
-        if ((map)->hash_func == bl_map_hash_int || (map)->hash_func == bl_map_hash_int_fast) { \
+        if ((int (*)(int, u_int))(map)->hash_func == bl_map_hash_int ||                        \
+            (int (*)(int, u_int))(map)->hash_func == bl_map_hash_int_fast) {                   \
           if (__new_size & (__new_size - 1)) {                                                 \
-            (map)->hash_func = bl_map_hash_int;                                                \
+            /* XXX int (*)() should be int (*)(key_type, u_int) */                             \
+            (map)->hash_func = (int (*)())bl_map_hash_int;                                     \
           } else {                                                                             \
             /* __new_size == 2^n */                                                            \
-            (map)->hash_func = bl_map_hash_int_fast;                                           \
+            /* XXX int (*)() should be int (*)(key_type, u_int) */                             \
+            (map)->hash_func = (int (*)())bl_map_hash_int_fast;                                \
           }                                                                                    \
         }                                                                                      \
                                                                                                \

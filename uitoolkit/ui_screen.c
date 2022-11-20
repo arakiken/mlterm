@@ -6548,7 +6548,10 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   u_int line_height;
 
 #ifdef USE_OT_LAYOUT
-  vt_ot_layout_set_shape_func(ui_convert_text_to_glyphs, ot_layout_get_ot_layout_font);
+  vt_ot_layout_set_shape_func((u_int (*)(void*, u_int32_t*, u_int, int8_t*, int8_t*,
+                                         u_int8_t*, u_int32_t*, u_int32_t*, u_int,
+                                         const char*, const char*))ui_convert_text_to_glyphs,
+                              (void* (*)(void*, vt_font_t))ot_layout_get_ot_layout_font);
 #endif
 
   if ((screen = calloc(1, sizeof(ui_screen_t))) == NULL) {
@@ -6639,8 +6642,8 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->xterm_listener.reverse_video = xterm_reverse_video;
   screen->xterm_listener.set_mouse_report = xterm_set_mouse_report;
   screen->xterm_listener.request_locator = xterm_request_locator;
-  screen->xterm_listener.set_window_name = ui_set_window_name;
-  screen->xterm_listener.set_icon_name = ui_set_icon_name;
+  screen->xterm_listener.set_window_name = (void (*)(void*, u_char*))ui_set_window_name;
+  screen->xterm_listener.set_icon_name = (void (*)(void*, u_char*))ui_set_icon_name;
   screen->xterm_listener.bel = xterm_bel;
   screen->xterm_listener.im_is_active = xterm_im_is_active;
   screen->xterm_listener.switch_im_mode = xterm_switch_im_mode;
@@ -6658,8 +6661,8 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->xterm_listener.lock_keyboard = xterm_lock_keyboard;
 
   screen->config_listener.self = screen;
-  screen->config_listener.exec = ui_screen_exec_cmd;
-  screen->config_listener.set = ui_screen_set_config;
+  screen->config_listener.exec = (int (*)(void*, char*))ui_screen_exec_cmd;
+  screen->config_listener.set = (int (*)(void*, char*, char*, char*))ui_screen_set_config;
   screen->config_listener.get = get_config;
   screen->config_listener.saved = NULL;
   screen->config_listener.set_font = set_font_config;

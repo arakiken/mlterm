@@ -26,11 +26,10 @@ typedef ui_im_t *(*ui_im_new_func_t)(u_int64_t magic, vt_char_encoding_t term_en
 
 static ui_im_export_syms_t im_export_syms = {
     vt_str_init, vt_str_destroy, vt_char_combine, vt_char_set, vt_get_char_encoding_name,
-    vt_get_char_encoding, vt_convert_to_internal_ch, vt_isciikey_state_new,
-    vt_isciikey_state_destroy, vt_convert_ascii_to_iscii, vt_char_encoding_parser_new,
-    vt_char_encoding_conv_new, ui_im_candidate_screen_new, ui_im_status_screen_new,
-    ui_event_source_add_fd, ui_event_source_remove_fd, XStringToKeysym
-
+    vt_get_char_encoding, (int (*)(void*, ef_char_t*))vt_convert_to_internal_ch,
+    vt_isciikey_state_new, vt_isciikey_state_destroy, vt_convert_ascii_to_iscii,
+    vt_char_encoding_parser_new, vt_char_encoding_conv_new, ui_im_candidate_screen_new,
+    ui_im_status_screen_new, ui_event_source_add_fd, ui_event_source_remove_fd, XStringToKeysym
 };
 
 #if 1

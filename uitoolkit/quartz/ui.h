@@ -494,7 +494,7 @@ typedef int XFontSet; /* dummy */
 
 int XParseGeometry(char *str, int *x, int *y, unsigned int *width, unsigned int *height);
 
-KeySym XStringToKeysym(char *str);
+KeySym XStringToKeysym(const char *str);
 
 /* === Platform dependent options === */
 

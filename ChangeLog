@@ -1,3 +1,9 @@
+2022-11-19  Araki Ken  <arakiken@users.sf.net>
+
+	* bl_map.h, pixmap_engine.c, */ui.h, ui_im.[ch], ui_sb_view.h,
+	  ui_screen.c: Fix incompatible function pointer types which
+	  becomes fatal with clang 16.
+
 2022-11-09  Araki Ken  <arakiken@users.sf.net>
 
 	* cocoa/install.sh, cocoa/install-sdl2.sh:

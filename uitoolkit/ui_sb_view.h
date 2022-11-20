@@ -75,8 +75,8 @@ typedef struct ui_sb_view_conf {
   unsigned int use_count;
 
   int (*load_image)(__ui_display_ptr_t disp, char *path,
-                    /* u_int32_t */ unsigned int **cardinal, Pixmap *pixmap, Pixmap *mask,
-                    unsigned int *width, unsigned int *height);
+                    /* u_int32_t */ unsigned int **cardinal, Pixmap *pixmap, PixmapMask *mask,
+                    unsigned int *width, unsigned int *height, int);
 
 } ui_sb_view_conf_t;
 
