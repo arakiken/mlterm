@@ -129,6 +129,7 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, 'M', "im", 0, "input_method",
                   "input method (xim/kbd/uim/m17nlib/scim/ibus/fcitx/canna/wnn/skk/iiimf/none) [xim]");
   bl_conf_add_opt(conf, 'N', "name", 0, "app_name", "application name");
+  bl_conf_add_opt(conf, '\0', "role", 0, "wm_role", "application role [none]");
   bl_conf_add_opt(conf, 'O', "sbmod", 0, "scrollbar_mode",
                   "scrollbar mode (none/left/right/autohide) [none]");
   bl_conf_add_opt(conf, 'P', "clip", 1, "use_clipboard",
@@ -391,6 +392,9 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
 #ifdef USE_XLIB
   if ((value = bl_conf_get_value(conf, "icon_name"))) {
     main_config->icon_name = strdup(value);
+  }
+  if ((value = bl_conf_get_value(conf, "wm_role"))) {
+    main_config->wm_role = strdup(value);
   }
 #endif
 
@@ -1471,6 +1475,7 @@ void ui_main_config_final(ui_main_config_t *main_config) {
   free(main_config->app_name);
   free(main_config->title);
   free(main_config->icon_name);
+  free(main_config->wm_role);
   free(main_config->term_type);
   free(main_config->scrollbar_view_name);
   free(main_config->pic_file_path);

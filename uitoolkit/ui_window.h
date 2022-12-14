@@ -163,6 +163,7 @@ typedef struct ui_window {
  */
 
 #ifdef USE_XLIB
+  char *wm_role;
   int8_t wall_picture_is_set;     /* Actually set picture (including transparency)
                                      or not. */
   int8_t wait_copy_area_response; /* Used for XCopyArea() */

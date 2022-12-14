@@ -60,7 +60,7 @@ static void show_root(ui_display_t *disp, GtkWidget *widget) {
 #endif
 
   /* Internally calls create_shm_buffer() and *set_listener */
-  ui_display_show_root(disp, win, 0, 0, 0, class, gdk_wayland_window_get_wl_surface(window));
+  ui_display_show_root(disp, win, 0, 0, 0, class, NULL, gdk_wayland_window_get_wl_surface(window));
 
   /*
    * XXX

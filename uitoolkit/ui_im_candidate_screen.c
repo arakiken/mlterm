@@ -958,7 +958,7 @@ ui_im_candidate_screen_t *ui_im_candidate_screen_new(ui_display_t *disp,
   cand_screen->select = select_candidate;
 
   if (!ui_display_show_root(disp, &cand_screen->window, x, y, XValue | YValue,
-                            "mlterm-candidate-window", 0)) {
+                            "mlterm-candidate-window", NULL, 0)) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " ui_display_show_root() failed.\n");
 #endif

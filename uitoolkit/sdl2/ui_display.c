@@ -1003,7 +1003,7 @@ ui_display_t **ui_get_opened_displays(u_int *num) {
 int ui_display_fd(ui_display_t *disp) { return -1; }
 
 int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, int hint,
-                         char *app_name, Window parent_window) {
+                         char *app_name, char *wm_role, Window parent_window) {
   void *p;
 
   if (disp->num_roots > 0) {

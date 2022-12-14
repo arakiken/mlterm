@@ -339,7 +339,7 @@ ui_display_t **ui_get_opened_displays(u_int *num) {
 int ui_display_fd(ui_display_t *disp) { return XConnectionNumber(disp->display); }
 
 int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, int hint,
-                         char *app_name, Window parent_window) {
+                         char *app_name, char *wm_role, Window parent_window) {
   void *p;
 
   if ((p = realloc(disp->roots, sizeof(ui_window_t *) * (disp->num_roots + 1))) == NULL) {
@@ -368,6 +368,11 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
   if (app_name) {
     root->app_name = app_name;
   }
+#ifdef USE_XLIB
+  if (wm_role) {
+    root->wm_role = wm_role;
+  }
+#endif
 
   /*
    * root is added to disp->roots before ui_window_show() because
