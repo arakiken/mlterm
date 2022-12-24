@@ -630,7 +630,8 @@ ac_includes_default="\
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
-DEB_CFLAGS
+pobl_top_builddir_suffix
+pobl_top_srcdir_suffix
 UTMP_CFLAGS
 UTMP_LIBS
 UTMP_NAME
@@ -667,6 +668,7 @@ LIBTOOL
 OBJDUMP
 DLLTOOL
 AS
+DEB_CFLAGS
 INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
@@ -727,6 +729,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+enable_debug
 with_libtool
 enable_shared
 enable_static
@@ -740,7 +743,6 @@ enable_largefile
 with_libltdl
 enable_pty_helper
 with_utmp
-enable_debug
 with_funcs_mlterm_unuse
 '
       ac_precious_vars='build_alias
@@ -1364,6 +1366,7 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-debug          debug [default=disabled]
   --enable-shared[=PKGS]  build shared libraries [default=yes]
   --enable-static[=PKGS]  build static libraries [default=yes]
   --enable-fast-install[=PKGS]
@@ -1371,7 +1374,6 @@ Optional Features:
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --disable-largefile     omit support for large files
   --enable-pty-helper     use pty helper [default=disabled]
-  --enable-debug          debug [default=disabled]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1387,7 +1389,7 @@ Optional Packages:
                           compiler's sysroot if not specified).
   --with-libltdl[=PREFIX] load modules with libltdl [default=without]
   --with-utmp[=ARG]       utmp (utempter,sysv,login,bsd,none)
-  --without-funcs-mlterm-unuse remove functions mlterm doesn't use [default=with]
+  --without-funcs-mlterm-unuse remove functions mlterm does not use [default=with]
 
 Some influential environment variables:
   CC          C compiler command
@@ -3388,6 +3390,19 @@ if ac_fn_c_try_compile "$LINENO"; then :
 
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+#
+# --- debug ---
+#
+# Check whether --enable-debug was given.
+if test "${enable_debug+set}" = set; then :
+  enableval=$enable_debug; debug=$enable_debug
+fi
+
+if test "$debug" = yes ; then
+	DEB_CFLAGS="-DDEBUG -DBL_DEBUG"
+fi
+
 
 #
 # --- libtool ---
@@ -13554,19 +13569,6 @@ fi
 
 
 #
-# --- debug ---
-#
-# Check whether --enable-debug was given.
-if test "${enable_debug+set}" = set; then :
-  enableval=$enable_debug; debug=$enable_debug
-fi
-
-if test "$debug" = yes ; then
-	DEB_CFLAGS="-DDEBUG -DBL_DEBUG"
-fi
-
-
-#
 # --- remove functions mlterm doesn't use ---
 #
 
@@ -13598,7 +13600,7 @@ else
 
 	#include <stdio.h>
 	int main() {
-		return  calloc(8 , ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0 ;
+		return  calloc(8, ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0 ;
 	}
 
 _ACEOF
@@ -13611,6 +13613,9 @@ rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
 fi
 
 fi
+
+
+
 
 ac_config_files="$ac_config_files Makefile src/Makefile"
 

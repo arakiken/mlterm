@@ -630,13 +630,14 @@ ac_includes_default="\
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+mef_top_builddir_suffix
+mef_top_srcdir_suffix
 DEXPORT
-POBL_LIBS
+LPOBL
 EF_CHAR_LO
 NO_UNDEFINED_FLAG
 MAKE_DIRS
 TABLE_CFLAGS
-DEB_CFLAGS
 POBL_CFLAGS
 CPP
 LT_SYS_LIBRARY_PATH
@@ -665,6 +666,7 @@ LIBTOOL
 OBJDUMP
 DLLTOOL
 AS
+DEB_CFLAGS
 INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
@@ -724,6 +726,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+enable_debug
 with_libtool
 enable_shared
 enable_static
@@ -733,7 +736,6 @@ with_aix_soname
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
-enable_debug
 with_map_table
 with_prop_table
 with_iconv
@@ -1360,12 +1362,12 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-debug          debug [default=disabled]
   --enable-shared[=PKGS]  build shared libraries [default=yes]
   --enable-static[=PKGS]  build static libraries [default=yes]
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
-  --enable-debug          debug [default=disabled]
   --disable-dl-table      dynamic loading table [default=enable]
 
 Optional Packages:
@@ -3119,6 +3121,16 @@ test -z "$INSTALL_PROGRAM" && INSTALL_PROGRAM='${INSTALL}'
 test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL}'
 
 test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
+
+
+# Check whether --enable-debug was given.
+if test "${enable_debug+set}" = set; then :
+  enableval=$enable_debug; debug=$enable_debug
+fi
+
+if test "$debug" = "yes" ; then
+	DEB_CFLAGS="-DDEBUG -DBL_DEBUG"
+fi
 
 
 enable_win32_dll=yes
@@ -11599,16 +11611,6 @@ fi
 POBL_CFLAGS="-I${POBL_BUILDDIR}/include"
 
 
-# Check whether --enable-debug was given.
-if test "${enable_debug+set}" = set; then :
-  enableval=$enable_debug; debug=$enable_debug
-fi
-
-if test "$debug" = "yes" ; then
-	DEB_CFLAGS="-DDEBUG -DBL_DEBUG"
-fi
-
-
 
 # Check whether --with-map-table was given.
 if test "${with_map_table+set}" = set; then :
@@ -11658,6 +11660,9 @@ else
 
 fi
 
+if test "$enable_shared" = "no" ; then
+	dl_table="no"
+fi
 if test "$dl_table" = "no" ; then
 	TABLE_CFLAGS="${TABLE_CFLAGS} -DNO_DYNAMIC_LOAD_TABLE"
 	MAKE_DIRS="src"
@@ -11685,9 +11690,9 @@ $as_echo "supported" >&6; }
 	EF_CHAR_LO=""
 fi
 if test "x${POBL_BUILDDIR}" != "x" ; then
-	POBL_LIBS="${POBL_BUILDDIR}/src/libpobl.la"
+	LPOBL="${POBL_BUILDDIR}/src/libpobl.la"
 else
-	POBL_LIBS='-lpobl'
+	LPOBL='-lpobl'
 fi
 
 
@@ -11695,8 +11700,10 @@ fi
 
 
 if test "$with_gnu_ld" = "yes" ; then
-	DEXPORT="-Wl,--version-script=\$(top_srcdir)/src/dexport.map"
+	DEXPORT="-Wl,--version-script=\$(VPATH)/dexport.map"
 fi
+
+
 
 
 

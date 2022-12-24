@@ -26,6 +26,17 @@ int boil\[-1\];
 ], AC_DEFINE(HAVE_GNU_SOURCE))
 
 #
+# --- debug ---
+#
+AC_ARG_ENABLE(debug,
+	[  --enable-debug          debug @<:@default=disabled@:>@],
+	debug=$enable_debug)
+if test "$debug" = yes ; then
+	DEB_CFLAGS="-DDEBUG -DBL_DEBUG"
+fi
+AC_SUBST(DEB_CFLAGS)
+
+#
 # --- libtool ---
 #
 AC_LIBTOOL_WIN32_DLL
@@ -408,21 +419,10 @@ AC_SUBST(UTMP_LIBS)
 AC_SUBST(UTMP_CFLAGS)
 
 #
-# --- debug ---
-#
-AC_ARG_ENABLE(debug,
-	[  --enable-debug          debug @<:@default=disabled@:>@],
-	debug=$enable_debug)
-if test "$debug" = yes ; then
-	DEB_CFLAGS="-DDEBUG -DBL_DEBUG"
-fi
-AC_SUBST(DEB_CFLAGS)
-
-#
 # --- remove functions mlterm doesn't use ---
 #
 AC_ARG_WITH(funcs-mlterm-unuse,
-	[  --without-funcs-mlterm-unuse remove functions mlterm doesn't use @<:@default=with@:>@],
+	[  --without-funcs-mlterm-unuse remove functions mlterm does not use @<:@default=with@:>@],
 	funcs_mlterm_unuse=$with_funcs_mlterm_unuse,funcs_mlterm_unuse="yes")
 if test "$funcs_mlterm_unuse" = "no" ; then
 	AC_DEFINE(REMOVE_FUNCS_MLTERM_UNUSE,,"REMOVE_FUNCS_MLTERM_UNUSE")
@@ -436,10 +436,13 @@ if test "$host" = "$build"; then
 	[
 	#include <stdio.h>
 	int main() {
-		return  calloc(8 , ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0 ;
+		return  calloc(8, ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0 ;
 	}
 	],
 	AC_DEFINE(CALLOC_CHECK_OVERFLOW))
 fi
+
+AC_SUBST(pobl_top_srcdir_suffix)
+AC_SUBST(pobl_top_builddir_suffix)
 
 AC_OUTPUT(Makefile src/Makefile)

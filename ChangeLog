@@ -1,3 +1,8 @@
+2022-12-24  Araki Ken  <arakiken@users.sf.net>
+
+	* encodefilter/configure.in, baselib/configure.in:
+	  3 configure.in files are itegrated to one file.
+
 2022-11-19  Araki Ken  <arakiken@users.sf.net>
 
 	* bl_map.h, pixmap_engine.c, */ui.h, ui_im.[ch], ui_sb_view.h,

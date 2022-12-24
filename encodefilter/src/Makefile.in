@@ -1,5 +1,5 @@
-top_builddir = ..
-top_srcdir = @top_srcdir@
+top_builddir = ..@mef_top_builddir_suffix@
+top_srcdir = @top_srcdir@@mef_top_srcdir_suffix@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 libdir = @libdir@
@@ -13,7 +13,7 @@ INCDIR = $(DESTDIR)$(prefix)/include
 
 VPATH = $(top_srcdir)/src
 
-INCDIR_TMP = $(top_builddir)/include
+INCDIR_TMP = ../include
 
 CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @POBL_CFLAGS@ @TABLE_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-DLIBDIR=\"$(libdir)\" -I/usr/local/include
@@ -67,7 +67,7 @@ $(LIBNAME).a : $(OBJ)
 
 $(LIBNAME).la : $(OBJ)
 	$(LIBTOOL_LINK) -o $(LIBNAME).la $(OBJ:.o=.lo) -rpath $(libdir) \
-		@NO_UNDEFINED_FLAG@ @DEXPORT@ -version-info $(MAJOR):$(MINOR):0 @POBL_LIBS@
+		@NO_UNDEFINED_FLAG@ @DEXPORT@ -version-info $(MAJOR):$(MINOR):0 @LPOBL@
 
 $(INCDIR_TMP)/mef :
 	mkdir -p $(INCDIR_TMP)/mef

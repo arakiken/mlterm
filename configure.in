@@ -11,8 +11,12 @@ AC_CANONICAL_BUILD
 AC_SUBST(CFLAGS)
 
 if test -d ${top_srcdir-$srcdir}/encodefilter -a -d ${top_srcdir-$srcdir}/baselib ; then
-	SUBDIRS="baselib encodefilter"
-	
+	CONFIG_SUBDIR_LIBS="internal"
+
+	if test "$CONFIG_SUBDIR_LIBS" = "external"; then
+		SUBDIRS="baselib encodefilter"
+	fi
+
 	MEF_CFLAGS='-I${top_builddir}/encodefilter/include'
 	POBL_CFLAGS='-I${top_builddir}/baselib/include'
 
@@ -99,6 +103,14 @@ AC_PROG_INSTALL
 
 AC_C_INLINE
 
+AC_ARG_ENABLE(debug,
+	[  --enable-debug          debug @<:@default=disabled@:>@],
+	debug=$enable_debug)
+if test "$debug" = "yes" ; then
+	DEB_CFLAGS="-DDEBUG -DBL_DEBUG"
+fi
+AC_SUBST(DEB_CFLAGS)
+
 AC_LIBTOOL_WIN32_DLL
 AC_LIBTOOL_DLOPEN
 AC_ARG_WITH(libtool,
@@ -122,15 +134,6 @@ if test "$have_x" = "yes"; then
 	AC_SUBST(X_CFLAGS_AUX)
 fi
 
-AC_ARG_ENABLE(debug,
-	[  --enable-debug          debug @<:@default=disabled@:>@],
-	debug=$enable_debug)
-if test "$debug" = "yes" ; then
-	DEB_CFLAGS="-DDEBUG -DBL_DEBUG"
-fi
-AC_SUBST(DEB_CFLAGS)
-AC_SUBST(OPT_CFLAGS)
-
 MLTERM_FB="mlterm-fb"
 
 AC_ARG_WITH(gui,
@@ -146,7 +149,7 @@ if test `echo $gui | grep ,`; then
 			is_first=
 		else
 			SUBDIRS="${SUBDIRS} gui/$g"
-			MAKE_DIRS="${MAKE_DIRS} gui/$g"
+			MAKE_DIRS2="${MAKE_DIRS2} gui/$g"
 			if test -d ${top_srcdir-$srcdir}/gui/$g ; then
 				echo ""
 				echo "** WARNING **"
@@ -190,7 +193,7 @@ elif test "$gui" = "scpc98"; then
 fi
 
 if test "$gui" = "fb" ; then
-	MAKE_DIRS="doc/kbd ${MAKE_DIRS}"
+	MAKE_DIRS2="doc/kbd ${MAKE_DIRS2}"
 	OUTPUT_FILES="doc/kbd/Makefile ${OUTPUT_FILES}"
 fi
 
@@ -660,7 +663,7 @@ AC_SUBST(CTL_CFLAGS)
 AC_SUBST(CTL_LIBS_FOR_VTE)
 
 AC_ARG_WITH(pthread,
-	[  --without-pthread       don't use pthread @<:@default=with@:>@])
+	[  --without-pthread       do not use pthread @<:@default=with@:>@])
 
 AC_ARG_ENABLE(dl-type,
 	[  --disable-dl-type       dynamic loading type engine library @<:@default=enable@:>@],
@@ -904,7 +907,7 @@ AC_SUBST(OT_LAYOUT_CFLAGS)
 AC_SUBST(OT_LAYOUT_OBJ)
 
 if test "$OT_LAYOUT_OBJ" != "" ; then
-	MAKE_DIRS="uitoolkit/libotl ${MAKE_DIRS}"
+	MAKE_DIRS2="uitoolkit/libotl ${MAKE_DIRS2}"
 	OUTPUT_FILES="uitoolkit/libotl/Makefile ${OUTPUT_FILES}"
 fi
 
@@ -958,7 +961,7 @@ if test "$ml_cv_is_posix" = "no" ; then
 
 		if test -d "$with_mosh"; then
 			MOSH_DIR=$with_mosh
-			MAKE_DIRS="${MAKE_DIRS} vtemu/libptyssh vtemu/libptymosh"
+			MAKE_DIRS2="${MAKE_DIRS2} vtemu/libptyssh vtemu/libptymosh"
 			OUTPUT_FILES="${OUTPUT_FILES} vtemu/libptyssh/Makefile vtemu/libptymosh/Makefile"
 			SSH2_LIBS_FOR_PROG="-lwsock32"
 			# XXX Hack for wcwidth()
@@ -999,11 +1002,11 @@ else
 			SSH2_LIBS=
 		else
 			# dlopen libptyssh
-			MAKE_DIRS="vtemu/libptyssh ${MAKE_DIRS}"
+			MAKE_DIRS2="vtemu/libptyssh ${MAKE_DIRS2}"
 			OUTPUT_FILES="vtemu/libptyssh/Makefile ${OUTPUT_FILES}"
 
 			if test -d "$with_mosh"; then
-				MAKE_DIRS="${MAKE_DIRS} vtemu/libptymosh"
+				MAKE_DIRS2="${MAKE_DIRS2} vtemu/libptymosh"
 				OUTPUT_FILES="${OUTPUT_FILES} vtemu/libptymosh/Makefile"
 			fi
 		fi
@@ -1074,7 +1077,7 @@ mlconfig)
 	if test "$gui" != "fb" -a "$gui" != "console" ; then
 		if test "${have_gtk}" = "yes" -o "${have_gtk4}" = "yes" ; then
 			AM_GLIB_GNU_GETTEXT
-			MAKE_DIRS="tool/mlconfig ${MAKE_DIRS}"
+			MAKE_DIRS2="tool/mlconfig ${MAKE_DIRS2}"
 			OUTPUT_FILES="tool/mlconfig/Makefile tool/mlconfig/po/Makefile.in ${OUTPUT_FILES}"
 			tools_result="$tools_result $tool"
 			if test "$have_gtk4" = "yes" ; then
@@ -1096,7 +1099,7 @@ mlconfig)
 	;;
 mlterm-menu)
 	if test "${have_gtk}" = "yes" -a "$gui" != "fb" -a "$gui" != "console" ; then
-		MAKE_DIRS="contrib/tool/mlterm-menu ${MAKE_DIRS}"
+		MAKE_DIRS2="contrib/tool/mlterm-menu ${MAKE_DIRS2}"
 		OUTPUT_FILES="contrib/tool/mlterm-menu/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
 	else
@@ -1108,7 +1111,7 @@ mlterm-menu)
 	;;
 mlclient)
 	if test "$ml_cv_is_posix" = "yes" -a "$gui" != "console" ; then
-		MAKE_DIRS="tool/mlclient ${MAKE_DIRS}"
+		MAKE_DIRS2="tool/mlclient ${MAKE_DIRS2}"
 		OUTPUT_FILES="tool/mlclient/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
 	fi
@@ -1122,27 +1125,27 @@ w3mmlconfig)
 		echo ""
 		PERL="/usr/local/bin/perl" # should be "/usr/bin/env perl"?
 	fi
-	MAKE_DIRS="tool/w3mmlconfig ${MAKE_DIRS}"
+	MAKE_DIRS2="tool/w3mmlconfig ${MAKE_DIRS2}"
 	OUTPUT_FILES="tool/w3mmlconfig/Makefile tool/w3mmlconfig/mlconfig.cgi tool/w3mmlconfig/w3mmlconfig ${OUTPUT_FILES}"
 	tools_result="$tools_result $tool"
 	;;
 mlcc)
 	if test "$ml_cv_is_posix" = "yes" ; then
-		MAKE_DIRS="contrib/tool/mlcc ${MAKE_DIRS}"
+		MAKE_DIRS2="contrib/tool/mlcc ${MAKE_DIRS2}"
 		OUTPUT_FILES="contrib/tool/mlcc/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
 	fi
 	;;
 mlmenu)
 	if test "$gui" = "xlib" ; then
-		MAKE_DIRS="tool/mlmenu ${MAKE_DIRS}"
+		MAKE_DIRS2="tool/mlmenu ${MAKE_DIRS2}"
 		OUTPUT_FILES="tool/mlmenu/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
 	fi
 	;;
 mlterm-zoom)
 	if test "$gui" = "xlib" ; then
-		MAKE_DIRS="contrib/tool/mlterm-zoom ${MAKE_DIRS}"
+		MAKE_DIRS2="contrib/tool/mlterm-zoom ${MAKE_DIRS2}"
 		OUTPUT_FILES="contrib/tool/mlterm-zoom/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
 	fi
@@ -1150,7 +1153,7 @@ mlterm-zoom)
 mlimgloader)
 	if test "$gui" != "quartz" ; then
 		OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
-		MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"
+		MAKE_DIRS2="tool/mlimgloader ${MAKE_DIRS2}"
 		tools_result="$tools_result $tool"
 
 		AC_TRY_COMPILE([
@@ -1203,14 +1206,14 @@ registobmp)
 	AC_SUBST(SDL_LIBS)
 
 	OUTPUT_FILES="tool/registobmp/Makefile ${OUTPUT_FILES}"
-	MAKE_DIRS="tool/registobmp ${MAKE_DIRS}"
+	MAKE_DIRS2="tool/registobmp ${MAKE_DIRS2}"
 	tools_result="$tools_result $tool"
 	;;
 mlfc)
 	if test "$gui" != "win32" -a "$gui" != "quartz" ; then
 		if test "$have_fc" = "yes" ; then
 			OUTPUT_FILES="tool/mlfc/Makefile ${OUTPUT_FILES}"
-			MAKE_DIRS="tool/mlfc ${MAKE_DIRS}"
+			MAKE_DIRS2="tool/mlfc ${MAKE_DIRS2}"
 			tools_result="$tools_result $tool"
 		fi
 	fi
@@ -1223,7 +1226,7 @@ done
 
 if test "$gui" = "win32"; then
 	OUTPUT_FILES="tool/servman/Makefile ${OUTPUT_FILES}"
-  MAKE_DIRS="tool/servman ${MAKE_DIRS}"
+  MAKE_DIRS2="tool/servman ${MAKE_DIRS2}"
 	tools_result="$tools_result servman"
 fi
 
@@ -1260,7 +1263,7 @@ if test "$enable_shared" = "no" ; then
 fi
 
 if test "$kbd" != "no" ; then
-	MAKE_DIRS="inputmethod/kbd ${MAKE_DIRS}"
+	MAKE_DIRS2="inputmethod/kbd ${MAKE_DIRS2}"
 	OUTPUT_FILES="inputmethod/kbd/Makefile ${OUTPUT_FILES}"
 	if test "x$with_libltdl" != "xno" ; then
 		DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/kbd/libim-kbd.la ${DL_LIBS_IM}"
@@ -1281,7 +1284,7 @@ fi
 if test "x$uim" != xno ; then
 	PKG_CHECK_MODULES(UIM, uim >= 1.0.0, have_uim=yes, have_uim=no)
 	if test "x$have_uim" = xyes ; then
-		MAKE_DIRS="inputmethod/uim ${MAKE_DIRS}"
+		MAKE_DIRS2="inputmethod/uim ${MAKE_DIRS2}"
 		OUTPUT_FILES="inputmethod/uim/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != xno ; then
 			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/uim/libim-uim.la ${DL_LIBS_IM}"
@@ -1321,7 +1324,7 @@ if test "x$iiimf" != xno ; then
 
 	if test "x$found_iiimcf" = xyes ; then
 		IM_CFLAGS="$IM_CFLAGS -DUSE_IIIMF"
-		MAKE_DIRS="inputmethod/iiimf ${MAKE_DIRS}"
+		MAKE_DIRS2="inputmethod/iiimf ${MAKE_DIRS2}"
 		OUTPUT_FILES="inputmethod/iiimf/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != xno ; then
 			echo ""
@@ -1370,7 +1373,7 @@ if test "x$m17nlib" != xno ; then
 		LIBS="$LIBS $M17NLIB_LIBS"
 		AC_CHECK_LIB(m17n, minput_open_im,
 			[
-			MAKE_DIRS="inputmethod/m17nlib ${MAKE_DIRS}"
+			MAKE_DIRS2="inputmethod/m17nlib ${MAKE_DIRS2}"
 			OUTPUT_FILES="inputmethod/m17nlib/Makefile ${OUTPUT_FILES}"
 			if test "x$with_libltdl" != xno ; then
 				DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/m17nlib/libim-m17nlib.la ${DL_LIBS_IM}"
@@ -1396,7 +1399,7 @@ fi
 if test "x$ibus" != "xno" ; then
 	PKG_CHECK_MODULES(IBUS, ibus-1.0 >= 1.3.0, has_ibus=yes, has_ibus=no)
 	if test "x$has_ibus" = xyes ; then
-		MAKE_DIRS="inputmethod/ibus ${MAKE_DIRS}"
+		MAKE_DIRS2="inputmethod/ibus ${MAKE_DIRS2}"
 		OUTPUT_FILES="inputmethod/ibus/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != xno ; then
 			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/ibus/libim-ibus.la ${DL_LIBS_IM}"
@@ -1447,7 +1450,7 @@ if test "x$fcitx" != "xno" ; then
 	fi
 
 	if test "x$has_fcitx" = xyes ; then
-		MAKE_DIRS="inputmethod/fcitx ${MAKE_DIRS}"
+		MAKE_DIRS2="inputmethod/fcitx ${MAKE_DIRS2}"
 		OUTPUT_FILES="inputmethod/fcitx/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != xno ; then
 			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/fcitx/libim-fcitx.la ${DL_LIBS_IM}"
@@ -1480,7 +1483,7 @@ fi
 if test "x$scim" != "xno" -a "$gui" != "fb" -a "$gui" != "console" ; then
 	PKG_CHECK_MODULES(SCIM, scim >= 1.4.0, has_scim=yes , has_scim=no)
 	if test "x$has_scim" = xyes ; then
-		MAKE_DIRS="inputmethod/scim ${MAKE_DIRS}"
+		MAKE_DIRS2="inputmethod/scim ${MAKE_DIRS2}"
 		OUTPUT_FILES="inputmethod/scim/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != xno ; then
 			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/scim/libim-scim.la ${DL_LIBS_IM}"
@@ -1506,7 +1509,7 @@ if test "x$canna" != "xno" ; then
 	AC_CHECK_HEADER(canna/jrkanji.h, has_canna=yes, has_canna=no)
 	if test "x$has_canna" = xyes ; then
 		CANNA_LIBS="-lcanna"
-		MAKE_DIRS="inputmethod/canna ${MAKE_DIRS}"
+		MAKE_DIRS2="inputmethod/canna ${MAKE_DIRS2}"
 		OUTPUT_FILES="inputmethod/canna/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != xno ; then
 			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/canna/libim-canna.la ${DL_LIBS_IM}"
@@ -1543,7 +1546,7 @@ if test "x$wnn" != "xno" ; then
 		else
 			WNN_CFLAGS="-DWNNLIBDIR=\\\"/usr/lib\\\""
 		fi
-		MAKE_DIRS="inputmethod/wnn ${MAKE_DIRS}"
+		MAKE_DIRS2="inputmethod/wnn ${MAKE_DIRS2}"
 		OUTPUT_FILES="inputmethod/wnn/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != xno ; then
 			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/wnn/libim-wnn.la ${DL_LIBS_IM}"
@@ -1562,7 +1565,7 @@ AC_ARG_ENABLE(skk,
 	[  --disable-skk           SKK @<:@default=enabled@:>@],
 	skk=$enable_skk)
 if test "$enable_shared" != "no" -a "$skk" != "no"; then
-	MAKE_DIRS="inputmethod/skk ${MAKE_DIRS}"
+	MAKE_DIRS2="inputmethod/skk ${MAKE_DIRS2}"
 	OUTPUT_FILES="inputmethod/skk/Makefile ${OUTPUT_FILES}"
 	if test "x$with_libltdl" != xno ; then
 		DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/skk/libim-skk.la ${DL_LIBS_IM}"
@@ -1612,7 +1615,7 @@ for scrollbar in ${scrollbars} ; do
 case ${scrollbar} in
 sample)
 	if test "$gui" = "xlib" -o "$gui" = "win32"; then
-		MAKE_DIRS="scrollbar/sample ${MAKE_DIRS}"
+		MAKE_DIRS2="scrollbar/sample ${MAKE_DIRS2}"
 		OUTPUT_FILES="scrollbar/sample/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != "xno" ; then
 			DL_LIBS_SB="-dlopen \$(top_builddir)/scrollbar/sample/libsample.la ${DL_LIBS_SB}"
@@ -1622,7 +1625,7 @@ sample)
 	;;
 extra)
 	if test "$gui" = "xlib" ; then
-		MAKE_DIRS="contrib/scrollbar/extra ${MAKE_DIRS}"
+		MAKE_DIRS2="contrib/scrollbar/extra ${MAKE_DIRS2}"
 		OUTPUT_FILES="contrib/scrollbar/extra/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != "xno" ; then
 			for name in athena next motif mozmodern ; do
@@ -1640,7 +1643,7 @@ pixmap_engine)
 		echo ""
 	elif test "$gui" = "xlib" -a "$image" != "no"; then
 		if test "$have_gdk_pixbuf1" = "yes" -o "$have_gdk_pixbuf2" = "yes" ; then
-			MAKE_DIRS="contrib/scrollbar/pixmap_engine ${MAKE_DIRS}"
+			MAKE_DIRS2="contrib/scrollbar/pixmap_engine ${MAKE_DIRS2}"
 			OUTPUT_FILES="contrib/scrollbar/pixmap_engine/Makefile contrib/scrollbar/pixmap_engine/sample3/Makefile ${OUTPUT_FILES}"
 			if test "x$with_libltdl" != "xno" ; then
 				DL_LIBS_SB="-dlopen \$(top_builddir)/contrib/scrollbar/pixmap_engine/libpixmap_engine.la ${DL_LIBS_SB}"
@@ -1726,9 +1729,6 @@ OUTPUT_FILES="main/version.h ${OUTPUT_FILES}"
 if test "${SUBDIRS}" != "" ; then
   # for baselib and encodefilter
 	ac_configure_args="${ac_configure_args} --without-funcs-mlterm-unuse"
-	if test "$enable_shared" = "no" ; then
-		ac_configure_args="${ac_configure_args} --disable-dl-table"
-	fi
 
   # for gui
 	ac_configure_args=`echo ${ac_configure_args} | sed 's/--with-gui=@<:@A-Za-z0-9,@:>@*/--with-gui=subdir/g'`
@@ -1740,7 +1740,7 @@ if test "${SUBDIRS}" != "" ; then
 	AC_CONFIG_SUBDIRS(${SUBDIRS})
 fi
 
-MAKE_DIRS="vtemu vtemu/libctl uitoolkit/libtype uitoolkit main man etc ${MAKE_DIRS}"
+MAKE_DIRS2="vtemu vtemu/libctl uitoolkit/libtype uitoolkit main man etc ${MAKE_DIRS2}"
 OUTPUT_FILES="Makefile vtemu/Makefile vtemu/libctl/Makefile uitoolkit/libtype/Makefile uitoolkit/Makefile main/Makefile man/Makefile etc/Makefile java/Makefile libvterm/Makefile ${OUTPUT_FILES}"
 
 AC_ARG_ENABLE(ind,
@@ -1755,7 +1755,7 @@ fi
 if test "$ind" = "yes" ; then
 	IND_CFLAGS='-I${top_builddir}/libind'
 	IND_LIBS='${top_builddir}/libind/libind.a'
-	MAKE_DIRS="libind ${MAKE_DIRS}"
+	MAKE_DIRS2="libind ${MAKE_DIRS2}"
 	OUTPUT_FILES="libind/Makefile ${OUTPUT_FILES}"
 	if test "$dl_ctl" = "yes" ; then
 		CTL_LIBS="libctl${TRUECOLOR_TAG}_iscii.la ${CTL_LIBS}"
@@ -1813,13 +1813,478 @@ AC_SUBST(TRANSFER_LIBS)
 
 AC_SUBST(PTHREAD_LIB)
 
+AC_SUBST(MAKE_DIRS2)
+
+if test "${MAKE_DIRS2}" != "" ; then
+	mkdir -p ${MAKE_DIRS2}
+fi
+
+
+if test "$CONFIG_SUBDIR_LIBS" = "internal"; then
+#
+# ====> check for encodefilter <===
+#
+mef_top_srcdir_suffix="/encodefilter"
+mef_top_builddir_suffix="/.."
+AC_SUBST(mef_top_srcdir_suffix)
+AC_SUBST(mef_top_builddir_suffix)
+
+AC_ARG_WITH(map-table,
+	[  --without-map-table     mapping table @<:@default=with@:>@],
+	map_table=$with_map_table,map_table="yes")
+if test "$map_table" = "no" ; then
+	TABLE_CFLAGS="${TABLE_CFLAGS} -DREMOVE_MAPPING_TABLE"
+fi
+
+AC_ARG_WITH(prop-table,
+	[  --without-prop-table    property table @<:@default=with@:>@],
+	prop_table=$with_prop_table,prop_table="yes")
+if test "$prop_table" = "no" ; then
+	TABLE_CFLAGS="${TABLE_CFLAGS} -DREMOVE_PROPERTY_TABLE"
+fi
+
+AC_ARG_WITH(iconv,
+	[  --with-iconv            use iconv for charset conversion @<:@default=without@:>@],
+	iconv=$with_iconv,iconv="no")
+if test "$iconv" = "yes" ; then
+	TABLE_CFLAGS="${TABLE_CFLAGS} -DUSE_ICONV"
+fi
+
+AC_ARG_ENABLE(dl-table,
+	[  --disable-dl-table      dynamic loading table @<:@default=enable@:>@],
+	dl_table=$enable_dl_table,
+	[
+		if test "$iconv" = "yes"; then
+			dl_table="no"
+		else
+			dl_table="yes"
+		fi
+	])
+if test "$enable_shared" = "no" ; then
+	dl_table="no"
+fi
+if test "$dl_table" = "no" ; then
+	TABLE_CFLAGS="${TABLE_CFLAGS} -DNO_DYNAMIC_LOAD_TABLE"
+	MAKE_DIRS="src"
+	OUTPUT_FILES="${OUTPUT_FILES} encodefilter/Makefile encodefilter/src/Makefile"
+else
+	MAKE_DIRS="src module"
+	OUTPUT_FILES="${OUTPUT_FILES} encodefilter/Makefile encodefilter/src/Makefile encodefilter/module/Makefile"
+fi
+AC_SUBST(TABLE_CFLAGS)
 AC_SUBST(MAKE_DIRS)
 
 if test "${MAKE_DIRS}" != "" ; then
 	mkdir -p ${MAKE_DIRS}
 fi
 
-AC_OUTPUT(${OUTPUT_FILES})
+#
+# --- check for undefined symbol ---
+#
+if test "x$allow_undefined_flag" = "xunsupported" ; then
+	# link ef_char.lo to module/*.dll to resolve addresses in creating dll.
+	EF_CHAR_LO="../src/ef_char.lo"
+else
+	EF_CHAR_LO=""
+fi
+AC_SUBST(EF_CHAR_LO)
+
+#
+# ====> check for baselib <===
+#
+
+pobl_top_srcdir_suffix="/baselib"
+pobl_top_builddir_suffix="/.."
+AC_SUBST(pobl_top_srcdir_suffix)
+AC_SUBST(pobl_top_builddir_suffix)
+
+AC_CONFIG_HEADER(baselib/src/bl_config.h)
+
+#detect glibc
+AC_TRY_COMPILE([#include <features.h>],
+[
+#ifdef __GLIBC__
+#else
+#error
+int boil\[-1\];
+#endif
+], AC_DEFINE(HAVE_GNU_SOURCE))
+
+#
+# --- Checks for header files ---
+#
+# NOTE: if --with-libtool is specified, stdc header isn't detected.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(langinfo.h dlfcn.h dl.h stropts.h sys/stropts.h stdint.h windows.h errno.h stdint.h)
+
+#
+# --- Checks for library functions ---
+#
+AC_CHECK_FUNCS(strsep fgetln basename isastream seteuid setegid geteuid getegid setsid snprintf usleep setenv unsetenv flock getuid getgid getpwuid recvmsg setpgid socketpair killpg gettimeofday)
+AC_FUNC_ALLOCA
+
+AC_C_CONST
+AC_C_BIGENDIAN
+AC_SYS_LARGEFILE
+
+# for OpenServer 6.0.0
+AC_CHECK_HEADER(sys/bitypes.h,
+[
+ac_includes_default="\
+$ac_includes_default
+#include <sys/bitypes.h>"
+HAVE_SYS_BITYPES_H=1
+AC_DEFINE(HAVE_SYS_BITYPES_H)
+])
+
+AC_CHECK_TYPE(u_char,unsigned char)
+AC_CHECK_TYPE(u_short,unsigned short)
+AC_CHECK_TYPE(u_int,unsigned int)
+AC_CHECK_TYPE(u_long,unsigned long)
+AC_CHECK_TYPE(u_int8_t,unsigned char)
+AC_CHECK_TYPE(u_int16_t,unsigned short)
+AC_CHECK_TYPE(u_int32_t,unsigned int)
+AC_CHECK_TYPE(u_int64_t,unsigned long)
+AC_CHECK_TYPE(int8_t,char)
+AC_CHECK_TYPE(int16_t,short)
+AC_CHECK_TYPE(int32_t,int)
+AC_CHECK_TYPE(int64_t,long)
+AC_CHECK_TYPE(ssize_t,int)
+
+AC_TYPE_MODE_T
+AC_TYPE_PID_T
+AC_TYPE_UID_T
+AC_TYPE_OFF_T
+AC_TYPE_SIZE_T
+
+#
+# --- Platform dependent stuff ---
+#
+bl_cv_cygwin=no
+bl_cv_mingw=no
+bl_cv_win32=no
+case "${host_os}" in
+cygwin*)
+	bl_cv_cygwin=yes
+	case "${CC} ${CFLAGS}" in
+	*mno-cygwin* | *-mingw*)
+		bl_cv_win32=yes
+		AC_DEFINE(USE_WIN32API,,"USE_WIN32API")
+		;;
+	*)
+		;;
+	esac
+	;;
+mingw*)
+	bl_cv_mingw=yes
+	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
+		case "${lt_cv_path_LD}" in
+		*-msys*)
+			;;
+		*)
+			bl_cv_win32=yes
+			AC_DEFINE(USE_WIN32API,,"USE_WIN32API")
+			;;
+		esac
+	fi
+	;;
+*)
+	;;
+esac
+
+#
+# --- socklen_t ---
+#
+# NOTE: #define _BSDTYPES_DEFINED is necessary because AC_TRY_COMPILE defines
+#       u_char, u_short and so on before #include <ws2tcpip.h> .
+#
+AC_CACHE_CHECK(for socklen_t, bl_cv_socklen_ident,
+[AC_TRY_COMPILE(
+[
+#include  <stddef.h>
+#include  <sys/types.h>
+#include  <sys/socket.h>
+],
+[
+socklen_t  len ;
+], bl_cv_socklen_ident=yes,
+[AC_TRY_COMPILE(
+[
+#define  _BSDTYPES_DEFINED
+#include  <ws2tcpip.h>
+],
+[
+socklen_t  len ;
+], bl_cv_socklen_ident=yes, bl_cv_socklen_ident=no)])])
+if test "${bl_cv_socklen_ident}" = "no" ; then
+	AC_DEFINE(socklen_t, unsigned int, "socklen_t")
+fi
+
+#
+# --- Check if concatenation of string literals with __FUNCTION__ is supported. ---
+#
+AC_CACHE_CHECK(for __FUNCTION__, bl_cv_func_ident,[
+AC_TRY_COMPILE(,
+[
+char * p = "[" __FUNCTION__ "]" ;
+] , bl_cv_func_ident=yes,bl_cv_func_ident=no)])
+if test "${bl_cv_func_ident}" = "yes" ; then
+	AC_DEFINE(CONCATABLE_FUNCTION,,"CONCATABLE_FUNCTION")
+fi
+
+
+#
+# --- Check for libxpg4 (for FreeBSD) ---
+#
+AC_CHECK_FUNCS(setlocale)
+if test "x$ac_cv_func_setlocale" = xno ; then
+	AC_CHECK_LIB(xpg4, setlocale, XPG4_LIBS=-lxpg4)
+	AC_SUBST(XPG4_LIBS)
+fi
+
+#
+# --- Checks for dynamic linking loader ---
+#
+DL_LOADER=none
+DL_LIBS=
+DL_CFLAGS=
+# lt_dlopenext in libltdl
+AC_ARG_WITH(libltdl,
+	[  --with-libltdl@<:@=PREFIX@:>@ load modules with libltdl @<:@default=without@:>@],,
+	[with_libltdl=no])
+if test "x$with_libltdl" != "xno" ; then
+	if test "x$with_libltdl" != "xyes"; then
+		DL_CFLAGS="-I$with_libltdl/include"
+		bl_libltdl_libdir="-L$with_libltdl/lib"
+	fi
+	bl_ldflags_save="$LDFLAGS"
+	LDFLAGS="$LDFLAGS $bl_libltdl_libdir"
+	AC_CHECK_LIB(ltdl, lt_dlopenext,
+			[
+			DL_LOADER=ltdl
+			DL_LIBS="$bl_libltdl_libdir -lltdl"
+			],[
+			echo ""
+			echo "Could not find libltdl"
+			echo ""
+			exit 1])
+	LDFLAGS="$bl_ldflags_save"
+fi
+# lt_cv_dlopen is set by AC_LIBTOOL_DLOPEN
+if test "$DL_LOADER" = none ; then
+	case "${lt_cv_dlopen}" in
+	# LoadLibrary  (Windows)
+	LoadLibrary)
+		DL_LOADER=win32
+		;;
+	# shl_load (HP-UX)
+	shl_load)
+		DL_LOADER=dld
+		;;
+	# dlopen (UNIX98)
+	dlopen)
+		DL_LOADER=dl
+		;;
+	# What is dld_link? Does anybody know?
+	dld_link)
+		DL_LOADER=none
+		;;
+	*)
+		DL_LOADER=none
+		;;
+	esac
+	DL_LIBS="${DL_LIBS} ${lt_cv_dlopen_libs}"
+	if test "$DL_LOADER" = none ; then
+		# NSLinkModule (darwin)
+		AC_CHECK_FUNC(NSLinkModule,
+			[
+			DL_LOADER=dyld
+			DL_LIBS=
+			], [])
+	fi
+
+	# cygwin hack
+	# (AC_LIBTOOL_DLOPEN tell lt_cv_dlopen == dlopen but use bl_dlcfn_win32.c.)
+	# On msys2, use dlopen because bl_dlfcn_win32 doesn't work correctly.
+	if test "$bl_cv_cygwin" = "yes"; then
+		DL_LOADER=win32
+	fi
+fi
+AC_SUBST(DL_LOADER)
+AC_SUBST(DL_LIBS)
+AC_SUBST(DL_CFLAGS)
+
+if test "$DL_LOADER" = none ; then
+	AC_DEFINE(DLFCN_NONE,,"DLFCN_NONE")
+fi
+
+#
+# --- pty check ---
+#
+AC_MSG_CHECKING(for pty/tty type)
+if test "$bl_cv_win32" = "yes" ; then
+	bl_cv_pty=none
+elif test "$bl_cv_mingw" = "yes" ; then
+	bl_cv_pty=streams
+elif test "$host" = "$build" ; then
+	AC_CHECK_FUNC(posix_openpt,
+		[AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <fcntl.h>],
+						[return posix_openpt(O_RDWR | O_NOCTTY) == -1;])],
+				[
+					AC_DEFINE(HAVE_POSIX_OPENPT,,"HAVE_POSIX_OPENPT")
+					bl_cv_pty=streams
+				],
+				[bl_cv_pty=bsd])],
+		[bl_cv_pty=bsd])
+	if test "$bl_cv_pty" = "bsd" ; then
+		AC_RUN_IFELSE(
+			[AC_LANG_PROGRAM([#include <fcntl.h>],
+					[return open( "/dev/ptmx", O_RDWR | O_NOCTTY, 0) == -1;])],
+			[bl_cv_pty=streams])
+	fi
+else
+  # cross compiling
+	AC_CHECK_FUNC(posix_openpt,
+		[
+			AC_DEFINE(HAVE_POSIX_OPENPT,,"HAVE_POSIX_OPENPT")
+			bl_cv_pty=streams
+			],
+		[bl_cv_pty=bsd])
+fi
+AC_ARG_ENABLE(pty_helper,
+	[  --enable-pty-helper     use pty helper @<:@default=disabled@:>@],
+	pty_helper=$enable_pty_helper)
+if test "$pty_helper" = yes ; then
+	if test "$bl_cv_pty" = streams ; then
+		bl_cv_pty=helper
+	else
+		echo ""
+		echo "** WARNING **"
+		echo " pty helper is not supported in bsd-style pty system."
+		echo ""
+	fi
+fi
+AC_MSG_RESULT($bl_cv_pty)
+PTY_NAME="${bl_cv_pty}"
+AC_SUBST(PTY_NAME)
+
+
+#
+# --- checks for utmp ---
+#
+
+AC_ARG_WITH(utmp,
+	[  --with-utmp@<:@=ARG@:>@       utmp (utempter,sysv,login,bsd,none)],
+	utmp_type=$with_utmp)
+
+UTMP_NAME=
+UTMP_LIBS=
+if test "$bl_cv_pty" = helper -o "$bl_cv_mingw" = yes -o "$bl_cv_cygwin" = yes -o "$host_os" = "msys" -o "$host_os" = "haiku"; then
+	UTMP_NAME=none
+	UTMP_LIBS=
+fi
+
+#  libutempter
+if test  "$utmp_type" = "" -o "$utmp_type" = "utempter"; then
+	if test -z "$UTMP_NAME"; then
+		AC_CHECK_LIB(utempter, utempter_add_record,
+			[
+				UTMP_NAME=utmper
+				UTMP_LIBS="-lutempter"
+				UTMP_CFLAGS="-DUTEMPTER_NEW_API"
+			], [])
+	fi
+	if test -z "$UTMP_NAME"; then
+		# FreeBSD
+		AC_CHECK_LIB(ulog, utempter_add_record,
+			[
+				UTMP_NAME=utmper
+				UTMP_LIBS="-lulog"
+				UTMP_CFLAGS="-DUTEMPTER_NEW_API"
+			], [])
+	fi
+	if test -z "$UTMP_NAME" ; then
+		AC_CHECK_LIB(utempter, addToUtmp,
+			[
+				UTMP_NAME=utmper
+				UTMP_LIBS="-lutempter -lutil"
+			])
+	fi
+fi
+
+#  setutxent()  (SysV)
+if test  "$utmp_type" = "" -o "$utmp_type" = "sysv"; then
+	if test -z "$UTMP_NAME"; then
+		AC_CHECK_FUNC(setutxent,
+			[
+				UTMP_NAME=sysv
+				UTMP_LIBS=
+				UTMP_CFLAGS=-DUSE_UTMPX
+			], [])
+	fi
+
+	#  setutent()  (SysV)
+	if test -z "$UTMP_NAME"; then
+		AC_CHECK_FUNC(setutent,
+			[
+				UTMP_NAME=sysv
+				UTMP_LIBS=
+			], [])
+	fi
+fi
+
+#  libutil
+if test  "$utmp_type" = "" -o "$utmp_type" = "login"; then
+	if test -z "$UTMP_NAME" ; then
+		AC_CHECK_LIB(util, logout,
+			[
+				UTMP_NAME=login
+				UTMP_LIBS=-lutil
+			], [])
+	fi
+fi
+
+#  other (BSD)
+if test  "$utmp_type" = "" -o "$utmp_type" = "bsd"; then
+	if test -z "$UTMP_NAME" ; then
+		UTMP_NAME=bsd
+		UTMP_LIBS=
+	fi
+fi
+
+if test -z "$UTMP_NAME" ; then
+	UTMP_NAME=none
+	UTMP_LIBS=
+fi
+
+if test "$UTMP_NAME" != "none"; then
+	# for vtemu/vt_pty_unix.c
+	UTMP_CFLAGS="$UTMP_CFLAGS -DUSE_UTMP"
+fi
+
+AC_SUBST(UTMP_NAME)
+AC_SUBST(UTMP_LIBS)
+AC_SUBST(UTMP_CFLAGS)
+
+AC_DEFINE(REMOVE_FUNCS_MLTERM_UNUSE,,"REMOVE_FUNCS_MLTERM_UNUSE")
+
+#
+# --- check for malloc ---
+#
+if test "$host" = "$build"; then
+	AC_TRY_RUN(
+	[
+	#include <stdio.h>
+	int main() {
+		return  calloc(8, ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0 ;
+	}
+	],
+	AC_DEFINE(CALLOC_CHECK_OVERFLOW))
+fi
+
+OUTPUT_FILES="${OUTPUT_FILES} baselib/Makefile baselib/src/Makefile"
+
+else # CONFIG_SUBDIR_LIBS
 
 # ./configure at subdirs finished.
 
@@ -1831,7 +2296,15 @@ fi
 
 if test "$utmp_none_obj" = ""; then
 	UTMP_CFLAGS="-DUSE_UTMP"
+else
+	# for following "$UTMP_NAME" != "none"
+	UTMP_NAME="none"
 fi
+
+fi # CONFIG_SUBDIR_LIBS
+
+
+AC_OUTPUT(${OUTPUT_FILES})
 
 AC_ARG_ENABLE(utmp-suid,
 	[  --enable-utmp-suid      install mlterm with SUID or SGID for utmp @<:@default=disabled@:>@],
@@ -1839,7 +2312,7 @@ AC_ARG_ENABLE(utmp-suid,
 
 if test "$INSTALL_OPT" = ""; then
 	# SUID is not set to mlterm on MacOSX/Quartz.
-	if test "$utmp_suid" = "yes" -a "$utmp_none_obj" = "" -a "$gui" != "quartz"; then
+	if test "$utmp_suid" = "yes" -a "$UTMP_NAME" != "none" -a "$gui" != "quartz"; then
 		has_utmp=`grep utmp /etc/group 2>/dev/null`
 		if test "$has_utmp" ; then
 			INSTALL_OPT="-m 2755 -g utmp"
@@ -1873,20 +2346,6 @@ mv vtemu/Makefile.new vtemu/Makefile
 
 as_fn_exit 0
 EOF
-
-# dummy declarations.
-AC_ARG_ENABLE(pty_helper,
-	[  --enable-pty-helper     use pty helper @<:@default=disabled@:>@])
-AC_ARG_WITH(map-table,
-	[  --without-map-table     mapping table @<:@default=with@:>@])
-AC_ARG_WITH(prop-table,
-	[  --without-prop-table    property table @<:@default=with@:>@])
-AC_ARG_WITH(iconv,
-	[  --with-iconv            use iconv for charset conversion @<:@default=without@:>@])
-AC_ARG_ENABLE(dl-table,
-	[  --disable-dl-table      dynamic loading table @<:@default=enable@:>@])
-AC_ARG_WITH(utmp,
-	[  --with-utmp@<:@=ARG@:>@       utmp (utempter,sysv,login,bsd,none)])
 
 # configuration result
 
