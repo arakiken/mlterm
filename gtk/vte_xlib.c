@@ -499,7 +499,7 @@ static void show_root(ui_display_t *disp, GtkWidget *widget) {
   }
 #endif
 
-  ui_display_show_root(disp, &PVT(terminal)->screen->window, 0, 0, 0, "mlterm", xid);
+  ui_display_show_root(disp, &PVT(terminal)->screen->window, 0, 0, 0, "mlterm", NULL, xid);
 
 #if GTK_CHECK_VERSION(2, 90, 0) && defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2)
   if (is_xinput2) {

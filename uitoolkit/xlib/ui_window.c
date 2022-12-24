@@ -52,6 +52,7 @@
 #define XA_XROOTPMAP_ID(display) (XInternAtom(display, "_XROOTPMAP_ID", False))
 #define XA_XSETROOT_ID(display) (XInternAtom(display, "_XSETROOT_ID", False))
 #define XA_WM_CLIENT_LEADER(display) (XInternAtom(display, "WM_CLIENT_LEADER", False))
+#define XA_WM_WINDOW_ROLE(display) (XInternAtom(display, "WM_WINDOW_ROLE", False))
 
 /*
  * Extended Window Manager Hint support
@@ -1458,6 +1459,13 @@ int ui_window_show(ui_window_t *win, int hint) {
     XChangeProperty(win->disp->display, win->my_window,
                     XA_NET_WM_PID(win->disp->display), XA_CARDINAL,
                     32, PropModeReplace, (unsigned char *)&pid, 1);
+
+    if (win->wm_role && *win->wm_role) {
+      XChangeProperty(win->disp->display, win->my_window,
+                      XA_WM_WINDOW_ROLE(win->disp->display), XA_STRING,
+                      8, PropModeReplace, (unsigned char *)win->wm_role,
+                      (int)strlen(win->wm_role));
+    }
   }
 
   if (win->parent && !win->parent->is_transparent && win->parent->wall_picture_is_set) {

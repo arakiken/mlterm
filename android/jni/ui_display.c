@@ -657,7 +657,7 @@ void ui_display_close_all(void) {
 }
 
 int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, int hint,
-                         char *app_name, Window parent_window /* Ignored */
+                         char *app_name, char *wm_role, Window parent_window /* Ignored */
                          ) {
   void *p;
 

@@ -41,6 +41,7 @@ typedef struct ui_main_config {
   char *app_name;
   char *title;
   char *icon_name;
+  char *wm_role;
   char *term_type;
   char *scrollbar_view_name;
   char *pic_file_path;

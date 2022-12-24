@@ -441,7 +441,7 @@ ui_im_status_screen_t *ui_im_status_screen_new(ui_display_t *disp, ui_font_manag
   stat_screen->set = set;
 
   if (!ui_display_show_root(disp, &stat_screen->window, x, y, XValue | YValue,
-                            "mlterm-status-window", 0)) {
+                            "mlterm-status-window", NULL, 0)) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " ui_display_show_root() failed.\n");
 #endif
