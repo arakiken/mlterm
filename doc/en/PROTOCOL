@@ -99,6 +99,7 @@ version 20220116
   auto_restart = true | false | switch | <restart command>
   auto_detect_encodings = (<encoding name>,)*
   baseline_offset = <any ASCII decimal digit>
+  bidi_mode = normal | left | right | switch
   bidi_separators = <any ASCII sign>*
   bd_color = <color name> | <color rgb>
   bl_color = <color name> | <color rgb>

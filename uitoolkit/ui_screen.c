@@ -7421,8 +7421,19 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
       change_ctl_flag(screen, flag, vt_term_get_bidi_mode(term), vt_term_is_using_ot_layout(term));
     }
   } else if (strcmp(key, "bidi_mode") == 0) {
-    change_ctl_flag(screen, vt_term_is_using_ctl(term), vt_get_bidi_mode_by_name(value),
-                    vt_term_is_using_ot_layout(term));
+    vt_bidi_mode_t mode;
+
+    if (strcmp(value, "switch") == 0) {
+      mode = vt_term_get_bidi_mode(screen->term);
+      if (mode < BIDI_MODE_MAX - 1) {
+        mode++;
+      } else {
+        mode = 0 /* BIDI_NORMAL_MODE */;
+      }
+    } else {
+      mode = vt_get_bidi_mode_by_name(value);
+    }
+    change_ctl_flag(screen, vt_term_is_using_ctl(term), mode, vt_term_is_using_ot_layout(term));
   } else if (strcmp(key, "bidi_separators") == 0) {
     vt_term_set_bidi_separators(screen->term, value);
     if (update_special_visual(screen)) {
