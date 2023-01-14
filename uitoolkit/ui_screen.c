@@ -6417,8 +6417,11 @@ static void xterm_add_frame_to_animation(void *p, char *file_path, int *num_cols
 #endif /* NO_IMAGE */
 
 static int xterm_check_iscii_font(void *p, ef_charset_t cs) {
-  return ui_font_cache_get_font(((ui_screen_t *)p)->font_man->font_cache,
-                                NORMAL_FONT_OF(cs)) != NULL;
+  ui_screen_t *screen = p;
+
+  vt_term_set_comb_for_iscii(screen->term);
+
+  return ui_font_cache_get_font(screen->font_man->font_cache, NORMAL_FONT_OF(cs)) != NULL;
 }
 
 static void xterm_lock_keyboard(void *p, int lock) {

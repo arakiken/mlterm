@@ -128,6 +128,9 @@ void vt_term_set_use_ot_layout(vt_term_t *term, int flag);
 
 #define vt_term_is_using_dynamic_comb(term) ((term)->use_dynamic_comb)
 
+/* Must be called in logical context */
+void vt_term_set_comb_for_iscii(vt_term_t *term);
+
 #define vt_term_convert_to(term, dst, len, _parser) \
   vt_parser_convert_to((term)->parser, dst, len, _parser)
 

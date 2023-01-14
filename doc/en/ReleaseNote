@@ -8,6 +8,7 @@
   https://github.com/arakiken/mlterm/pull/45.
   https://github.com/arakiken/mlterm/pull/46.
   https://github.com/arakiken/mlterm/pull/49.
+  https://github.com/arakiken/mlterm/pull/55.
 * Bug fixes:
   Fix https://github.com/arakiken/mlterm/issues/34.
   Fix https://github.com/arakiken/mlterm/issues/35.
@@ -16,6 +17,7 @@
   Fix https://github.com/arakiken/mlterm/issues/50.
   Fix https://github.com/arakiken/mlterm/issues/51.
   Fix https://twitter.com/isaki68k/status/1555895011991883783.
+  Fix segfault in starting mlterm with --dyncomb and --otl.
 
 ver 3.9.2
 * Support Fcitx5.

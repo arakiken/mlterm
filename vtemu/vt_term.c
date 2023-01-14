@@ -499,6 +499,21 @@ void vt_term_set_use_ot_layout(vt_term_t *term, int flag) {
   term->use_ot_layout = flag;
 }
 
+void vt_term_set_comb_for_iscii(vt_term_t *term) {
+  if (!vt_parser_is_using_char_combining(term->parser)) {
+    bl_msg_printf("Set use_combining=true forcibly to show ISCII.\n");
+    vt_parser_set_use_char_combining(term->parser, 1);
+  }
+
+  if (term->use_dynamic_comb) {
+    bl_msg_printf("Set use_dynamic_comb=false forcibly to show ISCII.\n");
+    term->use_dynamic_comb = 0;
+    /* vt_screen_visual(term->screen); */
+    vt_term_update_special_visual(term);
+    vt_screen_logical(term->screen);
+  }
+}
+
 int vt_term_get_master_fd(vt_term_t *term) {
   if (term->pty == NULL) {
     return -1;
@@ -761,15 +776,24 @@ int vt_term_update_special_visual(vt_term_t *term) {
 
   had_logvis = vt_screen_destroy_logical_visual(term->screen);
 
+  if (term->use_ot_layout) {
+    if (term->use_dynamic_comb) {
+      bl_msg_printf("Set use_dynamic_comb=false forcibly to enable use_ot_layout.\n");
+      term->use_dynamic_comb = 0;
+    }
+    if (vt_parser_is_using_char_combining(term->parser)) {
+      bl_msg_printf("Set use_combining=true forcibly to enable use_ot_layout.\n");
+      vt_parser_set_use_char_combining(term->parser, 1);
+    }
+  }
+
   if (term->use_dynamic_comb) {
     if ((logvis = vt_logvis_comb_new())) {
       if (vt_screen_add_logical_visual(term->screen, logvis)) {
         has_logvis = 1;
 
         if (vt_parser_is_using_char_combining(term->parser)) {
-          bl_msg_printf(
-              "Set use_combining=false forcibly "
-              "to enable use_dynamic_comb.\n");
+          bl_msg_printf("Set use_combining=false forcibly to enable use_dynamic_comb.\n");
           vt_parser_set_use_char_combining(term->parser, 0);
         }
       } else {

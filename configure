@@ -18062,10 +18062,14 @@ fi
 for ml_cv_lib_path in /lib /usr/lib /lib/* `echo $LIBRARY_PATH | tr ":" " "` ; do
 	libm_files=`ls $ml_cv_lib_path/libm\\.so* $ml_cv_lib_path/libm\\.sl* 2> /dev/null`
 	for libm_file in $libm_files ; do
-		if test -z "$ml_cv_libm_dir" -a -n "`$NM -D $libm_file | $GREP pow`" ; then
+		if test -n "`$NM -D $libm_file | $GREP pow`" ; then
 			ml_cv_libm_dir=`dirname $libm_file`
+			break
 		fi
 	done
+	if test "$ml_cv_libm_dir" != ""; then
+		break
+	fi
 done
 if test -z "$IMAGELIB_LIBS" ; then
 	if test -n "$ml_cv_libm_dir" ; then

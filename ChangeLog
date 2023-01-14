@@ -1,3 +1,11 @@
+2023-01-14  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c, vt_term.c:
+	  use_dynamic_comb option is disabled if use_ot_layout option is
+	  enabled or UCS4 -> ISCII conversion occurs.
+
+	* configure.in: If libm.so is found, for loop exits immediately.
+
 2022-12-24  Araki Ken  <arakiken@users.sf.net>
 
 	* encodefilter/configure.in, baselib/configure.in:
