@@ -36,7 +36,9 @@ extern "C" {
 #include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #ifndef USE_WIN32API
+#ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE
+#endif
 #include <wchar.h> /* wcwidth */
 #endif
 }

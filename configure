@@ -21461,7 +21461,10 @@ $as_echo "$LINGUAS" >&6; }
 	< $srcdir/tool/mlconfig/po/POTFILES.in > tool/mlconfig/po/POTFILES
 
 			MAKE_DIRS2="tool/mlconfig ${MAKE_DIRS2}"
-			OUTPUT_FILES="tool/mlconfig/Makefile tool/mlconfig/po/Makefile.in ${OUTPUT_FILES}"
+			OUTPUT_FILES="tool/mlconfig/Makefile ${OUTPUT_FILES}"
+			if test "${MSGFMT}" != "no"; then
+				OUTPUT_FILES="tool/mlconfig/po/Makefile.in ${OUTPUT_FILES}"
+			fi
 			tools_result="$tools_result $tool"
 			if test "$have_gtk4" = "yes" ; then
 				GTK_CFLAGS_FOR_MLCONFIG=$GTK4_CFLAGS
