@@ -1,5 +1,9 @@
 2023-01-28  Araki Ken  <arakiken@users.sf.net>
 
+	* README.android: Updated.
+
+	* android/jni/ui.h: Compiling error of XStringToKeysym() is fixed.
+
 	* README.mosh, README.wayland: Updated.
 
 	* uitoolkit/wayland/rescanproto.sh: Added.

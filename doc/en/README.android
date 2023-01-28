@@ -50,7 +50,31 @@ Android support
     instead of scrolling, touch screen for more than 0.5 sec.
 
 * Build
-  o Preparation (Optional)
+  o Build with apache ant
+    $ cd mlterm-x.x.x/android
+    $ ./prepare-ant.sh /foo/bar
+    $ export ANDROID_HOME=...
+    $ export ANDROID_NDK_HOME=...
+    $ export JAVA_HOME=...
+    $ cd /foo/bar
+      (edit build-ant.sh)
+      (prepare some libraries in jni/ (see below))
+    $ ./build-ant.sh
+      => Install bin/mlterm-release-unsigned.apk to Android.
+
+  o Build with gradle
+    $ cd mlterm-x.x.x/android
+    $ ./prepare-gradle.sh /foo/bar
+    $ export ANDROID_HOME=...
+    $ export ANDROID_NDK_HOME=...
+    $ export JAVA_HOME=...
+    $ cd /foo/bar
+      (edit build-gradle.sh)
+      (prepare some libraries in app/src/main/jni/ (see below))
+    $ ./build-gradle.sh
+      => Install bin/mlterm-release-unsigned.apk to Android.
+
+  o Prepare some libraries (Optional)
     - fribidi
       Copy following files of fribidi (0.19.6) to jni/fribidi/.
 
@@ -108,28 +132,6 @@ export JAVA_HOME=/usr/lib/jvm/java-X.X.X-openjdk-amd64/
 CC="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabiXX-clang -fPIC" ./configure --host=armv7a-linux-androideabi --prefix=/tmp --disable-shared
 make
 make install
-
-  o Build with apache ant
-    $ cd mlterm-x.x.x/android
-    $ ./prepare-ant.sh /foo/bar
-    $ export ANDROID_HOME=...
-    $ export ANDROID_NDK_HOME=...
-    $ export JAVA_HOME=...
-    $ cd /foo/bar
-      (edit build-ant.sh)
-    $ ./build-ant.sh
-      => Install bin/mlterm-release-unsigned.apk to Android.
-
-  o Build with gradle
-    $ cd mlterm-x.x.x/android
-    $ ./prepare-gradle.sh /foo/bar
-    $ export ANDROID_HOME=...
-    $ export ANDROID_NDK_HOME=...
-    $ export JAVA_HOME=...
-    $ cd /foo/bar
-      (edit build-gradle.sh)
-    $ ./build-gradle.sh
-      => Install bin/mlterm-release-unsigned.apk to Android.
 
   o If build-gradle.sh exits with a following error message,
     add "distributionUrl=https\://services.gradle.org/distributions/gradle-4.6-all.zip"
