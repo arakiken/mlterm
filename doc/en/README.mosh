@@ -11,7 +11,7 @@ Memo about mosh
   (If you want to build with MinGW or use sixel graphics, use
    https://github.com/arakiken/mosh/archive/sixel-winsock.zip
    which works on winsock2 instead of *nix.)
-  cd src/protobuf;make clean
+  cd src/protobufs;make clean
 
   cd /bar/mlterm-x.x.x
   ./configure --with-mosh=/foo/mosh-x.x.x

@@ -6,6 +6,7 @@ Wayland support
   Fedora 25
 
 * Build
+  (cd uitoolkit/wayland/; rescanproto.sh)
   ./configure --with-gui=wayland ...
   make
   sudo make install

@@ -1,3 +1,9 @@
+2023-01-28  Araki Ken  <arakiken@users.sf.net>
+
+	* README.mosh, README.wayland: Updated.
+
+	* uitoolkit/wayland/rescanproto.sh: Added.
+
 2023-01-22  Araki Ken  <arakiken@users.sf.net>
 
 	* tool/mlconfig/Makefile.in: If po/Makefile doesn't exist, make is not
