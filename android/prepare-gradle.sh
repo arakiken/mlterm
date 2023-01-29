@@ -2,6 +2,7 @@
 
 if [ $# != 1 -a $# != 3 ]; then
 	echo "Usage: prepare.sh [android project path]"
+	echo "       prepare.sh [android project path] [mosh src path] [openssl src path]"
 	echo "(prepare.sh ~/work/mlterm-x.x.x/android => setup at ~/work/mlterm-x.x.x/android)"
 	echo "(prepare.sh . => setup at the current directory)"
 	exit 1
@@ -71,7 +72,7 @@ if [ $# = 3 ]; then
 	done
 
 	cp ${MOSH_SRC_PATH}/config.h ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
-	echo "Set HAVE_TR1_MEMORY macro undefined."
+	echo "Comment out \"#define HAVE_TR1_MEMORY 1\" in vtemu/libptymosh/config.h"
 
 	cp -r ${OPENSSL_SRC_PATH}/include/openssl ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
 else

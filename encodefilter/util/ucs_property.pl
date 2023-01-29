@@ -224,4 +224,4 @@ parse( \@all_lines) ;
 output ;
 
 print "Add 0x1160-0x11ff (Jamo medial vowels and final consonants) = EF_COMBINING | EF_FULLWIDTH manually.\n" ;
-print "Check awidth range and fix x_calculate_char_width() in x_font.c.\n" ;
+print "Check awidth range and fix ui_calculate_char_width() in ui_font.c.\n" ;

@@ -208,9 +208,8 @@ static u_int xcore_calculate_char_width(Display *display, XFontStruct *xfont, u_
   }
 }
 
-static int parse_xfont_name(char **font_xlfd, char **percent, /* NULL can be returned. */
-                            char *font_name /* Don't specify NULL. Broken in this function */
-                            ) {
+static void parse_xfont_name(char **font_xlfd, char **percent, /* NULL can be returned. */
+                             char *font_name /* Don't specify NULL. Broken in this function */) {
   /*
    * XFont format.
    * [Font XLFD](:[Percentage])
@@ -221,8 +220,6 @@ static int parse_xfont_name(char **font_xlfd, char **percent, /* NULL can be ret
 
   /* may be NULL */
   *percent = font_name;
-
-  return 1;
 }
 
 static XFontStruct *load_xfont_intern(Display *display, char *fontname, size_t max_len,
@@ -318,37 +315,36 @@ static int xcore_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
     }
     strcpy(p, fontname);
 
-    if (parse_xfont_name(&font_xlfd, &percent_str, p)) {
+    parse_xfont_name(&font_xlfd, &percent_str, p);
 #ifdef DEBUG
-      bl_debug_printf(BL_DEBUG_TAG " loading %s font (%s percent).\n", font_xlfd, percent_str);
+    bl_debug_printf(BL_DEBUG_TAG " loading %s font (%s percent).\n", font_xlfd, percent_str);
 #endif
 
-      while (1) {
-        if (!(xfont = XLoadQueryFont(font->display, font_xlfd))) {
-          char *xlfd;
+    while (1) {
+      if (!(xfont = XLoadQueryFont(font->display, font_xlfd))) {
+        char *xlfd;
 
-          if ((xlfd = bl_str_replace(font_xlfd, "-bold-", "-medium-"))) {
-            xfont = XLoadQueryFont(font->display, xlfd);
-            free(xlfd);
-          }
-
-          if (!xfont) {
-            bl_msg_printf("Font %s couldn't be loaded.\n", font_xlfd);
-
-            break;
-          }
-
-          font->double_draw_gap = 1;
-        } else {
-          font->double_draw_gap = use_medium_for_bold;
+        if ((xlfd = bl_str_replace(font_xlfd, "-bold-", "-medium-"))) {
+          xfont = XLoadQueryFont(font->display, xlfd);
+          free(xlfd);
         }
 
-        if (percent_str == NULL || !bl_str_to_uint(&percent, percent_str)) {
-          percent = 0;
+        if (!xfont) {
+          bl_msg_printf("Font %s couldn't be loaded.\n", font_xlfd);
+
+          break;
         }
 
-        goto font_found;
+        font->double_draw_gap = 1;
+      } else {
+        font->double_draw_gap = use_medium_for_bold;
       }
+
+      if (percent_str == NULL || !bl_str_to_uint(&percent, percent_str)) {
+        percent = 0;
+      }
+
+      goto font_found;
     }
   }
 

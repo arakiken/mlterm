@@ -1,3 +1,14 @@
+2023-01-29  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/ui_font.c: int parse_xfont_name() -> void parse_xfont_name()
+
+	* README.android, README.mosh: Updated.
+
+	* prepare-gradle.sh: Help message to build with mosh is added.
+
+	* ef_ucs_property.table: Updated to Unicode 15.0.0 (UnicodeData.txt and
+	  EastAsianWidth.txt)
+
 2023-01-28  Araki Ken  <arakiken@users.sf.net>
 
 	* README.android: Updated.

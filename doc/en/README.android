@@ -72,7 +72,7 @@ Android support
       (edit build-gradle.sh)
       (prepare some libraries in app/src/main/jni/ (see below))
     $ ./build-gradle.sh
-      => Install bin/mlterm-release-unsigned.apk to Android.
+      => Install app/build/outputs/apk/release/app-release-unsigned.apk to Android.
 
   o Prepare some libraries (Optional)
     - fribidi
@@ -119,7 +119,7 @@ make
 make install
 
     - libssh2
-      Build static libraries (libssh2.a(libssh2), libcrypto.a(libssl or libressl))
+      Build static libraries (libssh2.a(libssh2), libcrypto.a(openssl or libressl))
       for Android, and place files as follows.
 
       C Header files: jni/libssh2/{armeabi,armeabi-v7,x86,mips}/include/
@@ -146,3 +146,18 @@ make install
   o Note that "LOCAL_ALLOW_UNDEFINED_SYMBOLS := true" is defined in Android.mk.
     So mlterm can crash by UnsatisfiedLinkedError.
     Check crash logs with logcat command.
+
+  o Following steps enable mosh.
+    - Execute ./configure in mosh.
+
+    - Build static library of protobuf for Android and place it as follows.
+
+      C Header files: jni/protobuf/{armeabi,armeabi-v7,x86,mips}/include/
+      Static library: jni/protobuf/{armeabi,armeabi-v7,x86,mips}/lib/
+
+    - Build and install mlterm. (See "Build with gradle")
+      Specify mosh and openssl (or libressl) src directories to 2nd and 3rd
+      arguments of ./prepare-gradle.sh.
+
+    - Specify "mosh://" before a mosh server address or name in the connect
+      dialog.

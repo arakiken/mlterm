@@ -4,6 +4,7 @@ Memo about mosh
 
 * Requirement
   libssh2
+  mosh
 
 * Build
   cd /foo/mosh-x.x.x
@@ -37,6 +38,7 @@ Memo about mosh
 
 * Note
   o Don't specify a value except "UTF-8" for "encoding" option.
+
   o It is impossible to change the value of "col_size_of_width_a" option.
     (mlterm for *nix)
     The value of "col_size_of_width_a" option is automatically determined by the
@@ -45,9 +47,11 @@ Memo about mosh
     (mlterm for win32api)
     The value of "col_size_of_width_a" option specified in startup is applied
     but permanently unchangeable.
-  o Unsupported platforms are as follows.
-    - Java/SWT
-    - Android
+
+  o The way of building mosh support in Android: See README.android
+
+  o Unsupported platform: Java/SWT
+
   o https://github.com/arakiken/mosh/archive/sixel-winsock.zip utilizes
     DRCS-Sixel to show sixel graphics.
     mlterm 3.8.5 or later and RLogin 2.23.1 or later suport it.
