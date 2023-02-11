@@ -4,6 +4,10 @@
 
 using namespace Terminal;
 
+/* XXX See configure.in */
+#ifdef MOSH_VERSION
+/* 1.3.2 or before */
+#if MOSH_VERSION <= 10302
 bool Display::ti_flag(const char *capname) {
   return true;
 }
@@ -15,6 +19,8 @@ int Display::ti_num(const char *capname) {
 const char *Display::ti_str(const char *capname) {
   return "";
 }
+#endif
+#endif
 
 Display::Display(bool use_environment)
   : has_ech(true), has_bce(true) /* XXX */, has_title(true),

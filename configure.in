@@ -955,7 +955,19 @@ if test "$enable_shared" != "no" ; then
 		[  --with-mosh@<:@=ARG@:>@       The directory where mosh is built])
 
 	if test -d "$with_mosh"; then
-	PKG_CHECK_MODULES(PROTOBUF, protobuf, MOSH_DIR=$with_mosh, with_mosh="")
+		PKG_CHECK_MODULES(PROTOBUF, protobuf, MOSH_DIR=$with_mosh, with_mosh="")
+
+		if test "$MOSH_DIR" != ""; then
+			if test -f $MOSH_DIR/src/crypto/ocb.cc; then
+				# mosh-1.3.2 or before.
+				MOSH_OCB_OBJ="ocb.o"
+				# XXX (See terminaldisplayinit.cc)
+				PROTOBUF_CFLAGS="$PROTOBUF_CFLAGS -DMOSH_VERSION=10302"
+			else
+				# mosh-1.4.0 or later.
+				MOSH_OCB_OBJ="ocb_internal.o"
+			fi
+		fi
 	fi
 fi
 
@@ -964,7 +976,6 @@ if test "$ml_cv_is_posix" = "no" ; then
 		VT_PTY_OBJ="vt_pty_ssh.o vt_pty_mosh.o"
 
 		if test -d "$with_mosh"; then
-			MOSH_DIR=$with_mosh
 			MAKE_DIRS2="${MAKE_DIRS2} vtemu/libptyssh vtemu/libptymosh"
 			OUTPUT_FILES="${OUTPUT_FILES} vtemu/libptyssh/Makefile vtemu/libptymosh/Makefile"
 			SSH2_LIBS_FOR_PROG="-lwsock32"
@@ -1021,6 +1032,7 @@ AC_SUBST(SSH2_LIBS_FOR_PROG)
 AC_SUBST(SSH2_CFLAGS)
 AC_SUBST(VT_PTY_OBJ)
 AC_SUBST(MOSH_DIR)
+AC_SUBST(MOSH_OCB_OBJ)
 AC_SUBST(PROTOBUF_CFLAGS)
 AC_SUBST(PROTOBUF_LIBS)
 

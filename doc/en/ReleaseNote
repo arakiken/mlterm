@@ -4,6 +4,9 @@
 * Add libvterm 0.2 API symbols to libvterm compatible library.
 * Set "COLORTERM=truecolor" environmental variable.
   (https://github.com/arakiken/mlterm/issues/36)
+* Update unicode property table (generated from UnicodeData.txt and
+  EastAsianWidth.txt) to version 15.0.0.
+* Support mosh-1.4.0.
 * Merge patches:
   https://github.com/arakiken/mlterm/pull/45.
   https://github.com/arakiken/mlterm/pull/46.

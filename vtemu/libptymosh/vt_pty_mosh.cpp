@@ -690,7 +690,7 @@ static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
         /* Quit sequence is Ctrl-^ . */
         if (pty_mosh->network->has_remote_addr()) {
           pty_mosh->overlay->get_notification_engine().set_notification_string(
-            wstring( L"Exiting on user request..." ), true);
+            std::wstring( L"Exiting on user request..." ), true);
           bl_trigger_sig_child(pty->child_pid);
         }
 
@@ -801,7 +801,7 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
                   pty_mosh->network->get_sent_state_acked_timestamp());
 #endif
 
-  size_t prev_len = min(pty_mosh->buf_len, len);
+  size_t prev_len = std::min(pty_mosh->buf_len, len);
 
   if (pty_mosh->buf_len > 0) {
     /*
@@ -862,10 +862,10 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
       if (!pass_seq_has_zmodem(&pty_mosh->network->ps) && memcmp(seq, "\x1bP", 2) == 0) {
         memcpy(buf, "\x1b[?8800h", 8); /* for DRCS-Sixel */
         len -= 8;
-        memcpy(buf + 8, seq, min(seq_len, len));
+        memcpy(buf + 8, seq, std::min(seq_len, len));
         prepend = 8;
       } else {
-        memcpy(buf, seq, min(seq_len, len));
+        memcpy(buf, seq, std::min(seq_len, len));
         prepend = 0;
       }
 
@@ -903,7 +903,7 @@ static ssize_t read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   pty_mosh->framebuffer = framebuffer;
   pty_mosh->initialized = true;
 
-  memcpy(buf, update.c_str(), min(update.length(), len));
+  memcpy(buf, update.c_str(), std::min(update.length(), len));
   if (update.length() > len) {
     if ((pty_mosh->buf = (char*)malloc(update.length() - len))) {
       pty_mosh->buf_len = update.length() - len;

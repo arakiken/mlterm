@@ -4,7 +4,7 @@ Memo about mosh
 
 * Requirement
   libssh2
-  mosh
+  mosh (1.3.2, 1.4.0)
 
 * Build
   cd /foo/mosh-x.x.x

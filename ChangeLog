@@ -1,3 +1,10 @@
+2023-02-11  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_pty_mosh.cpp: wstring -> std:wstring, min -> std:min
+
+	* configure.in, libptymosh/Makefile.in, terminaldisplayinit.cc:
+	  mosh-1.4.0 is supported.
+
 2023-01-29  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/ui_font.c: int parse_xfont_name() -> void parse_xfont_name()
