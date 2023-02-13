@@ -1,3 +1,9 @@
+2023-02-13  Araki Ken  <arakiken@users.sf.net>
+
+	* vterm.c:
+	  - vterm_output_set_callback() is added.
+	  - Garbage in resizing window is fixed.
+
 2023-02-11  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_pty_mosh.cpp: wstring -> std:wstring, min -> std:min

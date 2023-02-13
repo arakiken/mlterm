@@ -47,13 +47,27 @@ typedef struct VTerm {
 
   const VTermScreenCallbacks *vterm_screen_cb;
   void *vterm_screen_cbdata;
+
+  VTermOutputCallback *vterm_output_cb;
+  void *vterm_output_cb_data;
+
 } VTerm;
 
 /* --- static functions --- */
 
 static int final(vt_pty_ptr_t pty) { return 1; }
 
-static ssize_t pty_write(vt_pty_ptr_t pty, u_char* buf, size_t len) { return 0; }
+static ssize_t pty_write(vt_pty_ptr_t pty, u_char* buf, size_t len) {
+  VTerm *vterm = pty->pty_listener->self;
+
+  if (vterm->vterm_output_cb) {
+    (*vterm->vterm_output_cb)(buf, len, vterm->vterm_output_cb_data);
+
+    return len;
+  }
+
+  return 0;
+}
 
 static ssize_t pty_read(vt_pty_ptr_t pty, u_char* buf, size_t len) { return 0; }
 
@@ -487,6 +501,7 @@ VTerm *vterm_new(int rows, int cols) {
   vterm->xterm_listener.bel = xterm_bel;
   vterm->xterm_listener.get_picture_data = xterm_get_picture_data;
 
+  /* vt_set_resize_mode(RZ_NONE); */
   vterm->pty = loopback_pty();
   vterm->term = mlterm_open(NULL, NULL, cols, rows, 1, NULL, NULL, &vterm->xterm_listener,
                             &vterm->config_listener, &vterm->screen_listener,
@@ -598,6 +613,11 @@ size_t vterm_output_read(VTerm *vterm, char *buffer, size_t len) {
   }
 
   return len;
+}
+
+void vterm_output_set_callback(VTerm *vterm, VTermOutputCallback *func, void *user) {
+  vterm->vterm_output_cb = func;
+  vterm->vterm_output_cb_data = user;
 }
 
 void vterm_keyboard_unichar(VTerm *vterm, uint32_t c, VTermModifier mod) {
@@ -891,8 +911,6 @@ int vterm_screen_get_attrs_extent(const VTermScreen *screen, VTermRect *extent, 
 int vterm_screen_get_cell(const VTermScreen *screen, VTermPos pos, VTermScreenCell *cell) {
   VTerm *vterm = screen;
   vt_line_t *line;
-  int col = pos.col;
-  int row = pos.row;
   vt_color_t fg = VT_FG_COLOR;
   vt_color_t bg = VT_BG_COLOR;
   u_int8_t r, g, b;
@@ -900,9 +918,12 @@ int vterm_screen_get_cell(const VTermScreen *screen, VTermPos pos, VTermScreenCe
   memset(cell, 0, sizeof(*cell));
   cell->width = 1;
 
-  if ((line = vt_term_get_line(vterm->term, row))) {
-    int char_index = vt_convert_col_to_char_index(line, &col, col, 0);
-    if (char_index < line->num_filled_chars) {
+  if ((line = vt_term_get_line(vterm->term, pos.row))) {
+    int cols_rest;
+    int char_index = vt_convert_col_to_char_index(line, &cols_rest, pos.col, 0);
+    int ch_cols = vt_char_cols(line->chars + char_index);
+    if (char_index + 1 < line->num_filled_chars ||
+        (char_index + 1 == line->num_filled_chars && cols_rest < ch_cols)) {
       vt_font_t font = vt_char_font(line->chars + char_index);
       vt_line_style_t line_style = vt_char_line_style(line->chars + char_index);
       ef_charset_t cs = vt_char_cs(line->chars + char_index);
@@ -946,9 +967,9 @@ int vterm_screen_get_cell(const VTermScreen *screen, VTermPos pos, VTermScreenCe
         cell->attrs.dhl = (line->size_attr & DOUBLE_HEIGHT_TOP) ? 1 : 2;
       }
 
-      cell->width = vt_char_cols(line->chars + char_index);
+      cell->width = ch_cols;
 
-      if (cell->width == 2 && col == 1) {
+      if (cell->width == 2 && cols_rest == 1) {
         cell->chars[0] = (u_int32_t)-1;
         cell->width = 1;
       } else {
