@@ -771,8 +771,8 @@ Java_mlterm_MLTermPty_nativeWrite(JNIEnv *env, jobject obj, jlong nativeObj, jst
 
 JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeWriteModifiedKey(JNIEnv *env, jobject obj,
                                                                         jlong nativeObj, jint key,
-                                                                        jint modcode) {
-  if (vt_term_write_modified_key(((native_obj_t *)nativeObj)->term, key, modcode)) {
+                                                                        jint ch, jint modcode) {
+  if (vt_term_write_modified_key(((native_obj_t *)nativeObj)->term, key, ch, modcode)) {
     return JNI_TRUE;
   } else {
     return JNI_FALSE;

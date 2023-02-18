@@ -210,9 +210,9 @@ public class MLTermPty {
     return nativeWrite(nativeObj, str);
   }
 
-  private native boolean nativeWriteModifiedKey(long obj, int key, int modcode);
-  public boolean writeModifiedKey(int key, int modcode) {
-    return nativeWriteModifiedKey(nativeObj, key, modcode);
+  private native boolean nativeWriteModifiedKey(long obj, int key, int ch, int modcode);
+  public boolean writeModifiedKey(int key, int ch, int modcode) {
+    return nativeWriteModifiedKey(nativeObj, key, ch, modcode);
   }
 
   private native boolean nativeWriteSpecialKey(long obj, int key, int modcode);

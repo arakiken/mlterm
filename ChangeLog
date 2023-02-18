@@ -1,3 +1,11 @@
+2023-02-19  Araki Ken  <arakiken@users.sf.net>
+
+	* MLTerm.java, MLTermPty.java:
+	  'int ch' is added to MLTermPty.writeModifiedKey().
+
+	* MLTermPty.c: 'jint ch' is added to arguments of
+	  Java_mlterm_MLTermPty_nativeWriteModifiedKey().
+
 2023-02-18  Araki Ken  <arakiken@users.sf.net>
 
 	* vterm.c: VTERM_CHECK_VERSION2 macro is added.
