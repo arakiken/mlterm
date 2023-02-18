@@ -1,3 +1,7 @@
+2023-02-18  Araki Ken  <arakiken@users.sf.net>
+
+	* vterm.c: VTERM_CHECK_VERSION2 macro is added.
+
 2023-02-13  Araki Ken  <arakiken@users.sf.net>
 
 	* vterm.c:

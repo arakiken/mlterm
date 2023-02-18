@@ -25,6 +25,14 @@
 #define VTERM_EXPOSE_COLOR_INDEX
 #endif
 
+#if defined(VTERM_VERSION_MAJOR) && defined(VTERM_VERSION_MINOR)
+#define VTERM_CHECK_VERSION2(major, minor) \
+  (((major) < VTERM_VERSION_MAJOR) || \
+   ((major) == VTERM_VERTION_MAJOR && (minor) <= VTERM_VERSION_MINOR))
+#else
+#define VTERM_CHECK_VERSION2(major, minor) (0)
+#endif
+
 typedef struct VTerm {
   vt_term_t *term;
   vt_pty_ptr_t pty;
@@ -48,8 +56,10 @@ typedef struct VTerm {
   const VTermScreenCallbacks *vterm_screen_cb;
   void *vterm_screen_cbdata;
 
+#if VTERM_CHECK_VERSION2(0, 1)
   VTermOutputCallback *vterm_output_cb;
   void *vterm_output_cb_data;
+#endif
 
 } VTerm;
 
@@ -60,11 +70,13 @@ static int final(vt_pty_ptr_t pty) { return 1; }
 static ssize_t pty_write(vt_pty_ptr_t pty, u_char* buf, size_t len) {
   VTerm *vterm = pty->pty_listener->self;
 
+#if VTERM_CHECK_VERSION2(0, 1)
   if (vterm->vterm_output_cb) {
     (*vterm->vterm_output_cb)(buf, len, vterm->vterm_output_cb_data);
 
     return len;
   }
+#endif
 
   return 0;
 }
@@ -615,10 +627,12 @@ size_t vterm_output_read(VTerm *vterm, char *buffer, size_t len) {
   return len;
 }
 
+#if VTERM_CHECK_VERSION2(0, 1)
 void vterm_output_set_callback(VTerm *vterm, VTermOutputCallback *func, void *user) {
   vterm->vterm_output_cb = func;
   vterm->vterm_output_cb_data = user;
 }
+#endif
 
 void vterm_keyboard_unichar(VTerm *vterm, uint32_t c, VTermModifier mod) {
   static ef_parser_t *utf32_parser;
