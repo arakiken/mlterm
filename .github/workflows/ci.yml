@@ -23,7 +23,7 @@ jobs:
 
     - name: "configure on linux"
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
-      run: (cd uitoolkit/wayland; sh ./rescanproto.sh); CFLAGS="=Wall -g -O2" ./configure --with-gui=xlib,fb,console,wayland,sdl2
+      run: (cd uitoolkit/wayland; sh ./rescanproto.sh); CFLAGS="-Wall -g -O2" ./configure --with-gui=xlib,fb,console,wayland,sdl2
 
     - name: "configure on macos"
       if: ${{ startsWith(matrix.os, 'macos') }}
