@@ -15,7 +15,7 @@ jobs:
 
     - name: "setup linux build environment"
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
-      run: sudo apt install -y libgtk-3-dev libvterm-dev libvte-2.91-dev libsdl2-dev
+      run: sudo apt install -y libgtk-3-dev libvterm-dev libvte-2.91-dev libsdl2-dev curl
 
     - name: "setup macos build environment"
       if: ${{ startsWith(matrix.os, 'macos') }}
@@ -23,11 +23,11 @@ jobs:
 
     - name: "configure on linux"
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
-      run: ./configure --with-gui=xlib,fb,console,wayland,sdl2
+      run: (cd uitoolkit/wayland; sh ./rescanproto.sh); CFLAGS="=Wall -g -O2" ./configure --with-gui=xlib,fb,console,wayland,sdl2
 
     - name: "configure on macos"
       if: ${{ startsWith(matrix.os, 'macos') }}
-      run: ./configure --with-gui=quartz
+      run: CFLAGS="-Wall -g -O2" ./configure --with-gui=quartz
 
     - name: "build on linux"
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
