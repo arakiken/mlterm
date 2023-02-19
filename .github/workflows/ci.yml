@@ -1,0 +1,28 @@
+name: ci
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-18.04, ubuntu-20.04]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: "setup linux build environment"
+      if: ${{ startsWith(matrix.os, 'ubuntu') }}
+      run: sudo apt install -y libgtk-3-dev libvterm-dev libvte-2.91-dev
+
+    - name: "setup macos build environment"
+      if: ${{ startsWith(matrix.os, 'macos') }}
+      run: brew install pkg-config
+
+    - name: "configure"
+      run: ./configure
+
+    - name: "build"
+      run: make; (cd gtk; make); (cd libvterm; make)
