@@ -15,14 +15,24 @@ jobs:
 
     - name: "setup linux build environment"
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
-      run: sudo apt install -y libgtk-3-dev libvterm-dev libvte-2.91-dev
+      run: sudo apt install -y libgtk-3-dev libvterm-dev libvte-2.91-dev libsdl2-dev
 
     - name: "setup macos build environment"
       if: ${{ startsWith(matrix.os, 'macos') }}
       run: brew install pkg-config
 
-    - name: "configure"
-      run: ./configure
+    - name: "configure on linux"
+      if: ${{ startsWith(matrix.os, 'ubuntu') }}
+      run: ./configure --with-gui=xlib,fb,console,wayland,sdl2
 
-    - name: "build"
+    - name: "configure on macos"
+      if: ${{ startsWith(matrix.os, 'macos') }}
+      run: ./configure --with-gui=quartz
+
+    - name: "build on linux"
+      if: ${{ startsWith(matrix.os, 'ubuntu') }}
       run: make; (cd gtk; make); (cd libvterm; make)
+
+    - name: "build on macos"
+      if: ${{ startsWith(matrix.os, 'macos') }}
+      run: make
