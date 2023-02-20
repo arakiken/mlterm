@@ -202,10 +202,11 @@ Options for configure
   If you want to minimize mlterm binary, execute configure with following options.
   --without-map-table --without-prop-table --disable-image --disable-dl-ctl \
   --disable-fribidi --disable-dl-type --disable-otl \
-  --disable-ssh2 --disable-utmp --disable-dnd --disable-kbd --disable-uim \
+  --disable-ssh2 --with-utmp=none --disable-dnd --disable-kbd --disable-uim \
   --disable-m17nlib --disable-ibus --disable-fcitx --disable-scim --disable-canna \
   --disable-wnn --disable-skk --disable-iiimf --disable-ind --with-type-engines=xcore \
-  --disable-anti-alias --disable-fontconfig (--disable-shared)
+  --disable-anti-alias --disable-fontconfig --disable-daemon --disable-split \
+  --disable-zmodem (--disable-shared)
 
 What you need for compilation
 -----------------------------

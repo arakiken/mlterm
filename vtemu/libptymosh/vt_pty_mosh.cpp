@@ -47,6 +47,9 @@ extern "C" {
 #include <parser.h>
 #include <completeterminal.h>
 #include <networktransport.h>
+#ifdef MOSH_SIXEL
+#define USE_TCP_RECV_FROM_SERVER
+#endif
 #include <networktransport-impl.h>
 #include <terminaloverlay.h>
 #include <user.h>

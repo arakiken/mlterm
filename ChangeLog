@@ -1,3 +1,10 @@
+2023-02-20  Araki Ken  <arakiken@users.sf.net>
+
+	* README: Updated.
+
+	* vt_pty_mosh.cpp:
+	  USE_TCP_RECV_FROM_SERVER (mosh-1.4.0 sixel-winsock branch) is defined.
+
 2023-02-19  Araki Ken  <arakiken@users.sf.net>
 
 	* MLTerm.java, MLTermPty.java:
