@@ -1,3 +1,12 @@
+2023-02-23  Araki Ken  <arakiken@users.sf.net>
+
+	* README: Updated.
+
+	* config.sub, config.guess: Updated.
+
+	* xdg-shell-unstable-v6-client-protocol.[ch],
+	  xdg-decoration-unstable-v1-client-protocol.[ch]: Updated.
+
 2023-02-20  Araki Ken  <arakiken@users.sf.net>
 
 	* README: Updated.

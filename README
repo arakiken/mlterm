@@ -90,6 +90,7 @@ Options for configure
     be executed in advance.
     This option is available only if libssh2 is enabled.
     Don't distribute libptymosh in binary format.
+    (see see https://github.com/arakiken/mlterm/blob/master/doc/en/README.mosh)
 
   --without-pthread
     Don't depend on pthread for secure copy (scp) over ssh.
@@ -187,6 +188,7 @@ Options for configure
 
   --disable-zmodem
     Disable zmodem
+    (see https://github.com/arakiken/mlterm/blob/master/doc/en/README.transfer)
 
   --disable-compact-truecolor
     Disable to reuse 240 palettes in displaying true color.
