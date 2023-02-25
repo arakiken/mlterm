@@ -77,7 +77,7 @@ static int dlsym_im_new_func(char *im_name, ui_im_new_func_t *func, bl_dl_handle
   sprintf(symname, "im_%s_new", im_name);
 
 #ifdef PLUGIN_MODULE_SUFFIX
-  if ((im_name2 = alloca(strlen(im_name) + 3 + 1))) {
+  if ((im_name2 = alloca(strlen(im_name) + strlen(PLUGIN_MODULE_SUFFIX) + 2))) {
     sprintf(im_name2, "%s-" PLUGIN_MODULE_SUFFIX, im_name);
 
     if (!(*handle = im_dlopen(im_name2))) {

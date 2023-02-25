@@ -48,7 +48,7 @@ static ui_sb_view_new_func_t dlsym_sb_view_new_func(const char *name, int is_tra
 #ifdef PLUGIN_MODULE_SUFFIX
   char *p;
 
-  if (!(p = alloca(strlen(name) + 3 + 1))) {
+  if (!(p = alloca(strlen(name) + strlen(PLUGIN_MODULE_SUFFIX) + 2))) {
     return NULL;
   }
 
@@ -98,7 +98,7 @@ static ui_sb_engine_new_func_t dlsym_sb_engine_new_func(const char *name) {
 #ifdef PLUGIN_MODULE_SUFFIX
   char *p;
 
-  if (!(p = alloca(strlen(name) + 3 + 1))) {
+  if (!(p = alloca(strlen(name) + strlen(PLUGIN_MODULE_SUFFIX) + 2))) {
     return NULL;
   }
 
