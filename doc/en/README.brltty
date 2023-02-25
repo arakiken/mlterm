@@ -3,7 +3,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 Support brltty with the use of brlapi
 
 * Tested environment
-  Fedora 25
+  Arch Linux
 
 * Build
   $ ./configure --enable-brlapi

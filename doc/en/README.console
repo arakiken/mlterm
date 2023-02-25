@@ -3,8 +3,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 Console support (similar to GNU screen)
 
 * Tested environment
-  xterm-325
-  RLogin 2.20.7
+  xterm-377
+  RLogin 2.27.7
 
 * Build
   ./configure --with-gui=console ...

@@ -837,7 +837,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
         autohide の場合、マウスカーソルを画面の右端に近づけたときだけ一時的にスク
         ロールバーを表示します。
 
-      o scrollbar_view_name (*simple*/sample/sample2/sample3/next/motif/athena/mozmodern) (#)
+      o scrollbar_view_name (*simple*/sample/sample3/next/motif/athena/mozmodern) (#)
         使いたいスクロールバーの名前
 
       o use_mdi (*true*/false)
@@ -1095,6 +1095,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
       o working_directory
         子プロセス(シェル)のカレントディレクトリを指定
+
+      o wm_role
+        WM_WINDOW_ROLE プロパティ
 
       o exec_cmd
         指定したコマンドを起動

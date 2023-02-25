@@ -1,3 +1,8 @@
+2023-02-25  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.*, doc/ja/README.*, gtk/README, etc/main, etc/main.ja,
+	  man/mlterm.1: Updated.
+
 2023-02-23  Araki Ken  <arakiken@users.sf.net>
 
 	* README: Updated.

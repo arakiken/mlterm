@@ -31,6 +31,9 @@
 # レイアウトマネージャの内側のボーダー幅
 # layout_inner_border = 0
 
+# WM_WINDOW_ROLE
+# wm_role =
+
 # -- Terminal 関連 --
 # ログインシェルを使うかどうか
 # use_login_shell = false
@@ -207,7 +210,7 @@
 # scrollbar_mode = left
 
 # 使いたいスクロールバーの名前
-# (simple,sample,sample2,sample3,next,motif,athena,mozmodern)
+# (simple,sample,sample3,next,motif,athena,mozmodern)
 # scrollbar_view_name = simple
 scrollbar_view_name = sample
 

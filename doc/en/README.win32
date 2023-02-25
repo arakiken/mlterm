@@ -3,8 +3,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 Memo about WIN32 native GUI.
 
 * Tested environments.
-  MS Windows 10 + MSYS2 3.1.7 or Cygwin 3.1.7
-                + libssh2 1.9.0(win32 native)
+  MS Windows 10 + MSYS2 3.1.7 or Cygwin 3.4.3
+                + libssh2 1.10.0(win32 native)
                 + Fribidi 0.19.2(win32 native)
 
 * Build

@@ -3,7 +3,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 Wayland support
 
 * Tested environment
-  Fedora 25
+  Arch Linux
 
 * Build
   (cd uitoolkit/wayland/; rescanproto.sh)
