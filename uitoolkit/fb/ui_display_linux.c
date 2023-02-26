@@ -367,13 +367,15 @@ static int open_display(u_int depth) {
   bl_priv_restore_euid();
   bl_priv_restore_egid();
 
-  _display.fb_fd = open((dev = getenv("FRAMEBUFFER")) ? dev : "/dev/fb0", O_RDWR);
+  dev = getenv("FRAMEBUFFER");
+  dev = dev ? dev : "/dev/fb0";
+  _display.fb_fd = open(dev, O_RDWR);
 
   bl_priv_change_euid(bl_getuid());
   bl_priv_change_egid(bl_getgid());
 
   if (_display.fb_fd < 0) {
-    bl_error_printf("Couldn't open %s.\n", dev ? dev : "/dev/fb0");
+    bl_error_printf("Couldn't open %s.\n", dev);
 
     return 0;
   }
