@@ -389,7 +389,13 @@ vt_term_t *vt_get_detached_term(const char *dev) {
 
   for (count = 0; count < num_terms; count++) {
     if (!vt_term_is_attached(terms[count]) &&
-        (dev == NULL || strcmp(dev, vt_term_get_slave_name(terms[count])) == 0)) {
+        (dev == NULL || strcmp(dev, vt_term_get_slave_name(terms[count])) == 0) &&
+        /*
+         * terminator 2.1.2 keeps (unknown) zombie pty,
+         * which interrupts closing screen in exiting pty.
+         * (See pty_closed in vte.c)
+         */
+        vt_term_get_master_fd(terms[count]) >= 0) {
       return terms[count];
     }
   }

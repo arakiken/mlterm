@@ -1,3 +1,8 @@
+2023-02-26  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_term_manager.c: vt_get_detached_term() checks if vt_term_get_master_fd() >= 0.
+	  (terminator 2.1.2 segfault in exiting pty without this fix.)
+
 2023-02-25  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.*, doc/ja/README.*, gtk/README, etc/main, etc/main.ja,
