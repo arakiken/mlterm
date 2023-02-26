@@ -2412,7 +2412,11 @@ elif test "$gui" = "xlib"; then
 	echo "Type engines                      :$type_engines_result"
 fi
 echo "DnD                               : $dnd"
+if test "$gui" = "xlib"; then
 echo "Input Methods                     : XIM$input_methods_result"
+else
+echo "Input Methods                     :$input_methods_result"
+fi
 echo "Scrollbars                        : simple${scrollbars_result}"
 echo "libssh2                           : $ssh2"
 echo "mosh directory                    : $MOSH_DIR"
