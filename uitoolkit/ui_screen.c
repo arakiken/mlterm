@@ -754,6 +754,12 @@ static void draw_mark(ui_screen_t *screen, int y) {
 static void redraw_screen(ui_screen_t *screen) {
   int count;
   vt_line_t *line;
+#if defined(__clang_major__) && defined(__clang_minor__)
+#if __clang_major__ == 5 && __clang_minor__ == 1
+  /* XXX 'y += line_height' gets broken value in clang 5.1 / MacOSX 10.8. */
+  volatile
+#endif
+#endif
   int y;
   u_int line_height;
   int end_row;
@@ -812,11 +818,10 @@ static void redraw_screen(ui_screen_t *screen) {
     }
 
     count++;
-    y += line_height;
-
     if (count > end_row) {
       break;
     }
+    y += line_height;
 
     line = vt_term_get_line_in_screen(screen->term, count); /* Always non-NULL */
 

@@ -1300,6 +1300,10 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 - (void)update:(int)flag {
   forceExpose |= flag;
 
+#ifdef USE_CGLAYER
+  [self setNeedsDisplay:YES];
+#else
+  /* If IS_OPAQUE is true, setNeedsDisplay:YES clears full screen, which is unexpected. */
   if (IS_OPAQUE || forceExpose) {
     /*
      * setNeedsDisplay:YES calls drawRect with full screen 'rect'.
@@ -1320,6 +1324,7 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 
     [self setNeedsDisplayInRect:NSMakeRect(x, ACTUAL_HEIGHT(uiwindow) - y, 1, 1)];
   }
+#endif
 }
 
 - (void)setClip:(int)x:(int)y:(u_int)width:(u_int)height {
