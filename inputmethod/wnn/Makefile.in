@@ -16,6 +16,7 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @DEB_CFLAGS@			\
 	 @X_CFLAGS@			\
 	 @GUI_CFLAGS@			\
+	 @WAYLAND_CFLAGS@		\
 	 @SDL2_CFLAGS@			\
 	 @TRUECOLOR_CFLAGS@		\
 	 @CFLAGS@			\

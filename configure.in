@@ -546,11 +546,14 @@ elif test "$gui" = "beos" ; then
 	GUI="beos"
 	GUI_CFLAGS="-DUSE_BEOS"
 elif test "$gui" = "wayland" ; then
+	PKG_CHECK_MODULES(WAYLAND, [wayland-client wayland-cursor xkbcommon])
 	GUI="wayland"
 	GUI_CFLAGS="-DUSE_WAYLAND"
+	AC_SUBST(WAYLAND_CFLAGS)
+	AC_SUBST(WAYLAND_LIBS)
 elif test "$gui" = "sdl2" ; then
 	PKG_CHECK_MODULES(SDL2, sdl2, have_sdl2=yes, have_sdl2=no)
- 	if test "$have_sdl2" != "yes" ; then
+	if test "$have_sdl2" != "yes" ; then
 		AC_CHECK_PROG(sdl2_config, sdl2-config, yes)
 		if test "$sdl2_config" = "yes"; then
 			SDL2_CFLAGS="`sdl2-config --cflags`"
@@ -2412,7 +2415,11 @@ elif test "$gui" = "xlib"; then
 	echo "Type engines                      :$type_engines_result"
 fi
 echo "DnD                               : $dnd"
+if test "$gui" = "xlib"; then
 echo "Input Methods                     : XIM$input_methods_result"
+else
+echo "Input Methods                     :$input_methods_result"
+fi
 echo "Scrollbars                        : simple${scrollbars_result}"
 echo "libssh2                           : $ssh2"
 echo "mosh directory                    : $MOSH_DIR"

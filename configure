@@ -807,6 +807,8 @@ SDL2GUI
 sdl2_config
 SDL2_LIBS
 SDL2_CFLAGS
+WAYLAND_LIBS
+WAYLAND_CFLAGS
 SIXEL_LIBS
 SIXEL_CFLAGS
 VT_NORM_CFLAGS
@@ -1033,6 +1035,8 @@ GIO_CFLAGS
 GIO_LIBS
 FT_CFLAGS
 FT_LIBS
+WAYLAND_CFLAGS
+WAYLAND_LIBS
 SDL2_CFLAGS
 SDL2_LIBS
 FRIBIDI_CFLAGS
@@ -1796,6 +1800,10 @@ Some influential environment variables:
   GIO_LIBS    linker flags for GIO, overriding pkg-config
   FT_CFLAGS   C compiler flags for FT, overriding pkg-config
   FT_LIBS     linker flags for FT, overriding pkg-config
+  WAYLAND_CFLAGS
+              C compiler flags for WAYLAND, overriding pkg-config
+  WAYLAND_LIBS
+              linker flags for WAYLAND, overriding pkg-config
   SDL2_CFLAGS C compiler flags for SDL2, overriding pkg-config
   SDL2_LIBS   linker flags for SDL2, overriding pkg-config
   FRIBIDI_CFLAGS
@@ -18268,8 +18276,101 @@ elif test "$gui" = "beos" ; then
 	GUI="beos"
 	GUI_CFLAGS="-DUSE_BEOS"
 elif test "$gui" = "wayland" ; then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for WAYLAND" >&5
+$as_echo_n "checking for WAYLAND... " >&6; }
+
+if test -n "$WAYLAND_CFLAGS"; then
+    pkg_cv_WAYLAND_CFLAGS="$WAYLAND_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"wayland-client wayland-cursor xkbcommon\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "wayland-client wayland-cursor xkbcommon") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_WAYLAND_CFLAGS=`$PKG_CONFIG --cflags "wayland-client wayland-cursor xkbcommon" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$WAYLAND_LIBS"; then
+    pkg_cv_WAYLAND_LIBS="$WAYLAND_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"wayland-client wayland-cursor xkbcommon\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "wayland-client wayland-cursor xkbcommon") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_WAYLAND_LIBS=`$PKG_CONFIG --libs "wayland-client wayland-cursor xkbcommon" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        WAYLAND_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "wayland-client wayland-cursor xkbcommon" 2>&1`
+        else
+	        WAYLAND_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "wayland-client wayland-cursor xkbcommon" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$WAYLAND_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (wayland-client wayland-cursor xkbcommon) were not met:
+
+$WAYLAND_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables WAYLAND_CFLAGS
+and WAYLAND_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables WAYLAND_CFLAGS
+and WAYLAND_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	WAYLAND_CFLAGS=$pkg_cv_WAYLAND_CFLAGS
+	WAYLAND_LIBS=$pkg_cv_WAYLAND_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+fi
 	GUI="wayland"
 	GUI_CFLAGS="-DUSE_WAYLAND"
+
+
 elif test "$gui" = "sdl2" ; then
 
 pkg_failed=no
@@ -18342,7 +18443,7 @@ else
 $as_echo "yes" >&6; }
 	have_sdl2=yes
 fi
- 	if test "$have_sdl2" != "yes" ; then
+	if test "$have_sdl2" != "yes" ; then
 		# Extract the first word of "sdl2-config", so it can be a program name with args.
 set dummy sdl2-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -28218,7 +28319,11 @@ elif test "$gui" = "xlib"; then
 	echo "Type engines                      :$type_engines_result"
 fi
 echo "DnD                               : $dnd"
+if test "$gui" = "xlib"; then
 echo "Input Methods                     : XIM$input_methods_result"
+else
+echo "Input Methods                     :$input_methods_result"
+fi
 echo "Scrollbars                        : simple${scrollbars_result}"
 echo "libssh2                           : $ssh2"
 echo "mosh directory                    : $MOSH_DIR"
