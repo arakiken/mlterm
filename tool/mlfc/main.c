@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h> /* alloca */
+#include <stdbool.h>
 #include <sys/stat.h>
 #ifdef __sunos
 #include <alloca.h>
@@ -418,8 +419,9 @@ static int check_font_config(const char *default_family /* family name */
   const char *path;
   const char *default_path;
   FcPattern *pattern;
-  FcPattern *matches[1024];
-  u_int num_matches = 0;
+  FcPattern **matches = malloc(sizeof(*matches));
+  u_int num_matches = 1;
+  bool did_search = false;
   int b_idx;
   struct {
     struct unicode_block *block;
@@ -439,7 +441,7 @@ static int check_font_config(const char *default_family /* family name */
   FcPatternPrint(pattern);
 #endif
 
-  matches[num_matches++] = search_next_font(pattern);
+  matches[0] = search_next_font(pattern);
 
   if (*default_family == '\0') {
     if (FcPatternGet(matches[0], FC_FAMILY, 0, &val) == FcResultMatch) {
@@ -454,34 +456,36 @@ static int check_font_config(const char *default_family /* family name */
   }
 
   for (b_idx = 0; b_idx < sizeof(blocks) / sizeof(blocks[0]); b_idx++) {
-    int m_idx;
+    u_int m_idx;
 
     for (m_idx = 0;; m_idx++) {
       FcCharSet *charset;
 
       if (m_idx == num_matches) {
-        if (num_matches == sizeof(matches) / sizeof(matches[0]) ||
-            matches[num_matches - 1] == NULL) {
+        if (did_search)
           break;
-        }
+        matches = realloc(matches, sizeof(*matches) * (num_matches + 1));
 
         if (!(matches[num_matches] = search_next_font(pattern))) {
-          int count;
+          u_int count;
           FcPattern *pat = FcPatternCreate();
           FcObjectSet *objset = FcObjectSetBuild(FC_FAMILY, FC_FILE, FC_CHARSET, NULL);
           FcFontSet *fontset = FcFontList(NULL, pat, objset);
+          matches = realloc(matches, sizeof(*matches) * (num_matches + fontset->nfont));
 
           for (count = 0; count < fontset->nfont; count++) {
-            matches[num_matches++] = fontset->fonts[count];
-            FcPatternGet(matches[num_matches - 1], FC_FAMILY, 0, &val);
+            matches[num_matches + count] = fontset->fonts[count];
+            FcPatternGet(matches[num_matches + count], FC_FAMILY, 0, &val);
 #if 0
-            fprintf(stderr, "Add Font List %s\n", val.u.s);
+            fprintf(stderr, "%u Add Font List %s\n", num_matches + count, val.u.s);
 #endif
           }
-          matches[num_matches] = NULL;
+          did_search = true;
+          num_matches += fontset->nfont;
+        } else {
+          num_matches++;
         }
 
-        num_matches++;
       }
 
       if (!matches[m_idx]) {
