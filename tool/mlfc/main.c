@@ -464,32 +464,38 @@ static int check_font_config(const char *default_family /* family name */
       if (m_idx == num_matches) {
         if (did_search)
           break;
-        matches = realloc(matches, sizeof(*matches) * (num_matches + 1));
+        if ((matches = realloc(matches, sizeof(*matches) * (num_matches + 1))) == NULL) {
+          return 0;
+        }
 
         if (!(matches[num_matches] = search_next_font(pattern))) {
-          u_int count;
           FcPattern *pat = FcPatternCreate();
           FcObjectSet *objset = FcObjectSetBuild(FC_FAMILY, FC_FILE, FC_CHARSET, NULL);
           FcFontSet *fontset = FcFontList(NULL, pat, objset);
-          matches = realloc(matches, sizeof(*matches) * (num_matches + fontset->nfont));
 
-          for (count = 0; count < fontset->nfont; count++) {
-            matches[num_matches + count] = fontset->fonts[count];
-            FcPatternGet(matches[num_matches + count], FC_FAMILY, 0, &val);
-#if 0
-            fprintf(stderr, "%u Add Font List %s\n", num_matches + count, val.u.s);
-#endif
-          }
           did_search = true;
-          num_matches += fontset->nfont;
+          if (fontset->nfont == 0) {
+            break;
+          } else {
+            if ((matches = realloc(matches,
+                                   sizeof(*matches) * (num_matches + fontset->nfont))) == NULL) {
+              return 0;
+            }
+
+            count = 0;
+            do {
+              matches[num_matches + count] = fontset->fonts[count];
+#if 0
+              FcPatternGet(matches[num_matches + count], FC_FAMILY, 0, &val);
+              fprintf(stderr, "%u Add Font List %s\n", num_matches + count, val.u.s);
+#endif
+            } while (++count < fontset->nfont);
+            num_matches += fontset->nfont;
+          }
         } else {
           num_matches++;
         }
 
-      }
-
-      if (!matches[m_idx]) {
-        break;
       }
 
       if (FcPatternGetCharSet(matches[m_idx], FC_CHARSET, 0, &charset) == FcResultMatch &&
