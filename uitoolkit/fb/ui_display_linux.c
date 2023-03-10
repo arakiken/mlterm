@@ -3,6 +3,7 @@
 #include <linux/kd.h>
 #include <linux/keyboard.h>
 #include <linux/vt.h> /* VT_GETSTATE */
+#include <stdbool.h>
 
 /*
  * <string.h> has already been included without _GNU_SOURCE,
@@ -22,6 +23,7 @@ char *strcasestr(const char *haystack, const char *needle);
 /* --- static variables --- */
 
 static int console_id = -1;
+static bool have_keymap = false;
 
 #ifdef KDGKBDIACRUC
 static struct kbdiacrsuc *diacrs_uc;
@@ -130,7 +132,7 @@ static int kcode_to_ksym(int kcode, int *state) {
 
     ent.kb_index = kcode;
 
-    if (ioctl(STDIN_FILENO, KDGKBENT, &ent) == 0 && ent.kb_value != K_HOLE &&
+    if (have_keymap && ioctl(STDIN_FILENO, KDGKBENT, &ent) == 0 && ent.kb_value != K_HOLE &&
         ent.kb_value != K_NOSUCHMAP) {
       static int dead = -1;
 
@@ -176,7 +178,7 @@ static int kcode_to_ksym(int kcode, int *state) {
              *       Alt + ( -> [
              *       ent2.kb_value = (, orig_kb_value = [
              */
-            if (ioctl(STDIN_FILENO, KDGKBENT, &ent2) == 0 && orig_kb_value != ent2.kb_value) {
+            if (have_keymap && ioctl(STDIN_FILENO, KDGKBENT, &ent2) == 0 && orig_kb_value != ent2.kb_value) {
               *state &= ~ModMask;
             }
           }
@@ -200,7 +202,7 @@ static int kcode_to_ksym(int kcode, int *state) {
           ent.kb_table = (1 << KG_SHIFT);
           ent.kb_index = KEY_MINUS;
 
-          if (ioctl(STDIN_FILENO, KDGKBENT, &ent) == 0 && ent.kb_value != K_HOLE &&
+          if (have_keymap && ioctl(STDIN_FILENO, KDGKBENT, &ent) == 0 && ent.kb_value != K_HOLE &&
               ent.kb_value != K_NOSUCHMAP && ent.kb_value == '=') {
             /* is jp106 or netherland */
             is_jp106 = 1;
@@ -363,6 +365,7 @@ static int open_display(u_int depth) {
   int kbd_num[] = { -1, -1 };
   int mouse_num[] = { -1, -1 };
   struct termios tm;
+  char kbd_type;
 
   bl_priv_restore_euid();
   bl_priv_restore_egid();
@@ -456,6 +459,10 @@ static int open_display(u_int depth) {
   tm.c_cc[VMIN] = 1;
   tm.c_cc[VTIME] = 0;
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &tm);
+
+  /* Detect if there is kernel keymap translation on the terminal - running on the console */
+  if ((ioctl(STDIN_FILENO, KDGKBTYPE, &kbd_type) == 0) && ((kbd_type == KB_101) || (kbd_type == KB_84)))
+      have_keymap = true;
 
   /* Disable backscrolling of default console. */
   set_use_console_backscroll(0);
@@ -754,22 +761,47 @@ static int receive_key_event(int fd) {
 
     while (read(fd, &ev, sizeof(ev)) > 0) {
       if (ev.type == EV_KEY && ev.code < 0x100 /* Key event is less than 0x100 */) {
+        bool shift, caps, ctrl, alt, num, ralt;
+        if (have_keymap) {
+          struct kbentry ent;
+
+          ent.kb_table = 0;
+          ent.kb_index = ev.code;
+
+          if (ioctl(STDIN_FILENO, KDGKBENT, &ent))
+            ent.kb_value = 0; /* translate failed */
+
+          shift = ent.kb_value == K_SHIFT;
+          caps = ent.kb_value == K_CAPS;
+          ctrl = ent.kb_value == K_CTRL;
+          alt = ent.kb_value == K_ALT;
+          num = ent.kb_value == K_NUM;
+          ralt = alt && ev.code == KEY_RIGHTALT;
+        } else {
+          shift = ev.code == KEY_RIGHTSHIFT || ev.code == KEY_LEFTSHIFT;
+          caps = ev.code == KEY_CAPSLOCK;
+          ctrl = ev.code == KEY_RIGHTCTRL || ev.code == KEY_LEFTCTRL;
+          alt = ev.code == KEY_LEFTALT;
+          ralt = ev.code == KEY_RIGHTALT;
+          num = ev.code == KEY_NUMLOCK;
+        }
+
         if (ev.value == 1 /* Pressed */ || ev.value == 2 /* auto repeat */) {
-          if (ev.code == KEY_RIGHTSHIFT || ev.code == KEY_LEFTSHIFT) {
+          if (shift) {
             _display.key_state |= ShiftMask;
-          } else if (ev.code == KEY_CAPSLOCK) {
+          } else if (caps) {
             if (_display.key_state & ShiftMask) {
               _display.key_state &= ~ShiftMask;
             } else {
               _display.key_state |= ShiftMask;
             }
-          } else if (ev.code == KEY_RIGHTCTRL || ev.code == KEY_LEFTCTRL) {
+          } else if (ctrl) {
             _display.key_state |= ControlMask;
-          } else if (ev.code == KEY_RIGHTALT) {
+          } else if (ralt) {
             _display.key_state |= (Mod1Mask|Mod2Mask);
-          } else if (ev.code == KEY_LEFTALT) {
+          } else if (alt) {
             _display.key_state |= Mod1Mask;
-          } else if (ev.code == KEY_NUMLOCK) {
+          } else if (num) {
             _display.lock_state ^= NLKED;
           } else {
             XKeyEvent xev;
@@ -783,13 +815,13 @@ static int receive_key_event(int fd) {
             }
           }
         } else if (ev.value == 0 /* Released */) {
-          if (ev.code == KEY_RIGHTSHIFT || ev.code == KEY_LEFTSHIFT) {
+          if (shift) {
             _display.key_state &= ~ShiftMask;
-          } else if (ev.code == KEY_RIGHTCTRL || ev.code == KEY_LEFTCTRL) {
+          } else if (ctrl) {
             _display.key_state &= ~ControlMask;
-          } else if (ev.code == KEY_RIGHTALT) {
+          } else if (ralt) {
             _display.key_state &= ~(Mod1Mask|Mod2Mask);
-          } else if (ev.code == KEY_LEFTALT) {
+          } else if (alt) {
             _display.key_state &= ~Mod1Mask;
           }
         }
