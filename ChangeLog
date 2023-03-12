@@ -1,3 +1,9 @@
+2023-03-12  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_display_linux.c:
+	  - 'ent.kb_value == K_ALTGR' is checked instead of 'ev.code == KEY_RIGHTALT'.
+	  - Other minor fixes.
+
 2023-02-26  Araki Ken  <arakiken@users.sf.net>
 
 	* cocoa.m: MLTermView::update always calls [self setNeedsDisplay:YES].
