@@ -3,6 +3,7 @@
 #include <linux/kd.h>
 #include <linux/keyboard.h>
 #include <linux/vt.h> /* VT_GETSTATE */
+#include <stdbool.h>
 
 /*
  * <string.h> has already been included without _GNU_SOURCE,
@@ -22,6 +23,7 @@ char *strcasestr(const char *haystack, const char *needle);
 /* --- static variables --- */
 
 static int console_id = -1;
+static bool have_keymap = false;
 
 #ifdef KDGKBDIACRUC
 static struct kbdiacrsuc *diacrs_uc;
@@ -110,7 +112,7 @@ end:
   return kb_value;
 }
 
-static int kcode_to_ksym(int kcode, int *state) {
+static int kcode_to_ksym(int kcode, u_short kval, int *state) {
   if (kcode == KEY_ENTER || kcode == KEY_KPENTER) {
     /* KDGKBENT returns '\n'(0x0a) */
     return 0x0d;
@@ -118,54 +120,64 @@ static int kcode_to_ksym(int kcode, int *state) {
     /* KDGKBDENT returns 0x7f */
     return 0x08;
   } else if (kcode <= KEY_SLASH || kcode == KEY_SPACE || kcode == KEY_YEN || kcode == KEY_RO) {
-    struct kbentry ent;
-
-    ent.kb_table = 0;
-    if ((*state) & ShiftMask) {
-      ent.kb_table |= K_SHIFTTAB;
-    }
-    if ((*state) & Mod2Mask) {
-      ent.kb_table |= K_ALTTAB;
+    if (!have_keymap) {
+      /* If have_keymap is false, kval is undefined value. (See receive_key_event()) */
+      return kcode;
     }
 
-    ent.kb_index = kcode;
+    if ((*state) & (ShiftMask | Mod2Mask)) {
+      struct kbentry ent;
 
-    if (ioctl(STDIN_FILENO, KDGKBENT, &ent) == 0 && ent.kb_value != K_HOLE &&
-        ent.kb_value != K_NOSUCHMAP) {
+      ent.kb_table = 0;
+      if ((*state) & ShiftMask) {
+        ent.kb_table |= K_SHIFTTAB;
+      }
+      if ((*state) & Mod2Mask) { /* ALTGR */
+        ent.kb_table |= K_ALTTAB;
+      }
+
+      ent.kb_index = kcode;
+
+      if (ioctl(STDIN_FILENO, KDGKBENT, &ent) == 0) {
+#ifdef __DEBUG
+        bl_debug_printf("KDGKBENT idx %x val %x tbl %x\n",
+                        ent.kb_index, ent.kb_value, ent.kb_table);
+#endif
+        kval = ent.kb_value;
+      }
+    }
+
+    if (kval != K_HOLE && kval != K_NOSUCHMAP) {
       static int dead = -1;
 
-#ifdef __DEBUG
-      bl_debug_printf("KDGKBENT idx %x val %x tbl %x\n", ent.kb_index, ent.kb_value, ent.kb_table);
-#endif
-
-      if (ent.kb_value >= 0x1000) {
+      if (kval >= 0x1000) {
         /* See ui_window_get_str() in ui_window.c */
-        ent.kb_value = (0xf000 - (ent.kb_value & 0xf000)) + (ent.kb_value & 0xfff) + 0x1000;
+        kval = (0xf000 - (kval & 0xf000)) + (kval & 0xfff) + 0x1000;
         dead = -1;
       } else {
-        if (KTYP(ent.kb_value) == KT_DEAD
+        if (KTYP(kval) == KT_DEAD
 #ifdef KT_DEAD2
-            || KTYP(ent.kb_value) == KT_DEAD2
+            || KTYP(kval) == KT_DEAD2
 #endif
             ) {
-          dead = ent.kb_value & 0xff;
+          dead = kval & 0xff;
 
           return 0;
         } else {
-          int orig_kb_value = ent.kb_value;
+          int orig_kb_value = kval;
 
-          ent.kb_value &= 0xff;
+          kval &= 0xff;
 
           if (dead != -1) {
-            ent.kb_value = get_accented_char(ent.kb_value, dead);
-            if (ent.kb_value >= 0x100) {
+            kval = get_accented_char(kval, dead);
+            if (kval >= 0x100) {
               /* See ui_window_get_str() in ui_window.c */
-              ent.kb_value += 0x1000;
+              kval += 0x1000;
             }
             dead = -1;
           }
 
-          if (ent.kb_table & K_ALTTAB) {
+          if ((*state) & Mod2Mask) {
             struct kbentry ent2;
 
             ent2.kb_table = 0;
@@ -184,12 +196,12 @@ static int kcode_to_ksym(int kcode, int *state) {
       }
 
 #ifdef __DEBUG
-      bl_debug_printf("-> val %x\n", ent.kb_value);
+      bl_debug_printf("-> val %x\n", kval);
 #endif
 
 #if 1
       /* XXX linux returns KEY_GRAVE for HankakuZenkaku key. */
-      if (kcode == KEY_GRAVE && ent.kb_value == '\x1b') {
+      if (kcode == KEY_GRAVE && kval == '\x1b') {
         static int is_jp106 = -1;
 
         if (is_jp106 == -1) {
@@ -213,7 +225,7 @@ static int kcode_to_ksym(int kcode, int *state) {
       }
 #endif
 
-      return ent.kb_value;
+      return kval;
     }
   }
 
@@ -363,6 +375,7 @@ static int open_display(u_int depth) {
   int kbd_num[] = { -1, -1 };
   int mouse_num[] = { -1, -1 };
   struct termios tm;
+  char kbd_type;
 
   bl_priv_restore_euid();
   bl_priv_restore_egid();
@@ -456,6 +469,14 @@ static int open_display(u_int depth) {
   tm.c_cc[VMIN] = 1;
   tm.c_cc[VTIME] = 0;
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &tm);
+
+  /* Detect if there is kernel keymap translation on the terminal - running on the console */
+  if (ioctl(STDIN_FILENO, KDGKBTYPE, &kbd_type) == 0 &&
+      (kbd_type == KB_101 || kbd_type == KB_84)) {
+    have_keymap = true;
+  } else {
+    bl_msg_printf("No keymap");
+  }
 
   /* Disable backscrolling of default console. */
   set_use_console_backscroll(0);
@@ -754,22 +775,49 @@ static int receive_key_event(int fd) {
 
     while (read(fd, &ev, sizeof(ev)) > 0) {
       if (ev.type == EV_KEY && ev.code < 0x100 /* Key event is less than 0x100 */) {
+        bool shift, caps, ctrl, alt, altgr, num;
+        struct kbentry ent;
+
+        ent.kb_table = 0;
+        ent.kb_index = ev.code;
+
+        if (have_keymap && ioctl(STDIN_FILENO, KDGKBENT, &ent) == 0 &&
+            ent.kb_value != K_HOLE && ent.kb_value != K_NOSUCHMAP) {
+#ifdef __DEBUG
+          bl_debug_printf("KDGKBENT idx %x val %x tbl %x\n",
+                          ent.kb_index, ent.kb_value, ent.kb_table);
+#endif
+          shift = ent.kb_value == K_SHIFT;
+          caps = ent.kb_value == K_CAPS;
+          ctrl = ent.kb_value == K_CTRL;
+          alt = ent.kb_value == K_ALT;
+          altgr = ent.kb_value == K_ALTGR;
+          num = ent.kb_value == K_NUM;
+        } else {
+          shift = ev.code == KEY_RIGHTSHIFT || ev.code == KEY_LEFTSHIFT;
+          caps = ev.code == KEY_CAPSLOCK;
+          ctrl = ev.code == KEY_RIGHTCTRL || ev.code == KEY_LEFTCTRL;
+          alt = ev.code == KEY_LEFTALT;
+          altgr = ev.code == KEY_RIGHTALT;
+          num = ev.code == KEY_NUMLOCK;
+        }
+
         if (ev.value == 1 /* Pressed */ || ev.value == 2 /* auto repeat */) {
-          if (ev.code == KEY_RIGHTSHIFT || ev.code == KEY_LEFTSHIFT) {
+          if (shift) {
             _display.key_state |= ShiftMask;
-          } else if (ev.code == KEY_CAPSLOCK) {
+          } else if (caps) {
             if (_display.key_state & ShiftMask) {
               _display.key_state &= ~ShiftMask;
             } else {
               _display.key_state |= ShiftMask;
             }
-          } else if (ev.code == KEY_RIGHTCTRL || ev.code == KEY_LEFTCTRL) {
+          } else if (ctrl) {
             _display.key_state |= ControlMask;
-          } else if (ev.code == KEY_RIGHTALT) {
+          } else if (altgr) {
             _display.key_state |= (Mod1Mask|Mod2Mask);
-          } else if (ev.code == KEY_LEFTALT) {
+          } else if (alt) {
             _display.key_state |= Mod1Mask;
-          } else if (ev.code == KEY_NUMLOCK) {
+          } else if (num) {
             _display.lock_state ^= NLKED;
           } else {
             XKeyEvent xev;
@@ -778,18 +826,18 @@ static int receive_key_event(int fd) {
             xev.state = _mouse.button_state | _display.key_state;
             xev.keycode = ev.code;
 
-            if ((xev.ksym = kcode_to_ksym(ev.code, &xev.state)) > 0) {
+            if ((xev.ksym = kcode_to_ksym(ev.code, ent.kb_value, &xev.state)) > 0) {
               receive_event_for_multi_roots(&xev);
             }
           }
         } else if (ev.value == 0 /* Released */) {
-          if (ev.code == KEY_RIGHTSHIFT || ev.code == KEY_LEFTSHIFT) {
+          if (shift) {
             _display.key_state &= ~ShiftMask;
-          } else if (ev.code == KEY_RIGHTCTRL || ev.code == KEY_LEFTCTRL) {
+          } else if (ctrl) {
             _display.key_state &= ~ControlMask;
-          } else if (ev.code == KEY_RIGHTALT) {
+          } else if (altgr) {
             _display.key_state &= ~(Mod1Mask|Mod2Mask);
-          } else if (ev.code == KEY_LEFTALT) {
+          } else if (alt) {
             _display.key_state &= ~Mod1Mask;
           }
         }
