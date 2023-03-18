@@ -214,6 +214,9 @@
 # scrollbar_view_name = simple
 scrollbar_view_name = sample
 
+# "simple" スクロールバーの横幅を決めるための device pixel ratio
+# simple_scrollbar_dpr = 1
+
 # 端末画面の前景色
 # fg_color = black
 

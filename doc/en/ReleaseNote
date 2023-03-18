@@ -2,6 +2,8 @@
 * Add --disable-compact-truecolor option to ./configure script.
 * Add vte 0.68 API symbols to libvte compatible library.
 * Add libvterm 0.2 API symbols to libvterm compatible library.
+* Add --sdpr / simple_scrollbar_dpr option.
+  (https://github.com/arakiken/mlterm/issues/64)
 * Set "COLORTERM=truecolor" environmental variable.
   (https://github.com/arakiken/mlterm/issues/36)
 * Update unicode property table (generated from UnicodeData.txt and

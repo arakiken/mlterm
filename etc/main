@@ -149,6 +149,8 @@
 # (simple,sample,sample3,next,motif,athena,mozmodern)
 # scrollbar_view_name = simple
 
+# simple_scrollbar_dpr = 1
+
 # fg_color = black
 
 # bg_color = white

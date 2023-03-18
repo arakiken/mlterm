@@ -782,6 +782,10 @@ The default is \fBfalse\fR.
 Even if allow_scp = false, it is possible to transfer a file to "." directory
 (~/.mlterm/scp).
 .TP
+\fB\-\-sdpr\fR=\fIvalue\fR
+Specify device pixel ratio to determine the width of "simple" scrollbar.
+The default is \fB1\fR.
+.TP
 \fB\-\-seqfmt\fR=\fIvalue\fR
 Specify the format of logging vt100 sequence. \fBraw\fR for logging as it is
 and \fBttyrec\fR for logging by ttyrec format.
@@ -1750,6 +1754,9 @@ Specify secondary device attributes string.
 \fBseparate_wall_picture=\fIbool\fR (\fB\-\-multivram\fR) (Available for mlterm-fb on NetBSD/x68k)
 Draw the wall picture on Text VRAM instead of Graphic VRAM to improve
 the performance of scrolling.
+.TP
+\fBsimple_scrollbar_dpr\fR=\fIvalue\fR (\fB\-\-sdpr\fR)
+Specify device pixel ratio to determine the width of "simple" scrollbar.
 .TP
 \fBssh_auto_reconnect\fR=\fIbool\fR (\fB\-\-rcn\fR)
 Reconnect to ssh server automatically in unexpected disconnection.

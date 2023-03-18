@@ -33,6 +33,7 @@ typedef ui_sb_view_t* (*ui_sb_engine_new_func_t)(ui_sb_view_conf_t *conf, int is
 static ui_sb_view_conf_t **view_confs;
 static u_int num_view_confs;
 #endif
+static int device_pixel_ratio = 1;
 
 /* --- static functions --- */
 
@@ -317,6 +318,10 @@ static ui_sb_view_conf_t *find_view_rcfile(const char *name) {
 
 /* --- global functions --- */
 
+void ui_simple_scrollbar_set_dpr(int dpr) {
+  device_pixel_ratio = dpr;
+}
+
 ui_sb_view_t *ui_sb_view_new(const char *name) {
   ui_sb_view_new_func_t func;
 #ifdef SUPPORT_PIXMAP_ENGINE
@@ -345,7 +350,7 @@ ui_sb_view_t *ui_sb_view_new(const char *name) {
 #endif
 
   if (strcmp(name, "simple") == 0) {
-    return check_version(ui_simple_sb_view_new());
+    return check_version(ui_simple_sb_view_new(device_pixel_ratio));
   } else if ((func = dlsym_sb_view_new_func(name, 0)) == NULL) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " %s scrollbar failed.\n", name);
@@ -377,7 +382,7 @@ ui_sb_view_t *ui_transparent_sb_view_new(const char *name) {
 #endif
 
   if (strcmp(name, "simple") == 0) {
-    return check_version(ui_simple_transparent_sb_view_new());
+    return check_version(ui_simple_transparent_sb_view_new(device_pixel_ratio));
   } else if ((func = dlsym_sb_view_new_func(name, 1)) == NULL) {
     return NULL;
   }

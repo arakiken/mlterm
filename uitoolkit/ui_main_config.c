@@ -13,6 +13,7 @@
 #include <vt_term_manager.h>
 #include "ui_selection_encoding.h"
 #include "ui_emoji.h"
+#include "ui_sb_view_factory.h"
 
 #if defined(__ANDROID__) || defined(USE_QUARTZ) || defined(USE_WIN32API)
 /* Shrink unused memory */
@@ -332,6 +333,8 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "directory to save received files [~/.mlterm/recv]");
   bl_conf_add_opt(conf, '\0', "fk", 1, "format_other_keys",
                   "send modified keys as parameter for CSI u [false]");
+  bl_conf_add_opt(conf, '\0', "sdpr", 0, "simple_scrollbar_dpr",
+                  "device pixel ratio for simple scrollbar [1]");
 #ifdef USE_IM_CURSOR_COLOR
   bl_conf_add_opt(conf, '\0', "imcolor", 0, "im_cursor_color",
                   "cursor color when input method is activated. [false]");
@@ -1430,6 +1433,14 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
 
   if ((value = bl_conf_get_value(conf, "receive_directory"))) {
     vt_set_recv_dir(value);
+  }
+
+  if ((value = bl_conf_get_value(conf, "simple_scrollbar_dpr"))) {
+    int dpr;
+
+    if (bl_str_to_int(&dpr, value) && dpr > 0) {
+      ui_simple_scrollbar_set_dpr(dpr);
+    }
   }
 
 #ifdef USE_IM_CURSOR_COLOR

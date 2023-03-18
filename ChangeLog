@@ -1,3 +1,14 @@
+2023-03-18  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja, etc/main, etc/main.ja: Updated.
+
+	* ui_sb_factory.[ch]: ui_simple_scrollbar_set_dpr() is added.
+
+	* ui_main_config.c: --sdpr / simple_scrollbar_dpr option is added.
+
+	* motif_data.h, mozmodern_data.h, next_data.h, ui_arrow_data.h:
+	  Fix up the appearance.
+
 2023-02-26  Araki Ken  <arakiken@users.sf.net>
 
 	* cocoa.m: MLTermView::update always calls [self setNeedsDisplay:YES].

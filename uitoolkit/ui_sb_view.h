@@ -44,8 +44,8 @@ typedef struct ui_sb_view {
   void (*destroy)(struct ui_sb_view *);
 
   /*
-   * Win32: ui_sb_view_t::gc is set by ui_scrollbar.c before following draw_XXX
-   *        functions is called.
+   * Win32:
+   * ui_scrollbar.c sets ui_sb_view_t::gc before calling following draw_XXX functions.
    */
 
   /* drawing bar only. */
