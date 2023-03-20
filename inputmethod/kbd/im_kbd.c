@@ -282,12 +282,14 @@ static u_char *hebrew_conv_tbl[] = {
 /* --- static functions --- */
 
 static kbd_type_t find_kbd_type(char *locale) {
-  if (locale && strncmp(locale, "ar", 2) == 0) {
-    return KBD_TYPE_ARABIC;
-  }
+  if (locale) {
+    if (strncmp(locale, "ar", 2) == 0) {
+      return KBD_TYPE_ARABIC;
+    }
 
-  if (locale && strncmp(locale, "he", 2) == 0) {
-    return KBD_TYPE_HEBREW;
+    if (strncmp(locale, "he", 2) == 0) {
+      return KBD_TYPE_HEBREW;
+    }
   }
 
   return KBD_TYPE_UNKNOWN;
@@ -535,11 +537,13 @@ ui_im_t *im_kbd_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     type = KBD_TYPE_ISCII;
   } else {
     type = find_kbd_type(bl_get_locale());
-  }
 
-  if (type == KBD_TYPE_UNKNOWN) {
-    if (IS_ISCII_ENCODING(term_encoding)) {
-      type = KBD_TYPE_ISCII;
+    if (type == KBD_TYPE_UNKNOWN) {
+      if (IS_ISCII_ENCODING(term_encoding)) {
+        type = KBD_TYPE_ISCII;
+      } else {
+        return NULL;
+      }
     }
   }
 
@@ -654,15 +658,14 @@ im_info_t *im_kbd_get_info(char *locale, char *encoding) {
     case KBD_TYPE_HEBREW:
       result->readable_args[0] = strdup("Hebrew");
       break;
-    case KBD_TYPE_UNKNOWN:
+    /* case KBD_TYPE_UNKNOWN: */
+    default:
       if (strncmp(encoding, "ISCII", 5) == 0) {
         result->readable_args[0] = malloc(6 /* "Indic " */ + 2 /* () */ + strlen(encoding + 5) + 1);
         sprintf(result->readable_args[0], "Indic (%s)", encoding + 5);
       } else {
         result->readable_args[0] = strdup("unknown");
       }
-      break;
-    default:
       break;
   }
 

@@ -22,6 +22,7 @@
   Fix https://github.com/arakiken/mlterm/issues/44.
   Fix https://github.com/arakiken/mlterm/issues/50.
   Fix https://github.com/arakiken/mlterm/issues/51.
+  Fix https://github.com/arakiken/mlterm/issues/53.
   Fix https://twitter.com/isaki68k/status/1555895011991883783.
   Fix segfault in starting mlterm with --dyncomb and --otl.
 

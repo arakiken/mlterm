@@ -1,8 +1,12 @@
 2023-03-20  Araki Ken  <arakiken@users.sf.net>
 
+	* im_kbd.c: im_kbd_new() returns NULL if kbd layout except arabic and
+	  hebrew is requested.
+
 	* ui_screen.c:
 	  - button_motion() ignores Button2Mask, Button4Mask - Button7Mask in
 	    selecting region.
+	    (https://github.com/arakiken/mlterm/issues/53)
 	  - Not only pointer_motion() but button_motion() and button_pressed()
 	    call show_pointer().
 
