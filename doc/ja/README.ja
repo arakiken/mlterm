@@ -263,7 +263,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
     --disable-dnd
       XDnD プロトコルによるドラッグアンドドロップサポートを無効にします。
 
-    --disable-kdb
+    --disable-kbd
       kbd (アラビア語/ヘブライ語/インド諸語用インプットメソッド)を無効にします。
 
     --disable-uim
