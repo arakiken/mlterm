@@ -3568,6 +3568,8 @@ static void button_motion(ui_window_t *win, XMotionEvent *event) {
 
   screen = (ui_screen_t *)win;
 
+  show_pointer(screen);
+
 #ifdef FLICK_SCROLL
   if (screen->flick_time) {
     int diff = event->y - screen->flick_cur_y;
@@ -3634,7 +3636,7 @@ static void button_motion(ui_window_t *win, XMotionEvent *event) {
       restore_selected_region_color_instantly(screen);
       report_mouse_tracking(screen, event->x, event->y, button, event->state, 1, 0);
     }
-  } else if (!(event->state & Button2Mask)) {
+  } else if (event->state & (Button1Mask|Button3Mask)) {
     switch (ui_is_selecting(&screen->sel)) {
       case SEL_WORD:
         selecting_word(screen, event->x, event->y, event->time);
@@ -3689,6 +3691,8 @@ static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num)
   u_int state;
 
   screen = (ui_screen_t *)win;
+
+  show_pointer(screen);
 
 #ifdef FLICK_SCROLL
   if (event->button == Button1) {

@@ -1,3 +1,11 @@
+2023-03-20  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c:
+	  - button_motion() ignores Button2Mask, Button4Mask - Button7Mask in
+	    selecting region.
+	  - Not only pointer_motion() but button_motion() and button_pressed()
+	    call show_pointer().
+
 2023-03-18  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, README.ja, etc/main, etc/main.ja: Updated.
