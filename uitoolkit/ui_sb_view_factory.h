@@ -5,7 +5,7 @@
 
 #include "ui_sb_view.h"
 
-void ui_scrollbar_set_dpr(int dpr);
+void ui_sb_view_set_dpr(int dpr);
 
 ui_sb_view_t *ui_sb_view_new(const char *name);
 
