@@ -1,5 +1,10 @@
 2023-03-21  Araki Ken  <arakiken@users.sf.net>
 
+	* quartz/ui_sb_view_factory.c: ui_sb_view_set_dpr() is added.
+
+	* ui_sb_view_factory.[ch], ui_main_config.c:
+	  ui_simple_scrollbar_set_dpr() -> ui_sb_view_set_dpr()
+
 	* README.ja, mlterm.1: Updated and fix typo.
 
 2023-03-20  Araki Ken  <arakiken@users.sf.net>

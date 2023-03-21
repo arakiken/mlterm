@@ -1439,7 +1439,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     int dpr;
 
     if (bl_str_to_int(&dpr, value) && dpr > 0) {
-      ui_simple_scrollbar_set_dpr(dpr);
+      ui_sb_view_set_dpr(dpr);
     }
   }
 

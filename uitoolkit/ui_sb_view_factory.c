@@ -318,7 +318,7 @@ static ui_sb_view_conf_t *find_view_rcfile(const char *name) {
 
 /* --- global functions --- */
 
-void ui_simple_scrollbar_set_dpr(int dpr) {
+void ui_sb_view_set_dpr(int dpr) {
   device_pixel_ratio = dpr;
 }
 
