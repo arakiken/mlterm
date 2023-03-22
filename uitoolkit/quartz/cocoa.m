@@ -536,19 +536,19 @@ static void reset_position(ui_window_t *uiwindow) {
       ui_scrollbar_is_moved(sb, pos);
       break;
     case NSScrollerDecrementLine:
-      ui_scrollbar_move_upward(sb, 1);
+      /* Call ui_scrollbar_move_upward(sb, 1) internally */
       (sb->sb_listener->screen_scroll_downward)(sb->sb_listener->self, 1);
       break;
     case NSScrollerDecrementPage:
-      ui_scrollbar_move_upward(sb, 10);
+      /* Call ui_scrollbar_move_upward(sb, 10) internally */
       (sb->sb_listener->screen_scroll_downward)(sb->sb_listener->self, 10);
       break;
     case NSScrollerIncrementLine:
-      ui_scrollbar_move_downward(sb, 1);
+      /* Call ui_scrollbar_move_downward(sb, 1) internally */
       (sb->sb_listener->screen_scroll_upward)(sb->sb_listener->self, 1);
       break;
     case NSScrollerIncrementPage:
-      ui_scrollbar_move_downward(sb, 10);
+      /* Call ui_scrollbar_move_downward(sb, 10) internally */
       (sb->sb_listener->screen_scroll_upward)(sb->sb_listener->self, 10);
       break;
     case NSScrollerNoPart:
@@ -1303,7 +1303,10 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 #ifdef USE_CGLAYER
   [self setNeedsDisplay:YES];
 #else
-  /* If IS_OPAQUE is true, setNeedsDisplay:YES clears full screen, which is unexpected. */
+  /*
+   * setNeedsDisplay:YES makes background completely transparent (alpha == 0)
+   * if 0 < alpha < 255.
+   */
   if (IS_OPAQUE || forceExpose) {
     /*
      * setNeedsDisplay:YES calls drawRect with full screen 'rect'.
@@ -1321,6 +1324,11 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 
     x += (uiwindow->hmargin);
     y += (uiwindow->vmargin);
+
+    /* y can be over ACTUAL_HEIGHT(uiwindow) in backscrolling. */
+    if (y > ACTUAL_HEIGHT(uiwindow)) {
+      y = ACTUAL_HEIGHT(uiwindow);
+    }
 
     [self setNeedsDisplayInRect:NSMakeRect(x, ACTUAL_HEIGHT(uiwindow) - y, 1, 1)];
   }
