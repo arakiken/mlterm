@@ -12,9 +12,13 @@
 * Merge patches:
   https://github.com/arakiken/mlterm/pull/45.
   https://github.com/arakiken/mlterm/pull/46.
+  https://github.com/arakiken/mlterm/pull/48.
   https://github.com/arakiken/mlterm/pull/49.
   https://github.com/arakiken/mlterm/pull/55. (Add --role / wm_role option)
   https://github.com/arakiken/mlterm/pull/57.
+  https://github.com/arakiken/mlterm/pull/61.
+  https://github.com/arakiken/mlterm/pull/62.
+  https://github.com/arakiken/mlterm/pull/63.
 * Bug fixes:
   Fix https://github.com/arakiken/mlterm/issues/34.
   Fix https://github.com/arakiken/mlterm/issues/35.
