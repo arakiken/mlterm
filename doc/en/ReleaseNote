@@ -1,3 +1,4 @@
+ver 3.9.3
 * mlterm-wl supports xdg-decoration.
 * Add --disable-compact-truecolor option to ./configure script.
 * Add vte 0.68 API symbols to libvte compatible library.
