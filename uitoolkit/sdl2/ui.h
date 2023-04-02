@@ -215,7 +215,19 @@ typedef int XFontSet; /* dummy */
 #define OwnerGrabButtonMask (1L << 24)
 #define ShiftMask (1 << 0)
 #define LockMask (1 << 1)
+/*
+ * <windows.h> in ui_picture.c or <winsock2.h> in sdl2/ui_display.c includes
+ * processthreadsapi.h which defines ControlMask as a member of
+ * _PROCESS_POWER_THROTTLING_STATE structure.
+ * "#define ControlMask" destroys it.
+ */
+#ifdef USE_WIN32API
+enum {
+  ControlMask = (1 << 2)
+};
+#else
 #define ControlMask (1 << 2)
+#endif
 #define Mod1Mask (1 << 3)
 #define Mod2Mask (1 << 4)
 #define Mod3Mask (1 << 5)

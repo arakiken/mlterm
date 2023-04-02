@@ -12,7 +12,7 @@ extern "C" {
  * supports c++.
  */
 #include <pobl/bl_debug.h>  /* bl_*_printf() */
-#include <pobl/bl_config.h> /* u_int */
+#include <pobl/bl_types.h> /* u_int */
 
 #define CHAR_ATTR_UNDERLINE (1U)
 #define CHAR_ATTR_REVERSE (1U << 1)

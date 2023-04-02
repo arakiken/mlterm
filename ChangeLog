@@ -1,3 +1,9 @@
+2023-04-02  Araki Ken  <arakiken@users.sf.net>
+
+	* sdl2/ui.h: Compiling error in win32 is fixed.
+
+	* version.h: 3.9.3 -> 3.9.3post
+
 2023-04-01  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.9.3 released.
