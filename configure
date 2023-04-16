@@ -25110,6 +25110,8 @@ See \`config.log' for more details" "$LINENO" 5; }
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
+#define _XOPEN_SOURCE 600
+#include <stdlib.h>
 #include <fcntl.h>
 int
 main ()
@@ -25147,6 +25149,7 @@ else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <fcntl.h>
+#include <sys/stat.h>
 int
 main ()
 {
@@ -25475,6 +25478,8 @@ else
 /* end confdefs.h.  */
 
 	#include <stdio.h>
+	#include <stdlib.h>
+	#include <stddef.h>
 	int main() {
 		return  calloc(8, ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0 ;
 	}
