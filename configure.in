@@ -2150,7 +2150,9 @@ elif test "$bl_cv_mingw" = "yes" ; then
 	bl_cv_pty=streams
 elif test "$host" = "$build" ; then
 	AC_CHECK_FUNC(posix_openpt,
-		[AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <fcntl.h>],
+		[AC_RUN_IFELSE([AC_LANG_PROGRAM([#define _XOPEN_SOURCE 600
+						#include <stdlib.h>
+						#include <fcntl.h>],
 						[return posix_openpt(O_RDWR | O_NOCTTY) == -1;])],
 				[
 					AC_DEFINE(HAVE_POSIX_OPENPT,,"HAVE_POSIX_OPENPT")
@@ -2160,7 +2162,8 @@ elif test "$host" = "$build" ; then
 		[bl_cv_pty=bsd])
 	if test "$bl_cv_pty" = "bsd" ; then
 		AC_RUN_IFELSE(
-			[AC_LANG_PROGRAM([#include <fcntl.h>],
+			[AC_LANG_PROGRAM([#include <sys/stat.h>
+					#include <fcntl.h>],
 					[return open( "/dev/ptmx", O_RDWR | O_NOCTTY, 0) == -1;])],
 			[bl_cv_pty=streams])
 	fi
@@ -2297,6 +2300,8 @@ if test "$host" = "$build"; then
 	AC_TRY_RUN(
 	[
 	#include <stdio.h>
+	#include <stdlib.h>
+	#include <stddef.h>
 	int main() {
 		return  calloc(8, ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0 ;
 	}
