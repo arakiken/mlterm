@@ -297,7 +297,8 @@ elif test "$host" = "$build" ; then
 		[bl_cv_pty=bsd])
 	if test "$bl_cv_pty" = "bsd" ; then
 		AC_RUN_IFELSE(
-			[AC_LANG_PROGRAM([#include <fcntl.h>],
+			[AC_LANG_PROGRAM([#include <sys/stat.h>
+					#include <fcntl.h>],
 					[return open( "/dev/ptmx", O_RDWR | O_NOCTTY, 0) == -1;])],
 			[bl_cv_pty=streams])
 	fi
@@ -436,11 +437,10 @@ fi
 if test "$host" = "$build"; then
 	AC_TRY_RUN(
 	[
-	#include <stdio.h>
 	#include <stdlib.h>
 	#include <stddef.h>
 	int main() {
-		return  calloc(8, ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0 ;
+		return calloc(8, ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0;
 	}
 	],
 	AC_DEFINE(CALLOC_CHECK_OVERFLOW))

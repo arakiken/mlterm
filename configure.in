@@ -2299,11 +2299,10 @@ AC_DEFINE(REMOVE_FUNCS_MLTERM_UNUSE,,"REMOVE_FUNCS_MLTERM_UNUSE")
 if test "$host" = "$build"; then
 	AC_TRY_RUN(
 	[
-	#include <stdio.h>
 	#include <stdlib.h>
 	#include <stddef.h>
 	int main() {
-		return  calloc(8, ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0 ;
+		return calloc(8, ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0;
 	}
 	],
 	AC_DEFINE(CALLOC_CHECK_OVERFLOW))

@@ -13264,11 +13264,12 @@ See \`config.log' for more details" "$LINENO" 5; }
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
+#include <sys/stat.h>
 #include <fcntl.h>
 int
 main ()
 {
-return open( "/dev/ptmx", O_RDWR | O_NOCTTY, 0) == -1;
+return open("/dev/ptmx", O_RDWR | O_NOCTTY, 0) == -1;
   ;
   return 0;
 }
@@ -13600,11 +13601,10 @@ else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-	#include <stdio.h>
 	#include <stdlib.h>
 	#include <stddef.h>
 	int main() {
-		return  calloc(8, ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0 ;
+		return calloc(8, ((1 << (sizeof(size_t) * 8 - 1)) + 1)) ? 1 : 0;
 	}
 
 _ACEOF
