@@ -15,7 +15,7 @@ jobs:
 
     - name: "setup linux build environment"
       if: ${{ startsWith(matrix.os, 'ubuntu') }}
-      run: sudo apt install -y libgtk-3-dev libvterm-dev libvte-2.91-dev libsdl2-dev libfribidi-dev libuim-dev libfcitx5core-dev libfcitx5gclient-dev libscim-dev libssh2-1-dev curl
+      run: sudo apt update; sudo apt install -y libgtk-3-dev libvterm-dev libvte-2.91-dev libsdl2-dev libfribidi-dev libuim-dev libfcitx5core-dev libfcitx5gclient-dev libscim-dev libssh2-1-dev curl
 
     - name: "setup macos build environment"
       if: ${{ startsWith(matrix.os, 'macos') }}
