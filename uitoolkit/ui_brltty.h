@@ -14,6 +14,6 @@ void ui_brltty_focus(vt_term_t *term);
 
 void ui_brltty_write(void);
 
-void ui_brltty_key(KeySym ksym, const u_char *kstr, size_t len);
+void ui_brltty_speak_key(KeySym ksym, const u_char *kstr, size_t len);
 
 #endif

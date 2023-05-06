@@ -1,3 +1,7 @@
+2023-05-06  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_brltty.h: ui_brltty_key() -> ui_brltty_speak_key()
+
 2023-04-02  Araki Ken  <arakiken@users.sf.net>
 
 	* sdl2/ui.h: Compiling error in win32 is fixed.
