@@ -1,3 +1,8 @@
+* Merge patches:
+  https://github.com/arakiken/mlterm/pull/68.
+* Bug fixes:
+  https://github.com/arakiken/mlterm/issues/67.
+
 ver 3.9.3
 * mlterm-wl supports xdg-decoration.
 * Add --disable-compact-truecolor option to ./configure script.

@@ -1,5 +1,8 @@
 2023-05-06  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_window_cairo.c: -Wint-conversion warning is fixed.
+	  (https://github.com/arakiken/mlterm/issues/67)
+
 	* ui_brltty.h: ui_brltty_key() -> ui_brltty_speak_key()
 
 2023-04-02  Araki Ken  <arakiken@users.sf.net>
