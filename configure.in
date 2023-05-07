@@ -1072,7 +1072,7 @@ AC_ARG_WITH(tools,
 		if test "${with_tools}" != "yes" ; then
 			tools=${with_tools}
 		fi
-		if test -z "$IMAGELIB_CFLAGS" -a "`echo ${tools}|$GREP mlimgloader`" = "" ; then
+		if test -z "$IMAGELIB_CFLAGS" -a "`echo ${tools}|$GREP mlimgloader`" = "" -a "$image" = "yes"; then
 			# If --with-imagelib option is not specified, mlimgloader is always built.
 			tools=${tools},mlimgloader
 		fi

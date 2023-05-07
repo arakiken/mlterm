@@ -19993,7 +19993,7 @@ if test "${with_tools+set}" = set; then :
 		if test "${with_tools}" != "yes" ; then
 			tools=${with_tools}
 		fi
-		if test -z "$IMAGELIB_CFLAGS" -a "`echo ${tools}|$GREP mlimgloader`" = "" ; then
+		if test -z "$IMAGELIB_CFLAGS" -a "`echo ${tools}|$GREP mlimgloader`" = "" -a "$image" = "yes"; then
 			# If --with-imagelib option is not specified, mlimgloader is always built.
 			tools=${tools},mlimgloader
 		fi
@@ -25111,8 +25111,8 @@ else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #define _XOPEN_SOURCE 600
-#include <stdlib.h>
-#include <fcntl.h>
+						#include <stdlib.h>
+						#include <fcntl.h>
 int
 main ()
 {
@@ -25149,11 +25149,11 @@ else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <sys/stat.h>
-#include <fcntl.h>
+					#include <fcntl.h>
 int
 main ()
 {
-return open("/dev/ptmx", O_RDWR | O_NOCTTY, 0) == -1;
+return open( "/dev/ptmx", O_RDWR | O_NOCTTY, 0) == -1;
   ;
   return 0;
 }

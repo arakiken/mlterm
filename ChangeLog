@@ -1,3 +1,7 @@
+2023-05-07  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in: --disable-image option disables mlimgloader.
+
 2023-05-06  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_window_cairo.c: -Wint-conversion warning is fixed.
