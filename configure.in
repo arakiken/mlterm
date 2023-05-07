@@ -1061,7 +1061,11 @@ else
 	have_vte=no
 fi
 
-tools="mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp,mlfc"
+if test "$image" = "yes"; then
+	tools="mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp,mlfc"
+else
+	tools="mlclient,mlconfig,mlcc,mlterm-menu,mlfc"
+fi
 AC_ARG_WITH(tools,
 	[  --with-tools@<:@=ARG@:>@      external tools @<:@default=mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp,mlfc@:>@],
 	[

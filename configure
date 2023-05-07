@@ -19981,7 +19981,11 @@ else
 	have_vte=no
 fi
 
-tools="mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp,mlfc"
+if test "$image" = "yes"; then
+	tools="mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp,mlfc"
+else
+	tools="mlclient,mlconfig,mlcc,mlterm-menu,mlfc"
+fi
 
 # Check whether --with-tools was given.
 if test "${with_tools+set}" = set; then :
