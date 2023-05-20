@@ -1,5 +1,7 @@
 2023-05-20  Araki Ken  <arakiken@users.sf.net>
 
+	* Makefile.in: Error in installing libzmodem.la is fixed.
+
 	* libctl/vt_bidi.[ch], vt_line_bidi.c: Arabic characters are redrawn
 	  entirely during being edited.
 

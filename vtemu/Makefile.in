@@ -63,7 +63,9 @@ install : $(LIBDIR)/mlterm
 	if test "`echo @LMLTERM_CORE@|grep .la`" != "" ; then \
 		$(LIBTOOL_INSTALL) @LMLTERM_CORE@ $(LIBDIR) ; \
 	fi
-	$(LIBTOOL_INSTALL) libzmodem.la $(LIBDIR)/mlterm
+	if test -f libzmodem.la; then \
+		$(LIBTOOL_INSTALL) libzmodem.la $(LIBDIR)/mlterm; \
+	fi
 
 uninstall :
 	rm -f $(LIBDIR)/*mlterm_core*.*
