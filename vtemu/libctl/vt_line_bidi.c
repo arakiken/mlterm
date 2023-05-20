@@ -129,6 +129,26 @@ int vt_line_bidi_render(vt_line_t *line, /* is always modified */
       vt_line_set_modified_all(line);
 
       return 1;
+    } else if (HAS_COMPLEX_SHAPE(line->ctl_info.bidi)) {
+      int beg = vt_line_get_beg_of_modified(line);
+      int end = vt_line_get_end_of_modified(line);
+      u_int code;
+
+      while (1) {
+        code = vt_char_code(line->chars + beg);
+        if (!CAN_BE_COMPLEX_SHAPE(code) || --beg < 0) {
+          break;
+        }
+      }
+
+      while (1) {
+        code = vt_char_code(line->chars + end);
+        if (!CAN_BE_COMPLEX_SHAPE(code) || ++end >= line->num_filled_chars) {
+          break;
+        }
+      }
+
+      vt_line_set_modified(line, beg, end);
     }
   } else {
     ret = 1; /* order is not changed */

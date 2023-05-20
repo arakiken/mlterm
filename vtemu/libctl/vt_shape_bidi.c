@@ -64,6 +64,7 @@ typedef struct arabic_comb4_present {
  * FBFB = FE8B(0626) + FBE9(0649)
  */
 
+/* See CAN_BE_COMPLEX_SHAPE in vt_bidi.h */
 static arabic_present_t arabic_present_table[] = {
   { 0x0621, 0xFE80, 0x0000, 0x0000, 0x0000, },
   { 0x0622, 0xFE81, 0xFE82, 0x0000, 0x0000, },

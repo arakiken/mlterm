@@ -271,6 +271,10 @@ int vt_bidi(vt_bidi_state_t state, vt_char_t *src, u_int size, vt_bidi_mode_t bi
 
         if (!HAS_RTL(state) && (fribidi_get_type(fri_src[count]) & FRIBIDI_MASK_RTL)) {
           SET_HAS_RTL(state);
+
+          if (!HAS_COMPLEX_SHAPE(state) && CAN_BE_COMPLEX_SHAPE(fri_src[count])) {
+            SET_HAS_COMPLEX_SHAPE(state);
+          }
         }
       }
     } else if (cs == DEC_SPECIAL) {
