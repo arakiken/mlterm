@@ -1673,7 +1673,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
     h/左                            ... 左移動
     u/PageUP                        ... ページアップ
     d/PageDown                      ... ページダウン
-    /                               ... 検索文字列の入力
+    /                               ... 検索文字列の入力(前方検索)
+    ?                               ... 検索文字列の入力(後方検索)
     Control+g                       ... 検索文字列の入力の中止
     Space, Return                   ... 領域選択開始、終了
     Mod(Alt)+Space, Mod(Alt)+Return ... 矩形領域選択開始

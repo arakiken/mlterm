@@ -9,7 +9,7 @@
 typedef struct ui_copymode {
   vt_char_t pattern[MAX_COPYMODE_PATTERN_LEN];
   u_int8_t pattern_len;
-  int8_t pattern_editing;
+  int8_t pattern_editing; /* 2: backward, 1: forward */
 
   int16_t cursor_char_index; /* visual */
   int16_t cursor_row;        /* visual */
@@ -20,7 +20,7 @@ ui_copymode_t *ui_copymode_new(int char_index, int row);
 
 void ui_copymode_destroy(ui_copymode_t *copymode);
 
-void ui_copymode_pattern_start_edit(ui_copymode_t *copymode);
+void ui_copymode_pattern_start_edit(ui_copymode_t *copymode, int backward);
 
 void ui_copymode_pattern_cancel_edit(ui_copymode_t *copymode);
 

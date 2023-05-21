@@ -2310,13 +2310,25 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
         int end_char_index;
         int end_row;
 
-        if (search_find(screen, pattern, 0,
+        if (search_find(screen, pattern, screen->copymode->pattern_editing == 2 ? 1 : 0,
                         &beg_char_index, &beg_row, &end_char_index, &end_row)) {
           vt_line_t *line;
 
-          if (vt_term_convert_scr_row_to_abs(screen->term, 0) + (int)vt_term_get_rows(screen->term)
-              <= beg_row) {
-            bs_scroll_to(screen, beg_row - vt_term_get_rows(screen->term) / 2, 0);
+          if (screen->copymode->pattern_editing == 1) {
+            if (vt_term_convert_scr_row_to_abs(screen->term, 0) +
+                (int)vt_term_get_rows(screen->term) <= beg_row) {
+              bs_scroll_to(screen, beg_row - vt_term_get_rows(screen->term) / 2, 0);
+            }
+          } else /* if (screen->copymode->pattern_editing == 2) */ {
+            if (vt_term_convert_scr_row_to_abs(screen->term, 0) > beg_row) {
+              int row = beg_row - vt_term_get_rows(screen->term) / 2;
+
+              if (row < -vt_term_get_num_logged_lines(screen->term)) {
+                row = -vt_term_get_num_logged_lines(screen->term);
+              }
+              enter_backscroll_mode(screen);
+              bs_scroll_to(screen, row, 0);
+            }
           }
 
           if ((line = vt_term_get_line(screen->term, screen->copymode->cursor_row))) {
@@ -2348,7 +2360,15 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
 #endif
   ) {
     if (!screen->copymode->pattern_editing) {
-      ui_copymode_pattern_start_edit(screen->copymode);
+      ui_copymode_pattern_start_edit(screen->copymode, 0);
+    }
+  } else if ((len == 1 && str[0] == '?')
+#if defined(USE_WIN32GUI) && defined(UTF16_IME_CHAR)
+             || (len == 2 && str[0] == 0 && str[1] == '?')
+#endif
+  ) {
+    if (!screen->copymode->pattern_editing) {
+      ui_copymode_pattern_start_edit(screen->copymode, 1);
     }
   } else {
     redraw_mode |= UPDATE_CURSOR;
