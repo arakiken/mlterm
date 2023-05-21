@@ -41,12 +41,12 @@ version 20230401
                   bidi_separators | bl_color | borderless | box_drawing_font | brightness |
                   click_interval | co_color | col_size_of_width_a | console_encoding |
                   console_sixel_colors | contrast | cursor_bg_color | cursor_fg_color |
-                  emoji_path | encoding | exit_backscroll_by_pty | fade_ratio | fg_color |
-                  fontsize | format_other_keys | gamma | geometry | hide_underline | icon_path |
-                  input_method | it_color | letter_space | line_space | local_echo_wait |
-                  locale | logging_msg | logging_vt_seq | logsize | mod_meta_key |
-                  mod_meta_mode | not_use_unicode_font | only_use_unicode_font |
-                  ot_features | ot_script | receive_string_via_ucs |
+                  emoji_path | emoji_file_format | encoding | exit_backscroll_by_pty |
+                  fade_ratio | fg_color | fontsize | format_other_keys | gamma | geometry |
+                  hide_underline | icon_path | input_method | it_color | letter_space |
+                  line_space | local_echo_wait | locale | logging_msg | logging_vt_seq |
+                  logsize | mod_meta_key | mod_meta_mode | not_use_unicode_font |
+                  only_use_unicode_font | ot_features | ot_script | receive_string_via_ucs |
                   regard_uri_as_word | rv_color | sb_bg_color | sb_fg_color | screen_width_ratio |
                   scrollbar_mode | scrollbar_view_name | send_file static_backscroll_mode |
                   tabsize | trim_trailing_newline_in_pasting | type_engine | ul_color |
@@ -62,11 +62,11 @@ version 20230401
                   bd_color | bel_mode | bg_color | bidi_mode | bidi_separators | bl_color |
                   borderless | box_drawing_font | brightness | click_interval | co_color |
                   col_size_of_width_a | cols | contrast | cursor_bg_color | cursor_fg_color |
-                  depth | emoji_path | encoding | fade_ratio | fg_color | fontconfig | fontsize |
-                  format_other_keys | gamma | gui | hide_underline | icon_path |
-                  input_method | is_auto_encoding | it_color | letter_space | line_space |
-                  local_echo_wait | locale | logging_vt_seq | logsize | mod_meta_key |
-                  mod_meta_mode | not_use_unicode_font |
+                  depth | emoji_path | emoji_file_format | encoding | fade_ratio | fg_color |
+                  fontconfig | fontsize | format_other_keys | gamma | gui | hide_underline |
+                  icon_path | input_method | is_auto_encoding | it_color | letter_space |
+                  line_space | local_echo_wait | locale | logging_vt_seq | logsize |
+                  mod_meta_key | mod_meta_mode | not_use_unicode_font |
                   only_use_unicode_font | ot_features | ot_script | pty_list | pty_name | pwd |
                   receive_directory | receive_string_via_ucs | regard_uri_as_word | rows |
                   rv_color | sb_bg_color | sb_fg_color | screen_width_ratio | scrollbar_mode |
@@ -118,6 +118,7 @@ version 20230401
   cursor_fg_color = <color name> | <color rgb>
   depth = 8 | 16 | 24 | 32 (xlib only)
   emoji_path = <directory> | <open type font file>
+  emoji_file_format = <format 1>(,<format 2>)
   encoding = <encoding name> | auto
   fade_ratio = <any ASCII decimal digit>
   fg_color = <color name> | <color rgb>
