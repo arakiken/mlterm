@@ -1,5 +1,8 @@
 2023-05-21  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_copymode.[ch], ui_screen.c:
+	  Pressing '?' in copy mode searchs for a string backward.
+
 	* tool/accessories/applycfg.sh: Added.
 
 2023-05-20  Araki Ken  <arakiken@users.sf.net>
