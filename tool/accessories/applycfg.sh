@@ -8,4 +8,6 @@ else
 	echo "~/.mlterm/main is not found"
 	exit 1
 fi
-cat $FILE | sed 's/\([^ =]*\)*[ =]*\(.*\)/\x1b]5379;\1=\2\x07/'
+
+# GNU sed
+cat $FILE | sed -n 's/\([^ =]*\)*[ =]*\(.*\)/\x1b]5379;\1=\2\x07/p' | tr -d '\n'
