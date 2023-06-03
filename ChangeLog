@@ -1,5 +1,9 @@
 2023-06-03  Araki Ken  <arakiken@users.sf.net>
 
+	* configure.in: If multiple values separated by comma is specified to
+	  --with-gui option of ./configure, all tools are built regardless of
+	  whether they actually work in each gui.
+
 	* tool/accessories/applyfontcfg.sh: Added.
 
 2023-05-21  Araki Ken  <arakiken@users.sf.net>

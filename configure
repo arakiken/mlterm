@@ -20789,10 +20789,17 @@ END
 fi
 
 
+if test "$gui_list" != ""; then
+	# Enable all tools by default
+	gui_for_tool="xlib"
+else
+	gui_for_tool=$gui
+fi
+
 for tool in ${tools} ; do
 case ${tool} in
 mlconfig)
-	if test "$gui" != "fb" -a "$gui" != "console" ; then
+	if test "$gui_for_tool" != "fb" -a "$gui_for_tool" != "console" ; then
 		if test "${have_gtk}" = "yes" -o "${have_gtk4}" = "yes" ; then
 
    for ac_header in locale.h
@@ -21602,7 +21609,7 @@ $as_echo "$LINGUAS" >&6; }
 	fi
 	;;
 mlterm-menu)
-	if test "${have_gtk}" = "yes" -a "$gui" != "fb" -a "$gui" != "console" ; then
+	if test "${have_gtk}" = "yes" -a "$gui_for_tool" != "fb" -a "$gui_for_tool" != "console" ; then
 		MAKE_DIRS2="contrib/tool/mlterm-menu ${MAKE_DIRS2}"
 		OUTPUT_FILES="contrib/tool/mlterm-menu/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
@@ -21614,7 +21621,7 @@ mlterm-menu)
 	fi
 	;;
 mlclient)
-	if test "$ml_cv_is_posix" = "yes" -a "$gui" != "console" ; then
+	if test "$ml_cv_is_posix" = "yes" -a "$gui_for_tool" != "console" ; then
 		MAKE_DIRS2="tool/mlclient ${MAKE_DIRS2}"
 		OUTPUT_FILES="tool/mlclient/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
@@ -21681,21 +21688,21 @@ mlcc)
 	fi
 	;;
 mlmenu)
-	if test "$gui" = "xlib" ; then
+	if test "$gui_for_tool" = "xlib" ; then
 		MAKE_DIRS2="tool/mlmenu ${MAKE_DIRS2}"
 		OUTPUT_FILES="tool/mlmenu/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
 	fi
 	;;
 mlterm-zoom)
-	if test "$gui" = "xlib" ; then
+	if test "$gui_for_tool" = "xlib" ; then
 		MAKE_DIRS2="contrib/tool/mlterm-zoom ${MAKE_DIRS2}"
 		OUTPUT_FILES="contrib/tool/mlterm-zoom/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
 	fi
 	;;
 mlimgloader)
-	if test "$gui" != "quartz" ; then
+	if test "$gui_for_tool" != "quartz" ; then
 		OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
 		MAKE_DIRS2="tool/mlimgloader ${MAKE_DIRS2}"
 		tools_result="$tools_result $tool"
@@ -22049,7 +22056,7 @@ fi
 	tools_result="$tools_result $tool"
 	;;
 mlfc)
-	if test "$gui" != "win32" -a "$gui" != "quartz" ; then
+	if test "$gui_for_tool" != "win32" -a "$gui_for_tool" != "quartz" ; then
 		if test "$have_fc" = "yes" ; then
 			OUTPUT_FILES="tool/mlfc/Makefile ${OUTPUT_FILES}"
 			MAKE_DIRS2="tool/mlfc ${MAKE_DIRS2}"
