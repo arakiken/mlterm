@@ -146,8 +146,11 @@ Framebuffer support
   o Available scrollbars are "simple" alone.
     It is not recommended to use them on 1 bpp.
   o Available input method plugins are kbd, canna, wnn, skk, m17nlib, uim, iBus
-    and fcitx.
+    and fcitx. If you use uim, don't forget to set LANG environmental variable
+    correctly.
     (iBus is not tested on FreeBSD)
+  o Set LANG environmental variable in advance in order for uim to select an
+    appropriate conversion engine.
   o You can rotate display (>= 16bpp) by --rotate=right or --rotate=left option.
     ("rotate_display = right" or "rotate_display = left" in ~/.mlterm/main is
      also available.)

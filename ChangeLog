@@ -1,17 +1,23 @@
 2023-06-03  Araki Ken  <arakiken@users.sf.net>
 
+	* doc/en/README.fb, doc/ja/README.fb, ReleaseNote: Updated.
+
 	* configure.in: If multiple values separated by comma is specified to
 	  --with-gui option of ./configure, all tools are built regardless of
 	  whether they actually work in each gui.
+	  (https://github.com/arakiken/mlterm/issues/73)
 
 	* tool/accessories/applyfontcfg.sh: Added.
+	  (https://github.com/arakiken/mlterm/issues/71)
 
 2023-05-21  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_copymode.[ch], ui_screen.c:
 	  Pressing '?' in copy mode searchs for a string backward.
+	  (https://github.com/arakiken/mlterm/issues/72)
 
 	* tool/accessories/applycfg.sh: Added.
+	  (https://github.com/arakiken/mlterm/issues/71)
 
 2023-05-20  Araki Ken  <arakiken@users.sf.net>
 

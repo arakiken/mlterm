@@ -161,9 +161,11 @@ Framebuffer 対応に関するメモ
     クロールバーの表示が乱れることがあるため、使用は推奨しません。
   o 使用可能な Input method plugin は、kbd、canna、wnn、skk、m17nlib、uim、iBus
     及び fcitx です。
-    (iBus を使用する場合は、あらかじめ、ibus-daemon -d 及び
-     /usr/lib/ibus-*/ibus-engine-* & を手動で起動しておいてください。
-     なお、iBus はFreeBSD 上ではテストしていません。)
+  o iBus を使用する場合は、あらかじめ、ibus-daemon -d 及び
+    /usr/lib/ibus-*/ibus-engine-* & を手動で起動しておいてください。
+    なお、iBus はFreeBSD 上ではテストしていません。
+  o uim が適切な変換エンジンを選択するようにするためには、予め LANG 環境変数を設
+    定しておく必要があります。
   o ディスプレイが 8 bpp 以上の場合は、--rotate=right 又は --rotate=left オプシ
     ョンを付けてmlterm を起動するか、~/.mlterm/main に
     rotate_display = right 又は
