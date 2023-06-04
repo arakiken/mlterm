@@ -134,17 +134,59 @@ int vt_line_bidi_render(vt_line_t *line, /* is always modified */
       int end = vt_line_get_end_of_modified(line);
       u_int code;
 
-      while (1) {
+      if (beg > 0) {
         code = vt_char_code(line->chars + beg);
-        if (!CAN_BE_COMPLEX_SHAPE(code) || --beg < 0) {
-          break;
+        if (!CAN_BE_COMPLEX_SHAPE(code)) {
+          /*
+           * *: shaped arabic glyph
+           * +: unshaped arabic glyph
+           * -: noarabic glyph
+           * ^: modified
+           *
+           * ** -> +- -> +-
+           *        ^    ^^
+           * https://github.com/arakiken/mlterm/issues/52#issuecomment-1565464016
+           */
+          code = vt_char_code(line->chars + beg - 1);
+          if (CAN_BE_COMPLEX_SHAPE(code)) {
+            beg--;
+          }
+        } else {
+          /*
+           * *+ -> *** -> ***
+           *         ^    ^^^
+           */
+          do {
+            code = vt_char_code(line->chars + beg - 1);
+            if (!CAN_BE_COMPLEX_SHAPE(code)) {
+              break;
+            }
+          } while (--beg > 0);
         }
       }
 
-      while (1) {
+      if (end + 1 < line->num_filled_chars) {
         code = vt_char_code(line->chars + end);
-        if (!CAN_BE_COMPLEX_SHAPE(code) || ++end >= line->num_filled_chars) {
-          break;
+        if (!CAN_BE_COMPLEX_SHAPE(code)) {
+          /*
+           * *** -> *-* -> *-*
+           *         ^      ^^
+           */
+          code = vt_char_code(line->chars + end + 1);
+          if (CAN_BE_COMPLEX_SHAPE(code)) {
+            end++;
+          }
+        } else {
+          /*
+           * ** -> *** -> ***
+           *       ^      ^^^
+           */
+          do {
+            code = vt_char_code(line->chars + end + 1);
+            if (!CAN_BE_COMPLEX_SHAPE(code)) {
+              break;
+            }
+          } while (++end + 1 < line->num_filled_chars);
         }
       }
 
