@@ -1,3 +1,8 @@
+2023-06-11  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in, README, README.ja: Additional information of
+	  --with-tools option about mlimgloader is added.
+
 2023-06-04  Araki Ken  <arakiken@users.sf.net>
 
 	* libctl/vt_line_bidi.c: The way of redrawing arabic glyphs is improved.

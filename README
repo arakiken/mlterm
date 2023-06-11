@@ -34,9 +34,8 @@ Options for configure
   --with-imagelib=(gdk-pixbuf)
     Link specified image library to mlterm for image processing.
     Note that this option is not necessary for image processing, because
-    'mlimgloader' program (which is compiled with gdk-pixbuf if
-    --with-tools=mlimgloader option is specified) can process images and
-    pass them to mlterm.
+    mlimgloader (see --with-tools) processes images instead and passes them
+    to mlterm.
     This option is recommended only if you build libvte which depends
     on gdk-pixbuf anyway.
     (Imlib is not supported since mlterm 3.0.2)
@@ -108,7 +107,8 @@ Options for configure
 
   --with-tools
     Build specified tools in tool/ and contrib/tool/ directories
-    mlimgloader is necessary to show images if --with-imagelib option is not specified.
+    mlimgloader is automatically added unless --disable-image or --with-imagelib
+    is specified.
     registobmp is necessary to process ReGIS.
 
   --disable-use-tools

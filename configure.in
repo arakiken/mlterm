@@ -1067,7 +1067,8 @@ else
 	tools="mlclient,mlconfig,mlcc,mlterm-menu,mlfc"
 fi
 AC_ARG_WITH(tools,
-	[  --with-tools@<:@=ARG@:>@      external tools @<:@default=mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp,mlfc@:>@],
+	[  --with-tools@<:@=ARG@:>@      external tools @<:@default=mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp,mlfc@:>@]
+                          (mlimgloader is automatically added unless --disable-image or --with-imagelib is specified),
 	[
 	# if given --without-tools
 	if test "${with_tools}" = "no" ; then

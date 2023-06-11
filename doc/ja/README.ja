@@ -1,4 +1,4 @@
-comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
 
 * mltermとは
   Multi Lingual TERMinal の略です。
@@ -184,9 +184,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
     --with-imagelib=(gdk-pixbuf)
       mlterm 本体に gdk-pixbuf をリンクし、壁紙やアイコンの画像を扱えるようにし
       ます。
-      このオプションを使用しない場合、--with-tools オプションで mlimgloader (外
-      部プログラム)をインストールしていれば、mlimgloader を使用して画像表示を行
-      います(mlterm 本体に gdk-pixbuf をリンクしなくても、画像表示が可能です。)。
+      なお、このオプションを指定しなくても、mlimgloader (--with-tools オプション
+      参照) をインストールしていれば、mlimgloader を使用して画像表示を行います
+      (mlterm 本体に gdk-pixbuf をリンクしなくても、画像表示が可能です。)。
 
     --with-libltdl
       モジュールの動的ローディングに libltdl を使用します。
@@ -255,6 +255,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
     --with-tools
       tool/ 又は contrib/tool/ 以下の指定されたツールをビルドします。
+      なお、mlimgloader は、--disable-image 又は --with-imagelib オプションを指
+      定しない限り、自動的にビルドされます。
 
     --disable-use-tools
       tool/ 又は contrib/tool/ 以下のツールを一切ビルドせず、これらのツールを呼

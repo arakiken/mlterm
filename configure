@@ -1761,6 +1761,7 @@ Optional Packages:
   --with-type-engines[=ARG] type engines (xcore, xft, cairo) [default=xcore,xft,cairo]
   --with-mosh[=ARG]       The directory where mosh is built
   --with-tools[=ARG]      external tools [default=mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp,mlfc]
+                          (mlimgloader is automatically added unless --disable-image or --with-imagelib is specified)
   --with-libltdl[=PREFIX] load modules with libltdl [default=without]
   --with-scrollbars[=ARG] scrollbar plugins (sample, extra, pixmap_engine) [default=sample,extra,pixmap_engine]
   --without-map-table     mapping table [default=with]
