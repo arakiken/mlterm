@@ -5945,7 +5945,7 @@ inline static int parse_vt100_escape_sequence(
       } else if (ps == 12) {
         /* "OSC 12" cursor bg color */
 
-        if (strcmp(pt, "?") != 0) /* ?:query rgb */ {
+        if (strcmp(pt, "?") == 0) /* ?:query rgb */ {
           /* XXX do nothing for now .*/
         } else {
           config_protocol_set_simple(vt_parser, "cursor_bg_color", pt, 1);
