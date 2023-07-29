@@ -1,3 +1,7 @@
+2023-07-29  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c: convert_char_index_to_x() never returns minus value.
+
 2023-06-11  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in, README, README.ja: Additional information of

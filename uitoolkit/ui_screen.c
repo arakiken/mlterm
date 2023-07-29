@@ -164,6 +164,11 @@ static int convert_char_index_to_x(
         x -= ui_calculate_vtchar_width(ui_get_font(screen->font_man, vt_char_font(ch)), ch, NULL);
       }
     }
+
+    if (x < 0) {
+      /* XXX This causes screen corruption, but avoids segfault in fb, wayland and sdl2. */
+      x = 0;
+    }
   } else {
     /*
      * excluding the last char width.
