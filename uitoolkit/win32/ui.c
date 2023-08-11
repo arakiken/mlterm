@@ -18,6 +18,7 @@ static struct {
   KeySym /* WORD */ ksym; /* 16bit */
 
 } keysym_table[] = {
+    /* Sort ascending by ASCII code. */
     {"BackSpace", XK_BackSpace},
     {"Delete", XK_Delete},
     {"Down", XK_Down},
@@ -59,6 +60,28 @@ static struct {
     {"Tab", XK_Tab},
     {"Up", XK_Up},
     {"Zenkaku_Hankaku", XK_Zenkaku_Hankaku},
+    {"ampersand", '&'},
+    {"apostrophe", '\''},
+    {"asterisk", '*'},
+    {"at", '@'},
+    {"colon", ':'},
+    {"comma", ','},
+    {"dollar", '$'},
+    {"equal", '='},
+    {"exclam", '!'},
+    {"greater", '>'},
+    {"less", '<'},
+    {"minus", '-'},
+    {"numbersign", '#'},
+    {"parenleft", '('},
+    {"parenright", ')'},
+    {"percent", '%'},
+    {"period", '.'},
+    {"plus", '+'},
+    {"question", '?'},
+    {"quotedbl", '\"'},
+    {"semicolon", ';'},
+    {"slash", '/'},
     {"space", ' '},
 };
 

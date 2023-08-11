@@ -1618,6 +1618,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
        --emojifmt=value: emoji_file_format
        --rz=value      : resize_mode
        --recvdir=value : receive_directory
+       --point=value   : use_point_size
        --aafont(=bool) : use_aafont (mlterm-fb, mlterm-wl or mlterm-sdl2 мя)
        --multivram(=bool) : separate_wall_picture (mlterm-fb on NetBSD/x68k мя)
        --slp(=bool)    : start_with_local_pty (Android мя)
