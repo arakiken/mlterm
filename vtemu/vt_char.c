@@ -23,16 +23,16 @@
 
 /* Combination of IS_ITALIC, IS_BOLD, IS_FULLWIDTH, CS_REVISION_1 and CHARSET(UNICODE AREA) */
 #define VTFONT(attr)                                                            \
-  IS_UNICODE_AREA_CS(attr)                                                      \
-    ? ((((attr) >> 3) & 0xf00) | ISO10646_UCS4_1 | (((attr) << 9) & 0xff000)) \
-    : (((attr) >> 3) & 0xfff)
+  (IS_UNICODE_AREA_CS(attr)                                             \
+     ? ((((attr) >> 3) & 0xf00) | ISO10646_UCS4_1 | (((attr) << 9) & 0xff000)) \
+     : (((attr) >> 3) & 0xfff))
 
 #define IS_ITALIC(attr) ((attr) & (0x1 << 14))
 #define IS_BOLD(attr) ((attr) & (0x1 << 13))
 #define IS_FULLWIDTH(attr) ((attr) & (0x1 << 12))
 #define COLUMNS(attr) ((((attr) >> 12) & 0x1) + 1);
 #define CHARSET(attr) \
-  IS_UNICODE_AREA_CS(attr) ? (ISO10646_UCS4_1 | (((attr) >> 3) & 0x100)) : (((attr) >> 3) & 0x1ff)
+  (IS_UNICODE_AREA_CS(attr) ? (ISO10646_UCS4_1 | (((attr) >> 3) & 0x100)) : (((attr) >> 3) & 0x1ff))
 
 #define IS_COMB(attr) ((attr) & (0x1 << 2))
 

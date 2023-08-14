@@ -242,6 +242,11 @@ int vt_line_bidi_visual(vt_line_t *line) {
       if (vt_get_combining_chars(src + count, &num) == NULL &&
           vt_char_combine_simple(line->chars + vis_pos, src + count)) {
         line->num_filled_chars--;
+#ifdef __DEBUG
+        bl_debug_printf("Combine arabic character %x to %x\n",
+                        vt_char_code(src + count),
+                        vt_char_code(line->chars + vis_pos));
+#endif
       } else {
         /* XXX Not correctly shown */
 #ifdef DEBUG
@@ -298,7 +303,19 @@ int vt_line_bidi_logical(vt_line_t *line) {
       if ((comb = vt_get_combining_chars(src + vis_pos, &num)) &&
           (0x600 <= (code = vt_char_code(src + vis_pos)) && code <= 0x6ff) /* Arabic */ &&
           !vt_char_is_comb(comb) /* arabic comb */) {
+#ifdef __DEBUG
+        bl_debug_printf("Uncombine arabic character %x from %x\n",
+                        vt_char_code(comb), vt_char_code(src + vis_pos));
+#endif
+
         vt_char_copy(line->chars + count, vt_get_base_char(src + vis_pos));
+
+        if (line->num_filled_chars + num > line->num_chars) {
+          bl_error_printf("Failed to show arabic chars correctly.\n");
+          if ((num = line->num_chars - line->num_filled_chars) == 0) {
+            goto next_count;
+          }
+        }
 
         do {
           vt_char_copy(line->chars + (++count), comb++);
@@ -310,17 +327,10 @@ int vt_line_bidi_logical(vt_line_t *line) {
                                     line->ctl_info.bidi->size, count);
       }
 
+    next_count:
       prev = vis_pos;
     }
   }
-
-#ifdef DEBUG
-  if (line->num_filled_chars > line->num_chars) {
-    bl_error_printf(BL_DEBUG_TAG " Bidi visual <=> logical fails."
-                    "(line->num_filled_chars %d > line->num_chars %d)\n",
-                    line->num_filled_chars, line->num_chars);
-  }
-#endif
 
   vt_str_final(src, orig_num_filled_chars);
 

@@ -1,3 +1,11 @@
+2023-08-14  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_char.c: IS_UNICODE_AREA_CS macro is enclosed by () to be expanded
+	  properly in 'if (IS_COMB_TRAILING(attr) && CHARSET(attr) == PICTURE_CHARSET)'
+	  in vt_get_picture_char().
+
+	* libctl/vt_line_bidi.c: Incorrect uncombining arabic characters is checked.
+
 2023-08-11  Araki Ken  <arakiken@users.sf.net>
 
 	* ui.c: ASCII symbols and signs are added to keysym_table.
