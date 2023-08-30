@@ -1,3 +1,7 @@
+2023-08-30  Araki Ken  <arakiken@users.sf.net>
+
+	* tool/main.c: --geometry and --display options are ignored in gtk4.
+
 2023-08-14  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_char.c: CHARSET macro is enclosed by () to be expanded

@@ -1029,6 +1029,18 @@ int main(int argc, char **argv) {
       if (strcmp(argv[count], "--file") == 0) {
         is_file_io = 1;
       }
+#ifdef GTK_CHECK_VERSION(4, 0, 0)
+      else if (strcmp(argv[count], "--geometry") == 0 || strcmp(argv[count], "--display") == 0) {
+        if (count + 1 < argc) {
+          memmove(argv + count, argv + count + 2, sizeof(*argv) * (argc - count - 1));
+          argc -= 2;
+        } else {
+          argv[count] = NULL;
+          argc = count;
+        }
+        count--;
+      }
+#endif
     }
   }
   mc_io_set_use_file(is_file_io);
