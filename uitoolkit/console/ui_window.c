@@ -1320,7 +1320,7 @@ void ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2)
 }
 
 int ui_window_set_selection_owner(ui_window_t *win, Time time, ui_selection_flag_t selection) {
-  if (ui_window_is_selection_owner(win)) {
+  if (ui_window_is_selection_owner(win, selection)) {
     /* Already owner */
 
     return 1;

@@ -1,5 +1,10 @@
 2023-09-12  Araki Ken  <arakiken@users.sf.net>
 
+	* beos/ui_window.c, console/ui_window.c, quartz/ui_window.c:
+	  Compiling error is fixed.
+
+2023-09-12  Araki Ken  <arakiken@users.sf.net>
+
 	* doc/en/PROTOCOL, doc/ja/README.ja, man/mlterm.1, etc/main,
 	  etc/main.ja, etc/key: Updated.
 

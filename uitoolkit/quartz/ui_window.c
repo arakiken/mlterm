@@ -1172,7 +1172,7 @@ int ui_window_set_selection_owner(ui_window_t *win, Time time, ui_selection_flag
     (*win->utf_selection_requested)(win, NULL, time);
   }
 #else
-  if (ui_window_is_selection_owner(win)) {
+  if (ui_window_is_selection_owner(win, selection)) {
     /* Already owner */
 
     return 1;
