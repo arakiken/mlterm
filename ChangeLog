@@ -1,5 +1,8 @@
 2023-09-12  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/ui_window.c: ui_display_clear_clipboard() is called only if
+	  USE_WAYLAND is defined.
+
 	* ui_screen.c: ui_shortcut_match(COPY_CLIPBOARD) is called only if
 	  USE_XLIB or USE_WAYLAND is defined.
 

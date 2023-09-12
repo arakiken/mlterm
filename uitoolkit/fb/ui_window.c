@@ -1292,7 +1292,9 @@ void ui_window_final(ui_window_t *win) {
   free(win->children);
 
   ui_display_clear_selection(win->disp, win);
+#ifdef USE_WAYLAND
   ui_display_clear_clipboard(win->disp, win);
+#endif
 
   if (win->window_finalized) {
     (*win->window_finalized)(win);
