@@ -2424,11 +2424,15 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
       if ((line = vt_term_get_line(screen->term, screen->copymode->cursor_row))) {
         line->mark ^= 1;
       }
-    } else if (ui_shortcut_match(screen->shortcut, COPY_CLIPBOARD, ksym, state)) {
+    }
+#if defined(USE_XLIB) || defined(USE_WAYLAND)
+    else if (ui_shortcut_match(screen->shortcut, COPY_CLIPBOARD, ksym, state)) {
       if (screen->sel.sel_str && screen->sel.sel_len > 0) {
         ui_window_set_selection_owner(&screen->window, CurrentTime, SEL_CLIPBOARD);
       }
-    } else if (ksym == XK_Left || ksym == 'h') {
+    }
+#endif
+    else if (ksym == XK_Left || ksym == 'h') {
       if (vt_line_is_rtl(line) &&
           screen->copymode->cursor_char_index <= get_beg_in_rtl_line(line)) {
         screen->copymode->cursor_char_index = -1;

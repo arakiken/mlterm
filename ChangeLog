@@ -1,5 +1,8 @@
 2023-09-12  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_screen.c: ui_shortcut_match(COPY_CLIPBOARD) is called only if
+	  USE_XLIB or USE_WAYLAND is defined.
+
 	* beos/ui_window.c, console/ui_window.c, quartz/ui_window.c:
 	  Compiling error is fixed.
 
