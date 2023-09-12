@@ -347,7 +347,6 @@ int init_data(config_data_t *data) {
   entry_radio_add(section, "Bel mode", "bel_mode", "none/sound/visual");
   entry_bool_add(section, "Combining", "use_dynamic_comb");
   entry_bool_add(section, "Fullwidth", "use_multi_column_char");
-  entry_bool_add(section, "Clipboard", "use_clipboard");
   return 0;
 }
 

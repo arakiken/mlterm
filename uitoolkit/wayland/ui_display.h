@@ -53,4 +53,10 @@ void ui_display_set_title(ui_display_t *disp, const u_char *name);
 
 void ui_display_set_maximized(ui_display_t *disp, int flag);
 
+int ui_display_own_clipboard(ui_display_t *disp, ui_window_ptr_t win);
+
+int ui_display_clear_clipboard(ui_display_t *disp, ui_window_ptr_t win);
+
+void ui_display_request_text_clipboard(ui_display_t *disp);
+
 #endif

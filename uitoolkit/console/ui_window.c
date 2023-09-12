@@ -1319,11 +1319,7 @@ void ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2)
   ui_window_fill_with(win, &win->fg_color, x2, y1, 1, y2 - y1 + 1);
 }
 
-void ui_set_use_clipboard_selection(int use_it) {}
-
-int ui_is_using_clipboard_selection(void) { return 0; }
-
-int ui_window_set_selection_owner(ui_window_t *win, Time time) {
+int ui_window_set_selection_owner(ui_window_t *win, Time time, ui_selection_flag_t selection) {
   if (ui_window_is_selection_owner(win)) {
     /* Already owner */
 
@@ -1333,7 +1329,7 @@ int ui_window_set_selection_owner(ui_window_t *win, Time time) {
   return ui_display_own_selection(win->disp, win);
 }
 
-int ui_window_xct_selection_request(ui_window_t *win, Time time) {
+int ui_window_xct_selection_request(ui_window_t *win, Time time, ui_selection_flag_t selection) {
   u_int count;
   u_int num_displays;
   ui_display_t **displays = ui_get_opened_displays(&num_displays);
@@ -1355,7 +1351,7 @@ int ui_window_xct_selection_request(ui_window_t *win, Time time) {
   return 1;
 }
 
-int ui_window_utf_selection_request(ui_window_t *win, Time time) {
+int ui_window_utf_selection_request(ui_window_t *win, Time time, ui_selection_flag_t selection) {
   u_int count;
   u_int num_displays;
   ui_display_t **displays = ui_get_opened_displays(&num_displays);

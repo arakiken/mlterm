@@ -104,9 +104,6 @@ static int update(mc_io_t io) {
   mc_update_flag_mode(MC_FLAG_COMB);
   mc_update_flag_mode(MC_FLAG_DYNCOMB);
   mc_update_flag_mode(MC_FLAG_RECVUCS);
-  if (strcmp(gui, "xlib") == 0) {
-    mc_update_flag_mode(MC_FLAG_CLIPBOARD);
-  }
   mc_update_flag_mode(MC_FLAG_LOCALECHO);
   mc_update_flag_mode(MC_FLAG_BLINKCURSOR);
   mc_update_flag_mode(MC_FLAG_STATICBACKSCROLL);
@@ -933,12 +930,6 @@ static int show(void)
   hbox = gtk_hbox_new(FALSE, 0);
   gtk_widget_show(hbox);
   gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
-
-  if (strcmp(gui, "xlib") == 0) {
-    config_widget = mc_flag_config_widget_new(MC_FLAG_CLIPBOARD);
-    gtk_widget_show(config_widget);
-    gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
-  }
 
   config_widget = mc_flag_config_widget_new(MC_FLAG_LOCALECHO);
   gtk_widget_show(config_widget);

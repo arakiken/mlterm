@@ -1,5 +1,9 @@
+* Support Shift+Control+v and Shift+Control+c to use clipboard by default.
+  Drop -P/--clip/use_clipboard option.
+* Add COPY_CLIPBOARD shortcut key.
 * Pressing '?' in copy mode searches for a string backward.
   (https://github.com/arakiken/mlterm/issues/72)
+* Support wp-primary-selection protocol in wayland.
 * Add tool/accessories/applycfg.sh and applyfontcfg.sh
   (https://github.com/arakiken/mlterm/issues/71)
 * Merge patches:
@@ -9,6 +13,8 @@
   https://github.com/arakiken/mlterm/issues/67.
   https://github.com/arakiken/mlterm/issues/69.
   https://github.com/arakiken/mlterm/issues/73.
+  https://github.com/arakiken/mlterm/issues/78.
+  Fix an issue where mlconfig was not displayed.
 
 ver 3.9.3
 * mlterm-wl supports xdg-decoration.

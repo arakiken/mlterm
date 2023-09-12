@@ -30,6 +30,16 @@
 #include <stdint.h>
 #include "wayland-util.h"
 
+#ifndef __has_attribute
+# define __has_attribute(x) 0  /* Compatibility with non-clang compilers. */
+#endif
+
+#if (__has_attribute(visibility) || defined(__GNUC__) && __GNUC__ >= 4)
+#define WL_PRIVATE __attribute__ ((visibility("hidden")))
+#else
+#define WL_PRIVATE
+#endif
+
 extern const struct wl_interface wl_output_interface;
 extern const struct wl_interface wl_seat_interface;
 extern const struct wl_interface wl_surface_interface;
@@ -76,7 +86,7 @@ static const struct wl_message zxdg_shell_v6_events[] = {
 	{ "ping", "u", xdg_shell_unstable_v6_types + 0 },
 };
 
-WL_EXPORT const struct wl_interface zxdg_shell_v6_interface = {
+WL_PRIVATE const struct wl_interface zxdg_shell_v6_interface = {
 	"zxdg_shell_v6", 1,
 	4, zxdg_shell_v6_requests,
 	1, zxdg_shell_v6_events,
@@ -92,7 +102,7 @@ static const struct wl_message zxdg_positioner_v6_requests[] = {
 	{ "set_offset", "ii", xdg_shell_unstable_v6_types + 0 },
 };
 
-WL_EXPORT const struct wl_interface zxdg_positioner_v6_interface = {
+WL_PRIVATE const struct wl_interface zxdg_positioner_v6_interface = {
 	"zxdg_positioner_v6", 1,
 	7, zxdg_positioner_v6_requests,
 	0, NULL,
@@ -110,7 +120,7 @@ static const struct wl_message zxdg_surface_v6_events[] = {
 	{ "configure", "u", xdg_shell_unstable_v6_types + 0 },
 };
 
-WL_EXPORT const struct wl_interface zxdg_surface_v6_interface = {
+WL_PRIVATE const struct wl_interface zxdg_surface_v6_interface = {
 	"zxdg_surface_v6", 1,
 	5, zxdg_surface_v6_requests,
 	1, zxdg_surface_v6_events,
@@ -138,7 +148,7 @@ static const struct wl_message zxdg_toplevel_v6_events[] = {
 	{ "close", "", xdg_shell_unstable_v6_types + 0 },
 };
 
-WL_EXPORT const struct wl_interface zxdg_toplevel_v6_interface = {
+WL_PRIVATE const struct wl_interface zxdg_toplevel_v6_interface = {
 	"zxdg_toplevel_v6", 1,
 	14, zxdg_toplevel_v6_requests,
 	2, zxdg_toplevel_v6_events,
@@ -154,7 +164,7 @@ static const struct wl_message zxdg_popup_v6_events[] = {
 	{ "popup_done", "", xdg_shell_unstable_v6_types + 0 },
 };
 
-WL_EXPORT const struct wl_interface zxdg_popup_v6_interface = {
+WL_PRIVATE const struct wl_interface zxdg_popup_v6_interface = {
 	"zxdg_popup_v6", 1,
 	2, zxdg_popup_v6_requests,
 	2, zxdg_popup_v6_events,

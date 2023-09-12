@@ -43,3 +43,12 @@ else
 fi
 wayland-scanner $CODE $XML_FILE xdg-decoration-unstable-v1-client-protocol.c
 wayland-scanner client-header $XML_FILE xdg-decoration-unstable-v1-client-protocol.h
+
+if test -f /usr/share/wayland-protocols/unstable/primary-selection/primary-selection-unstable-v1.xml; then
+	XML_FILE=/usr/share/wayland-protocols/unstable/primary-selection/primary-selection-unstable-v1.xml
+else
+	curl https://cgit.freedesktop.org/wayland/wayland-protocols/plain/unstable/primary-selection/primary-selection-unstable-v1.xml > primary-selection-unstable-v1.xml
+	XML_FILE=primary-selection-unstable-v1.xml
+fi
+wayland-scanner $CODE $XML_FILE primary-selection-unstable-v1-client-protocol.c
+wayland-scanner client-header $XML_FILE primary-selection-unstable-v1-client-protocol.h

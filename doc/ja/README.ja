@@ -1077,9 +1077,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
         ANSI color change escape sequences を有効
         xterm の "colorMode" 相当のオプションです。
 
-      o use_clipboard (*true*/false) (#)
-        領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用
-
       o use_local_echo (true/*false*) (#)
         local echo mode を有効
 
@@ -1392,8 +1389,10 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
         現在の行にマーク
       o INSERT_SELECTION(Shift+Insert)
         セレクションのペースト
-      o INSERT_CLIPBOARD(UNUSED) (xlib 用)
+      o INSERT_CLIPBOARD(Shift+Control+v) (xlib/wayland 用)
         クリップボードのペースト
+      o COPY_CLIPBOARD(Shift+Control+c) (xlib/wayland 用)
+        選択した文字列をクリップボードにコピー
       o RESET(Pause)
         端末をリセット
       o COPY_MODE(Control+Shift+Return)
@@ -1519,7 +1518,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
     -M/--im=value      : input_method
     -N/--name=value    : app_name
     -O/--sbmod=value   : scrollbar_mode
-    -P/--clip(=bool)   : use_clipboard
     -Q/--vcur(=bool)   : use_vertical_cursor
     -R/--fsrange=value : font_size_range
     -S/--sbview=value  : scrollbar_view_name

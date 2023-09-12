@@ -11,7 +11,7 @@ typedef enum {
   SEL_WORD = 0x2,
   SEL_LINE = 0x3,
 
-} ui_sel_type_t;
+} ui_sel_mode_t;
 
 typedef struct ui_sel_event_listener {
   void *self;
@@ -48,7 +48,7 @@ typedef struct ui_selection {
   int prev_col;
   int prev_row;
 
-  int8_t is_selecting; /* ui_sel_type_t is stored */
+  int8_t is_selecting; /* ui_sel_mode_t is stored */
   int8_t is_reversed;
   int8_t is_locked;
   int8_t is_rect;
@@ -60,7 +60,7 @@ void ui_sel_init(ui_selection_t *sel, ui_sel_event_listener_t *listener);
 void ui_sel_final(ui_selection_t *sel);
 
 void ui_start_selection(ui_selection_t *sel, int col_l, int row_l, int col_r, int row_r,
-                        ui_sel_type_t type, int is_rect);
+                        ui_sel_mode_t mode, int is_rect);
 
 int ui_selecting(ui_selection_t *sel, int col, int row);
 

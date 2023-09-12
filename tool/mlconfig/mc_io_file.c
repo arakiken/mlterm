@@ -324,7 +324,6 @@ int mc_get_flag_value_file(const char *key) {
     { "use_anti_alias", 0 },
     { "use_auto_detect", 0 },
     { "use_bold_font", 0 },
-    { "use_clipboard", 0 },
     { "use_combining", 1 },
     { "use_ctl", 1 },
     { "use_dynamic_comb", 0 },

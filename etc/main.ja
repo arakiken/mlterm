@@ -351,9 +351,6 @@ scrollbar_view_name = sample
 # ~/.mlterm/[device].log に記録するフォーマットを指定 (raw,ttyrec)
 # vt_seq_format = raw
 
-# 領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用
-# use_clipboard = true
-
 # mlterm が出力するメッセージを ~/.mlterm/msg[pid].log に出力
 # logging_msg = true
 

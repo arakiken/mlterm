@@ -1729,8 +1729,8 @@ static u_int convert_nl_to_cr3(WCHAR *str, u_int len) {
 #endif
 #endif
 
-static int yank_event_received(ui_screen_t *screen, Time time) {
-  if (ui_window_is_selection_owner(&screen->window)) {
+static int yank_event_received(ui_screen_t *screen, Time time, ui_selection_flag_t selection) {
+  if (ui_window_is_selection_owner(&screen->window, selection)) {
     u_int len;
 
     if (screen->sel.sel_str == NULL || screen->sel.sel_len == 0) {
@@ -1767,11 +1767,11 @@ static int yank_event_received(ui_screen_t *screen, Time time) {
 
     if (encoding == VT_UTF8 ||
         (IS_UCS_SUBSET_ENCODING(encoding) && screen->receive_string_via_ucs)) {
-      return ui_window_utf_selection_request(&screen->window, time) ||
-             ui_window_xct_selection_request(&screen->window, time);
+      return ui_window_utf_selection_request(&screen->window, time, selection) ||
+             ui_window_xct_selection_request(&screen->window, time, selection);
     } else {
-      return ui_window_xct_selection_request(&screen->window, time) ||
-             ui_window_utf_selection_request(&screen->window, time);
+      return ui_window_xct_selection_request(&screen->window, time, selection) ||
+             ui_window_utf_selection_request(&screen->window, time, selection);
     }
   }
 }
@@ -2009,15 +2009,15 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
   }
 
   if (ui_shortcut_match(screen->shortcut, INSERT_SELECTION, ksym, state)) {
-    yank_event_received(screen, CurrentTime);
+    yank_event_received(screen, CurrentTime, SEL_PRIMARY);
   }
 #if defined(USE_XLIB) || defined(USE_WAYLAND)
   else if (ui_shortcut_match(screen->shortcut, INSERT_CLIPBOARD, ksym, state)) {
-    int flag = ui_is_using_clipboard_selection();
-
-    ui_set_use_clipboard_selection(2);
-    yank_event_received(screen, CurrentTime);
-    ui_set_use_clipboard_selection(flag);
+    yank_event_received(screen, CurrentTime, SEL_CLIPBOARD);
+  } else if (ui_shortcut_match(screen->shortcut, COPY_CLIPBOARD, ksym, state)) {
+    if (screen->sel.sel_str && screen->sel.sel_len > 0) {
+      ui_window_set_selection_owner(&screen->window, CurrentTime, SEL_CLIPBOARD);
+    }
   }
 #endif
   else if (ui_shortcut_match(screen->shortcut, RESET, ksym, state)) {
@@ -2219,7 +2219,7 @@ static u_int get_beg_in_rtl_line(vt_line_t *line) {
   return count;
 }
 
-static void start_selection(ui_screen_t*, int, int, ui_sel_type_t, int);
+static void start_selection(ui_screen_t*, int, int, ui_sel_mode_t, int);
 static int selecting(ui_screen_t*, int, int);
 
 static int copymode_move_vertical(ui_screen_t *screen, int step /* != 0 */) {
@@ -2424,6 +2424,10 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
       if ((line = vt_term_get_line(screen->term, screen->copymode->cursor_row))) {
         line->mark ^= 1;
       }
+    } else if (ui_shortcut_match(screen->shortcut, COPY_CLIPBOARD, ksym, state)) {
+      if (screen->sel.sel_str && screen->sel.sel_len > 0) {
+        ui_window_set_selection_owner(&screen->window, CurrentTime, SEL_CLIPBOARD);
+      }
     } else if (ksym == XK_Left || ksym == 'h') {
       if (vt_line_is_rtl(line) &&
           screen->copymode->cursor_char_index <= get_beg_in_rtl_line(line)) {
@@ -2473,7 +2477,9 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
         return;
       }
     } else {
+#if 0
       ui_sel_clear(&screen->sel);
+#endif
     }
   }
 
@@ -3286,7 +3292,7 @@ static void report_mouse_tracking(ui_screen_t *screen, int x, int y, int button,
  * Functions related to selection.
  */
 
-static void start_selection(ui_screen_t *screen, int col_r, int row_r, ui_sel_type_t type,
+static void start_selection(ui_screen_t *screen, int col_r, int row_r, ui_sel_mode_t mode,
                             int is_rect) {
   int col_l;
   int row_l;
@@ -3330,7 +3336,7 @@ static void start_selection(ui_screen_t *screen, int col_r, int row_r, ui_sel_ty
     row_l = row_r;
   }
 
-  ui_start_selection(&screen->sel, col_l, row_l, col_r, row_r, type, is_rect);
+  ui_start_selection(&screen->sel, col_l, row_l, col_r, row_r, mode, is_rect);
   ui_window_update(&screen->window, UPDATE_SCREEN);
 }
 
@@ -3864,7 +3870,7 @@ static void button_released(ui_window_t *win, XButtonEvent *event) {
         /* FIXME: should check whether a menu is really active? */
         return;
       } else {
-        yank_event_received(screen, event->time);
+        yank_event_received(screen, event->time, SEL_PRIMARY);
       }
     }
   }
@@ -4967,12 +4973,6 @@ static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
     }
   } else if (strcmp(key, "gui") == 0) {
     value = GUI_TYPE;
-  } else if (strcmp(key, "use_clipboard") == 0) {
-    if (ui_is_using_clipboard_selection()) {
-      value = "true";
-    } else {
-      value = "false";
-    }
   } else if (strcmp(key, "allow_osc52") == 0) {
     if (screen->xterm_listener.set_selection) {
       value = "true";
@@ -5251,7 +5251,7 @@ static int select_in_window(void *p, vt_char_t **chars, u_int *len, int beg_char
   }
 #endif
 
-  if (!ui_window_set_selection_owner(&screen->window, CurrentTime)) {
+  if (!ui_window_set_selection_owner(&screen->window, CurrentTime, SEL_PRIMARY)) {
     vt_str_destroy(*chars, size);
 
     return 0;
@@ -5304,6 +5304,7 @@ static void line_scrolled_out(void *p) {
    */
   vt_line_t *line;
 
+  /* See 'beg = INLINEPIC_AVAIL_ROW' in cleanup_inline_pictures() in ui_picture.c */
   if ((line = vt_term_get_line(screen->term, INLINEPIC_AVAIL_ROW))) {
     vt_line_clear_picture(line);
   }
@@ -6159,35 +6160,24 @@ static void xterm_set_selection(void *p,
                                 vt_char_t *str, /* Should be free'ed by the event listener. */
                                 u_int len, u_char *targets) {
   ui_screen_t *screen;
-  int use_clip_orig;
+  ui_selection_flag_t selection;
 
   screen = p;
 
-  use_clip_orig = ui_is_using_clipboard_selection();
-
   if (strchr(targets, 'c')) {
-    if (!use_clip_orig) {
-      ui_set_use_clipboard_selection(1);
-    }
-  } else if (!strchr(targets, 's') && strchr(targets, 'p')) {
-    /* 'p' is specified while 'c' and 's' aren't specified. */
-
-    if (use_clip_orig) {
-      ui_set_use_clipboard_selection(0);
-    }
+    selection = SEL_CLIPBOARD;
+  } else {
+    /* XXX secondary('q'), select('s') and cut-buffers('s') are regarded as primary('p')  */
+    selection = SEL_PRIMARY;
   }
 
-  if (ui_window_set_selection_owner(&screen->window, CurrentTime)) {
+  if (ui_window_set_selection_owner(&screen->window, CurrentTime, selection)) {
     if (screen->sel.sel_str) {
       vt_str_destroy(screen->sel.sel_str, screen->sel.sel_len);
     }
 
     screen->sel.sel_str = str;
     screen->sel.sel_len = len;
-  }
-
-  if (use_clip_orig != ui_is_using_clipboard_selection()) {
-    ui_set_use_clipboard_selection(use_clip_orig);
   }
 }
 
@@ -7079,15 +7069,8 @@ int ui_screen_exec_cmd(ui_screen_t *screen, char *cmd) {
      * processing_vtseq == 0 : stop processing vtseq.
      */
     if (screen->processing_vtseq <= 0) {
-      int flag = ui_is_using_clipboard_selection();
-
-      if (arg && strncmp(arg, "clip", 4) == 0) {
-        ui_set_use_clipboard_selection(2);
-      }
-
-      yank_event_received(screen, CurrentTime);
-
-      ui_set_use_clipboard_selection(flag);
+      yank_event_received(screen, CurrentTime,
+                          (arg && strncmp(arg, "clip", 4) == 0) ? SEL_CLIPBOARD : SEL_PRIMARY);
     }
   } else if (strcmp(cmd, "open_pty") == 0 || strcmp(cmd, "select_pty") == 0) {
     if (HAS_SYSTEM_LISTENER(screen, open_pty)) {
@@ -7493,12 +7476,6 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
   } else if (strcmp(key, "icon_path") == 0) {
     vt_term_set_icon_path(term, value);
     set_icon(screen);
-  } else if (strcmp(key, "use_clipboard") == 0) {
-    int flag;
-
-    if ((flag = true_or_false(value)) != -1) {
-      ui_set_use_clipboard_selection(flag);
-    }
   } else if (strcmp(key, "auto_restart") == 0) {
     vt_set_auto_restart_cmd(strcmp(value, "false") == 0 ? NULL : value);
   } else if (strcmp(key, "allow_osc52") == 0) {

@@ -47,7 +47,6 @@ static ui_wlserv_t **wlservs;
 static u_int num_displays;
 static ui_display_t **displays;
 static int rotate_display;
-static int use_clipboard = 1;
 int kbd_repeat_1 = DEFAULT_KEY_REPEAT_1;
 int kbd_repeat_N = DEFAULT_KEY_REPEAT_N;
 
@@ -228,6 +227,7 @@ static ui_display_t *add_root_to_display(ui_display_t *disp, ui_window_t *root,
   for (count = 0; count < num_displays; count++) {
     if (strcmp(displays[count]->name, new->name) == 0) {
       new->selection_owner = displays[count]->selection_owner;
+      new->clipboard_owner = displays[count]->clipboard_owner;
       break;
     }
   }
@@ -380,10 +380,27 @@ static void registry_global(void *data, struct wl_registry *registry, uint32_t n
   } else if (strcmp(interface, "wl_data_device_manager") == 0) {
     wlserv->data_device_manager = wl_registry_bind(registry, name,
                                                    &wl_data_device_manager_interface, 3);
-  } else if (strcmp(interface, "gtk_primary_selection_device_manager") == 0) {
-    wlserv->xsel_device_manager =
-      wl_registry_bind(registry, name, &gtk_primary_selection_device_manager_interface, 1);
   }
+#ifdef GTK_PRIMARY
+  else if (strcmp(interface, "gtk_primary_selection_device_manager") == 0) {
+    if (wlserv->zxsel_device_manager == NULL) {
+      wlserv->gxsel_device_manager =
+        wl_registry_bind(registry, name, &gtk_primary_selection_device_manager_interface, 1);
+    }
+  }
+#endif
+#ifdef ZWP_PRIMARY
+  else if (strcmp(interface, "zwp_primary_selection_device_manager_v1") == 0) {
+    wlserv->zxsel_device_manager =
+      wl_registry_bind(registry, name, &zwp_primary_selection_device_manager_v1_interface, 1);
+#ifdef GTK_PRIMARY
+    if (wlserv->gxsel_device_manager) {
+      gtk_primary_selection_device_manager_destroy(wlserv->gxsel_device_manager);
+      wlserv->gxsel_device_manager = NULL;
+    }
+#endif
+  }
+#endif
 #ifndef COMPAT_LIBVTE
   else if (strcmp(interface, "zxdg_decoration_manager_v1") == 0) {
     wlserv->decoration_manager =
@@ -1614,7 +1631,7 @@ const struct xdg_popup_listener xdg_popup_listener = {
 #endif
 #endif /* Not COMPAT_LIBVTE */
 
-static void update_mime(char **mime, char *new_mime) {
+static void update_mime(char **mime, const char *new_mime) {
   if (strcmp(new_mime, "text/plain;charset=utf-8") == 0) {
     *mime = "text/plain;charset=utf-8";
   } else if (*mime == NULL && strcmp(new_mime, "UTF8_STRING") == 0) {
@@ -1741,7 +1758,19 @@ static void receive_data(ui_display_t *disp, void *offer, const char *mime, int 
     if (clipboard) {
       wl_data_offer_receive(offer, mime, fds[1]);
     } else {
-      gtk_primary_selection_offer_receive(offer, mime, fds[1]);
+#ifdef GTK_PRIMARY
+      if (disp->display->wlserv->gxsel_device_manager) {
+        gtk_primary_selection_offer_receive(offer, mime, fds[1]);
+      }
+#ifdef ZWP_PRIMARY
+      else
+#endif
+#endif
+#ifdef ZWP_PRIMARY
+      if (disp->display->wlserv->zxsel_device_manager) {
+        zwp_primary_selection_offer_v1_receive(offer, mime, fds[1]);
+      }
+#endif
     }
 
     wl_display_flush(disp->display->wlserv->display);
@@ -1845,9 +1874,9 @@ static void data_source_send(void *data, struct wl_data_source *source, const ch
   bl_debug_printf("data_source_send %s\n", mime);
 #endif
 
-  if (disp->selection_owner->utf_selection_requested) {
+  if (disp->clipboard_owner->utf_selection_requested) {
     /* utf_selection_requested() calls ui_display_send_text_selection() */
-    (*disp->selection_owner->utf_selection_requested)(disp->selection_owner, NULL, 0);
+    (*disp->clipboard_owner->utf_selection_requested)(disp->clipboard_owner, NULL, 0);
   }
 }
 
@@ -1871,7 +1900,7 @@ static void data_source_cancelled(void *data, struct wl_data_source *source) {
     deadline_ignoring_source_cancelled_event = 0;
 #endif
     if (source == wlserv->sel_source) {
-      ui_display_clear_selection(disp, disp->selection_owner);
+      ui_display_clear_clipboard(disp, disp->clipboard_owner);
     }
 #ifdef COMPAT_LIBVTE
   }
@@ -1896,65 +1925,66 @@ static const struct wl_data_source_listener data_source_listener = {
   data_source_action,
 };
 
-static void xsel_offer_offer(void *data, struct gtk_primary_selection_offer *offer,
-                                  const char *type) {
+#ifdef GTK_PRIMARY
+static void gxsel_offer_offer(void *data, struct gtk_primary_selection_offer *offer,
+                              const char *type) {
   ui_wlserv_t *wlserv = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("xsel_offer_offer %s\n", type);
+  bl_debug_printf("gxsel_offer_offer %s\n", type);
 #endif
 
   update_mime(&wlserv->xsel_offer_mime, type);
 }
 
-static const struct gtk_primary_selection_offer_listener xsel_offer_listener = {
-  xsel_offer_offer,
+static const struct gtk_primary_selection_offer_listener gxsel_offer_listener = {
+  gxsel_offer_offer,
 };
 
-static void xsel_device_data_offer(void *data,
-                                  struct gtk_primary_selection_device *device,
-                                  struct gtk_primary_selection_offer *offer) {
+static void gxsel_device_data_offer(void *data,
+                                    struct gtk_primary_selection_device *device,
+                                    struct gtk_primary_selection_offer *offer) {
   ui_wlserv_t *wlserv = data;
 
 #ifdef __DEBUG
   bl_debug_printf("gtk_device_data_offer %p\n", offer);
 #endif
 
-  gtk_primary_selection_offer_add_listener(offer, &xsel_offer_listener, wlserv);
+  gtk_primary_selection_offer_add_listener(offer, &gxsel_offer_listener, wlserv);
   wlserv->xsel_offer_mime = NULL;
 }
 
-static void xsel_device_selection(void *data,
-                                 struct gtk_primary_selection_device *device,
-                                 struct gtk_primary_selection_offer *offer) {
+static void gxsel_device_selection(void *data,
+                                   struct gtk_primary_selection_device *device,
+                                   struct gtk_primary_selection_offer *offer) {
   ui_wlserv_t *wlserv = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("gtk_device_selection %p -> %p\n", wlserv->xsel_offer, offer);
+  bl_debug_printf("gtk_device_selection %p -> %p\n", wlserv->gxsel_offer, offer);
 #endif
 
-  if (wlserv->xsel_source) {
+  if (wlserv->gxsel_source) {
     return;
   }
 
-  if (wlserv->xsel_offer) {
-    gtk_primary_selection_offer_destroy(wlserv->xsel_offer);
+  if (wlserv->gxsel_offer) {
+    gtk_primary_selection_offer_destroy(wlserv->gxsel_offer);
   }
-  wlserv->xsel_offer = offer;
+  wlserv->gxsel_offer = offer;
 }
 
-static const struct gtk_primary_selection_device_listener xsel_device_listener = {
-  xsel_device_data_offer,
-  xsel_device_selection
+static const struct gtk_primary_selection_device_listener gxsel_device_listener = {
+  gxsel_device_data_offer,
+  gxsel_device_selection
 };
 
-static void xsel_source_send(void *data, struct gtk_primary_selection_source *source,
-                             const char *mime, int32_t fd) {
+static void gxsel_source_send(void *data, struct gtk_primary_selection_source *source,
+                              const char *mime, int32_t fd) {
   ui_display_t *disp = data;
   disp->display->wlserv->sel_fd = fd;
 
 #ifdef __DEBUG
-  bl_debug_printf("xsel_source_send %s\n", mime);
+  bl_debug_printf("gxsel_source_send %s\n", mime);
 #endif
 
   if (disp->selection_owner->utf_selection_requested) {
@@ -1963,12 +1993,12 @@ static void xsel_source_send(void *data, struct gtk_primary_selection_source *so
   }
 }
 
-static void xsel_source_cancelled(void *data, struct gtk_primary_selection_source *source) {
+static void gxsel_source_cancelled(void *data, struct gtk_primary_selection_source *source) {
   ui_display_t *disp = data;
   ui_wlserv_t *wlserv = disp->display->wlserv;
 
 #ifdef __DEBUG
-  bl_debug_printf("xsel_source_cancelled %p %p\n", source, wlserv->xsel_source);
+  bl_debug_printf("gxsel_source_cancelled %p %p\n", source, wlserv->gxsel_source);
 #endif
 
 #ifdef COMPAT_LIBVTE
@@ -1977,7 +2007,7 @@ static void xsel_source_cancelled(void *data, struct gtk_primary_selection_sourc
   } else {
     deadline_ignoring_source_cancelled_event = 0;
 #endif
-    if (source == wlserv->xsel_source) {
+    if (source == wlserv->gxsel_source) {
       ui_display_clear_selection(disp, disp->selection_owner);
     }
 #ifdef COMPAT_LIBVTE
@@ -1985,10 +2015,107 @@ static void xsel_source_cancelled(void *data, struct gtk_primary_selection_sourc
 #endif
 }
 
-static const struct gtk_primary_selection_source_listener xsel_source_listener = {
-  xsel_source_send,
-  xsel_source_cancelled,
+static const struct gtk_primary_selection_source_listener gxsel_source_listener = {
+  gxsel_source_send,
+  gxsel_source_cancelled,
 };
+#endif
+
+#ifdef ZWP_PRIMARY
+static void zxsel_offer_offer(void *data, struct zwp_primary_selection_offer_v1 *offer,
+                              const char *type) {
+  ui_wlserv_t *wlserv = data;
+
+#ifdef __DEBUG
+  bl_debug_printf("zxsel_offer_offer %s\n", type);
+#endif
+
+  update_mime(&wlserv->xsel_offer_mime, type);
+}
+
+static const struct zwp_primary_selection_offer_v1_listener zxsel_offer_listener = {
+  zxsel_offer_offer,
+};
+
+static void zxsel_device_data_offer(void *data,
+                                    struct zwp_primary_selection_device_v1 *device,
+                                    struct zwp_primary_selection_offer_v1 *offer) {
+  ui_wlserv_t *wlserv = data;
+
+#ifdef __DEBUG
+  bl_debug_printf("zwp_device_data_offer %p\n", offer);
+#endif
+
+  zwp_primary_selection_offer_v1_add_listener(offer, &zxsel_offer_listener, wlserv);
+  wlserv->xsel_offer_mime = NULL;
+}
+
+static void zxsel_device_selection(void *data,
+                                   struct zwp_primary_selection_device_v1 *device,
+                                   struct zwp_primary_selection_offer_v1 *offer) {
+  ui_wlserv_t *wlserv = data;
+
+#ifdef __DEBUG
+  bl_debug_printf("zwp_device_selection %p -> %p\n", wlserv->zxsel_offer, offer);
+#endif
+
+  if (wlserv->zxsel_source) {
+    return;
+  }
+
+  if (wlserv->zxsel_offer) {
+    zwp_primary_selection_offer_v1_destroy(wlserv->zxsel_offer);
+  }
+  wlserv->zxsel_offer = offer;
+}
+
+static const struct zwp_primary_selection_device_v1_listener zxsel_device_listener = {
+  zxsel_device_data_offer,
+  zxsel_device_selection
+};
+
+static void zxsel_source_send(void *data, struct zwp_primary_selection_source_v1 *source,
+                              const char *mime, int32_t fd) {
+  ui_display_t *disp = data;
+  disp->display->wlserv->sel_fd = fd;
+
+#ifdef __DEBUG
+  bl_debug_printf("zxsel_source_send %s\n", mime);
+#endif
+
+  if (disp->selection_owner->utf_selection_requested) {
+    /* utf_selection_requested() calls ui_display_send_text_selection() */
+    (*disp->selection_owner->utf_selection_requested)(disp->selection_owner, NULL, 0);
+  }
+}
+
+static void zxsel_source_cancelled(void *data, struct zwp_primary_selection_source_v1 *source) {
+  ui_display_t *disp = data;
+  ui_wlserv_t *wlserv = disp->display->wlserv;
+
+#ifdef __DEBUG
+  bl_debug_printf("zxsel_source_cancelled %p %p\n", source, wlserv->zxsel_source);
+#endif
+
+#ifdef COMPAT_LIBVTE
+  if (deadline_ignoring_source_cancelled_event != 0 &&
+      deadline_ignoring_source_cancelled_event > g_get_monotonic_time()) {
+  } else {
+    deadline_ignoring_source_cancelled_event = 0;
+#endif
+    if (source == wlserv->zxsel_source) {
+      ui_display_clear_selection(disp, disp->selection_owner);
+    }
+#ifdef COMPAT_LIBVTE
+  }
+#endif
+}
+
+static const struct zwp_primary_selection_source_v1_listener zxsel_source_listener = {
+  zxsel_source_send,
+  zxsel_source_cancelled,
+};
+#endif
 
 static ui_wlserv_t *open_wl_display(char *name) {
   ui_wlserv_t *wlserv;
@@ -2052,13 +2179,27 @@ static ui_wlserv_t *open_wl_display(char *name) {
     wl_data_device_add_listener(wlserv->data_device, &data_device_listener, wlserv);
   }
 
-  if (wlserv->xsel_device_manager) {
-    wlserv->xsel_device =
-      gtk_primary_selection_device_manager_get_device(wlserv->xsel_device_manager,
+#ifdef GTK_PRIMARY
+  if (wlserv->gxsel_device_manager) {
+    wlserv->gxsel_device =
+      gtk_primary_selection_device_manager_get_device(wlserv->gxsel_device_manager,
                                                       wlserv->seat);
-    gtk_primary_selection_device_add_listener(wlserv->xsel_device,
-                                              &xsel_device_listener, wlserv);
+    gtk_primary_selection_device_add_listener(wlserv->gxsel_device,
+                                              &gxsel_device_listener, wlserv);
   }
+#ifdef ZWP_PRIMARY
+  else
+#endif
+#endif
+#ifdef ZWP_PRIMARY
+  if (wlserv->zxsel_device_manager) {
+    wlserv->zxsel_device =
+      zwp_primary_selection_device_manager_v1_get_device(wlserv->zxsel_device_manager,
+                                                         wlserv->seat);
+    zwp_primary_selection_device_v1_add_listener(wlserv->zxsel_device,
+                                                 &zxsel_device_listener, wlserv);
+  }
+#endif
 
   wlserv->sel_fd = -1;
 
@@ -2082,18 +2223,30 @@ static void close_wl_display(ui_wlserv_t *wlserv) {
   }
 #endif
 
-  if (wlserv->xsel_offer) {
-    gtk_primary_selection_offer_destroy(wlserv->xsel_offer);
-    wlserv->xsel_offer = NULL;
-  }
   if (wlserv->sel_source) {
     wl_data_source_destroy(wlserv->sel_source);
     wlserv->sel_source = NULL;
   }
-  if (wlserv->xsel_source) {
-    gtk_primary_selection_source_destroy(wlserv->xsel_source);
-    wlserv->xsel_source = NULL;
+#ifdef GTK_PRIMARY
+  if (wlserv->gxsel_offer) {
+    gtk_primary_selection_offer_destroy(wlserv->gxsel_offer);
+    wlserv->gxsel_offer = NULL;
   }
+  if (wlserv->gxsel_source) {
+    gtk_primary_selection_source_destroy(wlserv->gxsel_source);
+    wlserv->gxsel_source = NULL;
+  }
+#endif
+#ifdef ZWP_PRIMARY
+  if (wlserv->zxsel_offer) {
+    zwp_primary_selection_offer_v1_destroy(wlserv->zxsel_offer);
+    wlserv->zxsel_offer = NULL;
+  }
+  if (wlserv->zxsel_source) {
+    zwp_primary_selection_source_v1_destroy(wlserv->zxsel_source);
+    wlserv->zxsel_source = NULL;
+  }
+#endif
 
 #ifndef COMPAT_LIBVTE
   if (wlserv->decoration_manager) {
@@ -2155,12 +2308,23 @@ static void close_wl_display(ui_wlserv_t *wlserv) {
   wl_data_device_destroy(wlserv->data_device);
   wl_data_device_manager_destroy(wlserv->data_device_manager);
 
-  if (wlserv->xsel_device) {
-    gtk_primary_selection_device_destroy(wlserv->xsel_device);
+#ifdef GTK_PRIMARY
+  if (wlserv->gxsel_device) {
+    gtk_primary_selection_device_destroy(wlserv->gxsel_device);
   }
-  if (wlserv->xsel_device_manager) {
-    gtk_primary_selection_device_manager_destroy(wlserv->xsel_device_manager);
+  if (wlserv->gxsel_device_manager) {
+    gtk_primary_selection_device_manager_destroy(wlserv->gxsel_device_manager);
   }
+#endif
+#ifdef ZWP_PRIMARY
+  if (wlserv->zxsel_device) {
+    zwp_primary_selection_device_v1_destroy(wlserv->zxsel_device);
+  }
+  if (wlserv->zxsel_device_manager) {
+    zwp_primary_selection_device_manager_v1_destroy(wlserv->zxsel_device_manager);
+  }
+#endif
+
 #ifndef COMPAT_LIBVTE
   wl_display_disconnect(wlserv->display);
 
@@ -2545,6 +2709,7 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
   for (count = 0; count < num_displays; count++) {
     if (strcmp(displays[count]->name, disp_name) == 0) {
       disp->selection_owner = displays[count]->selection_owner;
+      disp->clipboard_owner = displays[count]->clipboard_owner;
       wlserv = displays[count]->display->wlserv;
       break;
     }
@@ -2869,37 +3034,6 @@ void ui_display_sync(ui_display_t *disp) {
 #endif
 }
 
-void ui_set_use_clipboard_selection(int use_it) {
-  u_int count;
-
-  /* "use_clipboard = false" setting is disabled on wayland. */
-  if (use_it == 0) {
-    bl_msg_printf("use_clipboard=false is ignored on wayland.\n");
-
-    return;
-  } else if (use_clipboard == use_it) {
-    return;
-  }
-
-  if (use_clipboard == 0 && use_it == 1) {
-    /*
-     * disp->selection_owner is reset.
-     * If it isn't reset and value of 'use_clipboard' option is changed from false
-     * to true dynamically, ui_window_set_selection_owner() returns before calling
-     * wl_data_device_manager_create_data_source().
-     */
-    for (count = 0; count < num_displays; count++) {
-      if (displays[count]->selection_owner) {
-        ui_display_clear_selection(NULL, displays[count]->selection_owner);
-      }
-    }
-  }
-
-  use_clipboard = use_it;
-}
-
-int ui_is_using_clipboard_selection(void) { return use_clipboard; }
-
 /*
  * Folloing functions called from ui_window.c
  */
@@ -2918,33 +3052,41 @@ int ui_display_own_selection(ui_display_t *disp, ui_window_t *win) {
     }
   }
 
-  if (wlserv->xsel_device_manager) {
-    wlserv->xsel_source =
-      gtk_primary_selection_device_manager_create_source(wlserv->xsel_device_manager);
-    gtk_primary_selection_source_offer(wlserv->xsel_source, "UTF8_STRING");
-    /* gtk_primary_selection_source_offer(wlserv->xsel_source, "COMPOUND_TEXT"); */
-    gtk_primary_selection_source_offer(wlserv->xsel_source, "TEXT");
-    gtk_primary_selection_source_offer(wlserv->xsel_source, "STRING");
-    gtk_primary_selection_source_offer(wlserv->xsel_source, "text/plain;charset=utf-8");
-    gtk_primary_selection_source_offer(wlserv->xsel_source, "text/plain");
-    gtk_primary_selection_source_add_listener(wlserv->xsel_source,
-                                              &xsel_source_listener, disp);
-    gtk_primary_selection_device_set_selection(wlserv->xsel_device,
-                                               wlserv->xsel_source, wlserv->serial);
+#ifdef GTK_PRIMARY
+  if (wlserv->gxsel_device_manager) {
+    wlserv->gxsel_source =
+      gtk_primary_selection_device_manager_create_source(wlserv->gxsel_device_manager);
+    gtk_primary_selection_source_offer(wlserv->gxsel_source, "UTF8_STRING");
+    /* gtk_primary_selection_source_offer(wlserv->gxsel_source, "COMPOUND_TEXT"); */
+    gtk_primary_selection_source_offer(wlserv->gxsel_source, "TEXT");
+    gtk_primary_selection_source_offer(wlserv->gxsel_source, "STRING");
+    gtk_primary_selection_source_offer(wlserv->gxsel_source, "text/plain;charset=utf-8");
+    gtk_primary_selection_source_offer(wlserv->gxsel_source, "text/plain");
+    gtk_primary_selection_source_add_listener(wlserv->gxsel_source,
+                                              &gxsel_source_listener, disp);
+    gtk_primary_selection_device_set_selection(wlserv->gxsel_device,
+                                               wlserv->gxsel_source, wlserv->serial);
   }
-
-  if (use_clipboard && wlserv->data_device_manager) {
-    wlserv->sel_source = wl_data_device_manager_create_data_source(wlserv->data_device_manager);
-    wl_data_source_offer(wlserv->sel_source, "UTF8_STRING");
-    /* wl_data_source_offer(wlserv->sel_source, "COMPOUND_TEXT"); */
-    wl_data_source_offer(wlserv->sel_source, "TEXT");
-    wl_data_source_offer(wlserv->sel_source, "STRING");
-    wl_data_source_offer(wlserv->sel_source, "text/plain;charset=utf-8");
-    wl_data_source_offer(wlserv->sel_source, "text/plain");
-    wl_data_source_add_listener(wlserv->sel_source, &data_source_listener, disp);
-    wl_data_device_set_selection(wlserv->data_device,
-                                 wlserv->sel_source, wlserv->serial);
+#ifdef ZWP_PRIMARY
+  else
+#endif
+#endif
+#ifdef ZWP_PRIMARY
+  if (wlserv->zxsel_device_manager) {
+    wlserv->zxsel_source =
+      zwp_primary_selection_device_manager_v1_create_source(wlserv->zxsel_device_manager);
+    zwp_primary_selection_source_v1_offer(wlserv->zxsel_source, "UTF8_STRING");
+    /* zwp_primary_selection_source_v1_offer(wlserv->zxsel_source, "COMPOUND_TEXT"); */
+    zwp_primary_selection_source_v1_offer(wlserv->zxsel_source, "TEXT");
+    zwp_primary_selection_source_v1_offer(wlserv->zxsel_source, "STRING");
+    zwp_primary_selection_source_v1_offer(wlserv->zxsel_source, "text/plain;charset=utf-8");
+    zwp_primary_selection_source_v1_offer(wlserv->zxsel_source, "text/plain");
+    zwp_primary_selection_source_v1_add_listener(wlserv->zxsel_source,
+                                                 &zxsel_source_listener, disp);
+    zwp_primary_selection_device_v1_set_selection(wlserv->zxsel_device,
+                                                  wlserv->zxsel_source, wlserv->serial);
   }
+#endif
 
 #ifdef __DEBUG
   bl_debug_printf("set_selection\n");
@@ -2961,13 +3103,76 @@ int ui_display_clear_selection(ui_display_t *disp, /* NULL means all selection o
     if ((disp == NULL || disp->display->wlserv == displays[count]->display->wlserv) &&
         (displays[count]->selection_owner == win)) {
       displays[count]->selection_owner = NULL;
+#ifdef GTK_PRIMARY
+      if (displays[count]->display->wlserv->gxsel_source) {
+        gtk_primary_selection_source_destroy(displays[count]->display->wlserv->gxsel_source);
+        displays[count]->display->wlserv->gxsel_source = NULL;
+      }
+#ifdef ZWP_PRIMARY
+      else
+#endif
+#endif
+#ifdef ZWP_PRIMARY
+      if (displays[count]->display->wlserv->zxsel_source) {
+        zwp_primary_selection_source_v1_destroy(displays[count]->display->wlserv->zxsel_source);
+        displays[count]->display->wlserv->zxsel_source = NULL;
+      }
+#endif
+    }
+  }
+
+  if (win->selection_cleared) {
+    (*win->selection_cleared)(win);
+  }
+
+  return 1;
+}
+
+int ui_display_own_clipboard(ui_display_t *disp, ui_window_t *win) {
+  ui_wlserv_t *wlserv = disp->display->wlserv;
+  u_int count;
+
+  if (disp->clipboard_owner) {
+    ui_display_clear_clipboard(NULL, disp->clipboard_owner);
+  }
+
+  for (count = 0; count < num_displays; count++) {
+    if (displays[count]->display->wlserv == wlserv) {
+      displays[count]->clipboard_owner = win;
+    }
+  }
+
+  if (wlserv->data_device_manager) {
+    wlserv->sel_source = wl_data_device_manager_create_data_source(wlserv->data_device_manager);
+    wl_data_source_offer(wlserv->sel_source, "UTF8_STRING");
+    /* wl_data_source_offer(wlserv->sel_source, "COMPOUND_TEXT"); */
+    wl_data_source_offer(wlserv->sel_source, "TEXT");
+    wl_data_source_offer(wlserv->sel_source, "STRING");
+    wl_data_source_offer(wlserv->sel_source, "text/plain;charset=utf-8");
+    wl_data_source_offer(wlserv->sel_source, "text/plain");
+    wl_data_source_add_listener(wlserv->sel_source, &data_source_listener, disp);
+    wl_data_device_set_selection(wlserv->data_device,
+                                 wlserv->sel_source, wlserv->serial);
+  }
+
+#ifdef __DEBUG
+  bl_debug_printf("set_clipboard\n");
+#endif
+
+  return 1;
+}
+
+int ui_display_clear_clipboard(ui_display_t *disp, /* NULL means all clipboard owner windows. */
+                               ui_window_t *win) {
+  u_int count;
+
+  for (count = 0; count < num_displays; count++) {
+    if ((disp == NULL || disp->display->wlserv == displays[count]->display->wlserv) &&
+        (displays[count]->clipboard_owner == win)) {
+      displays[count]->clipboard_owner = NULL;
       if (displays[count]->display->wlserv->sel_source) {
         wl_data_source_destroy(displays[count]->display->wlserv->sel_source);
         displays[count]->display->wlserv->sel_source = NULL;
-      }
-      if (displays[count]->display->wlserv->xsel_source) {
-        gtk_primary_selection_source_destroy(displays[count]->display->wlserv->xsel_source);
-        displays[count]->display->wlserv->xsel_source = NULL;
       }
     }
   }
@@ -3237,9 +3442,38 @@ void ui_display_request_text_selection(ui_display_t *disp) {
   } else {
     ui_wlserv_t *wlserv = disp->display->wlserv;
 
-    if (use_clipboard != 2 && wlserv->xsel_offer && wlserv->xsel_offer_mime) {
-      receive_data(disp, wlserv->xsel_offer, wlserv->xsel_offer_mime, 0);
-    } else if (wlserv->sel_offer && wlserv->sel_offer_mime) {
+    if (wlserv->xsel_offer_mime) {
+#ifdef GTK_PRIMARY
+      if (wlserv->gxsel_offer) {
+        receive_data(disp, wlserv->gxsel_offer, wlserv->xsel_offer_mime, 0);
+      }
+#ifdef ZWP_PRIMARY
+      else
+#endif
+#endif
+#ifdef ZWP_PRIMARY
+      if (wlserv->zxsel_offer) {
+        receive_data(disp, wlserv->zxsel_offer, wlserv->xsel_offer_mime, 0);
+      }
+#endif
+    }
+  }
+}
+
+void ui_display_request_text_clipboard(ui_display_t *disp) {
+  if (disp->clipboard_owner) {
+    XSelectionRequestEvent ev;
+
+    ev.type = 0;
+    ev.target = disp->roots[0];
+    if (disp->clipboard_owner->utf_selection_requested) {
+      /* utf_selection_requested() calls ui_display_send_text_selection() */
+      (*disp->clipboard_owner->utf_selection_requested)(disp->clipboard_owner, &ev, 0);
+    }
+  } else {
+    ui_wlserv_t *wlserv = disp->display->wlserv;
+
+    if (wlserv->sel_offer && wlserv->sel_offer_mime) {
       receive_data(disp, wlserv->sel_offer, wlserv->sel_offer_mime, 1);
     }
   }
@@ -3349,13 +3583,27 @@ void ui_display_init_wlserv(ui_wlserv_t *wlserv) {
     wl_data_device_add_listener(wlserv->data_device, &data_device_listener, wlserv);
   }
 
-  if (wlserv->xsel_device_manager) {
-    wlserv->xsel_device =
-      gtk_primary_selection_device_manager_get_device(wlserv->xsel_device_manager,
+#ifdef GTK_PRIMARY
+  if (wlserv->gxsel_device_manager) {
+    wlserv->gxsel_device =
+      gtk_primary_selection_device_manager_get_device(wlserv->gxsel_device_manager,
                                                       wlserv->seat);
-    gtk_primary_selection_device_add_listener(wlserv->xsel_device,
-                                              &xsel_device_listener, wlserv);
+    gtk_primary_selection_device_add_listener(wlserv->gxsel_device,
+                                              &gxsel_device_listener, wlserv);
   }
+#ifdef ZWP_PRIMARY
+  else
+#endif
+#endif
+#ifdef ZWP_PRIMARY
+  if (wlserv->zxsel_device_manager) {
+    wlserv->zxsel_device =
+      zwp_primary_selection_device_manager_v1_get_device(wlserv->zxsel_device_manager,
+                                                         wlserv->seat);
+    zwp_primary_selection_device_v1_add_listener(wlserv->zxsel_device,
+                                                 &zxsel_device_listener, wlserv);
+  }
+#endif
 
   if ((wlserv->cursor_theme = wl_cursor_theme_load(NULL, 32, wlserv->shm))) {
     wlserv->cursor[0] = wl_cursor_theme_get_cursor(wlserv->cursor_theme, "xterm");

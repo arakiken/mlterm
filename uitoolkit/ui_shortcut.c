@@ -61,6 +61,7 @@ static key_func_table_t key_func_table[] = {
   { "INSERT_SELECTION", INSERT_SELECTION, },
 #if defined(USE_XLIB) || defined(USE_WAYLAND)
   { "INSERT_CLIPBOARD", INSERT_CLIPBOARD, },
+  { "COPY_CLIPBOARD", COPY_CLIPBOARD, },
 #endif
   { "RESET", RESET, },
   { "COPY_MODE", COPY_MODE, },
@@ -178,7 +179,9 @@ void ui_shortcut_init(ui_shortcut_t *shortcut) {
 
 #if defined(USE_XLIB) || defined(USE_WAYLAND)
     /* INSERT_CLIPBOARD */
-    { 0, 0, 0, },
+    { 'v', ControlMask|ShiftMask, 1, },
+    /* COPY_CLIPBOARD */
+    { 'c', ControlMask|ShiftMask, 1, },
 #endif
 
     /* RESET */

@@ -1,3 +1,37 @@
+2023-09-12  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/PROTOCOL, doc/ja/README.ja, man/mlterm.1, etc/main,
+	  etc/main.ja, etc/key: Updated.
+
+	* rescanproto.sh: primary-selection-unstable-v1.xml is parsed.
+
+	* ui_shortcut.[ch]; COPY_CLIPBOARD is added.
+
+	* tool/mlconfig/main.c, mc_flags.[ch], mc_io_file.c:
+	  use_clipboard option is removed.
+
+	* ui_main_config.c: use_clipboard option is removed.
+
+	* ui_window.h, */ui_window.c, ui_screen.c:
+	  - ui_selection_flag_t is added to arguments of ui_window_set_selection_owner(),
+	    ui_window_is_selection_owner(), ui_window_{xct|utf}_selection_request().
+	  - ui_set_use_clipboard_selection() and ui_is_using_clipboard_selection()
+	    are removed.
+
+	* wayland/ui_display.[ch]: ui_display_{own|clear}_clipboard() and
+	  ui_display_request_text_clipboard() are added.
+
+	* xlib/ui_display.[ch]: ui_display_{own|clear}_clipboard() are added.
+
+	* wayland/ui_display.c, primary-selection-unstable-v1.[ch]:
+	  wp-primary-selection protocol is supported.
+
+	* xdg-decoration-unstable-v1-client-protocol.c,
+	  xdg-shell-client-protocol.[ch],
+	  xdg-shell-unstable-v6-client-protocol.c: Updated.
+
+	* ui_selection.h: ui_sel_type_t -> ui_sel_mode_t
+
 2023-08-30  Araki Ken  <arakiken@users.sf.net>
 
 	* tool/main.c: --geometry and --display options are ignored in gtk4.

@@ -1292,6 +1292,7 @@ void ui_window_final(ui_window_t *win) {
   free(win->children);
 
   ui_display_clear_selection(win->disp, win);
+  ui_display_clear_clipboard(win->disp, win);
 
   if (win->window_finalized) {
     (*win->window_finalized)(win);
@@ -2372,17 +2373,15 @@ void ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2)
   ui_window_fill_with(win, &win->fg_color, x2, y1, 1, y2 - y1 + 1);
 }
 
-/* These functions are defined in ui_display.c on wayland. */
-#ifndef USE_WAYLAND
-void ui_set_use_clipboard_selection(int use_it) {}
-
-int ui_is_using_clipboard_selection(void) { return 0; }
-#endif
-
-int ui_window_set_selection_owner(ui_window_t *win, Time time) {
+int ui_window_set_selection_owner(ui_window_t *win, Time time, ui_selection_flag_t selection) {
 #ifndef USE_SDL2
-  if (ui_window_is_selection_owner(win)) {
+  if (ui_window_is_selection_owner(win, selection)) {
     /* Already owner */
+  } else
+#endif
+#ifdef USE_WAYLAND
+  if (selection == SEL_CLIPBOARD) {
+    ui_display_own_clipboard(win->disp, win);
   } else
 #endif
   {
@@ -2398,7 +2397,7 @@ int ui_window_set_selection_owner(ui_window_t *win, Time time) {
   return 1;
 }
 
-int ui_window_xct_selection_request(ui_window_t *win, Time time) {
+int ui_window_xct_selection_request(ui_window_t *win, Time time, ui_selection_flag_t selection) {
 #if defined(__ANDROID__) || defined(USE_WAYLAND)
   return 0;
 #else
@@ -2413,10 +2412,16 @@ int ui_window_xct_selection_request(ui_window_t *win, Time time) {
 #endif
 }
 
-int ui_window_utf_selection_request(ui_window_t *win, Time time) {
+int ui_window_utf_selection_request(ui_window_t *win, Time time, ui_selection_flag_t selection) {
 #if defined(__ANDROID__)
   ui_display_request_text_selection();
-#elif defined(USE_WAYLAND) || defined(USE_SDL2)
+#elif defined(USE_WAYLAND)
+  if (selection == SEL_CLIPBOARD) {
+    ui_display_request_text_clipboard(win->disp);
+  } else {
+    ui_display_request_text_selection(win->disp);
+  }
+#elif defined(USE_SDL2)
   ui_display_request_text_selection(win->disp);
 #else
   if (win->disp->selection_owner && win->disp->selection_owner->utf_selection_requested) {

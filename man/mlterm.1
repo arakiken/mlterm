@@ -1836,9 +1836,6 @@ Use anti alias font.
 \fBuse_bold_font=\fIbool\fR (\fB\-\-bdfont\fR)
 Use bold font for characters with the bold attribute.
 .TP
-\fBuse_clipboard=\fIbool\fR (\fB\-P\fR, \fB\-\-clip\fR)
-Use CLIPBOARD (not only PRIMARY) selection.
-.TP
 \fBuse_combining=\fIbool\fR (\fB\-m\fR, \fB\-\-comb\fR)
 Enable combining characters.
 .TP
@@ -2076,6 +2073,7 @@ You can specify Button1, Button2, Button3, Button4 or Button5 as \fIKEY\fR.
 \fBSET_MARK\fR,
 \fBINSERT_SELECTION\fR,
 \fBINSERT_CLIPBOARD\fR,
+\fBCOPY_CLIPBOARD\fR,
 \fBRESET\fR,
 \fBCOPY_MODE\fR,
 \fB"\fISTRING\fB"\fR,
@@ -2151,7 +2149,10 @@ Set mark to the current line (default \fBControl+Shift+m\fR).
 Insert selection (default \fBShift+Insert\fR).
 .TP
 \fBINSERT_CLIPBOARD\fR
-Insert clipboard (default \fBUNUSED\fR). (Available on x11 alone)
+Insert clipboard (default \fBShift+Control+v\fR). (Available on x11 and wayland)
+.TP
+\fBCOPY_CLIPBOARD\fR
+Copy selected text to clipboard (default \fBShift+Control+c\fR). (Available on x11 and wayland)
 .TP
 \fBRESET\fR
 Reset terminal (default \fBPause\fR).

@@ -47,6 +47,9 @@ typedef struct ui_display {
   u_int num_roots;
 
   ui_window_ptr_t selection_owner;
+#if defined(USE_XLIB) || defined(USE_WAYLAND)
+  ui_window_ptr_t clipboard_owner;
+#endif
 
   ui_modifier_mapping_t modmap;
 

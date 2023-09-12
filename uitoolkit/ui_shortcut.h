@@ -31,6 +31,7 @@ typedef enum ui_key_func {
   INSERT_SELECTION,
 #if defined(USE_XLIB) || defined(USE_WAYLAND)
   INSERT_CLIPBOARD,
+  COPY_CLIPBOARD,
 #endif
   RESET,
   COPY_MODE,

@@ -4,6 +4,8 @@
 #define ___UI_H__
 
 #ifndef COMPAT_LIBVTE
+#define GTK_PRIMARY
+#define ZWP_PRIMARY
 #define XDG_SHELL
 #define ZXDG_SHELL_V6
 #endif
@@ -13,7 +15,12 @@
 #include <wayland-cursor.h>
 #include <wayland-egl.h>
 #include <xkbcommon/xkbcommon.h>
+#ifdef GTK_PRIMARY
 #include "gtk-primary-selection.h"
+#endif
+#ifdef ZWP_PRIMARY
+#include "primary-selection-unstable-v1-client-protocol.h"
+#endif
 #ifdef XDG_SHELL
 #include "xdg-shell-client-protocol.h"
 #endif
@@ -118,11 +125,19 @@ typedef struct {
   char *sel_offer_mime;
   struct wl_data_source *sel_source;
 
-  struct gtk_primary_selection_device_manager *xsel_device_manager;
-  struct gtk_primary_selection_device *xsel_device;
-  struct gtk_primary_selection_offer *xsel_offer;
+#ifdef GTK_PRIMARY
+  struct gtk_primary_selection_device_manager *gxsel_device_manager;
+  struct gtk_primary_selection_device *gxsel_device;
+  struct gtk_primary_selection_source *gxsel_source;
+  struct gtk_primary_selection_offer *gxsel_offer;
+#endif
+#ifdef ZWP_PRIMARY
+  struct zwp_primary_selection_device_manager_v1 *zxsel_device_manager;
+  struct zwp_primary_selection_device_v1 *zxsel_device;
+  struct zwp_primary_selection_source_v1 *zxsel_source;
+  struct zwp_primary_selection_offer_v1 *zxsel_offer;
+#endif
   char *xsel_offer_mime;
-  struct gtk_primary_selection_source *xsel_source;
 
   int32_t sel_fd;
   uint32_t serial;

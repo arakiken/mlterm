@@ -1166,11 +1166,7 @@ void ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2)
                        x2 + win->hmargin, y2 + win->vmargin);
 }
 
-void ui_set_use_clipboard_selection(int use_it) {}
-
-int ui_is_using_clipboard_selection(void) { return 0; }
-
-int ui_window_set_selection_owner(ui_window_t *win, Time time) {
+int ui_window_set_selection_owner(ui_window_t *win, Time time, ui_selection_flag_t selection) {
 #ifdef COCOA_TOUCH
   if (win->utf_selection_requested) {
     (*win->utf_selection_requested)(win, NULL, time);
@@ -1192,9 +1188,11 @@ int ui_window_set_selection_owner(ui_window_t *win, Time time) {
   return 1;
 }
 
-int ui_window_xct_selection_request(ui_window_t *win, Time time) { return 0; }
+int ui_window_xct_selection_request(ui_window_t *win, Time time, ui_selection_flag_t selection) {
+  return 0;
+}
 
-int ui_window_utf_selection_request(ui_window_t *win, Time time) {
+int ui_window_utf_selection_request(ui_window_t *win, Time time, ui_selection_flag_t selection) {
   if (win->utf_selection_notified) {
     const char *str;
 

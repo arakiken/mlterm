@@ -49,6 +49,11 @@ typedef enum ui_sizehint_flag {
   SIZEHINT_HEIGHT = 0x2,
 } ui_sizehint_flag_t;
 
+typedef enum ui_selection_flag {
+  SEL_PRIMARY = 0x0,
+  SEL_CLIPBOARD = 0x1, /* for xlib/wayland */
+} ui_selection_flag_t;
+
 typedef struct ui_xim_event_listener {
   void *self;
 
@@ -405,19 +410,20 @@ void ui_window_ft_draw_string32(ui_window_t *win, ui_font_t *font, ui_color_t *f
 
 void ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2);
 
-void ui_set_use_clipboard_selection(int use_it);
+int ui_window_set_selection_owner(ui_window_t *win, Time time, ui_selection_flag_t selection);
 
-int ui_is_using_clipboard_selection(void);
+#if defined(USE_XLIB) || defined(USE_WAYLAND)
+#define ui_window_is_selection_owner(win, selection) \
+  ((selection) == SEL_CLIPBOARD ? (win) == (win)->disp->clipboard_owner : \
+                               (win) == (win)->disp->selection_owner)
+#else
+#define ui_window_is_selection_owner(win, selection) \
+  ((win) == (win)->disp->selection_owner)
+#endif
 
-int ui_window_set_selection_owner(ui_window_t *win, Time time);
+int ui_window_xct_selection_request(ui_window_t *win, Time time, ui_selection_flag_t selection);
 
-#define ui_window_is_selection_owner(win) ((win) == (win)->disp->selection_owner)
-
-int ui_window_string_selection_request(ui_window_t *win, Time time);
-
-int ui_window_xct_selection_request(ui_window_t *win, Time time);
-
-int ui_window_utf_selection_request(ui_window_t *win, Time time);
+int ui_window_utf_selection_request(ui_window_t *win, Time time, ui_selection_flag_t selection);
 
 void ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int width, u_int height);
 

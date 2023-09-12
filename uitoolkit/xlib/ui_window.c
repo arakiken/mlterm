@@ -100,7 +100,6 @@ typedef struct {
 static int click_interval = 250; /* millisecond, same as xterm. */
 /* ParentRelative isn't used for transparency by default */
 static int use_inherit_transparent = 0;
-static int use_clipboard = 1;
 static int use_urgent_bell = 0;
 
 static struct {
@@ -663,7 +662,7 @@ static void scroll_region(ui_window_t *win, int src_x, int src_y, u_int width, u
   win->wait_copy_area_response = 1;
 }
 
-static int send_selection(ui_window_t *win, XSelectionRequestEvent *req_ev, u_char *sel_data,
+static void send_selection(ui_window_t *win, XSelectionRequestEvent *req_ev, u_char *sel_data,
                           size_t sel_len, Atom sel_type, int sel_format) {
   XEvent res_ev;
 
@@ -691,8 +690,6 @@ static int send_selection(ui_window_t *win, XSelectionRequestEvent *req_ev, u_ch
   }
 
   XSendEvent(win->disp->display, res_ev.xselection.requestor, False, 0, &res_ev);
-
-  return 1;
 }
 
 static int right_shift(u_long mask) {
@@ -967,6 +964,7 @@ void ui_window_final(ui_window_t *win) {
 
   if (win->my_window) {
     ui_display_clear_selection(win->disp, win);
+    ui_display_clear_clipboard(win->disp, win);
 
     ui_xic_deactivate(win);
 
@@ -2329,7 +2327,11 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
 #endif
   else if (event->type == SelectionClear) {
     /* Call win->selection_cleared in ui_display_clear_selection. */
-    ui_display_clear_selection(win->disp, win);
+    if (event->xselectionclear.selection == XA_CLIPBOARD(win->disp->display)) {
+      ui_display_clear_clipboard(win->disp, win);
+    } else {
+      ui_display_clear_selection(win->disp, win);
+    }
 
     free(sel_bmp);
     sel_bmp = NULL;
@@ -2354,8 +2356,7 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
 
     if (event->xselectionrequest.target == XA_STRING) {
       if (win->xct_selection_requested) {
-        (*win->xct_selection_requested)(win, &event->xselectionrequest,
-                                        event->xselectionrequest.target);
+        (*win->xct_selection_requested)(win, &event->xselectionrequest, XA_STRING);
       }
     } else if (event->xselectionrequest.target == xa_text ||
                event->xselectionrequest.target == xa_compound_text) {
@@ -2410,11 +2411,15 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
         event->xselection.property == XA_NONE(win->disp->display)) {
       Atom xa_selection;
 
-      if (use_clipboard == 2) {
-        xa_selection = XA_CLIPBOARD(win->disp->display);
-      } else {
+#if 1
+      if (event->xselection.selection != XA_PRIMARY &&
+          event->xselection.selection != XA_CLIPBOARD(win->disp->display)) {
+        /* Need? */
         xa_selection = XA_PRIMARY;
+      } else {
+        xa_selection = event->xselection.selection;
       }
+#endif
 
       /*
        * Selection request failed.
@@ -2917,37 +2922,21 @@ void ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2)
   XDrawLines(win->disp->display, win->my_window, win->gc->gc, points, 5, CoordModeOrigin);
 }
 
-void ui_set_use_clipboard_selection(int use_it) {
-  if (use_clipboard == use_it) {
-    return;
-  }
-
-  if (use_clipboard == 0 && use_it == 1) {
-    /*
-     * disp->selection_owner is reset.
-     * If it isn't reset and value of 'use_clipboard' option is changed from false
-     * to true dynamically, ui_window_set_selection_owner() returns before calling
-     * XSetSelectionOwner().
-     */
-    ui_display_clear_selection(NULL, NULL);
-  }
-
-  use_clipboard = use_it;
-}
-
-int ui_is_using_clipboard_selection(void) { return use_clipboard; }
-
-int ui_window_set_selection_owner(ui_window_t *win, Time time) {
-  if (ui_window_is_selection_owner(win)) {
+int ui_window_set_selection_owner(ui_window_t *win, Time time, ui_selection_flag_t selection) {
+  Atom xa_selection;
+  if (ui_window_is_selection_owner(win, selection)) {
     /* Already owner */
 
     return 1;
   }
 
-  XSetSelectionOwner(win->disp->display, XA_PRIMARY, win->my_window, time);
-  if (use_clipboard) {
-    XSetSelectionOwner(win->disp->display, XA_CLIPBOARD(win->disp->display), win->my_window, time);
+  if (selection == SEL_CLIPBOARD) {
+    xa_selection = XA_CLIPBOARD(win->disp->display);
+  } else {
+    xa_selection = XA_PRIMARY;
   }
+
+  XSetSelectionOwner(win->disp->display, xa_selection, win->my_window, time);
 
 #ifdef DEBUG
   bl_debug_printf(BL_DEBUG_TAG " XA_PRIMARY => %lu, XA_CLIPBOARD => %lu (mywin %lu)\n",
@@ -2956,17 +2945,18 @@ int ui_window_set_selection_owner(ui_window_t *win, Time time) {
                   win->my_window);
 #endif
 
-  if (win->my_window != XGetSelectionOwner(win->disp->display, XA_PRIMARY) &&
-      (!use_clipboard ||
-       win->my_window !=
-           XGetSelectionOwner(win->disp->display, XA_CLIPBOARD(win->disp->display)))) {
+  if (win->my_window != XGetSelectionOwner(win->disp->display, xa_selection)) {
     return 0;
+  }
+
+  if (selection == SEL_CLIPBOARD) {
+    return ui_display_own_clipboard(win->disp, win);
   } else {
     return ui_display_own_selection(win->disp, win);
   }
 }
 
-int ui_window_xct_selection_request(ui_window_t *win, Time time) {
+int ui_window_xct_selection_request(ui_window_t *win, Time time, ui_selection_flag_t selection) {
   Display *display = win->disp->display;
 
   /*
@@ -2977,16 +2967,16 @@ int ui_window_xct_selection_request(ui_window_t *win, Time time) {
    *    e6b5a5e6b9a5e695b464e69593e695ace791a3e6bda9e589aee785a5e695b5e791
    *    b3e2b4a0e790a0e789a1e695a7e281b4e690a50a
    */
-  XConvertSelection(display, use_clipboard == 2 ? XA_CLIPBOARD(display) : XA_PRIMARY,
+  XConvertSelection(display, selection == SEL_CLIPBOARD ? XA_CLIPBOARD(display) : XA_PRIMARY,
                     XA_COMPOUND_TEXT(display), XA_SELECTION_PROP(display), win->my_window, time);
 
   return 1;
 }
 
-int ui_window_utf_selection_request(ui_window_t *win, Time time) {
+int ui_window_utf_selection_request(ui_window_t *win, Time time, ui_selection_flag_t selection) {
   Display *display = win->disp->display;
 
-  XConvertSelection(display, use_clipboard == 2 ? XA_CLIPBOARD(display) : XA_PRIMARY,
+  XConvertSelection(display, selection == SEL_CLIPBOARD ? XA_CLIPBOARD(display) : XA_PRIMARY,
                     XA_UTF8_STRING(display), XA_SELECTION_PROP(display), win->my_window, time);
 
   return 1;
@@ -3060,7 +3050,8 @@ void ui_window_send_picture_selection(ui_window_t *win, Pixmap pixmap, u_int wid
           }
         }
 
-        ui_window_set_selection_owner(win, CurrentTime);
+        ui_window_set_selection_owner(win, CurrentTime, SEL_PRIMARY);
+        ui_window_set_selection_owner(win, CurrentTime, SEL_CLIPBOARD);
 
         bl_msg_printf("Set a clicked picture to the clipboard.\n");
       }

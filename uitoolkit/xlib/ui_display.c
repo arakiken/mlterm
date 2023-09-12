@@ -495,6 +495,41 @@ int ui_display_clear_selection(ui_display_t *disp, /* NULL means all selection o
   return 1;
 }
 
+int ui_display_own_clipboard(ui_display_t *disp, ui_window_t *win) {
+  if (disp->clipboard_owner) {
+    ui_display_clear_clipboard(disp, disp->clipboard_owner);
+  }
+
+  disp->clipboard_owner = win;
+
+  return 1;
+}
+
+int ui_display_clear_clipboard(ui_display_t *disp, /* NULL means all clipboard owner windows. */
+                               ui_window_t *win) {
+  if (disp == NULL) {
+    u_int count;
+
+    for (count = 0; count < num_displays; count++) {
+      ui_display_clear_clipboard(displays[count], displays[count]->clipboard_owner);
+    }
+
+    return 1;
+  }
+
+  if (disp->clipboard_owner == NULL || disp->clipboard_owner != win) {
+    return 0;
+  }
+
+  if (disp->clipboard_owner->selection_cleared) {
+    (*disp->clipboard_owner->selection_cleared)(disp->clipboard_owner);
+  }
+
+  disp->clipboard_owner = NULL;
+
+  return 1;
+}
+
 XModifierKeymap *ui_display_get_modifier_mapping(ui_display_t *disp) { return disp->modmap.map; }
 
 void ui_display_update_modifier_mapping(ui_display_t *disp, u_int serial) {
