@@ -133,6 +133,8 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, '\0', "role", 0, "wm_role", "application role [none]");
   bl_conf_add_opt(conf, 'O', "sbmod", 0, "scrollbar_mode",
                   "scrollbar mode (none/left/right/autohide) [none]");
+  bl_conf_add_opt(conf, 'P', "mouse", 1, "use_mouse_selection",
+                  "copy and paste with mouse [true]");
   bl_conf_add_opt(conf, 'Q', "vcur", 1, "use_vertical_cursor",
                   "rearrange cursor key for vertical mode [true]");
   bl_conf_add_opt(conf, 'S', "sbview", 0, "scrollbar_view_name",
@@ -1242,6 +1244,14 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
 
     if (flag != -1) {
       vt_set_regard_uri_as_word(flag);
+    }
+  }
+
+  if ((value = bl_conf_get_value(conf, "use_mouse_selection"))) {
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      ui_set_use_mouse_selection(flag);
     }
   }
 

@@ -58,6 +58,7 @@ enum {
 
 /* --- static variables --- */
 
+static int use_mouse_selection = 1;
 static int exit_backscroll_by_pty;
 static int allow_change_shortcut;
 static char *mod_meta_prefix = "\x1b";
@@ -2010,17 +2011,13 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
 
   if (ui_shortcut_match(screen->shortcut, INSERT_SELECTION, ksym, state)) {
     yank_event_received(screen, CurrentTime, SEL_PRIMARY);
-  }
-#if defined(USE_XLIB) || defined(USE_WAYLAND)
-  else if (ui_shortcut_match(screen->shortcut, INSERT_CLIPBOARD, ksym, state)) {
+  } else if (ui_shortcut_match(screen->shortcut, INSERT_CLIPBOARD, ksym, state)) {
     yank_event_received(screen, CurrentTime, SEL_CLIPBOARD);
   } else if (ui_shortcut_match(screen->shortcut, COPY_CLIPBOARD, ksym, state)) {
     if (screen->sel.sel_str && screen->sel.sel_len > 0) {
       ui_window_set_selection_owner(&screen->window, CurrentTime, SEL_CLIPBOARD);
     }
-  }
-#endif
-  else if (ui_shortcut_match(screen->shortcut, RESET, ksym, state)) {
+  } else if (ui_shortcut_match(screen->shortcut, RESET, ksym, state)) {
     vt_term_reset(screen->term, 1);
   } else if (ui_shortcut_match(screen->shortcut, COPY_MODE, ksym, state)) {
     copymode_start(screen);
@@ -2424,15 +2421,11 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
       if ((line = vt_term_get_line(screen->term, screen->copymode->cursor_row))) {
         line->mark ^= 1;
       }
-    }
-#if defined(USE_XLIB) || defined(USE_WAYLAND)
-    else if (ui_shortcut_match(screen->shortcut, COPY_CLIPBOARD, ksym, state)) {
+    } else if (ui_shortcut_match(screen->shortcut, COPY_CLIPBOARD, ksym, state)) {
       if (screen->sel.sel_str && screen->sel.sel_len > 0) {
         ui_window_set_selection_owner(&screen->window, CurrentTime, SEL_CLIPBOARD);
       }
-    }
-#endif
-    else if (ksym == XK_Left || ksym == 'h') {
+    } else if (ksym == XK_Left || ksym == 'h') {
       if (vt_line_is_rtl(line) &&
           screen->copymode->cursor_char_index <= get_beg_in_rtl_line(line)) {
         screen->copymode->cursor_char_index = -1;
@@ -3873,7 +3866,7 @@ static void button_released(ui_window_t *win, XButtonEvent *event) {
       if (event->state & ControlMask) {
         /* FIXME: should check whether a menu is really active? */
         return;
-      } else {
+      } else if (use_mouse_selection) {
         yank_event_received(screen, event->time, SEL_PRIMARY);
       }
     }
@@ -5255,7 +5248,8 @@ static int select_in_window(void *p, vt_char_t **chars, u_int *len, int beg_char
   }
 #endif
 
-  if (!ui_window_set_selection_owner(&screen->window, CurrentTime, SEL_PRIMARY)) {
+  if (use_mouse_selection &&
+      !ui_window_set_selection_owner(&screen->window, CurrentTime, SEL_PRIMARY)) {
     vt_str_destroy(*chars, size);
 
     return 0;
@@ -6531,6 +6525,8 @@ static int permit_exec_cmd(char *cmd) {
 }
 
 /* --- global functions --- */
+
+void ui_set_use_mouse_selection(int flag) { use_mouse_selection = flag; }
 
 void ui_exit_backscroll_by_pty(int flag) { exit_backscroll_by_pty = flag; }
 

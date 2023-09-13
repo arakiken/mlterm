@@ -1,3 +1,20 @@
+2023-09-13  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja, man/mlterm.1: Updated.
+
+	* ui_main_config.c: -P/--mouse/use_mouse_selection option is added.
+
+	* ui_screen.[ch]: ui_set_use_mouse_selection() is added.
+
+	* ui_shortcut.[ch], ui_screen.c: INSERT_CLIPBOARD and COPY_CLIPBOARD are
+	  available in platforms except xlib and wayland.
+
+	* ef_ucs_property.table: Updated to Unicode 15.1.0 (UnicodeData.txt and
+	  EastAsianWidth.txt)
+
+	* ucs_property.pl: Change of the format of EastAsianWidth.txt between
+	  15.0.0 and 15.1.0 is supported.
+
 2023-09-12  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/ui_window.c: ui_display_clear_clipboard() is called only if

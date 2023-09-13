@@ -29,10 +29,8 @@ typedef enum ui_key_func {
   SCROLL_UP_TO_MARK,
   SCROLL_DOWN_TO_MARK,
   INSERT_SELECTION,
-#if defined(USE_XLIB) || defined(USE_WAYLAND)
   INSERT_CLIPBOARD,
   COPY_CLIPBOARD,
-#endif
   RESET,
   COPY_MODE,
   SET_MARK,

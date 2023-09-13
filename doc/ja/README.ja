@@ -1083,6 +1083,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
       o use_login_shell (true/*false*)
         ログインシェルを使うかどうか
 
+      o use_mouse_selection (*true*/false)
+        マウスを使った X11 スタイルのコピー&ペーストを有効
+
       o use_urgent_bell (true/*false*)
         フォーカスを失なった画面上でBEL(0x7)を受け取った時に、ユーザに警告
 
@@ -1389,9 +1392,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
         現在の行にマーク
       o INSERT_SELECTION(Shift+Insert)
         セレクションのペースト
-      o INSERT_CLIPBOARD(Shift+Control+v) (xlib/wayland 用)
+      o INSERT_CLIPBOARD(Shift+Control+v)
         クリップボードのペースト
-      o COPY_CLIPBOARD(Shift+Control+c) (xlib/wayland 用)
+      o COPY_CLIPBOARD(Shift+Control+c)
         選択した文字列をクリップボードにコピー
       o RESET(Pause)
         端末をリセット
@@ -1517,6 +1520,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
     -L/--ls(=bool)     : use_login_shell
     -M/--im=value      : input_method
     -N/--name=value    : app_name
+    -P/--mouse         : use_mouse_selection
     -O/--sbmod=value   : scrollbar_mode
     -Q/--vcur(=bool)   : use_vertical_cursor
     -R/--fsrange=value : font_size_range

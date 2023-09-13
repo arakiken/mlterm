@@ -1,11 +1,13 @@
-* Support Shift+Control+v and Shift+Control+c to use clipboard by default.
-  Drop -P/--clip/use_clipboard option.
+* Support Shift+Control+v and Shift+Control+c to copy&paste via clipboard by default.
+  Drop -P/--clip/use_clipboard option and add -P/--mouse/use_mouse_selection option.
 * Add COPY_CLIPBOARD shortcut key.
 * Pressing '?' in copy mode searches for a string backward.
   (https://github.com/arakiken/mlterm/issues/72)
 * Support wp-primary-selection protocol in wayland.
 * Add tool/accessories/applycfg.sh and applyfontcfg.sh
   (https://github.com/arakiken/mlterm/issues/71)
+* Update unicode property table (generated from UnicodeData.txt and
+  EastAsianWidth.txt) to version 15.1.0.
 * Merge patches:
   https://github.com/arakiken/mlterm/pull/68.
 * Bug fixes:

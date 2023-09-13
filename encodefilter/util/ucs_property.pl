@@ -12,13 +12,13 @@ sub  parse_line($)
 		# code , prop , comment
 		return ( $1 , [$3 , "DIR_$4"] , $2) ;
 	}
-	elsif( /^([0-9A-F]*);([^ ]*) . (.*)$/)
+	elsif( /^([0-9A-F]*)[ ]*; ([^ ]*)[ #]*(.*)$/)
 	{
 		# East Asian Width
 		# code , prop , comment
 		return  ( $1 , ["EAW_$2"] , $3) ;
 	}
-	elsif( /^([0-9A-F]*)..([0-9A-F]*);([^ ]*) . (.*)$/)
+	elsif( /^([0-9A-F]*)..([0-9A-F]*)[ ]*; ([^ ]*)[ #]*(.*)$/)
 	{
 		# East Asian Width(code..code , prop , comment..comment)
 		# code<first> , prop , code<last> , comment

@@ -201,7 +201,9 @@ at the right edge of the screen.
 The default is \fBleft\fR.
 .TP
 \fB\-P\fR, \fB\-\-clip\fR(=\fIbool\fR)
-Whether to enable CLIPBOARD (not only PRIMARY) selection.
+Whether to enable X11 style selection with mouse.
+(Copy selected text to the primary selection immediately and
+paste from the primary selection with Button2.)
 The default is \fBtrue\fR.
 .TP
 \fB\-Q\fR, \fB\-\-vcur\fR(=\fIbool\fR)
@@ -1839,14 +1841,11 @@ Enable combining characters.
 \fBuse_cp932_ucs_for_xft=\fIbool\fR (\fB\-c\fR, \fB\-\-cp932\fR)
 Use CP932 - UCS mapping for displaying JISX0208 by Xft or cairo.
 .TP
-\fBuse_dynamic_comb=\fIbool\fR (\fB\-J\fR, \fB\-\-dyncomb\fR)
-Enable dynamic character combining.
-.TP
 \fBuse_ctl=\fIbool\fR (\fB\-C\fR, \fB\-\-ctl\fR)
 Enable complex text layouting on UTF8 encoding.
 .TP
-\fBuse_ot_layout=\fIbool\fR (\-\-otl\fR)
-Whether to show substituting glyphs in open type fonts with the use of libotf or harfbuzz.
+\fBuse_dynamic_comb=\fIbool\fR (\fB\-J\fR, \fB\-\-dyncomb\fR)
+Enable dynamic character combining.
 .TP
 \fBuse_italic_font=\fIbool\fR (\fB\-\-itfont\fR)
 Use italic font for characters with the italic attribute.
@@ -1859,6 +1858,12 @@ Whether to use login shell or not.
 .TP
 \fBuse_multi_column_char=\fIbool\fR (\fB\-Z\fR, \fB\-\-multicol\fR)
 Process full width characters.
+.TP
+\fBuse_mouse_selection=\fIbool\fR (\-\-P\fR)
+Whether to enable X11 style selection with mouse.
+.TP
+\fBuse_ot_layout=\fIbool\fR (\-\-otl\fR)
+Whether to show substituting glyphs in open type fonts with the use of libotf or harfbuzz.
 .TP
 \fBuse_point_size=\fIbool\fR (\fB\-\-point\fR)
 Treat the value of \-w option as point instead of pixel.
@@ -2146,10 +2151,10 @@ Set mark to the current line (default \fBControl+Shift+m\fR).
 Insert selection (default \fBShift+Insert\fR).
 .TP
 \fBINSERT_CLIPBOARD\fR
-Insert clipboard (default \fBShift+Control+v\fR). (Available on x11 and wayland)
+Insert clipboard (default \fBShift+Control+v\fR).
 .TP
 \fBCOPY_CLIPBOARD\fR
-Copy selected text to clipboard (default \fBShift+Control+c\fR). (Available on x11 and wayland)
+Copy selected text to clipboard (default \fBShift+Control+c\fR).
 .TP
 \fBRESET\fR
 Reset terminal (default \fBPause\fR).
