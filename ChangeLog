@@ -1,3 +1,7 @@
+2023-09-16  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_display_freebsd.c: Control+0x20..0x3f is processed correctly.
+
 2023-09-13  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja, man/mlterm.1: Updated.

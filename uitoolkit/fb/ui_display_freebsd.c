@@ -595,7 +595,16 @@ static int receive_key_event(int fd) {
           } else if (kcode == KEY_CAPSLOCK) {
             _display.lock_state ^= CLKED;
           } else {
-            xev.ksym = kcode + 0x100;
+            if (0x20 <= kcode && kcode <= 0x3f) {
+              /*
+               * Pressing Control+' '..'?' comes here with kcode = 0x20..0x3f but
+               * they are not function keys.
+               */
+              xev.ksym = kcode;
+            } else {
+              /* function keys */
+              xev.ksym = kcode + 0x100;
+            }
 
             goto send_event;
           }
