@@ -1,5 +1,14 @@
 2023-09-16  Araki Ken  <arakiken@users.sf.net>
 
+	* README.ja, man/mlterm.1: Updated.
+
+	* ui_main_config.c: -P/--mouse/use_mouse_selection option is dropped
+	  and --chsel/change_selection_immediately option is added.
+
+	* ui_screen.[ch]: ui_set_use_mouse_selection() is removed.
+
+	* ui_selection.[ch]: ui_set_change_selection_immediately() is added.
+
 	* ui_display_freebsd.c: Control+0x20..0x3f is processed correctly.
 
 2023-09-13  Araki Ken  <arakiken@users.sf.net>

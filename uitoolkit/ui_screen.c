@@ -58,7 +58,6 @@ enum {
 
 /* --- static variables --- */
 
-static int use_mouse_selection = 1;
 static int exit_backscroll_by_pty;
 static int allow_change_shortcut;
 static char *mod_meta_prefix = "\x1b";
@@ -1730,11 +1729,68 @@ static u_int convert_nl_to_cr3(WCHAR *str, u_int len) {
 #endif
 #endif
 
+static int copy_selection(ui_screen_t *screen, ui_selection_flag_t selection) {
+  int beg_char_index = screen->sel.beg_col;
+  int beg_row = screen->sel.beg_row;
+  int end_char_index = screen->sel.end_col;
+  int end_row = screen->sel.end_row;
+  vt_line_t *line;
+  u_int size;
+  vt_char_t *str;
+  u_int len;
+
+  /*
+   * Char index -1 has special meaning in rtl lines, so don't use abs() here.
+   */
+
+  if ((line = vt_term_get_line(screen->term, beg_row)) && vt_line_is_rtl(line)) {
+    beg_char_index = -beg_char_index;
+  }
+
+  if ((line = vt_term_get_line(screen->term, end_row)) && vt_line_is_rtl(line)) {
+    end_char_index = -end_char_index;
+  }
+
+  if ((size = vt_term_get_region_size(screen->term, beg_char_index, beg_row, end_char_index,
+                                      end_row, screen->sel.is_rect)) == 0) {
+    return 0;
+  }
+
+  if ((str = vt_str_new(size)) == NULL) {
+    return 0;
+  }
+  len = vt_term_copy_region(screen->term, str, size, beg_char_index, beg_row,
+                            end_char_index, end_row, screen->sel.is_rect);
+  ui_selection_set_str(&screen->sel, str, len);
+
+#ifdef DEBUG
+  bl_debug_printf("SELECTION: ");
+  vt_str_dump(screen->sel.sel_str, screen->sel.sel_len);
+#endif
+
+#ifdef DEBUG
+  if (size != len) {
+    bl_warn_printf(BL_DEBUG_TAG
+                   " vt_term_get_region_size() == %d and vt_term_copy_region() == %d"
+                   " are not the same size !\n",
+                   size, len);
+  }
+#endif
+
+  if (!ui_window_set_selection_owner(&screen->window, CurrentTime, selection)) {
+    ui_selection_set_str(&screen->sel, NULL, 0);
+
+    return 0;
+  } else {
+    return 1;
+  }
+}
+
 static int yank_event_received(ui_screen_t *screen, Time time, ui_selection_flag_t selection) {
   if (ui_window_is_selection_owner(&screen->window, selection)) {
     u_int len;
 
-    if (screen->sel.sel_str == NULL || screen->sel.sel_len == 0) {
+    if (!ui_selection_has_str(&screen->sel)) {
       return 0;
     }
 
@@ -2014,8 +2070,8 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
   } else if (ui_shortcut_match(screen->shortcut, INSERT_CLIPBOARD, ksym, state)) {
     yank_event_received(screen, CurrentTime, SEL_CLIPBOARD);
   } else if (ui_shortcut_match(screen->shortcut, COPY_CLIPBOARD, ksym, state)) {
-    if (screen->sel.sel_str && screen->sel.sel_len > 0) {
-      ui_window_set_selection_owner(&screen->window, CurrentTime, SEL_CLIPBOARD);
+    if (ui_sel_is_reversed(&screen->sel)) {
+      copy_selection(screen, SEL_CLIPBOARD);
     }
   } else if (ui_shortcut_match(screen->shortcut, RESET, ksym, state)) {
     vt_term_reset(screen->term, 1);
@@ -2088,7 +2144,7 @@ static int shortcut_str(ui_screen_t *screen, KeySym ksym, u_int state, int x, in
     char *key;
     size_t key_len;
 
-    if (screen->sel.sel_str == NULL || screen->sel.sel_len == 0) {
+    if (!ui_selection_has_str(&screen->sel)) {
       return 0;
     }
 
@@ -2422,7 +2478,7 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
         line->mark ^= 1;
       }
     } else if (ui_shortcut_match(screen->shortcut, COPY_CLIPBOARD, ksym, state)) {
-      if (screen->sel.sel_str && screen->sel.sel_len > 0) {
+      if (ui_selection_has_str(&screen->sel)) {
         ui_window_set_selection_owner(&screen->window, CurrentTime, SEL_CLIPBOARD);
       }
     } else if (ksym == XK_Left || ksym == 'h') {
@@ -2973,7 +3029,7 @@ static void xct_selection_requested(ui_window_t *win, XSelectionRequestEvent *ev
 
   screen = (ui_screen_t *)win;
 
-  if (screen->sel.sel_str == NULL || screen->sel.sel_len == 0) {
+  if (!ui_selection_has_str(&screen->sel)) {
     ui_window_send_text_selection(win, event, NULL, 0, 0);
   } else {
     u_char *xct_str;
@@ -3003,7 +3059,7 @@ static void utf_selection_requested(ui_window_t *win, XSelectionRequestEvent *ev
 
   screen = (ui_screen_t *)win;
 
-  if (screen->sel.sel_str == NULL || screen->sel.sel_len == 0) {
+  if (!ui_selection_has_str(&screen->sel)) {
     ui_window_send_text_selection(win, event, NULL, 0, 0);
   } else {
     u_char *utf_str;
@@ -3866,7 +3922,7 @@ static void button_released(ui_window_t *win, XButtonEvent *event) {
       if (event->state & ControlMask) {
         /* FIXME: should check whether a menu is really active? */
         return;
-      } else if (use_mouse_selection) {
+      } else {
         yank_event_received(screen, event->time, SEL_PRIMARY);
       }
     }
@@ -5202,60 +5258,8 @@ static void restore_color(void *p, int beg_char_index, int beg_row, int end_char
   vt_term_restore_color(screen->term, beg_char_index, beg_row, end_char_index, end_row, is_rect);
 }
 
-static int select_in_window(void *p, vt_char_t **chars, u_int *len, int beg_char_index, int beg_row,
-                            int end_char_index, int end_row, int is_rect) {
-  ui_screen_t *screen;
-  vt_line_t *line;
-  u_int size;
-
-  screen = p;
-
-  /*
-   * Char index -1 has special meaning in rtl lines, so don't use abs() here.
-   */
-
-  if ((line = vt_term_get_line(screen->term, beg_row)) && vt_line_is_rtl(line)) {
-    beg_char_index = -beg_char_index;
-  }
-
-  if ((line = vt_term_get_line(screen->term, end_row)) && vt_line_is_rtl(line)) {
-    end_char_index = -end_char_index;
-  }
-
-  if ((size = vt_term_get_region_size(screen->term, beg_char_index, beg_row, end_char_index,
-                                      end_row, is_rect)) == 0) {
-    return 0;
-  }
-
-  if ((*chars = vt_str_new(size)) == NULL) {
-    return 0;
-  }
-
-  *len = vt_term_copy_region(screen->term, *chars, size, beg_char_index, beg_row, end_char_index,
-                             end_row, is_rect);
-
-#ifdef DEBUG
-  bl_debug_printf("SELECTION: ");
-  vt_str_dump(*chars, size);
-#endif
-
-#ifdef DEBUG
-  if (size != *len) {
-    bl_warn_printf(BL_DEBUG_TAG
-                   " vt_term_get_region_size() == %d and vt_term_copy_region() == %d"
-                   " are not the same size !\n",
-                   size, *len);
-  }
-#endif
-
-  if (use_mouse_selection &&
-      !ui_window_set_selection_owner(&screen->window, CurrentTime, SEL_PRIMARY)) {
-    vt_str_destroy(*chars, size);
-
-    return 0;
-  } else {
-    return 1;
-  }
+static int select_in_window(void *p) {
+  return copy_selection(p, SEL_PRIMARY);
 }
 
 /*
@@ -6170,12 +6174,7 @@ static void xterm_set_selection(void *p,
   }
 
   if (ui_window_set_selection_owner(&screen->window, CurrentTime, selection)) {
-    if (screen->sel.sel_str) {
-      vt_str_destroy(screen->sel.sel_str, screen->sel.sel_len);
-    }
-
-    screen->sel.sel_str = str;
-    screen->sel.sel_len = len;
+    ui_selection_set_str(&screen->sel, str, len);
   }
 }
 
@@ -6525,8 +6524,6 @@ static int permit_exec_cmd(char *cmd) {
 }
 
 /* --- global functions --- */
-
-void ui_set_use_mouse_selection(int flag) { use_mouse_selection = flag; }
 
 void ui_exit_backscroll_by_pty(int flag) { exit_backscroll_by_pty = flag; }
 

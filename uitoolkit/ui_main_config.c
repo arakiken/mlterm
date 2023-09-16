@@ -133,8 +133,6 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, '\0', "role", 0, "wm_role", "application role [none]");
   bl_conf_add_opt(conf, 'O', "sbmod", 0, "scrollbar_mode",
                   "scrollbar mode (none/left/right/autohide) [none]");
-  bl_conf_add_opt(conf, 'P', "mouse", 1, "use_mouse_selection",
-                  "copy and paste with mouse [true]");
   bl_conf_add_opt(conf, 'Q', "vcur", 1, "use_vertical_cursor",
                   "rearrange cursor key for vertical mode [true]");
   bl_conf_add_opt(conf, 'S', "sbview", 0, "scrollbar_view_name",
@@ -335,6 +333,8 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "send modified keys as parameter for CSI u [false]");
   bl_conf_add_opt(conf, '\0', "sdpr", 0, "simple_scrollbar_dpr",
                   "device pixel ratio for simple scrollbar [1]");
+  bl_conf_add_opt(conf, '\0', "chsel", 1, "change_selection_immediately",
+                  "change selection just after selecting text by mouse [true]");
 #ifdef USE_IM_CURSOR_COLOR
   bl_conf_add_opt(conf, '\0', "imcolor", 0, "im_cursor_color",
                   "cursor color when input method is activated. [false]");
@@ -1247,11 +1247,11 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     }
   }
 
-  if ((value = bl_conf_get_value(conf, "use_mouse_selection"))) {
+  if ((value = bl_conf_get_value(conf, "change_selection_immediately"))) {
     int flag = true_or_false(value);
 
     if (flag != -1) {
-      ui_set_use_mouse_selection(flag);
+      ui_set_change_selection_immediately(flag);
     }
   }
 

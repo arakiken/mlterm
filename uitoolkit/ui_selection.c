@@ -11,6 +11,10 @@
 #define __DEBUG
 #endif
 
+/* --- static variables --- */
+
+static int change_selection_immediately = 1;
+
 /* --- static functions --- */
 
 static int update_sel_region(ui_selection_t *sel, int col, int row) {
@@ -195,6 +199,10 @@ static int update_sel_region(ui_selection_t *sel, int col, int row) {
 
 /* --- global functions --- */
 
+void ui_set_change_selection_immediately(int flag) {
+  change_selection_immediately = flag;
+}
+
 void ui_sel_init(ui_selection_t *sel, ui_sel_event_listener_t *sel_listener) {
   memset(sel, 0, sizeof(ui_selection_t));
 
@@ -261,24 +269,26 @@ int ui_stop_selecting(ui_selection_t *sel) {
   sel->is_selecting = 0;
   sel->is_locked = 0;
 
+  if (change_selection_immediately) {
+    if (!(*sel->sel_listener->select_in_window)(sel->sel_listener->self)) {
+#ifdef __DEBUG
+      bl_debug_printf(BL_DEBUG_TAG " select_in_window() failed.\n");
+#endif
+
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
+void ui_selection_set_str(ui_selection_t *sel, vt_char_t *str, u_int len) {
   if (sel->sel_str) {
     vt_str_destroy(sel->sel_str, sel->sel_len);
   }
 
-  if (!(*sel->sel_listener->select_in_window)(sel->sel_listener->self, &sel->sel_str, &sel->sel_len,
-                                              sel->beg_col, sel->beg_row, sel->end_col,
-                                              sel->end_row, sel->is_rect)) {
-#ifdef __DEBUG
-    bl_debug_printf(BL_DEBUG_TAG " select_in_window() failed.\n");
-#endif
-
-    sel->sel_str = NULL;
-    sel->sel_len = 0;
-
-    return 0;
-  }
-
-  return 1;
+  sel->sel_str = str;
+  sel->sel_len = len;
 }
 
 int ui_sel_clear(ui_selection_t *sel) {
@@ -287,10 +297,8 @@ int ui_sel_clear(ui_selection_t *sel) {
 #endif
 
   if (sel->is_selecting) {
-    if (sel->sel_str) {
-      vt_str_destroy(sel->sel_str, sel->sel_len);
-      sel->sel_str = NULL;
-      sel->sel_len = 0;
+    if (change_selection_immediately && sel->sel_str) {
+      ui_selection_set_str(sel, NULL, 0);
     }
 
     sel->is_selecting = 0;

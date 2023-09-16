@@ -159,8 +159,6 @@ typedef struct ui_screen {
 
 } ui_screen_t;
 
-void ui_set_use_mouse_selection(int flag);
-
 void ui_exit_backscroll_by_pty(int flag);
 
 void ui_allow_change_shortcut(int flag);

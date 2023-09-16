@@ -895,6 +895,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
         キー入力及びペーストされた文字列を、全ての pty (ignore_broadcasted_chars
         オプションの値が false なものに限る) に送信
 
+      o change_selection_immediately (*true*/false)
+        マウスでテキストを選択した場合に、選択したテキストをすぐに Selection に反映
+
       o cipher_list
         ssh 接続で使用する共通鍵暗号を指定
         (コンマ区切りで複数指定)
@@ -1082,9 +1085,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
 
       o use_login_shell (true/*false*)
         ログインシェルを使うかどうか
-
-      o use_mouse_selection (*true*/false)
-        マウスを使った X11 スタイルのコピー&ペーストを有効
 
       o use_urgent_bell (true/*false*)
         フォーカスを失なった画面上でBEL(0x7)を受け取った時に、ユーザに警告
@@ -1520,7 +1520,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
     -L/--ls(=bool)     : use_login_shell
     -M/--im=value      : input_method
     -N/--name=value    : app_name
-    -P/--mouse         : use_mouse_selection
     -O/--sbmod=value   : scrollbar_mode
     -Q/--vcur(=bool)   : use_vertical_cursor
     -R/--fsrange=value : font_size_range
@@ -1620,6 +1619,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
        --emojifmt=value: emoji_file_format
        --rz=value      : resize_mode
        --recvdir=value : receive_directory
+       --fk(=bool)     : format_other_keys
+       --sdpr=value    : simple_scrollbar_dpr
+       --chsel(=bool)  : change_selection_immediately
        --point=value   : use_point_size
        --aafont(=bool) : use_aafont (mlterm-fb, mlterm-wl or mlterm-sdl2 用)
        --multivram(=bool) : separate_wall_picture (mlterm-fb on NetBSD/x68k 用)

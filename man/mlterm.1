@@ -200,12 +200,6 @@ Specify the side to show a scrollbar.
 at the right edge of the screen.
 The default is \fBleft\fR.
 .TP
-\fB\-P\fR, \fB\-\-clip\fR(=\fIbool\fR)
-Whether to enable X11 style selection with mouse.
-(Copy selected text to the primary selection immediately and
-paste from the primary selection with Button2.)
-The default is \fBtrue\fR.
-.TP
 \fB\-Q\fR, \fB\-\-vcur\fR(=\fIbool\fR)
 Change interpretation of cursor keys to be natural
 in vertical writing mode.
@@ -575,6 +569,10 @@ The maximum value is \fB224\fR.
 Use either unicode font or DEC Special font forcibly to draw box-drawing characters.
 \fBunicode\fR for unicode font and \fBdecsp\fR for DEC special font.
 The default is \fBnoconv\fR which draw them as they are.
+.TP
+\fB\-\-chsel\fR(=\fIbool\fR)
+Whether to enable to change selection just after selecting text by mouse.
+The default is \fBtrue\fR.
 .TP
 \fB\-\-ciphlist\fR=\fIvalue\fR
 Specify ciphers (comma separated list) for encrypting the ssh session.
@@ -1555,6 +1553,9 @@ Specify the amount of darkening or lightening the background image.
 Whether to broadcast input or pasted characters to all ptys whose value of
 "ignore_broadcasted_chars" option is false.
 .TP
+\fBchange_selection_immediately=\fIbool\fR (\-\-chsel\fR)
+Whether to enable to change selection just after selecting text by mouse.
+.TP
 \fBcipher_list\fR=\fIvalue\fR (\fB\-\-ciphlist\fR)
 Specify ciphers (comma separated list) for encrypting the ssh session.
 .TP
@@ -1858,9 +1859,6 @@ Whether to use login shell or not.
 .TP
 \fBuse_multi_column_char=\fIbool\fR (\fB\-Z\fR, \fB\-\-multicol\fR)
 Process full width characters.
-.TP
-\fBuse_mouse_selection=\fIbool\fR (\-\-P\fR)
-Whether to enable X11 style selection with mouse.
 .TP
 \fBuse_ot_layout=\fIbool\fR (\-\-otl\fR)
 Whether to show substituting glyphs in open type fonts with the use of libotf or harfbuzz.

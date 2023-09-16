@@ -15,7 +15,7 @@ typedef enum {
 
 typedef struct ui_sel_event_listener {
   void *self;
-  int (*select_in_window)(void *, vt_char_t **, u_int *, int, int, int, int, int);
+  int (*select_in_window)(void *);
   void (*reverse_color)(void *, int, int, int, int, int);
   void (*restore_color)(void *, int, int, int, int, int);
 
@@ -55,6 +55,8 @@ typedef struct ui_selection {
 
 } ui_selection_t;
 
+void ui_set_change_selection_immediately(int flag);
+
 void ui_sel_init(ui_selection_t *sel, ui_sel_event_listener_t *listener);
 
 void ui_sel_final(ui_selection_t *sel);
@@ -73,6 +75,10 @@ int ui_reverse_selected_region_color_except_logs(ui_selection_t *sel);
 int ui_restore_selected_region_color(ui_selection_t *sel);
 
 int ui_reverse_selected_region_color(ui_selection_t *sel);
+
+void ui_selection_set_str(ui_selection_t *sel, vt_char_t *str, u_int len);
+
+#define ui_selection_has_str(sel) ((sel)->sel_str != NULL && (sel)->sel_len > 0)
 
 int ui_sel_clear(ui_selection_t *sel);
 
