@@ -13,7 +13,9 @@
 
 /* --- static variables --- */
 
+#ifdef SELECTION_STYLE_CHANGEABLE
 static int change_selection_immediately = 1;
+#endif
 
 /* --- static functions --- */
 
@@ -199,9 +201,11 @@ static int update_sel_region(ui_selection_t *sel, int col, int row) {
 
 /* --- global functions --- */
 
+#ifdef SELECTION_STYLE_CHANGEABLE
 void ui_set_change_selection_immediately(int flag) {
   change_selection_immediately = flag;
 }
+#endif
 
 void ui_sel_init(ui_selection_t *sel, ui_sel_event_listener_t *sel_listener) {
   memset(sel, 0, sizeof(ui_selection_t));
@@ -269,7 +273,10 @@ int ui_stop_selecting(ui_selection_t *sel) {
   sel->is_selecting = 0;
   sel->is_locked = 0;
 
-  if (change_selection_immediately) {
+#ifdef SELECTION_STYLE_CHANGEABLE
+  if (change_selection_immediately)
+#endif
+  {
     if (!(*sel->sel_listener->select_in_window)(sel->sel_listener->self)) {
 #ifdef __DEBUG
       bl_debug_printf(BL_DEBUG_TAG " select_in_window() failed.\n");
@@ -278,6 +285,11 @@ int ui_stop_selecting(ui_selection_t *sel) {
       return 0;
     }
   }
+#ifdef SELECTION_STYLE_CHANGEABLE
+  else {
+    sel->str_not_updated = 1;
+  }
+#endif
 
   return 1;
 }
@@ -289,6 +301,9 @@ void ui_selection_set_str(ui_selection_t *sel, vt_char_t *str, u_int len) {
 
   sel->sel_str = str;
   sel->sel_len = len;
+#ifdef SELECTION_STYLE_CHANGEABLE
+  sel->str_not_updated = 0;
+#endif
 }
 
 int ui_sel_clear(ui_selection_t *sel) {
@@ -297,8 +312,13 @@ int ui_sel_clear(ui_selection_t *sel) {
 #endif
 
   if (sel->is_selecting) {
-    if (change_selection_immediately && sel->sel_str) {
-      ui_selection_set_str(sel, NULL, 0);
+#ifdef SELECTION_STYLE_CHANGEABLE
+    if (change_selection_immediately)
+#endif
+    {
+      if (sel->sel_str) {
+        ui_selection_set_str(sel, NULL, 0);
+      }
     }
 
     sel->is_selecting = 0;

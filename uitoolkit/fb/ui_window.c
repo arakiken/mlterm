@@ -2376,7 +2376,13 @@ void ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2)
 }
 
 int ui_window_set_selection_owner(ui_window_t *win, Time time, ui_selection_flag_t selection) {
-#ifndef USE_SDL2
+#ifdef USE_SDL2
+  /*
+   * Set selection_owner NULL for ui_display_own_selection() not to
+   * call ui_display_clear_selection().
+   */
+  win->disp->selection_owner = NULL;
+#else
   if (ui_window_is_selection_owner(win, selection)) {
     /* Already owner */
   } else

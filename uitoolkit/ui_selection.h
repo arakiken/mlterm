@@ -6,6 +6,12 @@
 #include <pobl/bl_types.h> /* u_int */
 #include <vt_str.h>
 
+#include "ui.h"
+
+#if !defined(USE_XLIB) && !defined(USE_WAYLAND)
+#define SELECTION_STYLE_CHANGEABLE
+#endif
+
 typedef enum {
   SEL_CHAR = 0x1,
   SEL_WORD = 0x2,
@@ -52,10 +58,16 @@ typedef struct ui_selection {
   int8_t is_reversed;
   int8_t is_locked;
   int8_t is_rect;
+#ifdef SELECTION_STYLE_CHANGEABLE
+  int8_t str_not_updated;
+#endif
 
 } ui_selection_t;
 
+
+#ifdef SELECTION_STYLE_CHANGEABLE
 void ui_set_change_selection_immediately(int flag);
+#endif
 
 void ui_sel_init(ui_selection_t *sel, ui_sel_event_listener_t *listener);
 
@@ -79,6 +91,12 @@ int ui_reverse_selected_region_color(ui_selection_t *sel);
 void ui_selection_set_str(ui_selection_t *sel, vt_char_t *str, u_int len);
 
 #define ui_selection_has_str(sel) ((sel)->sel_str != NULL && (sel)->sel_len > 0)
+
+#ifdef SELECTION_STYLE_CHANGEABLE
+#define ui_selection_str_is_not_updated(sel) ((sel)->str_not_updated)
+#else
+#define ui_selection_str_is_not_updated(sel) (0)
+#endif
 
 int ui_sel_clear(ui_selection_t *sel);
 

@@ -1777,7 +1777,8 @@ static int copy_selection(ui_screen_t *screen, ui_selection_flag_t selection) {
   }
 #endif
 
-  if (!ui_window_set_selection_owner(&screen->window, CurrentTime, selection)) {
+  if (selection != SEL_NONE &&
+      !ui_window_set_selection_owner(&screen->window, CurrentTime, selection)) {
     ui_selection_set_str(&screen->sel, NULL, 0);
 
     return 0;
@@ -2070,8 +2071,10 @@ static int shortcut_match(ui_screen_t *screen, KeySym ksym, u_int state) {
   } else if (ui_shortcut_match(screen->shortcut, INSERT_CLIPBOARD, ksym, state)) {
     yank_event_received(screen, CurrentTime, SEL_CLIPBOARD);
   } else if (ui_shortcut_match(screen->shortcut, COPY_CLIPBOARD, ksym, state)) {
-    if (ui_sel_is_reversed(&screen->sel)) {
+    if (ui_selection_str_is_not_updated(&screen->sel)) {
       copy_selection(screen, SEL_CLIPBOARD);
+    } else if (!ui_window_is_selection_owner(&screen->window, SEL_CLIPBOARD)) {
+      ui_window_set_selection_owner(&screen->window, CurrentTime, SEL_CLIPBOARD);
     }
   } else if (ui_shortcut_match(screen->shortcut, RESET, ksym, state)) {
     vt_term_reset(screen->term, 1);
@@ -2144,6 +2147,11 @@ static int shortcut_str(ui_screen_t *screen, KeySym ksym, u_int state, int x, in
     char *key;
     size_t key_len;
 
+    /* XXX In case change_selection_immediately is false. */
+    if (ui_selection_str_is_not_updated(&screen->sel)) {
+      copy_selection(screen, SEL_NONE);
+    }
+
     if (!ui_selection_has_str(&screen->sel)) {
       return 0;
     }
@@ -2192,9 +2200,8 @@ static int shortcut_str(ui_screen_t *screen, KeySym ksym, u_int state, int x, in
 
     if (strncmp(key, "mlclient", 8) == 0) {
       ui_screen_exec_cmd(screen, key);
-    }
+    } else {
 #ifndef USE_WIN32API
-    else {
       char **argv;
       int argc;
 
@@ -2205,8 +2212,19 @@ static int shortcut_str(ui_screen_t *screen, KeySym ksym, u_int state, int x, in
           exit(1);
         }
       }
-    }
+#else
+      PROCESS_INFORMATION pi;
+      STARTUPINFO si;
+
+      /* Set up the start up info struct. */
+      ZeroMemory(&si, sizeof(STARTUPINFO));
+      si.cb = sizeof(STARTUPINFO);
+
+      CreateProcess(NULL, key, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+      CloseHandle(pi.hThread);
+      CloseHandle(pi.hProcess);
 #endif
+    }
   } else if (strncmp(str, "proto:", 6) == 0) {
     char *seq;
     size_t len;
@@ -2478,7 +2496,9 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
         line->mark ^= 1;
       }
     } else if (ui_shortcut_match(screen->shortcut, COPY_CLIPBOARD, ksym, state)) {
-      if (ui_selection_has_str(&screen->sel)) {
+      if (ui_selection_str_is_not_updated(&screen->sel)) {
+        copy_selection(screen, SEL_CLIPBOARD);
+      } else if (!ui_window_is_selection_owner(&screen->window, SEL_CLIPBOARD)) {
         ui_window_set_selection_owner(&screen->window, CurrentTime, SEL_CLIPBOARD);
       }
     } else if (ksym == XK_Left || ksym == 'h') {

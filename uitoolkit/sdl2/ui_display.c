@@ -697,8 +697,8 @@ static void poll_event(void) {
     xev.xkey.state = get_mod_state(ev.key.keysym.mod);
 
     if (!cur_preedit_text &&
-        (xev.xkey.ksym < 0x20 || xev.xkey.ksym >= 0x7f || xev.xkey.state == ControlMask ||
-         xev.xkey.state == CommandMask)) {
+        (xev.xkey.ksym < 0x20 || xev.xkey.ksym >= 0x7f || (xev.xkey.state & ControlMask) ||
+         (xev.xkey.state & CommandMask))) {
       ui_window_receive_event(get_display(ev.key.windowID)->roots[0], &xev);
     }
 
@@ -879,6 +879,12 @@ static void poll_event(void) {
       SDL_free(ev.drop.file);
 
       break;
+    }
+
+  case SDL_CLIPBOARDUPDATE:
+    disp = get_display(ev.window.windowID);
+    if (disp->selection_owner) {
+      ui_display_clear_selection(NULL, disp->selection_owner);
     }
 
   default:

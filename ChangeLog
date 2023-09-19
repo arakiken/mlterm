@@ -1,3 +1,18 @@
+2023-09-18  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c: "exesel:" works in win32.
+
+	* ui_main_config.c: --chsel/change_selection_immediately option is
+	  not available in xlib and wayland.
+
+	* sdl2/ui_window.c: Fix for clipboard in SDL2.
+
+	* sdl2/ui_display.c:
+	  - Shift+Control+xxx works in SDL2.
+	  - Process SDL_CLIPBOARDUPDATE event.
+
+	* ui_window.h: Add SEL_NONE to ui_selection_flag_t.
+
 2023-09-16  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja, man/mlterm.1: Updated.

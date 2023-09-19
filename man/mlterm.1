@@ -570,7 +570,7 @@ Use either unicode font or DEC Special font forcibly to draw box-drawing charact
 \fBunicode\fR for unicode font and \fBdecsp\fR for DEC special font.
 The default is \fBnoconv\fR which draw them as they are.
 .TP
-\fB\-\-chsel\fR(=\fIbool\fR)
+\fB\-\-chsel\fR(=\fIbool\fR) (Available for anything except mlterm and mlterm-wl)
 Whether to enable to change selection just after selecting text by mouse.
 The default is \fBtrue\fR.
 .TP
@@ -1553,7 +1553,7 @@ Specify the amount of darkening or lightening the background image.
 Whether to broadcast input or pasted characters to all ptys whose value of
 "ignore_broadcasted_chars" option is false.
 .TP
-\fBchange_selection_immediately=\fIbool\fR (\-\-chsel\fR)
+\fBchange_selection_immediately=\fIbool\fR (\-\-chsel\fR) (Available for anything except mlterm and mlterm-wl)
 Whether to enable to change selection just after selecting text by mouse.
 .TP
 \fBcipher_list\fR=\fIvalue\fR (\fB\-\-ciphlist\fR)

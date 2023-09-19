@@ -895,7 +895,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
         キー入力及びペーストされた文字列を、全ての pty (ignore_broadcasted_chars
         オプションの値が false なものに限る) に送信
 
-      o change_selection_immediately (*true*/false)
+      o change_selection_immediately (*true*/false) (mlterm and mlterm-wl 以外用)
         マウスでテキストを選択した場合に、選択したテキストをすぐに Selection に反映
 
       o cipher_list
@@ -1621,7 +1621,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
        --recvdir=value : receive_directory
        --fk(=bool)     : format_other_keys
        --sdpr=value    : simple_scrollbar_dpr
-       --chsel(=bool)  : change_selection_immediately
+       --chsel(=bool)  : change_selection_immediately (mlterm and mlterm-wl 以外用)
        --point=value   : use_point_size
        --aafont(=bool) : use_aafont (mlterm-fb, mlterm-wl or mlterm-sdl2 用)
        --multivram(=bool) : separate_wall_picture (mlterm-fb on NetBSD/x68k 用)

@@ -333,8 +333,10 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "send modified keys as parameter for CSI u [false]");
   bl_conf_add_opt(conf, '\0', "sdpr", 0, "simple_scrollbar_dpr",
                   "device pixel ratio for simple scrollbar [1]");
+#ifdef SELECTION_STYLE_CHANGEABLE
   bl_conf_add_opt(conf, '\0', "chsel", 1, "change_selection_immediately",
                   "change selection just after selecting text by mouse [true]");
+#endif
 #ifdef USE_IM_CURSOR_COLOR
   bl_conf_add_opt(conf, '\0', "imcolor", 0, "im_cursor_color",
                   "cursor color when input method is activated. [false]");
@@ -1247,6 +1249,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     }
   }
 
+#ifdef SELECTION_STYLE_CHANGEABLE
   if ((value = bl_conf_get_value(conf, "change_selection_immediately"))) {
     int flag = true_or_false(value);
 
@@ -1254,6 +1257,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
       ui_set_change_selection_immediately(flag);
     }
   }
+#endif
 
 #ifndef __ANDROID__
   if (!(value = bl_conf_get_value(conf, "auto_restart")) || strcmp(value, "false") != 0) {

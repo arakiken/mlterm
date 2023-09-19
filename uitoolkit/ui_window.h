@@ -51,8 +51,9 @@ typedef enum ui_sizehint_flag {
 
 /* PRIMARY and CLIPBOARD are distinguished only in xlib/wayland. */
 typedef enum ui_selection_flag {
-  SEL_PRIMARY = 0x0,
-  SEL_CLIPBOARD = 0x1,
+  SEL_NONE = 0x0, /* Not own selection */
+  SEL_PRIMARY = 0x1,
+  SEL_CLIPBOARD = 0x2,
 } ui_selection_flag_t;
 
 typedef struct ui_xim_event_listener {

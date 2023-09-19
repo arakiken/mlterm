@@ -1,5 +1,6 @@
 * Support Shift+Control+v and Shift+Control+c to copy&paste via clipboard by default.
-  Drop -P/--clip/use_clipboard option and add -P/--mouse/use_mouse_selection option.
+  Drop -P/--clip/use_clipboard option.
+  Add --chsel/change_selection_immediately option in anything except xlib and wayland.
 * Add COPY_CLIPBOARD shortcut key.
 * Pressing '?' in copy mode searches for a string backward.
   (https://github.com/arakiken/mlterm/issues/72)
@@ -17,6 +18,8 @@
   https://github.com/arakiken/mlterm/issues/73.
   https://github.com/arakiken/mlterm/issues/78.
   Fix an issue where mlconfig was not displayed.
+  Fix an issue where Control+Shift+xxx shortcut didn't work in SDL2.
+  Fix unexpected reset of inverted colors in selected area in SDL2.
 
 ver 3.9.3
 * mlterm-wl supports xdg-decoration.
