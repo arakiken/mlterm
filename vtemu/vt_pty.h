@@ -36,7 +36,7 @@ typedef enum {
   PTY_LOCAL,
   PTY_SSH,
   PTY_MOSH,
-  PTY_PIPE,
+  PTY_WIN32,
 } vt_pty_mode_t;
 
 typedef struct vt_pty_event_listener {
@@ -119,6 +119,10 @@ int vt_start_config_menu(vt_pty_t *pty, char *cmd_path, int x, int y, char *disp
 #define vt_pty_get_mode(pty) ((pty)->mode)
 
 #define vt_pty_is_loopback(pty) ((pty)->stored != NULL)
+
+#ifdef USE_WIN32API
+void vt_pty_win32_set_pty_read_trigger(void (*func)(void));
+#endif
 
 #ifdef USE_LIBSSH2
 #ifndef USE_MOSH

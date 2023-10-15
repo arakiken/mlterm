@@ -346,14 +346,15 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
        * SHELL env var -> /etc/passwd -> /bin/sh
        */
       if ((cmd_path = getenv("SHELL")) == NULL || *cmd_path == '\0') {
-#ifndef USE_WIN32API
+#ifdef USE_WIN32API
+        cmd_path = "c:\\Windows\\System32\\cmd.exe";
+#else
         struct passwd *pw;
 
-        if ((pw = getpwuid(getuid())) == NULL || *(cmd_path = pw->pw_shell) == '\0')
-#endif
-        {
+        if ((pw = getpwuid(getuid())) == NULL || *(cmd_path = pw->pw_shell) == '\0') {
           cmd_path = "/bin/sh";
         }
+#endif
       }
     }
   }
@@ -1443,10 +1444,8 @@ u_int ui_screen_manager_startup(void) {
 
   for (count = 0; count < num_startup_screens; count++) {
     if (!open_screen_intern(main_config.disp_name, vt_get_detached_term(NULL), NULL, 0, 0,
-#if defined(USE_LIBSSH2) && defined(__ANDROID__)
+#if (defined(USE_LIBSSH2) && defined(__ANDROID__)) || defined(USE_WIN32API)
                             !start_with_local_pty
-#elif defined(USE_WIN32API)
-                            1 /* show dialog */
 #else
                             0
 #endif

@@ -44,6 +44,8 @@
 # Shift+Button3="exesel:/cygdrive/c/Program\\ Files/Internet\\ Explorer/iexplore.exe \"%s\""
 # (Enclose %s by "" to invalidate special characters of cmd.exe)
 # Shift+Button3="exesel:cmd.exe /C \"start microsoft-edge:\\"%s\\"\""
+# (for win32 (MinGW))
+# Shift+Button3="exesel:cmd.exe /C start microsoft-edge:%s"
 # (This doesn't necessarily work because MS-Edge doesn't start if "%s" contains "=")
 # Shift+Button3="exesel:explorer.exe microsoft-edge:\"%s\""
 # Button4="\x1bOA\x1bOA"

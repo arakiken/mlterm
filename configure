@@ -765,6 +765,7 @@ MOSH_OCB_OBJ
 MOSH_DIR
 VT_PTY_OBJ
 SSH2_LIBS_FOR_PROG
+PTY_CFLAGS
 PROTOBUF_LIBS
 PROTOBUF_CFLAGS
 SSH2_LIBS
@@ -19697,9 +19698,20 @@ if test "$ml_cv_is_posix" = "no" ; then
 			SSH2_LIBS_FOR_PROG="$SSH2_LIBS -lwsock32 -lws2_32"
 			SSH2_LIBS=
 		fi
-	else
-		VT_PTY_OBJ="vt_pty_pipewin32.o"
 	fi
+
+	ac_fn_c_check_func "$LINENO" "CreatePseudoConsole" "ac_cv_func_CreatePseudoConsole"
+if test "x$ac_cv_func_CreatePseudoConsole" = xyes; then :
+
+		PTY_CFLAGS="-DUSE_CONPTY"
+		win32pty=conpty
+
+else
+  win32pty=pipe
+fi
+
+
+	VT_PTY_OBJ="$VT_PTY_OBJ vt_pty_win32.o"
 else
 	VT_PTY_OBJ="vt_pty_unix.o"
 
@@ -28342,6 +28354,9 @@ echo "Input Methods                     :$input_methods_result"
 fi
 echo "Scrollbars                        : simple${scrollbars_result}"
 echo "libssh2                           : $ssh2"
+if test "$ml_cv_is_posix" = "no"; then
+	echo "pty type                          : $win32pty"
+fi
 echo "mosh directory                    : $MOSH_DIR"
 if test "$have_gtk" = "yes"; then
 	if test "$have_gtk4" = "yes"; then

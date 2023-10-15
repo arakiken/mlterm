@@ -1,3 +1,20 @@
+2023-10-15  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja, doc/{en,ja}/README.win32: Updated.
+
+	* configure.in, Makefile.in: Check CreatePseudoConsole() function and
+	  add -DUSE_CONPTY to @PTY_CFLAGS@ if it exists.
+
+	* vt_pty.c: vt_pty_win32 and vt_pty_{ssh|mosh}.c coexist.
+
+	* vt_pty_win32.c:
+	  - Rename from vt_pty_pipewin32.c to vt_pty_win32.c.
+	  - Support ConPTY whic is enabled if USE_CONPTY macro is defined.
+	  - Add vt_pty_win32_set_pty_read_trigger().
+
+	* uitoolkit/ui_main_config.c, ui_screen_manager.c, vt_term.[ch]:
+	  --slp/start_with_local_pty option is available in win32.
+
 2023-09-18  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.c: "exesel:" works in win32.

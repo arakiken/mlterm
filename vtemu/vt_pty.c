@@ -36,13 +36,15 @@ vt_pty_t *vt_pty_new(const char *cmd_path, /* can be NULL */
                      u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
   vt_pty_t *pty;
 
-#ifndef USE_WIN32API
+
   if (!pass) {
+#ifdef USE_WIN32API
+    pty = vt_pty_win32_new(cmd_path, cmd_argv, env, host, pass, cols, rows);
+#else
     pty =
         vt_pty_unix_new(cmd_path, cmd_argv, env, host, work_dir, cols, rows, width_pix, height_pix);
-  } else
 #endif
-  {
+  } else {
 #if defined(USE_LIBSSH2)
     if (strncmp(host, "mosh://", 7) == 0) {
       pty = vt_pty_mosh_new(cmd_path, cmd_argv, env, host + 7, pass, pubkey, privkey, cols, rows,
@@ -52,7 +54,8 @@ vt_pty_t *vt_pty_new(const char *cmd_path, /* can be NULL */
                            width_pix, height_pix);
     }
 #elif defined(USE_WIN32API)
-    pty = vt_pty_pipe_new(cmd_path, cmd_argv, env, host, pass, cols, rows);
+    /* for pipe and plink */
+    pty = vt_pty_win32_new(cmd_path, cmd_argv, env, host, pass, cols, rows);
 #else
     pty = NULL;
 #endif
@@ -81,7 +84,7 @@ vt_pty_t *vt_pty_new_with(int master, int slave, pid_t child_pid, u_int cols, u_
   } else
 #endif
   {
-    /* XXX vt_pty_ssh_new_with() and vt_pty_pipe_new_with() haven't been implemented yet. */
+    /* XXX vt_pty_ssh_new_with() and vt_pty_win32_new_with() haven't been implemented yet. */
     pty = NULL;
   }
 

@@ -1,5 +1,14 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
+#ifdef USE_CONPTY
+#if !defined(WINVER) || WINVER < _WIN32_WINNT_WIN8 /* 0x602 */
+#define WINVER _WIN32_WINNT_WIN8
+#endif
+#if !defined(NTDDI_VERSION) || NTDDI_VERSION < NTDDI_WIN10_RS5
+#define NTDDI_VERSION NTDDI_WIN10_RS5
+#endif
+#endif
+
 #include "vt_pty_intern.h"
 
 #include <windows.h>
@@ -17,20 +26,27 @@
 #define __DEBUG
 #endif
 
-typedef struct vt_pty_pipe {
+typedef struct vt_pty_win32 {
   vt_pty_t pty;
 
   HANDLE master_input;  /* master read(stdout,stderr) */
   HANDLE master_output; /* master write */
   HANDLE slave_stdout;  /* slave write */
   HANDLE child_proc;
-  int8_t is_plink;
 
   u_char rd_ch;
   int8_t rd_ready;
   HANDLE rd_ev;
 
-} vt_pty_pipe_t;
+#ifdef USE_CONPTY
+  HPCON hpc;
+  COORD coord;
+  PPROC_THREAD_ATTRIBUTE_LIST attr_list;
+#else
+  int8_t is_plink;
+#endif
+
+} vt_pty_win32_t;
 
 static HANDLE* child_procs; /* Notice: The first element is "ADDED_CHILD" event */
 static DWORD num_child_procs;
@@ -84,7 +100,7 @@ static DWORD WINAPI wait_child_exited(LPVOID thr_param) {
  * Monitors handle for input. Exits when child exits or pipe is broken.
  */
 static DWORD WINAPI wait_pty_read(LPVOID thr_param) {
-  vt_pty_pipe_t *pty = (vt_pty_pipe_t*)thr_param;
+  vt_pty_win32_t *pty = (vt_pty_win32_t*)thr_param;
   DWORD n_rd;
 
 #ifdef __DEBUG
@@ -140,7 +156,120 @@ static DWORD WINAPI wait_pty_read(LPVOID thr_param) {
   return 0;
 }
 
-static int pty_open(vt_pty_pipe_t *pty, const char *cmd_path, char *const cmd_argv[]) {
+static int pty_open(vt_pty_win32_t *pty, const char *cmd_path, char *const cmd_argv[]) {
+#ifdef USE_CONPTY
+  HRESULT ret;
+  HANDLE slave_read;
+  STARTUPINFOEX si;
+  PROCESS_INFORMATION pi;
+  size_t list_size;
+  char *cmd_line;
+
+  if (!CreatePipe(&slave_read, &pty->master_output, NULL, 0)) {
+    return 0;
+  }
+
+  if (!CreatePipe(&pty->master_input, &pty->slave_stdout, NULL, 0)) {
+    goto error1;
+  }
+
+  ret = CreatePseudoConsole(pty->coord, slave_read, pty->slave_stdout, 0, &pty->hpc);
+  if (FAILED(ret)) {
+#ifdef DEBUG
+    bl_debug_printf(BL_DEBUG_TAG " CreatePseudoConsole() failed with err %d.\n", ret);
+#endif
+
+    goto error2;
+  }
+
+  /* Prepare Startup Information structure */
+  ZeroMemory(&si, sizeof(si));
+  si.StartupInfo.cb = sizeof(STARTUPINFOEX);
+
+  /* the size required for the list */
+  InitializeProcThreadAttributeList(NULL, 1, 0, &list_size);
+
+  si.lpAttributeList = (PPROC_THREAD_ATTRIBUTE_LIST)HeapAlloc(GetProcessHeap(), 0, list_size);
+  if (!si.lpAttributeList) {
+    goto error3;
+  }
+
+  if (!InitializeProcThreadAttributeList(si.lpAttributeList, 1, 0, &list_size) ||
+      /* Set the pseudoconsole information into the list */
+      !UpdateProcThreadAttribute(si.lpAttributeList, 0,
+                                 PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
+                                 pty->hpc, sizeof(pty->hpc),
+                                 NULL, NULL)) {
+#ifdef DEBUG
+    bl_debug_printf(BL_DEBUG_TAG " InitializeProcThreadAttributeList() or "
+                    "UpdateProcThreadAttribute() failed with err %d.\n",
+                    HRESULT_FROM_WIN32(GetLastError()));
+#endif
+
+    goto error4;
+  }
+
+  if (cmd_argv) {
+    int count;
+    size_t cmd_line_len;
+
+    /* Because cmd_path == cmd_argv[0], cmd_argv[0] is ignored. */
+
+    cmd_line_len = strlen(cmd_path) + 1;
+    for (count = 1; cmd_argv[count] != NULL; count++) {
+      cmd_line_len += (strlen(cmd_argv[count]) + 1);
+    }
+
+    if ((cmd_line = alloca(sizeof(char) * cmd_line_len)) == NULL) {
+      goto error4;
+    }
+
+    strcpy(cmd_line, cmd_path);
+    for (count = 1; cmd_argv[count] != NULL; count++) {
+      strcat(cmd_line, " ");
+      strcat(cmd_line, cmd_argv[count]);
+    }
+  } else {
+    cmd_line = cmd_path;
+  }
+
+  ZeroMemory(&pi, sizeof(pi));
+
+  if (!CreateProcess(cmd_path, cmd_line, NULL, NULL, FALSE,
+                     EXTENDED_STARTUPINFO_PRESENT, NULL, NULL,
+                     &si.StartupInfo, &pi)) {
+#ifdef DEBUG
+    bl_warn_printf(BL_DEBUG_TAG " CreateProcess() failed with err %d.\n",
+                   HRESULT_FROM_WIN32(GetLastError()));
+#endif
+
+    goto error3;
+  }
+
+  pty->child_proc = pi.hProcess;
+  pty->attr_list = si.lpAttributeList;
+
+  CloseHandle(slave_read);
+  CloseHandle(pi.hThread);
+
+  return 1;
+
+error4:
+  HeapFree(GetProcessHeap(), 0, si.lpAttributeList);
+
+error3:
+  ClosePseudoConsole(pty->hpc);
+
+error2:
+  CloseHandle(pty->master_input);
+  CloseHandle(slave_read);
+
+error1:
+  CloseHandle(pty->master_output);
+  CloseHandle(pty->slave_stdout);
+
+  return 0;
+#else /* USE_CONPTY */
   HANDLE output_read_tmp, output_write;
   HANDLE input_write_tmp, input_read;
   HANDLE error_write;
@@ -285,11 +414,13 @@ static int pty_open(vt_pty_pipe_t *pty, const char *cmd_path, char *const cmd_ar
   /* Set global child process handle to cause threads to exit. */
   pty->child_proc = pi.hProcess;
 
+#ifndef USE_CONPTY
   if (strstr(cmd_path, "plink")) {
     pty->is_plink = 1;
   } else {
     pty->is_plink = 0;
   }
+#endif
 
   /* close unnecessary handles. */
   CloseHandle(pi.hThread);
@@ -321,14 +452,15 @@ error2:
   }
 
   return 0;
+#endif
 }
 
 static int final(vt_pty_t *p) {
-  vt_pty_pipe_t *pty;
+  vt_pty_win32_t *pty;
   int count;
   DWORD size;
 
-  pty = (vt_pty_pipe_t*)p;
+  pty = (vt_pty_win32_t*)p;
 
   /*
    * TerminateProcess must be called before CloseHandle.
@@ -376,11 +508,26 @@ static int final(vt_pty_t *p) {
   CloseHandle(pty->master_output);
   CloseHandle(pty->rd_ev);
 
+#ifdef USE_CONPTY
+  DeleteProcThreadAttributeList(pty->attr_list);
+  ClosePseudoConsole(pty->hpc);
+#endif
+
   return 1;
 }
 
 static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
-  if (((vt_pty_pipe_t*)pty)->is_plink) {
+#ifdef USE_CONPTY
+  ((vt_pty_win32_t*)pty)->coord.X = cols;
+  ((vt_pty_win32_t*)pty)->coord.Y = rows;
+
+  if (((vt_pty_win32_t*)pty)->hpc) {
+    ResizePseudoConsole(((vt_pty_win32_t*)pty)->hpc, ((vt_pty_win32_t*)pty)->coord);
+  }
+
+  return 1;
+#else
+  if (((vt_pty_win32_t*)pty)->is_plink) {
     /*
      * XXX Hack
      */
@@ -399,6 +546,7 @@ static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
   }
 
   return 0;
+#endif
 }
 
 /*
@@ -407,22 +555,22 @@ static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
 static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   DWORD written_size;
 
-  if (!WriteFile(((vt_pty_pipe_t*)pty)->master_output, buf, len, &written_size, NULL)) {
+  if (!WriteFile(((vt_pty_win32_t*)pty)->master_output, buf, len, &written_size, NULL)) {
     if (GetLastError() == ERROR_BROKEN_PIPE) {
       return -1;
     }
   }
 
-  FlushFileBuffers(((vt_pty_pipe_t*)pty)->master_output);
+  FlushFileBuffers(((vt_pty_win32_t*)pty)->master_output);
 
   return written_size;
 }
 
 static ssize_t read_pty(vt_pty_t *p, u_char *buf, size_t len) {
-  vt_pty_pipe_t *pty;
+  vt_pty_win32_t *pty;
   ssize_t n_rd;
 
-  pty = (vt_pty_pipe_t*)p;
+  pty = (vt_pty_win32_t*)p;
 
   if (pty->rd_ch == '\0' && !pty->rd_ready) {
     return 0;
@@ -475,11 +623,11 @@ static ssize_t read_pty(vt_pty_t *p, u_char *buf, size_t len) {
 
 /* --- global functions --- */
 
-vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
-                          char **cmd_argv,      /* can be NULL(only if cmd_path is NULL) */
-                          char **env,           /* can be NULL */
-                          const char *uri, const char *pass, u_int cols, u_int rows) {
-  vt_pty_pipe_t *pty;
+vt_pty_t *vt_pty_win32_new(const char *cmd_path, /* can be NULL */
+                           char **cmd_argv,      /* can be NULL(only if cmd_path is NULL) */
+                           char **env,           /* can be NULL */
+                           const char *uri, const char *pass, u_int cols, u_int rows) {
+  vt_pty_win32_t *pty;
   HANDLE thrd;
   DWORD tid;
   char ev_name[25];
@@ -513,7 +661,7 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
     CloseHandle(thrd);
   }
 
-  if ((pty = calloc(1, sizeof(vt_pty_pipe_t))) == NULL) {
+  if ((pty = calloc(1, sizeof(vt_pty_win32_t))) == NULL) {
     return NULL;
   }
 
@@ -576,6 +724,10 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
     cmd_argv[idx++] = NULL;
   }
 
+#ifdef USE_CONPTY
+  set_winsize(&pty->pty, cols, rows, 0, 0);
+#endif
+
   if (!(pty_open(pty, cmd_path, cmd_argv))) {
     free(pty);
 
@@ -595,13 +747,15 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
   pty->pty.set_winsize = set_winsize;
   pty->pty.write = write_to_pty;
   pty->pty.read = read_pty;
-  pty->pty.mode = PTY_PIPE;
+  pty->pty.mode = PTY_WIN32;
 
+#ifndef USE_CONPTY
   if (set_winsize(&pty->pty, cols, rows, 0, 0) == 0) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " vt_set_pty_winsize() failed.\n");
 #endif
   }
+#endif
 
   /* Launch the thread that read the child's output. */
   if (!(thrd = CreateThread(NULL, 0, wait_pty_read, (LPVOID)pty, 0, &tid))) {
@@ -644,10 +798,6 @@ vt_pty_t *vt_pty_pipe_new(const char *cmd_path, /* can be NULL */
   }
 }
 
-void vt_pty_ssh_set_pty_read_trigger(void (*func)(void)) {
-  trigger_pty_read = func;
-}
-
-void vt_pty_mosh_set_pty_read_trigger(void (*func)(void)) {
+void vt_pty_win32_set_pty_read_trigger(void (*func)(void)) {
   trigger_pty_read = func;
 }

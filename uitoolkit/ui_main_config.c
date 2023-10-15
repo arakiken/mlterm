@@ -309,7 +309,7 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "the number of sixel colors of console [16]");
   bl_conf_add_opt(conf, '\0', "csz", 0, "default_cell_size", "default cell size [8,16]");
 #endif
-#if defined(__ANDROID__) && defined(USE_LIBSSH2)
+#if (defined(__ANDROID__) && defined(USE_LIBSSH2)) || defined(USE_WIN32API)
   bl_conf_add_opt(conf, '\0', "slp", 1, "start_with_local_pty",
                   "start mlterm with local pty instead of ssh connection [false]");
 #endif
@@ -1383,7 +1383,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   }
 #endif
 
-#if defined(__ANDROID__) && defined(USE_LIBSSH2)
+#if (defined(__ANDROID__) && defined(USE_LIBSSH2)) || defined(USE_WIN32API)
   if ((value = bl_conf_get_value(conf, "start_with_local_pty"))) {
     int flag = true_or_false(value);
 

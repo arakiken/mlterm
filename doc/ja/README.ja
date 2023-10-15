@@ -1044,7 +1044,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
       o ssh_x11_forwarding (true/*false*)
         ssh 接続で x11 forwarding を有効
 
-      o start_with_local_pty (true/*false*) (Android 用)
+      o start_with_local_pty (true/*false*) (Android or win32 用)
         default_server オプションが指定されていない場合に、起動時の SSH 接続ダイ
         アログを表示しないようにします。
 

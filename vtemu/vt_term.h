@@ -52,7 +52,7 @@ typedef struct vt_term {
 /* XXX */
 extern void (*vt_term_pty_closed_event)(vt_term_t *);
 
-#if defined(__ANDROID__) && defined(USE_LIBSSH2)
+#if (defined(__ANDROID__) && defined(USE_LIBSSH2)) || defined(USE_WIN32API)
 /* XXX */
 extern int start_with_local_pty;
 #endif
