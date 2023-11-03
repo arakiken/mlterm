@@ -10,8 +10,11 @@
 /* for wayland/ui.h */
 #define COMPAT_LIBVTE
 
+#include <pobl/bl_def.h> /* USE_WIN32API */
+#ifndef USE_WIN32API
 #include <sys/wait.h> /* waitpid */
 #include <pwd.h>      /* getpwuid */
+#endif
 #include <pobl/bl_sig_child.h>
 #include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_mem.h>
@@ -300,10 +303,14 @@ static guint signals[LAST_SIGNAL];
 
 static int (*orig_select_in_window)(void *, vt_char_t **, u_int *, int, int, int, int, int);
 
+static int is_sending_data;
+
 #if defined(USE_XLIB)
 #include "vte_xlib.c"
 #elif defined(USE_WAYLAND)
 #include "vte_wayland.c"
+#elif defined(USE_WIN32API)
+#include "vte_win32.c"
 #else
 #error "Unsupported platform for libvte compatible library."
 #endif
@@ -457,11 +464,19 @@ static gchar *gdk_rgba_to_string2(const GdkRGBA *color) {
     return NULL;
   }
 
+#ifdef USE_WIN32API
+  /* XXX alpha is always 0xfe not to make fg/bg colors opaque. */
+  sprintf(str, "#%02x%02x%02xfe",
+          (int)((color->red > 0.999 ? 1 : color->red) * 255 + 0.5),
+          (int)((color->green > 0.999 ? 1 : color->green) * 255 + 0.5),
+          (int)((color->blue > 0.999 ? 1 : color->blue) * 255 + 0.5));
+#else
   sprintf(str, color->alpha > 0.999 ? "#%02x%02x%02x" : "#%02x%02x%02x%02x",
           (int)((color->red > 0.999 ? 1 : color->red) * 255 + 0.5),
           (int)((color->green > 0.999 ? 1 : color->green) * 255 + 0.5),
           (int)((color->blue > 0.999 ? 1 : color->blue) * 255 + 0.5),
           (int)((color->alpha > 0.999 ? 1 : color->alpha) * 255 + 0.5));
+#endif
 
   return str;
 }
@@ -473,19 +488,25 @@ static int is_initial_allocation(GtkAllocation *allocation) {
           allocation->height == 1);
 }
 
+#ifndef USE_WIN32API
 static gboolean close_dead_terms(gpointer data) {
   vt_close_dead_terms();
 
   return FALSE; /* Never repeat to call this function. */
 }
+#endif
 
 static void catch_child_exited(VteReaper *reaper, int pid, int status, VteTerminal *terminal) {
+  /*
+   * Don't use child-exited event of VteReaper in win32 where
+   * wait_child_exited() in vt_pty_win32.c monitors child processes.
+   */
+#ifndef USE_WIN32API
   bl_trigger_sig_child(pid);
 
   g_timeout_add_full(G_PRIORITY_HIGH, 0, close_dead_terms, NULL, NULL);
+#endif
 }
-
-static int is_sending_data;
 
 static gboolean transfer_data(gpointer data) {
   vt_term_parse_vt100_sequence((vt_term_t*)data);
@@ -499,13 +520,14 @@ static gboolean transfer_data(gpointer data) {
   }
 }
 
+#ifndef USE_WIN32API
 /*
  * This handler works even if VteTerminal widget is not realized and vt_term_t
- * is not
- * attached to ui_screen_t.
- * That's why the time ui_screen_attach is called is delayed(in
- * vte_terminal_fork* or
- * vte_terminal_realized).
+ * is not attached to ui_screen_t.
+ * That's why the time ui_screen_attach is called is delayed (in
+ * vte_terminal_fork* or vte_terminal_realized).
+ *
+ * See window_proc() in vte_win32.c
  */
 static gboolean vte_terminal_io(GIOChannel *source, GIOCondition conditon,
                                 gpointer data /* vt_term_t */) {
@@ -524,8 +546,24 @@ static gboolean vte_terminal_io(GIOChannel *source, GIOCondition conditon,
 
   return TRUE;
 }
+#endif
 
 static void create_io(VteTerminal *terminal) {
+#ifdef USE_WIN32API
+  /*
+   * If you use g_io_channel_win32_new_fd(), define USE_OPEN_OSFHANDLE in
+   * vt_pty_win32.c.
+   *
+   * g_io_channel_win32_new_fd() is disabled for now because it locks the fd
+   * and g_io_channel_read() must be used to read bytes from it.
+   * https://developer-old.gnome.org/glib/unstable/glib-IO-Channels.html#g-io-channel-win32-new-fd
+   */
+#if 0
+  PVT(terminal)->io = g_io_channel_win32_new_fd(vt_term_get_master_fd(PVT(terminal)->term));
+  PVT(terminal)->src_id =
+    g_io_add_watch(PVT(terminal)->io, G_IO_IN, vte_terminal_io, PVT(terminal)->term);
+#endif
+#else
 #ifdef DEBUG
   bl_debug_printf(BL_DEBUG_TAG " Create GIO of pty master %d\n",
                   vt_term_get_master_fd(PVT(terminal)->term));
@@ -534,6 +572,7 @@ static void create_io(VteTerminal *terminal) {
   PVT(terminal)->io = g_io_channel_unix_new(vt_term_get_master_fd(PVT(terminal)->term));
   PVT(terminal)->src_id =
       g_io_add_watch(PVT(terminal)->io, G_IO_IN, vte_terminal_io, PVT(terminal)->term);
+#endif
 }
 
 static void destroy_io(VteTerminal *terminal) {
@@ -1335,6 +1374,13 @@ static void init_screen(VteTerminal *terminal, ui_font_manager_t *font_man,
 
   /* overriding */
   PVT(terminal)->screen->pty_listener.closed = pty_closed;
+
+  /*
+   * If the screen is finalized before show_root() is called,
+   * functions related to ui_display_t (such as ui_display_clear_selection())
+   * can be called in ui_window_final().
+   */
+  PVT(terminal)->screen->window.disp = &disp;
 }
 
 #if VTE_CHECK_VERSION(0, 38, 0)
@@ -1460,6 +1506,11 @@ static void vte_terminal_realize(GtkWidget *widget) {
                                            | (attr.colormap ? GDK_WA_COLORMAP : 0)
 #endif
                                            ));
+
+#ifdef USE_WIN32API
+  /* XXX Scrollbar gets transparent unexpectedly without this. */
+  gtk_widget_set_opacity(widget, 0.99);
+#endif
 
   /*
    * Note that hook key and button events in vte_terminal_filter doesn't work
@@ -2834,11 +2885,15 @@ pid_t vte_terminal_fork_command(VteTerminal *terminal,
 
     if (!command) {
       if (!(command = getenv("SHELL")) || *command == '\0') {
+#ifdef USE_WIN32API
+        command = "c:\\Windows\\System32\\cmd.exe";
+#else
         struct passwd *pw;
 
         if ((pw = getpwuid(getuid())) == NULL || *(command = pw->pw_shell) == '\0') {
           command = "/bin/sh";
         }
+#endif
       }
     }
 
@@ -2860,7 +2915,14 @@ pid_t vte_terminal_fork_command(VteTerminal *terminal,
 
     create_io(terminal);
 
+    /*
+     * These two routes for watching ptys exist and 1) is preferred in win32.
+     * 1) wait_child_exited -> sig_child -> vt_close_dead_terms
+     * 2) VteReaper -> child-exited event -> vt_close_dead_terms
+     */
+#ifndef USE_WIN32API
     vte_reaper_add_child(vt_term_get_child_pid(PVT(terminal)->term));
+#endif
 
     if (GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
       GtkAllocation allocation;
@@ -2998,7 +3060,14 @@ pid_t vte_terminal_forkpty(VteTerminal *terminal, char **envv, const char *direc
 
     create_io(terminal);
 
+    /*
+     * These two routes for watching ptys exist and 1) is preferred in win32.
+     * 1) wait_child_exited -> sig_child -> vt_close_dead_terms
+     * 2) VteReaper -> child-exited event -> vt_close_dead_terms
+     */
+#ifndef USE_WIN32API
     vte_reaper_add_child(vt_term_get_child_pid(PVT(terminal)->term));
+#endif
 
     if (GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
       GtkAllocation allocation;
@@ -4228,7 +4297,9 @@ void vte_terminal_set_font_from_string_full(VteTerminal *terminal, const char *n
 
 #if VTE_CHECK_VERSION(0, 26, 0)
 
+#ifndef USE_WIN32API
 #include <sys/ioctl.h>
+#endif
 #include <vt_pty_intern.h>  /* XXX in order to operate vt_pty_t::child_pid directly. */
 #include <pobl/bl_config.h> /* HAVE_SETSID */
 
@@ -4338,9 +4409,11 @@ void vte_terminal_set_pty_object(VteTerminal *terminal, VtePty *pty)
   }
 
 #if 1
+#ifndef USE_WIN32API
   if (pid > 0) {
     waitpid(pid, NULL, WNOHANG);
   }
+#endif
 #else
   if (PVT(terminal)->term->pty) {
     /* Don't catch exit(0) above. */
@@ -4410,6 +4483,7 @@ gboolean vte_pty_spawn_finish(VtePty *pty, GAsyncResult *result, GPid *child_pid
 
 /* Child process (before exec()) */
 void vte_pty_child_setup(VtePty *pty) {
+#ifndef USE_WIN32API
   int slave;
   int master;
 #if (!defined(HAVE_SETSID) && defined(TIOCNOTTY)) || !defined(TIOCSCTTY)
@@ -4463,6 +4537,7 @@ void vte_pty_child_setup(VtePty *pty) {
   }
 
   close(master);
+#endif /* USE_WIN32API */
 }
 
 int vte_pty_get_fd(VtePty *pty) {

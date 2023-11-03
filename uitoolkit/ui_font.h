@@ -134,6 +134,8 @@ char **ui_font_get_encoding_names(ef_charset_t cs);
 #if defined(USE_XLIB) || defined(USE_WAYLAND)
 /* For mlterm-libvte */
 void ui_font_set_dpi_for_fc(double dpi);
+#else
+#define ui_font_set_dpi_for_fc(dpi) (0)
 #endif
 
 #ifdef SUPPORT_POINT_SIZE_FONT

@@ -326,6 +326,10 @@ else
 	fi
 fi
 
+if test "$ml_cv_is_posix" = "no"; then
+	GTK_LIBS="$GTK_LIBS -limagehlp"
+fi
+
 AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_LIBS)
 

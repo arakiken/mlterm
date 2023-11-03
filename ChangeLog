@@ -1,3 +1,30 @@
+2023-11-03  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in: Add -limagehlp to GTK_LIBS in win32.
+
+	* gtk/Makefile.in:
+	  - Add @REGEX_LIBS@ to LIBS.
+	  - Add @NO_UNDEFINED_FLAG@ in linking libvte-*.so.
+
+	* vte_win32.c: Added.
+
+	* vte.c, win32/ui_display.c: Fix to support libvte compatible library in win32.
+
+	* vt_term_manager.c: Call vt_term_parse_vt100_sequence() before
+	  vt_term_zombie() because some bytes might be pending.
+
+	* ui_font.h:
+	  #define ui_font_set_dpi_for_fc() (0) in platforms except xlib and wayland.
+
+	* ui_imagelib.h:
+	  #define ui_imagelib_pixbuf_to_pixmap() (None) in platforms except xlib.
+
+	* win32/ui_font.c: Fix conversion from point size to pixel size.
+
+	* vt_term_manager.c:
+	  - terms and num_terms variables are not updated if zombie_pty is enabled.
+	  - Call ClosePseudoConsole() before CloseHandle(pipe) to avoid dead lock.
+
 2023-10-15  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, README.ja, doc/{en,ja}/README.win32: Updated.

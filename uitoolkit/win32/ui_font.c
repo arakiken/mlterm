@@ -538,12 +538,16 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     width = 0;
   }
   if (use_point_size) {
-    height = -MulDiv(height, GetDeviceCaps(display_gc, LOGPIXELSY), 72);
-    width = -MulDiv(width, GetDeviceCaps(display_gc, LOGPIXELSX), 72);
+    height = MulDiv(height, GetDeviceCaps(display_gc, LOGPIXELSY), 72);
+    width = MulDiv(width, GetDeviceCaps(display_gc, LOGPIXELSX), 72);
   }
 
+  /*
+   * Minus height matches its absolute value against the character height
+   * instead of the cell height.
+   */
   font->xfont->fid =
-      CreateFontW(height, /* Height */
+      CreateFontW(-height, /* Height */
                   width,  /* Width (0=auto) */
                   0,      /* text angle */
                   0,      /* char angle */
@@ -646,7 +650,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
       }
 
       if (use_point_size) {
-        ch_width = -MulDiv(ch_width, GetDeviceCaps(display_gc, LOGPIXELSX), 72);
+        ch_width = MulDiv(ch_width, GetDeviceCaps(display_gc, LOGPIXELSX), 72);
       }
 
       if (letter_space > 0 || ch_width > -letter_space) {

@@ -257,7 +257,7 @@ ui_display_t **ui_get_opened_displays(u_int *num) {
 int ui_display_fd(ui_display_t *disp) { return disp->display->fd; }
 
 int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, int hint,
-                         char *app_name, char *wm_role, Window parent_window /* Ignored */
+                         char *app_name, char *wm_role, Window parent_window
                          ) {
   void *p;
 
@@ -273,7 +273,11 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
 
   root->disp = disp;
   root->parent = NULL;
-  root->parent_window = disp->my_window;
+  if (parent_window) {
+    root->parent_window = parent_window;
+  } else {
+    root->parent_window = disp->my_window;
+  }
   root->gc = disp->gc;
   root->x = x;
   root->y = y;

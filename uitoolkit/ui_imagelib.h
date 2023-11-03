@@ -20,14 +20,15 @@ Pixmap ui_imagelib_get_transparent_background(ui_window_t *win, ui_picture_modif
 int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, Pixmap *pixmap,
                           PixmapMask *mask, u_int *width, u_int *height, int keep_aspect);
 
-Pixmap ui_imagelib_pixbuf_to_pixmap(ui_window_t *win, ui_picture_modifier_t *pic_mod,
-                                    GdkPixbufPtr pixbuf);
-
 void ui_destroy_image(Display *display, Pixmap pixmap);
 
 #ifdef USE_XLIB
+Pixmap ui_imagelib_pixbuf_to_pixmap(ui_window_t *win, ui_picture_modifier_t *pic_mod,
+                                    GdkPixbufPtr pixbuf);
+
 #define ui_destroy_mask(display, mask) if (mask) { ui_destroy_image(display, mask); }
 #else
+#define ui_imagelib_pixbuf_to_pixmap(win, pic_mod, pixbuf) (None)
 void ui_destroy_mask(Display *display, PixmapMask mask);
 #endif
 

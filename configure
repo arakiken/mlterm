@@ -17512,7 +17512,9 @@ fi
 	fi
 fi
 
-
+if test "$ml_cv_is_posix" = "no"; then
+	GTK_LIBS="$GTK_LIBS -limagehlp"
+fi
 
 
 

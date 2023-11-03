@@ -26,6 +26,10 @@
 #define __DEBUG
 #endif
 
+#if 0
+#define USE_OPEN_OSFHANDLE
+#endif
+
 typedef struct vt_pty_win32 {
   vt_pty_t pty;
 
@@ -462,6 +466,15 @@ static int final(vt_pty_t *p) {
 
   pty = (vt_pty_win32_t*)p;
 
+#ifdef USE_CONPTY
+  DeleteProcThreadAttributeList(pty->attr_list);
+  /*
+   * Any attached client character-mode applications, such as the one from the
+   * CreateProcess call, will be terminated when the session is closed.
+   * (https://learn.microsoft.com/en-us/windows/console/creating-a-pseudoconsole-session)
+   */
+  ClosePseudoConsole(pty->hpc);
+#else
   /*
    * TerminateProcess must be called before CloseHandle.
    * If pty->child_proc is not in child_procs, pty->child_proc is already
@@ -477,6 +490,7 @@ static int final(vt_pty_t *p) {
       break;
     }
   }
+#endif
 
   /* Used to check if child process is dead or not in wait_pty_read. */
   pty->child_proc = 0;
@@ -504,14 +518,13 @@ static int final(vt_pty_t *p) {
   bl_msg_printf(" => Finished.\n");
 #endif
 
+#ifdef USE_OPEN_OSFHANDLE
+  _close(pty->pty.master);
+#else
   CloseHandle(pty->master_input);
+#endif
   CloseHandle(pty->master_output);
   CloseHandle(pty->rd_ev);
-
-#ifdef USE_CONPTY
-  DeleteProcThreadAttributeList(pty->attr_list);
-  ClosePseudoConsole(pty->hpc);
-#endif
 
   return 1;
 }
@@ -740,7 +753,11 @@ vt_pty_t *vt_pty_win32_new(const char *cmd_path, /* can be NULL */
   bl_debug_printf("Created pty read event: %s\n", ev_name);
 #endif
 
-  pty->pty.master = (int)pty->master_output;   /* XXX Cast HANDLE => int */
+#ifdef USE_OPEN_OSFHANDLE
+  pty->pty.master = _open_osfhandle(pty->master_input, 0);
+#else
+  pty->pty.master = (int)pty->master_input;    /* XXX Cast HANDLE => int */
+#endif
   pty->pty.slave = (int)pty->slave_stdout;     /* XXX Cast HANDLE => int */
   pty->pty.child_pid = (pid_t)pty->child_proc; /* Cast HANDLE => pid_t */
   pty->pty.final = final;
@@ -784,8 +801,7 @@ vt_pty_t *vt_pty_win32_new(const char *cmd_path, /* can be NULL */
 
     /*
      * Exit WaitForMultipleObjects in wait_child_proc and do
-     * WaitForMultipleObjects
-     * again with new child_procs.
+     * WaitForMultipleObjects again with new child_procs.
      */
     SetEvent(child_procs[0]);
 
