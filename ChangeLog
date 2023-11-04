@@ -1,3 +1,10 @@
+2023-11-04  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: #define CONFIG_PATH "." in win32.
+
+	* win32/ui_font.c:
+	  Fix calculation of font width if use_point_size option is true.
+
 2023-11-03  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in: Add -limagehlp to GTK_LIBS in win32.

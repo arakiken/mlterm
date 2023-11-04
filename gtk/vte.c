@@ -51,8 +51,12 @@ VteReaper *vte_reaper_get(void);
 int vte_reaper_add_child(GPid pid);
 #endif
 
-#ifdef SYSCONFDIR
+#if defined(USE_WIN32API)
+#define CONFIG_PATH "."
+#elif defined(SYSCONFDIR)
 #define CONFIG_PATH SYSCONFDIR
+#else
+#define CONFIG_PATH "/etc"
 #endif
 
 #if 0
