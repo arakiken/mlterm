@@ -2804,9 +2804,11 @@ u_char *ui_get_bitmap(XFontStruct *xfont, u_char *ch, size_t len, int use_ot_lay
   return xfont->glyphs + glyph_offset;
 }
 
+#ifdef USE_WAYLAND
 /* For mlterm-libvte */
 void ui_font_set_dpi_for_fc(double dpi) {
 #ifdef USE_FONTCONFIG
   dpi_for_fc = dpi;
 #endif
 }
+#endif
