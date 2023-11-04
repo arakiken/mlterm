@@ -7,6 +7,7 @@
 * Support wp-primary-selection protocol in wayland.
 * Support "exesel:" operation in ~/.mlterm/key in win32.
 * Support ConPTY in win32.
+* Support libvte compatible library in win32.
 * Add tool/accessories/applycfg.sh and applyfontcfg.sh
   (https://github.com/arakiken/mlterm/issues/71)
 * Update unicode property table (generated from UnicodeData.txt and

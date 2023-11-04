@@ -975,6 +975,7 @@ with_type_engines
 enable_otl
 enable_ssh2
 with_mosh
+enable_conpty
 with_tools
 enable_use_tools
 enable_dependency_tracking
@@ -1710,6 +1711,7 @@ Optional Features:
   --disable-fontconfig    use fontconfig with freetype on framebuffer or wayland [default=enabled]
   --disable-otl           Open Type layout with the use of harfbuzz or libotf [default=enabled]
   --disable-ssh2          libssh2 [default=enabled]
+ --disable-conpty       do not use ConPTY in win32 [default=enabled]
   --disable-use-tools     do not build and use external tools [default=enabled]
   --enable-dependency-tracking
                           do not reject slow dependency extractors
@@ -19702,16 +19704,24 @@ if test "$ml_cv_is_posix" = "no" ; then
 		fi
 	fi
 
-	ac_fn_c_check_func "$LINENO" "CreatePseudoConsole" "ac_cv_func_CreatePseudoConsole"
+	# Check whether --enable-conpty was given.
+if test "${enable_conpty+set}" = set; then :
+  enableval=$enable_conpty;
+fi
+
+	if test "$enable_conpty" != "no"; then
+		ac_fn_c_check_func "$LINENO" "CreatePseudoConsole" "ac_cv_func_CreatePseudoConsole"
 if test "x$ac_cv_func_CreatePseudoConsole" = xyes; then :
 
-		PTY_CFLAGS="-DUSE_CONPTY"
-		win32pty=conpty
+				PTY_CFLAGS="-DUSE_CONPTY"
+				win32pty=conpty
 
 else
   win32pty=pipe
 fi
 
+
+	fi
 
 	VT_PTY_OBJ="$VT_PTY_OBJ vt_pty_win32.o"
 else

@@ -349,6 +349,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
       このオプションを無効にすると、パレットの使い回しをしない代わりに、
       vt_char_t のサイズが 8 バイトから 12 バイトに増えます。
 
+    --disable-conpty
+      win32 環境において、ConPTY を使用しないようにします。
+
     --disable-shared
       共有ライブラリを構築しません。
 
