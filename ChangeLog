@@ -1,3 +1,21 @@
+2023-11-12  Araki Ken  <arakiken@users.sf.net>
+
+	* README, README.ja, man/mlterm.1: Updated.
+
+	* configure.in: Drop --disable-conpty.
+
+	* vte.c:
+	  - vte_terminal_fork_command() uses main_config.cmd_path and
+	    main_config.cmd_argv if command argument is NULL.
+	  - atexit(vt_term_manager_final) in win32 to terminate all child processes.
+
+	* ui_main_config.c: Add --conpty / use_conpty option.
+
+	* vt_pty.h, vt_pty_win32.c:
+	  - Both ConPTY and pipe can coexist to communicate with a child process.
+	  - Add vt_set_use_conpty().
+	  - pty_open() -> conpty_open() and pipe_open()
+
 2023-11-04  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/ui_font.c: Fix compiling error in ui_font_set_dpi_for_fc().

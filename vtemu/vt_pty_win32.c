@@ -39,23 +39,28 @@ typedef struct vt_pty_win32 {
   HANDLE child_proc;
 
   u_char rd_ch;
-  int8_t rd_ready;
   HANDLE rd_ev;
+  int8_t rd_ready;
 
+  int8_t is_plink;
 #ifdef USE_CONPTY
   HPCON hpc;
   COORD coord;
   PPROC_THREAD_ATTRIBUTE_LIST attr_list;
-#else
-  int8_t is_plink;
 #endif
 
 } vt_pty_win32_t;
+
+/* --- static variables --- */
 
 static HANDLE* child_procs; /* Notice: The first element is "ADDED_CHILD" event */
 static DWORD num_child_procs;
 
 static void (*trigger_pty_read)(void);
+
+#ifdef USE_CONPTY
+static int use_conpty = 1;
+#endif
 
 /* --- static functions --- */
 
@@ -160,8 +165,8 @@ static DWORD WINAPI wait_pty_read(LPVOID thr_param) {
   return 0;
 }
 
-static int pty_open(vt_pty_win32_t *pty, const char *cmd_path, char *const cmd_argv[]) {
 #ifdef USE_CONPTY
+static int conpty_open(vt_pty_win32_t *pty, const char *cmd_path, char *const cmd_argv[]) {
   HRESULT ret;
   HANDLE slave_read;
   STARTUPINFOEX si;
@@ -273,7 +278,10 @@ error1:
   CloseHandle(pty->slave_stdout);
 
   return 0;
-#else /* USE_CONPTY */
+}
+#endif
+
+static int pipe_open(vt_pty_win32_t *pty, const char *cmd_path, char *const cmd_argv[]) {
   HANDLE output_read_tmp, output_write;
   HANDLE input_write_tmp, input_read;
   HANDLE error_write;
@@ -456,7 +464,6 @@ error2:
   }
 
   return 0;
-#endif
 }
 
 static int final(vt_pty_t *p) {
@@ -467,30 +474,33 @@ static int final(vt_pty_t *p) {
   pty = (vt_pty_win32_t*)p;
 
 #ifdef USE_CONPTY
-  DeleteProcThreadAttributeList(pty->attr_list);
-  /*
-   * Any attached client character-mode applications, such as the one from the
-   * CreateProcess call, will be terminated when the session is closed.
-   * (https://learn.microsoft.com/en-us/windows/console/creating-a-pseudoconsole-session)
-   */
-  ClosePseudoConsole(pty->hpc);
-#else
-  /*
-   * TerminateProcess must be called before CloseHandle.
-   * If pty->child_proc is not in child_procs, pty->child_proc is already
-   * closed in wait_child_exited, so TerminateProcess is not called.
-   */
-  for (count = 0; count < num_child_procs; count++) {
-    if (pty->child_proc == child_procs[count]) {
-#ifdef DEBUG
-      bl_debug_printf(BL_DEBUG_TAG " Terminate process %d\n", pty->child_proc);
+  if (pty->hpc) {
+    DeleteProcThreadAttributeList(pty->attr_list);
+    /*
+     * Any attached client character-mode applications, such as the one from the
+     * CreateProcess call, will be terminated when the session is closed.
+     * (https://learn.microsoft.com/en-us/windows/console/creating-a-pseudoconsole-session)
+     */
+    ClosePseudoConsole(pty->hpc);
+  } else
 #endif
-      TerminateProcess(pty->child_proc, 0);
+  {
+    /*
+     * TerminateProcess must be called before CloseHandle.
+     * If pty->child_proc is not in child_procs, pty->child_proc is already
+     * closed in wait_child_exited, so TerminateProcess is not called.
+     */
+    for (count = 0; count < num_child_procs; count++) {
+      if (pty->child_proc == child_procs[count]) {
+#ifdef DEBUG
+        bl_debug_printf(BL_DEBUG_TAG " Terminate process %d\n", pty->child_proc);
+#endif
+        TerminateProcess(pty->child_proc, 0);
 
-      break;
+        break;
+      }
     }
   }
-#endif
 
   /* Used to check if child process is dead or not in wait_pty_read. */
   pty->child_proc = 0;
@@ -536,10 +546,10 @@ static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
 
   if (((vt_pty_win32_t*)pty)->hpc) {
     ResizePseudoConsole(((vt_pty_win32_t*)pty)->hpc, ((vt_pty_win32_t*)pty)->coord);
-  }
 
-  return 1;
-#else
+    return 1;
+  } else
+#endif
   if (((vt_pty_win32_t*)pty)->is_plink) {
     /*
      * XXX Hack
@@ -559,7 +569,6 @@ static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
   }
 
   return 0;
-#endif
 }
 
 /*
@@ -568,13 +577,58 @@ static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
 static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   DWORD written_size;
 
+  if (((vt_pty_win32_t*)pty)->hpc == NULL &&
+      (memchr(buf, '\r', len) || memchr(buf, '\n', len))) {
+    /*
+     * \r or \n -> \r\n if ConPTY is not used, because putty 0.79 expects receiving \r\n.
+     * (See console_get_userpass_input() in windows/console.c)
+     */
+    u_char *newbuf;
+
+    if ((newbuf = alloca(len * 2))) {
+      u_int count1;
+      u_int count2;
+
+      for (count1 = 0, count2 = 0; count1 < len; count1++, count2++) {
+        if (buf[count1] == '\r') {
+          if (buf[count1 + 1] == '\n') {
+            newbuf[count2++] = buf[count1++];
+          } else {
+            goto replace;
+          }
+        } else if (buf[count1] == '\n') {
+          goto replace;
+        }
+
+      normal:
+        newbuf[count2] = buf[count1];
+        continue;
+
+      replace:
+        newbuf[count2++] = '\r';
+        newbuf[count2] = '\n';
+      }
+
+      buf = newbuf;
+      len = count2;
+    }
+  }
+
   if (!WriteFile(((vt_pty_win32_t*)pty)->master_output, buf, len, &written_size, NULL)) {
     if (GetLastError() == ERROR_BROKEN_PIPE) {
       return -1;
     }
   }
 
+  /*
+   * FlushFileBuffers does not return until the client has read all data from the pipe.
+   * (https://learn.microsoft.com/en-us/windows/win32/ipc/named-pipe-operations)
+   *
+   * If a console application deosn't read stdin, FlushFileBuffers() blocks.
+   */
+#if 0
   FlushFileBuffers(((vt_pty_win32_t*)pty)->master_output);
+#endif
 
   return written_size;
 }
@@ -635,6 +689,12 @@ static ssize_t read_pty(vt_pty_t *p, u_char *buf, size_t len) {
 }
 
 /* --- global functions --- */
+
+void vt_set_use_conpty(int flag) {
+#ifdef USE_CONPTY
+  use_conpty = flag;
+#endif
+}
 
 vt_pty_t *vt_pty_win32_new(const char *cmd_path, /* can be NULL */
                            char **cmd_argv,      /* can be NULL(only if cmd_path is NULL) */
@@ -738,10 +798,15 @@ vt_pty_t *vt_pty_win32_new(const char *cmd_path, /* can be NULL */
   }
 
 #ifdef USE_CONPTY
-  set_winsize(&pty->pty, cols, rows, 0, 0);
-#endif
+  if (use_conpty) {
+    set_winsize(&pty->pty, cols, rows, 0, 0);
+  }
 
-  if (!(pty_open(pty, cmd_path, cmd_argv))) {
+  if (!((use_conpty ? conpty_open : pipe_open)(pty, cmd_path, cmd_argv)))
+#else
+  if (!pipe_open(pty, cmd_path, cmd_argv))
+#endif
+  {
     free(pty);
 
     return NULL;
@@ -766,13 +831,16 @@ vt_pty_t *vt_pty_win32_new(const char *cmd_path, /* can be NULL */
   pty->pty.read = read_pty;
   pty->pty.mode = PTY_WIN32;
 
-#ifndef USE_CONPTY
-  if (set_winsize(&pty->pty, cols, rows, 0, 0) == 0) {
+#ifdef USE_CONPTY
+  if (!use_conpty)
+#endif
+  {
+    if (set_winsize(&pty->pty, cols, rows, 0, 0) == 0) {
 #ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " vt_set_pty_winsize() failed.\n");
+      bl_warn_printf(BL_DEBUG_TAG " vt_set_pty_winsize() failed.\n");
 #endif
+    }
   }
-#endif
 
   /* Launch the thread that read the child's output. */
   if (!(thrd = CreateThread(NULL, 0, wait_pty_read, (LPVOID)pty, 0, &tid))) {

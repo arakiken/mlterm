@@ -333,6 +333,9 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "send modified keys as parameter for CSI u [false]");
   bl_conf_add_opt(conf, '\0', "sdpr", 0, "simple_scrollbar_dpr",
                   "device pixel ratio for simple scrollbar [1]");
+#ifdef USE_CONPTY
+  bl_conf_add_opt(conf, '\0', "conpty", 1, "use_conpty", "use conpty [true]");
+#endif
 #ifdef SELECTION_STYLE_CHANGEABLE
   bl_conf_add_opt(conf, '\0', "chsel", 1, "change_selection_immediately",
                   "change selection just after selecting text by mouse [true]");
@@ -1446,6 +1449,16 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
       ui_sb_view_set_dpr(dpr);
     }
   }
+
+#ifdef USE_CONPTY
+  if ((value = bl_conf_get_value(conf, "use_conpty"))) {
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      vt_set_use_conpty(flag);
+    }
+  }
+#endif
 
 #ifdef USE_IM_CURSOR_COLOR
   if ((value = bl_conf_get_value(conf, "im_cursor_color"))) {

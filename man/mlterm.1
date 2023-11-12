@@ -592,6 +592,10 @@ Specify the color to use to display crossed-out characters.
 Whether to recognize ANSI color change escape sequences.
 The default is \fBtrue\fR.
 .TP
+\fB\-\-conpty\fR(=\fIbool\fR) (Available for win32)
+Whether to use ConPTY.
+The default is \fBtrue\fR.
+.TP
 \fB\-\-csc\fR=\fIvalue\fR (Available for mlterm-con)
 Specify the number of sixel graphics colors of the console where mlterm-con works.
 A valid value is 16, 256 or full. The default is \fB16\fR.
@@ -1838,6 +1842,9 @@ Use bold font for characters with the bold attribute.
 .TP
 \fBuse_combining=\fIbool\fR (\fB\-m\fR, \fB\-\-comb\fR)
 Enable combining characters.
+.TP
+\fBuse_conpty=\fIbool\fR (\fB\-\-conpty\fR)
+Use ConPTY.
 .TP
 \fBuse_cp932_ucs_for_xft=\fIbool\fR (\fB\-c\fR, \fB\-\-cp932\fR)
 Use CP932 - UCS mapping for displaying JISX0208 by Xft or cairo.

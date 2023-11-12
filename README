@@ -195,9 +195,6 @@ Options for configure
     Disabling this option supports true color completely, but sizeof(vt_char_t)
     is changed from 8 bytes to 12 bytes.
 
-  --disable-conpty
-    Disable to use ConPTY in win32.
-
   --disable-shared
     Disable shared libraries
 

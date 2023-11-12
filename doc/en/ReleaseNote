@@ -6,8 +6,9 @@
   (https://github.com/arakiken/mlterm/issues/72)
 * Support wp-primary-selection protocol in wayland.
 * Support "exesel:" operation in ~/.mlterm/key in win32.
-* Support ConPTY in win32.
 * Support libvte compatible library in win32.
+* Support ConPTY in win32.
+* Add --conpty/use_conpty option.
 * Add tool/accessories/applycfg.sh and applyfontcfg.sh
   (https://github.com/arakiken/mlterm/issues/71)
 * Update unicode property table (generated from UnicodeData.txt and
@@ -23,6 +24,7 @@
   Fix an issue where mlconfig was not displayed.
   Fix an issue where Control+Shift+xxx shortcut didn't work in SDL2.
   Fix unexpected reset of inverted colors in selected area in SDL2.
+  Fix --point / use_point_size option which broke font width in win32.
 
 ver 3.9.3
 * mlterm-wl supports xdg-decoration.

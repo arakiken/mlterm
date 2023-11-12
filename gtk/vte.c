@@ -1870,6 +1870,15 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 
   vt_term_manager_init(1);
   vt_term_manager_enable_zombie_pty();
+#ifdef USE_WIN32API
+  /*
+   * Call final() in vt_pty_win32.c to terminate child processes.
+   * Without this, child processes survive even if all windows are closed by
+   * pressing X button.
+   */
+  g_atexit(vt_term_manager_final);
+#endif
+
 #ifdef USE_WAYLAND
   gdk_threads_add_timeout(25, vte_terminal_timeout, NULL); /* 25 miliseconds */
 #else
@@ -2888,7 +2897,10 @@ pid_t vte_terminal_fork_command(VteTerminal *terminal,
 #endif
 
     if (!command) {
-      if (!(command = getenv("SHELL")) || *command == '\0') {
+      if (main_config.cmd_path) {
+        command = main_config.cmd_path;
+        argv = main_config.cmd_argv;
+      } else if (!(command = getenv("SHELL")) || *command == '\0') {
 #ifdef USE_WIN32API
         command = "c:\\Windows\\System32\\cmd.exe";
 #else
@@ -2967,7 +2979,8 @@ vte_terminal_fork_command_full(VteTerminal *terminal, VtePtyFlags pty_flags,
 {
   GPid pid;
 
-  pid = vte_terminal_fork_command(terminal, argv[0], argv + 1, envv, working_directory,
+  pid = vte_terminal_fork_command(terminal, argv[0], argv[0] == NULL ? NULL : argv + 1,
+                                  envv, working_directory,
                                   (pty_flags & VTE_PTY_NO_LASTLOG) ? FALSE : TRUE,
                                   (pty_flags & VTE_PTY_NO_UTMP) ? FALSE : TRUE,
                                   (pty_flags & VTE_PTY_NO_WTMP) ? FALSE : TRUE);

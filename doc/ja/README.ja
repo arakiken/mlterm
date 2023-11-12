@@ -349,9 +349,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
       このオプションを無効にすると、パレットの使い回しをしない代わりに、
       vt_char_t のサイズが 8 バイトから 12 バイトに増えます。
 
-    --disable-conpty
-      win32 環境において、ConPTY を使用しないようにします。
-
     --disable-shared
       共有ライブラリを構築しません。
 
@@ -1083,6 +1080,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
         ANSI color change escape sequences を有効
         xterm の "colorMode" 相当のオプションです。
 
+      o use_conpty (*true*/false) (win32 用)
+        ConPTY を使用する。
+
       o use_local_echo (true/*false*) (#)
         local echo mode を有効
 
@@ -1624,6 +1624,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
        --recvdir=value : receive_directory
        --fk(=bool)     : format_other_keys
        --sdpr=value    : simple_scrollbar_dpr
+       --conpty(=bool) : use_conpty (win32 用)
        --chsel(=bool)  : change_selection_immediately (mlterm and mlterm-wl 以外用)
        --point=value   : use_point_size
        --aafont(=bool) : use_aafont (mlterm-fb, mlterm-wl or mlterm-sdl2 用)

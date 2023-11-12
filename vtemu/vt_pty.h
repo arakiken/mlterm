@@ -122,6 +122,8 @@ int vt_start_config_menu(vt_pty_t *pty, char *cmd_path, int x, int y, char *disp
 
 #ifdef USE_WIN32API
 void vt_pty_win32_set_pty_read_trigger(void (*func)(void));
+
+void vt_set_use_conpty(int flag);
 #endif
 
 #ifdef USE_LIBSSH2

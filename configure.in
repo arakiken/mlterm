@@ -996,17 +996,13 @@ if test "$ml_cv_is_posix" = "no" ; then
 		fi
 	fi
 
-	AC_ARG_ENABLE(conpty,
-		[ --disable-conpty       do not use ConPTY in win32 @<:@default=enabled@:>@])
-	if test "$enable_conpty" != "no"; then
-		AC_CHECK_FUNC(CreatePseudoConsole,
-			[
-				PTY_CFLAGS="-DUSE_CONPTY"
-				win32pty=conpty
-			],
-			[win32pty=pipe])
-		AC_SUBST(PTY_CFLAGS)
-	fi
+	AC_CHECK_FUNC(CreatePseudoConsole,
+		[
+		PTY_CFLAGS="-DUSE_CONPTY"
+		win32pty="conpty pipe"
+		],
+		[win32pty=pipe])
+	AC_SUBST(PTY_CFLAGS)
 
 	VT_PTY_OBJ="$VT_PTY_OBJ vt_pty_win32.o"
 else
