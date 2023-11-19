@@ -16,6 +16,10 @@
 	  - Add vt_set_use_conpty().
 	  - pty_open() -> conpty_open() and pipe_open()
 
+2023-11-05  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in, gtk/Makefile.in: Add SSH2_LIBS_FOR_VTE.
+
 2023-11-04  Araki Ken  <arakiken@users.sf.net>
 
 	* fb/ui_font.c: Fix compiling error in ui_font_set_dpi_for_fc().

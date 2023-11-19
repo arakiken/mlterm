@@ -764,6 +764,7 @@ VTE_CFLAGS
 MOSH_OCB_OBJ
 MOSH_DIR
 VT_PTY_OBJ
+SSH2_LIBS_FOR_VTE
 SSH2_LIBS_FOR_PROG
 PTY_CFLAGS
 PROTOBUF_LIBS
@@ -17518,6 +17519,8 @@ fi
 
 
 
+
+
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for GDK_PIXBUF" >&5
 $as_echo_n "checking for GDK_PIXBUF... " >&6; }
@@ -19700,6 +19703,7 @@ if test "$ml_cv_is_posix" = "no" ; then
 			SSH2_LIBS_FOR_PROG="$SSH2_LIBS -lwsock32 -lws2_32"
 			SSH2_LIBS=
 		fi
+		SSH2_LIBS_FOR_VTE=$SSH2_LIBS_FOR_PROG
 	fi
 
 	ac_fn_c_check_func "$LINENO" "CreatePseudoConsole" "ac_cv_func_CreatePseudoConsole"
@@ -19755,6 +19759,7 @@ fi
 		fi
 	fi
 fi
+
 
 
 
