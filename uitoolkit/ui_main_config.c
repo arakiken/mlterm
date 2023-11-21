@@ -333,8 +333,12 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "send modified keys as parameter for CSI u [false]");
   bl_conf_add_opt(conf, '\0', "sdpr", 0, "simple_scrollbar_dpr",
                   "device pixel ratio for simple scrollbar [1]");
+#ifdef USE_WIN32API
+  bl_conf_add_opt(conf, '\0', "winsize", 1, "output_xtwinops_in_resizing",
+                  "output xtwinops sequence in resizing [false]");
 #ifdef USE_CONPTY
   bl_conf_add_opt(conf, '\0', "conpty", 1, "use_conpty", "use conpty [true]");
+#endif
 #endif
 #ifdef SELECTION_STYLE_CHANGEABLE
   bl_conf_add_opt(conf, '\0', "chsel", 1, "change_selection_immediately",
@@ -1450,14 +1454,23 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     }
   }
 
+#ifdef USE_WIN32API
+  if ((value = bl_conf_get_value(conf, "output_xtwinops_in_resizing"))) {
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      vt_pty_win32_set_options(-1, flag);
+    }
+  }
 #ifdef USE_CONPTY
   if ((value = bl_conf_get_value(conf, "use_conpty"))) {
     int flag = true_or_false(value);
 
     if (flag != -1) {
-      vt_set_use_conpty(flag);
+      vt_pty_win32_set_options(flag, -1);
     }
   }
+#endif
 #endif
 
 #ifdef USE_IM_CURSOR_COLOR

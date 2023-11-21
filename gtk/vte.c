@@ -1874,7 +1874,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
   /*
    * Call final() in vt_pty_win32.c to terminate child processes.
    * Without this, child processes survive even if all windows are closed by
-   * pressing X button.
+   * pressing X button (GtkWindow (gtk_widget_get_toplevel(widget)) doesn't
+   * receive "destroy" signal).
    */
   g_atexit(vt_term_manager_final);
 #endif
@@ -3747,9 +3748,9 @@ void vte_terminal_set_font_from_string(VteTerminal *terminal, const char *name) 
        * or widget->requisition is not set correctly in
        * reset_vte_size_member.
        */
-      PVT(terminal)->screen->window.width =
+      PVT(terminal)->screen->width = PVT(terminal)->screen->window.width =
           ui_col_width(PVT(terminal)->screen) * vt_term_get_cols(PVT(terminal)->term);
-      PVT(terminal)->screen->window.height =
+      PVT(terminal)->screen->height = PVT(terminal)->screen->window.height =
           ui_line_height(PVT(terminal)->screen) * vt_term_get_rows(PVT(terminal)->term);
 
       PVT(terminal)->screen->window.width_inc = PVT(terminal)->screen->window.min_width =

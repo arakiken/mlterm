@@ -42,7 +42,6 @@ typedef struct vt_pty_win32 {
   HANDLE rd_ev;
   int8_t rd_ready;
 
-  int8_t is_plink;
 #ifdef USE_CONPTY
   HPCON hpc;
   COORD coord;
@@ -61,6 +60,7 @@ static void (*trigger_pty_read)(void);
 #ifdef USE_CONPTY
 static int use_conpty = 1;
 #endif
+static int output_xtwinops_in_resizing;
 
 /* --- static functions --- */
 
@@ -426,14 +426,6 @@ static int pipe_open(vt_pty_win32_t *pty, const char *cmd_path, char *const cmd_
   /* Set global child process handle to cause threads to exit. */
   pty->child_proc = pi.hProcess;
 
-#ifndef USE_CONPTY
-  if (strstr(cmd_path, "plink")) {
-    pty->is_plink = 1;
-  } else {
-    pty->is_plink = 0;
-  }
-#endif
-
   /* close unnecessary handles. */
   CloseHandle(pi.hThread);
   CloseHandle(input_read);
@@ -541,29 +533,22 @@ static int final(vt_pty_t *p) {
 
 static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
 #ifdef USE_CONPTY
-  ((vt_pty_win32_t*)pty)->coord.X = cols;
-  ((vt_pty_win32_t*)pty)->coord.Y = rows;
+  if (use_conpty) {
+    ((vt_pty_win32_t*)pty)->coord.X = cols;
+    ((vt_pty_win32_t*)pty)->coord.Y = rows;
 
-  if (((vt_pty_win32_t*)pty)->hpc) {
-    ResizePseudoConsole(((vt_pty_win32_t*)pty)->hpc, ((vt_pty_win32_t*)pty)->coord);
+    if (((vt_pty_win32_t*)pty)->hpc) {
+      ResizePseudoConsole(((vt_pty_win32_t*)pty)->hpc, ((vt_pty_win32_t*)pty)->coord);
+    }
 
     return 1;
   } else
 #endif
-  if (((vt_pty_win32_t*)pty)->is_plink) {
-    /*
-     * XXX Hack
-     */
+  if (output_xtwinops_in_resizing) {
+    u_char seq[(5 + 1 + DIGIT_STR_LEN(u_int) * 2) * 2 + 1];
 
-    u_char opt[5];
-
-    opt[0] = 0xff;
-    opt[1] = (cols >> 8) & 0xff;
-    opt[2] = cols & 0xff;
-    opt[3] = (rows >> 8) & 0xff;
-    opt[4] = rows & 0xff;
-
-    vt_write_to_pty(pty, opt, 5);
+    sprintf(seq, "\x1b[8;%d;%dt\x1b[4;%d;%dt", rows, cols, height_pix, width_pix);
+    vt_write_to_pty(pty, seq, strlen(seq));
 
     return 1;
   }
@@ -690,10 +675,16 @@ static ssize_t read_pty(vt_pty_t *p, u_char *buf, size_t len) {
 
 /* --- global functions --- */
 
-void vt_set_use_conpty(int flag) {
+void vt_pty_win32_set_options(int _use_conpty, int _output_xtwinops_in_resizing) {
 #ifdef USE_CONPTY
-  use_conpty = flag;
+  if (_use_conpty != -1) {
+    use_conpty = _use_conpty;
+  }
 #endif
+
+  if (_output_xtwinops_in_resizing != -1) {
+    output_xtwinops_in_resizing = _output_xtwinops_in_resizing;
+  }
 }
 
 vt_pty_t *vt_pty_win32_new(const char *cmd_path, /* can be NULL */

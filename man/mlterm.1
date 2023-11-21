@@ -845,6 +845,10 @@ Set vt color mode. \fB256\fR for pseudo color, \fBhigh\fR for high color and
 \fBtrue\fR for true color.
 The default is \fBhigh\fR.
 .TP
+\fB\-\-winsize\fR(=\fIbool\fR) (Available for win32)
+Output XTWINOPS sequence when the screen is resized unless \-\-conpty option is specified.
+The default is \fBfalse\fR.
+.TP
 \fB\-\-working\-directory\fR=\fIvalue\fR
 Working directory.
 .TP
@@ -1711,6 +1715,9 @@ Use non-Unicode fonts even when \fBmlterm\fR encoding is UTF-8.
 .TP
 \fBonly_use_unicode_font=\fIbool\fR (\fB\-u\fR, \fB\-\-onlyucsfont\fR)
 Use Unicode fonts even when \fBmlterm\fR encoding is not UTF-8.
+.TP
+\fBoutput_xtwinops_in_resizing=\fIbool\fR (\fB\-\-winsize\fR)
+Output XTWINOPS sequence when the screen is resized unless \-\-conpty option is specified.
 .TP
 \fBot_features=\fIvalue\fR (\-\-gft\fR)
 Specify features of glyph substitution.

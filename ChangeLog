@@ -1,3 +1,16 @@
+2023-11-21  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_main_config.c: Add --winsize / output_xtwinops_in_resizing option.
+
+	* vt_pty.h, vt_pty_win32.c:
+	  - vt_set_use_conpty() -> vt_pty_win32_set_options()
+	  - Remove hack to send resizing info to plink.
+
+	* win32/plink: Removed.
+
+	* vte.c: vte_terminal_set_font_from_string() updates
+	  ui_screen_t::width and ui_screen_t::height.
+
 2023-11-12  Araki Ken  <arakiken@users.sf.net>
 
 	* README, README.ja, man/mlterm.1: Updated.

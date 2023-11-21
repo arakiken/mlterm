@@ -1006,6 +1006,10 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
 
         esc の場合は"0x1b"を出力し、8bit の場合は入力文字の8ビット目をたてます。
 
+      o output_xtwinops_in_resizing (true/*false*) (win32 用)
+        pipe 経由で子プロセスと通信する場合、画面リサイズ時に XTWINOPS シーケンス
+        で画面サイズを子プロセスに送信する。
+
       o parent_window (*0*)
         親 Window の Window ID を指定
 
@@ -1624,6 +1628,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
        --recvdir=value : receive_directory
        --fk(=bool)     : format_other_keys
        --sdpr=value    : simple_scrollbar_dpr
+       --winsize(=bool): output_xtwinops_in_resizing (win32 用)
        --conpty(=bool) : use_conpty (win32 用)
        --chsel(=bool)  : change_selection_immediately (mlterm and mlterm-wl 以外用)
        --point=value   : use_point_size

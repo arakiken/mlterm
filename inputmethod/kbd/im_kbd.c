@@ -54,7 +54,12 @@ typedef enum kbd_type {
   KBD_TYPE_UNKNOWN,
   KBD_TYPE_ARABIC,
   KBD_TYPE_HEBREW,
-  KBD_TYPE_ISCII,
+  KBD_TYPE_DE,
+  KBD_TYPE_FR,
+  KBD_TYPE_ES,
+  KBD_TYPE_PT,
+  KBD_TYPE_JP106,
+  KBD_TYPE_ISCII, /* Must be placed at the end (see get_kbd_type()) */
 
   KBD_TYPE_MAX
 
@@ -95,205 +100,1294 @@ static ef_parser_t *parser_ascii = NULL;
 /* mlterm internal symbols */
 static ui_im_export_syms_t *syms = NULL;
 
+/* US -> Arabic */
 static u_char *arabic_conv_tbl[] = {
-    "\x06\x37",         /* ' */
-    NULL,               /* ( */
-    NULL,               /* ) */
-    NULL,               /* * */
-    NULL,               /* + */
-    "\x06\x48",         /* , */
-    NULL,               /* - */
-    "\x06\x32",         /* . */
-    "\x06\x38",         /* / */
-    "\x06\x60",         /* 0 */
-    "\x06\x61",         /* 1 */
-    "\x06\x62",         /* 2 */
-    "\x06\x63",         /* 3 */
-    "\x06\x64",         /* 4 */
-    "\x06\x65",         /* 5 */
-    "\x06\x66",         /* 6 */
-    "\x06\x67",         /* 7 */
-    "\x06\x68",         /* 8 */
-    "\x06\x69",         /* 9 */
-    NULL,               /* : */
-    "\x06\x43",         /* ; */
-    "\x00\x2c",         /* < */
-    NULL,               /* = */
-    "\x00\x2e",         /* > */
-    "\x06\x1f",         /* ? */
-    NULL,               /* @ */
-    "\x06\x50",         /* A */
-    "\x06\x44\x06\x22", /* B */
-    "\x00\x7b",         /* C */
-    "\x00\x5b",         /* D */
-    "\x06\x4f",         /* E */
-    "\x00\x5d",         /* F */
-    "\x06\x44\x06\x23", /* G */
-    "\x06\x23",         /* H */
-    "\x00\xf7",         /* I */
-    "\x06\x40",         /* J */
-    "\x06\x0c",         /* K */
-    "\x00\x2f",         /* L */
-    "\x00\x27",         /* M */
-    "\x06\x22",         /* N */
-    "\x00\xd7",         /* O */
-    "\x06\x1b",         /* P */
-    "\x06\x4e",         /* Q */
-    "\x06\x4c",         /* R */
-    "\x06\x4d",         /* S */
-    "\x06\x44\x06\x25", /* T */
-    "\x00\x60",         /* U */
-    "\x00\x7d",         /* V */
-    "\x06\x4b",         /* W */
-    "\x06\x52",         /* X */
-    "\x06\x25",         /* Y */
-    "\x00\x7e",         /* Z */
-    "\x06\x2c",         /* [ */
-    NULL,               /* \ */
-    "\x06\x2f",         /* ] */
-    NULL,               /* ^ */
-    NULL,               /* _ */
-    "\x06\x30",         /* ` */
-    "\x06\x34",         /* a */
-    "\x06\x44\x06\x27", /* b */
-    "\x06\x24",         /* c */
-    "\x06\x4a",         /* d */
-    "\x06\x2b",         /* e */
-    "\x06\x28",         /* f */
-    "\x06\x44",         /* g */
-    "\x06\x27",         /* h */
-    "\x06\x47",         /* i */
-    "\x06\x2a",         /* j */
-    "\x06\x46",         /* k */
-    "\x06\x45",         /* l */
-    "\x06\x29",         /* m */
-    "\x06\x49",         /* n */
-    "\x06\x2e",         /* o */
-    "\x06\x2d",         /* p */
-    "\x06\x36",         /* q */
-    "\x06\x42",         /* r */
-    "\x06\x33",         /* s */
-    "\x06\x41",         /* t */
-    "\x06\x39",         /* u */
-    "\x06\x31",         /* v */
-    "\x06\x35",         /* w */
-    "\x06\x21",         /* x */
-    "\x06\x3a",         /* y */
-    "\x06\x26",         /* z */
-    "\x00\x3c",         /* { */
-    NULL,               /* | */
-    "\x00\x3e",         /* } */
-    "\x06\x51",         /* ~ */
-
+  "\x06\x37",         /* ' */
+  NULL,               /* ( */
+  NULL,               /* ) */
+  NULL,               /* * */
+  NULL,               /* + */
+  "\x06\x48",         /* , */
+  NULL,               /* - */
+  "\x06\x32",         /* . */
+  "\x06\x38",         /* / */
+  "\x06\x60",         /* 0 */
+  "\x06\x61",         /* 1 */
+  "\x06\x62",         /* 2 */
+  "\x06\x63",         /* 3 */
+  "\x06\x64",         /* 4 */
+  "\x06\x65",         /* 5 */
+  "\x06\x66",         /* 6 */
+  "\x06\x67",         /* 7 */
+  "\x06\x68",         /* 8 */
+  "\x06\x69",         /* 9 */
+  NULL,               /* : */
+  "\x06\x43",         /* ; */
+  "\x00\x2c",         /* < */
+  NULL,               /* = */
+  "\x00\x2e",         /* > */
+  "\x06\x1f",         /* ? */
+  NULL,               /* @ */
+  "\x06\x50",         /* A */
+  "\x06\x44\x06\x22", /* B */
+  "\x00\x7b",         /* C */
+  "\x00\x5b",         /* D */
+  "\x06\x4f",         /* E */
+  "\x00\x5d",         /* F */
+  "\x06\x44\x06\x23", /* G */
+  "\x06\x23",         /* H */
+  "\x00\xf7",         /* I */
+  "\x06\x40",         /* J */
+  "\x06\x0c",         /* K */
+  "\x00\x2f",         /* L */
+  "\x00\x27",         /* M */
+  "\x06\x22",         /* N */
+  "\x00\xd7",         /* O */
+  "\x06\x1b",         /* P */
+  "\x06\x4e",         /* Q */
+  "\x06\x4c",         /* R */
+  "\x06\x4d",         /* S */
+  "\x06\x44\x06\x25", /* T */
+  "\x00\x60",         /* U */
+  "\x00\x7d",         /* V */
+  "\x06\x4b",         /* W */
+  "\x06\x52",         /* X */
+  "\x06\x25",         /* Y */
+  "\x00\x7e",         /* Z */
+  "\x06\x2c",         /* [ */
+  NULL,               /* \ */
+  "\x06\x2f",         /* ] */
+  NULL,               /* ^ */
+  NULL,               /* _ */
+  "\x06\x30",         /* ` */
+  "\x06\x34",         /* a */
+  "\x06\x44\x06\x27", /* b */
+  "\x06\x24",         /* c */
+  "\x06\x4a",         /* d */
+  "\x06\x2b",         /* e */
+  "\x06\x28",         /* f */
+  "\x06\x44",         /* g */
+  "\x06\x27",         /* h */
+  "\x06\x47",         /* i */
+  "\x06\x2a",         /* j */
+  "\x06\x46",         /* k */
+  "\x06\x45",         /* l */
+  "\x06\x29",         /* m */
+  "\x06\x49",         /* n */
+  "\x06\x2e",         /* o */
+  "\x06\x2d",         /* p */
+  "\x06\x36",         /* q */
+  "\x06\x42",         /* r */
+  "\x06\x33",         /* s */
+  "\x06\x41",         /* t */
+  "\x06\x39",         /* u */
+  "\x06\x31",         /* v */
+  "\x06\x35",         /* w */
+  "\x06\x21",         /* x */
+  "\x06\x3a",         /* y */
+  "\x06\x26",         /* z */
+  "\x00\x3c",         /* { */
+  NULL,               /* | */
+  "\x00\x3e",         /* } */
+  "\x06\x51",         /* ~ */
 };
 
+/* US -> Hebrew */
 static u_char *hebrew_conv_tbl[] = {
-    "\x00\x3b", /* ' */
-    NULL,       /* ( */
-    NULL,       /* ) */
-    NULL,       /* * */
-    NULL,       /* + */
-    "\x05\xea", /* , */
-    NULL,       /* - */
-    "\x05\xe5", /* . */
-    "\x00\x2e", /* / */
-    NULL,       /* 0 */
-    NULL,       /* 1 */
-    NULL,       /* 2 */
-    NULL,       /* 3 */
-    NULL,       /* 4 */
-    NULL,       /* 5 */
-    NULL,       /* 6 */
-    NULL,       /* 7 */
-    NULL,       /* 8 */
-    NULL,       /* 9 */
-    NULL,       /* : */
-    "\x05\xe3", /* ; */
-    NULL,       /* < */
-    NULL,       /* = */
-    NULL,       /* > */
-    NULL,       /* ? */
-    NULL,       /* @ */
-    NULL,       /* A */
-    NULL,       /* B */
-    NULL,       /* C */
-    NULL,       /* D */
-    NULL,       /* E */
-    NULL,       /* F */
-    NULL,       /* G */
-    NULL,       /* H */
-    NULL,       /* I */
-    NULL,       /* J */
-    NULL,       /* K */
-    NULL,       /* L */
-    NULL,       /* M */
-    NULL,       /* N */
-    NULL,       /* O */
-    NULL,       /* P */
-    NULL,       /* Q */
-    NULL,       /* R */
-    NULL,       /* S */
-    NULL,       /* T */
-    NULL,       /* U */
-    NULL,       /* V */
-    NULL,       /* W */
-    NULL,       /* X */
-    NULL,       /* Y */
-    NULL,       /* Z */
-    NULL,       /* [ */
-    NULL,       /* \ */
-    NULL,       /* ] */
-    NULL,       /* ^ */
-    NULL,       /* _ */
-    "\x00\x3b", /* ` */
-    "\x05\xe9", /* a */
-    "\x05\xe0", /* b */
-    "\x05\xd1", /* c */
-    "\x05\xd2", /* d */
-    "\x05\xe7", /* e */
-    "\x05\xdb", /* f */
-    "\x05\xe2", /* g */
-    "\x05\xd9", /* h */
-    "\x05\xdf", /* i */
-    "\x05\xd7", /* j */
-    "\x05\xdc", /* k */
-    "\x05\xda", /* l */
-    "\x05\xe6", /* m */
-    "\x05\xde", /* n */
-    "\x05\xdd", /* o */
-    "\x05\xe4", /* p */
-    "\x00\x2f", /* q */
-    "\x05\xe8", /* r */
-    "\x05\xd3", /* s */
-    "\x05\xd0", /* t */
-    "\x05\xd5", /* u */
-    "\x05\xd4", /* v */
-    "\x00\x27", /* w */
-    "\x05\xe1", /* x */
-    "\x05\xd8", /* y */
-    "\x05\xd6", /* z */
-    NULL,       /* { */
-    NULL,       /* | */
-    NULL,       /* } */
-    NULL,       /* ~ */
-
+  "\x00\x3b", /* ' */
+  NULL,       /* ( */
+  NULL,       /* ) */
+  NULL,       /* * */
+  NULL,       /* + */
+  "\x05\xea", /* , */
+  NULL,       /* - */
+  "\x05\xe5", /* . */
+  "\x00\x2e", /* / */
+  NULL,       /* 0 */
+  NULL,       /* 1 */
+  NULL,       /* 2 */
+  NULL,       /* 3 */
+  NULL,       /* 4 */
+  NULL,       /* 5 */
+  NULL,       /* 6 */
+  NULL,       /* 7 */
+  NULL,       /* 8 */
+  NULL,       /* 9 */
+  NULL,       /* : */
+  "\x05\xe3", /* ; */
+  NULL,       /* < */
+  NULL,       /* = */
+  NULL,       /* > */
+  NULL,       /* ? */
+  NULL,       /* @ */
+  NULL,       /* A */
+  NULL,       /* B */
+  NULL,       /* C */
+  NULL,       /* D */
+  NULL,       /* E */
+  NULL,       /* F */
+  NULL,       /* G */
+  NULL,       /* H */
+  NULL,       /* I */
+  NULL,       /* J */
+  NULL,       /* K */
+  NULL,       /* L */
+  NULL,       /* M */
+  NULL,       /* N */
+  NULL,       /* O */
+  NULL,       /* P */
+  NULL,       /* Q */
+  NULL,       /* R */
+  NULL,       /* S */
+  NULL,       /* T */
+  NULL,       /* U */
+  NULL,       /* V */
+  NULL,       /* W */
+  NULL,       /* X */
+  NULL,       /* Y */
+  NULL,       /* Z */
+  NULL,       /* [ */
+  NULL,       /* \ */
+  NULL,       /* ] */
+  NULL,       /* ^ */
+  NULL,       /* _ */
+  "\x00\x3b", /* ` */
+  "\x05\xe9", /* a */
+  "\x05\xe0", /* b */
+  "\x05\xd1", /* c */
+  "\x05\xd2", /* d */
+  "\x05\xe7", /* e */
+  "\x05\xdb", /* f */
+  "\x05\xe2", /* g */
+  "\x05\xd9", /* h */
+  "\x05\xdf", /* i */
+  "\x05\xd7", /* j */
+  "\x05\xdc", /* k */
+  "\x05\xda", /* l */
+  "\x05\xe6", /* m */
+  "\x05\xde", /* n */
+  "\x05\xdd", /* o */
+  "\x05\xe4", /* p */
+  "\x00\x2f", /* q */
+  "\x05\xe8", /* r */
+  "\x05\xd3", /* s */
+  "\x05\xd0", /* t */
+  "\x05\xd5", /* u */
+  "\x05\xd4", /* v */
+  "\x00\x27", /* w */
+  "\x05\xe1", /* x */
+  "\x05\xd8", /* y */
+  "\x05\xd6", /* z */
+  NULL,       /* { */
+  NULL,       /* | */
+  NULL,       /* } */
+  NULL,       /* ~ */
 };
+
+static u_char de_normal_tbl[] = {
+	0x5d, /* ] <- '(0x27) */
+	0x28, /* ( */
+	0x29, /* ) */
+	0x2a, /* * */
+	0x2b, /* + */
+	0x2c, /* , */
+	0x5c, /* \ <- -(0x2d) */
+	0x2e, /* . */
+	0x2d, /* - <- /(0x2f) */
+	0x30, /* 0 */
+	0x31, /* 1 */
+	0x32, /* 2 */
+	0x33, /* 3 */
+	0x34, /* 4 */
+	0x35, /* 5 */
+	0x36, /* 6 */
+	0x37, /* 7 */
+	0x38, /* 8 */
+	0x39, /* 9 */
+	0x3a, /* : */
+	0x5b, /* [ <- ;(0x3b) */
+	0x3c, /* < */
+	0x27, /* ' <- =(0x3d) */
+	0x3e, /* > */
+	0x3f, /* ? */
+	0x40, /* @ */
+	0x41, /* A */
+	0x42, /* B */
+	0x43, /* C */
+	0x44, /* D */
+	0x45, /* E */
+	0x46, /* F */
+	0x47, /* G */
+	0x48, /* H */
+	0x49, /* I */
+	0x4a, /* J */
+	0x4b, /* K */
+	0x4c, /* L */
+	0x4d, /* M */
+	0x4e, /* N */
+	0x4f, /* O */
+	0x50, /* P */
+	0x51, /* Q */
+	0x52, /* R */
+	0x53, /* S */
+	0x54, /* T */
+	0x55, /* U */
+	0x56, /* V */
+	0x57, /* W */
+	0x58, /* X */
+	0x59, /* Y */
+	0x5a, /* Z */
+	0x40, /* @ <- [(0x5b) */
+	0x23, /* # <- \(0x5c) */
+	0x2b, /* + <- ](0x5d) */
+	0x5e, /* ^ */
+	0x5f, /* _ */
+	0x5e, /* ^ <- `(0x60) */
+	0x61, /* a */
+	0x62, /* b */
+	0x63, /* c */
+	0x64, /* d */
+	0x65, /* e */
+	0x66, /* f */
+	0x67, /* g */
+	0x68, /* h */
+	0x69, /* i */
+	0x6a, /* j */
+	0x6b, /* k */
+	0x6c, /* l */
+	0x6d, /* m */
+	0x6e, /* n */
+	0x6f, /* o */
+	0x70, /* p */
+	0x71, /* q */
+	0x72, /* r */
+	0x73, /* s */
+	0x74, /* t */
+	0x75, /* u */
+	0x76, /* v */
+	0x77, /* w */
+	0x78, /* x */
+	0x7a, /* z <- y(0x79) */
+	0x79, /* y <- z(0x7a) */
+};
+
+static u_char de_shift_tbl[] = {
+	0x7d, /* } <- "(0x22) */
+	0x23, /* # */
+	0x24, /* $ */
+	0x25, /* % */
+	0x2f, /* / <- &(0x26) */
+	0x27, /* ' */
+	0x29, /* ) <- ((0x28) */
+	0x3d, /* = <- )(0x29) */
+	0x28, /* ( <- *(0x2a) */
+	0x60, /* ` <- +(0x2b) */
+	0x2c, /* , */
+	0x2d, /* - */
+	0x2e, /* . */
+	0x2f, /* / */
+	0x30, /* 0 */
+	0x31, /* 1 */
+	0x32, /* 2 */
+	0x33, /* 3 */
+	0x34, /* 4 */
+	0x35, /* 5 */
+	0x36, /* 6 */
+	0x37, /* 7 */
+	0x38, /* 8 */
+	0x39, /* 9 */
+	0x7b, /* { <- :(0x3a) */
+	0x3b, /* ; */
+	0x3b, /* ; <- <(0x3c) */
+	0x3d, /* = */
+	0x3a, /* : <- >(0x3e) */
+	0x5f, /* _ <- ?(0x3f) */
+	0x22, /* " <- @(0x40) */
+	0x41, /* A */
+	0x42, /* B */
+	0x43, /* C */
+	0x44, /* D */
+	0x45, /* E */
+	0x46, /* F */
+	0x47, /* G */
+	0x48, /* H */
+	0x49, /* I */
+	0x4a, /* J */
+	0x4b, /* K */
+	0x4c, /* L */
+	0x4d, /* M */
+	0x4e, /* N */
+	0x4f, /* O */
+	0x50, /* P */
+	0x51, /* Q */
+	0x52, /* R */
+	0x53, /* S */
+	0x54, /* T */
+	0x55, /* U */
+	0x56, /* V */
+	0x57, /* W */
+	0x58, /* X */
+	0x59, /* Y */
+	0x5a, /* Z */
+	0x5b, /* [ */
+	0x5c, /* \ */
+	0x5d, /* ] */
+	0x26, /* & <- ^(0x5e) */
+	0x3f, /* ? <- _(0x5f) */
+	0x60, /* ` */
+	0x61, /* a */
+	0x62, /* b */
+	0x63, /* c */
+	0x64, /* d */
+	0x65, /* e */
+	0x66, /* f */
+	0x67, /* g */
+	0x68, /* h */
+	0x69, /* i */
+	0x6a, /* j */
+	0x6b, /* k */
+	0x6c, /* l */
+	0x6d, /* m */
+	0x6e, /* n */
+	0x6f, /* o */
+	0x70, /* p */
+	0x71, /* q */
+	0x72, /* r */
+	0x73, /* s */
+	0x74, /* t */
+	0x75, /* u */
+	0x76, /* v */
+	0x77, /* w */
+	0x78, /* x */
+	0x79, /* y */
+	0x7a, /* z */
+	0x5c, /* \ <- {(0x7b) */
+	0x27, /* ' <- |(0x7c) */
+	0x2a, /* * <- }(0x7d) */
+};
+
+static u_char de_alt_tbl[] = {
+	0x7d, /* } <- 0(0x30) */
+	0x31, /* 1 */
+	0x32, /* 2 */
+	0x33, /* 3 */
+	0x34, /* 4 */
+	0x35, /* 5 */
+	0x36, /* 6 */
+	0x7b, /* { <- 7(0x37) */
+	0x5b, /* [ <- 8(0x38) */
+	0x5d, /* ] <- 9(0x39) */
+	0x3a, /* : */
+	0x3b, /* ; */
+	0x7c, /* | <- <(0x3c) */
+	0x3d, /* = */
+	0x3e, /* > */
+	0x3f, /* ? */
+	0x40, /* @ */
+	0x41, /* A */
+	0x42, /* B */
+	0x43, /* C */
+	0x44, /* D */
+	0x45, /* E */
+	0x46, /* F */
+	0x47, /* G */
+	0x48, /* H */
+	0x49, /* I */
+	0x4a, /* J */
+	0x4b, /* K */
+	0x4c, /* L */
+	0x4d, /* M */
+	0x4e, /* N */
+	0x4f, /* O */
+	0x50, /* P */
+	0x51, /* Q */
+	0x52, /* R */
+	0x53, /* S */
+	0x54, /* T */
+	0x55, /* U */
+	0x56, /* V */
+	0x57, /* W */
+	0x58, /* X */
+	0x59, /* Y */
+	0x5a, /* Z */
+	0x5b, /* [ */
+	0x5c, /* \ */
+	0x7e, /* ~ <- ](0x5d) */
+	0x5e, /* ^ */
+	0x5f, /* _ */
+	0x60, /* ` */
+	0x61, /* a */
+	0x62, /* b */
+	0xa2, /* ¢ <- c(0x63) */
+	0x64, /* d */
+	0xa4, /* ¤ <- e(0x65) */
+	0x66, /* f */
+	0x67, /* g */
+	0x68, /* h */
+	0x69, /* i */
+	0x6a, /* j */
+	0x6b, /* k */
+	0x6c, /* l */
+	0xb5, /* µ <- m(0x6d) */
+	0x6e, /* n */
+	0x6f, /* o */
+	0x70, /* p */
+	0x40, /* @ <- q(0x71) */
+};
+
+static u_char fr_normal_tbl[] = {
+	0x7c, /* | <- '(0x27) */
+	0x28, /* ( */
+	0x29, /* ) */
+	0x2a, /* * */
+	0x2b, /* + */
+	0x3b, /* ; <- ,(0x2c) */
+	0x29, /* ) <- -(0x2d) */
+	0x3a, /* : <- .(0x2e) */
+	0x21, /* ! <- /(0x2f) */
+	0x40, /* @ <- 0(0x30) */
+	0x26, /* & <- 1(0x31) */
+	0x7b, /* { <- 2(0x32) */
+	0x22, /* " <- 3(0x33) */
+	0x27, /* ' <- 4(0x34) */
+	0x28, /* ( <- 5(0x35) */
+	0x2d, /* - <- 6(0x36) */
+	0x7d, /* } <- 7(0x37) */
+	0x5f, /* _ <- 8(0x38) */
+	0x2f, /* / <- 9(0x39) */
+	0x3a, /* : */
+	0x6d, /* m <- ;(0x3b) */
+	0x3c, /* < */
+	0x3d, /* = */
+	0x3e, /* > */
+	0x3f, /* ? */
+	0x40, /* @ */
+	0x41, /* A */
+	0x42, /* B */
+	0x43, /* C */
+	0x44, /* D */
+	0x45, /* E */
+	0x46, /* F */
+	0x47, /* G */
+	0x48, /* H */
+	0x49, /* I */
+	0x4a, /* J */
+	0x4b, /* K */
+	0x4c, /* L */
+	0x4d, /* M */
+	0x4e, /* N */
+	0x4f, /* O */
+	0x50, /* P */
+	0x51, /* Q */
+	0x52, /* R */
+	0x53, /* S */
+	0x54, /* T */
+	0x55, /* U */
+	0x56, /* V */
+	0x57, /* W */
+	0x58, /* X */
+	0x59, /* Y */
+	0x5a, /* Z */
+	0x5e, /* ^ <- [(0x5b) */
+	0x2a, /* * <- \(0x5c) */
+	0x24, /* $ <- ](0x5d) */
+	0x5e, /* ^ */
+	0x5f, /* _ */
+	0x2a, /* * <- `(0x60) */
+	0x71, /* q <- a(0x61) */
+	0x62, /* b */
+	0x63, /* c */
+	0x64, /* d */
+	0x65, /* e */
+	0x66, /* f */
+	0x67, /* g */
+	0x68, /* h */
+	0x69, /* i */
+	0x6a, /* j */
+	0x6b, /* k */
+	0x6c, /* l */
+	0x2c, /* , <- m(0x6d) */
+	0x6e, /* n */
+	0x6f, /* o */
+	0x70, /* p */
+	0x61, /* a <- q(0x71) */
+	0x72, /* r */
+	0x73, /* s */
+	0x74, /* t */
+	0x75, /* u */
+	0x76, /* v */
+	0x7a, /* z <- w(0x77) */
+	0x78, /* x */
+	0x79, /* y */
+	0x77, /* w <- z(0x7a) */
+};
+
+static u_char fr_shift_tbl[] = {
+	0x31, /* 1 <- !(0x21) */
+	0x25, /* % <- "(0x22) */
+	0x33, /* 3 <- #(0x23) */
+	0x34, /* 4 <- $(0x24) */
+	0x35, /* 5 <- %(0x25) */
+	0x37, /* 7 <- &(0x26) */
+	0x27, /* ' */
+	0x39, /* 9 <- ((0x28) */
+	0x30, /* 0 <- )(0x29) */
+	0x38, /* 8 <- *(0x2a) */
+	0x2b, /* + */
+	0x2c, /* , */
+	0x2d, /* - */
+	0x2e, /* . */
+	0x2f, /* / */
+	0x30, /* 0 */
+	0x31, /* 1 */
+	0x32, /* 2 */
+	0x33, /* 3 */
+	0x34, /* 4 */
+	0x35, /* 5 */
+	0x36, /* 6 */
+	0x37, /* 7 */
+	0x38, /* 8 */
+	0x39, /* 9 */
+	0x3a, /* : */
+	0x3b, /* ; */
+	0x2e, /* . <- <(0x3c) */
+	0x3d, /* = */
+	0x2f, /* / <- >(0x3e) */
+	0x5c, /* \ <- ?(0x3f) */
+	0x32, /* 2 <- @(0x40) */
+	0x41, /* A */
+	0x42, /* B */
+	0x43, /* C */
+	0x44, /* D */
+	0x45, /* E */
+	0x46, /* F */
+	0x47, /* G */
+	0x48, /* H */
+	0x49, /* I */
+	0x4a, /* J */
+	0x4b, /* K */
+	0x4c, /* L */
+	0x4d, /* M */
+	0x4e, /* N */
+	0x4f, /* O */
+	0x50, /* P */
+	0x51, /* Q */
+	0x52, /* R */
+	0x53, /* S */
+	0x54, /* T */
+	0x55, /* U */
+	0x56, /* V */
+	0x57, /* W */
+	0x58, /* X */
+	0x59, /* Y */
+	0x5a, /* Z */
+	0x5b, /* [ */
+	0x5c, /* \ */
+	0x5d, /* ] */
+	0x36, /* 6 <- ^(0x5e) */
+	0x5d, /* ] <- _(0x5f) */
+	0x60, /* ` */
+	0x61, /* a */
+	0x62, /* b */
+	0x63, /* c */
+	0x64, /* d */
+	0x65, /* e */
+	0x66, /* f */
+	0x67, /* g */
+	0x68, /* h */
+	0x69, /* i */
+	0x6a, /* j */
+	0x6b, /* k */
+	0x6c, /* l */
+	0x6d, /* m */
+	0x6e, /* n */
+	0x6f, /* o */
+	0x70, /* p */
+	0x71, /* q */
+	0x72, /* r */
+	0x73, /* s */
+	0x74, /* t */
+	0x75, /* u */
+	0x76, /* v */
+	0x77, /* w */
+	0x78, /* x */
+	0x79, /* y */
+	0x7a, /* z */
+	0x3c, /* < <- {(0x7b) */
+	0x23, /* # <- |(0x7c) */
+	0x3e, /* > <- }(0x7d) */
+};
+
+static u_char fr_alt_tbl[] = {
+	0x5d, /* ] <- -(0x2d) */
+	0x2e, /* . */
+	0x2f, /* / */
+	0x40, /* @ <- 0(0x30) */
+	0x31, /* 1 */
+	0x7e, /* ~ <- 2(0x32) */
+	0x23, /* # <- 3(0x33) */
+	0x7b, /* { <- 4(0x34) */
+	0x5b, /* [ <- 5(0x35) */
+	0x7c, /* | <- 6(0x36) */
+	0x60, /* ` <- 7(0x37) */
+	0x5c, /* \ <- 8(0x38) */
+	0x5e, /* ^ <- 9(0x39) */
+	0x3a, /* : */
+	0x3b, /* ; */
+	0x7c, /* | <- <(0x3c) */
+	0x7d, /* } <- =(0x3d) */
+	0x3e, /* > */
+	0x3f, /* ? */
+	0x40, /* @ */
+	0x41, /* A */
+	0x42, /* B */
+	0x43, /* C */
+	0x44, /* D */
+	0x45, /* E */
+	0x46, /* F */
+	0x47, /* G */
+	0x48, /* H */
+	0x49, /* I */
+	0x4a, /* J */
+	0x4b, /* K */
+	0x4c, /* L */
+	0x4d, /* M */
+	0x4e, /* N */
+	0x4f, /* O */
+	0x50, /* P */
+	0x51, /* Q */
+	0x52, /* R */
+	0x53, /* S */
+	0x54, /* T */
+	0x55, /* U */
+	0x56, /* V */
+	0x57, /* W */
+	0x58, /* X */
+	0x59, /* Y */
+	0x5a, /* Z */
+	0x5b, /* [ */
+	0x5c, /* \ */
+	0x7e, /* ~ <- ](0x5d) */
+};
+
+static u_char es_normal_tbl[] = {
+	0x2b, /* + <- '(0x27) */
+	0x28, /* ( */
+	0x29, /* ) */
+	0x2a, /* * */
+	0x2b, /* + */
+	0x2c, /* , */
+	0x27, /* ' <- -(0x2d) */
+	0x2e, /* . */
+	0x2d, /* - <- /(0x2f) */
+	0x30, /* 0 */
+	0x31, /* 1 */
+	0x32, /* 2 */
+	0x33, /* 3 */
+	0x34, /* 4 */
+	0x35, /* 5 */
+	0x36, /* 6 */
+	0x37, /* 7 */
+	0x38, /* 8 */
+	0x39, /* 9 */
+	0x3a, /* : */
+	0x3b, /* ; */
+	0x3c, /* < */
+	0xa1, /* ¡ <- =(0x3d) */
+	0x3e, /* > */
+	0x3f, /* ? */
+	0x40, /* @ */
+	0x41, /* A */
+	0x42, /* B */
+	0x43, /* C */
+	0x44, /* D */
+	0x45, /* E */
+	0x46, /* F */
+	0x47, /* G */
+	0x48, /* H */
+	0x49, /* I */
+	0x4a, /* J */
+	0x4b, /* K */
+	0x4c, /* L */
+	0x4d, /* M */
+	0x4e, /* N */
+	0x4f, /* O */
+	0x50, /* P */
+	0x51, /* Q */
+	0x52, /* R */
+	0x53, /* S */
+	0x54, /* T */
+	0x55, /* U */
+	0x56, /* V */
+	0x57, /* W */
+	0x58, /* X */
+	0x59, /* Y */
+	0x5a, /* Z */
+	0x27, /* ' <- [(0x5b) */
+	0x5d, /* ] <- \(0x5c) */
+	0x5b, /* [ <- ](0x5d) */
+	0x5e, /* ^ */
+	0x5f, /* _ */
+	0xba, /* º <- `(0x60) */
+};
+
+static u_char es_shift_tbl[] = {
+	0x2a, /* * <- "(0x22) */
+	0x60, /* ` <- #(0x23) */
+	0x24, /* $ */
+	0x25, /* % */
+	0x2f, /* / <- &(0x26) */
+	0x27, /* ' */
+	0x29, /* ) <- ((0x28) */
+	0x3d, /* = <- )(0x29) */
+	0x28, /* ( <- *(0x2a) */
+	0xbf, /* ¿ <- +(0x2b) */
+	0x2c, /* , */
+	0x2d, /* - */
+	0x2e, /* . */
+	0x2f, /* / */
+	0x30, /* 0 */
+	0x31, /* 1 */
+	0x32, /* 2 */
+	0x33, /* 3 */
+	0x34, /* 4 */
+	0x35, /* 5 */
+	0x36, /* 6 */
+	0x37, /* 7 */
+	0x38, /* 8 */
+	0x39, /* 9 */
+	0x3a, /* : */
+	0x3b, /* ; */
+	0x3b, /* ; <- <(0x3c) */
+	0x3d, /* = */
+	0x3a, /* : <- >(0x3e) */
+	0x5f, /* _ <- ?(0x3f) */
+	0x22, /* " <- @(0x40) */
+	0x41, /* A */
+	0x42, /* B */
+	0x43, /* C */
+	0x44, /* D */
+	0x45, /* E */
+	0x46, /* F */
+	0x47, /* G */
+	0x48, /* H */
+	0x49, /* I */
+	0x4a, /* J */
+	0x4b, /* K */
+	0x4c, /* L */
+	0x4d, /* M */
+	0x4e, /* N */
+	0x4f, /* O */
+	0x50, /* P */
+	0x51, /* Q */
+	0x52, /* R */
+	0x53, /* S */
+	0x54, /* T */
+	0x55, /* U */
+	0x56, /* V */
+	0x57, /* W */
+	0x58, /* X */
+	0x59, /* Y */
+	0x5a, /* Z */
+	0x5b, /* [ */
+	0x5c, /* \ */
+	0x5d, /* ] */
+	0x26, /* & <- ^(0x5e) */
+	0x3f, /* ? <- _(0x5f) */
+	0x60, /* ` */
+	0x61, /* a */
+	0x62, /* b */
+	0x63, /* c */
+	0x64, /* d */
+	0x65, /* e */
+	0x66, /* f */
+	0x67, /* g */
+	0x68, /* h */
+	0x69, /* i */
+	0x6a, /* j */
+	0x6b, /* k */
+	0x6c, /* l */
+	0x6d, /* m */
+	0x6e, /* n */
+	0x6f, /* o */
+	0x70, /* p */
+	0x71, /* q */
+	0x72, /* r */
+	0x73, /* s */
+	0x74, /* t */
+	0x75, /* u */
+	0x76, /* v */
+	0x77, /* w */
+	0x78, /* x */
+	0x79, /* y */
+	0x7a, /* z */
+	0xa8, /* ¨ <- {(0x7b) */
+	0x7d, /* } <- |(0x7c) */
+	0x7b, /* { <- }(0x7d) */
+	0xaa, /* ª <- ~(0x7e) */
+};
+
+static u_char es_alt_tbl[] = {
+	0x7e, /* ~ <- '(0x27) */
+	0x28, /* ( */
+	0x29, /* ) */
+	0x2a, /* * */
+	0x2b, /* + */
+	0x2c, /* , */
+	0x2d, /* - */
+	0x2e, /* . */
+	0x2f, /* / */
+	0x30, /* 0 */
+	0x7c, /* | <- 1(0x31) */
+	0x40, /* @ <- 2(0x32) */
+	0x23, /* # <- 3(0x33) */
+	0x34, /* 4 */
+	0x5e, /* ^ <- 5(0x35) */
+	0xac, /* ¬ <- 6(0x36) */
+	0x5c, /* \ <- 7(0x37) */
+	0x38, /* 8 */
+	0x39, /* 9 */
+	0x3a, /* : */
+	0x3b, /* ; */
+	0x3c, /* < */
+	0x3d, /* = */
+	0x3e, /* > */
+	0x3f, /* ? */
+	0x40, /* @ */
+	0x41, /* A */
+	0x42, /* B */
+	0x43, /* C */
+	0x44, /* D */
+	0x45, /* E */
+	0x46, /* F */
+	0x47, /* G */
+	0x48, /* H */
+	0x49, /* I */
+	0x4a, /* J */
+	0x4b, /* K */
+	0x4c, /* L */
+	0x4d, /* M */
+	0x4e, /* N */
+	0x4f, /* O */
+	0x50, /* P */
+	0x51, /* Q */
+	0x52, /* R */
+	0x53, /* S */
+	0x54, /* T */
+	0x55, /* U */
+	0x56, /* V */
+	0x57, /* W */
+	0x58, /* X */
+	0x59, /* Y */
+	0x5a, /* Z */
+	0xb0, /* ° <- [(0x5b) */
+	0x5c, /* \ */
+	0x5d, /* ] */
+	0x5e, /* ^ */
+	0x5f, /* _ */
+	0x5c, /* \ <- `(0x60) */
+	0x61, /* a */
+	0x62, /* b */
+	0x63, /* c */
+	0x64, /* d */
+	0xa4, /* ¤ <- e(0x65) */
+};
+
+static u_char pt_normal_tbl[] = {
+	0x7e, /* ~ <- '(0x27) */
+	0x28, /* ( */
+	0x29, /* ) */
+	0x2a, /* * */
+	0x2b, /* + */
+	0x2c, /* , */
+	0x2d, /* - */
+	0x2e, /* . */
+	0x3b, /* ; <- /(0x2f) */
+	0x30, /* 0 */
+	0x31, /* 1 */
+	0x32, /* 2 */
+	0x33, /* 3 */
+	0x34, /* 4 */
+	0x35, /* 5 */
+	0x36, /* 6 */
+	0x37, /* 7 */
+	0x38, /* 8 */
+	0x39, /* 9 */
+	0x3a, /* : */
+	0x3b, /* ; */
+	0x3c, /* < */
+	0x3d, /* = */
+	0x3e, /* > */
+	0x3f, /* ? */
+	0x40, /* @ */
+	0x41, /* A */
+	0x42, /* B */
+	0x43, /* C */
+	0x44, /* D */
+	0x45, /* E */
+	0x46, /* F */
+	0x47, /* G */
+	0x48, /* H */
+	0x49, /* I */
+	0x4a, /* J */
+	0x4b, /* K */
+	0x4c, /* L */
+	0x4d, /* M */
+	0x4e, /* N */
+	0x4f, /* O */
+	0x50, /* P */
+	0x51, /* Q */
+	0x52, /* R */
+	0x53, /* S */
+	0x54, /* T */
+	0x55, /* U */
+	0x56, /* V */
+	0x57, /* W */
+	0x58, /* X */
+	0x59, /* Y */
+	0x5a, /* Z */
+	0x27, /* ' <- [(0x5b) */
+	0x5d, /* ] <- \(0x5c) */
+	0x5b, /* [ <- ](0x5d) */
+	0x5e, /* ^ */
+	0x5f, /* _ */
+	0x27, /* ' <- `(0x60) */
+};
+
+static u_char pt_shift_tbl[] = {
+	0x5e, /* ^ <- "(0x22) */
+	0x23, /* # */
+	0x24, /* $ */
+	0x25, /* % */
+	0x26, /* & */
+	0x27, /* ' */
+	0x28, /* ( */
+	0x29, /* ) */
+	0x2a, /* * */
+	0x2b, /* + */
+	0x2c, /* , */
+	0x2d, /* - */
+	0x2e, /* . */
+	0x2f, /* / */
+	0x30, /* 0 */
+	0x31, /* 1 */
+	0x32, /* 2 */
+	0x33, /* 3 */
+	0x34, /* 4 */
+	0x35, /* 5 */
+	0x36, /* 6 */
+	0x37, /* 7 */
+	0x38, /* 8 */
+	0x39, /* 9 */
+	0xc7, /* Ç <- :(0x3a) */
+	0x3b, /* ; */
+	0x3c, /* < */
+	0x3d, /* = */
+	0x3e, /* > */
+	0x3a, /* : <- ?(0x3f) */
+	0x40, /* @ */
+	0x41, /* A */
+	0x42, /* B */
+	0x43, /* C */
+	0x44, /* D */
+	0x45, /* E */
+	0x46, /* F */
+	0x47, /* G */
+	0x48, /* H */
+	0x49, /* I */
+	0x4a, /* J */
+	0x4b, /* K */
+	0x4c, /* L */
+	0x4d, /* M */
+	0x4e, /* N */
+	0x4f, /* O */
+	0x50, /* P */
+	0x51, /* Q */
+	0x52, /* R */
+	0x53, /* S */
+	0x54, /* T */
+	0x55, /* U */
+	0x56, /* V */
+	0x57, /* W */
+	0x58, /* X */
+	0x59, /* Y */
+	0x5a, /* Z */
+	0x5b, /* [ */
+	0x5c, /* \ */
+	0x5d, /* ] */
+	0x5e, /* ^ */
+	0x5f, /* _ */
+	0x60, /* ` */
+	0x61, /* a */
+	0x62, /* b */
+	0x63, /* c */
+	0x64, /* d */
+	0x65, /* e */
+	0x66, /* f */
+	0x67, /* g */
+	0x68, /* h */
+	0x69, /* i */
+	0x6a, /* j */
+	0x6b, /* k */
+	0x6c, /* l */
+	0x6d, /* m */
+	0x6e, /* n */
+	0x6f, /* o */
+	0x70, /* p */
+	0x71, /* q */
+	0x72, /* r */
+	0x73, /* s */
+	0x74, /* t */
+	0x75, /* u */
+	0x76, /* v */
+	0x77, /* w */
+	0x78, /* x */
+	0x79, /* y */
+	0x7a, /* z */
+	0x60, /* ` <- {(0x7b) */
+	0x7d, /* } <- |(0x7c) */
+	0x7b, /* { <- }(0x7d) */
+	0x22, /* " <- ~(0x7e) */
+};
+
+static u_char pt_alt_tbl[] = {
+	0x5c, /* \ <- .(0x2e) */
+	0x2f, /* / */
+	0x30, /* 0 */
+	0xb9, /* ¹ <- 1(0x31) */
+	0xb2, /* ² <- 2(0x32) */
+	0xb3, /* ³ <- 3(0x33) */
+	0x34, /* 4 */
+	0xa2, /* ¢ <- 5(0x35) */
+	0xac, /* ¬ <- 6(0x36) */
+	0x37, /* 7 */
+	0x38, /* 8 */
+	0x39, /* 9 */
+	0x3a, /* : */
+	0x3b, /* ; */
+	0x3c, /* < */
+	0xa7, /* § <- =(0x3d) */
+	0x3e, /* > */
+	0x3f, /* ? */
+	0x40, /* @ */
+	0x41, /* A */
+	0x42, /* B */
+	0x43, /* C */
+	0x44, /* D */
+	0x45, /* E */
+	0x46, /* F */
+	0x47, /* G */
+	0x48, /* H */
+	0x49, /* I */
+	0x4a, /* J */
+	0x4b, /* K */
+	0x4c, /* L */
+	0x4d, /* M */
+	0x4e, /* N */
+	0x4f, /* O */
+	0x50, /* P */
+	0x51, /* Q */
+	0x52, /* R */
+	0x53, /* S */
+	0x54, /* T */
+	0x55, /* U */
+	0x56, /* V */
+	0x57, /* W */
+	0x58, /* X */
+	0x59, /* Y */
+	0x5a, /* Z */
+	0x5b, /* [ */
+	0xba, /* º <- \(0x5c) */
+	0xaa, /* ª <- ](0x5d) */
+	0x5e, /* ^ */
+	0x5f, /* _ */
+	0x60, /* ` */
+	0x61, /* a */
+	0x62, /* b */
+	0x63, /* c */
+	0x64, /* d */
+	0xa4, /* ¤ <- e(0x65) */
+	0x66, /* f */
+	0x67, /* g */
+	0x68, /* h */
+	0x69, /* i */
+	0x6a, /* j */
+	0x6b, /* k */
+	0x6c, /* l */
+	0x6d, /* m */
+	0x6e, /* n */
+	0x6f, /* o */
+	0x70, /* p */
+	0x71, /* q */
+	0x72, /* r */
+	0x73, /* s */
+	0x74, /* t */
+	0x75, /* u */
+	0x76, /* v */
+	0x77, /* w */
+	0x78, /* x */
+	0x79, /* y */
+	0x7c, /* | <- z(0x7a) */
+};
+
+static u_char jp106_normal_tbl[] = {
+	0x3a, /* : <- '(0x27) */
+	0x28, /* ( */
+	0x29, /* ) */
+	0x2a, /* * */
+	0x2b, /* + */
+	0x2c, /* , */
+	0x2d, /* - */
+	0x2e, /* . */
+	0x2f, /* / */
+	0x30, /* 0 */
+	0x31, /* 1 */
+	0x32, /* 2 */
+	0x33, /* 3 */
+	0x34, /* 4 */
+	0x35, /* 5 */
+	0x36, /* 6 */
+	0x37, /* 7 */
+	0x38, /* 8 */
+	0x39, /* 9 */
+	0x3a, /* : */
+	0x3b, /* ; */
+	0x3c, /* < */
+	0x5e, /* ^ <- =(0x3d) */
+	0x3e, /* > */
+	0x3f, /* ? */
+	0x40, /* @ */
+	0x41, /* A */
+	0x42, /* B */
+	0x43, /* C */
+	0x44, /* D */
+	0x45, /* E */
+	0x46, /* F */
+	0x47, /* G */
+	0x48, /* H */
+	0x49, /* I */
+	0x4a, /* J */
+	0x4b, /* K */
+	0x4c, /* L */
+	0x4d, /* M */
+	0x4e, /* N */
+	0x4f, /* O */
+	0x50, /* P */
+	0x51, /* Q */
+	0x52, /* R */
+	0x53, /* S */
+	0x54, /* T */
+	0x55, /* U */
+	0x56, /* V */
+	0x57, /* W */
+	0x58, /* X */
+	0x59, /* Y */
+	0x5a, /* Z */
+	0x40, /* @ <- [(0x5b) */
+	0x5d, /* ] <- \(0x5c) */
+	0x5b, /* [ <- ](0x5d) */
+	0x5e, /* ^ */
+	0x5f, /* _ */
+	0x1b, /*  <- `(0x60) */
+};
+
+static u_char jp106_shift_tbl[] = {
+	0x2a, /* * <- "(0x22) */
+	0x23, /* # */
+	0x24, /* $ */
+	0x25, /* % */
+	0x27, /* ' <- &(0x26) */
+	0x27, /* ' */
+	0x29, /* ) <- ((0x28) */
+	0x7e, /* ~ <- )(0x29) */
+	0x28, /* ( <- *(0x2a) */
+	0x7e, /* ~ <- +(0x2b) */
+	0x2c, /* , */
+	0x2d, /* - */
+	0x2e, /* . */
+	0x2f, /* / */
+	0x30, /* 0 */
+	0x31, /* 1 */
+	0x32, /* 2 */
+	0x33, /* 3 */
+	0x34, /* 4 */
+	0x35, /* 5 */
+	0x36, /* 6 */
+	0x37, /* 7 */
+	0x38, /* 8 */
+	0x39, /* 9 */
+	0x2b, /* + <- :(0x3a) */
+	0x3b, /* ; */
+	0x3c, /* < */
+	0x3d, /* = */
+	0x3e, /* > */
+	0x3f, /* ? */
+	0x22, /* " <- @(0x40) */
+	0x41, /* A */
+	0x42, /* B */
+	0x43, /* C */
+	0x44, /* D */
+	0x45, /* E */
+	0x46, /* F */
+	0x47, /* G */
+	0x48, /* H */
+	0x49, /* I */
+	0x4a, /* J */
+	0x4b, /* K */
+	0x4c, /* L */
+	0x4d, /* M */
+	0x4e, /* N */
+	0x4f, /* O */
+	0x50, /* P */
+	0x51, /* Q */
+	0x52, /* R */
+	0x53, /* S */
+	0x54, /* T */
+	0x55, /* U */
+	0x56, /* V */
+	0x57, /* W */
+	0x58, /* X */
+	0x59, /* Y */
+	0x5a, /* Z */
+	0x5b, /* [ */
+	0x5c, /* \ */
+	0x5d, /* ] */
+	0x26, /* & <- ^(0x5e) */
+	0x3d, /* = <- _(0x5f) */
+	0x60, /* ` */
+	0x61, /* a */
+	0x62, /* b */
+	0x63, /* c */
+	0x64, /* d */
+	0x65, /* e */
+	0x66, /* f */
+	0x67, /* g */
+	0x68, /* h */
+	0x69, /* i */
+	0x6a, /* j */
+	0x6b, /* k */
+	0x6c, /* l */
+	0x6d, /* m */
+	0x6e, /* n */
+	0x6f, /* o */
+	0x70, /* p */
+	0x71, /* q */
+	0x72, /* r */
+	0x73, /* s */
+	0x74, /* t */
+	0x75, /* u */
+	0x76, /* v */
+	0x77, /* w */
+	0x78, /* x */
+	0x79, /* y */
+	0x7a, /* z */
+	0x60, /* ` <- {(0x7b) */
+	0x7d, /* } <- |(0x7c) */
+	0x7b, /* { <- }(0x7d) */
+};
+
 
 /* --- static functions --- */
-
-static kbd_type_t find_kbd_type(char *locale) {
-  if (locale) {
-    if (strncmp(locale, "ar", 2) == 0) {
-      return KBD_TYPE_ARABIC;
-    }
-
-    if (strncmp(locale, "he", 2) == 0) {
-      return KBD_TYPE_HEBREW;
-    }
-  }
-
-  return KBD_TYPE_UNKNOWN;
-}
 
 /*
  * methods of ui_im_t
@@ -395,6 +1489,218 @@ static int key_event_iscii(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent 
   return 0;
 }
 
+static int key_event_others(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event) {
+  im_kbd_t *kbd = (im_kbd_t*)im;
+  u_char c[2];
+
+  if (kbd->mode != KBD_MODE_ON) {
+    return 1;
+  }
+
+  if (kbd->type == KBD_TYPE_DE) {
+    if (event->state & ControlMask) {
+      return 1;
+    }
+
+    if (event->state & ShiftMask) {
+      if (key_char < 0x22 || key_char > 0x7d) {
+        return 1;
+      }
+
+      c[0] = 0x0;
+      c[1] = de_shift_tbl[key_char - 0x22];
+    } else if (event->state & ModMask) {
+      if (key_char < 0x30 || key_char > 0x71) {
+        return 1;
+      }
+
+      if (key_char == 'e') {
+        c[0] = 0x20;
+        c[1] = 0xac;
+      } else {
+        c[0] = 0x0;
+        c[1] = de_alt_tbl[key_char - 0x30];
+      }
+    } else {
+      if (key_char < 0x27 || key_char > 0x7a) {
+        return 1;
+      }
+
+      c[0] = 0x0;
+      c[1] = de_normal_tbl[key_char - 0x27];
+    }
+
+    (*kbd->im.listener->write_to_term)(kbd->im.listener->self, c, 2, kbd->parser);
+
+    return 0;
+  } else if (kbd->type == KBD_TYPE_FR) {
+    if (event->state & ControlMask) {
+      return 1;
+    }
+
+    if (event->state & ShiftMask) {
+      if (key_char < 0x21 || key_char > 0x7d) {
+        return 1;
+      }
+
+      c[0] = 0x0;
+      c[1] = fr_shift_tbl[key_char - 0x21];
+    } else if (event->state & ModMask) {
+      if (key_char < 0x2d || key_char > 0x5d) {
+        return 1;
+      }
+
+      c[0] = 0x0;
+      c[1] = fr_alt_tbl[key_char - 0x2d];
+    } else {
+      if (key_char < 0x27 || key_char > 0x7a) {
+        return 1;
+      }
+
+      c[0] = 0x0;
+      c[1] = fr_normal_tbl[key_char - 0x27];
+    }
+
+    (*kbd->im.listener->write_to_term)(kbd->im.listener->self, c, 2, kbd->parser);
+
+    return 0;
+  } else if (kbd->type == KBD_TYPE_ES) {
+    if (event->state & ControlMask) {
+      return 1;
+    }
+
+    if (event->state & ShiftMask) {
+      if (key_char < 0x22 || key_char > 0x7e) {
+        return 1;
+      }
+
+      c[0] = 0x0;
+      c[1] = es_shift_tbl[key_char - 0x22];
+    } else if (event->state & ModMask) {
+      if (key_char < 0x27 || key_char > 0x65) {
+        return 1;
+      }
+
+      c[0] = 0x0;
+      c[1] = es_alt_tbl[key_char - 0x27];
+    } else {
+      if (key_char < 0x27 || key_char > 0x60) {
+        return 1;
+      }
+
+      c[0] = 0x0;
+      c[1] = es_normal_tbl[key_char - 0x60];
+    }
+
+    (*kbd->im.listener->write_to_term)(kbd->im.listener->self, c, 2, kbd->parser);
+
+    return 0;
+  } else if (kbd->type == KBD_TYPE_PT) {
+    if (event->state & ControlMask) {
+      return 1;
+    }
+
+    if (event->state & ShiftMask) {
+      if (key_char < 0x22 || key_char > 0x7e) {
+        return 1;
+      }
+
+      c[0] = 0x0;
+      c[1] = pt_shift_tbl[key_char - 0x22];
+    } else if (event->state & ModMask) {
+      if (key_char < 0x2e || key_char > 0x7a) {
+        return 1;
+      }
+
+      c[0] = 0x0;
+      c[1] = pt_alt_tbl[key_char - 0x2e];
+    } else {
+      if (key_char < 0x27 || key_char > 0x60) {
+        return 1;
+      }
+
+      c[0] = 0x0;
+      c[1] = pt_normal_tbl[key_char - 0x27];
+    }
+
+    (*kbd->im.listener->write_to_term)(kbd->im.listener->self, c, 2, kbd->parser);
+
+    return 0;
+  } else if (kbd->type == KBD_TYPE_JP106) {
+    if (event->state & (ControlMask|ModMask)) {
+      return 1;
+    }
+
+    if (event->state & ShiftMask) {
+      if (key_char < 0x22 || key_char > 0x7d) {
+        return 1;
+      }
+
+      c[0] = 0x0;
+      c[1] = jp106_shift_tbl[key_char - 0x22];
+    } else {
+      if (key_char < 0x27 || key_char > 0x60) {
+        return 1;
+      }
+
+      c[0] = 0x0;
+      c[1] = jp106_normal_tbl[key_char - 0x27];
+    }
+
+    (*kbd->im.listener->write_to_term)(kbd->im.listener->self, c, 2, kbd->parser);
+
+    return 0;
+  } else {
+    return 1;
+  }
+}
+
+/* The order must be that of kbd_type_t. */
+static struct {
+  char *readable_name;
+  char *name;
+  char *locale;
+  int (*key_event)(ui_im_t*, u_char, KeySym, XKeyEvent*);
+} kbd_type_tbl[] = {
+  { "unknown", "", "xx", NULL, },
+  { "Arabic", "arabic", "ar", key_event_arabic_hebrew, },
+  { "Hebrew", "hebrew", "he", key_event_arabic_hebrew, },
+  { "de", "de", "de", key_event_others, },
+  { "fr", "fr", "fr", key_event_others, },
+  { "jp", "jp106", "ja", key_event_others, },
+  { "ISCII", "iscii", "xx", key_event_iscii, },
+};
+
+static kbd_type_t get_kbd_type(const char *name) {
+  kbd_type_t type;
+
+  for (type = 0; type < KBD_TYPE_ISCII; type++) {
+    if (strcasecmp(name, kbd_type_tbl[type].name) == 0) {
+      return type;
+    }
+  }
+
+  if (strncmp(name, "iscii", 5) == 0) {
+    return KBD_TYPE_ISCII;
+  }
+
+  return KBD_TYPE_UNKNOWN;
+}
+
+static kbd_type_t guess_kbd_type(const char *locale) {
+  if (locale) {
+    kbd_type_t type;
+
+    for (type = KBD_TYPE_UNKNOWN + 1; type < KBD_TYPE_ISCII; type++) {
+      if (strncmp(locale, kbd_type_tbl[type].locale, 2) == 0) {
+        return type;
+      }
+    }
+  }
+
+  return KBD_TYPE_UNKNOWN;
+}
+
 static int switch_mode(ui_im_t *im) {
   im_kbd_t *kbd;
 
@@ -404,14 +1710,7 @@ static int switch_mode(ui_im_t *im) {
     return 0;
   }
 
-  if (kbd->type == KBD_TYPE_ARABIC || kbd->type == KBD_TYPE_HEBREW) {
-    if (kbd->mode == KBD_MODE_ASCII) {
-      kbd->mode = KBD_MODE_ON;
-    } else {
-      kbd->mode = KBD_MODE_ASCII;
-    }
-  } else /* kbd->type == KBD_TYPE_ISCII */
-  {
+  if (kbd->type == KBD_TYPE_ISCII) {
     if (kbd->isciikey_state) {
       (*syms->vt_isciikey_state_destroy)(kbd->isciikey_state);
       kbd->isciikey_state = NULL;
@@ -448,6 +1747,12 @@ static int switch_mode(ui_im_t *im) {
 #endif
       kbd->mode = KBD_MODE_ASCII;
     }
+  } else {
+    if (kbd->mode == KBD_MODE_ASCII) {
+      kbd->mode = KBD_MODE_ON;
+    } else {
+      kbd->mode = KBD_MODE_ASCII;
+    }
   }
 
   if (kbd->mode == KBD_MODE_ASCII) {
@@ -476,8 +1781,9 @@ static int switch_mode(ui_im_t *im) {
 
     switch (kbd->mode) {
       case KBD_MODE_ON:
+        /* Arabic, Hebrew, De, Fr */
         (*kbd->im.stat_screen->set)(kbd->im.stat_screen, parser_ascii,
-                                    kbd->type == KBD_TYPE_ARABIC ? "Arabic" : "Hebrew");
+                                    kbd_type_tbl[kbd->type].readable_name);
         break;
       case KBD_MODE_ISCII_INSCRIPT:
         (*kbd->im.stat_screen->set)(kbd->im.stat_screen, parser_ascii, "ISCII:inscript");
@@ -529,14 +1835,8 @@ ui_im_t *im_kbd_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     return NULL;
   }
 
-  if (opt && strcmp(opt, "arabic") == 0) {
-    type = KBD_TYPE_ARABIC;
-  } else if (opt && strcmp(opt, "hebrew") == 0) {
-    type = KBD_TYPE_HEBREW;
-  } else if (opt && strncmp(opt, "iscii", 5) == 0) {
-    type = KBD_TYPE_ISCII;
-  } else {
-    type = find_kbd_type(bl_get_locale());
+  if (opt == NULL || (type = get_kbd_type(opt)) == KBD_TYPE_UNKNOWN) {
+    type = guess_kbd_type(bl_get_locale());
 
     if (type == KBD_TYPE_UNKNOWN) {
       if (IS_ISCII_ENCODING(term_encoding)) {
@@ -572,12 +1872,7 @@ ui_im_t *im_kbd_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   kbd->isciikey_state = NULL;
   kbd->parser = NULL;
 
-  if (kbd->type == KBD_TYPE_ARABIC || kbd->type == KBD_TYPE_HEBREW) {
-    if (!(kbd->parser = ef_utf16_parser_new())) {
-      goto error;
-    }
-  } else /* if( kbd->type == KBD_TYPE_ISCII */
-  {
+  if (kbd->type == KBD_TYPE_ISCII) {
     vt_char_encoding_t iscii_encoding;
 
     if (IS_ISCII_ENCODING(term_encoding)) {
@@ -590,13 +1885,23 @@ ui_im_t *im_kbd_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     if (!(kbd->parser = (*syms->vt_char_encoding_parser_new)(iscii_encoding))) {
       goto error;
     }
+  } else {
+    if (!(kbd->parser = ef_utf16_parser_new())) {
+      goto error;
+    }
   }
 
   /*
    * set methods of ui_im_t
    */
   kbd->im.destroy = destroy;
-  kbd->im.key_event = (kbd->type == KBD_TYPE_ISCII) ? key_event_iscii : key_event_arabic_hebrew;
+  if (kbd->type == KBD_TYPE_ISCII) {
+    kbd->im.key_event = key_event_iscii;
+  } else if (kbd->type == KBD_TYPE_ARABIC || kbd->type == KBD_TYPE_HEBREW) {
+    kbd->im.key_event = key_event_arabic_hebrew;
+  } else {
+    kbd->im.key_event = key_event_others;
+  }
   kbd->im.switch_mode = switch_mode;
   kbd->im.is_active = is_active;
   kbd->im.focused = focused;
@@ -633,68 +1938,69 @@ error:
 
 im_info_t *im_kbd_get_info(char *locale, char *encoding) {
   im_info_t *result;
+  kbd_type_t type;
+  char **args;
+  char **readable_args;
 
   if (!(result = malloc(sizeof(im_info_t)))) {
     return NULL;
   }
 
-  result->num_args = 13;
+  result->num_args = KBD_TYPE_MAX - 1 /* ISCII */ + 10 /* ISCIIXXX */;
 
-  if (!(result->args = malloc(sizeof(char*) * result->num_args))) {
+  if (!(args = malloc(sizeof(char*) * result->num_args))) {
     free(result);
     return NULL;
   }
 
-  if (!(result->readable_args = malloc(sizeof(char*) * result->num_args))) {
-    free(result->args);
+  if (!(readable_args = malloc(sizeof(char*) * result->num_args))) {
+    free(args);
     free(result);
     return NULL;
   }
 
-  switch (find_kbd_type(locale)) {
-    case KBD_TYPE_ARABIC:
-      result->readable_args[0] = strdup("Arabic");
-      break;
-    case KBD_TYPE_HEBREW:
-      result->readable_args[0] = strdup("Hebrew");
-      break;
-    /* case KBD_TYPE_UNKNOWN: */
-    default:
-      if (strncmp(encoding, "ISCII", 5) == 0) {
-        result->readable_args[0] = malloc(6 /* "Indic " */ + 2 /* () */ + strlen(encoding + 5) + 1);
-        sprintf(result->readable_args[0], "Indic (%s)", encoding + 5);
-      } else {
-        result->readable_args[0] = strdup("unknown");
-      }
-      break;
+  result->args = args;
+  result->readable_args = readable_args;
+
+  if ((type = guess_kbd_type(locale)) == KBD_TYPE_UNKNOWN) {
+    if (strncmp(encoding, "ISCII", 5) == 0) {
+      *readable_args = malloc(6 /* "Indic " */ + 2 /* () */ + strlen(encoding + 5) + 1);
+      sprintf(*(readable_args++), "Indic (%s)", encoding + 5);
+    } else {
+      *(readable_args++) = strdup("unknown");
+    }
+  } else {
+    *(readable_args++) = strdup(kbd_type_tbl[type].readable_name);
   }
 
-  result->readable_args[1] = strdup("Arabic");
-  result->readable_args[2] = strdup("Hebrew");
-  result->readable_args[3] = strdup("Indic (ASSAMESE)");
-  result->readable_args[4] = strdup("Indic (BENGALI)");
-  result->readable_args[5] = strdup("Indic (GUJARATI)");
-  result->readable_args[6] = strdup("Indic (HINDI)");
-  result->readable_args[7] = strdup("Indic (KANNADA)");
-  result->readable_args[8] = strdup("Indic (MALAYALAM)");
-  result->readable_args[9] = strdup("Indic (ORIYA)");
-  result->readable_args[10] = strdup("Indic (PUNJABI)");
-  result->readable_args[11] = strdup("Indic (TAMIL)");
-  result->readable_args[12] = strdup("Indic (TELUGU)");
+  *(args++) = strdup("");
 
-  result->args[0] = strdup("");
-  result->args[1] = strdup("arabic");
-  result->args[2] = strdup("hebrew");
-  result->args[3] = strdup("isciiassamese");
-  result->args[4] = strdup("isciibengali");
-  result->args[5] = strdup("isciigujarati");
-  result->args[6] = strdup("isciihindi");
-  result->args[7] = strdup("isciikannada");
-  result->args[8] = strdup("isciimalayalam");
-  result->args[9] = strdup("isciioriya");
-  result->args[10] = strdup("isciipunjabi");
-  result->args[11] = strdup("isciitamil");
-  result->args[12] = strdup("isciitelugu");
+  for (type = KBD_TYPE_UNKNOWN + 1; type < KBD_TYPE_ISCII; type++) {
+    *(readable_args++) = strdup(kbd_type_tbl[type].readable_name);
+    *(args++) = strdup(kbd_type_tbl[type].name);
+  }
+
+  *(readable_args++) = strdup("Indic (ASSAMESE)");
+  *(readable_args++) = strdup("Indic (BENGALI)");
+  *(readable_args++) = strdup("Indic (GUJARATI)");
+  *(readable_args++) = strdup("Indic (HINDI)");
+  *(readable_args++) = strdup("Indic (KANNADA)");
+  *(readable_args++) = strdup("Indic (MALAYALAM)");
+  *(readable_args++) = strdup("Indic (ORIYA)");
+  *(readable_args++) = strdup("Indic (PUNJABI)");
+  *(readable_args++) = strdup("Indic (TAMIL)");
+  *(readable_args++) = strdup("Indic (TELUGU)");
+
+  *(args++) = strdup("isciiassamese");
+  *(args++) = strdup("isciibengali");
+  *(args++) = strdup("isciigujarati");
+  *(args++) = strdup("isciihindi");
+  *(args++) = strdup("isciikannada");
+  *(args++) = strdup("isciimalayalam");
+  *(args++) = strdup("isciioriya");
+  *(args++) = strdup("isciipunjabi");
+  *(args++) = strdup("isciitamil");
+  *(args++) = strdup("isciitelugu");
 
   result->id = strdup("kbd");
   result->name = strdup("keyboard");
