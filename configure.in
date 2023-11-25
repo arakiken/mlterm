@@ -219,7 +219,7 @@ mingw*)
 	;;
 
 msys*)
-  # msys2
+	# msys2
 	AC_CHECK_PROG(CYGPATHW,cygpath,cygpath -w,echo)
 	WIN32TAG=_win32
 

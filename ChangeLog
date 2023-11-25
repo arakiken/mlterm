@@ -1,3 +1,9 @@
+2023-11-25  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.win32, doc/ja/README.win32: Updated.
+
+	* im_kbd.c: Add "es" and "pt" to kbd_type_tbl.
+
 2023-11-21  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_main_config.c: Add --winsize / output_xtwinops_in_resizing option.

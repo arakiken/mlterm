@@ -9,40 +9,19 @@ Memo about WIN32 native GUI.
 
 * Build
   (PKG_CONFIG=i686-w64-mingw32-pkg-config CC=i686-pc-mingw32-gcc) ./configure \
-      (--enable-ssh2) (--with-gui=win32) (--config-cache) (--prefix=) \
+      --with-gui=win32 --prefix= (--prefix=/mingw64) (--disable-ssh2) \
+      (--with-mosh=[mosh source directory]) \
       (--with-libintl-prefix=[GTK+(win32) installed directory]) \
       (--with-libiconv-prefix=[GTK+(win32) installed directory])
   make
   (DESTDIR=/foo/bar) make install
-
-  If 'make install' fails, copy these files to a directory where you want to
-  install mlterm.
-  baselib/src/.libs/*.dll
-  encodefilter/src/.libs/*.dll
-  encodefilter/module/.libs/*.dll
-  vtemu/.libs/*.dll
-  vtemu/libctl/.libs/*.dll
-  main/.libs/mlterm.exe
-  scrollbar/sample/.libs/*.dll
-  inputmethod/kbd/.libs/*.dll
-  libind/.libs/*.dll
-  tool/mlimgloader/.libs/mlimgloader.exe
-
-  o (Built with MinGW)
-    If you build mlterm without libssh2 (--enable-ssh2 configure option),
-    copy win32/plink/plink.exe which mlterm uses to connect remote host.
-  o (Built with MSYS or cygwin)
-    Copy tool/mlclient/mlclient.exe and contrib/tool/mlcc/mlcc.exe.
-  o If you can build mlconfig and mlterm-menu which require GTK+ >= 2.0,
-    copy tool/mlconfig/.libs/mlconfig.exe and
-    contrib/tool/mlterm-menu/.libs/mlterm-menu.exe, too.
 
 * Configuration
   (Built with MSYS-DTK or MSYS2 or Cygwin)
   Place configuration files in SYSCONFDIR/mlterm and each user's $HOME/.mlterm/
   directory.
   
-  (Built with MinGW or Cygwin(gcc -mno-cygwin, i686-pc-mingw32-gcc etc))
+  (Built with MinGW)
   Place configuration files in [Mlterm installed directory]\mlterm\ and
   each user's %HOMEPATH%\mlterm\ or %HOME%\.mlterm\ directory.
 
@@ -56,19 +35,21 @@ Memo about WIN32 native GUI.
   aafont, vaafont, taafont files are not used.
 
   (Encoding)
-  If -E/--km/encoding option is "AUTO" or not specified, encoding of mlterm
-  is set as follows.
-  Built with MSYS-DTK or MSYS2 or Cygwin => UTF-8
-  Built with MinGW or Cygwin(gcc -mno-cygwin, i686-pc-mingw32-gcc etc)
-    => Conforming with windows codepage.
-  
+  If -E/--km/encoding option is "AUTO" or not specified, mlterm uses UTF-8
+  encoding by default.
+
+  (ConPTY)
+  mlterm starts cmd.exe via ConPTY if it doesn't use ssh or mosh.
+  If you want to make mlterm use pipe instead of ConPTY to communicate
+  with a child process, add "use_conpty=false" to main configuration file.
+
 * Start
   (Built with MSYS-DTK or MSYS2 or Cygwin)
   set HOME=c:\msys\...\home\...
   set CYGWIN=tty
   mlterm.exe (options...) -e /bin/sh --login -i
 
-  (Built with MinGW or Cygwin(gcc -mno-cygwin, i686-pc-mingw32-gcc etc))
+  (Built with MinGW)
   set HOMEPATH=...
   mlterm.exe (options...) (-e plink.exe [-telnet/-ssh/-rlogin/-raw] [host])
 
