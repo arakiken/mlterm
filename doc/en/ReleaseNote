@@ -16,13 +16,14 @@
 * Update unicode property table (generated from UnicodeData.txt and
   EastAsianWidth.txt) to version 15.1.0.
 * Merge patches:
-  https://github.com/arakiken/mlterm/pull/68.
+  https://github.com/arakiken/mlterm/pull/68
 * Bug fixes:
-  https://github.com/arakiken/mlterm/issues/52.
-  https://github.com/arakiken/mlterm/issues/67.
-  https://github.com/arakiken/mlterm/issues/69.
-  https://github.com/arakiken/mlterm/issues/73.
-  https://github.com/arakiken/mlterm/issues/78.
+  https://github.com/arakiken/mlterm/issues/52
+  https://github.com/arakiken/mlterm/issues/67
+  https://github.com/arakiken/mlterm/issues/69
+  https://github.com/arakiken/mlterm/issues/73
+  https://github.com/arakiken/mlterm/issues/78
+  https://github.com/arakiken/mlterm/issues/79
   Fix an issue where mlconfig was not displayed.
   Fix an issue where Control+Shift+xxx shortcut didn't work in SDL2.
   Fix unexpected reset of inverted colors in selected area in SDL2.

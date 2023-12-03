@@ -232,14 +232,25 @@ int vt_line_bidi_visual(vt_line_t *line) {
   vt_str_init(src, line->ctl_info.bidi->size);
   vt_str_copy(src, line->chars, line->ctl_info.bidi->size);
 
+#ifdef DEBUG
+  int max_vis_pos = 0;
+#endif
   for (count = 0; count < line->ctl_info.bidi->size; count++) {
     int vis_pos = line->ctl_info.bidi->visual_order[count];
 
-    if (prev == vis_pos) {
-      /* See reorder() in vt_bidi.c */
-      u_int num;
+#ifdef DEBUG
+    if (vis_pos > max_vis_pos) {
+      max_vis_pos = vis_pos;
+    }
+#endif
 
-      if (vt_get_combining_chars(src + count, &num) == NULL &&
+    if (prev == vis_pos) {
+      /* Arabic combining (see adjust_comb_pos_in_order() in vt_bidi.c) */
+      u_int num;
+      u_int code = vt_char_code(src + count);
+
+      if (0x600 <= code && code <= 0x6ff &&
+          vt_get_combining_chars(src + count, &num) == NULL &&
           vt_char_combine_simple(line->chars + vis_pos, src + count)) {
         line->num_filled_chars--;
 #ifdef __DEBUG
@@ -250,7 +261,15 @@ int vt_line_bidi_visual(vt_line_t *line) {
       } else {
         /* XXX Not correctly shown */
 #ifdef DEBUG
-        bl_debug_printf(BL_DEBUG_TAG " Unexpected combination\n");
+        vt_char_t *ch = vt_get_combining_chars(src + count, &num);
+
+        bl_debug_printf(BL_DEBUG_TAG " Unexpected arabic combining: ");
+        if (num > 0) {
+          bl_msg_printf("(prev)%x + (cur)%x + (comb)%x\n", vt_char_code(src + count - 1),
+                        code, vt_char_code(ch));
+        } else {
+          bl_msg_printf("\n");
+        }
 #endif
       }
     } else {
@@ -261,10 +280,21 @@ int vt_line_bidi_visual(vt_line_t *line) {
     }
   }
 
+#ifdef DEBUG
+  if (max_vis_pos >= line->num_filled_chars) {
+    bl_debug_printf(BL_DEBUG_TAG " *** Arabic comb error ***: "
+                    "ctl_info.size %d max vis_pos %d modified num_filled_chas %d\n",
+                    line->ctl_info.bidi->size, max_vis_pos,
+                    line->num_filled_chars);
+  }
+#endif
+
   vt_str_final(src, line->ctl_info.bidi->size);
 
   return 1;
 }
+
+u_int vt_is_arabic_combining(u_int32_t *str, u_int len);
 
 /* The caller should check vt_line_is_using_bidi() in advance. */
 int vt_line_bidi_logical(vt_line_t *line) {
@@ -298,34 +328,38 @@ int vt_line_bidi_logical(vt_line_t *line) {
     int vis_pos = line->ctl_info.bidi->visual_order[count];
 
     if (vis_pos != prev) {
-      u_int code;
+      u_int32_t str[2];
 
-      if ((comb = vt_get_combining_chars(src + vis_pos, &num)) &&
-          (0x600 <= (code = vt_char_code(src + vis_pos)) && code <= 0x6ff) /* Arabic */ &&
-          !vt_char_is_comb(comb) /* arabic comb */) {
+      if ((comb = vt_get_combining_chars(src + vis_pos, &num))) {
+        str[0] = vt_char_code(src + vis_pos);
+        str[1] = vt_char_code(comb);
+        if (vt_is_arabic_combining(str, 2)) {
 #ifdef __DEBUG
-        bl_debug_printf("Uncombine arabic character %x from %x\n",
-                        vt_char_code(comb), vt_char_code(src + vis_pos));
+          bl_debug_printf("Uncombine arabic character %x from %x\n",
+                          vt_char_code(comb), vt_char_code(src + vis_pos));
 #endif
 
-        vt_char_copy(line->chars + count, vt_get_base_char(src + vis_pos));
+          vt_char_copy(line->chars + count, vt_get_base_char(src + vis_pos));
 
-        if (line->num_filled_chars + num > line->num_chars) {
-          bl_error_printf("Failed to show arabic chars correctly.\n");
-          if ((num = line->num_chars - line->num_filled_chars) == 0) {
-            goto next_count;
+          if (line->num_filled_chars + num > line->num_chars) {
+            bl_error_printf("Failed to show arabic chars correctly.\n");
+            if ((num = line->num_chars - line->num_filled_chars) == 0) {
+              goto next_count;
+            }
           }
-        }
 
-        do {
-          vt_char_copy(line->chars + (++count), comb++);
-          line->num_filled_chars++;
-        } while (--num > 0);
-      } else {
-        copy_char_with_mirror_check(line->chars + count, src + vis_pos,
-                                    line->ctl_info.bidi->visual_order,
-                                    line->ctl_info.bidi->size, count);
+          do {
+            vt_char_copy(line->chars + (++count), comb++);
+            line->num_filled_chars++;
+          } while (--num > 0);
+
+          goto next_count;
+        }
       }
+
+      copy_char_with_mirror_check(line->chars + count, src + vis_pos,
+                                  line->ctl_info.bidi->visual_order,
+                                  line->ctl_info.bidi->size, count);
 
     next_count:
       prev = vis_pos;

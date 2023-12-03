@@ -1,3 +1,10 @@
+2023-12-03  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja: Updated.
+
+	* vt_line_bidi.c, vt_bidi.c: Fix segfault in receiving unexpected
+	  arabic shaping characters.
+
 2023-11-25  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.win32, doc/ja/README.win32: Updated.

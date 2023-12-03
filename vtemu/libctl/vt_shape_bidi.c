@@ -11,6 +11,9 @@
  * 4 arabic codes -> 1 ligature glyph (Dynamically combined)
  * It is not enabled for now, because it doesn't match terminal emulators
  * which assume fixed-pitch columns.
+ *
+ * If ENABLE_COMB4 is enabled, fix adjust_comb_pos_in_order() in vt_bidi.c and
+ * vt_line_bidi_{visual|logical}.c in vt_line_bidi.c.
  */
 #if 0
 #define ENABLE_COMB4

@@ -510,11 +510,12 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
         SKK_STICKY_SHIFT_KEY 環境変数により指定することも可能です。
 
         kbd の場合:
-        kbd:[mode]
-        [mode]には、isciixxx、arabic 又は hebrew を指定します。
-        なお、[mode]を省略した場合、ISCII モードの時は ISCII 配列、それ以外では
-        ローケールが ar_* の場合はアラビア語配列、he_* の場合はヘブライ語配列の
-        キーマッピングになります。
+        kbd:[lang]
+        US キーボードレイアウトから、指定したレイアウトに変換します。
+        [lang]には、次のいずれかを指定することができます。
+        arabic, hebrew, de, fr, es, pt, jp106, isciixxx
+        なお、[lang]を省略した場合、ISCII モードの時は ISCII 配列、それ以外では
+        ローケールにより判定します。
         kbd を指定した時は key ファイルで IM_HOTKEY を指定してください。
 
         iiimf の場合:

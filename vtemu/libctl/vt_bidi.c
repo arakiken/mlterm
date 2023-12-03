@@ -42,7 +42,8 @@ int vt_bidi_destroy(vt_bidi_state_t state) {
 /* vt_shape_bidi.c */
 u_int vt_is_arabic_combining(u_int32_t *str, u_int len);
 
-static void adjust_comb_pos_in_order(FriBidiChar *str, FriBidiStrIndex *order, u_int size) {
+static void adjust_comb_pos_in_order(vt_char_t *vtstr, FriBidiChar *str,
+                                     FriBidiStrIndex *order, u_int size) {
   u_int pos;
 
   /*
@@ -57,6 +58,23 @@ static void adjust_comb_pos_in_order(FriBidiChar *str, FriBidiStrIndex *order, u
     if ((comb_num = vt_is_arabic_combining(str + pos, size - pos)) > 0) {
       u_int pos2;
       u_int count;
+
+#ifdef BL_DEBUG
+      if (vtstr)
+#endif
+      {
+        /*
+         * 0x644 0x622 -> arabic combining
+         * 0x644 0xXXX 0x622 0xXXX -> not arabic combining
+         * (0xXXX: combining character)
+         */
+        for (count = 0; count < comb_num + 1; count++) {
+          u_int num;
+          if (vt_get_combining_chars(vtstr + pos + count, &num)) {
+            goto next_pos;
+          }
+        }
+      }
 
       for (pos2 = 0; pos2 < size; pos2++) {
         if (order[pos2] > order[pos] /* Max in comb */) {
@@ -74,6 +92,9 @@ static void adjust_comb_pos_in_order(FriBidiChar *str, FriBidiStrIndex *order, u
 
       pos += comb_num;
     }
+
+  next_pos:
+    ;
   }
 }
 
@@ -305,7 +326,7 @@ int vt_bidi(vt_bidi_state_t state, vt_char_t *src, u_int size, vt_bidi_mode_t bi
   if (HAS_RTL(state)) {
     log2vis(fri_src, size, &fri_type, bidi_mode, fri_order, cur_pos, 0);
 
-    adjust_comb_pos_in_order(fri_src, fri_order, size);
+    adjust_comb_pos_in_order(src, fri_src, fri_order, size);
 
     count = 0;
 
@@ -444,7 +465,7 @@ static void TEST_vt_bidi_1(void) {
   log2vis(str, sizeof(str)/sizeof(str[0]), &type, BIDI_NORMAL_MODE, order, 0, 0);
   assert(memcmp(order, order_ok1, sizeof(order)) == 0);
 
-  adjust_comb_pos_in_order(str, order, sizeof(str)/sizeof(str[0]));
+  adjust_comb_pos_in_order(NULL, str, order, sizeof(str)/sizeof(str[0]));
   assert(memcmp(order, order_ok2, sizeof(order)) == 0);
 }
 
@@ -459,7 +480,7 @@ static void TEST_vt_bidi_2(void) {
   log2vis(str, sizeof(str)/sizeof(str[0]), &type, BIDI_NORMAL_MODE, order, 3, 0);
   assert(memcmp(order, order_ok1, sizeof(order)) == 0);
 
-  adjust_comb_pos_in_order(str, order, sizeof(str)/sizeof(str[0]));
+  adjust_comb_pos_in_order(NULL, str, order, sizeof(str)/sizeof(str[0]));
   assert(memcmp(order, order_ok2, sizeof(order)) == 0);
 }
 
@@ -474,7 +495,7 @@ static void TEST_vt_bidi_3(void) {
   log2vis(str, sizeof(str)/sizeof(str[0]), &type, BIDI_NORMAL_MODE, order, 5, 0);
   assert(memcmp(order, order_ok1, sizeof(order)) == 0);
 
-  adjust_comb_pos_in_order(str, order, sizeof(str)/sizeof(str[0]));
+  adjust_comb_pos_in_order(NULL, str, order, sizeof(str)/sizeof(str[0]));
   assert(memcmp(order, order_ok2, sizeof(order)) == 0);
 }
 
