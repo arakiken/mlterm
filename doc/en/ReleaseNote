@@ -8,6 +8,7 @@
 * Support "exesel:" operation in ~/.mlterm/key in win32.
 * Support libvte compatible library in win32.
 * Support ConPTY in win32.
+* Support Alternate Scroll Mode.
 * Add --conpty/use_conpty and --winsize/output_xtwinops_in_resizing options in win32.
 * Add tool/accessories/applycfg.sh and applyfontcfg.sh
   (https://github.com/arakiken/mlterm/issues/71)

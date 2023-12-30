@@ -3760,7 +3760,8 @@ static int get_vtmode(vt_parser_t *vt_parser, int mode) {
       mode == 102 /* DECNULM (always dicard NUL character) */ ||
       mode == 114 /* DECATCUM (alternate text color underline mode) */ ||
       mode == 115 /* DECATCBM (alternate text color blink mode) */ ||
-      mode == 19 /* DECPEX (Ignore DECSTBM in MC and DECMC) */) {
+      mode == 19 /* DECPEX (Ignore DECSTBM in MC and DECMC) */ ||
+      mode == 1007 /* Alternate Scroll Mode */) {
     return 3; /* permanently set */
   } else if (mode == 4 /* DECSCLM (smooth scroll) */ || mode == 9 /* X10 mouse report */ ||
              mode == 38 /* Tek */ || mode == 45 /* reverse wraparound */ ||

@@ -3849,24 +3849,38 @@ static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num)
   } else if (event->button == Button4) {
     /* wheel mouse */
 
-    enter_backscroll_mode(screen);
-    if (event->state & ShiftMask) {
-      bs_scroll_downward(screen, 1, 1);
-    } else if (event->state & ControlMask) {
-      bs_page_downward(screen);
+    if (vt_term_is_alternative_edit(screen->term)) {
+      /* Alternate Scroll Mode */
+      vt_term_write_special_key(screen->term, SPKEY_UP, 0, 0);
+      vt_term_write_special_key(screen->term, SPKEY_UP, 0, 0);
+      vt_term_write_special_key(screen->term, SPKEY_UP, 0, 0);
     } else {
-      bs_half_page_downward(screen);
+      enter_backscroll_mode(screen);
+      if (event->state & ShiftMask) {
+        bs_scroll_downward(screen, 1, 1);
+      } else if (event->state & ControlMask) {
+        bs_page_downward(screen);
+      } else {
+        bs_half_page_downward(screen);
+      }
     }
   } else if (event->button == Button5) {
     /* wheel mouse */
 
-    enter_backscroll_mode(screen);
-    if (event->state & ShiftMask) {
-      bs_scroll_upward(screen, 1, 1);
-    } else if (event->state & ControlMask) {
-      bs_page_upward(screen);
+    if (vt_term_is_alternative_edit(screen->term)) {
+      /* Alternate Scroll Mode */
+      vt_term_write_special_key(screen->term, SPKEY_DOWN, 0, 0);
+      vt_term_write_special_key(screen->term, SPKEY_DOWN, 0, 0);
+      vt_term_write_special_key(screen->term, SPKEY_DOWN, 0, 0);
     } else {
-      bs_half_page_upward(screen);
+      enter_backscroll_mode(screen);
+      if (event->state & ShiftMask) {
+        bs_scroll_upward(screen, 1, 1);
+      } else if (event->state & ControlMask) {
+        bs_page_upward(screen);
+      } else {
+        bs_half_page_upward(screen);
+      }
     }
   } else if (event->button < Button3) {
     restore_selected_region_color_instantly(screen);

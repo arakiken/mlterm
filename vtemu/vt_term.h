@@ -269,6 +269,8 @@ int vt_term_enter_backscroll_mode(vt_term_t *term);
 
 #define vt_term_get_bce_ch(term) vt_screen_get_bce_ch((term)->screen)
 
+#define vt_term_is_alternative_edit(term) vt_screen_is_alternative_edit((term)->screen)
+
 #define vt_term_write_content(term, fd, conv, clear_at_end, area) \
   vt_screen_write_content(term->screen, fd, conv, clear_at_end, area)
 

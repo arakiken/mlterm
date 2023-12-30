@@ -78,6 +78,9 @@ How to build & install libvte compatible library using mlterm engine.
 
     $ export GDK_CORE_DEVICE_EVENTS=1
 
+  o libvte compatible library works in Windows.
+    If you use it to build applications depending on libvte,
+
   o Unsupported vte api functions
     - vte_terminal_copy_primary
     - vte_terminal_set_font_scale
