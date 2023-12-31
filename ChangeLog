@@ -1,3 +1,10 @@
+2023-12-31  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_pty_ssh.c: Set LIBSSH2_CALLBACK_AUTHAGENT callback function to enable
+	  agent forwarding.
+
+	* vt_pty_win32.c: Fix compiling error.
+
 2023-12-30  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.c: Scroll alternate screen buffer by wheel mouse.

@@ -1385,6 +1385,11 @@ static int setup_x11(LIBSSH2_CHANNEL *channel) {
   return ret == 0;
 }
 
+#ifdef LIBSSH2_CALLBACK_AUTHAGENT
+static void authagent_callback(LIBSSH2_SESSION *session, LIBSSH2_CHANNEL *channel,
+                               void **abstract) {}
+#endif
+
 static int open_channel(vt_pty_ssh_t *pty,    /* pty->session is non-blocking */
                         const char *cmd_path, /* can be NULL */
                         char **cmd_argv,      /* can be NULL(only if cmd_path is NULL) */
@@ -1426,6 +1431,17 @@ static int open_channel(vt_pty_ssh_t *pty,    /* pty->session is non-blocking */
   pty->session->suspended = 0;
 
   if (auth_agent_is_available) {
+#ifdef LIBSSH2_CALLBACK_AUTHAGENT
+    {
+      /*
+       * See packet_authagent_open() in libssh2-1.11.0/src/packet.c
+       * (if (session->authagent) { ... LIBSSH2_AUTHAGENT(channel); })
+       */
+      libssh2_session_callback_set(pty->session->obj, LIBSSH2_CALLBACK_AUTHAGENT,
+                                   authagent_callback);
+    }
+#endif
+
 #if defined(__CYGWIN__)
     static int (*func)(LIBSSH2_CHANNEL *);
     static int is_tried;
@@ -1442,7 +1458,7 @@ static int open_channel(vt_pty_ssh_t *pty,    /* pty->session is non-blocking */
         bl_msg_printf("Agent forwarding.\n");
       }
     }
-#elif defined(LIBSSH2_FORWARD_AGENT)
+#elif defined(LIBSSH2_FORWARD_AGENT) || (defined(LIBSSH2_VERSION_NUM) && LIBSSH2_VERSION_NUM >= 0x010a00)
     while ((ret = libssh2_channel_request_auth_agent(pty->channel)) == LIBSSH2_ERROR_EAGAIN)
       ;
     if (ret == 0) {
@@ -2021,7 +2037,7 @@ int vt_pty_ssh_set_use_loopback(vt_pty_t *pty, int use) {
 int vt_pty_ssh_scp_intern(vt_pty_t *pty, int src_is_remote, char *dst_path, char *src_path,
                           u_int progress_len /* > 0 */) {
   scp_t *scp;
-#if LIBSSH2_VERSION_NUM >= 0x010700
+#if defined(LIBSSH2_VERSION_NUM) && LIBSSH2_VERSION_NUM >= 0x010700
   libssh2_struct_stat st;
 #else
   struct stat st;
@@ -2053,7 +2069,7 @@ int vt_pty_ssh_scp_intern(vt_pty_t *pty, int src_is_remote, char *dst_path, char
 
   if (src_is_remote) {
     while (
-#if LIBSSH2_VERSION_NUM >= 0x010700
+#if defined(LIBSSH2_VERSION_NUM) && LIBSSH2_VERSION_NUM >= 0x010700
            !(scp->remote = libssh2_scp_recv2(scp->pty_ssh->session->obj, src_path, &st))
 #else
            !(scp->remote = libssh2_scp_recv(scp->pty_ssh->session->obj, src_path, &st))

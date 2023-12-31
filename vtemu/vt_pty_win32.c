@@ -562,7 +562,10 @@ static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
 static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   DWORD written_size;
 
-  if (((vt_pty_win32_t*)pty)->hpc == NULL &&
+  if (
+#ifdef USE_CONPTY
+      ((vt_pty_win32_t*)pty)->hpc == NULL &&
+#endif
       (memchr(buf, '\r', len) || memchr(buf, '\n', len))) {
     /*
      * \r or \n -> \r\n if ConPTY is not used, because putty 0.79 expects receiving \r\n.
