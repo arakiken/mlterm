@@ -57,7 +57,7 @@ How to build & install libvte compatible library using mlterm engine.
   o Default value of following options are not same as that of normal mlterm.
     [Option]       [Default Value]                     [Normal mlterm]
     type_engine => xft or cairo (if compiled with it)  (xft)
-  
+
   o Following functions which normal mlterm provides are not available.
     - Daemon mode
     - Multiple ptys using Ctrl+F1 / Ctrl+F2 / Ctrl+F3
@@ -79,7 +79,15 @@ How to build & install libvte compatible library using mlterm engine.
     $ export GDK_CORE_DEVICE_EVENTS=1
 
   o libvte compatible library works in Windows.
-    If you use it to build applications depending on libvte,
+    (It supports gtk-3.x alone for now.)
+
+    (How to build libvte compatible library in MSYS2-MinGW)
+    - Copy /usr/include/vte-2.91 in Linux to /mingw64/include
+    - Copy /usr/lib/pkgconfig/vte-2.91.pc to /mingw64/lib/pkgconfig
+      (Replace prefix with /mingw64)
+    - Build libvte compatible library.
+      ./configure --prefix=/mingw64
+      make; make install; cd gtk; make; make install
 
   o Unsupported vte api functions
     - vte_terminal_copy_primary

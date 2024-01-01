@@ -1,3 +1,7 @@
+2024-01-01  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/README: Updated.
+
 2023-12-31  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_pty_ssh.c: Set LIBSSH2_CALLBACK_AUTHAGENT callback function to enable
