@@ -407,6 +407,7 @@ static GtkWidget *im_widget_new(int nth_im, const char *value, char *locale) {
   int i;
   int selected = 0;
   size_t len;
+  int skip_first = 0;
 
   info = im_info_table[nth_im];
 
@@ -420,12 +421,11 @@ static GtkWidget *im_widget_new(int nth_im, const char *value, char *locale) {
 
   if (!info->num_args) return NULL;
 
-  if (!value || (value && selected)) {
+  if (!value) {
+    /* input method engine (e.g. uim:anthy) is not specified. */
     char *auto_str;
 
-    /*
-     * replace gettextized string
-     */
+    /* replace gettextized string */
     len = strlen(_("auto (currently %s)")) + strlen(info->readable_args[0]) + 1;
 
     if ((auto_str = malloc(len))) {
@@ -434,11 +434,16 @@ static GtkWidget *im_widget_new(int nth_im, const char *value, char *locale) {
       info->readable_args[0] = auto_str;
     }
   } else {
-    free(info->readable_args[0]);
-    info->readable_args[0] = strdup(value);
+    if (selected) {
+      /* ignore the first element */
+      skip_first = 1;
+    } else {
+      free(info->readable_args[0]);
+      info->readable_args[0] = strdup(value);
+    }
   }
 
-  combo = mc_combo_new(_("Option"), info->readable_args, info->num_args,
+  combo = mc_combo_new(_("Option"), info->readable_args + skip_first, info->num_args - skip_first,
                        info->readable_args[selected], 1, &entry);
   g_signal_connect(entry, "changed", G_CALLBACK(im_selected), NULL);
 

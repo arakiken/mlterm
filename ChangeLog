@@ -1,3 +1,7 @@
+2024-01-02  Araki Ken  <arakiken@users.sf.net>
+
+	* mc_im.c: Remove duplicated elements in "Option" of "Input Method" area.
+
 2024-01-01  Araki Ken  <arakiken@users.sf.net>
 
 	* gtk/README: Updated.
