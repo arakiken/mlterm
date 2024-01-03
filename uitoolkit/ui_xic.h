@@ -23,6 +23,7 @@ typedef struct ui_xic {
 #elif defined(USE_XLIB)
   XFontSet fontset;
   XIMStyle style;
+  XPoint spot;
 #endif
 
 } ui_xic_t;

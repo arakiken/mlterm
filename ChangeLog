@@ -1,5 +1,8 @@
 2024-01-03  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_xic.c: Add 'spot' to ui_xic_t to decrease the number of informing
+	  the cursor position for XIM preedit by XSetICValues().
+
 	* etc/termcap: Change the default value of "xterm" entry from "ut" to "kb=^H:ut".
 
 2024-01-02  Araki Ken  <arakiken@users.sf.net>
