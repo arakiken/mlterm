@@ -14,6 +14,7 @@
   (https://github.com/arakiken/mlterm/issues/71)
 * Add "de", "fr", "es", "pt" and "jp106" to available values for "kbd"
   input method argument.
+* Change the default value of "xterm" entry in etc/termcap from "ut" to "kb=^H:ut".
 * Update unicode property table (generated from UnicodeData.txt and
   EastAsianWidth.txt) to version 15.1.0.
 * Merge patches:

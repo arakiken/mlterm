@@ -1,3 +1,7 @@
+2024-01-03  Araki Ken  <arakiken@users.sf.net>
+
+	* etc/termcap: Change the default value of "xterm" entry from "ut" to "kb=^H:ut".
+
 2024-01-02  Araki Ken  <arakiken@users.sf.net>
 
 	* mc_im.c: Remove duplicated elements in "Option" of "Input Method" area.
