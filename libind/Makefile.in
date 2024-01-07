@@ -22,6 +22,9 @@ LIBS = $(LIBS_LOCAL)
 OBJ = indian.o keyboard.o lex.split.o
 TBL_OBJ = assamese.o bengali.o gujarati.o hindi.o iitkeyb.o inscript.o \
 	kannada.o malayalam.o oriya.o punjabi.o telugu.o #tamil.o
+TBL_LIB = libind_assamese.la libind_bengali.la libind_gujarati.la libind_hindi.la \
+	libind_iitkeyb.la libind_inscript.la libind_kannada.la libind_malayalam.la \
+	libind_oriya.la libind_punjabi.la libind_telugu.la #libind_tamil.la
 
 LIBNAME = libind
 MAJOR = 0
@@ -32,7 +35,7 @@ LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 
-all : $(LIBNAME).a $(TBL_OBJ:.o=.la) collect-headers
+all : $(LIBNAME).a $(TBL_LIB) collect-headers
 
 debug : $(LIBNAME).a
 
@@ -44,10 +47,8 @@ debug : $(LIBNAME).a
 $(LIBNAME).a : $(OBJ)
 	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ:.o=.lo) $(LIBS)
 
-.SUFFIXES : .o .la
-
-.o.la : $(TBL_OBJ)
-	$(LIBTOOL_LINK)	-o libind_$(<:.o=.la) $(<:.o=.lo) -rpath $(LIBDIR) \
+libind_%.la : %.o
+	$(LIBTOOL_LINK)	-o $@ $(<:.o=.lo) -rpath $(LIBDIR) \
 		-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
 
 clean :
