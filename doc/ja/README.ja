@@ -999,6 +999,12 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
       o max_ptys (*32*)
         同時に立ち上げることができる pty の最大数 (32の倍数で指定)
 
+      o mod_keys_to_stop_mouse_report (*shift,control*)
+        マウス操作時に、コンソールアプリケーションにマウスの状態を通知しないよう
+        にするキーを指定
+        カンマで区切って、shift,control,mod1,mod2,mod3,mod4,mod5,mod,alt のうち
+        複数のキーを指定できる。
+
       o mod_meta_key (*none*/mod1/mod2/mod3/mod4/meta/alt/super/hyper)
         Meta キーとして使用するキーを指定
 
@@ -1629,6 +1635,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
        --recvdir=value : receive_directory
        --fk(=bool)     : format_other_keys
        --sdpr=value    : simple_scrollbar_dpr
+       --norepkey=value: mod_keys_to_stop_mouse_report
        --winsize(=bool): output_xtwinops_in_resizing (win32 用)
        --conpty(=bool) : use_conpty (win32 用)
        --chsel(=bool)  : change_selection_immediately (mlterm and mlterm-wl 以外用)

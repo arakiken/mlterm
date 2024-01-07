@@ -723,6 +723,12 @@ Whether to draw the wall picture on Text VRAM instead of Graphic VRAM to improve
 the performance of scrolling.
 The default is \fBtrue\fR.
 .TP
+\fB\-\-norepkey\fR=\fIvalue\fR
+Specify modifier keys to stop mouse reporting.
+Valid \fIvalue\fRs are: \fBshift\fR, \fBcontrol\fR, \fBmod1\fR, \fBmod2\fR,
+\fBmod3\fR, \fBmod4\fR, \fBmod5\fR, \fBmod\fR and \fBalt\fR.
+The default is \fBshift,control\fR.
+.TP
 \fB\-\-noul\fR(=\fIbool\fR)
 Don't draw underline.
 The default is \fBfalse\fR.
@@ -1707,6 +1713,9 @@ Specify maximum number of ptys (sessions) to be opened simultaneously.
 .TP
 \fBmeta_prefix=\fIvalue\fR (\fB\-\-metaprefix\fR)
 Specify prefix characters in pressing meta key if mod_meta_mode = esc.
+.TP
+\fBmod_keys_to_stop_mouse_report=\fImode\fR (\fB\-\-norepkey\fR)
+Specify modifier keys to stop mouse reporting.
 .TP
 \fBmod_meta_mode=\fImode\fR (\fB\-k\fR, \fB\-\-meta\fR)
 Behavior of META key.

@@ -63,7 +63,7 @@ static int allow_change_shortcut;
 static char *mod_meta_prefix = "\x1b";
 static int trim_trailing_newline_in_pasting;
 static ef_parser_t *vt_str_parser; /* XXX leaked */
-
+static u_int mod_keys_to_stop_mouse_report = ShiftMask | ControlMask;
 #ifdef USE_IM_CURSOR_COLOR
 static char *im_cursor_color = NULL;
 #endif
@@ -3660,7 +3660,7 @@ static void pointer_motion(ui_window_t *win, XMotionEvent *event) {
 
   show_pointer(screen);
 
-  if (!(event->state & (ShiftMask | ControlMask)) &&
+  if (!(event->state & mod_keys_to_stop_mouse_report) &&
       vt_term_get_mouse_report_mode(screen->term) >= ANY_EVENT_MOUSE_REPORT) {
     restore_selected_region_color_instantly(screen);
     report_mouse_tracking(screen, event->x, event->y, 0, event->state, 1, 0);
@@ -3723,7 +3723,8 @@ static void button_motion(ui_window_t *win, XMotionEvent *event) {
    * not 'pointer'_motion.
    */
 
-  if (!(event->state & (ShiftMask | ControlMask)) && vt_term_get_mouse_report_mode(screen->term)) {
+  if (!(event->state & mod_keys_to_stop_mouse_report) &&
+      vt_term_get_mouse_report_mode(screen->term)) {
     if (vt_term_get_mouse_report_mode(screen->term) >= BUTTON_EVENT_MOUSE_REPORT) {
       int button;
 
@@ -3811,7 +3812,8 @@ static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num)
 #endif
   screen->autoscroll_count = 0;
 
-  if (vt_term_get_mouse_report_mode(screen->term) && !(event->state & (ShiftMask | ControlMask))) {
+  if (!(event->state & mod_keys_to_stop_mouse_report) &&
+      vt_term_get_mouse_report_mode(screen->term)) {
     restore_selected_region_color_instantly(screen);
     report_mouse_tracking(screen, event->x, event->y, event->button, event->state, 0, 0);
 
@@ -3938,7 +3940,8 @@ static void button_released(ui_window_t *win, XButtonEvent *event) {
   }
 #endif
 
-  if (vt_term_get_mouse_report_mode(screen->term) && !(event->state & (ShiftMask | ControlMask))) {
+  if (!(event->state & mod_keys_to_stop_mouse_report) &&
+      vt_term_get_mouse_report_mode(screen->term)) {
     if (event->button >= Button4) {
       /* Release events for the wheel buttons are not reported. */
     } else {
@@ -6581,6 +6584,21 @@ void ui_set_mod_meta_prefix(char *prefix /* allocated memory */
 
 void ui_set_trim_trailing_newline_in_pasting(int trim) { trim_trailing_newline_in_pasting = trim; }
 
+void ui_set_mod_keys_to_stop_mouse_report(const char *keys) {
+  u_int mask_tbl[] = { ShiftMask, ControlMask, Mod1Mask, Mod2Mask, Mod3Mask,
+                       Mod4Mask, Mod5Mask, ModMask, ModMask };
+  char *key_str_tbl[] = { "shift", "control", "mod1", "mod2", "mod3",
+                          "mod4", "mod5", "mod", "alt" };
+  int count;
+
+  mod_keys_to_stop_mouse_report = 0;
+  for (count = 0; count < sizeof(key_str_tbl) / sizeof(key_str_tbl[0]); count++) {
+    if (strstr(keys, key_str_tbl[count])) {
+      mod_keys_to_stop_mouse_report |= mask_tbl[count];
+    }
+  }
+}
+
 #ifdef USE_IM_CURSOR_COLOR
 void ui_set_im_cursor_color(char *color) { im_cursor_color = strdup(color); }
 #endif
@@ -7587,6 +7605,8 @@ int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
     ui_emoji_set_path(value);
   } else if (strcmp(key, "emoji_file_format") == 0) {
     ui_emoji_set_file_format(value);
+  } else if (strcmp(key, "mod_keys_to_stop_mouse_report") == 0) {
+    ui_set_mod_keys_to_stop_mouse_report(value);
   }
 #ifdef ROTATABLE_DISPLAY
   else if (strcmp(key, "rotate_display") == 0) {

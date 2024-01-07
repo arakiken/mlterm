@@ -333,6 +333,8 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "send modified keys as parameter for CSI u [false]");
   bl_conf_add_opt(conf, '\0', "sdpr", 0, "simple_scrollbar_dpr",
                   "device pixel ratio for simple scrollbar [1]");
+  bl_conf_add_opt(conf, '\0', "norepkey", 0, "mod_keys_to_stop_mouse_report",
+                  "modifier keys to stop mouse reporting [shift,control]");
 #ifdef USE_WIN32API
   bl_conf_add_opt(conf, '\0', "winsize", 1, "output_xtwinops_in_resizing",
                   "output xtwinops sequence in resizing [false]");
@@ -1452,6 +1454,10 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (bl_str_to_int(&dpr, value) && dpr > 0) {
       ui_sb_view_set_dpr(dpr);
     }
+  }
+
+  if ((value = bl_conf_get_value(conf, "mod_keys_to_stop_mouse_report"))) {
+    ui_set_mod_keys_to_stop_mouse_report(value);
   }
 
 #ifdef USE_WIN32API

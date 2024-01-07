@@ -45,11 +45,12 @@ version 20230401
                   fade_ratio | fg_color | fontsize | format_other_keys | gamma | geometry |
                   hide_underline | icon_path | input_method | it_color | letter_space |
                   line_space | local_echo_wait | locale | logging_msg | logging_vt_seq |
-                  logsize | mod_meta_key | mod_meta_mode | not_use_unicode_font |
-                  only_use_unicode_font | ot_features | ot_script | receive_string_via_ucs |
-                  regard_uri_as_word | rv_color | sb_bg_color | sb_fg_color | screen_width_ratio |
-                  scrollbar_mode | scrollbar_view_name | send_file static_backscroll_mode |
-                  tabsize | trim_trailing_newline_in_pasting | type_engine | ul_color |
+                  logsize | mod_keys_to_stop_mouse_report | mod_meta_key | mod_meta_mode |
+                  not_use_unicode_font | only_use_unicode_font | ot_features | ot_script |
+                  receive_string_via_ucs | regard_uri_as_word | rv_color | sb_bg_color |
+                  sb_fg_color | screen_width_ratio | scrollbar_mode | scrollbar_view_name |
+                  send_file static_backscroll_mode | tabsize |
+                  trim_trailing_newline_in_pasting | type_engine | ul_color |
                   underline_offset | unicode_full_width_areas | unicode_half_width_areas |
                   unicode_noconv_areas | use_alt_buffer | use_ansi_colors | use_anti_alias |
                   use_auto_detect | use_bold_font | use_combining | use_ctl |
@@ -133,7 +134,8 @@ version 20230401
   locale = <locale name>
   local_echo_wait = <any ASCII decimal digit>
   logsize = <any ASCII decimal digit>
-  mod_meta_key = none | mod1 | mod2 | mod3 | mod4 | meta | alt | super | hyper
+  mod_keys_to_stop_mouse_report = ((shift|control|mod1|mod2|mod3|mod4|mod5|mod|alt),)*
+  mod_meta_key = none | mod1 | mod2 | mod3 | mod4 | mod5 | meta | alt | super | hyper
   mod_meta_mode = none | esc | 8bit
   not_use_unicode_font = true | false | switch
   only_use_unicode_font = true | false | switch

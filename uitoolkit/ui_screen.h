@@ -169,6 +169,8 @@ void ui_set_mod_meta_prefix(char *prefix);
 
 void ui_set_trim_trailing_newline_in_pasting(int trim);
 
+void ui_set_mod_keys_to_stop_mouse_report(const char *keys);
+
 #ifdef USE_IM_CURSOR_COLOR
 void ui_set_im_cursor_color(char *color);
 #endif
