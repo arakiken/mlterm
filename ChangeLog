@@ -1,5 +1,11 @@
 2024-01-08  Araki Ken  <arakiken@users.sf.net>
 
+	* README, man/mlterm.1, README.ja: Updated.
+
+	* im_kbd.c: Add ":hide" option which hides the status window.
+
+2024-01-08  Araki Ken  <arakiken@users.sf.net>
+
 	* man/mlterm.1, README.ja, PROTOCOL: Updated.
 
 	* ui_screen.[ch]: Add ui_set_mod_keys_to_stop_mouse_report().

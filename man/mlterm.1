@@ -103,10 +103,6 @@ Whether to use login shell or not.  The default is \fBfalse\fR.
 \fB\-M\fR, \fB\-\-im\fR= \fIinput method\fR : \fB[\fR\fI arguments\fR \fB... ]\fR
 Specify an input method.
 
-Available values for "kbd" input method argument are "arabic", "hebrew",
-"de", "fr", "es", "pt", "jp106", "isciiassamese", "isciibengali",
-"isciigujarati", "isciihindi", "isciikannada", "isciimalayalam", "isciioriya",
-"isciipunjabi", "isciitamil" and "isciitelugu".
 .PP
 .RS
 .B Examples:
@@ -124,14 +120,16 @@ Use XIM with kinput2 on ja_JP.EUC-JP locale.
 \-\-im=kbd:arabic
 Use keyboard mapping input method in Arabic.
 .TP
-\-\-im=kbd:hebrew
-Use keyboard mapping input method in Hebrew.
-.TP
-\-\-im=kbd:de
-Use keyboard mapping input method in German.
-.TP
-\-\-im=kbd:isciixxx
-Use keyboard mapping input method in Indic.
+\-\-im=kbd:hide:arabic
+Use keyboard mapping input method without showing the status screen.
+
+"kbd" input method converts US keyboard characters to other keyboard layouts.
+It is assumed to be used in environments with limited functionality,
+such as older OSs that support few keyboard layouts.
+Available values for "kbd" input method argument are "arabic", "hebrew",
+"de", "fr", "es", "pt", "jp106", "isciiassamese", "isciibengali",
+"isciigujarati", "isciihindi", "isciikannada", "isciimalayalam", "isciioriya",
+"isciipunjabi", "isciitamil" and "isciitelugu".
 .TP
 \-\-im=uim
 Use uim with the default conversion engine.

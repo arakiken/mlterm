@@ -266,7 +266,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
       XDnD プロトコルによるドラッグアンドドロップサポートを無効にします。
 
     --disable-kbd
-      kbd (アラビア語/ヘブライ語/インド諸語用インプットメソッド)を無効にします。
+      kbd インプットメソッド (US キーボードで入力された文字をアラビア語/ヘブライ
+      語/インド諸語などのキーボードレイアウトの文字に変換) を無効にします。
 
     --disable-uim
       uim を無効にします。libuim が必要です。
@@ -510,8 +511,10 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
         SKK_STICKY_SHIFT_KEY 環境変数により指定することも可能です。
 
         kbd の場合:
-        kbd:[lang]
-        US キーボードレイアウトから、指定したレイアウトに変換します。
+        kbd(:hide):[lang]
+        US キーボードで入力された文字を、指定したキーボードレイアウトの文字に変
+        換します。
+        :hide を指定した場合は、ステータスウィンドウを表示しません。
         [lang]には、次のいずれかを指定することができます。
         arabic, hebrew, de, fr, es, pt, jp106, isciixxx
         なお、[lang]を省略した場合、ISCII モードの時は ISCII 配列、それ以外では
@@ -1363,8 +1366,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
       OPERATION は以下の通り
 
       o IM_HOTKEY
-        m17nlib, kbd (アラビア語/ヘブライ後/インド諸語の入力メソッド)の入力モー
-        ド切替え。
+        m17nlib, kbd の入力モード切替え。
       o EXT_KBD(UNUSED)
         アラビア語、インド諸語の mlterm 内蔵入力メソッドを起動、終了します。
         (mlterm 2.8.0 以前 との互換オペレーション)

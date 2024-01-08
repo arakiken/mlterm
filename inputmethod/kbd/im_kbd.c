@@ -88,6 +88,7 @@ typedef struct im_kbd {
 
   kbd_type_t type;
   kbd_mode_t mode;
+  int hide_stat_screen;
 
   vt_isciikey_state_t isciikey_state;
 
@@ -1788,15 +1789,18 @@ static int switch_mode(ui_im_t *im) {
     (*kbd->im.listener->get_spot)(kbd->im.listener->self, NULL, 0, &x, &y);
 
     if (kbd->im.stat_screen == NULL) {
-      if (!(kbd->im.stat_screen = (*syms->ui_im_status_screen_new)(
-                kbd->im.disp, kbd->im.font_man, kbd->im.color_man, kbd->im.vtparser,
-                (*kbd->im.listener->is_vertical)(kbd->im.listener->self),
-                (*kbd->im.listener->get_line_height)(kbd->im.listener->self), x, y))) {
+      if (kbd->hide_stat_screen ||
+          !(kbd->im.stat_screen = (*syms->ui_im_status_screen_new)(
+                                    kbd->im.disp, kbd->im.font_man, kbd->im.color_man,
+                                    kbd->im.vtparser,
+                                    (*kbd->im.listener->is_vertical)(kbd->im.listener->self),
+                                    (*kbd->im.listener->get_line_height)(kbd->im.listener->self),
+                                    x, y))) {
 #ifdef DEBUG
         bl_warn_printf(BL_DEBUG_TAG " ui_im_satus_screen_new() failed.\n");
 #endif
 
-        return 0;
+        return 1;
       }
     }
 
@@ -1845,15 +1849,28 @@ static void unfocused(ui_im_t *im) {
 /* --- global functions --- */
 
 ui_im_t *im_kbd_new(u_int64_t magic, vt_char_encoding_t term_encoding,
-                    ui_im_export_syms_t *export_syms, char *opt, /* arabic/hebrew/iscii */
+                    ui_im_export_syms_t *export_syms, char *opt,
                     u_int mod_ignore_mask) {
   im_kbd_t *kbd;
+  int hide_stat_screen = 0;
   kbd_type_t type;
 
   if (magic != (u_int64_t)IM_API_COMPAT_CHECK_MAGIC) {
     bl_error_printf("Incompatible input method API.\n");
 
     return NULL;
+  }
+
+  if (strncmp(opt, "hide", 4) == 0) {
+    hide_stat_screen = 1;
+
+    opt += 4;
+    if (*opt == ':') {
+      opt++;
+    }
+    if (*opt == '\0') {
+      opt = NULL;
+    }
   }
 
   if (opt == NULL || (type = get_kbd_type(opt)) == KBD_TYPE_UNKNOWN) {
@@ -1890,6 +1907,7 @@ ui_im_t *im_kbd_new(u_int64_t magic, vt_char_encoding_t term_encoding,
 
   kbd->type = type;
   kbd->mode = KBD_MODE_ASCII;
+  kbd->hide_stat_screen = hide_stat_screen;
   kbd->isciikey_state = NULL;
   kbd->parser = NULL;
 
