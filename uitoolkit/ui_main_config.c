@@ -138,6 +138,7 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, 'S', "sbview", 0, "scrollbar_view_name",
                   "scrollbar view name (simple/sample/...) [simple]");
   bl_conf_add_opt(conf, 'T', "title", 0, "title", "title name");
+  bl_conf_add_opt(conf, '\0', "locktitle", 1, "use_locked_title", "use locked title [false]");
   bl_conf_add_opt(conf, 'U', "viaucs", 1, "receive_string_via_ucs",
                   "process received (pasted) strings via Unicode [false]");
   bl_conf_add_opt(conf, 'V', "varwidth", 1, "use_variable_column_width",
@@ -401,6 +402,14 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
 
   if ((value = bl_conf_get_value(conf, "title"))) {
     main_config->title = strdup(value);
+  }
+
+  if ((value = bl_conf_get_value(conf, "use_locked_title"))) {
+    if (strcmp(value, "true") == 0) {
+      main_config->use_locked_title = 1;
+    }
+  } else {
+    main_config->use_locked_title = 0;
   }
 
 #ifdef USE_XLIB

@@ -121,7 +121,7 @@ static vt_term_t *create_term_intern(void) {
            main_config.vertical_mode, main_config.use_local_echo, main_config.title,
            main_config.icon_name, main_config.use_ansi_colors, main_config.alt_color_mode,
            main_config.use_ot_layout, main_config.blink_cursor ? CS_BLINK|CS_BLOCK : CS_BLOCK,
-           main_config.ignore_broadcasted_chars)) == NULL) {
+           main_config.ignore_broadcasted_chars, main_config.use_locked_title)) == NULL) {
     return NULL;
   }
 
