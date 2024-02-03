@@ -152,7 +152,7 @@ static GdkPixbuf *gdk_pixbuf_new_from_sixel(const char *path) {
   u_int width;
   u_int height;
 
-  if (!(pixels = load_sixel_from_file(path, &width, &height))) {
+  if (!(pixels = load_sixel_from_file(path, &width, &height, NULL))) {
     return NULL;
   }
 

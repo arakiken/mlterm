@@ -415,8 +415,8 @@ static void update_diff_table_last(char *diff_next, int x,
 static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
                       Pixmap *mask, /* Can be NULL */
                       u_int *width, /* Can be NULL */
-                      u_int *height /* Can be NULL */
-                      ) {
+                      u_int *height, /* Can be NULL */
+                      int *transparent /* Can be NULL */) {
   XImage *image;
   u_int32_t *data;
   u_int32_t *in;
@@ -428,7 +428,7 @@ static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
   GC mask_gc;
   int num_cells;
 
-  if (disp->depth < 8 || !(data = in = load_sixel_from_file(path, &w, &h))) {
+  if (disp->depth < 8 || !(data = in = load_sixel_from_file(path, &w, &h, transparent))) {
     return 0;
   }
 
@@ -1711,8 +1711,9 @@ Pixmap ui_imagelib_get_transparent_background(ui_window_t *win, ui_picture_modif
  *
  *\return  Success => 1, Failure => 0
  */
-int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, Pixmap *pixmap,
-                          PixmapMask *mask, u_int *width, u_int *height, int keep_aspect) {
+int ui_imagelib_load_file(ui_display_t *disp, char *path, int keep_aspect, u_int32_t **cardinal,
+                          Pixmap *pixmap, PixmapMask *mask, u_int *width, u_int *height,
+                          int *transparent) {
   u_int dst_height, dst_width;
 #ifdef BUILTIN_IMAGELIB
   GdkPixbuf *pixbuf;
@@ -1723,10 +1724,14 @@ int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, 
 
 #if defined(BUILTIN_IMAGELIB) || defined(BUILTIN_SIXEL)
   if (!cardinal && strcasecmp(path + strlen(path) - 4, ".six") == 0 && dst_width == 0 &&
-      dst_height == 0 && load_sixel(disp, path, pixmap, mask, width, height)) {
+      dst_height == 0 && load_sixel(disp, path, pixmap, mask, width, height, transparent)) {
     return 1;
   }
 #endif
+
+  if (transparent) {
+    *transparent = 0;
+  }
 
 #ifdef BUILTIN_IMAGELIB
 

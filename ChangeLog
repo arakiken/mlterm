@@ -1,3 +1,22 @@
+2024-02-03  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_draw_str.c: draw_picture() doesn't clear the background
+	  if ui_inline_picture_t::transparent is 1.
+
+	* ui_virtual_kbd.c, ui_sb_view.h, pixmap_engine.c: Fix with the modification
+	  of ui_imagelib_load_file().
+
+	* vt_parser.[ch], ui_screen.c, ui_screen_manager.c, vterm.c:
+	  Add 'transparent' to vt_xterm_event_listener_t::get_picture_data().
+
+	* ui_picture.[ch]: Add 'transparent' to ui_inline_picture_t.
+
+	* ui_imagelib.h, */ui_imagelib.c: Add 'transparent' to arguments of
+	  ui_imagelib_load_file().
+
+	* c_sixel.c: load_sixel_from_{data|file}() check whether P2 is 1 or not
+	  and return it by 'transparent' argument.
+
 2024-01-08  Araki Ken  <arakiken@users.sf.net>
 
 	* README, man/mlterm.1, README.ja: Updated.

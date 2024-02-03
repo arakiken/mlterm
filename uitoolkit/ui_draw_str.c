@@ -111,6 +111,14 @@ static void draw_line(ui_window_t *window, ui_color_t *color, int is_vertical, i
 #endif
 
 #ifndef NO_IMAGE
+void draw_background(ui_window_t *win, ui_color_t *color, int x, int y, u_int width, u_int height) {
+  if (!color) {
+    ui_window_clear(win, x, y, width, height);
+  } else {
+    ui_window_fill_with(win, color, x, y, width, height);
+  }
+}
+
 static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs, int dst_x,
                         int dst_y, u_int ch_width, u_int line_height, ui_color_t *bg_xcolor) {
   u_int count;
@@ -161,12 +169,8 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
     if (count == 0) {
       goto new_picture;
     } else if (w > 0 && pic == cur_pic && src_x + src_width == x) {
-      if (!need_clear && w < ch_width) {
-        if (!bg_xcolor) {
-          ui_window_clear(window, dst_x + dst_width, dst_y, ch_width, line_height);
-        } else {
-          ui_window_fill_with(window, bg_xcolor, dst_x + dst_width, dst_y, ch_width, line_height);
-        }
+      if (!cur_pic->transparent && !need_clear && w < ch_width) {
+        draw_background(window, bg_xcolor, dst_x + dst_width, dst_y, ch_width, line_height);
       }
 
       src_width += w;
@@ -180,11 +184,8 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
     }
 
     if (need_clear > 0) {
-      if (!bg_xcolor) {
-        ui_window_clear(window, dst_x, dst_y, dst_width, line_height);
-      } else {
-        ui_window_fill_with(window, bg_xcolor, dst_x, dst_y, dst_width, line_height);
-      }
+      /* cur_pic->transparent is always false. */
+      draw_background(window, bg_xcolor, dst_x, dst_y, dst_width, line_height);
     }
 
     if (src_width > 0 && src_height > 0
@@ -214,10 +215,6 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
     cur_pic = pic;
     need_clear = 0;
 
-    if (cur_pic->mask) {
-      need_clear = 1;
-    }
-
     if (src_y + line_height > pic->height) {
       need_clear = 1;
       src_height = pic->height > src_y ? pic->height - src_y : 0;
@@ -225,38 +222,41 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
       src_height = line_height;
     }
 
-    if (strstr(cur_pic->file_path, "mlterm/animx") && cur_pic->next_frame >= 0) {
-      /* Don't clear if cur_pic is 2nd or later GIF Animation frame. */
-      need_clear = -1;
-    }
+    src_width = w;
 
-    if ((src_width = w) < ch_width && !need_clear) {
-      if (!bg_xcolor) {
-        ui_window_clear(window, dst_x, dst_y, ch_width, line_height);
-      } else {
-        ui_window_fill_with(window, bg_xcolor, dst_x, dst_y, ch_width, line_height);
+    if (!cur_pic->transparent) {
+      if (cur_pic->mask) {
+        need_clear = 1;
       }
+
+      if (strstr(cur_pic->file_path, "mlterm/animx") && cur_pic->next_frame >= 0) {
+        /* Don't clear if cur_pic is 2nd or later GIF Animation frame. */
+        need_clear = -1;
+      }
+
+      if (src_width < ch_width && !need_clear) {
+        draw_background(window, bg_xcolor, dst_x, dst_y, ch_width, line_height);
+      }
+    } else {
+      need_clear = 0;
     }
   }
 
   if (need_clear > 0) {
-    if (!bg_xcolor) {
-      ui_window_clear(window, dst_x, dst_y, dst_width, line_height);
-    } else {
-      ui_window_fill_with(window, bg_xcolor, dst_x, dst_y, dst_width, line_height);
-    }
+    /* cur_pic->transparent is always false. */
+    draw_background(window, bg_xcolor, dst_x, dst_y, dst_width, line_height);
   }
-
-#ifdef __DEBUG
-  bl_debug_printf("Drawing picture at %d %d (pix %p mask %p x %d y %d w %d h %d)\n", dst_x, dst_y,
-                  cur_pic->pixmap, cur_pic->mask, src_x, src_y, src_width, src_height);
-#endif
 
   if (src_width > 0 && src_height > 0
 #ifndef INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
       && cur_pic->disp == window->disp
 #endif
       ) {
+#ifdef __DEBUG
+    bl_debug_printf("*Drawing picture at %d %d (pix %p mask %p x %d y %d w %d h %d)\n", dst_x,
+                    dst_y, cur_pic->pixmap, cur_pic->mask, src_x, src_y, src_width, src_height);
+#endif
+
     ui_window_copy_area(window, cur_pic->pixmap, cur_pic->mask, src_x, src_y, src_width, src_height,
                         dst_x, dst_y);
   }
@@ -657,17 +657,16 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       draw_count++;
 #endif
 
-      bg_xcolor = ui_get_xcolor(color_man, bg_color);
-
 #ifndef NO_IMAGE
       if (state == 4) {
         draw_picture(window, pic_glyphs, str_len, x, y, ch_width, height,
-                     bg_color == VT_BG_COLOR ? NULL : bg_xcolor);
+                     bg_color == VT_BG_COLOR ? NULL : ui_get_xcolor(color_man, bg_color));
 
         goto end_draw;
       }
 #endif
 
+      bg_xcolor = ui_get_xcolor(color_man, bg_color);
       fg_xcolor = ui_get_xcolor(color_man, fg_color);
 
       /*
@@ -1020,6 +1019,15 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       draw_count++;
 #endif
 
+#ifndef NO_IMAGE
+      if (state == 4) {
+        draw_picture(window, pic_glyphs, str_len, x, y, ch_width, height,
+                     bg_color == VT_BG_COLOR ? NULL : ui_get_xcolor(color_man, bg_color));
+
+        goto end_draw;
+      }
+#endif
+
 #ifdef DRAW_SCREEN_IN_PIXELS
       if (ui_window_has_wall_picture(window) && bg_color == VT_BG_COLOR) {
         bg_xcolor = NULL;
@@ -1028,15 +1036,6 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       {
         bg_xcolor = ui_get_xcolor(color_man, bg_color);
       }
-
-#ifndef NO_IMAGE
-      if (state == 4) {
-        draw_picture(window, pic_glyphs, str_len, x, y, ch_width, height,
-                     bg_color == VT_BG_COLOR ? NULL : bg_xcolor);
-
-        goto end_draw;
-      }
-#endif
 
       fg_xcolor = ui_get_xcolor(color_man, fg_color);
 

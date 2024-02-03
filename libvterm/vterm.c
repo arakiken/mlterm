@@ -239,7 +239,8 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
                                          int *num_rows, /* If *num_rows > 0, ignored. */
                                          int *num_cols_small /* set only if drcs_sixel is 1. */,
                                          int *num_rows_small /* set only if drcs_sixel is 1. */,
-                                         u_int32_t **sixel_palette, int drcs_sixel) {
+                                         u_int32_t **sixel_palette, int *transparent,
+                                         int keep_aspect, int drcs_sixel) {
   static int old_drcs_sixel = -1;
   VTerm *vterm = p;
   u_int width;
@@ -293,6 +294,10 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
     }
   }
 
+  if (transparent) {
+    *transparent = 0;
+  }
+
   if (sscanf(data_p, "\"%d;%d;%d;%d", &x, &y, &width, &height) != 4 ||
       width == 0 || height == 0) {
     struct stat st;
@@ -308,7 +313,7 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path,
     len += fread(all_data + len, 1, st.st_size - len, fp);
     all_data[len] = '\0';
 
-    if (!(picture = load_sixel_from_data_1bpp(all_data, &width, &height))) {
+    if (!(picture = load_sixel_from_data_1bpp(all_data, &width, &height, transparent))) {
       free(all_data);
 
       goto error_closing_fp;

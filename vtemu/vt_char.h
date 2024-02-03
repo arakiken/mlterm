@@ -93,9 +93,13 @@ typedef struct vt_char {
       u_int bg_color2 : 16;
 #endif
       u_int code : 21;
+      /*
+       * also used for transparent flag of PICTURE_CHARSET
+       * (see vt_char_{get|set}_picture_transparent_flag()
+       */
       u_int attr2 : 2;
-      u_int fg_color : 9;
-      u_int bg_color : 9;
+      u_int fg_color : 9; /* also used for PICTURE_CHARSET (see vt_char_combine_picture()) */
+      u_int bg_color : 9; /* also used for PICTURE_CHARSET (see vt_char_combine_picture()) */
       u_int attr : 23;
 #else
       u_int attr : 23;

@@ -17,8 +17,9 @@ Pixmap ui_imagelib_load_file_for_background(ui_window_t *win, char *path,
 
 Pixmap ui_imagelib_get_transparent_background(ui_window_t *win, ui_picture_modifier_t *pic_mod);
 
-int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, Pixmap *pixmap,
-                          PixmapMask *mask, u_int *width, u_int *height, int keep_aspect);
+int ui_imagelib_load_file(ui_display_t *disp, char *path, int keep_aspect,
+                          u_int32_t **cardinal, Pixmap *pixmap, PixmapMask *mask,
+                          u_int *width, u_int *height, int *transparent);
 
 void ui_destroy_image(Display *display, Pixmap pixmap);
 

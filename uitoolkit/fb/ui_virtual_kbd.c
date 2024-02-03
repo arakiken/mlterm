@@ -240,8 +240,8 @@ static int start_virtual_kbd(ui_display_t *disp) {
   } else {
     width = 0;
     height = 0;
-    if (!ui_imagelib_load_file(disp, KBD_DIR "/pressed_kbd.six", NULL, &pressed_pixmap, NULL,
-                               &width, &height, 0)) {
+    if (!ui_imagelib_load_file(disp, KBD_DIR "/pressed_kbd.six", 0, NULL, &pressed_pixmap, NULL,
+                               &width, &height, NULL)) {
       /*
        * Note that pressed_pixmap can be non-NULL even if
        * ui_imagelib_load_file() fails.
@@ -253,8 +253,8 @@ static int start_virtual_kbd(ui_display_t *disp) {
 
     width = 0;
     height = 0;
-    if (!ui_imagelib_load_file(disp, KBD_DIR "/kbd.six", NULL, &normal_pixmap, NULL, &width,
-                               &height, 0)) {
+    if (!ui_imagelib_load_file(disp, KBD_DIR "/kbd.six", 0, NULL, &normal_pixmap, NULL,
+                               &width, &height, NULL)) {
       /*
        * Note that normal_pixmap can be non-NULL even if
        * ui_imagelib_load_file() fails.

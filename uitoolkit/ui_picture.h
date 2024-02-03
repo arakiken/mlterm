@@ -56,8 +56,8 @@ typedef struct ui_inline_picture {
   vt_term_t *term;
   u_int8_t col_width;
   u_int8_t line_height;
-
   int16_t next_frame;
+  int8_t transparent;
 
 } ui_inline_picture_t;
 

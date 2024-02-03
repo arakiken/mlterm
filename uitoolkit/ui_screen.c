@@ -6258,8 +6258,9 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
                                          int *num_rows /* can be 0 */,
                                          int *num_cols_small /* set only if drcs_sixel is 1. */,
                                          int *num_rows_small /* set only if drcs_sixel is 1. */,
-                                         u_int32_t **sixel_palette, int keep_aspect,
-                                         int drcs_sixel) {
+                                         u_int32_t **sixel_palette,
+                                         int *transparent /* can be NULL */,
+                                         int keep_aspect, int drcs_sixel) {
   ui_screen_t *screen;
   u_int width;
   u_int height;
@@ -6282,8 +6283,8 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
     *sixel_palette = ui_set_custom_sixel_palette(*sixel_palette);
   }
 
-  if ((idx = ui_load_inline_picture(screen->window.disp, file_path, &width, &height, col_width,
-                                    line_height, keep_aspect, screen->term)) != -1) {
+  if ((idx = ui_load_inline_picture(screen->window.disp, file_path, &width, &height,
+                                    col_width, line_height, keep_aspect, screen->term)) != -1) {
     vt_char_t *buf;
     u_int cols_padding[2];
     u_int rows_padding[2];
@@ -6375,6 +6376,10 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
       *num_cols += (cols_padding[0] + cols_padding[1]);
       *num_rows += (rows_padding[0] + rows_padding[1]);
 
+      if (transparent) {
+        *transparent = ui_get_inline_picture(idx)->transparent;
+      }
+
       return buf;
     }
   }
@@ -6459,8 +6464,8 @@ static void xterm_add_frame_to_animation(void *p, char *file_path, int *num_cols
   width = (*num_cols) *(col_width = ui_col_width(screen));
   height = (*num_rows) *(line_height = ui_line_height(screen));
 
-  if ((idx = ui_load_inline_picture(screen->window.disp, file_path, &width, &height, col_width,
-                                    line_height, 0, screen->term)) != -1 &&
+  if ((idx = ui_load_inline_picture(screen->window.disp, file_path, &width, &height,
+                                    col_width, line_height, 0, screen->term)) != -1 &&
       screen->prev_inline_pic != idx) {
     ui_add_frame_to_animation(screen->prev_inline_pic, idx);
     screen->prev_inline_pic = idx;

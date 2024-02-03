@@ -253,7 +253,7 @@ error:
 
 static int load_file(Display *display, char *path, u_int width, u_int height, int keep_aspect,
                      ui_picture_modifier_t *pic_mod, u_int depth, Pixmap *pixmap,
-                     PixmapMask *mask) {
+                     PixmapMask *mask, int *transparent) {
   pid_t pid;
   int fds[2];
   ssize_t size;
@@ -270,7 +270,8 @@ static int load_file(Display *display, char *path, u_int width, u_int height, in
       width == 0 && height == 0 &&
 #endif
       (*pixmap = calloc(1, sizeof(**pixmap)))) {
-    if (((*pixmap)->image = load_sixel_from_file(path, &(*pixmap)->width, &(*pixmap)->height)) &&
+    if (((*pixmap)->image = load_sixel_from_file(path, &(*pixmap)->width, &(*pixmap)->height,
+                                                 NULL)) &&
         /* resize_sixel() frees pixmap->image in failure. */
         resize_sixel(*pixmap, width, height, 4)) {
       goto loaded;
@@ -279,6 +280,10 @@ static int load_file(Display *display, char *path, u_int width, u_int height, in
     }
   }
 #endif
+
+  if (transparent) {
+    *transparent = 0;
+  }
 
 #ifdef __ANDROID__
   if (!(*pixmap = calloc(1, sizeof(**pixmap)))) {
@@ -415,7 +420,7 @@ Pixmap ui_imagelib_load_file_for_background(ui_window_t *win, char *path,
   Pixmap pixmap;
 
   if (!load_file(win->disp->display, path, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win), 0, pic_mod,
-                 win->disp->depth, &pixmap, NULL)) {
+                 win->disp->depth, &pixmap, NULL, NULL)) {
     pixmap = None;
   }
 
@@ -428,14 +433,15 @@ Pixmap ui_imagelib_get_transparent_background(ui_window_t *win, ui_picture_modif
   return None;
 }
 
-int ui_imagelib_load_file(ui_display_t *disp, char *path, u_int32_t **cardinal, Pixmap *pixmap,
-                          PixmapMask *mask, u_int *width, u_int *height, int keep_aspect) {
+int ui_imagelib_load_file(ui_display_t *disp, char *path, int keep_aspect, u_int32_t **cardinal,
+                          Pixmap *pixmap, PixmapMask *mask, u_int *width, u_int *height,
+                          int *transparent) {
   if (cardinal) {
     return 0;
   }
 
   if (!load_file(disp->display, path, *width, *height, keep_aspect, NULL,
-                 disp->depth, pixmap, mask)) {
+                 disp->depth, pixmap, mask, transparent)) {
     return 0;
   }
 

@@ -1948,6 +1948,7 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
 
   if (HAS_XTERM_LISTENER(vt_parser, get_picture_data)) {
     vt_char_t *data;
+    int transparent;
 
 #ifdef __DEBUG
     struct timeval tv1, tv2;
@@ -1956,7 +1957,7 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
 
     if ((data = (*vt_parser->xterm_listener->get_picture_data)(
                     vt_parser->xterm_listener->self, file_path, &img_cols, &img_rows, NULL, NULL,
-                    is_sixel ? &vt_parser->sixel_palette : NULL, keep_aspect, 0)) &&
+                    is_sixel ? &vt_parser->sixel_palette : NULL, &transparent, keep_aspect, 0)) &&
         clip_beg_row < img_rows && clip_beg_col < img_cols) {
       vt_char_t *p;
       int row;
@@ -1966,6 +1967,14 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
 
       /* Flush buffer before vt_screen_overwrite_chars(picture data). */
       flush_buffer(vt_parser);
+
+      if (transparent) {
+        /*
+         * Clear the cursor not to show it in the background of the transparent
+         * (sixel P2=1) image.
+         */
+        interrupt_vt100_cmd(vt_parser);
+      }
 
 #ifdef __DEBUG
       gettimeofday(&tv2, NULL);
@@ -2096,9 +2105,13 @@ static void define_drcs_picture(vt_parser_t *vt_parser, char *path, ef_charset_t
     }
 
     if (idx <= 0x5f &&
+        /*
+         * DRCS Sixel doesn't support P2=1 (transparent) for now.
+         * (RLogin 2.28.9 also doesn't support it)
+         */
         (data = (*vt_parser->xterm_listener->get_picture_data)(vt_parser->xterm_listener->self,
                                                                path, &cols, &rows, &cols_small,
-                                                               &rows_small, NULL, 0, 1))) {
+                                                               &rows_small, NULL, NULL, 0, 1))) {
       u_int pages;
       u_int offset = 0;
       vt_drcs_font_t *font;

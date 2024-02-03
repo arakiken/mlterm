@@ -143,7 +143,7 @@ static void load_image(ui_display_t *disp, ui_sb_view_conf_t *conf, const char *
   path = malloc(sizeof(char) * (len + 1));
   sprintf(path, "%s/%s.png", conf->dir, file);
 
-  if (!(*conf->load_image)(disp, path, NULL, pixmap, mask, width, height, 0)) {
+  if (!(*conf->load_image)(disp, path, 0, NULL, pixmap, mask, width, height, NULL)) {
 #ifdef __DEBUG
     printf("ui_imagelib_load_file() failed\n");
     ;
