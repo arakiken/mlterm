@@ -1556,6 +1556,12 @@ end:
 static void set_window_name(vt_parser_t *vt_parser,
                             u_char *name /* should be malloc'ed or NULL. */
                             ) {
+  if (vt_parser->use_locked_title) {
+    if (name)
+      free(name);
+    return;
+  }
+
   free(vt_parser->win_name);
   vt_parser->win_name = name;
 
@@ -7113,7 +7119,7 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap, vt_cha
                            vt_unicode_policy_t policy, u_int col_size_a, int use_char_combining,
                            int use_multi_col_char, const char *win_name, const char *icon_name,
                            int use_ansi_colors, vt_alt_color_mode_t alt_color_mode,
-                           vt_cursor_style_t cursor_style, int ignore_broadcasted_chars, int use_local_echo) {
+                           vt_cursor_style_t cursor_style, int ignore_broadcasted_chars, int use_local_echo, int use_locked_title) {
   vt_parser_t *vt_parser;
 
   if ((vt_parser = calloc(1, sizeof(vt_parser_t))) == NULL) {
@@ -7176,6 +7182,7 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap, vt_cha
   vt_parser->saved_vtmode_flags[1] = vt_parser->vtmode_flags[1] = INITIAL_VTMODE_FLAGS_1;
   vt_parser->ignore_broadcasted_chars = ignore_broadcasted_chars;
   vt_parser->use_local_echo = use_local_echo;
+  vt_parser->use_locked_title = use_locked_title;
 
   return vt_parser;
 

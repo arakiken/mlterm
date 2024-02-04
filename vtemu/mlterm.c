@@ -60,6 +60,7 @@ vt_term_t *mlterm_open(char *host, char *pass, int cols, int rows, u_int log_siz
   static int use_login_shell;
   static int logging_vt_seq;
   static int use_local_echo;
+  static int use_locked_title;
   static int use_auto_detect;
   static int use_ansi_colors;
   static char *term_type;
@@ -119,6 +120,7 @@ vt_term_t *mlterm_open(char *host, char *pass, int cols, int rows, u_int log_siz
 #ifdef USE_LOCAL_ECHO_BY_DEFAULT
     use_local_echo = 1;
 #endif
+    use_locked_title = 0;
     use_ansi_colors = 1;
 
     if ((conf = bl_conf_new())) {
@@ -213,6 +215,12 @@ vt_term_t *mlterm_open(char *host, char *pass, int cols, int rows, u_int log_siz
           use_local_echo = 1;
         }
 #endif
+      }
+
+      if ((value = bl_conf_get_value(conf, "use_locked_title"))) {
+        if (strcmp(value, "true") == 0) {
+            use_locked_title = 1;
+        }
       }
 
       if ((value = bl_conf_get_value(conf, "use_alt_buffer"))) {
@@ -328,7 +336,8 @@ vt_term_t *mlterm_open(char *host, char *pass, int cols, int rows, u_int log_siz
                               0 /* use_dynamic_comb */, BSM_STATIC, 0 /* vertical_mode */,
                               use_local_echo, NULL, NULL, use_ansi_colors, 0 /* alt_color_mode */,
                               0 /* use_ot_layout */, 0 /* cursor_style */,
-                              0 /* ignore_broadcasted_chars */))) {
+                              0 /* ignore_broadcasted_chars */,
+                              use_locked_title))) {
     goto error;
   }
 

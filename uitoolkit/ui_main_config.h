@@ -110,6 +110,7 @@ typedef struct ui_main_config {
   int8_t use_bold_font;
   int8_t use_italic_font;
   int8_t use_local_echo;
+  int8_t use_locked_title;
   int8_t use_x11_forwarding;
   int8_t use_auto_detect;
   int8_t unlimit_log_size;

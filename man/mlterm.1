@@ -231,6 +231,11 @@ built-in simple scrollbar.
 Specify a title for a mlterm window.
 The default is "\fBmlterm\fR".
 .TP
+\fB\-\-locktitle\fR(=\fIbool\fR)
+Lock the title for a mlterm window.  If a title is locked then
+OSC 0/2 esc sequences to change it are ignored.
+The default is \fBfalse\fR.
+.TP
 \fB\-U\fR, \fB\-\-viaucs\fR(=\fIbool\fR)
 Force to convert a selection (i.e., copy-and-paste strings) whose
 type is not UTF8_STRING to the current mlterm encoding via Unicode.

@@ -315,6 +315,7 @@ typedef struct vt_parser {
   int is_transferring_data : 2; /* 0x1=send 0x2=recv */
   int is_zmodem_ready : 1;
   int use_local_echo : 1;
+  int use_locked_title : 1;
 
 #ifdef USE_VT52
   int is_vt52_mode : 1;
@@ -359,7 +360,7 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap, vt_cha
                            vt_unicode_policy_t policy, u_int col_size_a, int use_char_combining,
                            int use_multi_col_char, const char *win_name, const char *icon_name,
                            int use_ansi_colors, vt_alt_color_mode_t alt_color_mode,
-                           vt_cursor_style_t cursor_style, int ignore_broadcasted_chars, int use_local_echo);
+                           vt_cursor_style_t cursor_style, int ignore_broadcasted_chars, int use_local_echo, int use_locked_title);
 
 int vt_parser_destroy(vt_parser_t *vt_parser);
 
