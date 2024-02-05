@@ -406,7 +406,7 @@ int vt_ot_layout(vt_ot_layout_state_t state, vt_char_t *src, u_int src_len) {
     font = vt_char_font(src + src_pos);
     code = vt_char_code(src + src_pos);
 
-    if (FONT_CS(font) == US_ASCII) {
+    if (FONT_CS(font) == US_ASCII && !vt_get_picture_char(src + src_pos)) {
       font &= ~US_ASCII;
       font |= ISO10646_UCS4_1;
     }

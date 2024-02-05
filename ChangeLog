@@ -1,5 +1,7 @@
 2024-02-05  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_ot_layout.c: Skip pictures in layouting characters in vt_ot_layout().
+
 	* Fix pull request #83.
 	  - Add "use_locked_title" to OSC 5379-5383.
 	  - --locktitle/use_locked_title option ignores not only OSC 0 and 2
