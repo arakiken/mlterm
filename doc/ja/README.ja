@@ -1100,6 +1100,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
       o use_local_echo (true/*false*) (#)
         local echo mode を有効
 
+      o use_locked_title (true/*false*)
+        window or icon title の変更を許可しない。
+
       o use_login_shell (true/*false*)
         ログインシェルを使うかどうか
 

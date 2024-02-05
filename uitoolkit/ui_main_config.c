@@ -408,8 +408,6 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (strcmp(value, "true") == 0) {
       main_config->use_locked_title = 1;
     }
-  } else {
-    main_config->use_locked_title = 0;
   }
 
 #ifdef USE_XLIB

@@ -300,7 +300,8 @@ vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int t
                    use_auto_detect, logging_vt_seq, policy, col_size_a, use_char_combining,
                    use_multi_col_char, use_ctl, bidi_mode, bidi_separators, use_dynamic_comb,
                    bs_mode, vertical_mode, use_local_echo, win_name, icon_name, use_ansi_colors,
-                   alt_color_mode, use_ot_layout, cursor_style, ignore_broadcasted_chars, use_locked_title))) {
+                   alt_color_mode, use_ot_layout, cursor_style, ignore_broadcasted_chars,
+                   use_locked_title))) {
             vt_term_plug_pty(terms[num_terms++], pty);
             vt_set_pty_winsize(pty, cols, rows, 0, 0);
 
@@ -336,12 +337,13 @@ vt_term_t *vt_create_term(const char *term_type, u_int cols, u_int rows, u_int t
    */
 
   if (!(terms[num_terms] = vt_term_new(term_type, cols, rows, tab_size, log_size, encoding,
-                                          is_auto_encoding, use_auto_detect, logging_vt_seq,
-                                          policy, col_size_a, use_char_combining,
-                                          use_multi_col_char, use_ctl, bidi_mode, bidi_separators,
-                                          use_dynamic_comb, bs_mode, vertical_mode, use_local_echo,
-                                          win_name, icon_name, use_ansi_colors, alt_color_mode,
-                                          use_ot_layout, cursor_style, ignore_broadcasted_chars, use_locked_title))) {
+                                       is_auto_encoding, use_auto_detect, logging_vt_seq,
+                                       policy, col_size_a, use_char_combining,
+                                       use_multi_col_char, use_ctl, bidi_mode, bidi_separators,
+                                       use_dynamic_comb, bs_mode, vertical_mode, use_local_echo,
+                                       win_name, icon_name, use_ansi_colors, alt_color_mode,
+                                       use_ot_layout, cursor_style, ignore_broadcasted_chars,
+                                       use_locked_title))) {
     return NULL;
   }
 

@@ -2485,7 +2485,8 @@ static void vte_terminal_init(VteTerminal *terminal) {
                                        main_config.icon_name, main_config.use_ansi_colors,
                                        main_config.alt_color_mode, main_config.use_ot_layout,
                                        main_config.blink_cursor ? CS_BLINK|CS_BLOCK : CS_BLOCK,
-                                       main_config.ignore_broadcasted_chars);
+                                       main_config.ignore_broadcasted_chars,
+                                       main_config.use_locked_title);
   if (!init_inherit_ptys) {
     u_int num;
     vt_term_t **terms;

@@ -53,8 +53,8 @@ version 20230401
                   trim_trailing_newline_in_pasting | type_engine | ul_color |
                   underline_offset | unicode_full_width_areas | unicode_half_width_areas |
                   unicode_noconv_areas | use_alt_buffer | use_ansi_colors | use_anti_alias |
-                  use_auto_detect | use_bold_font | use_combining | use_ctl |
-                  use_dynamic_comb | use_italic_font | use_local_echo | use_multi_column_char |
+                  use_auto_detect | use_bold_font | use_combining | use_ctl | use_dynamic_comb |
+                  use_italic_font | use_local_echo | use_locked_title | use_multi_column_char |
                   use_ot_layout | use_transbg | use_urgent_bell | use_variable_column_width |
                   use_vertical_cursor | vertical_mode | vt_color_mode | vt_seq_format |
                   wall_picture | word_separators
@@ -75,8 +75,8 @@ version 20230401
                   trim_trailing_newline_in_pasting | type_engine | ul_color | underline_offset |
                   unicode_full_width_areas | unicode_half_width_areas | unicode_noconv_areas |
                   use_aafont | use_alt_buffer | use_ansi_colors | use_anti_alias |
-                  use_auto_detect | use_bold_font | use_combining | use_ctl |
-                  use_dynamic_comb | use_italic_font | use_local_echo | use_multi_column_char |
+                  use_auto_detect | use_bold_font | use_combining | use_ctl | use_dynamic_comb |
+                  use_italic_font | use_local_echo | use_locked_title | use_multi_column_char |
                   use_ot_layout | use_transbg | use_variable_column_width | use_vertical_cursor |
                   vertical_mode | vt_seq_format | wall_picture | word_separators
 
@@ -175,6 +175,7 @@ version 20230401
   use_italic_font = true | false | switch
   use_dynamic_comb = true | false | switch
   use_local_echo = true | false | switch
+  use_locked_title = true | false | switch
   use_multi_column_char = true | false | switch
   use_ot_layout = true | false | switch
   use_transbg = true | false | switch

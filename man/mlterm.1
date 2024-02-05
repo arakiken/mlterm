@@ -233,7 +233,7 @@ The default is "\fBmlterm\fR".
 .TP
 \fB\-\-locktitle\fR(=\fIbool\fR)
 Lock the title for a mlterm window.  If a title is locked then
-OSC 0/2 esc sequences to change it are ignored.
+OSC 0, 1 and 2 esc sequences to change it are ignored.
 The default is \fBfalse\fR.
 .TP
 \fB\-U\fR, \fB\-\-viaucs\fR(=\fIbool\fR)
@@ -1883,6 +1883,10 @@ Use italic font for characters with the italic attribute.
 .TP
 \fBuse_local_echo=\fIbool\fR (\fB\-\-loecho\fR)
 Use local echo mode.
+.TP
+\fBuse_locked_title=\fIbool\fR (\fB\-\-locktitle\fR)
+Lock the title for a mlterm window.  If a title is locked then
+OSC 0, 1 and 2 esc sequences to change it are ignored.
 .TP
 \fBuse_login_shell=\fIbool\fR (\fB\-L\fR, \fB\-\-ls\fR)
 Whether to use login shell or not.

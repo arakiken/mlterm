@@ -1554,11 +1554,9 @@ end:
 }
 
 static void set_window_name(vt_parser_t *vt_parser,
-                            u_char *name /* should be malloc'ed or NULL. */
-                            ) {
+                            u_char *name /* should be malloc'ed or NULL. */) {
   if (vt_parser->use_locked_title) {
-    if (name)
-      free(name);
+    free(name);
     return;
   }
 
@@ -1577,8 +1575,12 @@ static void set_window_name(vt_parser_t *vt_parser,
 }
 
 static void set_icon_name(vt_parser_t *vt_parser,
-                          u_char *name /* should be malloc'ed or NULL. */
-                          ) {
+                          u_char *name /* should be malloc'ed or NULL. */) {
+  if (vt_parser->use_locked_title) {
+    free(name);
+    return;
+  }
+
   free(vt_parser->icon_name);
   vt_parser->icon_name = name;
 
@@ -7119,7 +7121,8 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap, vt_cha
                            vt_unicode_policy_t policy, u_int col_size_a, int use_char_combining,
                            int use_multi_col_char, const char *win_name, const char *icon_name,
                            int use_ansi_colors, vt_alt_color_mode_t alt_color_mode,
-                           vt_cursor_style_t cursor_style, int ignore_broadcasted_chars, int use_local_echo, int use_locked_title) {
+                           vt_cursor_style_t cursor_style, int ignore_broadcasted_chars,
+                           int use_local_echo, int use_locked_title) {
   vt_parser_t *vt_parser;
 
   if ((vt_parser = calloc(1, sizeof(vt_parser_t))) == NULL) {
@@ -8066,6 +8069,12 @@ int vt_parser_get_config(
     } else {
       value = "false";
     }
+  } else if (strcmp(key, "use_locked_title") == 0) {
+    if (vt_parser->use_locked_title) {
+      value = "true";
+    } else {
+      value = "false";
+    }
   } else if (strcmp(key, "challenge") == 0) {
     value = vt_get_proto_challenge();
     if (to_menu < 0) {
@@ -8262,6 +8271,12 @@ int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
 
     if ((flag = true_or_false(value)) != -1) {
       format_other_keys = flag;
+    }
+  } else if (strcmp(key, "use_locked_title") == 0) {
+    int flag;
+
+    if ((flag = true_or_false(value)) != -1) {
+      vt_parser->use_locked_title = flag;
     }
   } else if (strncmp(key, "send_file", 9) == 0) {
     if (strstr(value, "..")) {
