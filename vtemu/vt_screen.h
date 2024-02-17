@@ -165,6 +165,8 @@ vt_line_t *vt_screen_get_line_in_screen(vt_screen_t *screen, int row);
 #define vt_screen_get_cursor_line(screen) \
   vt_edit_get_line((screen)->edit, vt_cursor_row((screen)->edit))
 
+void vt_screen_unhighlight_cursor(vt_screen_t *screen);
+
 void vt_screen_set_modified_all(vt_screen_t *screen);
 
 int vt_screen_add_logical_visual(vt_screen_t *screen, vt_logical_visual_t *logvis);

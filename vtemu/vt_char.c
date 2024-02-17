@@ -30,6 +30,7 @@
 #define IS_ITALIC(attr) ((attr) & (0x1 << 14))
 #define IS_BOLD(attr) ((attr) & (0x1 << 13))
 #define IS_FULLWIDTH(attr) ((attr) & (0x1 << 12))
+#define SET_FULLWIDTH(attr, flag) (((attr) & ~(0x1 << 12)) | ((flag) << 12))
 #define COLUMNS(attr) ((((attr) >> 12) & 0x1) + 1);
 #define CHARSET(attr) \
   (IS_UNICODE_AREA_CS(attr) ? (ISO10646_UCS4_1 | (((attr) >> 3) & 0x100)) : (((attr) >> 3) & 0x1ff))
@@ -55,6 +56,7 @@
 
 #define IS_AWIDTH(c) ((c)->u.ch.attr2 & 0x2) /* Ambiguous width */
 #define IS_ZEROWIDTH(c) ((c)->u.ch.attr2 & 0x1)
+#define SET_ZEROWIDTH(c, flag) ((c)->u.ch.attr2 = ((c)->u.ch.attr2 & ~0x1) | (flag))
 
 #ifdef USE_COMPACT_TRUECOLOR
 #define FG_COLOR(ch) ((ch)->u.ch.fg_color)
@@ -323,7 +325,7 @@ void vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidt
                  int is_awidth, int is_comb, vt_color_t fg_color, vt_color_t bg_color,
                  int is_bold, int is_italic, int line_style, int is_blinking, int is_protected) {
   u_int idx;
-  int is_zerowidth;
+  int is_zerowidth = 0;
 
   vt_char_final(ch);
 
@@ -348,29 +350,32 @@ void vt_char_set(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int is_fullwidt
     idx = 0;
   }
 
-#if 1
-  /*
-   * 0 should be returned for all zero-width characters of Unicode,
-   * but 0 is returned for following characters alone for now.
-   * 200C;ZERO WIDTH NON-JOINER
-   * 200D;ZERO WIDTH JOINER
-   * 200E;LEFT-TO-RIGHT MARK
-   * 200F;RIGHT-TO-LEFT MARK
-   * 202A;LEFT-TO-RIGHT EMBEDDING
-   * 202B;RIGHT-TO-LEFT EMBEDDING
-   * 202C;POP DIRECTIONAL FORMATTING
-   * 202D;LEFT-TO-RIGHT OVERRIDE
-   * 202E;RIGHT-TO-LEFT OVERRIDE
-   *
-   * see is_noconv_unicode() in vt_parser.c
-   */
-  if ((code & ~0x2f) == 0x2000 /* 0x2000-0x2000f or 0x2020-0x202f */ && cs == ISO10646_UCS4_1 &&
-      ((0x200c <= code && code <= 0x200f) || (0x202a <= code && code <= 0x202e))) {
-    is_zerowidth = 1;
-  } else {
-    is_zerowidth = 0;
+  if (cs == ISO10646_UCS4_1) {
+    /*
+     * 0 should be returned for all zero-width characters of Unicode,
+     * but 0 is returned for following characters alone for now.
+     * 200C;ZERO WIDTH NON-JOINER
+     * 200D;ZERO WIDTH JOINER
+     * 200E;LEFT-TO-RIGHT MARK
+     * 200F;RIGHT-TO-LEFT MARK
+     * 202A;LEFT-TO-RIGHT EMBEDDING
+     * 202B;RIGHT-TO-LEFT EMBEDDING
+     * 202C;POP DIRECTIONAL FORMATTING
+     * 202D;LEFT-TO-RIGHT OVERRIDE
+     * 202E;RIGHT-TO-LEFT OVERRIDE
+     *
+     * see is_noconv_unicode() in vt_parser.c
+     */
+    if ((code & ~0x2f) == 0x2000 /* 0x2000-0x2000f or 0x2020-0x202f */) {
+      if ((0x200c <= code && code <= 0x200f) || (0x202a <= code && code <= 0x202e)) {
+        is_zerowidth = 1;
+      }
+    }
+    /* 0xfe00 - 0xfe0f (EF_COMBINING) ... variation selectors */
+    else if ((code & ~0xf) == 0xfe00 /* 0xfe00 - 0xfe0f */) {
+      is_zerowidth = 1;
+    }
   }
-#endif
 
   ch->u.ch.attr2 = (is_awidth ? 2 : 0) | is_zerowidth;
 
@@ -561,6 +566,32 @@ vt_char_t *vt_get_picture_char(vt_char_t *ch) {
   return NULL;
 }
 
+int vt_char_unset_picture(vt_char_t *ch) {
+  if (!IS_SINGLE_CH(ch->u.ch.attr)) {
+    vt_char_t *multi_ch = ch->u.multi_ch;
+
+    if (IS_COMB_TRAILING(multi_ch->u.ch.attr) &&
+        CHARSET(multi_ch[1].u.ch.attr) == PICTURE_CHARSET) {
+      vt_char_t new_ch;
+      u_int count;
+
+      vt_char_init(&new_ch);
+      memcpy(&new_ch, multi_ch, sizeof(vt_char_t)); /* if (!IS_SINGLE_CH) block in vt_char_copy() */
+
+      for (count = 1; IS_COMB_TRAILING(ch[count].u.ch.attr); count++) {
+        vt_char_combine_simple(&new_ch, multi_ch + count + 1);
+      }
+
+      free(multi_ch); /* if (!IS_SINGLE_CH) block in vt_char_final() */
+      memcpy(ch, &new_ch, sizeof(vt_char_t));
+
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
 /*
  * Not used for now.
  */
@@ -685,6 +716,30 @@ u_int vt_char_cols(vt_char_t *ch) {
     }
   } else {
     return vt_char_cols(ch->u.multi_ch);
+  }
+}
+
+void vt_char_set_fullwidth(vt_char_t *ch, int is_fullwidth) {
+  u_int attr;
+
+  attr = ch->u.ch.attr;
+
+  if (IS_SINGLE_CH(attr)) {
+    ch->u.ch.attr = SET_FULLWIDTH(attr, is_fullwidth);
+  } else {
+    return vt_char_set_fullwidth(ch->u.multi_ch, is_fullwidth);
+  }
+}
+
+void vt_char_set_zerowidth(vt_char_t *ch, int is_zerowidth) {
+  u_int attr;
+
+  attr = ch->u.ch.attr;
+
+  if (IS_SINGLE_CH(attr)) {
+    SET_ZEROWIDTH(ch, is_zerowidth);
+  } else {
+    return vt_char_set_zerowidth(ch->u.multi_ch, is_zerowidth);
   }
 }
 

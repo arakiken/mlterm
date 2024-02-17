@@ -177,7 +177,8 @@ int vt_term_resize(vt_term_t *term, u_int cols, u_int rows, u_int width_pix, u_i
 
 #define vt_term_cursor_row_in_screen(term) vt_screen_cursor_row_in_screen((term)->screen)
 
-int vt_term_unhighlight_cursor(vt_term_t *term, int revert_visual);
+/* Must be called in visual context. */
+void vt_term_unhighlight_cursor(vt_term_t *term, int revert_visual);
 
 #define vt_term_get_cols(term) vt_screen_get_cols((term)->screen)
 

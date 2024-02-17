@@ -588,10 +588,7 @@ int vt_term_resize(vt_term_t *term, u_int cols, u_int rows, u_int width_pix, u_i
   return ret;
 }
 
-int vt_term_unhighlight_cursor(vt_term_t *term, int revert_visual) {
-  vt_line_t *line;
-  int ret;
-
+void vt_term_unhighlight_cursor(vt_term_t *term, int revert_visual) {
 #ifdef DEBUG
   if (term->screen->logvis && !term->screen->logvis->is_visual) {
     bl_debug_printf(BL_DEBUG_TAG
@@ -602,21 +599,12 @@ int vt_term_unhighlight_cursor(vt_term_t *term, int revert_visual) {
 
   vt_screen_logical(term->screen);
 
-  if ((line = vt_screen_get_cursor_line(term->screen)) == NULL || vt_line_is_empty(line)) {
-    ret = 0;
-  } else {
-    vt_line_set_modified(line, vt_screen_cursor_char_index(term->screen),
-                         vt_screen_cursor_char_index(term->screen));
-
-    ret = 1;
-  }
+  vt_screen_unhighlight_cursor(term->screen);
 
   if (revert_visual) {
     /* vt_screen_render(term->screen); */
     vt_screen_visual(term->screen);
   }
-
-  return ret;
 }
 
 /*

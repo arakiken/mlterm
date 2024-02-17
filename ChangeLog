@@ -1,3 +1,16 @@
+2024-02-17  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c:
+	  - Support U+FE0E and U+FE0F.
+	  - Make the 1st U+1F1E6 - U+1F1FF (regional indicator symbol letter a-z) char
+	    fullwidth and combine the 2nd char to the 1st.
+	  - Make U+1F3FB - U+1F3FF (emoji modifier fitzpatric type 1-6) char zerowidth.
+
+	* vt_screen.[ch]: Add vt_screen_unhighlight_cursor().
+
+	* vt_char.[ch]:
+	  Add vt_char_set_{fullwidth|zerowidth}() and vt_char_unset_picture().
+
 2024-02-05  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_ot_layout.c: Skip pictures in layouting characters in vt_ot_layout().

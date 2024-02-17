@@ -169,6 +169,8 @@ vt_char_t *vt_get_combining_chars(vt_char_t *ch, u_int *size);
 
 vt_char_t *vt_get_picture_char(vt_char_t *ch);
 
+int vt_char_unset_picture(vt_char_t *ch);
+
 #if 0
 /*
  * Not used for now.
@@ -192,6 +194,12 @@ vt_font_t vt_char_font(vt_char_t *ch);
 
 u_int vt_char_cols(vt_char_t *ch);
 
+/* is_fullwidth == 1 -> occupy 2 columns */
+void vt_char_set_fullwidth(vt_char_t *ch, int is_fullwidth);
+
+/* is_zerowidth == 1 -> draw nothing */
+void vt_char_set_zerowidth(vt_char_t *ch, int is_zerowidth);
+
 int vt_char_is_fullwidth(vt_char_t *ch);
 
 int vt_char_is_zerowidth(vt_char_t *ch);
@@ -203,7 +211,7 @@ vt_color_t vt_char_fg_color(vt_char_t *ch);
 void vt_char_set_fg_color(vt_char_t *ch, vt_color_t color);
 
 #define vt_char_picture_id(ch) vt_char_fg_color(ch)
-#define vt_char_set_picture_id(ch, idx) vt_char_set_fg_color(ch, idx)
+#define vt_char_set_picture_id(ch, idx) vt_char_set_fg_color(ch, idx); vt_char_set_bg_color(ch, idx)
 
 vt_color_t vt_char_bg_color(vt_char_t *ch);
 

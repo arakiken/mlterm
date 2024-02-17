@@ -1438,6 +1438,15 @@ vt_line_t *vt_screen_get_line_in_screen(vt_screen_t *screen, int row) {
   }
 }
 
+void vt_screen_unhighlight_cursor(vt_screen_t *screen) {
+  vt_line_t *line;
+
+  if ((line = vt_screen_get_cursor_line(screen)) && !vt_line_is_empty(line)) {
+    int char_index = vt_cursor_char_index(screen->edit);
+    vt_line_set_modified(line, char_index, char_index);
+  }
+}
+
 void vt_screen_set_modified_all(vt_screen_t *screen) {
   int row;
   vt_line_t *line;

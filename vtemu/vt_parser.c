@@ -1052,28 +1052,52 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
     fg_color = bg_color;
   }
 
-  if (vt_parser->use_char_combining && is_comb) {
-    if (vt_parser->w_buf.filled_len == 0) {
-      /*
-       * vt_line_set_modified() is done in vt_screen_combine_with_prev_char()
-       * internally.
-       */
-      if (vt_screen_combine_with_prev_char(vt_parser->screen, ch, cs, is_fullwidth, is_awidth,
-                                           is_comb, fg_color, bg_color, is_bold, is_italic,
-                                           line_style, is_blinking, is_protected)) {
-        return;
+  if (is_comb) {
+    if ((ch & ~0x01) == 0xfe0e) {
+      vt_char_t *prev_ch;
+
+      if (vt_parser->w_buf.filled_len < 1) {
+        prev_ch = vt_screen_get_n_prev_char(vt_parser->screen, 1);
+      } else {
+        prev_ch = &vt_parser->w_buf.chars[vt_parser->w_buf.filled_len - 1];
       }
-    } else {
-      if (vt_char_combine(&vt_parser->w_buf.chars[vt_parser->w_buf.filled_len - 1], ch, cs,
-                          is_fullwidth, is_awidth, is_comb, fg_color, bg_color, is_bold, is_italic,
-                          line_style, is_blinking, is_protected)) {
-        return;
+
+      if (ch == 0xfe0f) {
+        (*vt_parser->xterm_listener->get_emoji_data)(vt_parser->xterm_listener->self,
+                                                     prev_ch, NULL);
+      } else {
+        /* 0xfe0e */
+        vt_char_unset_picture(prev_ch);
+      }
+
+      if (vt_parser->w_buf.filled_len < 1) {
+        vt_screen_unhighlight_cursor(vt_parser->screen);
       }
     }
 
-    /*
-     * if combining failed , char is normally appended.
-     */
+    if (vt_parser->use_char_combining) {
+      if (vt_parser->w_buf.filled_len == 0) {
+        /*
+         * vt_line_set_modified() is done in vt_screen_combine_with_prev_char()
+         * internally.
+         */
+        if (vt_screen_combine_with_prev_char(vt_parser->screen, ch, cs, is_fullwidth, is_awidth,
+                                             is_comb, fg_color, bg_color, is_bold, is_italic,
+                                             line_style, is_blinking, is_protected)) {
+          return;
+        }
+      } else {
+        if (vt_char_combine(&vt_parser->w_buf.chars[vt_parser->w_buf.filled_len - 1], ch, cs,
+                            is_fullwidth, is_awidth, is_comb, fg_color, bg_color, is_bold,
+                            is_italic, line_style, is_blinking, is_protected)) {
+          return;
+        }
+      }
+
+      /*
+       * if combining failed , char is normally appended.
+       */
+    }
   }
 
 #ifndef NO_IMAGE
@@ -1114,6 +1138,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
 
     vt_char_t *emoji1;
     vt_char_t *emoji2;
+    int regional_indicator = 0;
 
     emoji1 = &vt_parser->w_buf.chars[vt_parser->w_buf.filled_len - 1];
     emoji2 = NULL;
@@ -1127,11 +1152,16 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
         prev_ch = emoji1 - 1;
       }
 
-      if (prev_ch) {
-        if (0x1f1e6 <= vt_char_code(prev_ch) && vt_char_code(prev_ch) <= 0x1f1ff) {
-          emoji2 = emoji1;
-          emoji1 = prev_ch;
-        }
+      if (prev_ch && 0x1f1e6 <= vt_char_code(prev_ch) && vt_char_code(prev_ch) <= 0x1f1ff) {
+        emoji2 = emoji1;
+        emoji1 = prev_ch;
+
+        /*
+         * REGIONAL INDICATOR SYMBOL LETTER is half width by default,
+         * but forcibly set to full width. (emoji2 is combined to emoji1)
+         */
+        vt_char_set_fullwidth(emoji1, 1);
+        regional_indicator = 1;
       }
     } else if (0x1f3fb <= ch && ch <= 0x1f3ff) /* EMOJI MODIFIER FITZPATRIC TYPE 1-6 */ {
       vt_char_t *prev_ch;
@@ -1148,30 +1178,53 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
       }
     }
 
-    if ((*vt_parser->xterm_listener->get_emoji_data)(vt_parser->xterm_listener->self, emoji1,
-                                                     emoji2)) {
+    if ((*vt_parser->xterm_listener->get_emoji_data)(vt_parser->xterm_listener->self,
+                                                     emoji1, emoji2)) {
       if (emoji2) {
-        /* Base char: emoji1, Comb1: picture, Comb2: emoji2 */
-        if (emoji2 == emoji1 + 1) {
-          vt_char_combine(emoji1, ch, cs, is_fullwidth, is_awidth, is_comb, fg_color, bg_color,
-                          is_bold, is_italic, line_style, is_blinking, is_protected);
+        if (regional_indicator) {
+          /*
+           * XXX
+           * The property of emoji2 is not EF_COMBINING, but it is forcibly combined
+           * to emoji1.
+           *
+           * Base char: emoji1, Comb1: picture, Comb2: emoji2
+           */
+          if (emoji2 == emoji1 + 1) {
+            vt_char_combine(emoji1, ch, cs, is_fullwidth, is_awidth, is_comb, fg_color, bg_color,
+                            is_bold, is_italic, line_style, is_blinking, is_protected);
+          } else {
+            /*
+             * vt_line_set_modified() is done in
+             * vt_screen_combine_with_prev_char() internally.
+             */
+            vt_screen_combine_with_prev_char(vt_parser->screen, ch, cs, is_fullwidth, is_awidth,
+                                             is_comb, fg_color, bg_color, is_bold, is_italic,
+                                             line_style, is_blinking, is_protected);
+          }
+          vt_parser->w_buf.filled_len--;
         } else {
           /*
-           * vt_line_set_modified() is done in
-           * vt_screen_combine_with_prev_char() internally.
+           * The property of EMOJI MODIFIER FITZPATRIC TYPE 1-6 is EF_FULLWIDTH.
+           * Don't draw emoji2 by setting is_zerowidth to 1.
            */
-          vt_screen_combine_with_prev_char(vt_parser->screen, ch, cs, is_fullwidth, is_awidth,
-                                           is_comb, fg_color, bg_color, is_bold, is_italic,
-                                           line_style, is_blinking, is_protected);
+          vt_char_set_zerowidth(emoji2, 1);
         }
-        vt_parser->w_buf.filled_len--;
       }
 
-      /*
-       * Flush buffer before searching and deleting unused pictures
-       * in x_picture.c.
-       */
+      /* Flush buffer before searching and deleting unused pictures in x_picture.c. */
       flush_buffer(vt_parser);
+    } else {
+      if (emoji2) {
+        if (regional_indicator) {
+          /* revert to the original value. */
+          vt_char_set_fullwidth(emoji1, 0);
+        }
+
+        if ((*vt_parser->xterm_listener->get_emoji_data)(vt_parser->xterm_listener->self,
+                                                         emoji2, NULL)) {
+          flush_buffer(vt_parser);
+        }
+      }
     }
   }
 }
