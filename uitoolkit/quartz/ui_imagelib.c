@@ -128,7 +128,7 @@ static int check_has_alpha(u_char *image, u_int width, u_int height) {
 
   for (y = 0; y < height; y++) {
     for (x = 0; x < width; x++, p += 4) {
-      if (*p != 0xff) {
+      if (*p < 0x80) {
         return 1;
       }
     }

@@ -1927,17 +1927,6 @@ if test "${MAKE_DIRS}" != "" ; then
 fi
 
 #
-# --- check for undefined symbol ---
-#
-if test "x$allow_undefined_flag" = "xunsupported" ; then
-	# link ef_char.lo to module/*.dll to resolve addresses in creating dll.
-	EF_CHAR_LO="../src/ef_char.lo"
-else
-	EF_CHAR_LO=""
-fi
-AC_SUBST(EF_CHAR_LO)
-
-#
 # ====> check for baselib <===
 #
 

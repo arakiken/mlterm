@@ -87,12 +87,10 @@ How to build & install mlterm co-operating with Java.
     Control+F2: Open new pty in current mlterm window.
     Control+F3: Switch to a next free pty.
 
-* On-line demo (win32 only)
-  http://mlterm.sourceforge.net/mltermlet.jnlp
-
   o If libeay32.dll exits in system foler (c:\windows\system) and it is not
-    compatible with the one which libssh2 depends on, this demo doesn't start.
+    compatible with the one which libssh2 depends on, mlterm doesn't start.
     Remove libeay32.dll in system folder in advance.
+
   o The path of RSA public key is %HOMEPATH%\mlterm\id_rsa.pub and the one of
     private key is %HOMEPATH%\mlterm\id_rsa by default.
 

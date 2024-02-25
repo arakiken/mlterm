@@ -55,7 +55,8 @@
                 :(u_int)width
                 :(u_int)height
                 :(int)dst_x
-                :(int)dst_y;
+                :(int)dst_y
+                :(BOOL)hasAlpha;
 #if 0
 - (void)scroll:(int)src_x:(int)src_y:(u_int)width:(u_int)height:(int)dst_x:(int)dst_y;
 #endif
@@ -1251,13 +1252,19 @@ static ui_window_t *get_current_window(ui_window_t *win) {
                 :(u_int)width
                 :(u_int)height
                 :(int)dst_x
-                :(int)dst_y {
+                :(int)dst_y
+                :(BOOL)hasAlpha {
   CGImageRef clipped = CGImageCreateWithImageInRect(
       src, CGRectMake(src_x, src_y, width, height));
-  CGContextDrawImage(
-      ctx,
-      CGRectMake(dst_x, ACTUAL_HEIGHT(uiwindow) - dst_y - height, width, height),
-      clipped);
+  if (hasAlpha) {
+    CGContextSetBlendMode(ctx, kCGBlendModeNormal /* kCGBlendModeMultiply */);
+  }
+  CGContextDrawImage(ctx,
+                     CGRectMake(dst_x, ACTUAL_HEIGHT(uiwindow) - dst_y - height, width, height),
+                     clipped);
+  if (hasAlpha) {
+    CGContextSetBlendMode(ctx, kCGBlendModeCopy);
+  }
   CGImageRelease(clipped);
 }
 
@@ -1419,8 +1426,8 @@ void view_draw_rect_frame(MLTermView *view, ui_color_t *color, int x1, int y1,
 }
 
 void view_copy_area(MLTermView *view, Pixmap src, int src_x, int src_y,
-                    u_int width, u_int height, int dst_x, int dst_y) {
-  [view copyArea:src:src_x:src_y:width:height:dst_x:dst_y];
+                    u_int width, u_int height, int dst_x, int dst_y, int hasAlpha) {
+  [view copyArea:src:src_x:src_y:width:height:dst_x:dst_y:hasAlpha];
 }
 
 void view_scroll(MLTermView *view, int src_x, int src_y, u_int width,

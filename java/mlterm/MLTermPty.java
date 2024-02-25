@@ -16,6 +16,7 @@ public class MLTermPty {
 
   private static void loadLibraryFromJar() {
     Manifest mf = null;
+    long jarLastModified = (new File(System.getProperty("java.class.path"))).lastModified();
 
     try {
       Enumeration urls =
@@ -59,6 +60,12 @@ public class MLTermPty {
 
     byte[] buf = new byte[4096];
     for (int count = 0; count < files.length; count++) {
+      // jarLastModified == 0L means that jar file is not found.
+      if (jarLastModified > 0L &&
+          (new File(dir + files[count])).lastModified() >= jarLastModified) {
+        continue;
+      }
+
       if (true) {
         System.out.println("Writing " + dir + files[count]);
       }
@@ -131,18 +138,23 @@ public class MLTermPty {
   }
 
   static {
-    try {
-      if (DEBUG) {
-        System.out.println(System.getProperty("java.library.path"));
-      }
+    if (DEBUG) {
+      System.out.println(System.getProperty("java.library.path"));
+    }
 
-      System.loadLibrary("MLTermPty");
-    } catch (UnsatisfiedLinkError e) {
-      if (DEBUG) {
-        e.printStackTrace();
-      }
-
+    if (true) {
+      // Always load ~/.mlterm/java/*.dll
       loadLibraryFromJar();
+    } else {
+      try {
+        System.loadLibrary("MLTermPty");
+      } catch (UnsatisfiedLinkError e) {
+        if (DEBUG) {
+          e.printStackTrace();
+        }
+
+        loadLibraryFromJar();
+      }
     }
   }
 

@@ -1,3 +1,17 @@
+2024-02-24  Araki Ken  <arakiken@users.sf.net>
+
+	* cocoa.[hm], cocoatouch.m:
+	  Add hasAlpha to arguments of MLTermView::copyArea and view_copy_area().
+	  If hasAlpha is true, call CGCOntextSetBlendMode(kCGBlendModeNormal).
+
+	* quartz/ui_window.c:
+	  ui_window_copy_area() calls view_copy_area() with hasAlpha=1 if mask is not NULL.
+
+	* encodefilter/module/Makefile.in, configure.in:
+	  Link ../src/libmef.la to libmef_XXXX.la instead of @EF_CHARA_LO@.
+
+	* MLTermPty.java: Load MLTermPty.dll from ~/.mlterm/java all the time.
+
 2024-02-17  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c:

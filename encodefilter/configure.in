@@ -96,12 +96,9 @@ AC_MSG_CHECKING([for undefined symbol])
 if test "x$allow_undefined_flag" = "xunsupported" ; then
 	AC_MSG_RESULT([not supported])
 	NO_UNDEFINED_FLAG="-no-undefined"
-	# link ef_char.lo to module/*.dll to resolve addresses in creating dll.
-	EF_CHAR_LO="../src/ef_char.lo"
 else
 	AC_MSG_RESULT(supported)
 	NO_UNDEFINED_FLAG=""
-	EF_CHAR_LO=""
 fi
 if test "x${POBL_BUILDDIR}" != "x" ; then
 	LPOBL="${POBL_BUILDDIR}/src/libpobl.la"
@@ -109,7 +106,6 @@ else
 	LPOBL='-lpobl'
 fi
 AC_SUBST(NO_UNDEFINED_FLAG)
-AC_SUBST(EF_CHAR_LO)
 AC_SUBST(LPOBL)
 
 

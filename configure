@@ -644,7 +644,6 @@ XPG4_LIBS
 ALLOCA
 pobl_top_builddir_suffix
 pobl_top_srcdir_suffix
-EF_CHAR_LO
 MAKE_DIRS
 TABLE_CFLAGS
 mef_top_builddir_suffix
@@ -16999,7 +16998,7 @@ mingw*)
 	;;
 
 msys*)
-  # msys2
+	# msys2
 	# Extract the first word of "cygpath", so it can be a program name with args.
 set dummy cygpath; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -19715,6 +19714,7 @@ if test "x$ac_cv_func_CreatePseudoConsole" = xyes; then :
 else
   win32pty=pipe
 fi
+
 
 
 	VT_PTY_OBJ="$VT_PTY_OBJ vt_pty_win32.o"
@@ -23663,17 +23663,6 @@ fi
 if test "${MAKE_DIRS}" != "" ; then
 	mkdir -p ${MAKE_DIRS}
 fi
-
-#
-# --- check for undefined symbol ---
-#
-if test "x$allow_undefined_flag" = "xunsupported" ; then
-	# link ef_char.lo to module/*.dll to resolve addresses in creating dll.
-	EF_CHAR_LO="../src/ef_char.lo"
-else
-	EF_CHAR_LO=""
-fi
-
 
 #
 # ====> check for baselib <===

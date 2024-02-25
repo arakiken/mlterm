@@ -32,21 +32,22 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 all: $(TARGET)
 
+# ../src/libmef.la is for ef_int_to_bytes()
 libmef_jajp.la: $(JAJP_TABLE_OBJ)
-	$(LIBTOOL_LINK) -o libmef_jajp.la $(JAJP_TABLE_OBJ:.o=.lo) @EF_CHAR_LO@ \
+	$(LIBTOOL_LINK) -o libmef_jajp.la $(JAJP_TABLE_OBJ:.o=.lo) ../src/libmef.la \
 	../src/ef_jis_property.lo \
 	-rpath $(libdir)/mef -module -avoid-version @NO_UNDEFINED_FLAG@
 
 libmef_kokr.la: $(KOKR_TABLE_OBJ)
-	$(LIBTOOL_LINK) -o libmef_kokr.la $(KOKR_TABLE_OBJ:.o=.lo) @EF_CHAR_LO@ \
+	$(LIBTOOL_LINK) -o libmef_kokr.la $(KOKR_TABLE_OBJ:.o=.lo) ../src/libmef.la \
 	-rpath $(libdir)/mef -module -avoid-version @NO_UNDEFINED_FLAG@
 
 libmef_zh.la: $(ZH_TABLE_OBJ)
-	$(LIBTOOL_LINK) -o libmef_zh.la $(ZH_TABLE_OBJ:.o=.lo) @EF_CHAR_LO@ \
+	$(LIBTOOL_LINK) -o libmef_zh.la $(ZH_TABLE_OBJ:.o=.lo) ../src/libmef.la \
 	-rpath $(libdir)/mef -module -avoid-version @NO_UNDEFINED_FLAG@
 
 libmef_8bits.la: $(BYTE_TABLE_OBJ)
-	$(LIBTOOL_LINK) -o libmef_8bits.la $(BYTE_TABLE_OBJ:.o=.lo) @EF_CHAR_LO@ \
+	$(LIBTOOL_LINK) -o libmef_8bits.la $(BYTE_TABLE_OBJ:.o=.lo) ../src/libmef.la \
 	-rpath $(libdir)/mef -module -avoid-version @NO_UNDEFINED_FLAG@
 
 install: install-la
