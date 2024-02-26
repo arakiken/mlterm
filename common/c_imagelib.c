@@ -354,7 +354,7 @@ static u_int32_t *create_cardinals_from_sixel(const char *path) {
   u_int height;
   u_int32_t *cardinal;
 
-  if (!(cardinal = (u_int32_t*)load_sixel_from_file(path, &width, &height))) {
+  if (!(cardinal = (u_int32_t*)load_sixel_from_file(path, &width, &height, NULL))) {
     return NULL;
   }
 

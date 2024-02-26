@@ -1,3 +1,7 @@
+2024-02-26  Araki Ken  <arakiken@users.sf.net>
+
+	* c_imagelib.c: Fix compiling error.
+
 2024-02-24  Araki Ken  <arakiken@users.sf.net>
 
 	* cocoa.[hm], cocoatouch.m:
