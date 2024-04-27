@@ -50,6 +50,7 @@ distclean:
 	if [ -f baselib/Makefile ]; then (cd baselib ; $(MAKE) $@) ; fi
 	if [ -f encodefilter/Makefile ]; then (cd encodefilter ; $(MAKE) $@) ; fi
 	if [ -f gtk/Makefile ]; then (cd gtk ; $(MAKE) $@) ; fi
+	if [ -f libvterm/Makefile ]; then (cd libvterm ; $(MAKE) $@) ; fi
 	for dir in $(MAKE_DIRS) java ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
 	rm -rf gui
 	rm -f config.log config.cache config.status libtool Makefile \
