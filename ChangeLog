@@ -1,3 +1,10 @@
+2024-05-03  Araki Ken  <arakiken@users.sf.net>
+
+	* libind/Makefile.in: Remove %.
+	  (https://github.com/arakiken/mlterm/issues/88)
+
+	* Rename tables files in libind from *.c to libind_*.c.
+
 2024-02-26  Araki Ken  <arakiken@users.sf.net>
 
 	* c_imagelib.c: Fix compiling error.
