@@ -1,3 +1,15 @@
+2024-05-05  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c:
+	  - Add vte_terminal_{get|set}_font_options(),
+	    vte_terminal_get_text_selected{_full}(), vte_terminal_get_text_range_format()
+	    and vte_terminal_check_{match|hyperlink|regex_array|regex_simple}_at().
+	  - vte_terminal_paste_clipboard() pastes text from clipboard instead of
+	    primary selection.
+	  - Emit "selection-changed" signal in vte-0.18.x or before.
+
+	* vtetypebuiltins.c: Support vte 0.16.14 or before.
+
 2024-05-03  Araki Ken  <arakiken@users.sf.net>
 
 	* libind/Makefile.in: Remove %.

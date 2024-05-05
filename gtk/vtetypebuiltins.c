@@ -172,6 +172,7 @@ vte_text_blink_mode_get_type (void)
  * Following is based on vtetypebuiltins.h of vte-0.24.0.
  */
 
+#if VTE_CHECK_VERSION(0, 17, 0)
 /* enumerations from "vte.h" */
 GType
 vte_terminal_erase_binding_get_type (void)
@@ -197,6 +198,29 @@ vte_terminal_erase_binding_get_type (void)
     
   return g_define_type_id__volatile;
 }
+#else
+/* vte-0.16.14 */
+GtkType
+vte_terminal_erase_binding_get_type(void)
+{
+  static GtkType terminal_erase_binding_type = 0;
+  static GEnumValue values[] = {
+    {VTE_ERASE_AUTO, "VTE_ERASE_AUTO", "auto"},
+    {VTE_ERASE_ASCII_BACKSPACE, "VTE_ERASE_ASCII_BACKSPACE",
+     "ascii-backspace"},
+    {VTE_ERASE_ASCII_DELETE, "VTE_ERASE_ASCII_DELETE",
+     "ascii-delete"},
+    {VTE_ERASE_DELETE_SEQUENCE, "VTE_ERASE_DELETE_SEQUENCE",
+     "delete-sequence"},
+  };
+  if (terminal_erase_binding_type == 0) {
+    terminal_erase_binding_type =
+      g_enum_register_static("VteTerminalEraseBinding",
+			     values);
+  }
+  return terminal_erase_binding_type;
+}
+#endif
 
 #if  VTE_CHECK_VERSION(0,17,1)
 GType
@@ -311,6 +335,7 @@ vte_pty_error_get_type (void)
 }
 #endif
 
+#if VTE_CHECK_VERSION(0, 17, 0)
 GType
 vte_terminal_anti_alias_get_type (void)
 {
@@ -331,6 +356,25 @@ vte_terminal_anti_alias_get_type (void)
     
   return g_define_type_id__volatile;
 }
+#else
+/* vte-0.16.14 */
+GtkType
+vte_terminal_anti_alias_get_type(void)
+{
+  static GtkType terminal_anti_alias_type = 0;
+  static GEnumValue values[] = {
+    {VTE_ANTI_ALIAS_USE_DEFAULT, "VTE_ANTI_ALIAS_USE_DEFAULT", "use-default"},
+    {VTE_ANTI_ALIAS_FORCE_ENABLE, "VTE_ANTI_ALIAS_FORCE_ENABLE", "force-enable"},
+    {VTE_ANTI_ALIAS_FORCE_DISABLE, "VTE_ANTI_ALIAS_FORCE_DISABLE", "force-disable"},
+  };
+  if (terminal_anti_alias_type == 0) {
+    terminal_anti_alias_type =
+      g_enum_register_static("VteTerminalAntiAlias",
+			     values);
+  }
+  return terminal_anti_alias_type;
+}
+#endif
 
 #endif /* VTE_CHECK_VERSION(0,38,0) */
 

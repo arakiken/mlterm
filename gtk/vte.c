@@ -341,6 +341,8 @@ static int select_in_window(void *p, vt_char_t **chars, u_int *len, int beg_char
                                      end_char_index, end_row, is_rect);
 #if VTE_CHECK_VERSION(0, 19, 0)
   g_signal_emit(VTE_WIDGET((ui_screen_t*)p), signals[SIGNAL_SELECTION_CHANGED], 0);
+#else
+  g_signal_emit_by_name(VTE_WIDGET((ui_screen_t*)p), "selection-changed");
 #endif
 
   return ret;
@@ -3138,33 +3140,62 @@ void vte_terminal_feed_child_binary(VteTerminal *terminal, const char *data, glo
   vt_term_write(PVT(terminal)->term, data, length);
 }
 
-void vte_terminal_copy_clipboard(VteTerminal *terminal) {
-  GtkClipboard *clipboard;
+static char *convert_vtstr_to_utf8(vt_char_t *str, u_int len, int tohtml, size_t *len_ret) {
   ef_conv_t *conv;
   ef_parser_t *parser;
   u_char *buf;
-  size_t len;
 
-  if (!vte_terminal_get_has_selection(terminal) ||
-      !(conv = ui_get_selection_conv(1)) /* utf8 */ ||
-      !(parser = vt_str_parser_new())) {
-    return;
+  if (!(conv = vt_char_encoding_conv_new(VT_UTF8))) {
+    return NULL;
   }
 
-  len = PVT(terminal)->screen->sel.sel_len * VTCHAR_UTF_MAX_SIZE;
+  if (!(parser = vt_str_parser_new())) {
+    (*conv->destroy)(conv);
+    return NULL;
+  }
+
+  (*parser->init)(parser);
+  vt_str_parser_set_str(parser, str, len);
+
+  len = len * VTCHAR_UTF_MAX_SIZE + 1 + (tohtml ? 11 : 0);
+  if ((buf = g_malloc(len))) {
+    (*conv->init)(conv);
+    *(buf + (len = (*conv->convert)(conv, buf, len, parser))) = '\0';
+
+    if (tohtml) {
+      /* XXX */
+      memmove(buf + 5, buf, len);
+      memcpy(buf, "<pre>", 5);
+      strcpy(buf + 5 + len, "</pre>");
+      len += 11;
+    }
+
+    if (len_ret) {
+      *len_ret = len;
+    }
+  }
+
+  (*conv->destroy)(conv);
+  (*parser->destroy)(parser);
+
+  return buf;
+}
+
+static void copy_clipboard(VteTerminal *terminal, int tohtml) {
+  GtkClipboard *clipboard;
+  u_char *buf;
+  size_t len;
+
+  if (!vte_terminal_get_has_selection(terminal)) {
+    return;
+  }
 
   /*
    * Don't use alloca() here because len can be too big value.
    * (VTCHAR_UTF_MAX_SIZE defined in vt_char.h is 48 byte.)
    */
-  if ((buf = malloc(len))) {
-    (*parser->init)(parser);
-    vt_str_parser_set_str(parser, PVT(terminal)->screen->sel.sel_str,
-                          PVT(terminal)->screen->sel.sel_len);
-    (*conv->init)(conv);
-
-    len = (*conv->convert)(conv, buf, len, parser);
-
+  if ((buf = convert_vtstr_to_utf8(PVT(terminal)->screen->sel.sel_str,
+                                   PVT(terminal)->screen->sel.sel_len, tohtml, &len))) {
     if (len > 0 && (clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD))) {
 #ifdef USE_WAYLAND
       extern gint64 deadline_ignoring_source_cancelled_event;
@@ -3184,23 +3215,22 @@ void vte_terminal_copy_clipboard(VteTerminal *terminal) {
 
     free(buf);
   }
+}
 
-  (*parser->destroy)(parser);
+void vte_terminal_copy_clipboard(VteTerminal *terminal) {
+  copy_clipboard(terminal, 0);
 }
 
 #if VTE_CHECK_VERSION(0, 50, 0)
 void vte_terminal_copy_clipboard_format(VteTerminal *terminal, VteFormat format) {
-  if (format == VTE_FORMAT_TEXT) {
-    vte_terminal_copy_clipboard(terminal);
-  } else if (format == VTE_FORMAT_HTML) {
-    /* XXX do nothing */
-  }
+  copy_clipboard(terminal, format == VTE_FORMAT_HTML);
 }
 #endif
 
 void vte_terminal_paste_clipboard(VteTerminal *terminal) {
   if (GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
-    ui_screen_exec_cmd(PVT(terminal)->screen, "paste");
+    char cmd[] = "paste clipboard";
+    ui_screen_exec_cmd(PVT(terminal)->screen, cmd);
   }
 }
 
@@ -3212,7 +3242,11 @@ void vte_terminal_paste_text(VteTerminal *terminal, const char *text) {
 
 void vte_terminal_copy_primary(VteTerminal *terminal) {}
 
-void vte_terminal_paste_primary(VteTerminal *terminal) { vte_terminal_paste_clipboard(terminal); }
+void vte_terminal_paste_primary(VteTerminal *terminal) {
+  if (GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
+    ui_screen_exec_cmd(PVT(terminal)->screen, "paste");
+  }
+}
 
 void vte_terminal_select_all(VteTerminal *terminal) {
   int beg_row;
@@ -3788,6 +3822,15 @@ void vte_terminal_set_font(VteTerminal *terminal, const PangoFontDescription *fo
 
 const PangoFontDescription *vte_terminal_get_font(VteTerminal *terminal) { return NULL; }
 
+#if VTE_CHECK_VERSION(0, 74, 0)
+cairo_font_options_t const *vte_terminal_get_font_options(VteTerminal *terminal) {
+  return NULL;
+}
+
+void vte_terminal_set_font_options(VteTerminal *terminal,
+                                   cairo_font_options_t const *font_options) {}
+#endif
+
 void vte_terminal_set_allow_bold(VteTerminal *terminal, gboolean allow_bold) {}
 
 gboolean vte_terminal_get_allow_bold(VteTerminal *terminal) { return TRUE; }
@@ -3963,6 +4006,38 @@ char *vte_terminal_get_text_range(VteTerminal *terminal, glong start_row, glong 
   return NULL;
 }
 
+#if VTE_CHECK_VERSION(0, 70, 0)
+static char *get_text_selected(VteTerminal *terminal, VteFormat format, gsize *length) {
+  if (length) {
+    *length = 0;
+  }
+
+  if (!vte_terminal_get_has_selection(terminal)) {
+    return NULL;
+  }
+
+  return convert_vtstr_to_utf8(PVT(terminal)->screen->sel.sel_str,
+                               PVT(terminal)->screen->sel.sel_len,
+                               format == VTE_FORMAT_HTML, length);
+}
+
+char *vte_terminal_get_text_selected(VteTerminal *terminal, VteFormat format) {
+  return get_text_selected(terminal, format, NULL);
+}
+#endif
+
+#if VTE_CHECK_VERSION(0, 72, 0)
+char *vte_terminal_get_text_range_format(VteTerminal *terminal, VteFormat format,
+                                         long start_row, long start_col, long end_row,
+                                         long end_col, gsize* length) {
+  return NULL;
+}
+
+char *vte_terminal_get_text_selected_full(VteTerminal *terminal, VteFormat format, gsize *length) {
+  return get_text_selected(terminal, format, length);
+}
+#endif
+
 void vte_terminal_get_cursor_position(VteTerminal *terminal, glong *column, glong *row) {
   *column = vt_term_cursor_col(PVT(terminal)->term);
   *row = vt_term_cursor_row(PVT(terminal)->term);
@@ -4032,33 +4107,20 @@ void vte_terminal_match_clear_all(VteTerminal *terminal)
 void vte_terminal_match_remove(VteTerminal *terminal, int tag) {}
 
 char *vte_terminal_match_check(VteTerminal *terminal, glong column, glong row, int *tag) {
-  ef_conv_t *conv;
-  ef_parser_t *parser;
   u_char *buf;
   size_t len;
 
-  if (!vte_terminal_get_has_selection(terminal) ||
-      !(conv = ui_get_selection_conv(1)) /* utf8 */ ||
-      !(parser = vt_str_parser_new())) {
+  if (!vte_terminal_get_has_selection(terminal)) {
     return NULL;
   }
 
-  len = PVT(terminal)->screen->sel.sel_len * VTCHAR_UTF_MAX_SIZE + 1;
-  if ((buf = g_malloc(len))) {
-    (*parser->init)(parser);
-    vt_str_parser_set_str(parser, PVT(terminal)->screen->sel.sel_str,
-                          PVT(terminal)->screen->sel.sel_len);
-
-    (*conv->init)(conv);
-    *(buf + (*conv->convert)(conv, buf, len, parser)) = '\0';
-
+  if ((buf = convert_vtstr_to_utf8(PVT(terminal)->screen->sel.sel_str,
+                                   PVT(terminal)->screen->sel.sel_len, 0, &len))) {
     /* XXX */
     if (tag) {
       *tag = 1; /* For pattern including "http" (see vte_terminal_match_add_gregex) */
     }
   }
-
-  (*parser->destroy)(parser);
 
   return buf;
 }
@@ -4066,6 +4128,28 @@ char *vte_terminal_match_check(VteTerminal *terminal, glong column, glong row, i
 #if VTE_CHECK_VERSION(0, 38, 0)
 char *vte_terminal_match_check_event(VteTerminal *terminal, GdkEvent *event, int *tag) {
   return NULL;
+}
+#endif
+
+#if VTE_CHECK_VERSION(0, 70, 0)
+char *vte_terminal_check_match_at(VteTerminal *terminal, double x, double y, int *tag) {
+  return NULL;
+}
+
+char *vte_terminal_check_hyperlink_at(VteTerminal *terminal, double x, double y) {
+  return NULL;
+}
+
+char **vte_terminal_check_regex_array_at(VteTerminal *terminal, double x, double y,
+                                         VteRegex **regexes, gsize n_regexes,
+                                         guint32 match_flags, gsize *n_matches) {
+  return NULL;
+}
+
+gboolean vte_terminal_check_regex_simple_at(VteTerminal *terminal, double x, double y,
+                                            VteRegex **regexes, gsize n_regexes,
+                                            guint32 match_flags, char **matches) {
+  return FALSE;
 }
 #endif
 
@@ -4880,7 +4964,7 @@ VteTextBlinkMode vte_terminal_get_text_blink_mode(VteTerminal *terminal) {
 #if VTE_CHECK_VERSION(0, 54, 0)
 void vte_set_test_flags(guint64 flags) {}
 
-void vte_terminal_get_color_background_for_draw(VteTerminal* terminal, GdkRGBA* color) {}
+void vte_terminal_get_color_background_for_draw(VteTerminal *terminal, GdkRGBA *color) {}
 #endif
 
 #if VTE_CHECK_VERSION(0, 62, 0)
