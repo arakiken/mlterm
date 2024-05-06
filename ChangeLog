@@ -1,3 +1,7 @@
+2024-05-07  Araki Ken  <arakiken@users.sf.net>
+
+	* xlib/ui_imagelib.c: Remove 'disp->depth < 8' in load_sixel().
+
 2024-05-06  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/ui_imagelib.c: load_sixel() supports less than 8 depth.

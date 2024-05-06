@@ -428,7 +428,7 @@ static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
   GC mask_gc;
   int num_cells;
 
-  if (disp->depth < 8 || !(data = in = load_sixel_from_file(path, &w, &h, transparent))) {
+  if (!(data = in = load_sixel_from_file(path, &w, &h, transparent))) {
     return 0;
   }
 
