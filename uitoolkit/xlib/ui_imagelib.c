@@ -436,7 +436,7 @@ static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
     *mask = None;
   }
 
-  if (disp->depth == 8) {
+  if (disp->depth <= 8) {
     XColor *color_list;
     int closest;
     u_char *out8;
@@ -577,23 +577,43 @@ static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
     XFreeGC(disp->display, mask_gc);
   }
 
-  image = XCreateImage(disp->display, disp->visual, disp->depth, ZPixmap, 0, data, w, h,
-                       /* in case depth isn't multiple of 8 */
-                       bytes_per_pixel * 8, w * bytes_per_pixel);
+  if (!(*pixmap = XCreatePixmap(disp->display, ui_display_get_group_leader(disp),
+                                w, h, disp->depth))) {
+    free(data);
+
+    return 0;
+  }
+
+  if (disp->depth < 8) {
+    XGCValues gcv;
+    GC gc = XCreateGC(disp->display, ui_display_get_group_leader(disp), 0, &gcv);
+    u_char *out8 = data;
+
+    for (y = 0; y < h; y++) {
+      for (x = 0; x < w; x++) {
+        XSetForeground(disp->display, gc, *(out8++));
+        XDrawPoint(disp->display, *pixmap, gc, x, y);
+      }
+    }
+
+    free(data);
+    XFreeGC(disp->display, gc);
+  } else {
+    image = XCreateImage(disp->display, disp->visual, disp->depth, ZPixmap, 0, data, w, h,
+                         /* in case depth isn't multiple of 8 */
+                         bytes_per_pixel * 8, w * bytes_per_pixel);
 #ifdef WORDS_BIGENDIAN
-  image->byte_order = MSBFirst;
+    image->byte_order = MSBFirst;
 #else
-  image->byte_order = LSBFirst;
+    image->byte_order = LSBFirst;
 #endif
-
-  *pixmap = XCreatePixmap(disp->display, ui_display_get_group_leader(disp), w, h, disp->depth);
-
-  XPutImage(disp->display, *pixmap, disp->gc->gc, image, 0, 0, 0, 0, w, h);
+    XPutImage(disp->display, *pixmap, disp->gc->gc, image, 0, 0, 0, 0, w, h);
 #ifdef BL_DEBUG
-  destroy_image(image);
+    destroy_image(image);
 #else
-  XDestroyImage(image);
+    XDestroyImage(image);
 #endif
+  }
 
   if (width) {
     *width = w;
