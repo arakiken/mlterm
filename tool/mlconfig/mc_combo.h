@@ -11,10 +11,10 @@
 #define MC_COMBO_TOTAL_WIDTH 2
 
 GtkWidget *mc_combo_new(const char *label_name, char **item_names, u_int item_num,
-                        char *selected_item_name, int is_readonly, GtkWidget **entry);
+                        const char *selected_item_name, int is_readonly, GtkWidget **entry);
 
 GtkWidget *mc_combo_new_with_width(const char *label_name, char **item_names, u_int item_num,
-                                   char *selected_item_name, int is_readonly, int entry_width,
+                                   const char *selected_item_name, int is_readonly, int entry_width,
                                    GtkWidget **entry);
 
 #endif
