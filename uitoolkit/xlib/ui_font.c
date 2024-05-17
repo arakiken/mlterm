@@ -197,7 +197,7 @@ static u_int xcore_calculate_char_width(Display *display, XFontStruct *xfont, u_
   } else {
     XChar2b c[2];
 
-    width = XTextWidth16(xfont, c, ui_convert_ucs4_to_utf16(c, ch) / 2);
+    width = XTextWidth16(xfont, c, ui_convert_ucs4_to_utf16((u_char *)c, ch) / 2);
   }
 
   if (width < 0) {

@@ -448,7 +448,7 @@ static void commit_string(FcitxClient *client, char *str, void *data) {
   if ((len = strlen(str)) == 0) {
     /* do nothing */
   } else {
-    (*fcitx->im.listener->write_to_term)(fcitx->im.listener->self, str, len,
+    (*fcitx->im.listener->write_to_term)(fcitx->im.listener->self, (u_char *)str, len,
                                          fcitx->term_encoding == VT_UTF8 ? NULL : parser_utf8);
   }
 
@@ -529,7 +529,7 @@ static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int c
       }
 
       (*parser_utf8->init)(parser_utf8);
-      (*parser_utf8->set_str)(parser_utf8, item->string, str_len);
+      (*parser_utf8->set_str)(parser_utf8, (u_char *)item->string, str_len);
 
       while ((*parser_utf8->next_char)(parser_utf8, &ch)) {
         num_chars++;
@@ -548,7 +548,7 @@ static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int c
       item = g_ptr_array_index(list, count);
 
       (*parser_utf8->init)(parser_utf8);
-      (*parser_utf8->set_str)(parser_utf8, item->string, strlen(item->string));
+      (*parser_utf8->set_str)(parser_utf8, (u_char *)item->string, strlen(item->string));
 
       while ((*parser_utf8->next_char)(parser_utf8, &ch)) {
         int is_fullwidth = 0;

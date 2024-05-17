@@ -328,7 +328,7 @@ static int draw_string32(ui_window_t *win, cairo_scaled_font_t *xfont, ui_font_t
 
 #ifdef USE_OT_LAYOUT
   if (font->use_ot_layout /* && font->ot_font */) {
-    buf = str;
+    buf = (u_char *)str;
   } else
 #endif
   {

@@ -1309,7 +1309,7 @@ void ui_window_console_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t
 void ui_window_console_draw_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
                                      ui_color_t *bg_color, int x, int y, XChar2b *str, u_int len,
                                      int line_style) {
-  draw_string(win, font, fg_color, bg_color, x, y, str, len, 2, line_style);
+  draw_string(win, font, fg_color, bg_color, x, y, (u_char *)str, len, 2, line_style);
 }
 
 void ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2) {

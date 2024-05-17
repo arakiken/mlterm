@@ -2341,7 +2341,7 @@ void ui_window_draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_col
 
 void ui_window_draw_string16(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color, int x, int y,
                              XChar2b *str, u_int len) {
-  draw_string(win, font, fg_color, NULL, x, y, str, len, 2, 0);
+  draw_string(win, font, fg_color, NULL, x, y, (u_char *)str, len, 2, 0);
 }
 
 void ui_window_draw_image_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
@@ -2365,7 +2365,7 @@ void ui_window_draw_image_string16(ui_window_t *win, ui_font_t *font, ui_color_t
   }
 #endif
 
-  draw_string(win, font, fg_color, bg_color, x, y, str, len, 2, bg_color == NULL);
+  draw_string(win, font, fg_color, bg_color, x, y, (u_char *)str, len, 2, bg_color == NULL);
 }
 
 void ui_window_draw_rect_frame(ui_window_t *win, int x1, int y1, int x2, int y2) {

@@ -151,7 +151,7 @@ static void update_preedit_text(IBusInputContext *context, IBusText *text, gint 
     ibus->im.preedit.filled_len = 0;
 
     (*parser_utf8->init)(parser_utf8);
-    (*parser_utf8->set_str)(parser_utf8, text->text, strlen(text->text));
+    (*parser_utf8->set_str)(parser_utf8, (u_char *)text->text, strlen(text->text));
 
     index = 0;
     while ((*parser_utf8->next_char)(parser_utf8, &ch)) {
@@ -281,7 +281,7 @@ static void commit_text(IBusInputContext *context, IBusText *text, gpointer data
   if (ibus_text_get_length(text) == 0) {
     /* do nothing */
   } else {
-    (*ibus->im.listener->write_to_term)(ibus->im.listener->self, text->text, strlen(text->text),
+    (*ibus->im.listener->write_to_term)(ibus->im.listener->self, (u_char *)text->text, strlen(text->text),
                                         ibus->term_encoding == VT_UTF8 ? NULL : parser_utf8);
   }
 

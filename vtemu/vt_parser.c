@@ -3153,7 +3153,7 @@ static void reset_color_rgb(vt_parser_t *vt_parser, u_char *pt, int is_spcolor) 
       }
     }
   } else {
-    while ((p = bl_str_sep(&pt, ";"))) {
+    while ((p = bl_str_sep((char **)&pt, ";"))) {
       if (is_spcolor) {
         if ('0' <= *p && *p <= '4') {
           config_protocol_set_simple(vt_parser, get_special_color_name(*p), "", 0);

@@ -819,7 +819,7 @@ static int xcore_draw_combining_chars(ui_window_t *window, ui_font_manager_t *fo
         u_int len;
 
         if (IS_ISO10646_UCS4(ch_cs)) {
-          if ((len = ui_convert_ucs4_to_utf16(xch, ch_code) / 2) == 0) {
+          if ((len = ui_convert_ucs4_to_utf16((u_char *)xch, ch_code) / 2) == 0) {
             continue;
           }
         } else {
@@ -951,7 +951,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
     } else {
       /* UCS4 */
 
-      str_len += (ui_convert_ucs4_to_utf16(str2b + str_len, ch_code) / 2);
+      str_len += (ui_convert_ucs4_to_utf16((u_char *)(str2b + str_len), ch_code) / 2);
     }
 
     /*
@@ -1060,7 +1060,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
             str_len++;
           } else {
             /* UCS4 */
-            str_len += (ui_convert_ucs4_to_utf16(str2b + str_len, comb_code) / 2);
+            str_len += (ui_convert_ucs4_to_utf16((u_char *)(str2b + str_len), comb_code) / 2);
           }
         }
 
