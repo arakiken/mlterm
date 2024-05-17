@@ -27,7 +27,7 @@
 static ui_color_t black = {TP_COLOR, 0, 0, 0, 0};
 #endif
 
-#define ParentRelative (1L)
+#define ParentRelative ((void *)1L)
 #define DummyPixmap (2L)
 
 /* XXX Check if win is input method window or not. */

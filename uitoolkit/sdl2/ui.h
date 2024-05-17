@@ -63,7 +63,7 @@ typedef struct {
   SDL_Window *window;
   SDL_Renderer *renderer;
   SDL_Texture *texture;
-  unsigned char *fb;
+  void *fb;
 
   unsigned int bytes_per_pixel;
   unsigned int line_length;

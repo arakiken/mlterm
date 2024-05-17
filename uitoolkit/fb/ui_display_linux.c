@@ -526,7 +526,7 @@ static int open_display(u_int depth) {
 #ifdef DEBUG
       bl_debug_printf("MOUSE2: /dev/input/event%d\n", mouse_num[1]);
 #endif
-      _disp_mouse2.display = &_mouse2;
+      _disp_mouse2.display = (Display *)&_mouse2;
       opened_disps[num_opened_displays++] = &_disp_mouse2;
     }
   }
@@ -540,7 +540,7 @@ static int open_display(u_int depth) {
       bl_debug_printf("KBD2: /dev/input/event%d\n", kbd_num[1]);
 #endif
       _kbd2.is_kbd = 1;
-      _disp_kbd2.display = &_kbd2;
+      _disp_kbd2.display = (Display *)&_kbd2;
       opened_disps[num_opened_displays++] = &_disp_kbd2;
     }
   }
