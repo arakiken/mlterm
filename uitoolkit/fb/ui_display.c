@@ -898,7 +898,7 @@ static int check_virtual_kbd(XButtonEvent *bev) {
     draw_mouse_cursor();
 
     if (ret == 1) {
-      receive_event_for_multi_roots(&kev);
+      receive_event_for_multi_roots((XEvent *)&kev);
     }
   }
 
@@ -1061,7 +1061,7 @@ static int receive_stdin_key_event(void) {
     }
 
     if (xev.ksym) {
-      receive_event_for_multi_roots(&xev);
+      receive_event_for_multi_roots((XEvent *)&xev);
     } else {
       for (count = 0; count < len; count++) {
         xev.ksym = buf[count];
@@ -1083,7 +1083,7 @@ static int receive_stdin_key_event(void) {
           xev.state = ControlMask;
         }
 
-        receive_event_for_multi_roots(&xev);
+        receive_event_for_multi_roots((XEvent *)&xev);
       }
     }
   }

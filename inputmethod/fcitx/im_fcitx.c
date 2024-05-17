@@ -481,7 +481,7 @@ static void forward_key(FcitxClient *client, guint keyval, guint state, gint typ
       ) {
     fcitx->prev_key.state |= FcitxKeyState_IgnoredMask;
 #ifdef USE_XLIB
-    XPutBackEvent(fcitx->prev_key.display, &fcitx->prev_key);
+    XPutBackEvent(fcitx->prev_key.display, (XEvent *)&fcitx->prev_key);
 #endif
     memset(&fcitx->prev_key, 0, sizeof(XKeyEvent));
   }

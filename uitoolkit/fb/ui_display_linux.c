@@ -680,7 +680,7 @@ static int receive_mouse_event(int fd) {
         xev.x -= win->x;
         xev.y -= win->y;
 
-        ui_window_receive_event(win, &xev);
+        ui_window_receive_event(win, (XEvent*)&xev);
       }
     } else if (ev.type == EV_REL) {
       XMotionEvent xev;
@@ -753,7 +753,7 @@ static int receive_mouse_event(int fd) {
       xev.x -= win->x;
       xev.y -= win->y;
 
-      ui_window_receive_event(win, &xev);
+      ui_window_receive_event(win, (XEvent *)&xev);
 
       save_hidden_region();
       draw_mouse_cursor();
@@ -827,7 +827,7 @@ static int receive_key_event(int fd) {
             xev.keycode = ev.code;
 
             if ((xev.ksym = kcode_to_ksym(ev.code, ent.kb_value, &xev.state)) > 0) {
-              receive_event_for_multi_roots(&xev);
+              receive_event_for_multi_roots((XEvent *)&xev);
             }
           }
         } else if (ev.value == 0 /* Released */) {

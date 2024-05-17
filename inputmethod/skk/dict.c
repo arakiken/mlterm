@@ -569,7 +569,7 @@ static int connect_to_server(void) {
 
   memcpy(&sa.sin_addr, host->h_addr_list[0], sizeof(sa.sin_addr));
 
-  if (connect(sock, &sa, sizeof(struct sockaddr_in)) == -1) {
+  if (connect(sock, (struct sockaddr *)&sa, sizeof(struct sockaddr_in)) == -1) {
     goto error;
   }
 

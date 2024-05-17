@@ -308,7 +308,7 @@ static void forward_key_event(IBusInputContext *context, guint keyval, guint key
       ) {
     ibus->prev_key.state |= IBUS_IGNORED_MASK;
 #ifdef USE_XLIB
-    XPutBackEvent(ibus->prev_key.display, &ibus->prev_key);
+    XPutBackEvent(ibus->prev_key.display, (XEvent *)&ibus->prev_key);
 #endif
     memset(&ibus->prev_key, 0, sizeof(XKeyEvent));
   }

@@ -436,7 +436,7 @@ static void receive_key_event(ui_wlserv_t *wlserv, XKeyEvent *ev) {
 
     /* Key event for dead surface may be received. */
     if (disp && (win = search_focused_window(disp->roots[0]))) {
-      ui_window_receive_event(win, ev);
+      ui_window_receive_event(win, (XEvent *)ev);
     }
   }
 }
@@ -840,7 +840,7 @@ static void pointer_motion(void *data, struct wl_pointer *pointer,
     bl_debug_printf("Motion event state %x x %d y %d in %p window.\n", ev.state, ev.x, ev.y, win);
 #endif
 
-    ui_window_receive_event(win, &ev);
+    ui_window_receive_event(win, (XEvent *)&ev);
   }
 }
 
@@ -946,7 +946,7 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
 
     wlserv->serial = serial;
 
-    ui_window_receive_event(win, &ev);
+    ui_window_receive_event(win, (XEvent *)&ev);
 
 #ifdef COMPAT_LIBVTE
     if (ev.type == ButtonPress && disp->display->parent == NULL /* Not input method */) {
@@ -1009,10 +1009,10 @@ static void pointer_axis(void *data, struct wl_pointer *pointer,
 #endif
 
     ev.type = ButtonPress;
-    ui_window_receive_event(win, &ev);
+    ui_window_receive_event(win, (XEvent *)&ev);
 
     ev.type = ButtonRelease;
-    ui_window_receive_event(win, &ev);
+    ui_window_receive_event(win, (XEvent *)&ev);
   }
 }
 
