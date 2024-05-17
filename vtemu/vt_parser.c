@@ -5821,7 +5821,7 @@ inline static int parse_vt100_escape_sequence(
         } else if (ps[0] == 10) {
           /* XXX full screen is not supported for now. */
         } else if (ps[0] == 7) {
-          const char cmd[] = "update_all";
+          char cmd[] = "update_all";
           config_protocol_set(vt_parser, cmd, 0);
         } else if (ps[0] == 11) {
           vt_write_to_pty(vt_parser->pty, "\x1b[1t", 4); /* XXX always non-iconified */

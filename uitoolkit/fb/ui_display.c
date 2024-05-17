@@ -652,7 +652,7 @@ static void save_hidden_region(void) {
 static void draw_mouse_cursor_line(int y) {
   u_char *fb;
   ui_window_t *win;
-  char *shape;
+  const char *shape;
   u_char image[MAX_CURSOR_SHAPE_WIDTH * sizeof(u_int32_t)];
   int x;
 

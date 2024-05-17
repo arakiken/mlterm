@@ -110,7 +110,7 @@ typedef struct scp {
 
 /* --- static variables --- */
 
-static char *pass_response;
+static const char *pass_response;
 
 static ssh_session_t **sessions;
 static u_int num_sessions = 0;
@@ -1868,7 +1868,7 @@ static void save_data_for_reconnect(ssh_session_t *session, const char *cmd_path
                                     char **env, const char *pass, const char *pubkey,
                                     const char *privkey, u_int cols, u_int rows,
                                     u_int width_pix, u_int height_pix) {
-  void * buffer;
+  void *buffer;
   size_t len;
   u_int array_size[2];
   int idx;

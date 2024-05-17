@@ -418,7 +418,7 @@ static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
                       u_int *height, /* Can be NULL */
                       int *transparent /* Can be NULL */) {
   u_int w, h;
-  void * buffer = load_sixel_from_file(path, &w, &h, transparent);
+  void *buffer = load_sixel_from_file(path, &w, &h, transparent);
   XImage *image;
   u_int32_t *data = buffer;
   u_int32_t *in = buffer;
