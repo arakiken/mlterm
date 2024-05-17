@@ -101,9 +101,9 @@ static void adjust_comb_pos_in_order(vt_char_t *vtstr, FriBidiChar *str,
 /*
  * Don't call this functions with type_p == FRIBIDI_TYPE_ON and size == cur_pos.
  */
-static void log2vis(FriBidiChar *str, u_int size, FriBidiCharType *type_p, vt_bidi_mode_t bidi_mode,
+static void log2vis(FriBidiChar *str, u_int size, FriBidiParType *type_p, vt_bidi_mode_t bidi_mode,
                     FriBidiStrIndex *order, u_int cur_pos, int append) {
-  FriBidiCharType type;
+  FriBidiParType type;
   u_int pos;
 
   if (size > cur_pos) {
@@ -215,7 +215,7 @@ void TEST_vt_bidi(void);
 int vt_bidi(vt_bidi_state_t state, vt_char_t *src, u_int size, vt_bidi_mode_t bidi_mode,
             const char *separators) {
   FriBidiChar *fri_src;
-  FriBidiCharType fri_type;
+  FriBidiParType fri_type;
   FriBidiStrIndex *fri_order;
   u_int cur_pos;
   ef_charset_t cs;
@@ -457,7 +457,7 @@ int vt_is_rtl_char(u_int32_t ch) {
 
 static void TEST_vt_bidi_1(void) {
   FriBidiChar str[] = { 0x6b1, 0x644, 0x627, 0x644, 0x622, 0x6b3, };
-  FriBidiCharType type = FRIBIDI_TYPE_ON;
+  FriBidiParType type = FRIBIDI_TYPE_ON;
   FriBidiStrIndex order[sizeof(str)/sizeof(str[0])];
   FriBidiStrIndex order_ok1[] = { 5, 4, 3, 2, 1, 0, };
   FriBidiStrIndex order_ok2[] = { 3, 2, 2, 1, 1, 0, };
@@ -471,7 +471,7 @@ static void TEST_vt_bidi_1(void) {
 
 static void TEST_vt_bidi_2(void) {
   FriBidiChar str[] = { 0x6b1, 0x644, 0x627, 0x644, 0x622, 0x6b3, };
-  FriBidiCharType type = FRIBIDI_TYPE_ON;
+  FriBidiParType type = FRIBIDI_TYPE_ON;
   FriBidiStrIndex order[sizeof(str)/sizeof(str[0])];
   FriBidiStrIndex order_ok1[] = { 5, 4, 3, 2, 1, 0, };
   FriBidiStrIndex order_ok2[] = { 3, 2, 2, 1, 1, 0, };
@@ -486,7 +486,7 @@ static void TEST_vt_bidi_2(void) {
 
 static void TEST_vt_bidi_3(void) {
   FriBidiChar str[] = { 0x61, 0x6b1, 0x644, 0x627, 0x20, 0x644, 0x622, 0x6b3, };
-  FriBidiCharType type = FRIBIDI_TYPE_ON;
+  FriBidiParType type = FRIBIDI_TYPE_ON;
   FriBidiStrIndex order[sizeof(str)/sizeof(str[0])];
   FriBidiStrIndex order_ok1[] = { 0, 3, 2, 1, 4, 7, 6, 5, };
   FriBidiStrIndex order_ok2[] = { 0, 2, 1, 1, 3, 5, 5, 4, };
