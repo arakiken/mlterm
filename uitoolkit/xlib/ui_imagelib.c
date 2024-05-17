@@ -417,18 +417,18 @@ static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
                       u_int *width, /* Can be NULL */
                       u_int *height, /* Can be NULL */
                       int *transparent /* Can be NULL */) {
+  u_int w, h;
+  void * buffer = load_sixel_from_file(path, &w, &h, transparent);
   XImage *image;
-  u_int32_t *data;
-  u_int32_t *in;
-  u_int w;
-  u_int h;
+  u_int32_t *data = buffer;
+  u_int32_t *in = buffer;
   u_int x;
   u_int y;
   int bytes_per_pixel;
   GC mask_gc;
   int num_cells;
 
-  if (!(data = in = load_sixel_from_file(path, &w, &h, transparent))) {
+  if (!buffer) {
     return 0;
   }
 

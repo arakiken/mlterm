@@ -1095,8 +1095,9 @@ static int receive_stdin_key_event(void) {
 
 static fb_cmap_t *cmap_new(int num_colors) {
   fb_cmap_t *cmap;
+  void *buffer = malloc(sizeof(*cmap) + sizeof(*(cmap->red)) * num_colors * 3);
 
-  if (!(cmap = malloc(sizeof(*cmap) + sizeof(*(cmap->red)) * num_colors * 3))) {
+  if (!(cmap = buffer)) {
     return NULL;
   }
 
@@ -1110,7 +1111,7 @@ static fb_cmap_t *cmap_new(int num_colors) {
   cmap->transp = NULL;
 #endif
   CMAP_SIZE(cmap) = num_colors;
-  cmap->red = cmap + 1;
+  cmap->red = buffer + sizeof(*cmap);
   cmap->green = cmap->red + num_colors;
   cmap->blue = cmap->green + num_colors;
 

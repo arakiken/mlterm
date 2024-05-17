@@ -1722,11 +1722,12 @@ static u_char *get_ft_bitmap(XFontStruct *xfont, u_int32_t ch, int use_ot_layout
 #endif
 
   if (!fc_files) {
-    if (!(fc_files = calloc(num_fc_files, sizeof(*fc_charsets) + sizeof(*fc_files)))) {
+    void *buffer = calloc(num_fc_files, sizeof(*fc_charsets) + sizeof(*fc_files));
+    if (!(fc_files = buffer)) {
       return NULL;
     }
 
-    fc_charsets = fc_files + num_fc_files;
+    fc_charsets = buffer + sizeof(*fc_charsets);
   }
 
   if (!xfont->compl_xfonts &&

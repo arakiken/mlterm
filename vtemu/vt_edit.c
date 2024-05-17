@@ -1536,13 +1536,13 @@ vt_protect_store_t *vt_edit_save_protected_chars(vt_edit_t *edit,
       for (count = 0; count < num; count++, src++) {
         if (vt_char_is_protected(src)) {
           if (!save) {
-            if (!(save = malloc(sizeof(vt_protect_store_t) +
+            void * buffer = malloc(sizeof(vt_protect_store_t) +
                                 sizeof(vt_char_t) * (vt_edit_get_cols(edit) + 1) *
-                                                    (end_row - row + 1)))) {
+                                                    (end_row - row + 1));
+            if (!(save = buffer)) {
               return NULL;
             }
-
-            dst = save->chars = save + 1;
+            dst = save->chars = buffer + sizeof(vt_protect_store_t);
             vt_str_init(dst, (vt_edit_get_cols(edit) + 1) * (end_row - row + 1));
             dst += count;
             save->beg_row = row;

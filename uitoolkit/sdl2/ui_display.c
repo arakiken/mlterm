@@ -901,15 +901,16 @@ static void poll_event(void) {
 /* --- global functions --- */
 
 ui_display_t *ui_display_open(char *disp_name, u_int depth) {
+  void *buffer = calloc(1, sizeof(ui_display_t) + sizeof(Display));
   ui_display_t *disp;
   void *p;
   struct rgb_info rgbinfo = {0, 0, 0, 16, 8, 0};
 
-  if (!(disp = calloc(1, sizeof(ui_display_t) + sizeof(Display)))) {
+  if (!(disp = buffer)) {
     return NULL;
   }
 
-  disp->display = disp + 1;
+  disp->display = buffer + sizeof(ui_display_t);
 
   if ((p = realloc(displays, sizeof(ui_display_t*) * (num_displays + 1))) == NULL) {
     free(disp);

@@ -1868,6 +1868,7 @@ static void save_data_for_reconnect(ssh_session_t *session, const char *cmd_path
                                     char **env, const char *pass, const char *pubkey,
                                     const char *privkey, u_int cols, u_int rows,
                                     u_int width_pix, u_int height_pix) {
+  void * buffer;
   size_t len;
   u_int array_size[2];
   int idx;
@@ -1893,13 +1894,14 @@ static void save_data_for_reconnect(ssh_session_t *session, const char *cmd_path
     }
   }
 
-  if ((session->stored = calloc(len, 1))) {
+  buffer = calloc(len, 1);
+  if ((session->stored = buffer)) {
     char *str;
     char **dst;
 
-    session->stored->argv = session->stored + 1;
-    session->stored->env = session->stored->argv + array_size[0];
-    str = session->stored->env + array_size[1];
+    session->stored->argv = buffer + sizeof(*session->stored);
+    session->stored->env = buffer + sizeof(*session->stored) + array_size[0];
+    str = buffer + sizeof(*session->stored) + array_size[0] + array_size[1];
     session->stored->pass = strcpy(str, pass);
     str += (strlen(pass) + 1);
     if (cmd_path) {
