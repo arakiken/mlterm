@@ -119,7 +119,7 @@ static u_char *make_entry(u_char *str) {
   return entry;
 }
 
-static u_int16_t get_entry_time(u_char *entry, char *data, size_t data_size) {
+static u_int16_t get_entry_time(char *entry, char *data, size_t data_size) {
   if (entry < data || data + data_size <= entry) {
     size_t len;
 
@@ -632,7 +632,7 @@ static void unconcat(char *str) {
   }
 }
 
-static int candidate_exists(const char **cands, u_int num_cands, const char *cand) {
+static int candidate_exists(char **cands, u_int num_cands, const char *cand) {
   u_int count;
 
   for (count = 0; count < num_cands; count++) {
