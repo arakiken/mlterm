@@ -363,7 +363,7 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
    * Set cmd_argv by cmd_path.
    */
   if (cmd_path && !cmd_argv) {
-    char *cmd_file;
+    const char *cmd_file;
 
     cmd_file = bl_basename(cmd_path);
 

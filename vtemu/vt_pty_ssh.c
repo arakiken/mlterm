@@ -231,7 +231,7 @@ int vt_pty_ssh_scp(vt_pty_t *pty, vt_char_encoding_t pty_encoding, /* Not VT_UNK
                    const char *recv_dir, u_int progress_len) {
   int dst_is_remote;
   int src_is_remote;
-  char *file;
+  const char *file;
   char *_dst_path;
   char *_src_path;
   size_t len;

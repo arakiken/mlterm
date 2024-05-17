@@ -2763,7 +2763,7 @@ static void iterm2_proprietary_set(vt_parser_t *vt_parser, char *pt) {
       if ((beg = strstr(args, "name=")) &&
           ((end = strchr((beg += 5), ';')) || (end = beg + strlen(beg))) &&
           (path = malloc(7 + (end - beg) + 1))) {
-        char *file;
+        const char *file;
         char *new_path;
         size_t d_len;
 
