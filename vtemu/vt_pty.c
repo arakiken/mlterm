@@ -128,9 +128,9 @@ int vt_set_pty_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
 /*
  * Return size of lost bytes.
  */
-size_t vt_write_to_pty(vt_pty_t *pty, u_char *buf, size_t len /* if 0, flushing buffer. */
+size_t vt_write_to_pty(vt_pty_t *pty, const u_char *buf, size_t len /* if 0, flushing buffer. */
                        ) {
-  u_char *w_buf;
+  const u_char *w_buf;
   size_t w_buf_size;
   ssize_t written_size;
   void *p;
@@ -176,15 +176,19 @@ size_t vt_write_to_pty(vt_pty_t *pty, u_char *buf, size_t len /* if 0, flushing 
     w_buf = pty->buf;
   } else if (/* pty->buf == NULL && */ pty->left == 0) {
     w_buf = buf;
-  } else if ((w_buf = alloca(w_buf_size))) {
-    memcpy(w_buf, pty->buf, pty->left);
-    memcpy(&w_buf[pty->left], buf, len);
   } else {
+    u_char * new_w_buf = alloca(w_buf_size);
+    if (new_w_buf) {
+      memcpy(new_w_buf, pty->buf, pty->left);
+      memcpy(&new_w_buf[pty->left], buf, len);
+      w_buf = new_w_buf;
+    } else {
 #ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " alloca() failed. %d characters not written.\n", len);
+      bl_warn_printf(BL_DEBUG_TAG " alloca() failed. %d characters not written.\n", len);
 #endif
 
-    return len;
+      return len;
+    }
   }
 
 #ifdef __DEBUG

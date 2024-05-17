@@ -93,7 +93,7 @@ static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
   return 1;
 }
 
-static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
+static ssize_t write_to_pty(vt_pty_t *pty, const u_char *buf, size_t len) {
 #ifdef __APPLE__
   ssize_t ret;
 
