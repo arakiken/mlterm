@@ -134,7 +134,7 @@ int vt_pty_ssh_set_use_loopback(vt_pty_t *pty, int use);
 
 int vt_pty_ssh_scp(vt_pty_t *pty, vt_char_encoding_t pty_encoding,
                    vt_char_encoding_t path_encoding, char *dst_path, char *src_path,
-                   int use_scp_full, const char *recv_dir, u_int progress_len);
+                   int use_scp_full, char *recv_dir, u_int progress_len);
 
 void vt_pty_ssh_set_cipher_list(const char *list);
 

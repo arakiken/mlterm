@@ -228,7 +228,7 @@ void vt_pty_ssh_set_pty_read_trigger(void (*func)(void)) {
 int vt_pty_ssh_scp(vt_pty_t *pty, vt_char_encoding_t pty_encoding, /* Not VT_UNKNOWN_ENCODING */
                    vt_char_encoding_t path_encoding,                  /* Not VT_UNKNOWN_ENCODING */
                    char *dst_path, char *src_path, int use_scp_full,
-                   const char *recv_dir, u_int progress_len) {
+                   char *recv_dir, u_int progress_len) {
   int dst_is_remote;
   int src_is_remote;
   const char *file;
