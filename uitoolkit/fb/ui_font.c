@@ -780,7 +780,7 @@ face_found:
     goto error;
   }
 
-  face->generic.data = ((int)face->generic.data) + 1; /* ref_count */
+  face->generic.data = ((void *)face->generic.data) + 1; /* ref_count */
 
   if (force_height) {
     xfont->height = force_height;
@@ -969,7 +969,7 @@ static void unload_ft(XFontStruct *xfont) {
   free(xfont->file);
 
   face = xfont->face;
-  face->generic.data = ((int)face->generic.data) - 1;
+  face->generic.data = ((void *)face->generic.data) - 1;
   if (!face->generic.data) {
     FT_Done_Face(xfont->face);
   }
