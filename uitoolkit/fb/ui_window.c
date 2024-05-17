@@ -313,7 +313,7 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
       case 2:
         for (; y_off < font_height; y_off++, y_off_bytes += xfont->glyph_width_bytes) {
           p = (picture ? memcpy(src, (picture += picture_line_len), size)
-                       : memset16(src, bg_pixel, size / 2));
+                       : memset16((u_int16_t *)src, bg_pixel, size / 2));
 
           for (count = 0; count < len; count++) {
             if (!ui_get_bitmap_line(xfont, bitmaps[count], y_off_bytes, bitmap_line)) {
@@ -340,7 +340,7 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
       default:
         for (; y_off < font_height; y_off++, y_off_bytes += xfont->glyph_width_bytes) {
           p = (picture ? memcpy(src, (picture += picture_line_len), size)
-                       : memset32(src, bg_pixel, size / 4));
+                       : memset32((u_int32_t *)src, bg_pixel, size / 4));
 
           for (count = 0; count < len; count++) {
             if (!ui_get_bitmap_line(xfont, bitmaps[count], y_off_bytes, bitmap_line)) {
@@ -379,12 +379,12 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
             break;
 
           case 2:
-            memset16(src, bg_pixel, size / 2);
+            memset16((u_int16_t *)src, bg_pixel, size / 2);
             break;
 
           /* case  4: */
           default:
-            memset32(src, bg_pixel, size / 4);
+            memset32((u_int32_t *)src, bg_pixel, size / 4);
             break;
           }
         }
@@ -455,12 +455,12 @@ static void draw_string_intern(ui_window_t *win, XFontStruct *xfont, u_int font_
             break;
 
           case 2:
-            memset16(src, bg_pixel, size / 2);
+            memset16((u_int16_t *)src, bg_pixel, size / 2);
             break;
 
           /* case  4: */
           default:
-            memset32(src, bg_pixel, size / 4);
+            memset32((u_int32_t *)src, bg_pixel, size / 4);
             break;
           }
         }
