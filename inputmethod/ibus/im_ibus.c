@@ -439,7 +439,7 @@ static int add_event_source(void) {
    * regarded as GSocketConnection.
    */
   if ((ibus_bus_fd = g_socket_get_fd(g_socket_connection_get_socket(
-           g_dbus_connection_get_stream(ibus_bus_get_connection(ibus_bus))))) == -1) {
+           G_SOCKET_CONNECTION(g_dbus_connection_get_stream(ibus_bus_get_connection(ibus_bus)))))) == -1) {
     return 0;
   }
 #endif

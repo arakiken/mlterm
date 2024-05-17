@@ -93,9 +93,9 @@ GtkWidget *mc_combo_new_with_width(const char *label_name, char **item_names, u_
     }
 
 #if GTK_CHECK_VERSION(4, 0, 0)
-    gtk_entry_set_width_chars(gtk_combo_box_get_child(GTK_COMBO_BOX(combo)), width_chars);
+    gtk_entry_set_width_chars(GTK_ENTRY(gtk_combo_box_get_child(GTK_COMBO_BOX(combo))), width_chars);
 #else
-    gtk_entry_set_width_chars(gtk_bin_get_child(GTK_BIN(combo)), width_chars);
+    gtk_entry_set_width_chars(GTK_ENTRY(gtk_bin_get_child(GTK_BIN(combo))), width_chars);
 #endif
 #else
     gtk_widget_set_size_request(gtk_bin_get_child(GTK_BIN(combo)), entry_width, -1);
