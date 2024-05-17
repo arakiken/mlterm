@@ -159,14 +159,12 @@ static void update_preedit_text(IBusInputContext *context, IBusText *text, gint 
       IBusAttribute *attr;
       int is_fullwidth = 0;
       int is_comb = 0;
-      int is_underlined = 0;
       vt_color_t fg_color = VT_FG_COLOR;
       vt_color_t bg_color = VT_BG_COLOR;
 
       for (count = 0; (attr = ibus_attr_list_get(text->attrs, count)); count++) {
         if (attr->start_index <= index && index < attr->end_index) {
           if (attr->type == IBUS_ATTR_TYPE_UNDERLINE) {
-            is_underlined = (attr->value != IBUS_ATTR_UNDERLINE_NONE);
           }
 #if 0
           else if (attr->type == IBUS_ATTR_TYPE_FOREGROUND) {
