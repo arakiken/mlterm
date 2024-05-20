@@ -119,7 +119,7 @@ static u_char *make_entry(u_char *str) {
   return entry;
 }
 
-static u_int16_t get_entry_time(u_char *entry, char *data, size_t data_size) {
+static u_int16_t get_entry_time(char *entry, char *data, size_t data_size) {
   if (entry < data || data + data_size <= entry) {
     size_t len;
 
@@ -569,7 +569,7 @@ static int connect_to_server(void) {
 
   memcpy(&sa.sin_addr, host->h_addr_list[0], sizeof(sa.sin_addr));
 
-  if (connect(sock, &sa, sizeof(struct sockaddr_in)) == -1) {
+  if (connect(sock, (struct sockaddr *)&sa, sizeof(struct sockaddr_in)) == -1) {
     goto error;
   }
 
@@ -632,7 +632,7 @@ static void unconcat(char *str) {
   }
 }
 
-static int candidate_exists(const char **cands, u_int num_cands, const char *cand) {
+static int candidate_exists(char **cands, u_int num_cands, const char *cand) {
   u_int count;
 
   for (count = 0; count < num_cands; count++) {
@@ -923,11 +923,13 @@ u_int dict_completion(ef_char_t *caption, u_int caption_len, void **aux, int ste
   ef_parser_t *parser;
 
   if (!*aux) {
-    if (!(*aux = compl = calloc(1, sizeof(completion_t) + sizeof(*caption) * caption_len))) {
+    void *buffer = calloc(1, sizeof(completion_t) + sizeof(*caption) * caption_len);
+
+    if (!(*aux = compl = buffer)) {
       return caption_len;
     }
 
-    compl->caption_orig = (char *)(compl + 1);
+    compl->caption_orig = buffer + sizeof(completion_t);
     memcpy(compl->caption_orig, caption, sizeof(*caption) * caption_len);
     compl->caption_orig_len = caption_len;
 
@@ -1068,11 +1070,13 @@ u_int dict_candidate(ef_char_t *caption, u_int caption_len, void **aux, int step
   ef_parser_t *parser;
 
   if (!*aux) {
-    if (!(*aux = cand = calloc(1, sizeof(candidate_t) + sizeof(*caption) * caption_len))) {
+    void *buffer = calloc(1, sizeof(candidate_t) + sizeof(*caption) * caption_len);
+
+    if (!(*aux = cand = buffer)) {
       return caption_len;
     }
 
-    cand->caption_orig = (char *)(cand + 1);
+    cand->caption_orig = buffer + sizeof(candidate_t);
     memcpy(cand->caption_orig, caption, sizeof(*caption) * caption_len);
     cand->caption_orig_len = caption_len;
 

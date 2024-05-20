@@ -35,7 +35,7 @@ typedef struct ui_main_config {
   vt_bs_mode_t bs_mode;
   vt_unicode_policy_t unicode_policy;
   vt_alt_color_mode_t alt_color_mode;
-  u_int parent_window;
+  uintptr_t parent_window;
 
   char *disp_name;
   char *app_name;

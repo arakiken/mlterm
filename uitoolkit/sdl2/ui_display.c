@@ -573,7 +573,8 @@ static void present_displays(void) {
   }
 }
 
-static void receive_mouse_event(ui_display_t *disp, XButtonEvent *xev) {
+static void receive_mouse_event(ui_display_t *disp, XEvent *_xev) {
+  XButtonEvent *xev = &_xev->xbutton;
   ui_window_t *win;
 
   if (rotate_display) {
@@ -591,7 +592,7 @@ static void receive_mouse_event(ui_display_t *disp, XButtonEvent *xev) {
   xev->x -= win->x;
   xev->y -= win->y;
 
-  ui_window_receive_event(win, xev);
+  ui_window_receive_event(win, (XEvent *)xev);
 }
 
 static u_int get_mod_state(SDL_Keymod mod) {
@@ -762,7 +763,7 @@ static void poll_event(void) {
     xev.xbutton.x = ev.button.x;
     xev.xbutton.y = ev.button.y;
 
-    receive_mouse_event(disp, &xev.xbutton);
+    receive_mouse_event(disp, &xev);
  
     break;
 
@@ -781,7 +782,7 @@ static void poll_event(void) {
         xev.xbutton.button = 5;
       }
 
-      receive_mouse_event(disp, &xev.xbutton);
+      receive_mouse_event(disp, &xev);
     }
     break;
 
@@ -804,7 +805,7 @@ static void poll_event(void) {
     xev.xmotion.x = ev.motion.x;
     xev.xmotion.y = ev.motion.y;
 
-    receive_mouse_event(disp, &xev.xmotion);
+    receive_mouse_event(disp, &xev);
 
 #if 0 /* defined(__HAIKU__) */
     /* If mouse cursor moves, garbage is left on HaikuOS, so damaged = 1 to redraw screen. */
@@ -901,15 +902,16 @@ static void poll_event(void) {
 /* --- global functions --- */
 
 ui_display_t *ui_display_open(char *disp_name, u_int depth) {
+  void *buffer = calloc(1, sizeof(ui_display_t) + sizeof(Display));
   ui_display_t *disp;
   void *p;
   struct rgb_info rgbinfo = {0, 0, 0, 16, 8, 0};
 
-  if (!(disp = calloc(1, sizeof(ui_display_t) + sizeof(Display)))) {
+  if (!(disp = buffer)) {
     return NULL;
   }
 
-  disp->display = disp + 1;
+  disp->display = buffer + sizeof(ui_display_t);
 
   if ((p = realloc(displays, sizeof(ui_display_t*) * (num_displays + 1))) == NULL) {
     free(disp);

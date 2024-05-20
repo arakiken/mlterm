@@ -18,6 +18,7 @@
 #include "../ui_window.h"
 #include "../ui_picture.h"
 #include "../ui_imagelib.h"
+#include "../ui_event_source.h"
 
 #if 0
 #define __DEBUG
@@ -435,7 +436,7 @@ static void receive_key_event(ui_wlserv_t *wlserv, XKeyEvent *ev) {
 
     /* Key event for dead surface may be received. */
     if (disp && (win = search_focused_window(disp->roots[0]))) {
-      ui_window_receive_event(win, ev);
+      ui_window_receive_event(win, (XEvent *)ev);
     }
   }
 }
@@ -839,7 +840,7 @@ static void pointer_motion(void *data, struct wl_pointer *pointer,
     bl_debug_printf("Motion event state %x x %d y %d in %p window.\n", ev.state, ev.x, ev.y, win);
 #endif
 
-    ui_window_receive_event(win, &ev);
+    ui_window_receive_event(win, (XEvent *)&ev);
   }
 }
 
@@ -945,7 +946,7 @@ static void pointer_button(void *data, struct wl_pointer *pointer, uint32_t seri
 
     wlserv->serial = serial;
 
-    ui_window_receive_event(win, &ev);
+    ui_window_receive_event(win, (XEvent *)&ev);
 
 #ifdef COMPAT_LIBVTE
     if (ev.type == ButtonPress && disp->display->parent == NULL /* Not input method */) {
@@ -1008,10 +1009,10 @@ static void pointer_axis(void *data, struct wl_pointer *pointer,
 #endif
 
     ev.type = ButtonPress;
-    ui_window_receive_event(win, &ev);
+    ui_window_receive_event(win, (XEvent *)&ev);
 
     ev.type = ButtonRelease;
-    ui_window_receive_event(win, &ev);
+    ui_window_receive_event(win, (XEvent *)&ev);
   }
 }
 
@@ -2119,12 +2120,13 @@ static const struct zwp_primary_selection_source_v1_listener zxsel_source_listen
 
 static ui_wlserv_t *open_wl_display(char *name) {
   ui_wlserv_t *wlserv;
+  void *buffer = calloc(1, sizeof(ui_wlserv_t) + sizeof(*wlserv->xkb));
 
-  if (!(wlserv = calloc(1, sizeof(ui_wlserv_t) + sizeof(*wlserv->xkb)))) {
+  if (!(wlserv = buffer)) {
     return NULL;
   }
 
-  wlserv->xkb = wlserv + 1;
+  wlserv->xkb = buffer + sizeof(ui_wlserv_t);
 
   if ((wlserv->display = wl_display_connect(name)) == NULL) {
     bl_error_printf("Couldn't open display %s.\n", name);
@@ -2679,17 +2681,18 @@ static void create_surface(ui_display_t *disp, int x, int y, u_int width, u_int 
 
 ui_display_t *ui_display_open(char *disp_name, u_int depth) {
   u_int count;
-  ui_display_t *disp;
   ui_wlserv_t *wlserv = NULL;
   void *p;
   struct rgb_info rgbinfo = {0, 0, 0, 16, 8, 0};
   static int added_auto_repeat;
+  void *buffer = calloc(1, sizeof(ui_display_t) + sizeof(Display));
+  ui_display_t *disp = buffer;
 
-  if (!(disp = calloc(1, sizeof(ui_display_t) + sizeof(Display)))) {
+  if (!buffer) {
     return NULL;
   }
 
-  disp->display = disp + 1;
+  disp->display = buffer + sizeof(ui_display_t);
 
   if ((p = realloc(displays, sizeof(ui_display_t*) * (num_displays + 1))) == NULL) {
     free(disp);

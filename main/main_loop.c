@@ -111,7 +111,7 @@ int main_loop_init(int argc, char **argv) {
   u_int num_startup_screens;
   u_int depth;
   char *invalid_msg = "%s %s is not valid.\n";
-  char *orig_argv;
+  char **orig_argv;
 #if defined(USE_FRAMEBUFFER) || defined(USE_WAYLAND) || defined(USE_SDL2)
   int use_aafont = 0;
 #endif
