@@ -1,3 +1,14 @@
+2024-07-27  Araki Ken  <arakiken@users.sf.net>
+
+	* README, doc/ja/README.ja: Updated.
+
+	* uitoolkit/ui_copymode.c: Replace the first character of input text
+	  by '/' or '?' in starting the copy mode every time.
+
+	* configure.in: Check libpng if gdk-pixbuf is not found.
+
+	* tool/mlimgloader/libpng.c, stb_image_resize2.h: Added.
+
 2024-05-07  Araki Ken  <arakiken@users.sf.net>
 
 	* xlib/ui_imagelib.c: Remove 'disp->depth < 8' in load_sixel().

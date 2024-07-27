@@ -13,7 +13,9 @@
                      */
 #include <stdlib.h> /* malloc/free/atoi */
 
+#ifndef USE_LIBPNG
 #include <gdk-pixbuf/gdk-pixbuf.h>
+#endif
 
 #include <pobl/bl_debug.h>
 #include <pobl/bl_types.h> /* u_int32_t/u_int16_t */

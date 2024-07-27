@@ -28,7 +28,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
   o 壁紙、背景透過
     壁紙を貼ったり背景を擬似的に透過させることができます。
 
-    壁紙を貼るには、gdk-pixbuf (GTK+ 2.x 以上) が必要です。
+    壁紙を貼るには、gdk-pixbuf (GTK+ 2.x 以上) 又は libpng (1.6 以上) が必要です。
 
   o マルチPTY
     単一プロセス中から、--maxptys オプションで指定した上限数(デフォルトでは 32)

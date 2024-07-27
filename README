@@ -220,7 +220,7 @@ What you need for compilation
   XFree86 4.0.2 or above and FreeType 2.0.2 or above are needed for
   anti-alias.
 
-  gdk-pixbuf (Gtk+ 2.0.1 or higher) for background image.
+  gdk-pixbuf (Gtk+ 2.0.1 or higher) or libpng (1.6 or later) for background image.
 
   Gtk+ (2.x ?) for GUI configurator "mlconfig" and "mlterm-menu".
 

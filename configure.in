@@ -1213,7 +1213,9 @@ mlimgloader)
 		elif test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
 			MLIMGLOADER_LIB=gdk-pixbuf
 		else
-			MLIMGLOADER_LIB=none
+			PKG_CHECK_MODULES(LIBPNG, libpng, MLIMGLOADER_LIB=libpng, MLIMGLOADER_LIB=none)
+			AC_SUBST(LIBPNG_CFLAGS)
+			AC_SUBST(LIBPNG_LIBS)
 		fi
 		AC_SUBST(MLIMGLOADER_LIB)
 

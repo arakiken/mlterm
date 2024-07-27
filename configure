@@ -699,6 +699,8 @@ SDL_CFLAGS
 EMOJI_LIBS
 EMOJI_CFLAGS
 MLIMGLOADER_LIB
+LIBPNG_LIBS
+LIBPNG_CFLAGS
 PERL
 GTK_LIBS_FOR_MLCONFIG
 GTK_CFLAGS_FOR_MLCONFIG
@@ -1056,6 +1058,8 @@ PROTOBUF_CFLAGS
 PROTOBUF_LIBS
 VTE_CFLAGS
 VTE_LIBS
+LIBPNG_CFLAGS
+LIBPNG_LIBS
 SDL_CFLAGS
 SDL_LIBS
 SDLTTF_CFLAGS
@@ -1831,6 +1835,9 @@ Some influential environment variables:
               linker flags for PROTOBUF, overriding pkg-config
   VTE_CFLAGS  C compiler flags for VTE, overriding pkg-config
   VTE_LIBS    linker flags for VTE, overriding pkg-config
+  LIBPNG_CFLAGS
+              C compiler flags for LIBPNG, overriding pkg-config
+  LIBPNG_LIBS linker flags for LIBPNG, overriding pkg-config
   SDL_CFLAGS  C compiler flags for SDL, overriding pkg-config
   SDL_LIBS    linker flags for SDL, overriding pkg-config
   SDLTTF_CFLAGS
@@ -21751,7 +21758,79 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 		elif test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
 			MLIMGLOADER_LIB=gdk-pixbuf
 		else
-			MLIMGLOADER_LIB=none
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBPNG" >&5
+$as_echo_n "checking for LIBPNG... " >&6; }
+
+if test -n "$LIBPNG_CFLAGS"; then
+    pkg_cv_LIBPNG_CFLAGS="$LIBPNG_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libpng\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libpng") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBPNG_CFLAGS=`$PKG_CONFIG --cflags "libpng" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$LIBPNG_LIBS"; then
+    pkg_cv_LIBPNG_LIBS="$LIBPNG_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libpng\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libpng") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBPNG_LIBS=`$PKG_CONFIG --libs "libpng" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        LIBPNG_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libpng" 2>&1`
+        else
+	        LIBPNG_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libpng" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$LIBPNG_PKG_ERRORS" >&5
+
+	MLIMGLOADER_LIB=none
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	MLIMGLOADER_LIB=none
+else
+	LIBPNG_CFLAGS=$pkg_cv_LIBPNG_CFLAGS
+	LIBPNG_LIBS=$pkg_cv_LIBPNG_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	MLIMGLOADER_LIB=libpng
+fi
+
+
 		fi
 
 
