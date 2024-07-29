@@ -54,8 +54,8 @@ jobs:
             export PATH
             ftp -o - https://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/xbase.tar.xz | tar -C / -zxpf - ./usr/X11R7/bin ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
             ftp -o - https://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/xcomp.tar.xz | tar -C / -zxpf - ./usr/X11R7/bin ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
-            pkg_add pkgconf gettext-tools libtool-base
-            pkg_add cairo Canna-lib fribidi gdk-pixbuf2 gtk3+ fcitx ibus m17n-lib harfbuzz scim uim ja-FreeWnn-lib libXft SDL2 libssh2 vte3
+            pkg_add -u pkgconf gettext-tools libtool-base
+            pkg_add -u cairo Canna-lib fribidi gdk-pixbuf2 gtk3+ fcitx ibus m17n-lib harfbuzz scim uim ja-FreeWnn-lib libXft SDL2 libssh2 vte3
           run: |
             PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R7/bin:/usr/pkg/bin:/usr/pkg/sbin:/usr/games:/usr/local/bin:/usr/local/sbin
             export PATH
