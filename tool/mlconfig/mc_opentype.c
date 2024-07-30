@@ -50,7 +50,7 @@ static GtkWidget *script_button;
 
 /* --- static functions --- */
 
-static char *ascii_strcasestr(const char *str1 /* separated by ',' */,
+static const char *ascii_strcasestr(const char *str1 /* separated by ',' */,
                               const char *str2 /* 4 bytes/Lower case */) {
   const char *p1 = str1;
   const char *p2 = str2;
@@ -74,8 +74,8 @@ static char *ascii_strcasestr(const char *str1 /* separated by ',' */,
   }
 }
 
-static int contains(char *values, char *value) {
-  char *p;
+static int contains(const char *values, const char *value) {
+  const char *p;
 
   if ((p = ascii_strcasestr(values, value))) {
     if (p == values || *(p - 1) == ',') {
@@ -199,7 +199,7 @@ static void edit_features(GtkWidget *widget, gpointer data) {
 
   vbox = gtk_vbox_new(FALSE, 0);
   gtk_widget_show(vbox);
-  gtk_box_pack_start(gtk_dialog_get_content_area(GTK_DIALOG(dialog)), vbox, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), vbox, FALSE, FALSE, 0);
 
   for (count = 0; count < BL_ARRAY_SIZE(features_tbl); count++) {
     if (count % 8 == 0) {
@@ -259,7 +259,7 @@ static void edit_script(GtkWidget *widget, gpointer data) {
 
   vbox = gtk_vbox_new(FALSE, 0);
   gtk_widget_show(vbox);
-  gtk_box_pack_start(gtk_dialog_get_content_area(GTK_DIALOG(dialog)), vbox, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), vbox, FALSE, FALSE, 0);
 
   for (count = 0; count < BL_ARRAY_SIZE(scripts_tbl); count++) {
     if (count % 8 == 0) {

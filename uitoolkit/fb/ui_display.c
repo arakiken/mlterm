@@ -652,7 +652,7 @@ static void save_hidden_region(void) {
 static void draw_mouse_cursor_line(int y) {
   u_char *fb;
   ui_window_t *win;
-  char *shape;
+  const char *shape;
   u_char image[MAX_CURSOR_SHAPE_WIDTH * sizeof(u_int32_t)];
   int x;
 
@@ -898,7 +898,7 @@ static int check_virtual_kbd(XButtonEvent *bev) {
     draw_mouse_cursor();
 
     if (ret == 1) {
-      receive_event_for_multi_roots(&kev);
+      receive_event_for_multi_roots((XEvent *)&kev);
     }
   }
 
@@ -1061,7 +1061,7 @@ static int receive_stdin_key_event(void) {
     }
 
     if (xev.ksym) {
-      receive_event_for_multi_roots(&xev);
+      receive_event_for_multi_roots((XEvent *)&xev);
     } else {
       for (count = 0; count < len; count++) {
         xev.ksym = buf[count];
@@ -1083,7 +1083,7 @@ static int receive_stdin_key_event(void) {
           xev.state = ControlMask;
         }
 
-        receive_event_for_multi_roots(&xev);
+        receive_event_for_multi_roots((XEvent *)&xev);
       }
     }
   }
@@ -1095,8 +1095,9 @@ static int receive_stdin_key_event(void) {
 
 static fb_cmap_t *cmap_new(int num_colors) {
   fb_cmap_t *cmap;
+  void *buffer = malloc(sizeof(*cmap) + sizeof(*(cmap->red)) * num_colors * 3);
 
-  if (!(cmap = malloc(sizeof(*cmap) + sizeof(*(cmap->red)) * num_colors * 3))) {
+  if (!(cmap = buffer)) {
     return NULL;
   }
 
@@ -1110,7 +1111,7 @@ static fb_cmap_t *cmap_new(int num_colors) {
   cmap->transp = NULL;
 #endif
   CMAP_SIZE(cmap) = num_colors;
-  cmap->red = cmap + 1;
+  cmap->red = buffer + sizeof(*cmap);
   cmap->green = cmap->red + num_colors;
   cmap->blue = cmap->green + num_colors;
 

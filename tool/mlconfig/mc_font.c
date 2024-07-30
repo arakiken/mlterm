@@ -327,7 +327,7 @@ static void fontsize_selected(GtkWidget *widget, gpointer data) {
 }
 
 static void specify_width(GtkWidget *widget, int flag) {
-  gchar *fontname;
+  const gchar *fontname;
 
   if (((fontname = new_fontname_list[selected_cs]) ||
        (fontname = gtk_entry_get_text(GTK_ENTRY(fontname_entry)))) &&

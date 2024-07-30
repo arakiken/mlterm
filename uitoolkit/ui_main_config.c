@@ -1510,11 +1510,12 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
       }
     } else {
       u_int argc;
+      void *buffer = malloc(sizeof(char *) * (argc + 1) + strlen(value) + 1);
 
       argc = bl_count_char_in_str(value, ' ') + 1;
 
-      if ((main_config->cmd_argv = malloc(sizeof(char *) * (argc + 1) + strlen(value) + 1))) {
-        value = strcpy(main_config->cmd_argv + argc + 1, value);
+      if ((main_config->cmd_argv = buffer)) {
+        value = strcpy(buffer + sizeof(char *) * (argc + 1), value);
         bl_arg_str_to_array(main_config->cmd_argv, &argc, value);
         main_config->cmd_path = main_config->cmd_argv[0];
       }

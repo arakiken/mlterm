@@ -35,7 +35,7 @@ LIBS1 = $(LIBS_LOCAL) @INTL_LIBS@ @DL_SELF@ @DL_LIBS_IM@ @GTK_LIBS_FOR_MLCONFIG@
 # -lX11 is for http://fedoraproject.org/wiki/Features/ChangeInImplicitDSOLinking
 LIBS2_xlib = $(LPOBL) @X_LIBS@
 
-LIBS2_wayland = $(LPOBL)
+LIBS2_wayland = $(LPOBL) @X_LIBS@
 
 LIBS2_sdl2 = $(LPOBL)
 

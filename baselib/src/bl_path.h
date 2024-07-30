@@ -33,20 +33,10 @@
 #endif
 #endif
 
-/* XXX win32 basename() works strangely if cp932 characters are pssed. */
-#if defined(HAVE_BASENAME) && !defined(USE_WIN32API)
-
-#include <libgen.h>
-
-#define bl_basename(path) basename(path)
-
-#else
-
+/* Always implement basename so it can work on constant string */
 #define bl_basename(path) __bl_basename(path)
 
-char *__bl_basename(char *path);
-
-#endif
+const char *__bl_basename(const char *path);
 
 #ifndef REMOVE_FUNCS_MLTERM_UNUSE
 

@@ -62,7 +62,7 @@ bl_utmp_t bl_utmp_new(const char *tty, const char *host, int pty_fd) {
 #endif
   bl_utmp_t utmp;
   const char *pw_name;
-  char *tty_num;
+  const char *tty_num;
   struct timeval timenow;
 
   gettimeofday(&timenow, NULL);

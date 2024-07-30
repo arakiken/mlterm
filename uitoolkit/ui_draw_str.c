@@ -471,6 +471,7 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
                        ui_color_manager_t *color_man, u_int *updated_width, vt_char_t *chars,
                        u_int num_chars, int x, int y, u_int height, u_int ascent,
                        int top_margin, int hide_underline, int underline_offset) {
+  void *buffer;
   int count;
   int start_draw;
   int end_of_str;
@@ -557,11 +558,12 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 
   line_style = vt_char_line_style(&chars[count]);
 
-  if (!(str8 = str32 = pic_glyphs = drcs_glyphs =
-            alloca(BL_MAX(sizeof(*str8),
+  buffer = alloca(BL_MAX(sizeof(*str8),
                           BL_MAX(sizeof(*str32),
                                  BL_MAX(sizeof(*pic_glyphs), sizeof(*drcs_glyphs)))) *
-                   num_chars))) {
+                   num_chars);
+  str8 = buffer; str32 = buffer; pic_glyphs = buffer; drcs_glyphs = buffer;
+  if (!buffer) {
     return 0;
   }
 
@@ -817,7 +819,7 @@ static int xcore_draw_combining_chars(ui_window_t *window, ui_font_manager_t *fo
         u_int len;
 
         if (IS_ISO10646_UCS4(ch_cs)) {
-          if ((len = ui_convert_ucs4_to_utf16(xch, ch_code) / 2) == 0) {
+          if ((len = ui_convert_ucs4_to_utf16((u_char *)xch, ch_code) / 2) == 0) {
             continue;
           }
         } else {
@@ -839,6 +841,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
                           ui_color_manager_t *color_man, u_int *updated_width, vt_char_t *chars,
                           u_int num_chars, int x, int y, u_int height, u_int ascent,
                           int top_margin, int hide_underline, int underline_offset) {
+  void *buffer;
   int count;
   int start_draw;
   int end_of_str;
@@ -922,11 +925,11 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
   bg_color = vt_char_bg_color(&chars[count]);
   line_style = vt_char_line_style(&chars[count]);
 
-  if (!(str2b = str = pic_glyphs = drcs_glyphs =
-            /* '* 2' is for UTF16 surrogate pair. */
-        alloca(BL_MAX(sizeof(*str2b) * 2,
+  buffer = alloca(BL_MAX(sizeof(*str2b) * 2, /* '* 2' is for UTF16 surrogate pair. */
                       BL_MAX(sizeof(*str), BL_MAX(sizeof(*pic_glyphs), sizeof(*drcs_glyphs)))) *
-               num_chars))) {
+               num_chars);
+  str2b = buffer; str = buffer; pic_glyphs = buffer; drcs_glyphs = buffer;
+  if (!buffer) {
     return 0;
   }
 
@@ -948,7 +951,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
     } else {
       /* UCS4 */
 
-      str_len += (ui_convert_ucs4_to_utf16(str2b + str_len, ch_code) / 2);
+      str_len += (ui_convert_ucs4_to_utf16((u_char *)(str2b + str_len), ch_code) / 2);
     }
 
     /*
@@ -1057,7 +1060,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
             str_len++;
           } else {
             /* UCS4 */
-            str_len += (ui_convert_ucs4_to_utf16(str2b + str_len, comb_code) / 2);
+            str_len += (ui_convert_ucs4_to_utf16((u_char *)(str2b + str_len), comb_code) / 2);
           }
         }
 

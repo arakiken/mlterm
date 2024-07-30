@@ -10,13 +10,13 @@
 /* --- global functions --- */
 
 GtkWidget *mc_combo_new(const char *label_name, char **item_names, u_int item_num,
-                        char *selected_item_name, int is_readonly, GtkWidget **entry) {
+                        const char *selected_item_name, int is_readonly, GtkWidget **entry) {
   return mc_combo_new_with_width(label_name, item_names, item_num, selected_item_name, is_readonly,
                                  0, entry);
 }
 
 GtkWidget *mc_combo_new_with_width(const char *label_name, char **item_names, u_int item_num,
-                                   char *selected_item_name, int is_readonly, int entry_width,
+                                   const char *selected_item_name, int is_readonly, int entry_width,
                                    GtkWidget **entry) {
   GtkWidget *hbox;
   GtkWidget *label;
@@ -93,9 +93,9 @@ GtkWidget *mc_combo_new_with_width(const char *label_name, char **item_names, u_
     }
 
 #if GTK_CHECK_VERSION(4, 0, 0)
-    gtk_entry_set_width_chars(gtk_combo_box_get_child(GTK_COMBO_BOX(combo)), width_chars);
+    gtk_entry_set_width_chars(GTK_ENTRY(gtk_combo_box_get_child(GTK_COMBO_BOX(combo))), width_chars);
 #else
-    gtk_entry_set_width_chars(gtk_bin_get_child(GTK_BIN(combo)), width_chars);
+    gtk_entry_set_width_chars(GTK_ENTRY(gtk_bin_get_child(GTK_BIN(combo))), width_chars);
 #endif
 #else
     gtk_widget_set_size_request(gtk_bin_get_child(GTK_BIN(combo)), entry_width, -1);

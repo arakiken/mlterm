@@ -21,10 +21,8 @@
 
 /* --- global functions --- */
 
-#if !defined(HAVE_BASENAME) || defined(USE_WIN32API) || defined(BL_DEBUG)
-
-char* __bl_basename(char *path) {
-  char *p;
+const char* __bl_basename(const char *path) {
+  const char *p;
 
   if (path == NULL || *path == '\0') {
     return ".";
@@ -39,7 +37,7 @@ char* __bl_basename(char *path) {
                || (*p == '\\' && (p - 1 == path || !IsDBCSLeadByte(*(p - 1))))
 #endif
                    ) {
-      *(p--) = '\0';
+      continue;
     } else {
       break;
     }
@@ -61,8 +59,6 @@ char* __bl_basename(char *path) {
     p--;
   }
 }
-
-#endif
 
 #ifndef REMOVE_FUNCS_MLTERM_UNUSE
 
@@ -475,7 +471,7 @@ static void TEST_bl_basename(void) {
   char path4[] = "/foo/\x95\x5c bar";
 #endif
 
-  assert(strcmp(__bl_basename(path1), "bar") == 0);
+  assert(strcmp(__bl_basename(path1), "bar/") == 0);
   assert(strcmp(__bl_basename(path2), "bar") == 0);
   assert(strcmp(__bl_basename(path3), " b a r") == 0);
 #ifdef USE_WIN32API

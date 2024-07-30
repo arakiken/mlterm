@@ -104,9 +104,9 @@ static char *iscii_table_files[] = {
  * 11 means ISCII_ASSAMESE - ISCII_ROMAN.
  * ISCII_ROMAN is disabled (see ef_charset.h) and 10 is enough for now.
  */
-static struct tabl *(*get_iscii_tables[11])(u_int *);
-static struct a2i_tabl *(*get_inscript_table)(u_int *);
-static struct a2i_tabl *(*get_iitkeyb_table)(u_int *);
+static struct tabl *(*get_iscii_tables[11])(size_t *);
+static struct a2i_tabl *(*get_inscript_table)(size_t *);
+static struct a2i_tabl *(*get_iitkeyb_table)(size_t *);
 
 static int8_t file_not_found_flags[11];
 
