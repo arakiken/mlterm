@@ -3170,7 +3170,7 @@ void ui_window_set_icon(ui_window_t *win, ui_icon_picture_t *icon) {
   /* set extended window manager hint's icon */
   if (icon->cardinal && icon->cardinal[0] && icon->cardinal[1]) {
     int num;
-    u_long *data;
+    u_int32_t *data;
 
     /* width * height + 2 */
     num = icon->cardinal[0] * icon->cardinal[1] + 2;
@@ -3178,7 +3178,7 @@ void ui_window_set_icon(ui_window_t *win, ui_icon_picture_t *icon) {
     if (sizeof(u_long) != 4) {
       int count;
 
-      if (!(data = alloca(sizeof(u_long) * num))) {
+      if (!(data = alloca(sizeof(u_int32_t) * num))) {
         return;
       }
 

@@ -23,7 +23,7 @@
 #define BOTTOM_MARGIN(win) \
   ((win)->height_inc ? ((win)->height - (win)->min_height) % (win)->height_inc : 0)
 
-#define ParentRelative (1L)
+#define ParentRelative ((void*)1L)
 
 #define IS_UISCREEN(win) ((win)->selection_cleared)
 #define IS_UILAYOUT(win) ((win)->child_window_resized)

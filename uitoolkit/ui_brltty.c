@@ -62,7 +62,7 @@ static void write_line_to_display(vt_line_t *line, int cursor /* The first posit
 
     if ((len = (*wconv->convert)(wconv, buf, display_cols * sizeof(wchar_t), parser)) > 0) {
       memset(buf + len, 0, 4);
-      brlapi_writeWText(cursor, buf);
+      brlapi_writeWText(cursor, (wchar_t*)buf);
     }
   }
 }

@@ -244,7 +244,7 @@ static void process_wskbd_event(struct wscons_event *ev) {
         xev.state = _mouse.button_state | _display.key_state;
         xev.type = KeyPress;
 
-        receive_event_for_multi_roots(&xev);
+        receive_event_for_multi_roots((XEvent*)&xev);
 
         prev_key_event = *ev;
       }
@@ -834,7 +834,7 @@ static int receive_mouse_event(int fd) {
         xev.x -= win->x;
         xev.y -= win->y;
 
-        ui_window_receive_event(win, &xev);
+        ui_window_receive_event(win, (XEvent*)&xev);
       }
     } else if (ev.type == WSCONS_EVENT_MOUSE_DELTA_X || ev.type == WSCONS_EVENT_MOUSE_DELTA_Y ||
                ev.type == WSCONS_EVENT_MOUSE_DELTA_Z || ev.type == WSCONS_EVENT_MOUSE_DELTA_W) {
@@ -907,7 +907,7 @@ static int receive_mouse_event(int fd) {
       xev.x -= win->x;
       xev.y -= win->y;
 
-      ui_window_receive_event(win, &xev);
+      ui_window_receive_event(win, (XEvent*)&xev);
 
       save_hidden_region();
       draw_mouse_cursor();

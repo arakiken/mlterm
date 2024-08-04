@@ -1542,7 +1542,7 @@ vt_protect_store_t *vt_edit_save_protected_chars(vt_edit_t *edit,
               return NULL;
             }
 
-            dst = save->chars = save + 1;
+            dst = save->chars = (vt_char_t*)(save + 1);
             vt_str_init(dst, (vt_edit_get_cols(edit) + 1) * (end_row - row + 1));
             dst += count;
             save->beg_row = row;

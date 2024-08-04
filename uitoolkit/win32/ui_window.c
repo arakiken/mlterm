@@ -57,7 +57,7 @@
 #define BOTTOM_MARGIN(win) \
   ((win)->height_inc ? ((win)->height - (win)->min_height) % (win)->height_inc : 0)
 
-#define ParentRelative (1L)
+#define ParentRelative ((void*)1L)
 
 #if 0
 #define DEBUG_SCROLLABLE

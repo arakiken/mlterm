@@ -131,7 +131,7 @@ static void *load_symbol(char *file) {
   return sym;
 }
 
-static struct tabl *get_iscii_table(int idx, size_t *size) {
+static struct tabl *get_iscii_table(int idx, u_int *size) {
   if (file_not_found_flags[idx]) {
     return NULL;
   }
@@ -145,7 +145,7 @@ static struct tabl *get_iscii_table(int idx, size_t *size) {
   return (*get_iscii_tables[idx])(size);
 }
 
-static struct a2i_tabl *get_isciikey_table(int is_inscript, size_t *size) {
+static struct a2i_tabl *get_isciikey_table(int is_inscript, u_int *size) {
   if (is_inscript) {
     static int not_found;
 
@@ -183,7 +183,7 @@ static struct a2i_tabl *get_isciikey_table(int is_inscript, size_t *size) {
 
 u_int vt_iscii_shape(ef_charset_t cs, u_char *dst, size_t dst_size, u_char *src) {
   struct tabl *table;
-  size_t size;
+  u_int size;
 
   if (!IS_ISCII(cs)) {
     return 0;
@@ -377,7 +377,7 @@ void vt_isciikey_state_destroy(vt_isciikey_state_t state) {
 size_t vt_convert_ascii_to_iscii(vt_isciikey_state_t state, u_char *iscii, size_t iscii_len,
                                  u_char *ascii, size_t ascii_len) {
   struct a2i_tabl *table;
-  size_t size;
+  u_int size;
   u_char *dup;
 
   /*

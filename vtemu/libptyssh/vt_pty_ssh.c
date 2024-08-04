@@ -1897,9 +1897,9 @@ static void save_data_for_reconnect(ssh_session_t *session, const char *cmd_path
     char *str;
     char **dst;
 
-    session->stored->argv = session->stored + 1;
+    session->stored->argv = (char**)(session->stored + 1);
     session->stored->env = session->stored->argv + array_size[0];
-    str = session->stored->env + array_size[1];
+    str = (char*)(session->stored->env + array_size[1]);
     session->stored->pass = strcpy(str, pass);
     str += (strlen(pass) + 1);
     if (cmd_path) {

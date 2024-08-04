@@ -199,7 +199,8 @@ static void edit_features(GtkWidget *widget, gpointer data) {
 
   vbox = gtk_vbox_new(FALSE, 0);
   gtk_widget_show(vbox);
-  gtk_box_pack_start(gtk_dialog_get_content_area(GTK_DIALOG(dialog)), vbox, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))),
+                     vbox, FALSE, FALSE, 0);
 
   for (count = 0; count < BL_ARRAY_SIZE(features_tbl); count++) {
     if (count % 8 == 0) {
@@ -259,7 +260,8 @@ static void edit_script(GtkWidget *widget, gpointer data) {
 
   vbox = gtk_vbox_new(FALSE, 0);
   gtk_widget_show(vbox);
-  gtk_box_pack_start(gtk_dialog_get_content_area(GTK_DIALOG(dialog)), vbox, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))),
+                     vbox, FALSE, FALSE, 0);
 
   for (count = 0; count < BL_ARRAY_SIZE(scripts_tbl); count++) {
     if (count % 8 == 0) {

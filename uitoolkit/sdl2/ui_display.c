@@ -437,7 +437,7 @@ static int init_display(Display *display, char *app_name, int x, int y, int hint
   SDL_SetTextureBlendMode(display->texture, SDL_BLENDMODE_BLEND);
 #endif
 
-  SDL_LockTexture(display->texture, NULL, &display->fb,
+  SDL_LockTexture(display->texture, NULL, (void**)&display->fb,
                   &display->line_length);
 
   return 1;
@@ -560,7 +560,7 @@ static void present_displays(void) {
       msec[3] = SDL_GetTicks();
 #endif
 
-      SDL_LockTexture(display->texture, NULL, &display->fb, &display->line_length);
+      SDL_LockTexture(display->texture, NULL, (void**)&display->fb, &display->line_length);
 
 #ifdef MEASURE_TIME
       msec[4] = SDL_GetTicks();
@@ -591,7 +591,7 @@ static void receive_mouse_event(ui_display_t *disp, XButtonEvent *xev) {
   xev->x -= win->x;
   xev->y -= win->y;
 
-  ui_window_receive_event(win, xev);
+  ui_window_receive_event(win, (XEvent*)xev);
 }
 
 static u_int get_mod_state(SDL_Keymod mod) {
@@ -804,7 +804,7 @@ static void poll_event(void) {
     xev.xmotion.x = ev.motion.x;
     xev.xmotion.y = ev.motion.y;
 
-    receive_mouse_event(disp, &xev.xmotion);
+    receive_mouse_event(disp, (XButtonEvent*)&xev.xmotion);
 
 #if 0 /* defined(__HAIKU__) */
     /* If mouse cursor moves, garbage is left on HaikuOS, so damaged = 1 to redraw screen. */
@@ -909,7 +909,7 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
     return NULL;
   }
 
-  disp->display = disp + 1;
+  disp->display = (Display*)(disp + 1);
 
   if ((p = realloc(displays, sizeof(ui_display_t*) * (num_displays + 1))) == NULL) {
     free(disp);

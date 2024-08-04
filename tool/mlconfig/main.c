@@ -336,7 +336,7 @@ static void ssh_scp_clicked(GtkWidget *widget, gpointer data) {
 #if GTK_CHECK_VERSION(4, 0, 0)
   vbox = gtk_vbox_new(FALSE, 0);
   gtk_widget_show(vbox);
-  gtk_box_append(gtk_dialog_get_content_area(GTK_DIALOG(dialog)), vbox);
+  gtk_box_append(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), vbox);
 #elif GTK_CHECK_VERSION(2, 14, 0)
   content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
 #else

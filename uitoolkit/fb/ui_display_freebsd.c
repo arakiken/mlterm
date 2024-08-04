@@ -430,7 +430,7 @@ static int receive_mouse_event(int fd) {
         xev.x -= win->x;
         xev.y -= win->y;
 
-        ui_window_receive_event(win, &xev);
+        ui_window_receive_event(win, (XEvent*)&xev);
       }
 
       if (move) {
@@ -634,7 +634,7 @@ static int receive_key_event(int fd) {
                     xev.state);
 #endif
 
-    receive_event_for_multi_roots(&xev);
+    receive_event_for_multi_roots((XEvent*)&xev);
   }
 
   return 1;

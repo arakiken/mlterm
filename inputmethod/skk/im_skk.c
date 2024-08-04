@@ -154,6 +154,7 @@ static void preedit_backup_visual_chars(im_skk_t *skk) {
   }
 }
 
+/* preedit != NULL and preedit_len == 0 -> stop preediting */
 static void preedit(im_skk_t *skk, ef_char_t *preedit, u_int preedit_len, int rev_len,
                     char *candidateword /* already converted to term encoding */,
                     /* 0 means the length of candidateword is 0 or necessity of strlen() */
@@ -601,10 +602,10 @@ static int switch_mode(ui_im_t *im) {
 
   if ((skk->is_enabled = (!skk->is_enabled))) {
     skk->mode = HIRAGANA;
-    preedit(skk, "", 0, 0, skk->status[skk->mode], 0, "");
+    preedit(skk, (ef_char_t*)"", 0, 0, skk->status[skk->mode], 0, "");
   } else {
     preedit_clear(skk);
-    preedit(skk, "", 0, 0, "", 0, "");
+    preedit(skk, (ef_char_t*)"", 0, 0, "", 0, "");
   }
 
   return 1;
@@ -733,9 +734,9 @@ static int fix(im_skk_t *skk) {
       memcpy(skk->new_word + skk->new_word_len, skk->preedit,
              skk->preedit_len * sizeof(skk->preedit[0]));
       skk->new_word_len += skk->preedit_len;
-      preedit(skk, "", 0, 0, skk->status[skk->mode], 0, "");
+      preedit(skk, (ef_char_t*)"", 0, 0, skk->status[skk->mode], 0, "");
     } else {
-      preedit(skk, "", 0, 0, skk->status[skk->mode], 0, "");
+      preedit(skk, (ef_char_t*)"", 0, 0, skk->status[skk->mode], 0, "");
       commit(skk);
     }
     preedit_clear(skk);

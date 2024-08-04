@@ -569,7 +569,7 @@ static int connect_to_server(void) {
 
   memcpy(&sa.sin_addr, host->h_addr_list[0], sizeof(sa.sin_addr));
 
-  if (connect(sock, &sa, sizeof(struct sockaddr_in)) == -1) {
+  if (connect(sock, (struct sockaddr*)&sa, sizeof(struct sockaddr_in)) == -1) {
     goto error;
   }
 
@@ -632,7 +632,7 @@ static void unconcat(char *str) {
   }
 }
 
-static int candidate_exists(const char **cands, u_int num_cands, const char *cand) {
+static int candidate_exists(char **cands, u_int num_cands, const char *cand) {
   u_int count;
 
   for (count = 0; count < num_cands; count++) {
@@ -927,7 +927,7 @@ u_int dict_completion(ef_char_t *caption, u_int caption_len, void **aux, int ste
       return caption_len;
     }
 
-    compl->caption_orig = (char *)(compl + 1);
+    compl->caption_orig = (ef_char_t*)(compl + 1);
     memcpy(compl->caption_orig, caption, sizeof(*caption) * caption_len);
     compl->caption_orig_len = caption_len;
 
@@ -1072,7 +1072,7 @@ u_int dict_candidate(ef_char_t *caption, u_int caption_len, void **aux, int step
       return caption_len;
     }
 
-    cand->caption_orig = (char *)(cand + 1);
+    cand->caption_orig = (ef_char_t*)(cand + 1);
     memcpy(cand->caption_orig, caption, sizeof(*caption) * caption_len);
     cand->caption_orig_len = caption_len;
 

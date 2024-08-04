@@ -222,7 +222,7 @@ static int process_key_event(int action, int code) {
       xev.keycode = code;
       xev.state = _display.button_state | _display.key_state;
 
-      ui_window_receive_event(_disp.roots[0], &xev);
+      ui_window_receive_event(_disp.roots[0], (XEvent*)&xev);
     }
   } else if (action == AKEY_EVENT_ACTION_MULTIPLE) {
     XKeyEvent xev;
@@ -232,7 +232,7 @@ static int process_key_event(int action, int code) {
     xev.keycode = 0;
     xev.state = 0;
 
-    ui_window_receive_event(_disp.roots[0], &xev);
+    ui_window_receive_event(_disp.roots[0], (XEvent*)&xev);
   } else /* if( action == AKEY_EVENT_ACTION_UP) */
   {
     if (code == AKEYCODE_SHIFT_RIGHT || code == AKEYCODE_SHIFT_LEFT) {
@@ -439,7 +439,7 @@ static int process_mouse_event(int source, int action, int64_t time, int x, int 
     xev.x -= win->x;
     xev.y -= win->y;
 
-    ui_window_receive_event(win, &xev);
+    ui_window_receive_event(win, (XEvent*)&xev);
   }
 
   return 1;

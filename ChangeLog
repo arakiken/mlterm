@@ -1,3 +1,7 @@
+2024-08-05  Araki Ken  <arakiken@users.sf.net>
+
+	* Support -Werror=incompatible-pointer-types option of gcc.
+
 2024-07-27  Araki Ken  <arakiken@users.sf.net>
 
 	* README, doc/ja/README.ja: Updated.

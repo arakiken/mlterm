@@ -640,7 +640,8 @@ static ui_screen_t *open_screen_intern(char *disp_name, vt_term_t *term, ui_layo
     }
 
     if (!ui_display_show_root(disp, root, main_config.x, main_config.y, main_config.geom_hint,
-                              main_config.app_name, main_config.wm_role, main_config.parent_window)) {
+                              main_config.app_name, main_config.wm_role,
+                              (Window)main_config.parent_window)) {
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG " ui_display_show_root() failed.\n");
 #endif

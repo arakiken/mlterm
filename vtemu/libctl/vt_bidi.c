@@ -15,6 +15,19 @@
 #define DIR_LTR_MARK 0x200e
 #define DIR_RTL_MARK 0x200f
 
+/*
+ * FriBidiParType is introduced in
+ * https://github.com/fribidi/fribidi/commit/5a52ab708d73f6b8929856ddf7238ecdb04a36b0
+ */
+#if defined(FRIBIDI_MAJOR_VERSION) && defined(FRIBIDI_MINOR_VERSION)
+#if FRIBIDI_MAJOR_VERSION >= 1 || FRIBIDI_MINOR_VERSION >= 19
+#define FriBidiCharType FriBidiParType
+#define FRIBIDI_TYPE_LTR FRIBIDI_PAR_LTR
+#define FRIBIDI_TYPE_RTL FRIBIDI_PAR_RTL
+#define FRIBIDI_TYPE_ON FRIBIDI_PAR_ON
+#endif
+#endif
+
 /* --- global functions --- */
 
 vt_bidi_state_t vt_bidi_new(void) {
@@ -115,6 +128,10 @@ static void log2vis(FriBidiChar *str, u_int size, FriBidiCharType *type_p, vt_bi
       type = FRIBIDI_TYPE_LTR;
     }
 
+    /*
+     * The type of the 3rd argument is changed from FriBidiCharType to FriBidiParType in
+     * https://github.com/fribidi/fribidi/commit/5a52ab708d73f6b8929856ddf7238ecdb04a36b0
+     */
     fribidi_log2vis(str + cur_pos, size - cur_pos, &type, NULL, order + cur_pos, NULL, NULL);
 
     if (*type_p == FRIBIDI_TYPE_ON) {

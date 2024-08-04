@@ -151,7 +151,7 @@ static void update_preedit_text(IBusInputContext *context, IBusText *text, gint 
     ibus->im.preedit.filled_len = 0;
 
     (*parser_utf8->init)(parser_utf8);
-    (*parser_utf8->set_str)(parser_utf8, text->text, strlen(text->text));
+    (*parser_utf8->set_str)(parser_utf8, (u_char*)text->text, strlen(text->text));
 
     index = 0;
     while ((*parser_utf8->next_char)(parser_utf8, &ch)) {
@@ -159,23 +159,28 @@ static void update_preedit_text(IBusInputContext *context, IBusText *text, gint 
       IBusAttribute *attr;
       int is_fullwidth = 0;
       int is_comb = 0;
+      /* LS_UNDERLINE_SINGLE is always used. */
+#if 0
       int is_underlined = 0;
+#endif
       vt_color_t fg_color = VT_FG_COLOR;
       vt_color_t bg_color = VT_BG_COLOR;
 
       for (count = 0; (attr = ibus_attr_list_get(text->attrs, count)); count++) {
         if (attr->start_index <= index && index < attr->end_index) {
+#if 0
           if (attr->type == IBUS_ATTR_TYPE_UNDERLINE) {
             is_underlined = (attr->value != IBUS_ATTR_UNDERLINE_NONE);
-          }
+          } else
+#endif
 #if 0
-          else if (attr->type == IBUS_ATTR_TYPE_FOREGROUND) {
+          if (attr->type == IBUS_ATTR_TYPE_FOREGROUND) {
             fg_color = get_near_color(attr->value);
           } else if (attr->type == IBUS_ATTR_TYPE_BACKGROUND) {
             bg_color = get_near_color(attr->value);
           }
 #else
-          else if (attr->type == IBUS_ATTR_TYPE_BACKGROUND) {
+          if (attr->type == IBUS_ATTR_TYPE_BACKGROUND) {
             fg_color = VT_BG_COLOR;
             bg_color = VT_FG_COLOR;
           }
@@ -281,7 +286,8 @@ static void commit_text(IBusInputContext *context, IBusText *text, gpointer data
   if (ibus_text_get_length(text) == 0) {
     /* do nothing */
   } else {
-    (*ibus->im.listener->write_to_term)(ibus->im.listener->self, text->text, strlen(text->text),
+    (*ibus->im.listener->write_to_term)(ibus->im.listener->self, (u_char*)text->text,
+                                        strlen(text->text),
                                         ibus->term_encoding == VT_UTF8 ? NULL : parser_utf8);
   }
 
@@ -308,7 +314,7 @@ static void forward_key_event(IBusInputContext *context, guint keyval, guint key
       ) {
     ibus->prev_key.state |= IBUS_IGNORED_MASK;
 #ifdef USE_XLIB
-    XPutBackEvent(ibus->prev_key.display, &ibus->prev_key);
+    XPutBackEvent(ibus->prev_key.display, (XEvent*)&ibus->prev_key);
 #endif
     memset(&ibus->prev_key, 0, sizeof(XKeyEvent));
   }
@@ -438,8 +444,9 @@ static int add_event_source(void) {
    * GIOStream returned by g_dbus_connection_get_stream() is forcibly
    * regarded as GSocketConnection.
    */
+  GIOStream *stream = g_dbus_connection_get_stream(ibus_bus_get_connection(ibus_bus));
   if ((ibus_bus_fd = g_socket_get_fd(g_socket_connection_get_socket(
-           g_dbus_connection_get_stream(ibus_bus_get_connection(ibus_bus))))) == -1) {
+                                       G_SOCKET_CONNECTION(stream)))) == -1) {
     return 0;
   }
 #endif

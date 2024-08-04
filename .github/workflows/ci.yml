@@ -36,7 +36,7 @@ jobs:
           CONFIGURE_ARGS="--with-gui=quartz"
           ;;
         esac
-        CFLAGS="-Wall -g -O2" ./configure ${CONFIGURE_ARGS}
+        CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" ./configure ${CONFIGURE_ARGS}
 
     - name: build
       run: |
@@ -73,6 +73,6 @@ jobs:
           run: |
             PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R7/bin:/usr/pkg/bin:/usr/pkg/sbin:/usr/games:/usr/local/bin:/usr/local/sbin
             export PATH
-            CFLAGS="-Wall -g -O2" CPPFLAGS="-I/usr/pkg/include" ./configure --x-includes=/usr/X11R7/include --x-libraries=/usr/X11R7/lib --with-imagelib=gdk-pixbuf --with-gui=xlib,wscons,sdl2 --with-type-engins=xcore,xft,cairo --enable-anti-alias
+            CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" CPPFLAGS="-I/usr/pkg/include" ./configure --x-includes=/usr/X11R7/include --x-libraries=/usr/X11R7/lib --with-imagelib=gdk-pixbuf --with-gui=xlib,wscons,sdl2 --with-type-engins=xcore,xft,cairo --enable-anti-alias
             make
             make install

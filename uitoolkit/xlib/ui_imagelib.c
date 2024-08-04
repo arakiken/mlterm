@@ -428,7 +428,7 @@ static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
   GC mask_gc;
   int num_cells;
 
-  if (!(data = in = load_sixel_from_file(path, &w, &h, transparent))) {
+  if (!(data = in = (u_int32_t*)load_sixel_from_file(path, &w, &h, transparent))) {
     return 0;
   }
 
@@ -464,7 +464,7 @@ static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
     }
 
     bytes_per_pixel = 1;
-    out8 = data;
+    out8 = (u_char*)data;
 
 #ifdef USE_FS
     if ((diff_cur = calloc(1, w * 3)) == NULL || (diff_next = calloc(1, w * 3)) == NULL) {
@@ -540,10 +540,10 @@ static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
 
     if (disp->depth == 16) {
       bytes_per_pixel = 2;
-      out16 = data;
+      out16 = (u_int16_t*)data;
     } else /* if (disp->depth == 32 || disp->depth == 24) */ {
       bytes_per_pixel = 4;
-      out32 = data;
+      out32 = (u_int32_t*)data;
     }
 
     vinfo = ui_display_get_visual_info(disp);
@@ -587,7 +587,7 @@ static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
   if (disp->depth < 8) {
     XGCValues gcv;
     GC gc = XCreateGC(disp->display, ui_display_get_group_leader(disp), 0, &gcv);
-    u_char *out8 = data;
+    u_char *out8 = (u_char*)data;
 
     for (y = 0; y < h; y++) {
       for (x = 0; x < w; x++) {
@@ -599,7 +599,7 @@ static int load_sixel(ui_display_t *disp, char *path, Pixmap *pixmap,
     free(data);
     XFreeGC(disp->display, gc);
   } else {
-    image = XCreateImage(disp->display, disp->visual, disp->depth, ZPixmap, 0, data, w, h,
+    image = XCreateImage(disp->display, disp->visual, disp->depth, ZPixmap, 0, (char*)data, w, h,
                          /* in case depth isn't multiple of 8 */
                          bytes_per_pixel * 8, w * bytes_per_pixel);
 #ifdef WORDS_BIGENDIAN
@@ -1426,7 +1426,7 @@ static u_int32_t *create_cardinals_from_file(char *path, u_int32_t width, u_int3
     cardinal[1] = height;
 
     size -= (sizeof(u_int32_t) * 2);
-    p = &cardinal[2];
+    p = (u_char*)(&cardinal[2]);
     while ((n_rd = read(read_fd, p, size)) > 0) {
       p += n_rd;
       size -= n_rd;

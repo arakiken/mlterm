@@ -526,7 +526,7 @@ static int open_display(u_int depth) {
 #ifdef DEBUG
       bl_debug_printf("MOUSE2: /dev/input/event%d\n", mouse_num[1]);
 #endif
-      _disp_mouse2.display = &_mouse2;
+      _disp_mouse2.display = (Display*)&_mouse2;
       opened_disps[num_opened_displays++] = &_disp_mouse2;
     }
   }
@@ -540,7 +540,7 @@ static int open_display(u_int depth) {
       bl_debug_printf("KBD2: /dev/input/event%d\n", kbd_num[1]);
 #endif
       _kbd2.is_kbd = 1;
-      _disp_kbd2.display = &_kbd2;
+      _disp_kbd2.display = (Display*)&_kbd2;
       opened_disps[num_opened_displays++] = &_disp_kbd2;
     }
   }
@@ -680,7 +680,7 @@ static int receive_mouse_event(int fd) {
         xev.x -= win->x;
         xev.y -= win->y;
 
-        ui_window_receive_event(win, &xev);
+        ui_window_receive_event(win, (XEvent*)&xev);
       }
     } else if (ev.type == EV_REL) {
       XMotionEvent xev;
@@ -753,7 +753,7 @@ static int receive_mouse_event(int fd) {
       xev.x -= win->x;
       xev.y -= win->y;
 
-      ui_window_receive_event(win, &xev);
+      ui_window_receive_event(win, (XEvent*)&xev);
 
       save_hidden_region();
       draw_mouse_cursor();
@@ -827,7 +827,7 @@ static int receive_key_event(int fd) {
             xev.keycode = ev.code;
 
             if ((xev.ksym = kcode_to_ksym(ev.code, ent.kb_value, &xev.state)) > 0) {
-              receive_event_for_multi_roots(&xev);
+              receive_event_for_multi_roots((XEvent*)&xev);
             }
           }
         } else if (ev.value == 0 /* Released */) {

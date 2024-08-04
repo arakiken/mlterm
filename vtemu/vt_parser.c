@@ -3153,7 +3153,7 @@ static void reset_color_rgb(vt_parser_t *vt_parser, u_char *pt, int is_spcolor) 
       }
     }
   } else {
-    while ((p = bl_str_sep(&pt, ";"))) {
+    while ((p = bl_str_sep((char**)&pt, ";"))) {
       if (is_spcolor) {
         if ('0' <= *p && *p <= '4') {
           config_protocol_set_simple(vt_parser, get_special_color_name(*p), "", 0);
@@ -5821,7 +5821,7 @@ inline static int parse_vt100_escape_sequence(
         } else if (ps[0] == 10) {
           /* XXX full screen is not supported for now. */
         } else if (ps[0] == 7) {
-          const char cmd[] = "update_all";
+          char cmd[] = "update_all";
           config_protocol_set(vt_parser, cmd, 0);
         } else if (ps[0] == 11) {
           vt_write_to_pty(vt_parser->pty, "\x1b[1t", 4); /* XXX always non-iconified */

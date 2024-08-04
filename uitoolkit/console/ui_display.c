@@ -693,7 +693,7 @@ static int receive_stdin_event(ui_display_t *disp) {
 #endif
 
           set_blocking(fileno(disp->display->fp), 1);
-          ui_window_receive_event(win, &bev);
+          ui_window_receive_event(win, (XEvent*)&bev);
           set_blocking(fileno(disp->display->fp), 0);
 
           continue;
@@ -868,7 +868,7 @@ static int receive_stdin_event(ui_display_t *disp) {
     }
 
     set_blocking(fileno(disp->display->fp), 1);
-    receive_event_for_multi_roots(disp, &kev);
+    receive_event_for_multi_roots(disp, (XEvent*)&kev);
     set_blocking(fileno(disp->display->fp), 0);
   }
 

@@ -116,7 +116,8 @@ static void modify_pixmap(Display *display, Pixmap pixmap, ui_picture_modifier_t
     value_table = NULL;
   }
 
-  src = dst = pixmap->image;
+  dst = pixmap->image;
+  src = (u_int32_t*)dst;
   num_pixels = pixmap->width * pixmap->height;
 
   for (count = 0; count < num_pixels; count++) {
