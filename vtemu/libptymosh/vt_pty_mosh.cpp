@@ -256,7 +256,7 @@ static ssize_t lo_read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   return read(pty->master, buf, len);
 }
 
-static ssize_t lo_write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
+static ssize_t lo_write_to_pty(vt_pty_t *pty, const u_char *buf, size_t len) {
 #ifdef __CYGWIN__
   if (check_sig_child(pty->config_menu.pid)) {
     /*
@@ -636,17 +636,18 @@ static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
   return 1;
 }
 
-static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
+static ssize_t write_to_pty(vt_pty_t *pty, const u_char *buf, size_t len) {
   vt_pty_mosh_t *pty_mosh = (vt_pty_mosh_t*)pty;
 
   pthread_mutex_lock(&event_mutex);
 
 #ifdef MOSH_SIXEL
-  bool zmodem_cancel = (strcmp((char*)buf, "**\x18\x18\x18\x18\x18\x18\x18\x18"
-                                           "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08") == 0);
+  bool zmodem_cancel = (strcmp((const char*)buf,
+                               "**\x18\x18\x18\x18\x18\x18\x18\x18"
+                               "\x08\x08\x08\x08\x08\x08\x08\x08\x08\x08") == 0);
 
   if (pty_mosh->network->tcp_sock >= 0 &&
-      tcp_send(pty_mosh->network->tcp_sock, (char*)buf, len)) {
+      tcp_send(pty_mosh->network->tcp_sock, (const char*)buf, len)) {
     if (zmodem_cancel) {
       pass_seq_full_reset(&pty_mosh->network->ps);
 

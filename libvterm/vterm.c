@@ -67,7 +67,7 @@ typedef struct VTerm {
 
 static int final(vt_pty_ptr_t pty) { return 1; }
 
-static ssize_t pty_write(vt_pty_ptr_t pty, u_char* buf, size_t len) {
+static ssize_t pty_write(vt_pty_ptr_t pty, const u_char* buf, size_t len) {
   VTerm *vterm = pty->pty_listener->self;
 
 #if VTERM_CHECK_VERSION2(0, 1)
@@ -109,20 +109,24 @@ static void pty_closed(void *p) {
   ((VTerm*)p)->term = NULL;
 }
 
-static void set_config(void *p, char *dev, char *key, char *value) {
+static int set_config(void *p, char *dev, char *key, char *value) {
   VTerm *vterm;
 
   vterm = p;
 
   if (vt_term_set_config(vterm->term, key, value)) {
-    /* do nothing */
+    return 1;
   } else if (strcmp(key, "encoding") == 0) {
     vt_char_encoding_t encoding;
 
     if ((encoding = vt_get_char_encoding(value)) != VT_UNKNOWN_ENCODING) {
       vt_term_change_encoding(vterm->term, encoding);
     }
+
+    return 1;
   }
+
+  return 0;
 }
 
 static void get_config(void *p, char *dev, char *key, int to_menu) {
@@ -471,7 +475,7 @@ static void line_scrolled_out(void *p) {
      */
     pos.row = 0;
     for (pos.col = 0; pos.col < cols; pos.col++) {
-      vterm_screen_get_cell(vterm, pos, cells + pos.col);
+      vterm_screen_get_cell((VTermScreen*)vterm, pos, cells + pos.col);
     }
 
     (*vterm->vterm_screen_cb->sb_pushline)(cols, cells, vterm->vterm_screen_cbdata);
@@ -655,7 +659,7 @@ void vterm_keyboard_unichar(VTerm *vterm, uint32_t c, VTermModifier mod) {
   }
 
   (*utf32_parser->init)(utf32_parser);
-  (*utf32_parser->set_str)(utf32_parser, &c, 4);
+  (*utf32_parser->set_str)(utf32_parser, (u_char*)&c, 4);
   (*utf8_conv->init)(utf8_conv);
   len = (*utf8_conv->convert)(utf8_conv, buf, sizeof(buf), utf32_parser);
 
@@ -759,7 +763,7 @@ void vterm_parser_set_callbacks(VTerm *vterm, const VTermParserCallbacks *callba
 
 void *vterm_parser_get_cbdata(VTerm *vterm) { return NULL; }
 
-VTermState *vterm_obtain_state(VTerm *vterm) { return vterm; }
+VTermState *vterm_obtain_state(VTerm *vterm) { return (VTermState*)vterm; }
 
 void vterm_state_set_callbacks(VTermState *state, const VTermStateCallbacks *callbacks,
                                 void *user) {
@@ -775,16 +779,16 @@ void *vterm_state_get_cbdata(VTermState *state) { return NULL; }
  * https://bazaar.launchpad.net/~libvterm/libvterm/trunk/revision/759
  */
 void vterm_state_set_unrecognised_fallbacks(VTermState *state,
-                                             const VTermStateFallbacks *fallbacks, void *user) {}
+                                            const VTermStateFallbacks *fallbacks, void *user) {}
 #else
 void vterm_state_set_unrecognised_fallbacks(VTermState *state,
-                                             const VTermParserCallbacks *fallbacks, void *user) {}
+                                            const VTermParserCallbacks *fallbacks, void *user) {}
 #endif
 
 void *vterm_state_get_unrecognised_fbdata(VTermState *state) { return NULL; }
 
 void vterm_state_reset(VTermState *state, int hard) {
-  VTerm *vterm = state;
+  VTerm *vterm = (VTerm*)state;
 
   if (hard) {
     vt_term_write_loopback(vterm->term, "\x1bc", 2); /* RIS */
@@ -794,12 +798,12 @@ void vterm_state_reset(VTermState *state, int hard) {
 }
 
 void vterm_state_get_cursorpos(const VTermState *state, VTermPos *cursorpos) {
-  *cursorpos = get_cursor_pos((VTerm*)state);
+  *cursorpos = get_cursor_pos((vt_term_t*)state);
 }
 
 void vterm_state_get_default_colors(const VTermState *state, VTermColor *default_fg,
                                     VTermColor *default_bg) {
-  VTerm *vterm = state;
+  VTerm *vterm = (VTerm*)state;
 
   *default_fg = vterm->default_fg;
   *default_bg = vterm->default_bg;
@@ -823,7 +827,7 @@ void vterm_state_get_palette_color(const VTermState *state, int index, VTermColo
 
 void vterm_state_set_default_colors(VTermState *state, const VTermColor *default_fg,
                                     const VTermColor *default_bg) {
-  VTerm *vterm = state;
+  VTerm *vterm = (VTerm*)state;
 
   vterm->default_fg = *default_fg;
   vterm->default_bg = *default_bg;
@@ -869,11 +873,11 @@ void vterm_state_convert_color_to_rgb(const VTermState *state, VTermColor *color
 }
 #endif
 
-VTermScreen *vterm_obtain_screen(VTerm *vterm) { return vterm; }
+VTermScreen *vterm_obtain_screen(VTerm *vterm) { return (VTermScreen*)vterm; }
 
 void  vterm_screen_set_callbacks(VTermScreen *screen, const VTermScreenCallbacks *callbacks,
                                  void *user) {
-  VTerm *vterm = screen;
+  VTerm *vterm = (VTerm*)screen;
 
   vterm->vterm_screen_cbdata = user;
   vterm->vterm_screen_cb = callbacks;
@@ -899,13 +903,13 @@ void *vterm_screen_get_unrecognised_fbdata(VTermScreen *screen) { return NULL; }
 void vterm_screen_enable_altscreen(VTermScreen *screen, int altscreen) {}
 
 void vterm_screen_flush_damage(VTermScreen *screen) {
-  update_screen(screen);
+  update_screen((VTerm*)screen);
 }
 
 void vterm_screen_set_damage_merge(VTermScreen *screen, VTermDamageSize size) {}
 
 void vterm_screen_reset(VTermScreen *screen, int hard) {
-  vterm_state_reset(screen, hard);
+  vterm_state_reset((VTermState*)screen, hard);
   vterm_screen_flush_damage(screen);
 }
 
@@ -928,7 +932,7 @@ int vterm_screen_get_attrs_extent(const VTermScreen *screen, VTermRect *extent, 
 }
 
 int vterm_screen_get_cell(const VTermScreen *screen, VTermPos pos, VTermScreenCell *cell) {
-  VTerm *vterm = screen;
+  VTerm *vterm = (VTerm*)screen;
   vt_line_t *line;
   vt_color_t fg = VT_FG_COLOR;
   vt_color_t bg = VT_BG_COLOR;
@@ -1047,7 +1051,7 @@ int vterm_screen_is_eol(const VTermScreen *screen, VTermPos pos) { return 0; }
 
 #ifdef VTERM_EXPOSE_COLOR_INDEX
 void vterm_screen_convert_color_to_rgb(const VTermScreen *screen, VTermColor *color) {
-  vterm_state_convert_color_to_rgb(screen, color);
+  vterm_state_convert_color_to_rgb((const VTermState*)screen, color);
 }
 #endif
 

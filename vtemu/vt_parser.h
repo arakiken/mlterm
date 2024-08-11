@@ -382,7 +382,7 @@ int vt_parse_vt100_sequence(vt_parser_t *vt_parser);
 #define vt_parser_has_pending_sequence(vt_parser) \
   ((vt_parser)->r_buf.left > 0 || (vt_parser)->is_transferring_data)
 
-size_t vt_parser_write(vt_parser_t *vt_parser, u_char *buf, size_t len);
+size_t vt_parser_write(vt_parser_t *vt_parser, const u_char *buf, size_t len);
 
 int vt_parser_write_modified_key(vt_parser_t *vt_parser, int key, int ch, int modcode);
 

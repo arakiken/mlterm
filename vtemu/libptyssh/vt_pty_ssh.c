@@ -110,7 +110,7 @@ typedef struct scp {
 
 /* --- static variables --- */
 
-static char *pass_response;
+static const char *pass_response;
 
 static ssh_session_t **sessions;
 static u_int num_sessions = 0;
@@ -858,7 +858,7 @@ static int zombie(vt_pty_ssh_t *pty) {
   return 0;
 }
 
-static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
+static ssize_t write_to_pty(vt_pty_t *pty, const u_char *buf, size_t len) {
   ssize_t ret;
 
   if (((vt_pty_ssh_t *)pty)->session->suspended) {
@@ -1032,7 +1032,7 @@ static ssize_t lo_read_pty(vt_pty_t *pty, u_char *buf, size_t len) {
   return read(pty->master, buf, len);
 }
 
-static ssize_t lo_write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
+static ssize_t lo_write_to_pty(vt_pty_t *pty, const u_char *buf, size_t len) {
 #ifdef __CYGWIN__
   if (check_sig_child(pty->config_menu.pid)) {
     /*

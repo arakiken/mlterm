@@ -61,7 +61,7 @@ typedef struct vt_pty {
 
   int (*final)(struct vt_pty *);
   int (*set_winsize)(struct vt_pty *, u_int, u_int, u_int, u_int);
-  ssize_t (*write)(struct vt_pty *, u_char*, size_t);
+  ssize_t (*write)(struct vt_pty *, const u_char*, size_t);
   ssize_t (*read)(struct vt_pty *, u_char*, size_t);
 
   vt_pty_event_listener_t *pty_listener;
@@ -71,7 +71,7 @@ typedef struct vt_pty {
   struct _stored {
     int master;
     int slave;
-    ssize_t (*write)(struct vt_pty *, u_char*, size_t);
+    ssize_t (*write)(struct vt_pty *, const u_char*, size_t);
     ssize_t (*read)(struct vt_pty *, u_char*, size_t);
 
     u_int ref_count;
@@ -98,7 +98,7 @@ int vt_pty_destroy(vt_pty_t *pty);
 
 int vt_set_pty_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u_int height_pix);
 
-size_t vt_write_to_pty(vt_pty_t *pty, u_char *buf, size_t len);
+size_t vt_write_to_pty(vt_pty_t *pty, const u_char *buf, size_t len);
 
 size_t vt_read_pty(vt_pty_t *pty, u_char *buf, size_t left);
 

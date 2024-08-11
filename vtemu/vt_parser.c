@@ -7354,7 +7354,7 @@ int vt_parse_vt100_sequence(vt_parser_t *vt_parser) {
   return 1;
 }
 
-size_t vt_parser_write(vt_parser_t *vt_parser, u_char *buf, size_t len) {
+size_t vt_parser_write(vt_parser_t *vt_parser, const u_char *buf, size_t len) {
   if (vt_parser->is_transferring_data) {
     return 0;
   }

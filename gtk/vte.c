@@ -145,7 +145,7 @@ struct _VteTerminalPrivate {
   ui_system_event_listener_t system_listener;
 
   void (*line_scrolled_out)(void *);
-  void (*xterm_resize)(void *, u_int, u_int, int);
+  void (*xterm_resize)(void *, u_int, u_int, int, int);
   ui_screen_scroll_event_listener_t screen_scroll_listener;
   int8_t adj_value_changed_by_myself;
 
@@ -305,7 +305,7 @@ static ui_display_t disp;
 static guint signals[LAST_SIGNAL];
 #endif
 
-static int (*orig_select_in_window)(void *, vt_char_t **, u_int *, int, int, int, int, int);
+static int (*orig_select_in_window)(void *);
 
 static int is_sending_data;
 
@@ -335,10 +335,8 @@ static int error_handler(Display *display, XErrorEvent *event) {
 }
 #endif
 
-static int select_in_window(void *p, vt_char_t **chars, u_int *len, int beg_char_index, int beg_row,
-                            int end_char_index, int end_row, int is_rect) {
-  int ret = (*orig_select_in_window)(p, chars, len, beg_char_index, beg_row,
-                                     end_char_index, end_row, is_rect);
+static int select_in_window(void *p) {
+  int ret = (*orig_select_in_window)(p);
 #if VTE_CHECK_VERSION(0, 19, 0)
   g_signal_emit(VTE_WIDGET((ui_screen_t*)p), signals[SIGNAL_SELECTION_CHANGED], 0);
 #else
@@ -764,19 +762,19 @@ static void __exit(void *p, int status) {
  * vt_xterm_event_listener_t (overriding) handlers
  */
 
-static void xterm_resize(void *p, u_int width, u_int height, int flag) {
+static void xterm_resize(void *p, u_int width, u_int height, int mx_flag, int sb_flag) {
   ui_screen_t *screen = p;
   VteTerminal *terminal = VTE_WIDGET(screen);
 
-  if (flag) {
-    flag --; /* converting to ui_maximize_flag_t */
-    if (flag == MAXIMIZE_FULL) {
-      gtk_window_maximize(gtk_widget_get_toplevel(GTK_WIDGET(terminal)));
-    } else if (flag == MAXIMIZE_RESTORE) {
-      gtk_window_unmaximize(gtk_widget_get_toplevel(GTK_WIDGET(terminal)));
+  if (mx_flag) {
+    mx_flag --; /* converting to ui_maximize_flag_t */
+    if (mx_flag == MAXIMIZE_FULL) {
+      gtk_window_maximize(GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(terminal))));
+    } else if (mx_flag == MAXIMIZE_RESTORE) {
+      gtk_window_unmaximize(GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(terminal))));
     }
   } else {
-    (*PVT(terminal)->xterm_resize)(p, width, height, 0);
+    (*PVT(terminal)->xterm_resize)(p, width, height, 0, 0);
   }
 }
 
@@ -1688,7 +1686,7 @@ static void vte_terminal_get_preferred_height(GtkWidget *widget, gint *minimum_h
          * "exo-open --launch TerminalEmulator" (which calls
          * "x-terminal-emulator" internally)
          */
-        g_object_get_data(gtk_widget_get_parent(widget), "roxterm_tab")) {
+        g_object_get_data(G_OBJECT(gtk_widget_get_parent(widget)), "roxterm_tab")) {
       /*
        * XXX
        * I don't know why, but the size of roxterm 2.6.5 (GTK+3) is
@@ -2447,7 +2445,7 @@ static void vte_terminal_init(VteTerminal *terminal) {
 #endif
 
 #if VTE_CHECK_VERSION(0, 40, 0)
-  terminal->_unused_padding[0] = G_TYPE_INSTANCE_GET_PRIVATE(terminal, VTE_TYPE_TERMINAL, VteTerminalPrivate);
+  terminal->_unused_padding[0] = (void**)G_TYPE_INSTANCE_GET_PRIVATE(terminal, VTE_TYPE_TERMINAL, VteTerminalPrivate);
 #else
   terminal->pvt = G_TYPE_INSTANCE_GET_PRIVATE(terminal, VTE_TYPE_TERMINAL, VteTerminalPrivate);
 #endif
@@ -2824,8 +2822,8 @@ static void set_color_cursor(VteTerminal *terminal, const void *cursor_backgroun
   g_free(str);
 }
 
-static int set_colors(VteTerminal *terminal, const char *palette, glong palette_size,
-                      size_t color_size, gchar *(*to_string)(const char *)) {
+static int set_colors(VteTerminal *terminal, const void *palette, glong palette_size,
+                      size_t color_size, gchar *(*to_string)(const void *)) {
   int need_redraw = 0;
   vt_color_t color;
 
@@ -3015,8 +3013,9 @@ void vte_terminal_spawn_async(VteTerminal *terminal, VtePtyFlags pty_flags,
   GPid child_pid;
   GError *error;
 
-  vte_terminal_spawn_sync(terminal, pty_flags, working_directory, argv, envv, spawn_flags,
-                          child_setup, child_setup_data, &child_pid, cancellable, &error);
+  vte_terminal_spawn_sync(terminal, pty_flags, working_directory, (char**)argv, (char**)envv,
+                          spawn_flags, child_setup, child_setup_data, &child_pid, cancellable,
+                          &error);
   if (callback) {
     (*callback)(terminal, child_pid, NULL, user_data);
   }
@@ -3043,8 +3042,9 @@ void vte_terminal_spawn_with_fds_async(VteTerminal *terminal, VtePtyFlags pty_fl
     bl_msg_printf("vte_terminal_spawn_with_fds_async() ignores fds and fd_map_to.\n");
   }
 
-  vte_terminal_spawn_sync(terminal, pty_flags, working_directory, argv, envv, spawn_flags,
-                          child_setup, child_setup_data, &child_pid, cancellable, &error);
+  vte_terminal_spawn_sync(terminal, pty_flags, working_directory, (char**)argv, (char**)envv,
+                          spawn_flags, child_setup, child_setup_data, &child_pid, cancellable,
+                          &error);
   if (callback) {
     (*callback)(terminal, child_pid, NULL, user_data);
   }
@@ -3491,19 +3491,19 @@ void vte_terminal_set_color_dim_rgba(VteTerminal *terminal, const GdkRGBA *dim) 
 
 #if GTK_CHECK_VERSION(2, 99, 0)
 void vte_terminal_set_color_bold_rgba(VteTerminal *terminal, const GdkRGBA *bold) {
-  set_color_bold(terminal, bold, gdk_rgba_to_string2);
+  set_color_bold(terminal, bold, (gchar*(*)(const void*))gdk_rgba_to_string2);
 }
 
 void vte_terminal_set_color_foreground_rgba(VteTerminal *terminal, const GdkRGBA *foreground) {
-  set_color_foreground(terminal, foreground, gdk_rgba_to_string2);
+  set_color_foreground(terminal, foreground, (gchar*(*)(const void*))gdk_rgba_to_string2);
 }
 
 void vte_terminal_set_color_background_rgba(VteTerminal *terminal, const GdkRGBA *background) {
-  set_color_background(terminal, background, gdk_rgba_to_string2);
+  set_color_background(terminal, background, (gchar*(*)(const void*))gdk_rgba_to_string2);
 }
 
 void vte_terminal_set_color_cursor_rgba(VteTerminal *terminal, const GdkRGBA *cursor_background) {
-  set_color_cursor(terminal, cursor_background, gdk_rgba_to_string2);
+  set_color_cursor(terminal, cursor_background, (gchar*(*)(const void*))gdk_rgba_to_string2);
 }
 
 #if VTE_CHECK_VERSION(0, 44, 0)
@@ -3540,7 +3540,8 @@ void vte_terminal_set_color_highlight_foreground_rgba(VteTerminal *terminal,
 void vte_terminal_set_colors_rgba(VteTerminal *terminal, const GdkRGBA *foreground,
                                   const GdkRGBA *background, const GdkRGBA *palette,
                                   gsize palette_size) {
-  if (set_colors(terminal, palette, palette_size, sizeof(GdkRGBA), gdk_rgba_to_string2) &&
+  if (set_colors(terminal, (const void*)palette, palette_size, sizeof(GdkRGBA),
+                 (gchar*(*)(const void*))gdk_rgba_to_string2) &&
       palette_size > 0) {
     if (foreground == NULL) {
       foreground = &palette[7];
