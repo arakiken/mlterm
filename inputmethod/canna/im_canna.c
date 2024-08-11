@@ -54,7 +54,7 @@ static void change_mode(im_canna_t *canna, int mode) {
   ksv.bytes_buffer = sizeof(canna->buf);
   ksv.val = mode;
 
-  jrKanjiControl(0, KC_CHANGEMODE, &ksv);
+  jrKanjiControl(0, KC_CHANGEMODE, (char*)&ksv);
 }
 
 static void preedit(im_canna_t *canna, char *preedit,             /* eucjp(null terminated) */

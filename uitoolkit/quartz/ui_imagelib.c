@@ -211,7 +211,7 @@ static int load_file(char *path, /* must be UTF-8 */
   if (info == kCGImageAlphaPremultipliedLast || info == kCGImageAlphaPremultipliedFirst ||
       info == kCGImageAlphaLast || info == kCGImageAlphaFirst) {
     /* dummy (If cur_pic->mask is non-zero, need_clear = 1 in draw_picture() in ui_draw_str.c) */
-    *mask = 1L;
+    *mask = (PixmapMask)1L;
   }
 
   return 1;
