@@ -34,7 +34,7 @@ jobs:
           ;;
         macos*)
           CONFIGURE_ARGS="--with-gui=quartz"
-	  CFLAGS_LOCAL=" -Wno-incompatible-pointer-types-discards-qualifiers"
+          CFLAGS_LOCAL=" -Wno-incompatible-pointer-types-discards-qualifiers"
           ;;
         esac
         CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2${CFLAGS_LOCAL}" ./configure ${CONFIGURE_ARGS}
