@@ -1,3 +1,10 @@
+2024-08-12  Araki Ken  <arakiken@users.sf.net>
+
+	* ci.yml: Add -Wno-incompatible-pointer-types-discards-qualifiers option
+	  in MacOS.
+
+	* wnnlib.c: Fix errors in -Werror=incompatible-pointer-types.
+
 2024-08-11  Araki Ken  <arakiken@users.sf.net>
 
 	* Fix errors in -Werror=incompatible-pointer-types.

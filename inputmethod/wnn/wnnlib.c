@@ -3443,7 +3443,7 @@ jcOpen2(char *server, char *envname, int override, char *rcfile4, char *rcfile6,
      */
 #if JSERVER_VERSION > 0x4030
     wnnbuf = jl_open_lang(envname, server, "ja_JP",
-    				NULL, confirm, errmsg, timeout);
+                          NULL, confirm, (int (*)(const char*))errmsg, timeout);
 #else
     wnnbuf = jl_open(envname, server, NULL, confirm, errmsg, timeout);
 #endif
@@ -3533,7 +3533,7 @@ jcOpen2(char *server, char *envname, int override, char *rcfile4, char *rcfile6,
     }
 
     /* 環境設定する */
-    (void)jl_set_env_wnnrc(wnnenv, rcfile, confirm, errmsg);
+    (void)jl_set_env_wnnrc(wnnenv, rcfile, confirm, (int (*)(const char*))errmsg);
 
     return wnnbuf;
 }
