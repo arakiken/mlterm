@@ -1,5 +1,7 @@
 2024-08-12  Araki Ken  <arakiken@users.sf.net>
 
+	* im_wnn.c, quartz/ui_font.c: Fix errors in -Werror=incompatible-pointer-types.
+
 	* ci.yml: Add -Wno-incompatible-pointer-types-discards-qualifiers option
 	  in MacOS.
 

@@ -191,7 +191,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     return NULL;
   }
 
-  font->xfont = font + 1;
+  font->xfont = (XFontStruct*)(font + 1);
 
   font->display = display;
   font->id = id;
@@ -446,7 +446,7 @@ u_int ui_calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs, in
       u_int16_t utf16[2];
       u_int len;
 
-      if ((len = ui_convert_ucs4_to_utf16(utf16, ch) / 2) > 0) {
+      if ((len = ui_convert_ucs4_to_utf16((u_char*)utf16, ch) / 2) > 0) {
         return cocoa_font_get_advance(font->xfont->cg_font, font->xfont->size,
                                       font->size_attr, utf16, len, 0);
       } else {

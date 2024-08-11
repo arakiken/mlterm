@@ -538,7 +538,7 @@ static int fix(im_wnn_t *wnn) {
     wnn->dan = 0;
     wnn->is_cand = 0;
     preedit(wnn, "", 0, 0, 0, "", 0, "");
-    commit(wnn, wnn->convbuf->displayBuf,
+    commit(wnn, (char*)wnn->convbuf->displayBuf,
            (wnn->convbuf->displayEnd - wnn->convbuf->displayBuf) * 2);
     jcFix(wnn->convbuf);
     jcClear(wnn->convbuf);
@@ -764,14 +764,14 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
   }
 
   if (jcIsConverted(wnn->convbuf, 0)) {
-    preedit(wnn, wnn->convbuf->displayBuf,
+    preedit(wnn, (char*)wnn->convbuf->displayBuf,
             (wnn->convbuf->displayEnd - wnn->convbuf->displayBuf) * 2,
             wnn->convbuf->clauseInfo[wnn->convbuf->curLCStart].dispp - wnn->convbuf->displayBuf,
             wnn->convbuf->clauseInfo[wnn->convbuf->curLCEnd].dispp -
                 wnn->convbuf->clauseInfo[wnn->convbuf->curLCStart].dispp,
-            cand, cand_len * sizeof(wchar), pos);
+            (char*)cand, cand_len * sizeof(wchar), pos);
   } else {
-    preedit(wnn, wnn->convbuf->displayBuf,
+    preedit(wnn, (char*)wnn->convbuf->displayBuf,
             (wnn->convbuf->displayEnd - wnn->convbuf->displayBuf) * 2, jcDotOffset(wnn->convbuf), 0,
             (char*)kana, sizeof(kana), pos);
   }
@@ -838,7 +838,7 @@ ui_im_t *im_wnn_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     goto error;
   }
 
-  if (!(buf = jcOpen(server, "", 0, "", bl_msg_printf, bl_msg_printf, 0))) {
+  if (!(buf = jcOpen(server, "", 0, "", (void (*)())bl_msg_printf, (int (*)())bl_msg_printf, 0))) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " jcOpen failed.\n");
 #endif
