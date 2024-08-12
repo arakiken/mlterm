@@ -1,5 +1,7 @@
 2024-08-12  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_im_status_screen-cocoa.m: Fix errors in -Werror=incompatible-pointer-types.
+
 	* cocoa.m, cocoatouch.m: Fix errors in -Werror=incompatible-pointer-types.
 
 	* im_canna.c, quartz/ui_imagelib.c: Fix errors in -Werror=incompatible-pointer-types.

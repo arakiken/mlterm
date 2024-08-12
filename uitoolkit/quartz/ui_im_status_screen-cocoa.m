@@ -17,30 +17,24 @@
  * methods of ui_im_status_screen_t
  */
 
-static int destroy(ui_im_status_screen_t* stat_screen) {
+static void destroy(ui_im_status_screen_t* stat_screen) {
   NSWindow* window = stat_screen->window.my_window;
 
   [window release];
 
   free(stat_screen);
-
-  return 1;
 }
 
-static int show(ui_im_status_screen_t* stat_screen) {
+static void show(ui_im_status_screen_t* stat_screen) {
   NSWindow* window = stat_screen->window.my_window;
 
   [window orderFront:window];
-
-  return 1;
 }
 
-static int hide(ui_im_status_screen_t* stat_screen) {
+static void hide(ui_im_status_screen_t* stat_screen) {
   NSWindow* window = stat_screen->window.my_window;
 
   [window orderOut:window];
-
-  return 1;
 }
 
 static int set_spot(ui_im_status_screen_t* stat_screen, int x, int y) {
