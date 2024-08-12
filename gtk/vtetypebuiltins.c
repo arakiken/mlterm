@@ -17,9 +17,9 @@
 GType
 vte_cursor_blink_mode_get_type (void)
 {
-  static volatile gsize g_define_type_id__volatile = 0;
+  static gsize g_define_type_id = 0;
 
-  if (g_once_init_enter (&g_define_type_id__volatile)) {
+  if (g_once_init_enter (&g_define_type_id)) {
     static const GEnumValue values[] = {
       { VTE_CURSOR_BLINK_SYSTEM, "VTE_CURSOR_BLINK_SYSTEM", "system" },
       { VTE_CURSOR_BLINK_ON, "VTE_CURSOR_BLINK_ON", "on" },
@@ -29,18 +29,18 @@ vte_cursor_blink_mode_get_type (void)
     GType g_define_type_id = \
        g_enum_register_static (g_intern_static_string ("VteCursorBlinkMode"), values);
 
-    g_once_init_leave (&g_define_type_id__volatile, g_define_type_id);
+    g_once_init_leave (&g_define_type_id, g_define_type_id);
   }
 
-  return g_define_type_id__volatile;
+  return g_define_type_id;
 }
 
 GType
 vte_cursor_shape_get_type (void)
 {
-  static volatile gsize g_define_type_id__volatile = 0;
+  static gsize g_define_type_id = 0;
 
-  if (g_once_init_enter (&g_define_type_id__volatile)) {
+  if (g_once_init_enter (&g_define_type_id)) {
     static const GEnumValue values[] = {
       { VTE_CURSOR_SHAPE_BLOCK, "VTE_CURSOR_SHAPE_BLOCK", "block" },
       { VTE_CURSOR_SHAPE_IBEAM, "VTE_CURSOR_SHAPE_IBEAM", "ibeam" },
@@ -50,18 +50,18 @@ vte_cursor_shape_get_type (void)
     GType g_define_type_id = \
        g_enum_register_static (g_intern_static_string ("VteCursorShape"), values);
 
-    g_once_init_leave (&g_define_type_id__volatile, g_define_type_id);
+    g_once_init_leave (&g_define_type_id, g_define_type_id);
   }
 
-  return g_define_type_id__volatile;
+  return g_define_type_id;
 }
 
 GType
 vte_erase_binding_get_type (void)
 {
-  static volatile gsize g_define_type_id__volatile = 0;
+  static gsize g_define_type_id = 0;
 
-  if (g_once_init_enter (&g_define_type_id__volatile)) {
+  if (g_once_init_enter (&g_define_type_id)) {
     static const GEnumValue values[] = {
       { VTE_ERASE_AUTO, "VTE_ERASE_AUTO", "auto" },
       { VTE_ERASE_ASCII_BACKSPACE, "VTE_ERASE_ASCII_BACKSPACE", "ascii-backspace" },
@@ -73,18 +73,18 @@ vte_erase_binding_get_type (void)
     GType g_define_type_id = \
        g_enum_register_static (g_intern_static_string ("VteEraseBinding"), values);
 
-    g_once_init_leave (&g_define_type_id__volatile, g_define_type_id);
+    g_once_init_leave (&g_define_type_id, g_define_type_id);
   }
 
-  return g_define_type_id__volatile;
+  return g_define_type_id;
 }
 
 GType
 vte_pty_error_get_type (void)
 {
-  static volatile gsize g_define_type_id__volatile = 0;
+  static gsize g_define_type_id = 0;
 
-  if (g_once_init_enter (&g_define_type_id__volatile)) {
+  if (g_once_init_enter (&g_define_type_id)) {
     static const GEnumValue values[] = {
       { VTE_PTY_ERROR_PTY_HELPER_FAILED, "VTE_PTY_ERROR_PTY_HELPER_FAILED", "pty-helper-failed" },
       { VTE_PTY_ERROR_PTY98_FAILED, "VTE_PTY_ERROR_PTY98_FAILED", "pty98-failed" },
@@ -93,18 +93,18 @@ vte_pty_error_get_type (void)
     GType g_define_type_id = \
        g_enum_register_static (g_intern_static_string ("VtePtyError"), values);
 
-    g_once_init_leave (&g_define_type_id__volatile, g_define_type_id);
+    g_once_init_leave (&g_define_type_id, g_define_type_id);
   }
 
-  return g_define_type_id__volatile;
+  return g_define_type_id;
 }
 
 GType
 vte_pty_flags_get_type (void)
 {
-  static volatile gsize g_define_type_id__volatile = 0;
+  static gsize g_define_type_id = 0;
 
-  if (g_once_init_enter (&g_define_type_id__volatile)) {
+  if (g_once_init_enter (&g_define_type_id)) {
     static const GFlagsValue values[] = {
       { VTE_PTY_NO_LASTLOG, "VTE_PTY_NO_LASTLOG", "no-lastlog" },
       { VTE_PTY_NO_UTMP, "VTE_PTY_NO_UTMP", "no-utmp" },
@@ -117,18 +117,18 @@ vte_pty_flags_get_type (void)
     GType g_define_type_id = \
        g_flags_register_static (g_intern_static_string ("VtePtyFlags"), values);
 
-    g_once_init_leave (&g_define_type_id__volatile, g_define_type_id);
+    g_once_init_leave (&g_define_type_id, g_define_type_id);
   }
 
-  return g_define_type_id__volatile;
+  return g_define_type_id;
 }
 
 GType
 vte_write_flags_get_type (void)
 {
-  static volatile gsize g_define_type_id__volatile = 0;
+  static gsize g_define_type_id = 0;
 
-  if (g_once_init_enter (&g_define_type_id__volatile)) {
+  if (g_once_init_enter (&g_define_type_id)) {
     static const GEnumValue values[] = {
       { VTE_WRITE_DEFAULT, "VTE_WRITE_DEFAULT", "default" },
       { 0, NULL, NULL }
@@ -136,19 +136,19 @@ vte_write_flags_get_type (void)
     GType g_define_type_id = \
        g_enum_register_static (g_intern_static_string ("VteWriteFlags"), values);
 
-    g_once_init_leave (&g_define_type_id__volatile, g_define_type_id);
+    g_once_init_leave (&g_define_type_id, g_define_type_id);
   }
 
-  return g_define_type_id__volatile;
+  return g_define_type_id;
 }
 
 #if VTE_CHECK_VERSION(0, 52, 0)
 GType
 vte_text_blink_mode_get_type (void)
 {
-  static volatile gsize g_define_type_id__volatile = 0;
+  static gsize g_define_type_id = 0;
 
-  if (g_once_init_enter (&g_define_type_id__volatile)) {
+  if (g_once_init_enter (&g_define_type_id)) {
     static const GEnumValue values[] = {
       { VTE_TEXT_BLINK_NEVER, "VTE_TEXT_BLINK_NEVER", "never" },
       { VTE_TEXT_BLINK_FOCUSED, "VTE_TEXT_BLINK_FOCUSED", "focused" },
@@ -159,10 +159,10 @@ vte_text_blink_mode_get_type (void)
     GType g_define_type_id = \
        g_enum_register_static (g_intern_static_string ("VteTextBlinkMode"), values);
 
-    g_once_init_leave (&g_define_type_id__volatile, g_define_type_id);
+    g_once_init_leave (&g_define_type_id, g_define_type_id);
   }
 
-  return g_define_type_id__volatile;
+  return g_define_type_id;
 }
 #endif
 
