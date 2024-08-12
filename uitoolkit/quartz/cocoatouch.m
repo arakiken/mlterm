@@ -1547,7 +1547,7 @@ CGFontRef cocoa_create_font(const char *font_family) {
   NSString *ns_font_family =
       [NSString stringWithCString:font_family encoding:NSUTF8StringEncoding];
 
-  return CGFontCreateWithFontName(ns_font_family);
+  return CGFontCreateWithFontName((CFStringRef)ns_font_family);
 }
 
 #ifdef USE_OT_LAYOUT
@@ -1579,7 +1579,7 @@ void cocoa_release_font(CGFontRef cg_font) { CFRelease(cg_font); }
 u_int cocoa_font_get_advance(CGFontRef cg_font, u_int fontsize, int size_attr,
                              unichar *utf16, u_int len, CGGlyph glyph) {
   if (utf16) {
-    CGFontGetGlyphsForUnichars(cg_font, &utf16, &glyph, 1);
+    CGFontGetGlyphsForUnichars(cg_font, utf16, &glyph, 1);
   }
 
   int advance;

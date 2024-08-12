@@ -45,8 +45,8 @@ jobs:
         sudo make install
         case "${{ matrix.os }}" in
         ubuntu*)
-          (cd gtk && make && sudo make install)
           (cd libvterm && make && sudo make install)
+          (cd gtk && make && sudo make install)
           ;;
         macos*)
           ;;
