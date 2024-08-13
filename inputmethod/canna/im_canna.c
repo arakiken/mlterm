@@ -428,7 +428,7 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
       commit(canna, canna->buf);
       preedit(canna, "", 0, 0, cand);
     } else {
-      preedit(canna, canna->key_status.length > 0 ? canna->key_status.echoStr : "",
+      preedit(canna, canna->key_status.length > 0 ? ((char*)canna->key_status.echoStr) : "",
               canna->key_status.revPos, canna->key_status.revLen, cand);
     }
 

@@ -1,5 +1,8 @@
 2024-08-13  Araki Ken  <arakiken@users.sf.net>
 
+	* im_canna.c: Fix "pointer type mismatch in conditional expression" error.
+	  (https://github.com/arakiken/mlterm/issues/92#issuecomment-2282176739)
+
 	* vt_parser.c: Make Pcmh and Pcss of DECDLD omittable.
 
 	* vtetypebuiltins.c, reaper.c: Fix errors in -Werror=incompatible-pointer-types.
