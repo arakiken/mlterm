@@ -1,5 +1,7 @@
 2024-08-13  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_parser.c: Make Pcmh and Pcss of DECDLD omittable.
+
 	* vtetypebuiltins.c, reaper.c: Fix errors in -Werror=incompatible-pointer-types.
 
 2024-08-12  Araki Ken  <arakiken@users.sf.net>

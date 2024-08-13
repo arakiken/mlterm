@@ -6209,12 +6209,26 @@ inline static int parse_vt100_escape_sequence(
           *(param++) = c; /* restore in case of restarting to parse from the begining. */
         }
 
-        if (num != 8) {
+        if (num < 6 || 8 < num) {
           if (!get_pt_in_esc_seq(&str_p, &left, 1, 0)) {
             return 0;
           }
         } else {
           char *path;
+
+          if (num < 8) {
+            /*
+             * vt220: 6 parameters
+             * (https://manx-docs.org/mirror/vt100.net/docs/vt220-rm/table4-9.html)
+             * vt510: 8 parameters
+             * (https://vt100.net/docs/vt510-rm/DECDLD.html)
+             */
+            ps[7] = 0; /* Pcss (0 = 94-character set (default)) */
+
+            if (num == 6) {
+              ps[6] = 0; /* Pcmh (0 or omitted = 16 pixels high (default)) */
+            }
+          }
 
           if (!increment_str(&str_p, &left)) {
             return 0;
