@@ -108,7 +108,7 @@ vte_reaper_constructor (GType                  type,
                         GObjectConstructParam *construct_properties)
 {
   if (singleton_reaper) {
-	  return g_object_ref (singleton_reaper);
+	  return g_object_ref (G_OBJECT(singleton_reaper));
   } else {
 	  GObject *obj;
 	  obj = G_OBJECT_CLASS (vte_reaper_parent_class)->constructor (type, n_construct_properties, construct_properties);

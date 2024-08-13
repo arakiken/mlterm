@@ -1,3 +1,7 @@
+2024-08-13  Araki Ken  <arakiken@users.sf.net>
+
+	* vtetypebuiltins.c, reaper.c: Fix errors in -Werror=incompatible-pointer-types.
+
 2024-08-12  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_im_status_screen-cocoa.m: Fix errors in -Werror=incompatible-pointer-types.

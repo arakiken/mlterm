@@ -7,7 +7,165 @@
 #endif
 
 
-#if  VTE_CHECK_VERSION(0,38,0)
+#if  VTE_CHECK_VERSION(0,64,0)
+
+/*
+ * Following is based on vtetypebuiltins.h of vte-0.64.0
+ * https://gitlab.gnome.org/GNOME/vte/-/commit/89e9230dc1a27b89cca16de32e903918a27b8e42
+ */
+
+/* enumerations from "vteenums.h" */
+GType
+vte_cursor_blink_mode_get_type (void)
+{
+  static gsize g_define_type_id = 0;
+
+  if (g_once_init_enter (&g_define_type_id)) {
+    static const GEnumValue values[] = {
+      { VTE_CURSOR_BLINK_SYSTEM, "VTE_CURSOR_BLINK_SYSTEM", "system" },
+      { VTE_CURSOR_BLINK_ON, "VTE_CURSOR_BLINK_ON", "on" },
+      { VTE_CURSOR_BLINK_OFF, "VTE_CURSOR_BLINK_OFF", "off" },
+      { 0, NULL, NULL }
+    };
+    GType type_id = \
+       g_enum_register_static (g_intern_static_string ("VteCursorBlinkMode"), values);
+
+    g_once_init_leave (&g_define_type_id, type_id);
+  }
+
+  return g_define_type_id;
+}
+
+GType
+vte_cursor_shape_get_type (void)
+{
+  static gsize g_define_type_id = 0;
+
+  if (g_once_init_enter (&g_define_type_id)) {
+    static const GEnumValue values[] = {
+      { VTE_CURSOR_SHAPE_BLOCK, "VTE_CURSOR_SHAPE_BLOCK", "block" },
+      { VTE_CURSOR_SHAPE_IBEAM, "VTE_CURSOR_SHAPE_IBEAM", "ibeam" },
+      { VTE_CURSOR_SHAPE_UNDERLINE, "VTE_CURSOR_SHAPE_UNDERLINE", "underline" },
+      { 0, NULL, NULL }
+    };
+    GType type_id = \
+       g_enum_register_static (g_intern_static_string ("VteCursorShape"), values);
+
+    g_once_init_leave (&g_define_type_id, type_id);
+  }
+
+  return g_define_type_id;
+}
+
+GType
+vte_erase_binding_get_type (void)
+{
+  static gsize g_define_type_id = 0;
+
+  if (g_once_init_enter (&g_define_type_id)) {
+    static const GEnumValue values[] = {
+      { VTE_ERASE_AUTO, "VTE_ERASE_AUTO", "auto" },
+      { VTE_ERASE_ASCII_BACKSPACE, "VTE_ERASE_ASCII_BACKSPACE", "ascii-backspace" },
+      { VTE_ERASE_ASCII_DELETE, "VTE_ERASE_ASCII_DELETE", "ascii-delete" },
+      { VTE_ERASE_DELETE_SEQUENCE, "VTE_ERASE_DELETE_SEQUENCE", "delete-sequence" },
+      { VTE_ERASE_TTY, "VTE_ERASE_TTY", "tty" },
+      { 0, NULL, NULL }
+    };
+    GType type_id = \
+       g_enum_register_static (g_intern_static_string ("VteEraseBinding"), values);
+
+    g_once_init_leave (&g_define_type_id, type_id);
+  }
+
+  return g_define_type_id;
+}
+
+GType
+vte_pty_error_get_type (void)
+{
+  static gsize g_define_type_id = 0;
+
+  if (g_once_init_enter (&g_define_type_id)) {
+    static const GEnumValue values[] = {
+      { VTE_PTY_ERROR_PTY_HELPER_FAILED, "VTE_PTY_ERROR_PTY_HELPER_FAILED", "pty-helper-failed" },
+      { VTE_PTY_ERROR_PTY98_FAILED, "VTE_PTY_ERROR_PTY98_FAILED", "pty98-failed" },
+      { 0, NULL, NULL }
+    };
+    GType type_id = \
+       g_enum_register_static (g_intern_static_string ("VtePtyError"), values);
+
+    g_once_init_leave (&g_define_type_id, type_id);
+  }
+
+  return g_define_type_id;
+}
+
+GType
+vte_pty_flags_get_type (void)
+{
+  static gsize g_define_type_id = 0;
+
+  if (g_once_init_enter (&g_define_type_id)) {
+    static const GFlagsValue values[] = {
+      { VTE_PTY_NO_LASTLOG, "VTE_PTY_NO_LASTLOG", "no-lastlog" },
+      { VTE_PTY_NO_UTMP, "VTE_PTY_NO_UTMP", "no-utmp" },
+      { VTE_PTY_NO_WTMP, "VTE_PTY_NO_WTMP", "no-wtmp" },
+      { VTE_PTY_NO_HELPER, "VTE_PTY_NO_HELPER", "no-helper" },
+      { VTE_PTY_NO_FALLBACK, "VTE_PTY_NO_FALLBACK", "no-fallback" },
+      { VTE_PTY_DEFAULT, "VTE_PTY_DEFAULT", "default" },
+      { 0, NULL, NULL }
+    };
+    GType type_id = \
+       g_flags_register_static (g_intern_static_string ("VtePtyFlags"), values);
+
+    g_once_init_leave (&g_define_type_id, type_id);
+  }
+
+  return g_define_type_id;
+}
+
+GType
+vte_write_flags_get_type (void)
+{
+  static gsize g_define_type_id = 0;
+
+  if (g_once_init_enter (&g_define_type_id)) {
+    static const GEnumValue values[] = {
+      { VTE_WRITE_DEFAULT, "VTE_WRITE_DEFAULT", "default" },
+      { 0, NULL, NULL }
+    };
+    GType type_id = \
+       g_enum_register_static (g_intern_static_string ("VteWriteFlags"), values);
+
+    g_once_init_leave (&g_define_type_id, type_id);
+  }
+
+  return g_define_type_id;
+}
+
+GType
+vte_text_blink_mode_get_type (void)
+{
+  static gsize g_define_type_id = 0;
+
+  if (g_once_init_enter (&g_define_type_id)) {
+    static const GEnumValue values[] = {
+      { VTE_TEXT_BLINK_NEVER, "VTE_TEXT_BLINK_NEVER", "never" },
+      { VTE_TEXT_BLINK_FOCUSED, "VTE_TEXT_BLINK_FOCUSED", "focused" },
+      { VTE_TEXT_BLINK_UNFOCUSED, "VTE_TEXT_BLINK_UNFOCUSED", "unfocused" },
+      { VTE_TEXT_BLINK_ALWAYS, "VTE_TEXT_BLINK_ALWAYS", "always" },
+      { 0, NULL, NULL }
+    };
+    GType type_id = \
+       g_enum_register_static (g_intern_static_string ("VteTextBlinkMode"), values);
+
+    g_once_init_leave (&g_define_type_id, type_id);
+  }
+
+  return g_define_type_id;
+}
+
+#elif  VTE_CHECK_VERSION(0,38,0)
 
 /*
  * Following is based on vtetypebuiltins.h of vte-0.39.1
@@ -166,7 +324,7 @@ vte_text_blink_mode_get_type (void)
 }
 #endif
 
-#else /* VTE_CHECK_VERSION(0,38,0) */
+#else /* VTE_CHECK_VERSION(0,64,0), VTE_CHECK_VERSION(0,38,0) */
 
 /*
  * Following is based on vtetypebuiltins.h of vte-0.24.0.
@@ -376,6 +534,6 @@ vte_terminal_anti_alias_get_type(void)
 }
 #endif
 
-#endif /* VTE_CHECK_VERSION(0,38,0) */
+#endif /* VTE_CHECK_VERSION(0,64,0), VTE_CHECK_VERSION(0,38,0) */
 
 /* Generated data ends here */
