@@ -18,6 +18,7 @@
 #include "../ui_window.h"
 #include "../ui_picture.h"
 #include "../ui_imagelib.h"
+#include "../ui_event_source.h"
 
 #if 0
 #define __DEBUG
