@@ -3,54 +3,66 @@ name: ci
 on: [push, pull_request]
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
+  build-linux:
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        container: [ "ubuntu:latest", "ubuntu:22.04", "debian:12", "debian:11", "archlinux:base" ]
+
+    container:
+      image: ${{ matrix.container }}
+      options: --privileged
 
     steps:
     - uses: actions/checkout@v4
 
     - name: setup build environment
       run: |
-        case "${{ matrix.os }}" in
-        ubuntu*)
-          sudo apt update; sudo apt install -y libgtk-3-dev libvterm-dev libvte-2.91-dev libsdl2-dev libfribidi-dev libuim-dev libfcitx5core-dev libfcitx5gclient-dev libscim-dev libssh2-1-dev curl
+        case "${{ matrix.container }}" in
+        ubuntu*|debian*)
+          apt update
+          apt upgrade -y
+          apt install -y build-essential flex libgtk-3-dev libvterm-dev libvte-2.91-dev libsdl2-dev libfribidi-dev libuim-dev libfcitx5core-dev libfcitx5gclient-dev libscim-dev libibus-1.0-dev libm17n-dev libwnn-dev libcanna1g-dev libssh2-1-dev curl
           ;;
-        macos*)
-          brew install pkg-config
+        archlinux*)
+          pacman -Syyu --noconfirm base-devel intltool libutempter wayland gtk3 libvterm vte3 sdl2 fribidi fcitx5 scim ibus m17n-lib libssh2 curl
           ;;
         esac
 
     - name: configure
       run: |
-        case "${{ matrix.os }}" in
-        ubuntu*)
-          (cd uitoolkit/wayland && sh ./rescanproto.sh)
-          CONFIGURE_ARGS="--with-gui=xlib,fb,console,wayland,sdl2"
-          ;;
-        macos*)
-          CONFIGURE_ARGS="--with-gui=quartz"
-          CFLAGS_LOCAL=" -Wno-incompatible-pointer-types-discards-qualifiers"
-          ;;
-        esac
-        CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2${CFLAGS_LOCAL}" ./configure ${CONFIGURE_ARGS}
+        (cd uitoolkit/wayland && sh ./rescanproto.sh)
+        CONFIGURE_ARGS="--with-gui=xlib,fb,console,wayland,sdl2"
+        CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" ./configure ${CONFIGURE_ARGS}
+
+    - name: build
+      run: |
+        make
+        make install
+        (cd libvterm && make && make install)
+        (cd gtk && make && make install)
+
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: setup build environment
+      run: |
+        brew install pkg-config
+ 
+    - name: configure
+      run: |
+        CONFIGURE_ARGS="--with-gui=quartz"
+        CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2 -Wno-incompatible-pointer-types-discards-qualifiers" ./configure ${CONFIGURE_ARGS}
 
     - name: build
       run: |
         make
         sudo make install
-        case "${{ matrix.os }}" in
-        ubuntu*)
-          (cd libvterm && make && sudo make install)
-          (cd gtk && make && sudo make install)
-          ;;
-        macos*)
-          ;;
-        esac
 
   build-netbsd:
     name: "build-netbsd (NetBSD/amd64 10.0 with pkgsrc)"
