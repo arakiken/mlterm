@@ -218,7 +218,7 @@ static ui_display_t *add_root_to_display(ui_display_t *disp, ui_window_t *root,
   }
 
   memcpy(new, disp, sizeof(ui_display_t));
-  new->display = new + 1;
+  new->display = (Display*)(new + 1);
   new->name = strdup(disp->name);
 
   memcpy(new->display, disp->display, sizeof(Display));

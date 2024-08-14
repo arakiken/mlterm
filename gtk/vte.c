@@ -405,7 +405,7 @@ static gboolean search_find(VteTerminal *terminal, int backward) {
   }
 
 #if VTE_CHECK_VERSION(0, 46, 0)
-  regex = PVT(terminal)->gregex ? PVT(terminal)->gregex : PVT(terminal)->vregex;
+  regex = PVT(terminal)->gregex ? ((void*)PVT(terminal)->gregex) : ((void*)PVT(terminal)->vregex);
 #else
   regex = PVT(terminal)->gregex;
 #endif

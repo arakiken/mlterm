@@ -1,3 +1,8 @@
+2024-08-14  Araki Ken  <arakiken@users.sf.net>
+
+	* registobmp/main.c, vte.c, wayland/ui_display.c:
+	  Fix errors in -Werror=incompatible-pointer-types.
+
 2024-08-13  Araki Ken  <arakiken@users.sf.net>
 
 	* im_canna.c: Fix "pointer type mismatch in conditional expression" error.

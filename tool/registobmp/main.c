@@ -441,7 +441,7 @@ static char *command_text(char *cmd) {
         mat = FcFontMatch(0, pat, &result);
         FcPatternDestroy(pat);
 
-        if (FcPatternGetString(mat, FC_FILE, 0, &font_file) != FcResultMatch ||
+        if (FcPatternGetString(mat, FC_FILE, 0, (FcChar8**)&font_file) != FcResultMatch ||
             !(font_file = strdup(font_file))) {
           font_file = "arial.ttf";
         }

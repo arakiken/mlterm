@@ -11,6 +11,7 @@
 * Support Alternate Scroll Mode. (https://github.com/arakiken/mlterm/issues/80)
 * Support P2=1 in sixel graphics. (https://github.com/arakiken/mlterm/issues/81)
 * Support libpng to build mlimgloader if gdk-pixbuf is not found.
+  (https://github.com/arakiken/mlterm/issues/96)
 * Add --conpty/use_conpty and --winsize/output_xtwinops_in_resizing options in win32.
 * Add --norepkey/mod_keys_to_stop_mouse_report option.
 * Add tool/accessories/applycfg.sh and applyfontcfg.sh
@@ -31,6 +32,8 @@
   https://github.com/arakiken/mlterm/issues/73
   https://github.com/arakiken/mlterm/issues/78
   https://github.com/arakiken/mlterm/issues/79
+  https://github.com/arakiken/mlterm/issues/92
+  https://github.com/arakiken/mlterm/issues/103
   Fix an issue where mlconfig was not displayed.
   Fix an issue where Control+Shift+xxx shortcut didn't work in SDL2.
   Fix unexpected reset of inverted colors in selected area in SDL2.
