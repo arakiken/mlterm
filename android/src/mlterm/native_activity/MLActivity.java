@@ -351,7 +351,7 @@ public class MLActivity extends NativeActivity {
     menu.add(0, MENU_NEXTPTY_ID, 0, "Next pty");
     menu.add(0, MENU_PREVPTY_ID, 0, "Previous pty");
     menu.add(0, MENU_UPDATESCREEN_ID, 0, "Update screen");
-    menu.add(0, MENU_CLOSESCREEN_ID, 0, "Close splitted screen");
+    menu.add(0, MENU_CLOSESCREEN_ID, 0, "Close split screen");
     menu.add(0, MENU_ZMODEM_START_ID, 0, "Start zmodem");
     menu.add(0, MENU_RESET_ID, 0, "Reset terminal");
     menu.add(0, MENU_CONFIG_ID, 0, "Configuration");

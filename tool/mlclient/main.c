@@ -34,8 +34,8 @@ static void help(int is_mlclientx) {
   printf("  -P/--ptylist: print pty list.\n");
   printf("     --kill: kill mlterm server.\n");
   if (is_mlclientx) {
-    printf("     --hsep=value: open new pty in horizontally splitted screen.\n");
-    printf("     --vsep=value: open new pty in vertically splitted screen.\n");
+    printf("     --hsep=value: open new pty in horizontally split screen.\n");
+    printf("     --vsep=value: open new pty in vertically split screen.\n");
   }
   printf(
       "  (--ptylist and --kill options are available only if mlterm server is "

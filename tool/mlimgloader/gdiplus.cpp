@@ -179,7 +179,7 @@ static u_int32_t *create_cardinals_from_file(const char *path, u_int width, u_in
       split_animation_gif(path, dir, hash);
       free(dir);
 
-      /* Replace path by the splitted file. */
+      /* Replace path by the split file. */
 #if defined(__CYGWIN__) || defined(__MSYS__)
       if (bl_conv_to_win32_path(new_path, winpath, sizeof(winpath)) == 0) {
         path = winpath;

@@ -546,7 +546,7 @@ void MLView::MessageReceived(BMessage *message) {
 
     /*
      * If a focused view is changed from a view where you are inputting with
-     * ime to another in splitted screen, following check enclosed by
+     * ime to another in split screen, following check enclosed by
      * #if 1 ... #endif is necessary.
      */
     if (message->FindInt32("be:opcode", &opcode) == B_OK) {

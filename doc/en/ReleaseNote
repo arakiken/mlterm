@@ -34,6 +34,7 @@
   https://github.com/arakiken/mlterm/issues/79
   https://github.com/arakiken/mlterm/issues/92
   https://github.com/arakiken/mlterm/issues/103
+  https://github.com/arakiken/mlterm/issues/107
   Fix an issue where mlconfig was not displayed.
   Fix an issue where Control+Shift+xxx shortcut didn't work in SDL2.
   Fix unexpected reset of inverted colors in selected area in SDL2.
@@ -350,7 +351,7 @@ ver 3.8.3
   Fix alpha blending in drawing glyphs on wayland.
   Fix disappearance of the cursor if built with --enable-vt52 option.
   Fix a bug which shows wrong window title in a splited screen.
-  Fix faulty drawing a wall picture in closing one of splitted screens.
+  Fix faulty drawing a wall picture in closing one of split screens.
   Fix segfault when mlterm exits after having reconnected to ssh server automatically.
   Fix segfault in using input method plugins (except ibus) on wayland.
   Fix unexpected fallback to "DEFAULT" font in DECDHL or DECDWL lines.

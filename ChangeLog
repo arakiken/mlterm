@@ -1,3 +1,7 @@
+2024-08-16  Araki Ken  <arakiken@users.sf.net>
+
+	* Merge https://github.com/arakiken/mlterm/issues/107
+
 2024-08-14  Araki Ken  <arakiken@users.sf.net>
 
 	* registobmp/main.c, vte.c, wayland/ui_display.c:
@@ -5436,7 +5440,7 @@
 	  - Calculating screen width is fixed.
 	  - head_indexes[11] => head_indexes[15]
 
-	* im_fcitx.c: candidateword is splitted to multiple lines in update_client_side_ui().
+	* im_fcitx.c: candidateword is split to multiple lines in update_client_side_ui().
 
 	* libtype/ui_font_ft.c: get_fc_col_width() never returns 0 if font->is_vertical
 	  is true on xft.
@@ -5573,7 +5577,7 @@
 	* ui_layout.c:
 	  - ui_screen_t::window::window_focused and
 	    ui_screen_t::xterm_listener::set_{window|icon}_name are overridden to
-	    show window title correctly in splitted screen.
+	    show window title correctly in split screen.
 	  - If ui_screen_t or ui_scrollbar_t with a wall picture is moved but not
 	    resized in reset_layout() and MANAGE_SUB_WINDOWS_BY_MYSELF is not
 	    defined, ui_window_update_all() is called to redraw a wall picture.
@@ -5624,7 +5628,7 @@
 	  The default value of "auto" is changed from unknown encoding to UTF-8.
 
 	* jni/ui_event_source.c, MLActivity.java:
-	  "Next pty", "Previous pty" and "Close splitted screen" are added to context menu.
+	  "Next pty", "Previous pty" and "Close split screen" are added to context menu.
 
 2017-08-13  Araki Ken  <arakiken@users.sf.net>
 

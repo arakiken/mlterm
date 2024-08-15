@@ -733,7 +733,7 @@ static int receive_stdin_event(ui_display_t *disp) {
                pv >= 277)) {
             disp->display->support_hmargin = 1;
           } else {
-            bl_msg_printf("Slow scrolling on splitted screens\n");
+            bl_msg_printf("Slow scrolling on split screens\n");
             disp->display->support_hmargin = 0;
           }
 

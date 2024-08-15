@@ -405,7 +405,7 @@ static int scroll_downward_region(vt_edit_t *edit, u_int size, int is_cursor_beg
   /*
    * XXX
    * CURSOR_IS_INSIDE_HMARGIN(edit) disables vim to scroll the right side of
-   * vertically splitted window.
+   * vertically split window.
    */
   if (ignore_cursor_pos ||
       (/* CURSOR_IS_INSIDE_HMARGIN(edit) && */
