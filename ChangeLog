@@ -1,3 +1,8 @@
+2024-08-17  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in, tool/mlconfig/Makefile.in: Set X_LIBS_FOR_MLCONFIG
+	  if the version of gtk+ is 2.x to build gtkxlfdsel.c.
+
 2024-08-16  Araki Ken  <arakiken@users.sf.net>
 
 	* Merge https://github.com/arakiken/mlterm/issues/107

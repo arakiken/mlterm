@@ -33,11 +33,11 @@ CFLAGS = $(CFLAGS_LOCAL) @GTK_CFLAGS_FOR_MLCONFIG@ @IMAGELIB_CFLAGS@ @DEB_CFLAGS
 LIBS1 = $(LIBS_LOCAL) @INTL_LIBS@ @DL_SELF@ @DL_LIBS_IM@ @GTK_LIBS_FOR_MLCONFIG@
 
 # -lX11 is for http://fedoraproject.org/wiki/Features/ChangeInImplicitDSOLinking
-LIBS2_xlib = $(LPOBL) @X_LIBS@
+LIBS2_xlib = $(LPOBL) @X_LIBS_FOR_MLCONFIG@
 
-LIBS2_wayland = $(LPOBL)
+LIBS2_wayland = $(LPOBL) @X_LIBS_FOR_MLCONFIG@
 
-LIBS2_sdl2 = $(LPOBL)
+LIBS2_sdl2 = $(LPOBL) @X_LIBS_FOR_MLCONFIG@
 
 # mlconfig is statically linked with libpobl.
 # Then it works if installed libpobl.dll is compiled with USE_WIN32API or not.
