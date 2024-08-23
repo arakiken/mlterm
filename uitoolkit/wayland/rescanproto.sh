@@ -20,7 +20,7 @@ fi
 if test -f /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml; then
 	XML_FILE=/usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml
 else
-	curl https://cgit.freedesktop.org/wayland/wayland-protocols/plain/stable/xdg-shell/xdg-shell.xml > xdg-shell.xml
+	curl https://gitlab.freedesktop.org/wayland/wayland-protocols/-/raw/main/stable/xdg-shell/xdg-shell.xml > xdg-shell.xml
 	XML_FILE=xdg-shell.xml
 fi
 wayland-scanner $CODE $XML_FILE xdg-shell-client-protocol.c
@@ -29,7 +29,7 @@ wayland-scanner client-header $XML_FILE xdg-shell-client-protocol.h
 if test -f /usr/share/wayland-protocols/unstable/xdg-shell/xdg-shell-unstable-v6.xml; then
 	XML_FILE=/usr/share/wayland-protocols/unstable/xdg-shell/xdg-shell-unstable-v6.xml 
 else
-	curl https://cgit.freedesktop.org/wayland/wayland-protocols/plain/unstable/xdg-shell/xdg-shell-unstable-v6.xml > xdg-shell-unstable-v6.xml
+	curl https://gitlab.freedesktop.org/wayland/wayland-protocols/-/raw/main/unstable/xdg-shell/xdg-shell-unstable-v6.xml > xdg-shell-unstable-v6.xml
 	XML_FILE=xdg-shell-unstable-v6.xml
 fi
 wayland-scanner $CODE $XML_FILE xdg-shell-unstable-v6-client-protocol.c
@@ -38,7 +38,7 @@ wayland-scanner client-header $XML_FILE xdg-shell-unstable-v6-client-protocol.h
 if test -f /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml; then
 	XML_FILE=/usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml
 else
-	curl https://cgit.freedesktop.org/wayland/wayland-protocols/plain/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml > xdg-decoration-unstable-v1.xml
+	curl https://gitlab.freedesktop.org/wayland/wayland-protocols/-/raw/main/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml > xdg-decoration-unstable-v1.xml
 	XML_FILE=xdg-decoration-unstable-v1.xml
 fi
 wayland-scanner $CODE $XML_FILE xdg-decoration-unstable-v1-client-protocol.c
@@ -47,7 +47,7 @@ wayland-scanner client-header $XML_FILE xdg-decoration-unstable-v1-client-protoc
 if test -f /usr/share/wayland-protocols/unstable/primary-selection/primary-selection-unstable-v1.xml; then
 	XML_FILE=/usr/share/wayland-protocols/unstable/primary-selection/primary-selection-unstable-v1.xml
 else
-	curl https://cgit.freedesktop.org/wayland/wayland-protocols/plain/unstable/primary-selection/primary-selection-unstable-v1.xml > primary-selection-unstable-v1.xml
+	curl https://gitlab.freedesktop.org/wayland/wayland-protocols/-/raw/main/unstable/primary-selection/primary-selection-unstable-v1.xml > primary-selection-unstable-v1.xml
 	XML_FILE=primary-selection-unstable-v1.xml
 fi
 wayland-scanner $CODE $XML_FILE primary-selection-unstable-v1-client-protocol.c
