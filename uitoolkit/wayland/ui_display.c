@@ -594,7 +594,7 @@ static void keyboard_key(void *data, struct wl_keyboard *keyboard,
   if (state_w == WL_KEYBOARD_KEY_STATE_PRESSED) {
     ev.ksym = xkb_state_key_get_one_sym(wlserv->xkb->state, key + 8);
     ev.type = KeyPress;
-    ev.keycode = 0;
+    ev.keycode = key + 8;
     ev.state = wlserv->xkb->mods;
     ev.time = time;
 

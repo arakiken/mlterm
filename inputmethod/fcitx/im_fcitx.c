@@ -50,23 +50,32 @@
 #define FCITX_RELEASE_KEY (1)
 
 /* See fcitx-utils/capabilityflags.h */
-#define CAPACITY_CLIENT_SIDE_UI (1ull << 39) //(1 << 0)
+#define CAPACITY_CLIENT_SIDE_UI (1 << 0) /* (1ull << 39) */
 #define CAPACITY_PREEDIT (1 << 1)
 #define CAPACITY_CLIENT_SIDE_CONTROL_STATE (1 << 2)
 #define CAPACITY_FORMATTED_PREEDIT (1 << 4)
+#else
+/*
+ * Not declared in fcitxclient.h in 4.2.9.9 or before
+ * https://github.com/fcitx/fcitx/commit/4f49f71a8b2c0852d3dfcd990d0b8bb61b1974c8
+ */
+void fcitx_client_enable_ic(FcitxClient *self);
+void fcitx_client_close_ic(FcitxClient *self);
 #endif
 
 #if 0
 #define IM_FCITX_DEBUG 1
 #endif
 
-/*
- * fcitx doesn't support wayland, so the positioning of gtk-based candidate window of fcitx
- * doesn't work correctly on wayland.
- */
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_WAYLAND) || defined(USE_SDL2)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_SDL2)
 #define KeyPress 2 /* see uitoolkit/fb/ui_display.h */
 #define USE_IM_CANDIDATE_SCREEN
+#elif defined(USE_WAYLAND)
+/*
+ * It is assumed that fcitx installed to the system supports wayland.
+ * (Old fcitx doesn't show caandidate window correctly on wayland.)
+ */
+#define KeyPress 2 /* see uitoolkit/fb/ui_display.h */
 #endif
 
 /* When fcitx encoding is the same as terminal, conv is NULL. */
@@ -271,12 +280,7 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
     /* Is put back in forward_key_event */
     event->state &= ~FcitxKeyState_IgnoredMask;
   } else if (fcitx_client_process_key_sync(
-                 fcitx->client, native_to_fcitx_ksym(ksym),
-#ifdef NO_XKB
-                 event->keycode,
-#else
-                 event->keycode - 8,
-#endif
+                 fcitx->client, native_to_fcitx_ksym(ksym), event->keycode,
                  state, event->type == KeyPress ? FCITX_PRESS_KEY : FCITX_RELEASE_KEY,
 #ifdef NO_XKB
                  0L /* CurrentTime */
@@ -629,7 +633,7 @@ static void print_preedit(FcitxGPreeditItem *item) {
   bl_msg_printf("%d:%s ", item->type, item->string);
 }
 
-static void print_candate(FcitxGCandidateItem *item) {
+static void print_candidate(FcitxGCandidateItem *item) {
   bl_msg_printf("%s:%s ", item->label, item->candidate);
 }
 #endif

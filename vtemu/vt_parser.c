@@ -2103,7 +2103,10 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
             break;
           }
         } else {
-          vt_screen_line_feed(vt_parser->screen);
+          if (vt_screen_line_feed(vt_parser->screen) == 2 /* scrolled */ && transparent) {
+            /* Clear the background of the line scrolled in */
+            interrupt_vt100_cmd(vt_parser);
+          }
         }
 
         vt_screen_go_horizontally(vt_parser->screen, cursor_col);

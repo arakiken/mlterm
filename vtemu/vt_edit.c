@@ -2064,17 +2064,23 @@ int vt_edit_go_downward(vt_edit_t *edit, int flag /* SCROLL */
 
       return 0;
     }
+
+#ifdef CURSOR_DEBUG
+    vt_cursor_dump(&edit->cursor);
+#endif
+
+    return 2; /* scrolled */
   } else {
     if (!vt_cursor_goto_by_col(&edit->cursor, edit->cursor.col, edit->cursor.row + 1)) {
       return 0;
     }
-  }
 
 #ifdef CURSOR_DEBUG
-  vt_cursor_dump(&edit->cursor);
+    vt_cursor_dump(&edit->cursor);
 #endif
 
-  return 1;
+    return 1;
+  }
 }
 
 int vt_edit_goto(vt_edit_t *edit, int col, int row) {

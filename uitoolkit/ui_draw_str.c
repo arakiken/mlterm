@@ -120,7 +120,8 @@ void draw_background(ui_window_t *win, ui_color_t *color, int x, int y, u_int wi
 }
 
 static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs, int dst_x,
-                        int dst_y, u_int ch_width, u_int line_height, ui_color_t *bg_xcolor) {
+                        int dst_y, u_int ch_width, u_int line_height, ui_color_t *bg_xcolor,
+                        int draw_bg) {
   u_int count;
   ui_inline_picture_t *cur_pic;
   u_int num_rows;
@@ -169,7 +170,7 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
     if (count == 0) {
       goto new_picture;
     } else if (w > 0 && pic == cur_pic && src_x + src_width == x) {
-      if (!cur_pic->transparent && !need_clear && w < ch_width) {
+      if (draw_bg && !cur_pic->transparent && !need_clear && w < ch_width) {
         draw_background(window, bg_xcolor, dst_x + dst_width, dst_y, ch_width, line_height);
       }
 
@@ -224,7 +225,7 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
 
     src_width = w;
 
-    if (!cur_pic->transparent) {
+    if (draw_bg && !cur_pic->transparent) {
       if (cur_pic->mask) {
         need_clear = 1;
       }
@@ -661,7 +662,8 @@ static int fc_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 #ifndef NO_IMAGE
       if (state == 4) {
         draw_picture(window, pic_glyphs, str_len, x, y, ch_width, height,
-                     bg_color == VT_BG_COLOR ? NULL : ui_get_xcolor(color_man, bg_color));
+                     bg_color == VT_BG_COLOR ? NULL : ui_get_xcolor(color_man, bg_color),
+                     updated_width ? 1 : 0);
 
         goto end_draw;
       }
@@ -1025,7 +1027,8 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
 #ifndef NO_IMAGE
       if (state == 4) {
         draw_picture(window, pic_glyphs, str_len, x, y, ch_width, height,
-                     bg_color == VT_BG_COLOR ? NULL : ui_get_xcolor(color_man, bg_color));
+                     bg_color == VT_BG_COLOR ? NULL : ui_get_xcolor(color_man, bg_color),
+                     updated_width ? 1 : 0);
 
         goto end_draw;
       }

@@ -1,3 +1,21 @@
+2024-09-08  Araki Ken  <arakiken@users.sf.net>
+
+	* im_fcitx.c:
+	  - Add declaration of fcitx_client_{enable|close}_ic().
+	  - Undefine USE_IM_CANDIDATE_SCREEN in wayland.
+	  - event->keycode - 8 -> event->keycode
+	  - print_candate -> print_candidate
+
+	* wayland/ui_display.c: Set ev.keycode to 'key + 8' instead of 0
+	  in keyboard_key().
+
+	* ui_draw_str.c: Add 'int draw_bg' to arguments of draw_picture().
+
+	* vt_parser.c: show_picture() calls interrupt_vt100_cmd() if
+	  vt_screen_line_feed() returns 2.
+
+	* vt_edit.c: vt_edit_go_downward() returns 2 if screen scrolling occurs.
+
 2024-08-17  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in, tool/mlconfig/Makefile.in: Set X_LIBS_FOR_MLCONFIG
