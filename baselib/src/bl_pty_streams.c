@@ -149,7 +149,8 @@ pid_t bl_pty_fork(int *master, int *slave) {
   if ((mode = fcntl(*master, F_GETFL, 0)) == -1 ||
       ((mode & O_NDELAY) == 0 && fcntl(*master, F_SETFL, mode | O_NDELAY) == -1)) {
 #ifdef DEBUG
-    bl_debug_printf(BL_DEBUG_TAG " Failed to set pty master non-blocking.\n");
+    bl_debug_printf(BL_DEBUG_TAG " Failed to set pty master non-blocking. (current mode %x)\n",
+                    mode);
 #endif
   }
 

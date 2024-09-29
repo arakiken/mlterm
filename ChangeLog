@@ -1,3 +1,7 @@
+2024-09-29  Araki Ken  <arakiken@users.sf.net>
+
+	* cocoa.m: window_dealloc() calls [window close] instead of [window release].
+
 2024-09-08  Araki Ken  <arakiken@users.sf.net>
 
 	* im_fcitx.c:

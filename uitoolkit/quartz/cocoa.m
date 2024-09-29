@@ -1466,7 +1466,7 @@ void window_alloc(ui_window_t *root) {
   [nib release];
 }
 
-void window_dealloc(NSWindow *window) { [window release]; }
+void window_dealloc(NSWindow *window) { [window close]; }
 
 void window_resize(NSWindow *window, int width, int height) {
   CGRect wr = window.frame;
