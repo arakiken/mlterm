@@ -2426,7 +2426,7 @@ fi
 echo "External tools                    :$tools_result"
 echo "Image processing                  : $image"
 echo "Built-in image library            : $with_imagelib"
-echo "utmp support                      : $utmp"
+echo "utmp support                      : $UTMP_NAME"
 if test "$gui" = "fb" -o "$gui" = "wayland" -o "$gui" = "sdl2"; then
 	if test "$have_ft" = "yes"; then
 	  if test "$fontconfig" = "yes"; then
