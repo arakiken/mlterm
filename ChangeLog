@@ -1,3 +1,9 @@
+2024-11-02  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in, baselib/configure.in:
+	  Remove AC_RUN_IFELSE() checking if posix_openpt() works.
+	  (https://github.com/arakiken/mlterm/issues/113)
+
 2024-10-19  Araki Ken  <arakiken@users.sf.net>
 
 	* libind/libind_lex.split.c -> lex.split.c

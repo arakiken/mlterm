@@ -2172,15 +2172,10 @@ elif test "$bl_cv_mingw" = "yes" ; then
 	bl_cv_pty=streams
 elif test "$host" = "$build" ; then
 	AC_CHECK_FUNC(posix_openpt,
-		[AC_RUN_IFELSE([AC_LANG_PROGRAM([#define _XOPEN_SOURCE 600
-						#include <stdlib.h>
-						#include <fcntl.h>],
-						[return posix_openpt(O_RDWR | O_NOCTTY) == -1;])],
-				[
-					AC_DEFINE(HAVE_POSIX_OPENPT,,"HAVE_POSIX_OPENPT")
-					bl_cv_pty=streams
-				],
-				[bl_cv_pty=bsd])],
+		[
+			AC_DEFINE(HAVE_POSIX_OPENPT,,"HAVE_POSIX_OPENPT")
+			bl_cv_pty=streams
+			],
 		[bl_cv_pty=bsd])
 	if test "$bl_cv_pty" = "bsd" ; then
 		AC_RUN_IFELSE(
