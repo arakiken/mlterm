@@ -1,3 +1,7 @@
+2024-11-11  SATOH Fumiyasu  <fumiyas@osstech.co.jp>
+
+	* tool/mlconfig/main.c: Save trim_trailing_newline_in_pasting and broadcast flags
+
 2024-11-02  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in, baselib/configure.in:
