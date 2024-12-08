@@ -6,6 +6,9 @@
 #ifndef VTE_CHECK_VERSION
 #define VTE_CHECK_VERSION(a, b, c) (0)
 #endif
+#ifndef _VTE_GTK
+#define _VTE_GTK 3
+#endif
 
 /* for wayland/ui.h */
 #define COMPAT_LIBVTE
@@ -3405,6 +3408,15 @@ gboolean vte_terminal_get_scroll_on_output(VteTerminal *terminal) {
 }
 #endif
 
+#if VTE_CHECK_VERSION(0, 76, 0)
+void vte_terminal_set_scroll_on_insert(VteTerminal *terminal, gboolean scroll) {
+}
+
+gboolean vte_terminal_get_scroll_on_insert(VteTerminal *terminal) {
+  return FALSE;
+}
+#endif
+
 void vte_terminal_set_scroll_on_keystroke(VteTerminal *terminal, gboolean scroll) {}
 
 #if VTE_CHECK_VERSION(0, 36, 0)
@@ -3984,6 +3996,12 @@ void vte_terminal_reset(VteTerminal *terminal, gboolean full, gboolean clear_his
   }
 }
 
+#if VTE_CHECK_VERSION(0, 76, 0)
+char *vte_terminal_get_text_format(VteTerminal *terminal, VteFormat format) {
+  return NULL;
+}
+#endif
+
 char *vte_terminal_get_text(VteTerminal *terminal,
                             gboolean (*is_selected)(VteTerminal *terminal, glong column, glong row,
                                                     gpointer data),
@@ -4030,7 +4048,7 @@ char *vte_terminal_get_text_selected(VteTerminal *terminal, VteFormat format) {
 #if VTE_CHECK_VERSION(0, 72, 0)
 char *vte_terminal_get_text_range_format(VteTerminal *terminal, VteFormat format,
                                          long start_row, long start_col, long end_row,
-                                         long end_col, gsize* length) {
+                                         long end_col, gsize *length) {
   return NULL;
 }
 
@@ -4853,6 +4871,14 @@ VteRegex *vte_regex_new_for_match(const char *pattern, gssize pattern_length,
   return regex;
 }
 
+#if VTE_CHECK_VERSION(0, 76, 0)
+VteRegex *vte_regex_new_for_match_full(char const *pattern, gssize pattern_length,
+                                       uint32_t flags, uint32_t extra_flags,
+                                       gsize *error_offset, GError **error) {
+  return vte_regex_new_for_match(pattern, pattern_length, flags, error);
+}
+#endif
+
 VteRegex *vte_regex_new_for_search(const char *pattern, gssize pattern_length,
                                    guint32 flags, GError **error) {
   VteRegex *regex = g_slice_new(VteRegex);
@@ -4861,6 +4887,14 @@ VteRegex *vte_regex_new_for_search(const char *pattern, gssize pattern_length,
 
   return regex;
 }
+
+#if VTE_CHECK_VERSION(0, 76, 0)
+VteRegex *vte_regex_new_for_search_full(char const *pattern, gssize pattern_length,
+                                        uint32_t flags, uint32_t extra_flags,
+                                        gsize *error_offset, GError **error) {
+  return vte_regex_new_for_search(pattern, pattern_length, flags, error);
+}
+#endif
 
 gboolean vte_regex_jit(VteRegex *regex, guint32 flags, GError **error) {
   if (error) {
@@ -4976,6 +5010,209 @@ gboolean vte_terminal_get_enable_sixel(VteTerminal *terminal) {
 }
 #endif
 
+#if VTE_CHECK_VERSION(0, 76, 0)
+void vte_terminal_set_xalign(VteTerminal *terminal, VteAlign align) {}
+
+VteAlign vte_terminal_get_xalign(VteTerminal *terminal) {
+  return VTE_ALIGN_START;
+}
+
+void vte_terminal_set_yalign(VteTerminal *terminal, VteAlign align) {}
+
+VteAlign vte_terminal_get_yalign(VteTerminal *terminal) {
+  return VTE_ALIGN_START;
+}
+
+void vte_terminal_set_xfill(VteTerminal *terminal, gboolean fill) {}
+
+gboolean vte_terminal_get_xfill(VteTerminal *terminal) {
+  return TRUE;
+}
+
+void vte_terminal_set_yfill(VteTerminal *terminal, gboolean fill) {}
+
+gboolean vte_terminal_get_yfill(VteTerminal *terminal) {
+  return TRUE;
+}
+
+void vte_terminal_set_context_menu_model(VteTerminal *terminal, GMenuModel *model) {}
+
+GMenuModel *vte_terminal_get_context_menu_model(VteTerminal *terminal) {
+  return NULL;
+}
+
+void vte_terminal_set_context_menu(VteTerminal *terminal, GtkWidget *menu) {}
+
+GtkWidget *vte_terminal_get_context_menu(VteTerminal* terminal) {
+  return NULL;
+}
+
+#if _VTE_GTK == 3
+GdkEvent *vte_event_context_get_event(VteEventContext const *context) {
+  return NULL;
+}
+#elif _VTE_GTK == 4
+gboolean vte_event_context_get_coordinates(VteEventContext const *context,
+                                           double *x, double *y) {
+  return FALSE;
+}
+#endif
+
+#endif
+
+#if VTE_CHECK_VERSION(0, 78, 0)
+int vte_install_termprop(char const *name, VtePropertyType type, VtePropertyFlags flags) {
+  return 0;
+}
+
+int vte_install_termprop_alias(char const *name, char const *target_name) {
+  return 0;
+}
+
+char const **vte_get_termprops(gsize *length) {
+  *length = 0;
+
+  return NULL;
+}
+
+gboolean vte_query_termprop(char const *name, char const **resolved_name, int *prop,
+                            VtePropertyType *type, VtePropertyFlags *flags) {
+  return FALSE;
+}
+
+gboolean vte_query_termprop_by_id(int prop, char const **name, VtePropertyType *type,
+                                  VtePropertyFlags *flags) {
+  return FALSE;
+}
+
+guint64 vte_get_test_flags(void) {
+  return 0;
+}
+
+gboolean vte_terminal_get_enable_a11y(VteTerminal *terminal) {
+  return FALSE;
+}
+
+void vte_terminal_set_enable_a11y(VteTerminal *terminal, gboolean enable_a11y) {}
+
+void vte_terminal_set_suppress_legacy_signals(VteTerminal *terminal) {}
+
+void vte_terminal_set_enable_legacy_osc777(VteTerminal *terminal, gboolean enable) {}
+
+gboolean vte_terminal_get_enable_legacy_osc777(VteTerminal *terminal) {
+  return FALSE;
+}
+
+gboolean vte_terminal_get_termprop_bool(VteTerminal *terminal,
+                                        char const *prop, gboolean *valuep)  {
+  return FALSE;
+}
+
+gboolean vte_terminal_get_termprop_bool_by_id(VteTerminal *terminal, int prop, gboolean *valuep) {
+  return FALSE;
+}
+
+gboolean vte_terminal_get_termprop_int(VteTerminal *terminal,
+                                       char const *prop, int64_t *valuep) {
+  return FALSE;
+}
+
+gboolean vte_terminal_get_termprop_int_by_id(VteTerminal *terminal, int prop, int64_t *valuep) {
+  return FALSE;
+}
+
+gboolean vte_terminal_get_termprop_uint(VteTerminal *terminal, char const *prop, uint64_t *valuep) {
+  return FALSE;
+}
+
+gboolean vte_terminal_get_termprop_uint_by_id(VteTerminal *terminal,
+                                              int prop, uint64_t *valuep) {
+  return FALSE;
+}
+
+gboolean vte_terminal_get_termprop_double(VteTerminal *terminal, char const *prop, double *valuep) {
+  return FALSE;
+}
+
+gboolean vte_terminal_get_termprop_double_by_id(VteTerminal *terminal, int prop, double *valuep) {
+  return FALSE;
+}
+
+gboolean vte_terminal_get_termprop_rgba(VteTerminal *terminal, char const *prop, GdkRGBA *color) {
+  return FALSE;
+}
+
+gboolean vte_terminal_get_termprop_rgba_by_id(VteTerminal *terminal, int prop, GdkRGBA *color) {
+  return FALSE;
+}
+
+char const *vte_terminal_get_termprop_string(VteTerminal *terminal,
+                                             char const *prop, size_t *size) {
+  return NULL;
+}
+
+char const *vte_terminal_get_termprop_string_by_id(VteTerminal *terminal, int prop, size_t *size) {
+  return NULL;
+}
+
+char *vte_terminal_dup_termprop_string(VteTerminal *terminal, char const *prop, size_t *size) {
+  return NULL;
+}
+
+char *vte_terminal_dup_termprop_string_by_id(VteTerminal *terminal, int prop, size_t *size) {
+  return NULL;
+}
+
+uint8_t const *vte_terminal_get_termprop_data(VteTerminal *terminal,
+                                              char const *prop, size_t *size) {
+  return NULL;
+}
+
+uint8_t const *vte_terminal_get_termprop_data_by_id(VteTerminal *terminal, int prop, size_t *size) {
+  return NULL;
+}
+
+GBytes *vte_terminal_ref_termprop_data_bytes(VteTerminal *terminal, char const *prop) {
+  return NULL;
+}
+
+GBytes *vte_terminal_ref_termprop_data_bytes_by_id(VteTerminal *terminal, int prop) {
+  return NULL;
+}
+
+VteUuid *vte_terminal_dup_termprop_uuid(VteTerminal *terminal, char const *prop) {
+  return NULL;
+}
+
+VteUuid *vte_terminal_dup_termprop_uuid_by_id(VteTerminal *terminal, int prop) {
+  return NULL;
+}
+
+GUri *vte_terminal_ref_termprop_uri(VteTerminal *terminal, char const *prop) {
+  return NULL;
+}
+
+GUri *vte_terminal_ref_termprop_uri_by_id(VteTerminal *terminal, int prop) {
+  return NULL;
+}
+
+gboolean vte_terminal_get_termprop_value(VteTerminal *terminal, char const *prop, GValue *gvalue) {
+  return FALSE;
+}
+
+gboolean vte_terminal_get_termprop_value_by_id(VteTerminal *terminal, int prop, GValue *gvalue) {
+  return FALSE;
+}
+
+GVariant *vte_terminal_ref_termprop_variant(VteTerminal *terminal, char const *prop) {
+  return NULL;
+}
+
+GVariant *vte_terminal_ref_termprop_variant_by_id(VteTerminal *terminal, int prop) {
+  return NULL;
+}
+#endif
+
 #if VTE_CHECK_VERSION(0, 56, 0)
 char *vte_regex_substitute(VteRegex *regex, const char *subject, const char *replacement,
                            guint32 flags, GError **error) {
@@ -5033,4 +5270,30 @@ void vte_terminal_set_scroll_unit_is_pixels(VteTerminal *terminal, gboolean enab
 gboolean vte_terminal_get_scroll_unit_is_pixels(VteTerminal *terminal) {
   return FALSE;
 }
+#endif
+
+
+#if VTE_CHECK_VERSION(0, 78, 0)
+#include <vte/vteuuid.h>
+
+G_DEFINE_BOXED_TYPE(VteUuid, vte_uuid, vte_uuid_dup,
+                    (GBoxedFreeFunc)vte_uuid_free)
+
+VteUuid *vte_uuid_new_v4(void) { return NULL; }
+
+VteUuid *vte_uuid_new_v5(VteUuid const *ns, char const *data, gssize len) { return NULL; }
+
+VteUuid *vte_uuid_new_from_string(char const *str, gssize len, VteUuidFormat fmt) { return NULL; }
+
+VteUuid *vte_uuid_dup(VteUuid const *uuid) { return NULL; }
+
+void vte_uuid_free(VteUuid *uuid) {}
+
+char *vte_uuid_free_to_string(VteUuid *uuid, VteUuidFormat fmt, gsize *len) { return NULL; }
+
+char *vte_uuid_to_string(VteUuid const *uuid, VteUuidFormat fmt, gsize *len) { return NULL; }
+
+gboolean vte_uuid_equal(VteUuid const *uuid, VteUuid const *other) { return FALSE; }
+
+gboolean vte_uuid_validate_string(char const *str, gssize len, VteUuidFormat fmt) { return FALSE; }
 #endif

@@ -18,13 +18,14 @@
   (https://github.com/arakiken/mlterm/issues/71)
 * Add "de", "fr", "es", "pt" and "jp106" to available values for "kbd"
   input method argument.
-* Add vte 0.74 API symbols to libvte compatible library.
+* Add vte 0.78 API symbols to libvte compatible library.
 * Change the default value of "xterm" entry in etc/termcap from "ut" to "kb=^H:ut".
 * Update unicode property table (generated from UnicodeData.txt and
   EastAsianWidth.txt) to version 15.1.0.
 * Merge patches:
   https://github.com/arakiken/mlterm/pull/68
   https://github.com/arakiken/mlterm/pull/83 (Add --locktitle/use_locked_title option)
+  https://github.com/arakiken/mlterm/pull/119
 * Bug fixes:
   https://github.com/arakiken/mlterm/issues/52
   https://github.com/arakiken/mlterm/issues/67

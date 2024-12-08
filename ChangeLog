@@ -1,3 +1,7 @@
+2024-12-08  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: Add vte 0.76 and 0.78 apis.
+
 2024-11-11  SATOH Fumiyasu  <fumiyas@osstech.co.jp>
 
 	* tool/mlconfig/main.c: Save trim_trailing_newline_in_pasting and broadcast flags
@@ -9,6 +13,8 @@
 	  (https://github.com/arakiken/mlterm/issues/113)
 
 2024-10-19  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in: Show $UTMP_NAME instead of $utmp for "utmp support" message.
 
 	* libind/libind_lex.split.c -> lex.split.c
 
