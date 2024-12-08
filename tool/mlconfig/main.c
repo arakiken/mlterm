@@ -109,6 +109,8 @@ static int update(mc_io_t io) {
   mc_update_flag_mode(MC_FLAG_STATICBACKSCROLL);
   mc_update_flag_mode(MC_FLAG_REGARDURIASWORD);
   mc_update_flag_mode(MC_FLAG_OTLAYOUT);
+  mc_update_flag_mode(MC_FLAG_TRIMNEWLINE);
+  mc_update_flag_mode(MC_FLAG_BROADCAST);
 
   mc_update_radio(MC_RADIO_SB_MODE);
 
