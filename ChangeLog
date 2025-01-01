@@ -1,5 +1,7 @@
 2025-01-02  Araki Ken  <arakiken@users.sf.net>
 
+	* ci.yml: Add build-freebsd.
+
 	* fb/ui_display_freebsd.c: Fix conflict of vt_font in FreeBSD 13 or later.
 
 	* cocoa.m, ui_screen.c, ui_window.h: Add const.

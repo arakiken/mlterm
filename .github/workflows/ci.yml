@@ -87,3 +87,21 @@ jobs:
             CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" CPPFLAGS="-I/usr/pkg/include" ./configure --x-includes=/usr/X11R7/include --x-libraries=/usr/X11R7/lib --with-imagelib=gdk-pixbuf --with-gui=xlib,wscons,sdl2 --with-type-engins=xcore,xft,cairo --enable-anti-alias
             make
             make install
+
+  build-freebsd:
+    name: "build-freebsd (FreeBSD/amd64 14.2 with ports)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install packages and run configure and make (on the FreeBSD VM)
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: "14.2"
+          copyback: false
+          prepare: |
+            pkg install -y pkgconf perl5 libtool desktop-file-utils glib cairo gdk-pixbuf2 gtk3 vte3 libssh2 fontconfig freetype2 fribidi uim m17n-lib scim ibus ja-FreeWnn-lib ja-canna-lib sdl2
+          run: |
+            CFLAGS="-Wall -Werror=incompatible-pointer-types -Wno-error=incompatible-pointer-types-discards-qualifiers -g -O2" CPPFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib -Wl,--undefined-version" ./configure --with-imagelib=gdk-pixbuf --with-gui=xlib,fb,sdl2 --with-type-engins=xcore,xft,cairo --enable-anti-alias
+            make
+            make install
