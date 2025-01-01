@@ -1198,9 +1198,14 @@ int ui_window_utf_selection_request(ui_window_t *win, Time time, ui_selection_fl
     const char *str;
 
     if ((str = cocoa_clipboard_get())) {
-      (*win->utf_selection_notified)(win, str, strlen(str));
+      size_t len = strlen(str);
+      char *str2;
 
-      return 1;
+      if ((str2 = alloca(len + 1))) {
+        (*win->utf_selection_notified)(win, memcpy(str2, str, len + 1), len);
+
+        return 1;
+      }
     }
   }
 

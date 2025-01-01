@@ -78,7 +78,7 @@ static wchar *digit_to_wstr(wchar *dst, int digit) {
   return dst;
 }
 
-static void wchar_parser_set_str(ef_parser_t *parser, u_char *str, size_t size) {
+static void wchar_parser_set_str(ef_parser_t *parser, const u_char *str, size_t size) {
   parser->str = str;
   parser->left = size;
   parser->marked_left = 0;

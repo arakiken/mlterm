@@ -1,5 +1,7 @@
 2025-01-02  Araki Ken  <arakiken@users.sf.net>
 
+	* quartz/ui_im_status_screen-cocoa.m, im_wnn.c: Add const.
+
 	* im_ibus.c, im_common.h, skk/ef_str_parser.c, gtkxlfdsel.[ch],
 	  mc_combo.[ch], mc_im.c, mc_opentype.c, fb/ui_font.c, ui_brltty.c,
 	  ui_copymode.[ch], ui_im.h, ui_im_candidate_screen.[ch],

@@ -52,7 +52,7 @@ static int set_spot(ui_im_status_screen_t* stat_screen, int x, int y) {
 }
 
 static int set(ui_im_status_screen_t* stat_screen, ef_parser_t* parser,
-               u_char* str) {
+               const u_char* str) {
   size_t len;
   u_char* utf8;
   ef_char_t ch;
