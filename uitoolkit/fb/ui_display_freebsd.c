@@ -1,6 +1,13 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
+/*
+ * sys/font.h which appeared in FreeBSD 13 defines vt_font structure which
+ * conflicts with vt_font defined in vt_font.h
+ */
+#define vt_font fbsd_vt_font
 #include <sys/consio.h>
+#undef vt_font
+
 #include <sys/time.h>
 
 #if __FreeBSD__ >= 5
