@@ -277,7 +277,11 @@ int vt_pty_ssh_scp(vt_pty_t *pty, vt_char_encoding_t pty_encoding, /* Not VT_UNK
   } else {
     if (!dst_is_remote) {
       if (recv_dir) {
-        dst_path = recv_dir;
+        if ((dst_path = alloca(strlen(recv_dir) + 1))) {
+          strcpy(dst_path, recv_dir);
+        } else {
+          return 0;
+        }
       } else {
         char *prefix = bl_get_home_dir();
 

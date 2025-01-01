@@ -144,7 +144,7 @@ static void init(ef_parser_t *ef_parser) {
   vt_str_parser->comb_left = 0;
 }
 
-static void set_str(ef_parser_t *ef_parser, u_char *str, size_t size) { /* do nothing */ }
+static void set_str(ef_parser_t *ef_parser, const u_char *str, size_t size) { /* do nothing */ }
 
 static void destroy(ef_parser_t *s) { free(s); }
 

@@ -207,7 +207,7 @@ static int sjisx0213_parser_next_char(ef_parser_t *sjis_parser, ef_char_t *ch) {
   return sjis_parser_next_char_intern(sjis_parser, ch, 1);
 }
 
-static void sjis_parser_set_str(ef_parser_t *sjis_parser, u_char *str, size_t size) {
+static void sjis_parser_set_str(ef_parser_t *sjis_parser, const u_char *str, size_t size) {
   sjis_parser->str = str;
   sjis_parser->left = size;
   sjis_parser->marked_left = 0;

@@ -391,7 +391,7 @@ static void update_lookup_table(IBusInputContext *context, IBusLookupTable *tabl
   (*ibus->im.cand_screen->set_spot)(ibus->im.cand_screen, x, y);
 
   for (i = 0; i < num_cands; i++) {
-    u_char *str;
+    const u_char *str;
 
     /* ibus 1.4.1 on Ubuntu 12.10 can return NULL if num_cands > 0. */
     if (!(str = ibus_text_get_text(ibus_lookup_table_get_candidate(table, i)))) {

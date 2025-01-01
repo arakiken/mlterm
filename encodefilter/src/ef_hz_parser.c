@@ -23,7 +23,7 @@ static void hz_parser_init(ef_parser_t *parser) {
   hz_parser->cur_cs = US_ASCII;
 }
 
-static void hz_parser_set_str(ef_parser_t *parser, u_char *str, size_t size) {
+static void hz_parser_set_str(ef_parser_t *parser, const u_char *str, size_t size) {
   parser->str = str;
   parser->left = size;
   parser->marked_left = 0;

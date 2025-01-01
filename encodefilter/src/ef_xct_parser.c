@@ -23,7 +23,7 @@ static int xct_non_iso2022_is_started(ef_iso2022_parser_t *iso2022_parser) {
   u_char m;
   u_char l;
   size_t len;
-  u_char *cs_str;
+  const char *cs_str;
   size_t cs_len;
 
 #ifdef __DEBUG
@@ -84,23 +84,23 @@ static int xct_non_iso2022_is_started(ef_iso2022_parser_t *iso2022_parser) {
   }
 
   if (xct_parser->iso2022_parser.non_iso2022_cs == XCT_NON_ISO2022_CS_1) {
-    if (cs_len == 9 && strncmp((char *)cs_str, "iscii-dev", cs_len) == 0) {
+    if (cs_len == 9 && strncmp(cs_str, "iscii-dev", cs_len) == 0) {
       /* XXX */
       xct_parser->cs = ISCII_HINDI;
-    } else if (cs_len == 6 && strncmp((char *)cs_str, "koi8-r", cs_len) == 0) {
+    } else if (cs_len == 6 && strncmp(cs_str, "koi8-r", cs_len) == 0) {
       xct_parser->cs = KOI8_R;
-    } else if (cs_len == 6 && strncmp((char *)cs_str, "koi8-u", cs_len) == 0) {
+    } else if (cs_len == 6 && strncmp(cs_str, "koi8-u", cs_len) == 0) {
       xct_parser->cs = KOI8_U;
-    } else if (cs_len == 11 && strncmp((char *)cs_str, "viscii1.1-1", cs_len) == 0) {
+    } else if (cs_len == 11 && strncmp(cs_str, "viscii1.1-1", cs_len) == 0) {
       xct_parser->cs = VISCII;
     } else {
       /* unknown cs */
       return 0;
     }
   } else if (xct_parser->iso2022_parser.non_iso2022_cs == XCT_NON_ISO2022_CS_2) {
-    if (cs_len == 6 && strncmp((char *)cs_str, "big5-0", cs_len) == 0) {
+    if (cs_len == 6 && strncmp(cs_str, "big5-0", cs_len) == 0) {
       xct_parser->cs = BIG5;
-    } else if (cs_len == 6 && strncmp((char *)cs_str, "BIG5-0", cs_len) == 0) {
+    } else if (cs_len == 6 && strncmp(cs_str, "BIG5-0", cs_len) == 0) {
       /*
        * !! Notice !!
        * Big5 CTEXT implementation of XFree86 4.1.0 or before is very BUGGY!
@@ -118,7 +118,7 @@ static int xct_non_iso2022_is_started(ef_iso2022_parser_t *iso2022_parser) {
       }
 
       xct_parser->cs = BIG5;
-    } else if (cs_len == 5 && strncmp((char *)cs_str, "gbk-0", cs_len) == 0) {
+    } else if (cs_len == 5 && strncmp(cs_str, "gbk-0", cs_len) == 0) {
       xct_parser->cs = GBK;
     } else {
       /* unknown cs */

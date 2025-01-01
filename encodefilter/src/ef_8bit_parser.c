@@ -124,7 +124,7 @@ static int iscii_parser_next_char(ef_parser_t *parser, ef_char_t *ch) {
   return parser_next_char_intern(parser, ch, ((ef_iscii_parser_t*)parser)->cs);
 }
 
-static void parser_set_str(ef_parser_t *parser, u_char *str, size_t size) {
+static void parser_set_str(ef_parser_t *parser, const u_char *str, size_t size) {
   parser->str = str;
   parser->left = size;
   parser->marked_left = 0;

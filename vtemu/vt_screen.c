@@ -1963,7 +1963,11 @@ int vt_screen_search_init(vt_screen_t *screen,
                           int char_index, int row, /* -1: cursor position */
                           int (*match)(size_t *, size_t *, void *, u_char *, int)) {
   if (screen->search) {
-    return 0;
+    if (screen->search->match == match) {
+      return 1;
+    } else {
+      return 0;
+    }
   }
 
   if (!(screen->search = malloc(sizeof(*screen->search)))) {

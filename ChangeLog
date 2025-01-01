@@ -1,3 +1,19 @@
+2025-01-02  Araki Ken  <arakiken@users.sf.net>
+
+	* im_ibus.c, im_common.h, skk/ef_str_parser.c, gtkxlfdsel.[ch],
+	  mc_combo.[ch], mc_im.c, mc_opentype.c, fb/ui_font.c, ui_brltty.c,
+	  ui_copymode.[ch], ui_im.h, ui_im_candidate_screen.[ch],
+	  ui_im_status_screen.[ch], ui_screen.c, libptyssh/vt_pty_ssh.c,
+	  vt_str_parser.c: Add const.
+
+	* vte.c, ui_screen.c, vt_screen.c: Disable searching functions of vte while
+	  "OSC 5379 search_next", "OSC 5379 search_prev" or searching in copy mode
+	  is activated.
+
+	* encodefilter/ef_*_parser.[ch]: Add const to the 2nd argument of *_set_str().
+
+	* bl_path.[ch]: Add bl_basename_simple()
+
 2024-12-08  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: Add vte 0.76 and 0.78 apis.

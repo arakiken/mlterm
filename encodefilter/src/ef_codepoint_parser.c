@@ -25,7 +25,7 @@ static void cp_parser_init(ef_parser_t *parser) {
   cp_parser->cp_size = 1;
 }
 
-static void cp_parser_set_str(ef_parser_t *parser, u_char *str,
+static void cp_parser_set_str(ef_parser_t *parser, const u_char *str,
                               size_t size /* size(max 16bit) | cs << 16 */
                               ) {
   ef_charset_t cs;

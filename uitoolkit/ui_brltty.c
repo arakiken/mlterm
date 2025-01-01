@@ -384,7 +384,7 @@ void ui_brltty_speak_key(KeySym ksym, const u_char *kstr, size_t len) {
     int fd;
 
     if ((fd = open(path, O_WRONLY|O_NONBLOCK, 0200)) != -1) {
-      char *str;
+      const char *str;
 
       if (ksym == XK_BackSpace) {
         str = "backspace";

@@ -79,7 +79,7 @@ static int big5hkscs_parser_next_char(ef_parser_t *big5_parser, ef_char_t *ch) {
   return big5_parser_next_char_intern(big5_parser, ch, 1);
 }
 
-static void big5_parser_set_str(ef_parser_t *big5_parser, u_char *str, size_t size) {
+static void big5_parser_set_str(ef_parser_t *big5_parser, const u_char *str, size_t size) {
   big5_parser->str = str;
   big5_parser->left = size;
   big5_parser->marked_left = 0;

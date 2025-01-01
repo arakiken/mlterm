@@ -219,7 +219,7 @@ void	   gtk_xlfd_selection_set_filter	(GtkXlfdSelection *fontsel,
 						 gchar		 **setwidths,
 						 gchar		 **spacings,
 						 gchar		 **charsets);
-gchar*	   gtk_xlfd_selection_get_preview_text	(GtkXlfdSelection *fontsel);
+const gchar* gtk_xlfd_selection_get_preview_text(GtkXlfdSelection *fontsel);
 void	   gtk_xlfd_selection_set_preview_text	(GtkXlfdSelection *fontsel,
 						 const gchar	  *text);
 
@@ -287,7 +287,7 @@ void	   gtk_xlfd_selection_dialog_set_filter	(GtkXlfdSelectionDialog *fsd,
 
 /* This returns the text in the preview entry. You should copy the returned
    text if you need it. */
-gchar*	 gtk_xlfd_selection_dialog_get_preview_text (GtkXlfdSelectionDialog *fsd);
+const gchar* gtk_xlfd_selection_dialog_get_preview_text (GtkXlfdSelectionDialog *fsd);
 
 /* This sets the text in the preview entry. It will be copied by the entry,
    so there's no need to g_strdup() it first. */

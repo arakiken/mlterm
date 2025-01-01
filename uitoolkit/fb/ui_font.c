@@ -343,6 +343,7 @@ static int get_metrics(u_int16_t *width, u_int16_t *width_full, u_int16_t *heigh
 
 static char *gunzip(const char *file_path, struct stat *st) {
   size_t len;
+  const char *file;
   char *new_file_path;
   struct stat new_st;
   char *cmd;
@@ -364,7 +365,8 @@ static char *gunzip(const char *file_path, struct stat *st) {
     goto error;
   }
 
-  sprintf(new_file_path, "mlterm/%s", bl_basename(file_path));
+  bl_basename_simple(file, file_path);
+  sprintf(new_file_path, "mlterm/%s", file);
   new_file_path[strlen(new_file_path) - 3] = '\0'; /* remove ".gz" */
 
   if (!(new_file_path = bl_get_user_rc_path(new_file_path))) {

@@ -29,7 +29,7 @@ static size_t parser_n_increment(ef_parser_t *parser, size_t n) {
   return parser->left;
 }
 
-static void set_str(ef_parser_t *parser, u_char *str, /* ef_char_t* */
+static void set_str(ef_parser_t *parser, const u_char *str, /* ef_char_t* */
                     size_t size) {
   parser->str = str;
   parser->left = size;

@@ -3,7 +3,7 @@
 #ifndef __IM_COMMON_H__
 #define __IM_COMMON_H__
 
-static inline u_int im_convert_encoding(ef_parser_t *parser, ef_conv_t *conv, u_char *from,
+static inline u_int im_convert_encoding(ef_parser_t *parser, ef_conv_t *conv, const u_char *from,
                                         u_char **to, u_int from_len) {
   u_int len;
   u_int filled_len;

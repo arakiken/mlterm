@@ -1509,7 +1509,7 @@ gtk_xlfd_selection_update_size (GtkXlfdSelection *fontsel)
 {
   gint new_size;
   gfloat new_size_float;
-  gchar *text;
+  const gchar *text;
   
 #ifdef FONTSEL_DEBUG
   g_message("In update_size\n");
@@ -1825,7 +1825,7 @@ gtk_xlfd_selection_update_preview (GtkXlfdSelection *fontsel)
   GtkWidget *preview_entry;
   GtkStyle *style;
   gint text_height, new_height;
-  gchar *text;
+  const gchar *text;
   XFontStruct *xfs;
   
 #ifdef FONTSEL_DEBUG
@@ -3270,7 +3270,7 @@ gtk_xlfd_selection_find_font (GtkXlfdSelection *fontsel,
 
 /* This returns the text in the preview entry. You should copy the returned
    text if you need it. */
-gchar*
+const gchar*
 gtk_xlfd_selection_get_preview_text  (GtkXlfdSelection *fontsel)
 {
   return gtk_entry_get_text(GTK_ENTRY(fontsel->preview_entry));
@@ -3545,7 +3545,7 @@ gtk_xlfd_selection_dialog_set_filter	(GtkXlfdSelectionDialog *fsd,
 				 spacings, charsets);
 }
 
-gchar*
+const gchar*
 gtk_xlfd_selection_dialog_get_preview_text (GtkXlfdSelectionDialog *fsd)
 {
   return gtk_xlfd_selection_get_preview_text(GTK_XLFD_SELECTION(fsd->fontsel));

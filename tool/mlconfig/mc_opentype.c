@@ -50,8 +50,8 @@ static GtkWidget *script_button;
 
 /* --- static functions --- */
 
-static char *ascii_strcasestr(const char *str1 /* separated by ',' */,
-                              const char *str2 /* 4 bytes/Lower case */) {
+static const char *ascii_strcasestr(const char *str1 /* separated by ',' */,
+                                    const char *str2 /* 4 bytes/Lower case */) {
   const char *p1 = str1;
   const char *p2 = str2;
 
@@ -75,7 +75,7 @@ static char *ascii_strcasestr(const char *str1 /* separated by ',' */,
 }
 
 static int contains(char *values, char *value) {
-  char *p;
+  const char *p;
 
   if ((p = ascii_strcasestr(values, value))) {
     if (p == values || *(p - 1) == ',') {

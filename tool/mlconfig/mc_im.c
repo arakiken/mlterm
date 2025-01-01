@@ -477,7 +477,7 @@ static GtkWidget *entry_with_label_new(GtkWidget *parent, const char *text, cons
 }
 
 static GtkWidget *combo_with_label_new(GtkWidget *parent, const char *label_name,
-                                       char **item_names, u_int item_num, const char *value) {
+                                       char **item_names, u_int item_num, char *value) {
   GtkWidget *hbox;
   GtkWidget *combo;
   GtkWidget *entry;

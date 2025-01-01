@@ -48,6 +48,31 @@ char *__bl_basename(char *path);
 
 #endif
 
+#ifdef USE_WIN32API
+#define bl_basename_simple(dst, src) \
+  { \
+    size_t pos; \
+    for (pos = strlen(src); pos > 0; pos--) { \
+      if ((src)[pos - 1] == '/' \
+          || ((src)[pos - 1] == '\\' && (pos > 1 || !IsDBCSLeadByte((src)[pos - 2])))) { \
+        break; \
+      } \
+    } \
+    (dst) = (src) + pos; \
+  }
+#else
+#define bl_basename_simple(dst, src) \
+  {                                  \
+    size_t pos; \
+    for (pos = strlen(src); pos > 0; pos--) { \
+      if ((src)[pos - 1] == '/') { \
+        break; \
+      } \
+    } \
+    (dst) = (src) + pos; \
+  }
+#endif
+
 #ifndef REMOVE_FUNCS_MLTERM_UNUSE
 
 int bl_path_cleanname(char *cleaned_path, size_t size, const char *path);

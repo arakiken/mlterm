@@ -10,7 +10,7 @@
 /* --- static functions --- */
 
 static int utf8_parser_next_char(ef_parser_t *utf8_parser, ef_char_t *ucs4_ch) {
-  u_char *utf8_ch;
+  const u_char *utf8_ch;
   u_int32_t ucs4_int;
   size_t bytes;
 
@@ -154,7 +154,7 @@ utf8_err:
   return 0;
 }
 
-static void utf8_parser_set_str(ef_parser_t *utf8_parser, u_char *str, size_t size) {
+static void utf8_parser_set_str(ef_parser_t *utf8_parser, const u_char *str, size_t size) {
   utf8_parser->str = str;
   utf8_parser->left = size;
   utf8_parser->marked_left = 0;

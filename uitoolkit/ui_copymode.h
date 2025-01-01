@@ -24,7 +24,7 @@ void ui_copymode_pattern_start_edit(ui_copymode_t *copymode, int backward);
 
 void ui_copymode_pattern_cancel_edit(ui_copymode_t *copymode);
 
-void ui_copymode_pattern_add_str(ui_copymode_t *copymode, u_char *str, size_t len,
+void ui_copymode_pattern_add_str(ui_copymode_t *copymode, const u_char *str, size_t len,
                                  ef_parser_t *parser);
 
 int ui_copymode_pattern_delete(ui_copymode_t *copymode);

@@ -33,7 +33,7 @@ typedef struct ui_im_status_screen {
   void (*show)(struct ui_im_status_screen *);
   void (*hide)(struct ui_im_status_screen *);
   int (*set_spot)(struct ui_im_status_screen *, int, int);
-  int (*set)(struct ui_im_status_screen *, ef_parser_t *, u_char *);
+  int (*set)(struct ui_im_status_screen *, ef_parser_t *, const u_char *);
 
   int head_indexes[15]; /* 14 lines (13 candidates and N/N) + 1 */
 

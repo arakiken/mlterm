@@ -9,7 +9,7 @@
 
 typedef struct ef_parser {
   /* private */
-  u_char *str;
+  const u_char *str;
   size_t marked_left;
   size_t left;
 
@@ -18,7 +18,7 @@ typedef struct ef_parser {
 
   /* public */
   void (*init)(struct ef_parser *);
-  void (*set_str)(struct ef_parser *, u_char *str, size_t size);
+  void (*set_str)(struct ef_parser *, const u_char *str, size_t size);
   void (*destroy)(struct ef_parser *);
   int (*next_char)(struct ef_parser *, ef_char_t *);
 

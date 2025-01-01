@@ -99,7 +99,7 @@ shortage:
   return 0;
 }
 
-static void johab_parser_set_str(ef_parser_t *johab_parser, u_char *str, size_t size) {
+static void johab_parser_set_str(ef_parser_t *johab_parser, const u_char *str, size_t size) {
   johab_parser->str = str;
   johab_parser->left = size;
   johab_parser->marked_left = 0;

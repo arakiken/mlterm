@@ -55,7 +55,7 @@ void ui_copymode_pattern_cancel_edit(ui_copymode_t *copymode) {
   copymode->pattern_editing = 0;
 }
 
-void ui_copymode_pattern_add_str(ui_copymode_t *copymode, u_char *str, size_t len,
+void ui_copymode_pattern_add_str(ui_copymode_t *copymode, const u_char *str, size_t len,
                                  ef_parser_t *parser) {
   if (parser) {
     ef_char_t ch;

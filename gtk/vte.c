@@ -298,6 +298,23 @@ G_DEFINE_TYPE_WITH_CODE(VteTerminal, vte_terminal, GTK_TYPE_WIDGET,
 G_DEFINE_TYPE(VteTerminal, vte_terminal, GTK_TYPE_WIDGET);
 #endif
 
+#if GLIB_CHECK_VERSION(2, 14, 0)
+static int match_gregex(size_t *beg, size_t *len, void *gregex, u_char *str, int backward);
+#if VTE_CHECK_VERSION(0, 46, 0)
+static int match_vteregex(size_t *beg, size_t *len, void *vregex, u_char *str, int backward);
+#define IS_VTE_SEARCH(terminal) \
+  (PVT(terminal)->screen->term->screen->search && \
+   (PVT(terminal)->screen->term->screen->search->match == match_gregex || \
+    PVT(terminal)->screen->term->screen->search->match == match_vteregex))
+#else
+#define IS_VTE_SEARCH(terminal) \
+  (PVT(terminal)->screen->term->screen->search && \
+   PVT(terminal)->screen->term->screen->search->match == match_gregex)
+#endif
+#else
+#define IS_VTE_SEARCH(terminal) (0)
+#endif
+
 /* --- static variables --- */
 
 static ui_main_config_t main_config;
@@ -414,6 +431,10 @@ static gboolean search_find(VteTerminal *terminal, int backward) {
 #endif
 
   if (!regex) {
+    return FALSE;
+  }
+
+  if (!IS_VTE_SEARCH(terminal)) {
     return FALSE;
   }
 
@@ -2613,7 +2634,7 @@ static int vt_term_open_pty_wrap(VteTerminal *terminal, const char *cmd_path, ch
 
     if (num > 0 && !strstr(cmd_path, argv[0]) && (argv_p = alloca(sizeof(char *) * (num + 2)))) {
       memcpy(argv_p + 1, argv, sizeof(char *) * (num + 1));
-      argv_p[0] = cmd_path;
+      argv_p[0] = (char*)cmd_path; /* avoid warning "discard qualifiers" */
       argv = argv_p;
 
 #if 0
@@ -2920,7 +2941,7 @@ pid_t vte_terminal_fork_command(VteTerminal *terminal,
 
     if (!argv || !argv[0]) {
       argv = alloca(sizeof(char *) * 2);
-      argv[0] = command;
+      argv[0] = (char*)command; /* avoid warning "discard qualifiers" */
       argv[1] = NULL;
     }
 
@@ -3639,7 +3660,8 @@ void vte_terminal_set_background_image_file(VteTerminal *terminal, const char *p
   }
 
   if (GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
-    ui_screen_set_config(PVT(terminal)->screen, NULL, "wall_picture", path);
+    ui_screen_set_config(PVT(terminal)->screen, NULL, "wall_picture",
+                         (char*)path /* avoid warning "discard qualifiers" */);
   } else {
     free(PVT(terminal)->screen->pic_file_path);
     PVT(terminal)->screen->pic_file_path = (*path == '\0') ? NULL : strdup(path);
@@ -3750,7 +3772,7 @@ void vte_terminal_set_font_from_string(VteTerminal *terminal, const char *name) 
   if (!name || strcmp(name, "(null)") == 0) {
     name = "monospace";
   } else {
-    p = name + strlen(name) - 1;
+    p = ((char*)name) /* avoid warning "discard qualifiers" */ + strlen(name) - 1;
     if ('0' <= *p && *p <= '9') {
       int fontsize;
 
@@ -3782,8 +3804,10 @@ void vte_terminal_set_font_from_string(VteTerminal *terminal, const char *name) 
     }
   }
 
-  font_changed = ui_customize_font_file("aafont", "DEFAULT", name, 0);
-  font_changed |= ui_customize_font_file("aafont", "ISO10646_UCS4_1", name, 0);
+  font_changed = ui_customize_font_file("aafont", "DEFAULT",
+                                        (char*)name /* avoid warning "discard qualifiers" */, 0);
+  font_changed |= ui_customize_font_file("aafont", "ISO10646_UCS4_1",
+                                         (char*)name /* avoid warning "discard qualifiers" */, 0);
   if (font_changed) {
     ui_font_cache_unload_all();
 
@@ -4181,10 +4205,14 @@ void vte_terminal_search_set_gregex(VteTerminal *terminal, GRegex *regex)
 {
   if (regex) {
     if (!PVT(terminal)->gregex) {
-      vt_term_search_init(PVT(terminal)->term, -1, -1, match_gregex);
+      if (!vt_term_search_init(PVT(terminal)->term, -1, -1, match_gregex)) {
+        regex = NULL;
+      }
     }
   } else {
-    vt_term_search_final(PVT(terminal)->term);
+    if (IS_VTE_SEARCH(terminal)) {
+      vt_term_search_final(PVT(terminal)->term);
+    }
   }
 
   PVT(terminal)->gregex = regex;
@@ -4240,7 +4268,8 @@ void vte_terminal_set_encoding(VteTerminal *terminal, const char *codeset)
   }
 
   if (GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
-    ui_screen_set_config(PVT(terminal)->screen, NULL, "encoding", codeset);
+    ui_screen_set_config(PVT(terminal)->screen, NULL, "encoding",
+                         (char*)codeset /* avoid warning "discard qualifiers" */);
   } else {
     vt_term_change_encoding(PVT(terminal)->term, vt_get_char_encoding(codeset));
   }
@@ -4933,15 +4962,20 @@ gboolean vte_terminal_event_check_regex_simple(VteTerminal *terminal, GdkEvent *
 
 void vte_terminal_search_set_regex(VteTerminal *terminal, VteRegex *regex, guint32 flags) {
   if (regex) {
-    if (!PVT(terminal)->vregex) {
-      vt_term_search_init(PVT(terminal)->term, -1, -1, match_vteregex);
+    if (!PVT(terminal)->vregex &&
+        !vt_term_search_init(PVT(terminal)->term, -1, -1, match_vteregex)) {
+        regex = NULL;
+    } else {
+      vte_regex_ref(regex);
     }
-    vte_regex_ref(regex);
   } else {
-    vt_term_search_final(PVT(terminal)->term);
-    if (PVT(terminal)->vregex) {
-      vte_regex_unref(PVT(terminal)->vregex);
+    if (IS_VTE_SEARCH(terminal)) {
+      vt_term_search_final(PVT(terminal)->term);
     }
+  }
+
+  if (PVT(terminal)->vregex) {
+    vte_regex_unref(PVT(terminal)->vregex);
   }
 
   PVT(terminal)->vregex = regex;

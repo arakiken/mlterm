@@ -654,9 +654,8 @@ static int init_candidates(ui_im_candidate_screen_t *cand_screen, u_int num_cand
   return 1;
 }
 
-static int set_candidate(ui_im_candidate_screen_t *cand_screen, ef_parser_t *parser, u_char *str,
-                         u_int index /* 16bit: info, 16bit: index */
-                         ) {
+static int set_candidate(ui_im_candidate_screen_t *cand_screen, ef_parser_t *parser,
+                         const u_char *str, u_int index /* 16bit: info, 16bit: index */) {
   int count = 0;
   ef_char_t ch;
   vt_char_t *p;

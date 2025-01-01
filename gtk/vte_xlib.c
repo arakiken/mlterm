@@ -246,7 +246,8 @@ static GdkFilterReturn vte_terminal_filter(GdkXEvent *xevent, GdkEvent *event, /
        */
       if (is_key_event) {
         if (((XEvent *)xevent)->xany.window == disp.roots[count]->my_window) {
-          if (PVT(terminal)->screen->copymode == NULL) {
+          if (IS_VTE_SEARCH(terminal)) {
+            /* reset searching state */
             vt_term_search_reset_position(PVT(terminal)->term);
           }
 

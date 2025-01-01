@@ -542,7 +542,7 @@ void ef_iso2022_parser_init_func(ef_iso2022_parser_t *iso2022_parser) {
   iso2022_parser->parser.next_char = ef_iso2022_parser_next_char;
 }
 
-void ef_iso2022_parser_set_str(ef_parser_t *parser, u_char *str, size_t size) {
+void ef_iso2022_parser_set_str(ef_parser_t *parser, const u_char *str, size_t size) {
   parser->str = str;
   parser->left = size;
   parser->marked_left = 0;

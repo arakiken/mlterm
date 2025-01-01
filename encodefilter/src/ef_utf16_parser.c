@@ -28,7 +28,7 @@ static void utf16le_parser_init(ef_parser_t *parser) {
   ((ef_utf16_parser_t*)parser)->is_big_endian = 0;
 }
 
-static void utf16_parser_set_str(ef_parser_t *parser, u_char *str, size_t size) {
+static void utf16_parser_set_str(ef_parser_t *parser, const u_char *str, size_t size) {
   parser->str = str;
   parser->left = size;
   parser->marked_left = 0;

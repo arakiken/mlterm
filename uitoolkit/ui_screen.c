@@ -1032,7 +1032,7 @@ static void restore_selected_region_color_instantly(ui_screen_t *screen) {
   }
 }
 
-static void write_to_pty_intern(vt_term_t *term, u_char *str, /* str may be NULL */
+static void write_to_pty_intern(vt_term_t *term, const u_char *str, /* str may be NULL */
                                 size_t len, ef_parser_t *parser /* parser may be NULL */) {
   if (parser && str) {
     (*parser->init)(parser);
@@ -4056,7 +4056,7 @@ static void idling(ui_window_t *win) {
 
 #include <regex.h>
 
-static int match(size_t *beg, size_t *len, void *regex, u_char *str, int backward) {
+static int search_match(size_t *beg, size_t *len, void *regex, u_char *str, int backward) {
   regmatch_t pmatch[1];
 
   if (regexec(regex, str, 1, pmatch, 0) != 0) {
@@ -4084,7 +4084,7 @@ static int match(size_t *beg, size_t *len, void *regex, u_char *str, int backwar
 
 #else /* HAVE_REGEX */
 
-static int match(size_t *beg, size_t *len, void *regex, u_char *str, int backward) {
+static int search_match(size_t *beg, size_t *len, void *regex, u_char *str, int backward) {
   size_t regex_len;
   size_t str_len;
   u_char *p;
@@ -4155,20 +4155,21 @@ static int search_find(ui_screen_t *screen, u_char *pattern, int backward,
       && regcomp(&regex, pattern, REG_EXTENDED | REG_ICASE) == 0
 #endif
      ) {
-    vt_term_search_init(screen->term, *beg_char_index, *beg_row, match);
+    if (vt_term_search_init(screen->term, *beg_char_index, *beg_row, search_match)) {
 #ifdef HAVE_REGEX
-    if (vt_term_search_find(screen->term, beg_char_index, beg_row, end_char_index, end_row,
-                            &regex, backward))
+      if (vt_term_search_find(screen->term, beg_char_index, beg_row, end_char_index, end_row,
+                              &regex, backward))
 #else
-    if (vt_term_search_find(screen->term, &beg_char_index, &beg_row, &end_char_index, &end_row,
-                            pattern, backward))
+      if (vt_term_search_find(screen->term, &beg_char_index, &beg_row, &end_char_index, &end_row,
+                              pattern, backward))
 #endif
-    {
+      {
 #ifdef DEBUG
-      bl_debug_printf(BL_DEBUG_TAG " Search find %d %d - %d %d\n", *beg_char_index, *beg_row,
-                      *end_char_index, *end_row);
+        bl_debug_printf(BL_DEBUG_TAG " Search find %d %d - %d %d\n", *beg_char_index, *beg_row,
+                        *end_char_index, *end_row);
 #endif
-      ret = 1;
+        ret = 1;
+      }
     }
 
 #ifdef HAVE_REGEX
@@ -5903,7 +5904,7 @@ static int compare_key_state_with_modmap(void *p, u_int state, int *is_shift, in
   return 1;
 }
 
-static void write_to_term(void *p, u_char *str, /* must be same as term encoding */
+static void write_to_term(void *p, const u_char *str, /* must be same as term encoding */
                           size_t len, ef_parser_t *parser) {
   ui_screen_t *screen = p;
 #ifdef __DEBUG

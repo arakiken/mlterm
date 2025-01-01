@@ -58,7 +58,7 @@ typedef struct ui_im_candidate_screen {
   void (*hide)(struct ui_im_candidate_screen *);
   int (*set_spot)(struct ui_im_candidate_screen *, int, int);
   int (*init)(struct ui_im_candidate_screen *, u_int, u_int);
-  int (*set)(struct ui_im_candidate_screen *, ef_parser_t *, u_char *, u_int);
+  int (*set)(struct ui_im_candidate_screen *, ef_parser_t *, const u_char *, u_int);
   int (*select)(struct ui_im_candidate_screen *cand_screen, u_int);
 
 } ui_im_candidate_screen_t;

@@ -242,7 +242,7 @@ static int set_spot(ui_im_status_screen_t *stat_screen, int x, int y) {
   }
 }
 
-static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, u_char *str) {
+static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, const u_char *str) {
   int count;
   ef_char_t ch;
   vt_char_t *p;

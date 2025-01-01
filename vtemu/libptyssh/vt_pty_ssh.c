@@ -1959,17 +1959,20 @@ vt_pty_t *vt_pty_ssh_new(const char *cmd_path, /* can be NULL */
                          u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
   vt_pty_ssh_t *pty;
   char *uri_dup;
-  char *user;
+  char *user_tmp;
+  const char *user;
   char *proto;
   char *host;
   char *port;
 
   if ((uri_dup = alloca(strlen(uri) + 1)) == NULL ||
-      !bl_parse_uri(&proto, &user, &host, &port, NULL, NULL, strcpy(uri_dup, uri))) {
+      !bl_parse_uri(&proto, &user_tmp, &host, &port, NULL, NULL, strcpy(uri_dup, uri))) {
     return NULL;
   }
 
-  if (!user && !(user = bl_get_user_name())) {
+  if (user_tmp) {
+    user = user_tmp;
+  } else if (!(user = bl_get_user_name())) {
     return NULL;
   }
 
