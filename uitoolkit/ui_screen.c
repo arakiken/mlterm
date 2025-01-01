@@ -1254,7 +1254,7 @@ static void dummy_draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars,
   /* Don't set ui_screen_t::is_preediting = 0. */
 }
 
-static void preedit(ui_window_t *win, char *preedit_text, const char *cur_preedit_text) {
+static void preedit(ui_window_t *win, const char *preedit_text, const char *cur_preedit_text) {
   ef_parser_t *utf8_parser;
   vt_term_t *term = ((ui_screen_t *)win)->term;
 

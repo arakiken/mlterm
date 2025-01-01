@@ -1005,7 +1005,8 @@ static ui_window_t *get_current_window(ui_window_t *win) {
 
       ev.type = UI_SELECTION_NOTIFIED;
       for (count = 0; count < [files count]; count++) {
-        ev.data = [[files objectAtIndex:count] UTF8String];
+        /* avoid warning "discard qualifiers" */
+        ev.data = (char*)[[files objectAtIndex:count] UTF8String];
         ev.len = strlen(ev.data);
         ui_window_receive_event(uiwindow, (XEvent *)&ev);
       }

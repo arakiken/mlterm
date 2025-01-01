@@ -1,5 +1,7 @@
 2025-01-02  Araki Ken  <arakiken@users.sf.net>
 
+	* cocoa.m, ui_screen.c, ui_window.h: Add const.
+
 	* quartz/ui_scrollbar.c, ui_layout.c: Add const.
 
 	* ui_color.h, */ui_color.c, cocoa.m, ui_bel_mode.[ch],
