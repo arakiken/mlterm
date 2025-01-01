@@ -3660,8 +3660,7 @@ void vte_terminal_set_background_image_file(VteTerminal *terminal, const char *p
   }
 
   if (GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
-    ui_screen_set_config(PVT(terminal)->screen, NULL, "wall_picture",
-                         (char*)path /* avoid warning "discard qualifiers" */);
+    ui_screen_set_config(PVT(terminal)->screen, NULL, "wall_picture", path);
   } else {
     free(PVT(terminal)->screen->pic_file_path);
     PVT(terminal)->screen->pic_file_path = (*path == '\0') ? NULL : strdup(path);
@@ -4268,8 +4267,7 @@ void vte_terminal_set_encoding(VteTerminal *terminal, const char *codeset)
   }
 
   if (GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
-    ui_screen_set_config(PVT(terminal)->screen, NULL, "encoding",
-                         (char*)codeset /* avoid warning "discard qualifiers" */);
+    ui_screen_set_config(PVT(terminal)->screen, NULL, "encoding", codeset);
   } else {
     vt_term_change_encoding(PVT(terminal)->term, vt_get_char_encoding(codeset));
   }

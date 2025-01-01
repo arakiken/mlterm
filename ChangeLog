@@ -1,5 +1,12 @@
 2025-01-02  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_color.h, */ui_color.c, cocoa.m, ui_bel_mode.[ch],
+	  ui_color_cache.[ch], ui_color_manager.[ch], ui_layout.c,
+	  ui_mod_meta_mode.[ch], ui_sb_mode.[ch], ui_screen.[ch],
+	  ui_scrollbar.[ch], ui_type_engine.[ch], ui_im_status_screen.c,
+	  ui_window.h, vt_char_encoding.[ch], vt_ot_layout.[ch],
+	  vt_parser.[ch], vt_pty.[ch], vt_term.[ch]: Add const.
+
 	* quartz/ui_im_status_screen-cocoa.m, im_wnn.c: Add const.
 
 	* im_ibus.c, im_common.h, skk/ef_str_parser.c, gtkxlfdsel.[ch],

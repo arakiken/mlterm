@@ -102,7 +102,7 @@ size_t vt_write_to_pty(vt_pty_t *pty, const u_char *buf, size_t len);
 
 size_t vt_read_pty(vt_pty_t *pty, u_char *buf, size_t left);
 
-void vt_response_config(vt_pty_t *pty, char *key, char *value, int to_menu);
+void vt_response_config(vt_pty_t *pty, const char *key, const char *value, int to_menu);
 
 #define vt_pty_get_pid(pty) ((pty)->child_pid)
 

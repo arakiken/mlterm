@@ -888,7 +888,7 @@ int ui_scrollbar_set_line_height(ui_scrollbar_t *sb, u_int line_height) {
   return 1;
 }
 
-int ui_scrollbar_set_fg_color(ui_scrollbar_t *sb, char *fg_color) {
+int ui_scrollbar_set_fg_color(ui_scrollbar_t *sb, const char *fg_color) {
   free(sb->fg_color);
   ui_unload_xcolor(sb->window.disp, &sb->fg_xcolor);
 
@@ -904,7 +904,7 @@ int ui_scrollbar_set_fg_color(ui_scrollbar_t *sb, char *fg_color) {
   return 1;
 }
 
-int ui_scrollbar_set_bg_color(ui_scrollbar_t *sb, char *bg_color) {
+int ui_scrollbar_set_bg_color(ui_scrollbar_t *sb, const char *bg_color) {
   free(sb->bg_color);
   ui_unload_xcolor(sb->window.disp, &sb->bg_xcolor);
 
@@ -920,11 +920,12 @@ int ui_scrollbar_set_bg_color(ui_scrollbar_t *sb, char *bg_color) {
   return 1;
 }
 
-int ui_scrollbar_change_view(ui_scrollbar_t *sb, char *name) {
+int ui_scrollbar_change_view(ui_scrollbar_t *sb, const char *_name) {
   ui_sb_view_t *view;
   u_int width;
+  char *name;
 
-  if (strcmp(name, sb->view_name) == 0 || (name = strdup(name)) == NULL) {
+  if (strcmp(_name, sb->view_name) == 0 || (name = strdup(_name)) == NULL) {
     return 0;
   }
 

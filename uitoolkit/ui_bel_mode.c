@@ -12,7 +12,7 @@ static char *bel_mode_name_table[] = {"none", "sound", "visual", "sound|visual"}
 
 /* --- global functions --- */
 
-ui_bel_mode_t ui_get_bel_mode_by_name(char *name) {
+ui_bel_mode_t ui_get_bel_mode_by_name(const char *name) {
   ui_bel_mode_t mode;
 
   for (mode = 0; mode < BEL_MODE_MAX; mode++) {

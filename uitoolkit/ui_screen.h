@@ -55,11 +55,11 @@ typedef struct ui_screen_scroll_event_listener {
   void (*scrolled_to)(void *, int);
   void (*log_size_changed)(void *, u_int);
   void (*line_height_changed)(void *, u_int);
-  void (*change_fg_color)(void *, char *);
+  void (*change_fg_color)(void *, const char *);
   char *(*fg_color)(void *);
-  void (*change_bg_color)(void *, char *);
+  void (*change_bg_color)(void *, const char *);
   char *(*bg_color)(void *);
-  void (*change_view)(void *, char *);
+  void (*change_view)(void *, const char *);
   char *(*view_name)(void *);
   void (*transparent_state_changed)(void *, int, ui_picture_modifier_t *);
   ui_sb_mode_t (*sb_mode)(void *);
@@ -213,7 +213,7 @@ u_int ui_line_ascent(ui_screen_t *screen);
 
 int ui_screen_exec_cmd(ui_screen_t *screen, char *cmd);
 
-int ui_screen_set_config(ui_screen_t *screen, char *dev, char *key, char *value);
+int ui_screen_set_config(ui_screen_t *screen, const char *dev, const char *key, const char *value);
 
 void ui_screen_reset_view(ui_screen_t *screen);
 

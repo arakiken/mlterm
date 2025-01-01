@@ -1847,7 +1847,7 @@ static int receive_string_via_ucs(ui_screen_t *screen) {
 }
 
 /* referred in shortcut_match */
-static void change_im(ui_screen_t *, char *);
+static void change_im(ui_screen_t *, const char *);
 static void xterm_set_selection(void *, vt_char_t *, u_int, u_char *);
 static void copymode_start(ui_screen_t *);
 
@@ -3210,7 +3210,7 @@ static void utf_selection_notified(ui_window_t *win, u_char *str, size_t len) {
 }
 
 #ifndef DISABLE_XDND
-static void set_xdnd_config(ui_window_t *win, char *dev, char *key, char *value) {
+static void set_xdnd_config(ui_window_t *win, const char *dev, const char *key, const char *value) {
   ui_screen_t *screen;
 
   screen = (ui_screen_t *)win;
@@ -4426,13 +4426,13 @@ static void change_log_size(ui_screen_t *screen, u_int logsize) {
   }
 }
 
-static void change_sb_view(ui_screen_t *screen, char *name) {
+static void change_sb_view(ui_screen_t *screen, const char *name) {
   if (HAS_SCROLL_LISTENER(screen, change_view)) {
     (*screen->screen_scroll_listener->change_view)(screen->screen_scroll_listener->self, name);
   }
 }
 
-static void change_mod_meta_key(ui_screen_t *screen, char *key) {
+static void change_mod_meta_key(ui_screen_t *screen, const char *key) {
   free(screen->mod_meta_key);
 
   if (strcmp(key, "none") == 0) {
@@ -4492,7 +4492,7 @@ static void change_receive_string_via_ucs_flag(ui_screen_t *screen, int flag) {
   screen->receive_string_via_ucs = flag;
 }
 
-static void change_fg_color(ui_screen_t *screen, char *name) {
+static void change_fg_color(ui_screen_t *screen, const char *name) {
   if (ui_color_manager_set_fg_color(screen->color_man, name) &&
       ui_window_set_fg_color(&screen->window, ui_get_xcolor(screen->color_man, VT_FG_COLOR))) {
     ui_xic_fg_color_changed(&screen->window);
@@ -4507,7 +4507,7 @@ static void change_fg_color(ui_screen_t *screen, char *name) {
 
 static void picture_modifier_changed(ui_screen_t *screen);
 
-static void change_bg_color(ui_screen_t *screen, char *name) {
+static void change_bg_color(ui_screen_t *screen, const char *name) {
   if (ui_color_manager_set_bg_color(screen->color_man, name) &&
       ui_window_set_bg_color(&screen->window, ui_get_xcolor(screen->color_man, VT_BG_COLOR))) {
     ui_xic_bg_color_changed(&screen->window);
@@ -4526,7 +4526,7 @@ static void change_bg_color(ui_screen_t *screen, char *name) {
   }
 }
 
-static void change_alt_color(ui_screen_t *screen, vt_color_t color, char *name) {
+static void change_alt_color(ui_screen_t *screen, vt_color_t color, const char *name) {
   if (ui_color_manager_set_alt_color(screen->color_man, color, *name ? name : NULL)) {
     vt_term_set_modified_all_lines_in_screen(screen->term);
 
@@ -4537,13 +4537,13 @@ static void change_alt_color(ui_screen_t *screen, vt_color_t color, char *name) 
   }
 }
 
-static void change_sb_fg_color(ui_screen_t *screen, char *name) {
+static void change_sb_fg_color(ui_screen_t *screen, const char *name) {
   if (HAS_SCROLL_LISTENER(screen, change_fg_color)) {
     (*screen->screen_scroll_listener->change_fg_color)(screen->screen_scroll_listener->self, name);
   }
 }
 
-static void change_sb_bg_color(ui_screen_t *screen, char *name) {
+static void change_sb_bg_color(ui_screen_t *screen, const char *name) {
   if (HAS_SCROLL_LISTENER(screen, change_bg_color)) {
     (*screen->screen_scroll_listener->change_bg_color)(screen->screen_scroll_listener->self, name);
   }
@@ -4691,7 +4691,7 @@ static void change_borderless_flag(ui_screen_t *screen, int flag) {
   }
 }
 
-static void change_wall_picture(ui_screen_t *screen, char *file_path) {
+static void change_wall_picture(ui_screen_t *screen, const char *file_path) {
   if (screen->pic_file_path) {
     if (strcmp(screen->pic_file_path, file_path) == 0) {
       /* not changed */
@@ -4821,7 +4821,7 @@ static void change_fade_ratio(ui_screen_t *screen, u_int fade_ratio) {
  * If screen->inputmethod is same as input_method, re-create a new input method
  * forcibly because change_char_encoding() expects change_im() to do so.
  */
-static void change_im(ui_screen_t *screen, char *input_method) {
+static void change_im(ui_screen_t *screen, const char *input_method) {
   ui_im_t *im;
 
   ui_xic_deactivate(&screen->window);
@@ -4866,8 +4866,8 @@ static void change_im(ui_screen_t *screen, char *input_method) {
  * Callbacks of ui_config_event_listener_t events.
  */
 
-static void get_config_intern(ui_screen_t *screen, char *dev, /* can be NULL */
-                              char *key,                      /* can be "error" */
+static void get_config_intern(ui_screen_t *screen, const char *dev, /* can be NULL */
+                              const char *key,                      /* can be "error" */
                               int to_menu, /* -1: don't output to pty and menu. */
                               int *flag    /* 1(true), 0(false) or -1(other) is returned. */
                               ) {
@@ -7239,8 +7239,8 @@ int ui_screen_exec_cmd(ui_screen_t *screen, char *cmd) {
  *  0 -> Not processed
  *  1 -> Processed (regardless of processing succeeded or not)
  */
-int ui_screen_set_config(ui_screen_t *screen, char *dev, /* can be NULL */
-                         char *key, char *value) {
+int ui_screen_set_config(ui_screen_t *screen, const char *dev, /* can be NULL */
+                         const char *key, const char *value) {
   vt_term_t *term;
   int echo;
 

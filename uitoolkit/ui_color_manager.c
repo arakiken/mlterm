@@ -24,7 +24,7 @@ enum {
 
 /* --- static functions --- */
 
-static int sys_color_set(ui_color_manager_t *color_man, char *name, int color) {
+static int sys_color_set(ui_color_manager_t *color_man, const char *name, int color) {
   ui_color_t xcolor;
 
   if (bl_compare_str(color_man->sys_colors[color].name, name) == 0) {
@@ -143,27 +143,29 @@ void ui_color_manager_destroy(ui_color_manager_t *color_man) {
   free(color_man);
 }
 
-int ui_color_manager_set_fg_color(ui_color_manager_t *color_man, char *name /* never NULL */) {
+int ui_color_manager_set_fg_color(ui_color_manager_t *color_man,
+                                  const char *name /* never NULL */) {
   return sys_color_set(color_man, name, _FG_COLOR);
 }
 
-int ui_color_manager_set_bg_color(ui_color_manager_t *color_man, char *name /* never NULL */) {
+int ui_color_manager_set_bg_color(ui_color_manager_t *color_man,
+                                  const char *name /* never NULL */) {
   return sys_color_set(color_man, name, _BG_COLOR);
 }
 
 int ui_color_manager_set_cursor_fg_color(ui_color_manager_t *color_man,
-                                         char *name /* can be NULL */) {
+                                         const char *name /* can be NULL */) {
   return sys_color_set(color_man, name, _CUR_FG_COLOR);
 }
 
 int ui_color_manager_set_cursor_bg_color(ui_color_manager_t *color_man,
-                                         char *name /* can be NULL */) {
+                                         const char *name /* can be NULL */) {
   return sys_color_set(color_man, name, _CUR_BG_COLOR);
 }
 
 int ui_color_manager_set_alt_color(ui_color_manager_t *color_man,
                                    vt_color_t color, /* VT_BOLD_COLOR - VT_CROSSED_OUT_COLOR */
-                                   char *name        /* never NULL */) {
+                                   const char *name        /* never NULL */) {
   return sys_color_set(color_man, name, color - VT_FG_COLOR);
 }
 

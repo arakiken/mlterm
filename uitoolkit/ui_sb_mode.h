@@ -13,7 +13,7 @@ typedef enum ui_sb_mode {
 
 } ui_sb_mode_t;
 
-ui_sb_mode_t ui_get_sb_mode_by_name(char *name);
+ui_sb_mode_t ui_get_sb_mode_by_name(const char *name);
 
 char *ui_get_sb_mode_name(ui_sb_mode_t mode);
 

@@ -310,7 +310,7 @@ skip_loop:
 
 /* --- global functions --- */
 
-void vt_set_ot_layout_attr(char *value, vt_ot_layout_attr_t attr) {
+void vt_set_ot_layout_attr(const char *value, vt_ot_layout_attr_t attr) {
   if (0 <= attr && attr < MAX_OT_ATTRS) {
     if (ot_layout_attr_changed[attr]) {
       free(ot_layout_attrs[attr]);

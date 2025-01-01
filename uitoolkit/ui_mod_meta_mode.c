@@ -13,7 +13,7 @@ static char *mod_meta_mode_name_table[] = {
 
 /* --- global functions --- */
 
-ui_mod_meta_mode_t ui_get_mod_meta_mode_by_name(char *name) {
+ui_mod_meta_mode_t ui_get_mod_meta_mode_by_name(const char *name) {
   ui_mod_meta_mode_t mode;
 
   for (mode = 0; mode < MOD_META_MODE_MAX; mode++) {

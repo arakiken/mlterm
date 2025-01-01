@@ -81,11 +81,11 @@ int ui_scrollbar_move(ui_scrollbar_t *sb, int row);
 
 int ui_scrollbar_set_line_height(ui_scrollbar_t *sb, u_int line_height);
 
-int ui_scrollbar_set_fg_color(ui_scrollbar_t *sb, char *fg_color);
+int ui_scrollbar_set_fg_color(ui_scrollbar_t *sb, const char *fg_color);
 
-int ui_scrollbar_set_bg_color(ui_scrollbar_t *sb, char *bg_color);
+int ui_scrollbar_set_bg_color(ui_scrollbar_t *sb, const char *bg_color);
 
-int ui_scrollbar_change_view(ui_scrollbar_t *sb, char *name);
+int ui_scrollbar_change_view(ui_scrollbar_t *sb, const char *name);
 
 int ui_scrollbar_set_transparent(ui_scrollbar_t *sb, ui_picture_modifier_t *pic_mod, int force);
 

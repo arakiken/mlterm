@@ -22,7 +22,7 @@ typedef struct ui_color {
 
 } ui_color_t;
 
-int ui_load_named_xcolor(ui_display_t *disp, ui_color_t *xcolor, char *name);
+int ui_load_named_xcolor(ui_display_t *disp, ui_color_t *xcolor, const char *name);
 
 int ui_load_rgb_xcolor(ui_display_t *disp, ui_color_t *xcolor, u_int8_t red, u_int8_t green,
                        u_int8_t blue, u_int8_t alpha);

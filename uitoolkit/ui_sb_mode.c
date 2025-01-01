@@ -14,7 +14,7 @@ static char *sb_mode_name_table[] = {
 
 /* --- global functions --- */
 
-ui_sb_mode_t ui_get_sb_mode_by_name(char *name) {
+ui_sb_mode_t ui_get_sb_mode_by_name(const char *name) {
 #ifndef USE_CONSOLE
   ui_sb_mode_t mode;
 

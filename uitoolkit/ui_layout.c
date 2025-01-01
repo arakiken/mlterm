@@ -739,7 +739,7 @@ static void line_height_changed(void *p, u_int line_height) {
   ui_scrollbar_set_line_height(&term->scrollbar, line_height);
 }
 
-static void change_fg_color(void *p, char *color) {
+static void change_fg_color(void *p, const char *color) {
   struct terminal *term;
 
   term = p;
@@ -755,7 +755,7 @@ static char *get_fg_color(void *p) {
   return term->scrollbar.fg_color;
 }
 
-static void change_bg_color(void *p, char *color) {
+static void change_bg_color(void *p, const char *color) {
   struct terminal *term;
 
   term = p;
@@ -771,7 +771,7 @@ static char *get_bg_color(void *p) {
   return term->scrollbar.bg_color;
 }
 
-static void change_view(void *p, char *name) {
+static void change_view(void *p, const char *name) {
   struct terminal *term;
 
   term = p;

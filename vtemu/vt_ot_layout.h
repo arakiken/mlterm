@@ -42,7 +42,7 @@ typedef struct vt_ot_layout_state {
 
 } * vt_ot_layout_state_t;
 
-void vt_set_ot_layout_attr(char *value, vt_ot_layout_attr_t attr);
+void vt_set_ot_layout_attr(const char *value, vt_ot_layout_attr_t attr);
 
 char *vt_get_ot_layout_attr(vt_ot_layout_attr_t attr);
 

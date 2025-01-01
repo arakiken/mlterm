@@ -50,7 +50,7 @@ void ui_color_cache_unload(ui_color_cache_t *color_cache);
 
 void ui_color_cache_unload_all(void);
 
-int ui_load_xcolor(ui_color_cache_t *color_cache, ui_color_t *xcolor, char *name);
+int ui_load_xcolor(ui_color_cache_t *color_cache, ui_color_t *xcolor, const char *name);
 
 ui_color_t *ui_get_cached_xcolor(ui_color_cache_t *color_cache, vt_color_t color);
 

@@ -463,7 +463,8 @@ int vt_is_msb_set(ef_charset_t cs) {
 }
 
 size_t vt_char_encoding_convert(u_char *dst, size_t dst_len, vt_char_encoding_t dst_encoding,
-                                u_char *src, size_t src_len, vt_char_encoding_t src_encoding) {
+                                const u_char *src, size_t src_len,
+                                vt_char_encoding_t src_encoding) {
   ef_parser_t *parser;
   size_t filled_len;
 

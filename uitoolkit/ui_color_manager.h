@@ -32,15 +32,16 @@ ui_color_manager_t *ui_color_manager_new(ui_display_t *disp, char *fg_color, cha
 
 void ui_color_manager_destroy(ui_color_manager_t *color_man);
 
-int ui_color_manager_set_fg_color(ui_color_manager_t *color_man, char *name);
+int ui_color_manager_set_fg_color(ui_color_manager_t *color_man, const char *name);
 
-int ui_color_manager_set_bg_color(ui_color_manager_t *color_man, char *name);
+int ui_color_manager_set_bg_color(ui_color_manager_t *color_man, const char *name);
 
-int ui_color_manager_set_cursor_fg_color(ui_color_manager_t *color_man, char *name);
+int ui_color_manager_set_cursor_fg_color(ui_color_manager_t *color_man, const char *name);
 
-int ui_color_manager_set_cursor_bg_color(ui_color_manager_t *color_man, char *name);
+int ui_color_manager_set_cursor_bg_color(ui_color_manager_t *color_man, const char *name);
 
-int ui_color_manager_set_alt_color(ui_color_manager_t *color_man, vt_color_t color, char *name);
+int ui_color_manager_set_alt_color(ui_color_manager_t *color_man, vt_color_t color,
+                                   const char *name);
 
 char *ui_color_manager_get_fg_color(ui_color_manager_t *color_man);
 

@@ -324,9 +324,9 @@ void vt_term_set_bidi_separators(vt_term_t *term, const char *bidi_separators);
 
 #define vt_term_has_pending_sequence(term) vt_parser_has_pending_sequence((term)->parser)
 
-int vt_term_get_config(vt_term_t *term, vt_term_t *output, char *key, int to_menu, int *flag);
+int vt_term_get_config(vt_term_t *term, vt_term_t *output, const char *key, int to_menu, int *flag);
 
-int vt_term_set_config(vt_term_t *term, char *key, char *value);
+int vt_term_set_config(vt_term_t *term, const char *key, const char *value);
 
 #define vt_term_exec_cmd(term, cmd) vt_parser_exec_cmd((term)->parser, cmd)
 

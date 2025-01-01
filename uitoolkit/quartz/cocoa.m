@@ -1508,7 +1508,7 @@ void window_get_position(NSWindow *window, int *x, int *y) {
        [window.contentView frame].size.height;
 }
 
-static int is_valid_utf8(char *str, size_t len) {
+static int is_valid_utf8(const char *str, size_t len) {
   ef_parser_t *parser;
 
   /* [window setTitle] can cause segfault if title is non UTF-8 text. */

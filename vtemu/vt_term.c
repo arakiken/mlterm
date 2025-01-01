@@ -882,7 +882,7 @@ void vt_term_set_bidi_separators(vt_term_t *term, const char *bidi_separators) {
 }
 
 int vt_term_get_config(vt_term_t *term, vt_term_t *output, /* if term == output, NULL is set */
-                       char *key, int to_menu, int *flag) {
+                       const char *key, int to_menu, int *flag) {
   char *value;
 
   if (vt_parser_get_config(term->parser, output ? output->pty : NULL, key, to_menu, flag)) {
@@ -967,7 +967,7 @@ int vt_term_get_config(vt_term_t *term, vt_term_t *output, /* if term == output,
 }
 
 /* Called in visual context */
-int vt_term_set_config(vt_term_t *term, char *key, char *value) {
+int vt_term_set_config(vt_term_t *term, const char *key, const char *value) {
   if (vt_parser_set_config(term->parser, key, value)) {
     /* do nothing */
   }

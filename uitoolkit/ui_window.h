@@ -224,7 +224,7 @@ typedef struct ui_window {
    * Don't remove if DISABLE_XDND is defined to keep the size of ui_window_t
    * for ui_im_xxx_screen_t.
    */
-  void (*set_xdnd_config)(struct ui_window *, char *, char *, char *);
+  void (*set_xdnd_config)(struct ui_window *, const char *, const char *, const char *);
   void (*idling)(struct ui_window *);
 #ifdef UIWINDOW_SUPPORTS_PREEDITING
   void (*preedit)(struct ui_window *, char *, const char *);

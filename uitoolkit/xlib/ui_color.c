@@ -103,7 +103,7 @@ static int alloc_closest_xcolor_pseudo(ui_display_t *disp, int red, /* 0 to 0xff
 
 /* --- global functions --- */
 
-int ui_load_named_xcolor(ui_display_t *disp, ui_color_t *xcolor, char *name) {
+int ui_load_named_xcolor(ui_display_t *disp, ui_color_t *xcolor, const char *name) {
   XColor near;
   XColor exact;
   u_int8_t red;

@@ -448,10 +448,10 @@ int vt_parser_is_broadcasting(vt_parser_t *vt_parser);
 
 int true_or_false(const char *str);
 
-int vt_parser_get_config(vt_parser_t *vt_parser, vt_pty_t *output, char *key,
+int vt_parser_get_config(vt_parser_t *vt_parser, vt_pty_t *output, const char *key,
                          int to_menu, int *flag);
 
-int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *val);
+int vt_parser_set_config(vt_parser_t *vt_parser, const char *key, const char *val);
 
 int vt_parser_exec_cmd(vt_parser_t *vt_parser, char *cmd);
 

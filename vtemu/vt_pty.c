@@ -270,7 +270,7 @@ size_t vt_read_pty(vt_pty_t *pty, u_char *buf, size_t left) {
   }
 }
 
-void vt_response_config(vt_pty_t *pty, char *key, char *value, int to_menu) {
+void vt_response_config(vt_pty_t *pty, const char *key, const char *value, int to_menu) {
   char *res;
   char *fmt;
   size_t res_len;

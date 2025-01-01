@@ -267,7 +267,7 @@ void ui_color_cache_unload_all(void) {
 }
 
 /* Not cached */
-int ui_load_xcolor(ui_color_cache_t *color_cache, ui_color_t *xcolor, char *name) {
+int ui_load_xcolor(ui_color_cache_t *color_cache, ui_color_t *xcolor, const char *name) {
   if (!ui_load_named_xcolor(color_cache->disp, xcolor, name)) {
     return 0;
   }

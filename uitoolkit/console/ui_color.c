@@ -9,7 +9,7 @@
 
 /* --- global functions --- */
 
-int ui_load_named_xcolor(ui_display_t *disp, ui_color_t *xcolor, char *name) {
+int ui_load_named_xcolor(ui_display_t *disp, ui_color_t *xcolor, const char *name) {
   vt_color_t color;
   u_int8_t red;
   u_int8_t green;

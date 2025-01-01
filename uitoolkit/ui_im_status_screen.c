@@ -487,7 +487,7 @@ static void replace_char(char *str, char orig, char new) {
   }
 }
 
-static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, u_char *str) {
+static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, const u_char *str) {
   u_char *seq;
   size_t len = strlen(str);
 

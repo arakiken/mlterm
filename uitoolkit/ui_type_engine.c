@@ -14,7 +14,7 @@ static char *type_engine_name_table[] = {
 
 /* --- global functions --- */
 
-ui_type_engine_t ui_get_type_engine_by_name(char *name) {
+ui_type_engine_t ui_get_type_engine_by_name(const char *name) {
   if (strcmp("xcore", name) == 0) {
     return TYPE_XCORE;
   } else if (strcmp("xft", name) == 0) {

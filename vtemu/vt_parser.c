@@ -394,7 +394,7 @@ static area_t *set_area_to_table(area_t *area_table, u_int *num, char *areas) {
   return area_table;
 }
 
-static void response_area_table(vt_pty_t *pty, u_char *key, area_t *area_table, u_int num,
+static void response_area_table(vt_pty_t *pty, const u_char *key, area_t *area_table, u_int num,
                                 int to_menu) {
   u_char *value;
 
@@ -7081,7 +7081,7 @@ static void transfer_cancel(vt_parser_t *vt_parser, int do_zcan) {
   }
 }
 
-static char *convert_to_locale_encoding(char *str, ef_parser_t *parser,
+static char *convert_to_locale_encoding(const char *str, ef_parser_t *parser,
                                         vt_char_encoding_t encoding) {
   vt_char_encoding_t locale_encoding;
   char *new_str;
@@ -7092,17 +7092,17 @@ static char *convert_to_locale_encoding(char *str, ef_parser_t *parser,
   }
 
   if (locale_encoding == encoding || (new_str = alloca(len * 2 + 1)) == NULL) {
-    new_str = str;
+    return strdup(str);
+  }
+
+  if (parser) {
+    (*parser->init)(parser);
+    (*parser->set_str)(parser, str, len);
+    new_str[vt_char_encoding_convert_with_parser(new_str, len * 2, locale_encoding,
+                                                 parser)] = '\0';
   } else {
-    if (parser) {
-      (*parser->init)(parser);
-      (*parser->set_str)(parser, str, len);
-      new_str[vt_char_encoding_convert_with_parser(new_str, len * 2, locale_encoding,
-                                                   parser)] = '\0';
-    } else {
-      new_str[vt_char_encoding_convert(new_str, len * 2, locale_encoding,
-                                       str, len - 5, encoding)] = '\0';
-    }
+    new_str[vt_char_encoding_convert(new_str, len * 2, locale_encoding,
+                                     str, len - 5, encoding)] = '\0';
   }
 
   return strdup(new_str);
@@ -7114,7 +7114,7 @@ void vt_set_use_alt_buffer(int use) { use_alt_buffer = use; }
 
 void vt_set_unicode_noconv_areas(char *areas) {
   unicode_noconv_areas =
-      set_area_to_table(unicode_noconv_areas, &num_unicode_noconv_areas, areas);
+    set_area_to_table(unicode_noconv_areas, &num_unicode_noconv_areas, areas);
 }
 
 void vt_set_full_width_areas(char *areas) {
@@ -7587,11 +7587,12 @@ int vt_set_auto_detect_encodings(char *encodings) {
     auto_detect_encodings = NULL;
 
     return 1;
-  } else {
-    auto_detect_encodings = strdup(encodings);
   }
 
-  if (!(auto_detect = malloc(sizeof(*auto_detect) * (bl_count_char_in_str(encodings, ',') + 1)))) {
+  if (!(auto_detect_encodings = strdup(encodings)) ||
+      !(auto_detect = malloc(sizeof(*auto_detect) * (bl_count_char_in_str(encodings, ',') + 1)))) {
+    free(auto_detect_encodings);
+
     return 0;
   }
 
@@ -7945,7 +7946,7 @@ int true_or_false(const char *str) {
 int vt_parser_get_config(
     vt_parser_t *vt_parser,
     vt_pty_t *output, /* if vt_parser->pty == output, NULL is set */
-    char *key, int to_menu, int *flag) {
+    const char *key, int to_menu, int *flag) {
   char *value;
   char digit[DIGIT_STR_LEN(u_int) + 1];
   char cwd[PATH_MAX];
@@ -8176,7 +8177,9 @@ int vt_parser_get_config(
 }
 
 /* Called in visual context */
-int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
+int vt_parser_set_config(vt_parser_t *vt_parser, const char *key, const char *value) {
+  char *tmp;
+
   if (strcmp(key, "encoding") == 0) {
     if (strcmp(value, "auto") == 0) {
       vt_parser->is_auto_encoding = strcasecmp(value, "auto") == 0 ? 1 : 0;
@@ -8212,11 +8215,17 @@ int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
       vt_parser->use_ansi_colors = flag;
     }
   } else if (strcmp(key, "unicode_noconv_areas") == 0) {
-    vt_set_unicode_noconv_areas(value);
+    if ((tmp = alloca(strlen(value) + 1))) {
+      vt_set_unicode_noconv_areas(strcpy(tmp, value));
+    }
   } else if (strcmp(key, "unicode_full_width_areas") == 0) {
-    vt_set_full_width_areas(value);
+    if ((tmp = alloca(strlen(value) + 1))) {
+      vt_set_full_width_areas(strcpy(tmp, value));
+    }
   } else if (strcmp(key, "unicode_half_width_areas") == 0) {
-    vt_set_half_width_areas(value);
+    if ((tmp = alloca(strlen(value) + 1))) {
+      vt_set_half_width_areas(strcpy(tmp, value));
+    }
   } else if (strcmp(key, "tabsize") == 0) {
     u_int tab_size;
 
@@ -8283,7 +8292,9 @@ int vt_parser_set_config(vt_parser_t *vt_parser, char *key, char *value) {
           (~NOT_USE_UNICODE_BOXDRAW_FONT & ~ONLY_USE_UNICODE_BOXDRAW_FONT);
     }
   } else if (strcmp(key, "auto_detect_encodings") == 0) {
-    vt_set_auto_detect_encodings(value);
+    if ((tmp = alloca(strlen(value) + 1))) {
+      vt_set_auto_detect_encodings(strcpy(tmp, value));
+    }
   } else if (strcmp(key, "use_auto_detect") == 0) {
     int flag;
 
