@@ -544,7 +544,7 @@ static void xct_selection_notified(ui_window_t *win, u_char *buf, size_t len) {
 }
 
 #ifndef DISABLE_XDND
-static void set_xdnd_config(ui_window_t *win, char *dev, char *buf, char *value) {
+static void set_xdnd_config(ui_window_t *win, const char *dev, const char *buf, const char *value) {
   ui_layout_t *layout;
   ui_window_t *child;
 

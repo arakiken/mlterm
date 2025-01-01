@@ -165,11 +165,11 @@ int ui_scrollbar_set_line_height(ui_scrollbar_t *sb, u_int line_height) {
   return 1;
 }
 
-int ui_scrollbar_set_fg_color(ui_scrollbar_t *sb, char *fg_color) { return 1; }
+int ui_scrollbar_set_fg_color(ui_scrollbar_t *sb, const char *fg_color) { return 1; }
 
-int ui_scrollbar_set_bg_color(ui_scrollbar_t *sb, char *bg_color) { return 1; }
+int ui_scrollbar_set_bg_color(ui_scrollbar_t *sb, const char *bg_color) { return 1; }
 
-int ui_scrollbar_change_view(ui_scrollbar_t *sb, char *name) { return 1; }
+int ui_scrollbar_change_view(ui_scrollbar_t *sb, const char *name) { return 1; }
 
 int ui_scrollbar_set_transparent(ui_scrollbar_t *sb, ui_picture_modifier_t *pic_mod, int force) {
   return 1;
