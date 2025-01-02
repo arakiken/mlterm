@@ -76,11 +76,11 @@
   ((win)->height_inc ? ((win)->height - (win)->min_height) % (win)->height_inc : 0)
 
 typedef struct {
-  u_int32_t flags;
-  u_int32_t functions;
-  u_int32_t decorations;
-  int32_t inputMode;
-  u_int32_t status;
+  u_long flags;
+  u_long functions;
+  u_long decorations;
+  u_long inputMode;
+  u_long status;
 } MWMHints_t;
 
 #define MWM_HINTS_ELEMENTS      5
@@ -1342,29 +1342,8 @@ int ui_window_show(ui_window_t *win, int hint) {
                           ACTUAL_HEIGHT(win), 0, win->fg_color.pixel, win->bg_color.pixel);
 #endif
 
-  if (win->create_gc) {
-    ui_gc_t *gc;
-
-    if ((gc = ui_gc_new(win->disp->display, win->my_window)) == NULL) {
-#ifdef DEBUG
-      bl_debug_printf(BL_DEBUG_TAG " ui_gc_new failed.\n");
-#endif
-      win->create_gc = 0;
-    } else {
-      win->gc = gc;
-    }
-  }
-
-  if (win->cursor_shape) {
-    Cursor cursor;
-
-    if ((cursor = ui_display_get_cursor(win->disp, win->cursor_shape))) {
-      XDefineCursor(win->disp->display, win->my_window, cursor);
-    }
-  }
-
   /* Don't use win->parent here in case mlterm works as libvte. */
-  if (PARENT_WINDOWID_IS_TOP(win)) {
+  if (PARENT_WINDOWID_IS_TOP(win) || !(hint & HINT_CHILD_WINDOW_ATTR)) {
     /* Root window */
 
     XSizeHints size_hints;
@@ -1376,9 +1355,11 @@ int ui_window_show(ui_window_t *win, int hint) {
         "mlterm", NULL,
     };
     Atom protocols[2];
-    XID pid;
+    u_long pid;
 
     win->event_mask |= StructureNotifyMask;
+    /* Call XSelectInput just after creating a new Window not to miss any events. */
+    XSelectInput(win->disp->display, win->my_window, win->event_mask);
 
     /*
      * XXX
@@ -1464,6 +1445,30 @@ int ui_window_show(ui_window_t *win, int hint) {
                       8, PropModeReplace, (unsigned char *)win->wm_role,
                       (int)strlen(win->wm_role));
     }
+  } else {
+    /* Call XSelectInput just after creating a new Window not to miss any events. */
+    XSelectInput(win->disp->display, win->my_window, win->event_mask);
+  }
+
+  if (win->create_gc) {
+    ui_gc_t *gc;
+
+    if ((gc = ui_gc_new(win->disp->display, win->my_window)) == NULL) {
+#ifdef DEBUG
+      bl_debug_printf(BL_DEBUG_TAG " ui_gc_new failed.\n");
+#endif
+      win->create_gc = 0;
+    } else {
+      win->gc = gc;
+    }
+  }
+
+  if (win->cursor_shape) {
+    Cursor cursor;
+
+    if ((cursor = ui_display_get_cursor(win->disp, win->cursor_shape))) {
+      XDefineCursor(win->disp->display, win->my_window, cursor);
+    }
   }
 
   if (win->parent && !win->parent->is_transparent && win->parent->wall_picture_is_set) {
@@ -1477,8 +1482,6 @@ int ui_window_show(ui_window_t *win, int hint) {
   if (win->window_realized) {
     (*win->window_realized)(win);
   }
-
-  XSelectInput(win->disp->display, win->my_window, win->event_mask);
 
 #if 0
   {
@@ -3170,7 +3173,7 @@ void ui_window_set_icon(ui_window_t *win, ui_icon_picture_t *icon) {
   /* set extended window manager hint's icon */
   if (icon->cardinal && icon->cardinal[0] && icon->cardinal[1]) {
     int num;
-    u_int32_t *data;
+    u_long *data;
 
     /* width * height + 2 */
     num = icon->cardinal[0] * icon->cardinal[1] + 2;
@@ -3178,7 +3181,7 @@ void ui_window_set_icon(ui_window_t *win, ui_icon_picture_t *icon) {
     if (sizeof(u_long) != 4) {
       int count;
 
-      if (!(data = alloca(sizeof(u_int32_t) * num))) {
+      if (!(data = alloca(sizeof(u_long) * num))) {
         return;
       }
 
@@ -3186,7 +3189,7 @@ void ui_window_set_icon(ui_window_t *win, ui_icon_picture_t *icon) {
         data[count] = icon->cardinal[count];
       }
     } else {
-      data = icon->cardinal;
+      data = (u_long*)icon->cardinal;
     }
 
     /*it should be possible to set multiple icons...*/

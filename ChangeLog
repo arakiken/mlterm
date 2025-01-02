@@ -1,3 +1,16 @@
+2025-01-03  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_window.[ch]:
+	  - Fix illegal memory access by ui_window_set_icon().
+	    (u_int32_t -> u_long)
+	    (enbugged at 3d38b723e0e4a6dd434af2d49aca53890982a828)
+
+	  - Execute initialization code for a root window in ui_window_show()
+	    even if --parent option is specified.
+	    (Related to https://github.com/arakiken/mlterm/issues/118)
+
+	  - Add HINT_CHILD_WINDOW_ATTR for libvte compatible libraray.
+
 2025-01-02  Araki Ken  <arakiken@users.sf.net>
 
 	* ci.yml: Add build-freebsd.

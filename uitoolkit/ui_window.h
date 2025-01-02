@@ -25,6 +25,13 @@
  */
 #define PARENT_WINDOWID_IS_TOP(win) ((win)->parent_window == (win)->disp->my_window)
 
+/*
+ * Hint for libvte (x11), in addition to bitmask hints (0x0-0x20) returned by
+ * XParseGeometry().
+ * (see ui_window_show(), Xutil.h)
+ */
+#define HINT_CHILD_WINDOW_ATTR 0x1000
+
 typedef enum ui_resize_flag {
   NOTIFY_TO_NONE = 0x0,
   NOTIFY_TO_CHILDREN = 0x01,
