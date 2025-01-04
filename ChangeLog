@@ -1,3 +1,8 @@
+2025-01-05  Araki Ken  <arakiken@users.sf.net>
+
+	* bl_path.h: Fix bl_basename_simple().
+	  (enbugged at a3dc30011fdab2d102b1b4ba17dbd88f90c504a1)
+
 2025-01-04  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_term_manager.c: Excecute "terms[idx * MTU + count] = terms[--num_terms]"

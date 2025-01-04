@@ -54,7 +54,7 @@ char *__bl_basename(char *path);
     size_t pos; \
     for (pos = strlen(src); pos > 0; pos--) { \
       if ((src)[pos - 1] == '/' \
-          || ((src)[pos - 1] == '\\' && (pos > 1 || !IsDBCSLeadByte((src)[pos - 2])))) { \
+          || ((src)[pos - 1] == '\\' && (pos <= 1 || !IsDBCSLeadByte((src)[pos - 2])))) { \
         break; \
       } \
     } \
