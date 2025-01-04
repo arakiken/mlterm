@@ -477,13 +477,16 @@ static void hide(ui_im_status_screen_t *stat_screen) {
 
 static int set_spot(ui_im_status_screen_t *stat_screen, int x, int y) { return 1; }
 
-static void replace_char(char *str, char orig, char new) {
-  char *p;
-
-  for (p = str; *p; p++) {
-    if (*p == orig) {
-      *p = new;
+static void memcpy_with_replacing(u_char *dst, const u_char *src, size_t len, char old, char new) {
+  while (len > 0) {
+    if (*src == old) {
+      *dst = new;
+    } else {
+      *dst = *src;
     }
+    len--;
+    src++;
+    dst++;
   }
 }
 
@@ -492,9 +495,8 @@ static int set(ui_im_status_screen_t *stat_screen, ef_parser_t *parser, const u_
   size_t len = strlen(str);
 
   if ((seq = alloca(27 + len))) {
-    replace_char(str, '\n', ' ');
     memcpy(seq, "\x1b[2$~\x1b[1$}\x1b[?7l\x1b[2J\x1b[H", 22);
-    memcpy(seq + 22, str, len);
+    memcpy_with_replacing(seq + 22, str, len, '\n', ' ');
     memcpy(seq + 22 + len, "\x1b[0$}", 5);
 
     vt_parser_write_loopback(stat_screen->vtparser, seq, 27 + len);

@@ -107,9 +107,10 @@ char *alloca();
 #ifdef BL_DEBUG
 
 /* This debug hack can be available in GNUC alone. */
-#undef alloca
+#ifndef alloca
 #include <string.h> /* memset */
 #define alloca(size) memset(alloca(size), 0xff, size)
+#endif
 
 #else /* BL_DEBUG */
 

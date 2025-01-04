@@ -1,3 +1,13 @@
+2025-01-04  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_term_manager.c: Excecute "terms[idx * MTU + count] = terms[--num_terms]"
+	  not only if zombie_pty is 0 but also if zombie_pty is 1.
+	  (enbugged at 5696c69e9ffaec38884b2d16574d97df873af47d)
+
+	* ui_im_status_screen.c: Add const.
+
+	* c_sixel.c: Add cast from pixel_t* to u_char** in TEST_sixel_realloc_pixels().
+
 2025-01-03  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_window.[ch]:

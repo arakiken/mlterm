@@ -1011,14 +1011,14 @@ void TEST_sixel_realloc_pixels(void) {
   int y;
 
   /* 0 0 -> 100 100 */
-  realloc_pixels(&pixels, 100, 100, 0, 0, 0);
+  realloc_pixels((u_char**)&pixels, 100, 100, 0, 0, 0);
   memset(pixels, 0x1, 100 * 100 * sizeof(pixel_t));
 
   /* 100 100 -> 80 125 (Not supported) */
-  assert(realloc_pixels(&pixels, 80, 125, 100, 100, 0) == 0);
+  assert(realloc_pixels((u_char**)&pixels, 80, 125, 100, 100, 0) == 0);
 
   /* 100 100 -> 50 100 */
-  realloc_pixels(&pixels, 50, 100, 100, 100, 100);
+  realloc_pixels((u_char**)&pixels, 50, 100, 100, 100, 100);
 
   for (y = 0; y < 100; y++) {
     for (x = 0; x < 50; x++) {
@@ -1027,7 +1027,7 @@ void TEST_sixel_realloc_pixels(void) {
   }
 
   /* 50 100 -> 50 200 */
-  realloc_pixels(&pixels, 50, 200, 50, 100, 100);
+  realloc_pixels((u_char**)&pixels, 50, 200, 50, 100, 100);
   memset(pixels + 50 * 100, 0x2, 50 * 100 * sizeof(pixel_t));
 
   for (y = 0; y < 100; y++) {
@@ -1043,7 +1043,7 @@ void TEST_sixel_realloc_pixels(void) {
   }
 
   /* 50 200 -> 80 120 */
-  realloc_pixels(&pixels, 80, 120, 50, 200, 120);
+  realloc_pixels((u_char**)&pixels, 80, 120, 50, 200, 120);
 
   for (y = 0; y < 100; y++) {
     for (x = 0; x < 50; x++) {
@@ -1066,7 +1066,7 @@ void TEST_sixel_realloc_pixels(void) {
   }
 
   /* 80 120 -> 200 180 */
-  realloc_pixels(&pixels, 200, 180, 80, 120, 150);
+  realloc_pixels((u_char**)&pixels, 200, 180, 80, 120, 150);
 
   for (y = 0; y < 100; y++) {
     for (x = 0; x < 50; x++) {

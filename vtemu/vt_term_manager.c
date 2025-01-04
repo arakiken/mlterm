@@ -497,6 +497,12 @@ void vt_close_dead_terms(void) {
 #endif
 
             term = terms[idx * MTU + count];
+            /*
+             * Update terms and num_terms before vt_term_{destroy|zombie}, which
+             * calls vt_pty_event_listener::pty_close in which vt_term_manager can
+             * be used.
+             */
+            terms[idx * MTU + count] = terms[--num_terms];
             if (zombie_pty) {
 #ifdef USE_WIN32API
               /* Received bytes from pty can be pending especially in win32. */
@@ -504,12 +510,6 @@ void vt_close_dead_terms(void) {
 #endif
               vt_term_zombie(term);
             } else {
-              /*
-               * Update terms and num_terms before vt_term_destroy, which calls
-               * vt_pty_event_listener::pty_close in which vt_term_manager can
-               * be used.
-               */
-              terms[idx * MTU + count] = terms[--num_terms];
               vt_term_destroy(term);
             }
           }
