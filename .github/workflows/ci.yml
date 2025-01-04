@@ -102,6 +102,6 @@ jobs:
           prepare: |
             pkg install -y pkgconf perl5 libtool desktop-file-utils glib cairo gdk-pixbuf2 gtk3 vte3 libssh2 fontconfig freetype2 fribidi uim m17n-lib scim ibus ja-FreeWnn-lib ja-canna-lib sdl2
           run: |
-            CFLAGS="-Wall -Werror=incompatible-pointer-types -Wno-error=incompatible-pointer-types-discards-qualifiers -g -O2" CPPFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib -Wl,--undefined-version" ./configure --with-imagelib=gdk-pixbuf --with-gui=xlib,fb,sdl2 --with-type-engins=xcore,xft,cairo --enable-anti-alias
+            CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" CPPFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib -Wl,--undefined-version" ./configure --with-imagelib=gdk-pixbuf --with-gui=xlib,fb,sdl2 --with-type-engins=xcore,xft,cairo --enable-anti-alias
             make
             make install

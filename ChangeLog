@@ -1,5 +1,8 @@
 2025-01-05  Araki Ken  <arakiken@users.sf.net>
 
+	* ci.yml: Remove  -Wno-error=incompatible-pointer-types-discards-qualifiers
+	  from CFLAGS in freebsd.
+
 	* bl_path.h: Fix bl_basename_simple().
 	  (enbugged at a3dc30011fdab2d102b1b4ba17dbd88f90c504a1)
 
