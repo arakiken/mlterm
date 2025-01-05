@@ -1,5 +1,7 @@
 2025-01-05  Araki Ken  <arakiken@users.sf.net>
 
+	* gtk/vte_win32.c: "mlterm" -> L"mlterm" if UTF16_IME_CHAR is defined.
+
 	* vt_parser.c: Fix https://github.com/arakiken/mlterm/issues/127
 
 	* ui_emoji.c: Fix segfault in win32.

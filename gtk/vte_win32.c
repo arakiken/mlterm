@@ -100,8 +100,13 @@ static void show_root(ui_display_t *disp, GtkWidget *widget) {
   }
 #endif
 
+#ifdef UTF16_IME_CHAR
+  ui_display_show_root(disp, &PVT(terminal)->screen->window, 0, 0, 0, L"mlterm", NULL,
+                       GDK_WINDOW_HWND(gtk_widget_get_window(widget)));
+#else
   ui_display_show_root(disp, &PVT(terminal)->screen->window, 0, 0, 0, "mlterm", NULL,
                        GDK_WINDOW_HWND(gtk_widget_get_window(widget)));
+#endif
 }
 
 static void trigger_pty_read(void) {
