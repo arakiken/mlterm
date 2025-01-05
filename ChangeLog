@@ -1,5 +1,9 @@
 2025-01-05  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_parser.c: Fix https://github.com/arakiken/mlterm/issues/127
+
+	* ui_emoji.c: Fix segfault in win32.
+
 	* ci.yml: Remove  -Wno-error=incompatible-pointer-types-discards-qualifiers
 	  from CFLAGS in freebsd.
 

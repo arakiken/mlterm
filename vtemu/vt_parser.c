@@ -1053,6 +1053,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
   }
 
   if (is_comb) {
+#ifndef NO_IMAGE
     if ((ch & ~0x01) == 0xfe0e) {
       vt_char_t *prev_ch;
 
@@ -1074,6 +1075,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
         vt_screen_unhighlight_cursor(vt_parser->screen);
       }
     }
+#endif
 
     if (vt_parser->use_char_combining) {
       if (vt_parser->w_buf.filled_len == 0) {
