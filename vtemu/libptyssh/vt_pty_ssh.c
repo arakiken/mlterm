@@ -1588,7 +1588,7 @@ static int open_channel(vt_pty_ssh_t *pty,    /* pty->session is non-blocking */
     rd_ev = CreateEvent(NULL, FALSE, FALSE, "PTY_READ_READY");
     if (GetLastError() != ERROR_ALREADY_EXISTS) {
       /* Launch the thread that wait for receiving data from pty. */
-      if (!(thrd = _beginthreadex(NULL, 0, wait_pty_read, NULL, 0, &tid))) {
+      if (!(thrd = (HANDLE)_beginthreadex(NULL, 0, wait_pty_read, NULL, 0, &tid))) {
 #ifdef DEBUG
         bl_warn_printf(BL_DEBUG_TAG " CreateThread() failed.\n");
 #endif
@@ -2154,7 +2154,7 @@ int vt_pty_ssh_scp_intern(vt_pty_t *pty, int src_is_remote, char *dst_path, char
     HANDLE thrd;
     u_int tid;
 
-    if ((thrd = _beginthreadex(NULL, 0, scp_thread, scp, 0, &tid))) {
+    if ((thrd = (HANDLE)_beginthreadex(NULL, 0, scp_thread, scp, 0, &tid))) {
       CloseHandle(thrd);
     }
   }

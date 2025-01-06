@@ -1,5 +1,8 @@
 2025-01-07  Araki Ken  <arakiken@users.sf.net>
 
+	* libptyssh/vt_pty_ssh.c: Add type casting from uintptr_t to HANDLE for
+	  the return value of _beginthreadex.
+
 	* libptyssh/vt_pty_ssh.c: Add const.
 
 	* win32/ui_display.c: Change the type of 'timerid' argument of
