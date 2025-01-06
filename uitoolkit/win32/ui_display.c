@@ -37,7 +37,7 @@ static DWORD main_tid; /* XXX set in main(). */
 /* --- static functions --- */
 
 #ifdef USE_WIN32API
-static VOID CALLBACK timer_proc(HWND hwnd, UINT msg, UINT timerid, DWORD time) {
+static VOID CALLBACK timer_proc(HWND hwnd, UINT msg, UINT_PTR timerid, DWORD time) {
   ui_display_idling(&_disp);
 }
 #endif

@@ -1,5 +1,8 @@
 2025-01-07  Araki Ken  <arakiken@users.sf.net>
 
+	* win32/ui_display.c: Change the type of 'timerid' argument of
+	  timer_proc() from UINT to UINT_PTR.
+
 	* zmodem.c: Fix implicit declaration of function 'dirname' in win32.
 
 	* bl_def.h: Fix SSIZE_MAX macro.
