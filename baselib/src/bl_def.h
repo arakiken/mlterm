@@ -28,7 +28,7 @@
 #endif
 
 #ifndef SSIZE_MAX
-#define(SIZE_MAX / 2)
+#define SSIZE_MAX (SIZE_MAX / 2)
 #endif
 
 #if 0

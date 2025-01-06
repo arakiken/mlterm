@@ -63,6 +63,10 @@
 #include <pobl/bl_types.h> /* u_int32_t */
 #include <pobl/bl_path.h> /* bl_basename */
 
+#ifdef USE_WIN32API
+char *dirname(char *path);
+#endif
+
 #ifndef uint32_t
 #define uint32_t u_int32_t
 #endif

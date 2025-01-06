@@ -1,5 +1,10 @@
 2025-01-07  Araki Ken  <arakiken@users.sf.net>
 
+	* zmodem.c: Fix implicit declaration of function 'dirname' in win32.
+
+	* bl_def.h: Fix SSIZE_MAX macro.
+	  (https://github.com/arakiken/mlterm/issues/128)
+
 	* vt_pty_win32.c: Add const to write_to_pty().
 
 	* vt_config_menu.c: Change the type of write_len in vt_config_menu_write()
