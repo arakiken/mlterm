@@ -429,11 +429,13 @@ error2:
 }
 
 int vt_config_menu_write(vt_config_menu_t *config_menu, u_char *buf, size_t len) {
-  ssize_t write_len;
-
 #ifdef USE_WIN32API
+  DWORD write_len;
+
   if (config_menu->fd == 0 || !WriteFile(config_menu->fd, buf, len, &write_len, NULL))
 #else
+  ssize_t write_len;
+
   if (config_menu->fd == -1 || (write_len = write(config_menu->fd, buf, len)) == -1)
 #endif
   {

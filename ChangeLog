@@ -1,5 +1,8 @@
 2025-01-07  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_config_menu.c: Change the type of write_len in vt_config_menu_write()
+	  from ssize_t to DWORD if USE_WIN32API is defined.
+
 	* ci.yml: Add build-msys2.
 
 2025-01-05  Araki Ken  <arakiken@users.sf.net>
