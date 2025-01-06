@@ -939,7 +939,7 @@ static ssize_t lo_recv_pty(vt_pty_t *pty, u_char *buf, size_t len) {
 static ssize_t lo_send_to_pty(vt_pty_t *pty, const u_char *buf, size_t len) {
   if (len == 1 && buf[0] == '\x03') {
     /* ^C */
-    scp_stop(pty);
+    scp_stop((vt_pty_ssh_t *)pty);
   }
   else if (((vt_pty_ssh_t *)pty)->is_eof) {
     bl_trigger_sig_child(pty->child_pid);
