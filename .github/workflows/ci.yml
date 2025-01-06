@@ -118,7 +118,7 @@ jobs:
         with:
           msystem: UCRT64
           update: true
-          install: git mingw-w64-ucrt-x86_64-toolchain
+          install: git mingw-w64-ucrt-x86_64-toolchain make
       - name: CI-Build
         run: |
           CFLAGS="-Wall -g -O2" ./configure --with-gui=win32
