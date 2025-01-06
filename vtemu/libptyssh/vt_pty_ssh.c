@@ -936,7 +936,7 @@ static ssize_t lo_recv_pty(vt_pty_t *pty, u_char *buf, size_t len) {
 }
 
 /* Same as vt_pty_mosh.cpp */
-static ssize_t lo_send_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
+static ssize_t lo_send_to_pty(vt_pty_t *pty, const u_char *buf, size_t len) {
   if (len == 1 && buf[0] == '\x03') {
     /* ^C */
     scp_stop(pty);
