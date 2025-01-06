@@ -105,3 +105,22 @@ jobs:
             CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" CPPFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib -Wl,--undefined-version" ./configure --with-imagelib=gdk-pixbuf --with-gui=xlib,fb,sdl2 --with-type-engins=xcore,xft,cairo --enable-anti-alias
             make
             make install
+
+  build-msys2:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: git mingw-w64-ucrt-x86_64-toolchain
+      - name: CI-Build
+        run: |
+          CFLAGS="-Wall -g -O2" ./configure --with-gui=win32
+          make
+          make install

@@ -1,3 +1,7 @@
+2025-01-07  Araki Ken  <arakiken@users.sf.net>
+
+	* ci.yml: Add build-msys2.
+
 2025-01-05  Araki Ken  <arakiken@users.sf.net>
 
 	* gtk/vte_win32.c: "mlterm" -> L"mlterm" if UTF16_IME_CHAR is defined.
