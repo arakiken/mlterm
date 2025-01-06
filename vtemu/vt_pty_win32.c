@@ -80,7 +80,7 @@ static DWORD WINAPI wait_child_exited(LPVOID thr_param) {
 #endif
 
       /* XXX regarding pid_t as HANDLE */
-      bl_trigger_sig_child(child_procs[ev - WAIT_OBJECT_0]);
+      bl_trigger_sig_child((pid_t)child_procs[ev - WAIT_OBJECT_0]);
 
       CloseHandle(child_procs[ev - WAIT_OBJECT_0]);
 
@@ -559,7 +559,7 @@ static int set_winsize(vt_pty_t *pty, u_int cols, u_int rows, u_int width_pix, u
 /*
  * Return size of lost bytes.
  */
-static ssize_t write_to_pty(vt_pty_t *pty, u_char *buf, size_t len) {
+static ssize_t write_to_pty(vt_pty_t *pty, const u_char *buf, size_t len) {
   DWORD written_size;
 
   if (
