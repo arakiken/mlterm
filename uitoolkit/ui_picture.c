@@ -952,7 +952,7 @@ int ui_load_inline_picture(ui_display_t *disp, char *file_path, u_int *width /* 
       HANDLE thrd;
       u_int tid;
 
-      if ((thrd = _beginthreadex(NULL, 0, load_file_async, args, 0, &tid))) {
+      if ((thrd = (HANDLE)_beginthreadex(NULL, 0, load_file_async, args, 0, &tid))) {
         CloseHandle(thrd);
       }
     }

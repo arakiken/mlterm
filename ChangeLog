@@ -1,5 +1,8 @@
 2025-01-07  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_picture.c, win32/ui_window.c, vt_term.c: Add type casting from
+	  uintptr_t to HANDLE for the return value of _beginthreadex.
+
 	* libptyssh/vt_pty_ssh.c: Add type casting from vt_pty_t* to vt_pty_ssh_t*
 	  in calling scp_stop().
 

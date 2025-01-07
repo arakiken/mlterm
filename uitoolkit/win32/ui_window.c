@@ -742,7 +742,7 @@ static int invoke_selection_request(ui_window_t *win, UINT format,
     HANDLE thrd;
     u_int tid;
 
-    if (!(thrd = _beginthreadex(NULL, 0, selection_request, win, 0, &tid))) {
+    if (!(thrd = (HANDLE)_beginthreadex(NULL, 0, selection_request, win, 0, &tid))) {
       return 0;
     }
 

@@ -375,7 +375,7 @@ int vt_term_open_pty(vt_term_t *term, const char *cmd_path, char **argv, char **
         HANDLE thrd;
         u_int tid;
 
-        if ((thrd = _beginthreadex(NULL, 0, open_pty, args, 0, &tid))) {
+        if ((thrd = (HANDLE)_beginthreadex(NULL, 0, open_pty, args, 0, &tid))) {
           CloseHandle(thrd);
 
           return 1;
