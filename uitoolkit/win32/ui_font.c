@@ -363,12 +363,12 @@ static u_int calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs
 
       ret = (*func)(display_gc, (LPWORD)utf16, len, &sz);
 #else
-      ret = GetTextExtentPointI(display_gc, utf16, len, &sz);
+      ret = GetTextExtentPointI(display_gc, (LPWORD)utf16, len, &sz);
 #endif
     } else
 #endif
     {
-      ret = GetTextExtentPoint32W(display_gc, utf16, len, &sz);
+      ret = GetTextExtentPoint32W(display_gc, (LPCWSTR)utf16, len, &sz);
     }
 
     if (!ret) {
