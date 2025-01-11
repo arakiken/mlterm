@@ -2653,7 +2653,7 @@ void ui_set_window_name(ui_window_t *win, u_char *name) {
 #ifndef UTF16_IME_CHAR
   SetWindowTextA(root->my_window, name);
 #else
-  SetWindowTextW(root->my_window, name);
+  SetWindowTextW(root->my_window, (LPCWSTR)name);
 #endif
 }
 
