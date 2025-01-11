@@ -94,7 +94,7 @@ static int load_file(char *path /* must be UTF-8 */, int keep_aspect,
   HANDLE output_write;
   HANDLE output_read;
   PROCESS_INFORMATION pi;
-  STARTUPINFO si;
+  STARTUPINFOW si;
   u_int32_t tmp;
   DWORD n_rd;
   DWORD size;
@@ -107,7 +107,7 @@ static int load_file(char *path /* must be UTF-8 */, int keep_aspect,
   if (strcasecmp(suffix, ".six") == 0 && *width == 0 && *height == 0 &&
       /* XXX fopen() in load_sixel_from_file() on win32api doesn't support
          UTF-8. */
-      (image = (u_int32_t *)load_sixel_from_file(path, width, height, transparent))) {
+      (image = (BYTE*)load_sixel_from_file(path, width, height, transparent))) {
     goto loaded;
   }
 #endif
@@ -151,8 +151,8 @@ static int load_file(char *path /* must be UTF-8 */, int keep_aspect,
     return 0;
   }
 
-  ZeroMemory(&si, sizeof(STARTUPINFO));
-  si.cb = sizeof(STARTUPINFO);
+  ZeroMemory(&si, sizeof(STARTUPINFOW));
+  si.cb = sizeof(STARTUPINFOW);
   si.dwFlags = STARTF_USESTDHANDLES | STARTF_FORCEOFFFEEDBACK;
   si.hStdOutput = output_write;
   si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);

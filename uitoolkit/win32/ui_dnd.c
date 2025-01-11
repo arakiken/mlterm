@@ -88,7 +88,7 @@ int ui_dnd_filter_event(XEvent *event, ui_window_t *win) {
       if (do_scp) {
         path_len++; /* NULL terminator */
         if (win->set_xdnd_config &&
-            conv_utf16_to_utf8(utf8_path, sizeof(utf8_path), utf16_path,
+            conv_utf16_to_utf8(utf8_path, sizeof(utf8_path), (u_char*)utf16_path,
                                path_len * sizeof(utf16_path[0])) > 0) {
           (*win->set_xdnd_config)(win, NULL, "scp", utf8_path);
         }
@@ -104,7 +104,7 @@ int ui_dnd_filter_event(XEvent *event, ui_window_t *win) {
 
       path_len++; /* NULL terminator */
 
-      if (conv_utf16_to_utf8(utf8_path, sizeof(utf8_path), utf16_path,
+      if (conv_utf16_to_utf8(utf8_path, sizeof(utf8_path), (u_char*)utf16_path,
                              path_len * sizeof(utf16_path[0])) == 0 ||
           bl_conv_to_posix_path(utf8_path, posix_path, sizeof(posix_path)) < 0) {
         continue;

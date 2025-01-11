@@ -357,10 +357,11 @@ static u_int calculate_char_width(ui_font_t *font, u_int32_t ch, ef_charset_t cs
       static BOOL (*func)(HDC, LPWORD, int, LPSIZE);
 
       if (!func) {
-        func = GetProcAddress(GetModuleHandleA("GDI32.DLL"), "GetTextExtentPointI");
+        func = (BOOL (*)(HDC, LPWORD, int, LPSIZE))GetProcAddress(GetModuleHandleA("GDI32.DLL"),
+                                                                  "GetTextExtentPointI");
       }
 
-      ret = (*func)(display_gc, utf16, len, &sz);
+      ret = (*func)(display_gc, (LPWORD)utf16, len, &sz);
 #else
       ret = GetTextExtentPointI(display_gc, utf16, len, &sz);
 #endif
@@ -419,7 +420,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     return NULL;
   }
 
-  font->xfont = font + 1;
+  font->xfont = (XFontStruct*)(font + 1);
 
   font->display = display;
   font->id = id;

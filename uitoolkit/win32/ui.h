@@ -365,7 +365,7 @@ typedef LPLOGFONT XFontSet;
 #define RegisterClass(a) RegisterClassW(a)
 #undef CreateWindowEx
 #define CreateWindowEx(a, b, c, d, e, f, g, h, i, j, k, l) \
-  CreateWindowExW(a, b, c, d, e, f, g, h, i, j, k, l)
+  CreateWindowExW(a, b, (LPCWSTR)(c), d, e, f, g, h, i, j, k, l)
 #define __(a) L##a
 #else /* UTF16_IME_CHAR */
 #define __(a) _T(a)

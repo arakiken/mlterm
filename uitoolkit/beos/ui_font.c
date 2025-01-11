@@ -178,7 +178,7 @@ ui_font_t *ui_font_new(Display *display, vt_font_t id, int size_attr, ui_type_en
     return NULL;
   }
 
-  font->xfont = font + 1;
+  font->xfont = (XFontStruct*)(font + 1);
 
   font->display = display;
   font->id = id;

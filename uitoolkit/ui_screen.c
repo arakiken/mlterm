@@ -3179,7 +3179,7 @@ static void utf_selection_notified(ui_window_t *win, u_char *str, size_t len) {
   ui_screen_t *screen;
 
 #ifdef USE_WIN32GUI
-  len = trim_trailing_newline_in_pasting3(str, len / 2) * 2;
+  len = trim_trailing_newline_in_pasting3((WCHAR*)str, len / 2) * 2;
 #else
   len = trim_trailing_newline_in_pasting1(str, len);
 #endif
@@ -3190,7 +3190,7 @@ static void utf_selection_notified(ui_window_t *win, u_char *str, size_t len) {
    * common return key sequences.
    */
 #ifdef USE_WIN32GUI
-  len = convert_nl_to_cr3(str, len / 2) * 2;
+  len = convert_nl_to_cr3((WCHAR*)str, len / 2) * 2;
 #else
   convert_nl_to_cr1(str, len);
 #endif
