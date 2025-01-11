@@ -11,7 +11,7 @@ Pixmap ui_get_icon_pixmap(ui_sb_view_t *view, GC gc, GC memgc, char **data, unsi
                           unsigned long black,                     /* Not used */
                           unsigned long white                      /* Not used */
                           ) {
-  Pixmap pix;
+  HBITMAP pix;
   char cur;
   int x;
   int y;
@@ -41,7 +41,8 @@ Pixmap ui_get_icon_pixmap(ui_sb_view_t *view, GC gc, GC memgc, char **data, unsi
     x = 0;
   }
 
-  return pix;
+  /* XXX HBITMAP -> Pixmap(== HDC) to share ui_sample_sb_view_lib.h interfaces with xlib. */
+  return (Pixmap)pix;
 }
 
 int ui_draw_icon_pixmap_fg(ui_sb_view_t *view, GC gc, char **data, unsigned int width,

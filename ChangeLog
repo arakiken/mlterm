@@ -1,5 +1,8 @@
 2025-01-11  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_sample_sb_view_lib_win32.c:
+	  Add type casting to suppress compiling errors.
+
 	* win32/ui_font.c, ui_screen.c, win32/ui.h, win32/ui_dnd.c,
 	  beos/ui_font.c, win32/ui_imagelib.c:
 	  Add type casting to suppress compiling errors.
