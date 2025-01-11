@@ -12,6 +12,7 @@
 #include <vt_char.h> /* UTF_MAX_SIZE */
 #include <vt_char_encoding.h>
 
+#include <process.h> /* beginthreadex */
 #if !defined(USE_WIN32API) && defined(HAVE_PTHREAD)
 #include <pthread.h>
 #endif
@@ -680,7 +681,7 @@ static int selection_request(ui_window_t *win, UINT format) {
   g_data = NULL;
 
   if ((hmem = GetClipboardData(format)) == NULL || (g_data = GlobalLock(hmem)) == NULL ||
-      (len = (format == CF_TEXT ? strlen(g_data) : lstrlenW(g_data))) == 0 ||
+      (len = (format == CF_TEXT ? strlen(g_data) : lstrlenW((LPCWSTR)g_data))) == 0 ||
       (l_data = malloc((len + 1) * (format == CF_TEXT ? 1 : 2))) == NULL) {
     if (g_data) {
       GlobalUnlock(hmem);
@@ -694,7 +695,7 @@ static int selection_request(ui_window_t *win, UINT format) {
   if (format == CF_TEXT) {
     strcpy(l_data, g_data);
   } else {
-    lstrcpyW(l_data, g_data);
+    lstrcpyW((LPWSTR)l_data, (LPCWSTR)g_data);
   }
 
   GlobalUnlock(hmem);
@@ -704,7 +705,8 @@ static int selection_request(ui_window_t *win, UINT format) {
   bl_debug_printf("%s SELECTION: %d\n", format == CF_TEXT ? "XCT" : "UTF", len);
 #endif
 
-  PostMessage(win->my_window, format == CF_TEXT ? WM_APP_PASTE : WM_APP_WPASTE, len, l_data);
+  PostMessage(win->my_window, format == CF_TEXT ? WM_APP_PASTE : WM_APP_WPASTE, len,
+              (LPARAM)l_data);
 
   return 0;
 }
@@ -825,7 +827,7 @@ int ui_window_init(ui_window_t *win, u_int width, u_int height, u_int min_width,
 
   win->prev_clicked_button = -1;
 
-  win->app_name = __("mlterm");
+  win->app_name = (char*)__("mlterm");
 
   win->cmd_show = SW_SHOWNORMAL;
 
@@ -1538,16 +1540,16 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
 
     case WM_APP_PASTE:
       if (win->xct_selection_notified) {
-        (*win->xct_selection_notified)(win, event->lparam, event->wparam);
-        free(event->lparam);
+        (*win->xct_selection_notified)(win, (u_char*)event->lparam, event->wparam);
+        free((void*)event->lparam);
       }
 
       return 1;
 
     case WM_APP_WPASTE:
       if (win->utf_selection_notified) {
-        (*win->utf_selection_notified)(win, event->lparam, event->wparam * 2);
-        free(event->lparam);
+        (*win->utf_selection_notified)(win, (u_char*)event->lparam, event->wparam * 2);
+        free((void*)event->lparam);
       }
 
       return 1;

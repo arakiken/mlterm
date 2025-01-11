@@ -1,3 +1,9 @@
+2025-01-11  Araki Ken  <arakiken@users.sf.net>
+
+	* win32/ui_connect.c, win32/ui_selection_encoding.c,
+	  win32/ui_window.c, libptyssh/vt_pty_ssh.c:
+	  Add type casting to suppress compiling errors.
+
 2025-01-07  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_picture.c, win32/ui_window.c, vt_term.c: Add type casting from

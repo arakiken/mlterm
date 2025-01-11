@@ -28,7 +28,7 @@ static size_t utf16le_illegal_char(ef_conv_t *conv, u_char *dst, size_t dst_size
     if (dst_size < 2) {
       *is_full = 1;
     } else if ((utf16 = vt_convert_decsp_to_ucs(ef_char_to_int(ch)))) {
-      memcpy(dst, utf16, 2); /* little endian */
+      memcpy(dst, (u_char*)&utf16, 2); /* little endian */
       return 2;
     }
   }

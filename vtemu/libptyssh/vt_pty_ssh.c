@@ -21,6 +21,10 @@
 #if !defined(USE_WIN32API) && defined(HAVE_PTHREAD)
 #include <pthread.h>
 #endif
+#ifdef USE_WIN32API
+#include <process.h> /* _beginthreadex */
+#endif
+
 #include <fcntl.h>  /* open */
 #include <unistd.h> /* close/pipe */
 #include <stdio.h>  /* sprintf */

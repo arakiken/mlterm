@@ -235,7 +235,7 @@ LRESULT CALLBACK dialog_proc(HWND dlgwin, UINT msg, WPARAM wparam, LPARAM lparam
       DragAcceptFiles(GetDlgItem(dlgwin, IDD_SSH_PRIVKEY), TRUE);
       default_edit_text_proc = (WNDPROC)GetWindowLongPtr(GetDlgItem(dlgwin, IDD_SSH_PRIVKEY),
                                                          GWLP_WNDPROC);
-      SetWindowLongPtr(GetDlgItem(dlgwin, IDD_SSH_PRIVKEY), GWLP_WNDPROC, edit_text_proc);
+      SetWindowLongPtr(GetDlgItem(dlgwin, IDD_SSH_PRIVKEY), GWLP_WNDPROC, (LONG_PTR)edit_text_proc);
 #endif
 
       if (item == IDD_SSH) {
