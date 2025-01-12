@@ -87,6 +87,7 @@ jobs:
             CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" CPPFLAGS="-I/usr/pkg/include" ./configure --x-includes=/usr/X11R7/include --x-libraries=/usr/X11R7/lib --with-imagelib=gdk-pixbuf --with-gui=xlib,wscons,sdl2 --with-type-engins=xcore,xft,cairo --enable-anti-alias
             make
             make install
+	    (cd gtk && make && make install)
 
   build-freebsd:
     name: "build-freebsd (FreeBSD/amd64 14.2 with ports)"
@@ -105,6 +106,7 @@ jobs:
             CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" CPPFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib -Wl,--undefined-version" ./configure --with-imagelib=gdk-pixbuf --with-gui=xlib,fb,sdl2 --with-type-engins=xcore,xft,cairo --enable-anti-alias
             make
             make install
+	    (cd gtk && make && make install)
 
   build-msys2:
     runs-on: windows-latest
@@ -121,6 +123,9 @@ jobs:
           install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libssh2 mingw-w64-ucrt-x86_64-gtk3
       - name: CI-Build
         run: |
+          curl -L https://mlterm.sourceforge.net/vte-headers.tar.gz > vte-headers.tar.gz
+          tar xzvf vte-headers.tar.gz -C D:/a/_temp/msys64/ucrt64
           CFLAGS="-Wall -g -O2" ./configure --with-gui=win32
           make
           make install
+          (cd gtk && make && make install)

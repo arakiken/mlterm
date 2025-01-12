@@ -1743,6 +1743,7 @@ int ui_imagelib_load_file(ui_display_t *disp, char *path, int keep_aspect, u_int
   dst_height = *height;
 
 #if defined(BUILTIN_IMAGELIB) || defined(BUILTIN_SIXEL)
+  /* strings.h is included in c_imagelib.c */
   if (!cardinal && strcasecmp(path + strlen(path) - 4, ".six") == 0 && dst_width == 0 &&
       dst_height == 0 && load_sixel(disp, path, pixmap, mask, width, height, transparent)) {
     return 1;

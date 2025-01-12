@@ -351,6 +351,7 @@ int bl_conv_to_posix_path(const char *winpath, char *path, size_t len) {
 
 #if defined(__CYGWIN__) || defined(__MSYS__)
 #include <windef.h>
+#include <strings.h> /* strcasecmp */
 static void TEST_bl_path_win32(void) {
   char path[MAX_PATH];
 

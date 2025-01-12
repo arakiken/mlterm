@@ -3,7 +3,7 @@
 #include "vt_parser.h"
 
 #include <stdio.h>    /* sprintf */
-#include <string.h>   /* memmove */
+#include <strings.h>  /* strcasecmp */
 #include <stdlib.h>   /* atoi */
 #include <fcntl.h>    /* open */
 #include <unistd.h>   /* write/getcwd */

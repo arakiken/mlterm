@@ -576,6 +576,8 @@ static void unload_pcf(XFontStruct *xfont) {
 }
 
 #ifdef USE_FREETYPE
+#include <strings.h> /* strcasecmp */
+
 static int is_pcf(const char *file_path) {
   return (strcasecmp(file_path + strlen(file_path) - 6, "pcf.gz") == 0 ||
           strcasecmp(file_path + strlen(file_path) - 3, "pcf") == 0);

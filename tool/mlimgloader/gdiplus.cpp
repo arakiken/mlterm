@@ -58,6 +58,7 @@ static u_int32_t *create_cardinals_from_file(const char *path, u_int width, u_in
                                              int keep_aspect) {
   u_int32_t *cardinal = NULL;
 
+  /* strings.h is included in c_imagelib.c */
   if (strcasecmp(path + strlen(path) - 4, ".six") == 0 &&
       (cardinal = create_cardinals_from_sixel(path)) &&
       (width == 0 || height == 0)) {

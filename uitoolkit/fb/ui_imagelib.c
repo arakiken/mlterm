@@ -167,6 +167,7 @@ static void modify_pixmap(Display *display, Pixmap pixmap, ui_picture_modifier_t
 #ifdef BUILTIN_SIXEL
 
 #include <string.h>
+#include <strings.h> /* strcasecmp */
 #include <pobl/bl_util.h>
 #include <pobl/bl_def.h> /* SSIZE_MAX */
 

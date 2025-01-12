@@ -2,6 +2,7 @@
 
 #ifdef BUILTIN_IMAGELIB
 
+#include <strings.h> /* strcasecmp */
 #include <pobl/bl_util.h> /* DIGIT_STR_LEN */
 #include <pobl/bl_mem.h>  /* alloca */
 #include <pobl/bl_path.h> /* BL_LIBEXECDIR (for registobmp) */

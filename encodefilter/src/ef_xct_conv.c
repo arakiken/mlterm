@@ -2,7 +2,8 @@
 
 #include "ef_xct_conv.h"
 
-#include <string.h> /* strcasecmp */
+#include <string.h> /* strlen */
+#include <strings.h> /* strcasecmp */
 #include <pobl/bl_mem.h>
 #include <pobl/bl_locale.h> /* bl_get_codeset() */
 #include <pobl/bl_debug.h>

@@ -1,3 +1,17 @@
+2025-01-12  Araki Ken  <arakiken@users.sf.net>
+
+	* bl_map.c, bl_path.c, c_imagelib.c, data_entry_radio.c,
+	  ef_xct_conv.c, im_kbd.c, vterm.c, mc_io_file.c,
+	  beos/ui_imagelib.c, console/ui_imagelib.c,
+	  fb/ui_font.c, fb/ui_imagelib.c, quartz/ui_imagelib.c,
+	  ui_picture.c, win32/ui_imagelib.c, vt_char_encoding.c,
+	  vt_parser.c:
+	  Add "#include <strings.h>" for strcasecmp.
+	  (https://github.com/arakiken/mlterm/issues/129)
+
+	* ci.yml: Add "(cd gtk && make && make install)" to build-netbsd,
+	  build-freebsd and build-msys2 targets.
+
 2025-01-11  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_sample_sb_view_lib_win32.c:

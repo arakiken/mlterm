@@ -6,6 +6,7 @@
 
 #include <stdio.h> /* sprintf */
 #include <math.h>  /* pow */
+#include <strings.h> /* strcasecmp */
 
 #include <pobl/bl_util.h> /* DIGIT_STR_LEN */
 #include <pobl/bl_debug.h>

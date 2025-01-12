@@ -3,6 +3,7 @@
 #include "vt_char_encoding.h"
 
 #include <stdio.h> /* sscanf */
+#include <strings.h> /* strcasecmp */
 
 #include <pobl/bl_str.h> /* bl_str_sep */
 #include <pobl/bl_debug.h>

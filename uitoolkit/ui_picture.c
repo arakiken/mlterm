@@ -8,6 +8,7 @@
 #include <stdlib.h> /* system */
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <strings.h> /* strcasecmp */
 
 #include <pobl/bl_debug.h>
 #include <pobl/bl_str.h>     /* strdup */

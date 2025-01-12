@@ -37,6 +37,7 @@
  */
 
 #include <stdio.h>          /* sprintf */
+#include <strings.h>        /* strcasecmp */
 #include <pobl/bl_mem.h>    /* malloc/alloca/free */
 #include <pobl/bl_str.h>    /* bl_snprintf */
 #include <pobl/bl_locale.h> /* bl_get_locale */

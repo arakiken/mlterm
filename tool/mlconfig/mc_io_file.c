@@ -3,7 +3,7 @@
 #include "mc_io.h"
 
 #include <stdio.h>
-#include <string.h>
+#include <strings.h> /* strcasecmp */
 #include <pobl/bl_mem.h>    /* malloc */
 #include <pobl/bl_str.h>    /* strdup */
 #include <pobl/bl_debug.h>

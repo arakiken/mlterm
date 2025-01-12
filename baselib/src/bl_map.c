@@ -2,7 +2,7 @@
 
 #include "bl_map.h"
 
-#include <string.h> /* strcmp */
+#include <strings.h> /* strcasecmp */
 
 #include "bl_util.h" /* BL_ARRAY_SIZE */
 

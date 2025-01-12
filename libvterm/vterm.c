@@ -4,6 +4,7 @@
 
 #include <stdio.h> /* sprintf */
 #include <string.h>
+#include <strings.h> /* strcasecmp */
 #include <stdlib.h> /* getenv */
 #include <unistd.h> /* STDOUT_FILENO */
 #include <sys/ioctl.h> /* TIOCGWINSZ */
