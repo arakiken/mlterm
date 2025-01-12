@@ -106,7 +106,7 @@ jobs:
             CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" CPPFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib -Wl,--undefined-version" ./configure --with-imagelib=gdk-pixbuf --with-gui=xlib,fb,sdl2 --with-type-engins=xcore,xft,cairo --enable-anti-alias
             make
             make install
-	    (cd gtk && make && make install)
+            (cd gtk && make && make install)
 
   build-msys2:
     runs-on: windows-latest
