@@ -9,7 +9,7 @@ How to build & install libvte compatible library using mlterm engine.
     (gnome-terminal, roxterm, synaptic or etc)
 
 * Supported API
-  vte 0.68
+  vte 0.78
 
 * Build
   $ ./configure (--with-type-engine=cairo --with-imagelib=gdk-pixbuf --enable-pty-helper \
@@ -24,6 +24,16 @@ How to build & install libvte compatible library using mlterm engine.
       (libvte.so.9 => gtk+-2.x, libvte2_90.so.9 and libvte-2.91.so.9 => gtk+-3.0)
   $ make
   $ make vte (== "cd gtk ; make")
+
+* Build for MinGW on MSYS2/MinGW-w64
+  1) Copy /usr/include/vte-2.91 in Linux to /mingw64/include
+  2) Copy /usr/lib/pkgconfig/vte-2.91.pc to /mingw64/lib/pkgconfig
+     Edit 'prefix' in /mingw64/lib/pkgconfig/vte-2.91.pc as follows.
+     prefix=/mingw64
+  3) Build
+     CFLAGS="-Wall -g -O2" ./configure --prefix=/mingw64 --disable-ssh2
+     make
+     make vte
 
 * Install (Replace official libvte)
   $ cd baselib ; make install-la

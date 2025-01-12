@@ -1,5 +1,10 @@
 2025-01-12  Araki Ken  <arakiken@users.sf.net>
 
+	* vte.c: Add type casting between pid_t (== integer) and
+	  GPid (== HANDLE in win32)
+
+	* vte_win32.c: Add type casting to suppress compiling error.
+
 	* bl_map.c, bl_path.c, c_imagelib.c, data_entry_radio.c,
 	  ef_xct_conv.c, im_kbd.c, vterm.c, mc_io_file.c,
 	  beos/ui_imagelib.c, console/ui_imagelib.c,

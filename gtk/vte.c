@@ -2519,7 +2519,8 @@ static void vte_terminal_init(VteTerminal *terminal) {
     num = vt_get_all_terms(&terms);
     for (count = 0; count < num; count++) {
       if (terms[count] != PVT(terminal)->term) {
-        vte_reaper_add_child(vt_term_get_child_pid(terms[count]));
+        /* GPid in win32 is void* (HANDLE). (see glib/gmain.h) */
+        vte_reaper_add_child((GPid)vt_term_get_child_pid(terms[count]));
       }
     }
 
@@ -3005,11 +3006,12 @@ vte_terminal_fork_command_full(VteTerminal *terminal, VtePtyFlags pty_flags,
 {
   GPid pid;
 
-  pid = vte_terminal_fork_command(terminal, argv[0], argv[0] == NULL ? NULL : argv + 1,
-                                  envv, working_directory,
-                                  (pty_flags & VTE_PTY_NO_LASTLOG) ? FALSE : TRUE,
-                                  (pty_flags & VTE_PTY_NO_UTMP) ? FALSE : TRUE,
-                                  (pty_flags & VTE_PTY_NO_WTMP) ? FALSE : TRUE);
+  /* GPid in win32 is void* (HANDLE). (see glib/gmain.h) */
+  pid = (GPid)vte_terminal_fork_command(terminal, argv[0], argv[0] == NULL ? NULL : argv + 1,
+                                        envv, working_directory,
+                                        (pty_flags & VTE_PTY_NO_LASTLOG) ? FALSE : TRUE,
+                                        (pty_flags & VTE_PTY_NO_UTMP) ? FALSE : TRUE,
+                                        (pty_flags & VTE_PTY_NO_WTMP) ? FALSE : TRUE);
   if (child_pid) {
     *child_pid = pid;
   }
@@ -4748,7 +4750,8 @@ void vte_terminal_watch_child(VteTerminal *terminal, GPid child_pid) {
   vte_reaper_add_child(child_pid);
 
   if (PVT(terminal)->term->pty) {
-    PVT(terminal)->term->pty->child_pid = child_pid;
+    /* GPid in win32 is void* (HANDLE). (see glib/gmain.h) */
+    PVT(terminal)->term->pty->child_pid = (pid_t)child_pid;
   }
 }
 
