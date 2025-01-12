@@ -87,7 +87,7 @@ jobs:
             CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" CPPFLAGS="-I/usr/pkg/include" ./configure --x-includes=/usr/X11R7/include --x-libraries=/usr/X11R7/lib --with-imagelib=gdk-pixbuf --with-gui=xlib,wscons,sdl2 --with-type-engins=xcore,xft,cairo --enable-anti-alias
             make
             make install
-	    (cd gtk && make && make install)
+            (cd gtk && make && make install)
 
   build-freebsd:
     name: "build-freebsd (FreeBSD/amd64 14.2 with ports)"
