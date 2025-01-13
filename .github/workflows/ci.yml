@@ -56,7 +56,7 @@ jobs:
  
       - name: configure
         run: |
-          CONFIGURE_ARGS="--prefix=~/mlterm --with-gui=quartz"
+          CONFIGURE_ARGS="--prefix=$HOME/mlterm --with-gui=quartz"
           CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" ./configure ${CONFIGURE_ARGS}
 
       - name: build
