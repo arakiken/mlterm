@@ -52,7 +52,7 @@ jobs:
 
       - name: setup build environment
         run: |
-          brew install pkg-config gtk+3
+          brew install pkg-config gettext gtk+3
  
       - name: configure
         run: |

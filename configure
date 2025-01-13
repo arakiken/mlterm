@@ -23746,7 +23746,7 @@ fi
 
 
 if test "${MAKE_DIRS}" != "" ; then
-	mkdir -p ${MAKE_DIRS}
+	(cd encodefilter; mkdir -p ${MAKE_DIRS})
 fi
 
 #

@@ -1930,7 +1930,7 @@ AC_SUBST(TABLE_CFLAGS)
 AC_SUBST(MAKE_DIRS)
 
 if test "${MAKE_DIRS}" != "" ; then
-	mkdir -p ${MAKE_DIRS}
+	(cd encodefilter; mkdir -p ${MAKE_DIRS})
 fi
 
 #
