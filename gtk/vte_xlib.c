@@ -309,7 +309,7 @@ static GdkFilterReturn vte_terminal_filter(GdkXEvent *xevent, GdkEvent *event, /
       }
 
       /* XXX Hack for waiting for config menu program exiting. */
-      if (PVT(terminal)->term->pty &&
+      if (!vt_term_is_zombie(PVT(terminal)->term) &&
           config_menu_pid != PVT(terminal)->term->pty->config_menu.pid) {
         if ((config_menu_pid = PVT(terminal)->term->pty->config_menu.pid)) {
           vte_reaper_add_child(config_menu_pid);

@@ -364,12 +364,19 @@ void vt_destroy_term(vt_term_t *term) {
    */
 
   for (count = 0; count < num_terms; count++) {
+    bl_debug_printf("searching %p == %p\n", terms[count], term);
     if (terms[count] == term) {
       terms[count] = terms[--num_terms];
 
       break;
     }
   }
+
+#ifdef DEBUG
+  if (count == num_terms) {
+    bl_debug_printf(BL_DEBUG_TAG " vt_destroy_term() receives orphan term %p\n", term);
+  }
+#endif
 
   vt_term_destroy(term);
 }
@@ -397,7 +404,7 @@ vt_term_t *vt_get_detached_term(const char *dev) {
          * which interrupts closing screen in exiting pty.
          * (See pty_closed in vte.c)
          */
-        vt_term_get_master_fd(terms[count]) >= 0) {
+        !vt_term_is_zombie(terms[count])) {
       return terms[count];
     }
   }
@@ -416,13 +423,13 @@ vt_term_t *vt_next_term(vt_term_t *term /* is detached */
       old = count;
 
       for (count++; count < num_terms; count++) {
-        if (!vt_term_is_attached(terms[count])) {
+        if (!vt_term_is_attached(terms[count]) && !vt_term_is_zombie(terms[count])) {
           return terms[count];
         }
       }
 
       for (count = 0; count < old; count++) {
-        if (!vt_term_is_attached(terms[count])) {
+        if (!vt_term_is_attached(terms[count]) && !vt_term_is_zombie(terms[count])) {
           return terms[count];
         }
       }
@@ -445,13 +452,13 @@ vt_term_t *vt_prev_term(vt_term_t *term /* is detached */
       old = count;
 
       for (count--; count >= 0; count--) {
-        if (!vt_term_is_attached(terms[count])) {
+        if (!vt_term_is_attached(terms[count]) && !vt_term_is_zombie(terms[count])) {
           return terms[count];
         }
       }
 
       for (count = num_terms - 1; count > old; count--) {
-        if (!vt_term_is_attached(terms[count])) {
+        if (!vt_term_is_attached(terms[count]) && !vt_term_is_zombie(terms[count])) {
           return terms[count];
         }
       }
@@ -497,12 +504,6 @@ void vt_close_dead_terms(void) {
 #endif
 
             term = terms[idx * MTU + count];
-            /*
-             * Update terms and num_terms before vt_term_{destroy|zombie}, which
-             * calls vt_pty_event_listener::pty_close in which vt_term_manager can
-             * be used.
-             */
-            terms[idx * MTU + count] = terms[--num_terms];
             if (zombie_pty) {
 #ifdef USE_WIN32API
               /* Received bytes from pty can be pending especially in win32. */
@@ -510,6 +511,13 @@ void vt_close_dead_terms(void) {
 #endif
               vt_term_zombie(term);
             } else {
+              /*
+               * Update terms and num_terms before vt_term_destroy(), which
+               * calls vt_pty_event_listener::pty_close in which vt_term_manager can
+               * be used.
+               */
+              terms[idx * MTU + count] = terms[--num_terms];
+
               vt_term_destroy(term);
             }
           }

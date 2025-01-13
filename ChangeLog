@@ -1,3 +1,15 @@
+2025-01-13  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: vt_term_destroy() -> vt_destroy_term() to remove a zombie term
+	  in a terms list of vt_term_manager.
+
+	* vt_term_manager.c:
+	  Don't execute "terms[idx * MTU + count] = terms[--num_terms]"
+	  if zombie_pty is 1.
+	  (Revert 8f0bffe45c7db21d9af32bf696d57c9e47e6de0c commit)
+
+	* vt_term.h: Add vt_term_is_zombie().
+
 2025-01-12  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: Add type casting between pid_t (== integer) and

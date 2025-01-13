@@ -76,6 +76,8 @@ void vt_term_destroy(vt_term_t *term);
 
 void vt_term_zombie(vt_term_t *term);
 
+#define vt_term_is_zombie(term) ((term)->pty == NULL)
+
 int vt_term_open_pty(vt_term_t *term, const char *cmd_path, char **argv, char **env,
                      const char *host, const char *work_dir, const char *pass, const char *pubkey,
                      const char *privkey, u_int width_pix, u_int height_pix);

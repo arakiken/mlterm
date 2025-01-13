@@ -128,7 +128,7 @@ static LRESULT CALLBACK window_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
     for (count = 0; count < _disp->num_roots; count++) {
       vt_term_t *term = ((ui_screen_t*)_disp->roots[count])->term;
 
-      if (term->pty) {
+      if (!vt_term_is_zombie(term)) {
         vt_term_parse_vt100_sequence(term);
 
         if (!is_sending_data && vt_term_is_sending_data(term)) {

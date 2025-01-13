@@ -1862,7 +1862,7 @@ ui_im_t *im_kbd_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     return NULL;
   }
 
-  if (strncmp(opt, "hide", 4) == 0) {
+  if (opt && strncmp(opt, "hide", 4) == 0) {
     hide_stat_screen = 1;
 
     opt += 4;

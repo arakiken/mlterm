@@ -645,7 +645,7 @@ static void pty_closed(void *p /* screen->term->pty is NULL */
      */
     term = screen->term;
     ui_screen_detach(screen);
-    vt_term_destroy(term);
+    vt_destroy_term(term);
 
     /* It is after widget is realized that ui_screen_attach can be called. */
     if (GTK_WIDGET_REALIZED(GTK_WIDGET(terminal))) {
@@ -1580,7 +1580,7 @@ static void vte_terminal_realize(GtkWidget *widget) {
    * allocation passed by size_allocate is not necessarily to be reflected
    * to ui_window_t or vt_term_t, so ui_window_resize must be called here.
    */
-  if (PVT(terminal)->term->pty && !is_initial_allocation(&allocation)) {
+  if (!vt_term_is_zombie(PVT(terminal)->term) && !is_initial_allocation(&allocation)) {
     if (ui_window_resize_with_margin(&PVT(terminal)->screen->window, allocation.width,
                                      allocation.height, NOTIFY_TO_MYSELF)) {
       reset_vte_size_member(terminal);
@@ -1600,9 +1600,12 @@ static void vte_terminal_unrealize(GtkWidget *widget) {
 
   ui_screen_detach(screen);
 
-  if (!PVT(terminal)->term->pty) {
-    /* PVT(terminal)->term is not destroyed in pty_closed() */
-    vt_term_destroy(PVT(terminal)->term);
+  if (vt_term_is_zombie(PVT(terminal)->term)) {
+    /*
+     * PVT(terminal)->term was not destroyed in pty_closed() and remains
+     * in a terms list of vt_term_manager as a zombie.
+     */
+    vt_destroy_term(PVT(terminal)->term);
     PVT(terminal)->term = NULL;
   }
 
@@ -1789,7 +1792,7 @@ static void vte_terminal_size_allocate(GtkWidget *widget, GtkAllocation *allocat
 
   if (GTK_WIDGET_REALIZED(widget)) {
     VteTerminal *terminal = VTE_TERMINAL(widget);
-    if (is_resized && PVT(terminal)->term->pty) {
+    if (is_resized && !vt_term_is_zombie(PVT(terminal)->term)) {
       /*
        * Even if ui_window_resize_with_margin returns 0,
        * reset_vte_size_member etc functions must be called,
@@ -4566,7 +4569,7 @@ void vte_terminal_set_pty_object(VteTerminal *terminal, VtePty *pty)
   }
 #endif
 #else
-  if (PVT(terminal)->term->pty) {
+  if (!vt_term_is_zombie(PVT(terminal)->term)) {
     /* Don't catch exit(0) above. */
     PVT(terminal)->term->pty->child_pid = -1;
   }
@@ -4749,7 +4752,7 @@ gboolean vte_pty_set_utf8(VtePty *pty, gboolean utf8, GError **error) {
 void vte_terminal_watch_child(VteTerminal *terminal, GPid child_pid) {
   vte_reaper_add_child(child_pid);
 
-  if (PVT(terminal)->term->pty) {
+  if (!vt_term_is_zombie(PVT(terminal)->term)) {
     /* GPid in win32 is void* (HANDLE). (see glib/gmain.h) */
     PVT(terminal)->term->pty->child_pid = (pid_t)child_pid;
   }
