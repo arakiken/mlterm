@@ -131,7 +131,7 @@ jobs:
           (cd gtk && make && make install)
           mkdir dist
           cp /tmp/ucrt64/bin/*.exe /tmp/ucrt64/bin/*.dll /tmp/ucrt64/lib/*/*.dll dist/
-          (cd ~/dist; ldd *.exe | sed -n 's/.*=> \([^ ]*\) .*/\1/p' | grep --ignore-case -v /WINDOWS/ | grep -v /dist/ | xargs | sed 's/\(.*\)/cp \1 ./' | sh)
+          (cd dist; ldd *.exe | sed -n 's/.*=> \([^ ]*\) .*/\1/p' | grep --ignore-case -v /WINDOWS/ | grep -v /dist/ | xargs | sed 's/\(.*\)/cp \1 ./' | sh)
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
