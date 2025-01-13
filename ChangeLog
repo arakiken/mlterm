@@ -1,5 +1,7 @@
 2025-01-13  Araki Ken  <arakiken@users.sf.net>
 
+	* ci.yml: Add "Upload artifacts" to build-macos.
+
 	* ci.yml: Add "Upload artifacts" to build-msys2.
 
 	* vte.c: vt_term_destroy() -> vt_destroy_term() to remove a zombie term
