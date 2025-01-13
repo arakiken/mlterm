@@ -1,3 +1,8 @@
+2025-01-14  Araki Ken  <arakiken@users.sf.net>
+
+	* ci.yml: Add "rm tool/mlconfig/po/Makefile" to build-macosx to avoid
+	  compiling error.
+
 2025-01-13  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in: mkdir -p ${MAKE_DIRS} -> (cd encodefilter; mkdir -p ${MAKE_DIRS})

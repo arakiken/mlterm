@@ -52,7 +52,7 @@ jobs:
 
       - name: setup build environment
         run: |
-          brew install pkg-config gettext gtk+3
+          brew install pkg-config gtk+3
  
       - name: configure
         run: |
@@ -61,6 +61,7 @@ jobs:
 
       - name: build
         run: |
+          rm tool/mlconfig/po/Makefile
           make
           sudo make install
           cp -R cocoa/mlterm.app ~/
