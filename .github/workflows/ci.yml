@@ -127,5 +127,13 @@ jobs:
           tar xzvf vte-headers.tar.gz -C D:/a/_temp/msys64/ucrt64
           CFLAGS="-Wall -g -O2" ./configure --with-gui=win32
           make
-          make install
+          DESTDIR=/tmp make install
           (cd gtk && make && make install)
+          mkdir dist
+          cp /tmp/ucrt64/bin/*.exe /tmp/ucrt64/bin/*.dll /tmp/ucrt64/lib/*/*.dll dist/
+          (cd ~/dist; ldd *.exe | sed -n 's/.*=> \([^ ]*\) .*/\1/p' | grep --ignore-case -v /WINDOWS/ | grep -v /dist/ | xargs | sed 's/\(.*\)/cp \1 ./' | sh)
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlterm-win32
+          path: dist/**

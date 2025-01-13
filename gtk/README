@@ -25,11 +25,11 @@ How to build & install libvte compatible library using mlterm engine.
   $ make
   $ make vte (== "cd gtk ; make")
 
-* Build for MinGW on MSYS2/MinGW-w64
+* Build in MSYS2/MinGW-w64
+  (It supports gtk-3.x alone for now)
   1) Copy /usr/include/vte-2.91 in Linux to /mingw64/include
   2) Copy /usr/lib/pkgconfig/vte-2.91.pc to /mingw64/lib/pkgconfig
-     Edit 'prefix' in /mingw64/lib/pkgconfig/vte-2.91.pc as follows.
-     prefix=/mingw64
+     (Replace 'prefix' with /mingw64)
   3) Build
      CFLAGS="-Wall -g -O2" ./configure --prefix=/mingw64 --disable-ssh2
      make
@@ -87,17 +87,6 @@ How to build & install libvte compatible library using mlterm engine.
     environmental variable which disables XInput2.
 
     $ export GDK_CORE_DEVICE_EVENTS=1
-
-  o libvte compatible library works in Windows.
-    (It supports gtk-3.x alone for now.)
-
-    (How to build libvte compatible library in MSYS2-MinGW)
-    - Copy /usr/include/vte-2.91 in Linux to /mingw64/include
-    - Copy /usr/lib/pkgconfig/vte-2.91.pc to /mingw64/lib/pkgconfig
-      (Replace prefix with /mingw64)
-    - Build libvte compatible library.
-      ./configure --prefix=/mingw64
-      make; make install; cd gtk; make; make install
 
   o Unsupported vte api functions
     - vte_terminal_copy_primary
