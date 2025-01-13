@@ -63,7 +63,7 @@ jobs:
         run: |
           make
           sudo make install
-	  cp -R cocoa/mlterm.app ~/
+          cp -R cocoa/mlterm.app ~/
           cocoa/install.sh ~/mlterm
           mkdir dist
           mv ~/mlterm.app dist/
