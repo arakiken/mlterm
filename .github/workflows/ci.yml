@@ -45,15 +45,19 @@ jobs:
           (cd gtk && make && make install)
 
   build-macos:
-    runs-on: macos-latest
+    strategy:
+      matrix:
+        os: [ macos-latest, macos-13 ]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
 
       - name: setup build environment
         run: |
-          brew install pkg-config gtk+3
- 
+          brew install gtk+3
+
       - name: configure
         run: |
           CONFIGURE_ARGS="--prefix=$HOME/mlterm --with-gui=quartz"

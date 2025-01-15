@@ -1,3 +1,7 @@
+2025-01-15  Araki Ken  <arakiken@users.sf.net>
+
+	* ci.yml: Add macos-13 to build-macos.
+
 2025-01-14  Araki Ken  <arakiken@users.sf.net>
 
 	* ci.yml: Add "rm tool/mlconfig/po/Makefile" to build-macosx to avoid
