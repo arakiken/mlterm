@@ -135,7 +135,7 @@ jobs:
         with:
           msystem: UCRT64
           update: true
-          install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libssh2 mingw-w64-ucrt-x86_64-gtk3 mingw-w64-ucrt-x86_64-llvm
+          install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libssh2 mingw-w64-ucrt-x86_64-gtk3
       - name: CI-Build
         run: |
           curl -L https://mlterm.sourceforge.net/vte-headers.tar.gz > vte-headers.tar.gz
@@ -146,7 +146,7 @@ jobs:
           (cd gtk && make && make install)
           mkdir dist
           cp /tmp/ucrt64/bin/*.exe /tmp/ucrt64/bin/*.dll /tmp/ucrt64/lib/*/*.dll dist/
-          for f in dist/*.exe; do llvm-mt -manifest win32/mlterm.manifest -outputresource:$f; done
+          for f in dist/*.exe; do mt -manifest win32/mlterm.manifest -outputresource:$f; done
           (cd dist; ldd *.exe | sed -n 's/.*=> \([^ ]*\) .*/\1/p' | grep --ignore-case -v /WINDOWS/ | grep -v /dist/ | xargs | sed 's/\(.*\)/cp \1 ./' | sh)
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
