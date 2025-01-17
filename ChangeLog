@@ -1,3 +1,11 @@
+2025-01-18  Araki Ken  <arakiken@users.sf.net>
+
+	* ci.yml: Search mt.exe in build-msys2.
+
+2025-01-17  Araki Ken  <arakiken@users.sf.net>
+
+	* ci.yml: Remove mingw-w64-ucrt-x86_64-llvm
+
 2025-01-16  Araki Ken  <arakiken@users.sf.net>
 
 	* ci.yml: Execute llvm-mt in build-msys2.
