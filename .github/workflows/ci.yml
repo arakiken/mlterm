@@ -43,7 +43,7 @@ jobs:
           make install
           (cd libvterm && make && make install)
           (cd gtk && make && make install)
-          java_ver=`javac --version|sed 's/javac //'`
+          java_ver=`javac --version|sed 's/javac \([0-9]*\).*/\1/'`
           if test "$java_ver" != ""; then (cd java; cat Makefile | sed s/java-23-openjdk/java-${java_ver}-openjdk/ > Makefile.2; mv Makefile.2 Makefile; make); fi
 
   build-macos:
