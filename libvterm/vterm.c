@@ -110,7 +110,7 @@ static void pty_closed(void *p) {
   ((VTerm*)p)->term = NULL;
 }
 
-static int set_config(void *p, char *dev, char *key, char *value) {
+static int set_config(void *p, const char *dev, const char *key, const char *value) {
   VTerm *vterm;
 
   vterm = p;
@@ -130,7 +130,7 @@ static int set_config(void *p, char *dev, char *key, char *value) {
   return 0;
 }
 
-static void get_config(void *p, char *dev, char *key, int to_menu) {
+static void get_config(void *p, const char *dev, const char *key, int to_menu) {
   VTerm *vterm = p;
   vt_term_t *term;
   char *value;
