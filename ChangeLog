@@ -1,5 +1,8 @@
 2025-01-18  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_font_config.[ch], ui_screen.c, mlterm.[ch], vt_color.[ch],
+	  vt_parser.h, java/MLTermPty.c: Add const.
+
 	* ci.yml: Build mlterm for java in build-linux.
 
 	* ci.yml: Search mt.exe in build-msys2.

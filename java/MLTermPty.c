@@ -12,6 +12,7 @@
 #include <pthread.h>
 #endif
 
+#include <string.h> /* strcmp */
 #include <pobl/bl_debug.h>
 #include <pobl/bl_mem.h> /* alloca */
 #include <pobl/bl_unistd.h> /* bl_setenv */
@@ -109,7 +110,7 @@ static int dialog_callback(bl_dialog_style_t style, const char *msg) {
 }
 #endif
 
-static void set_config(void *p, char *dev, char *key, char *value) {
+static int set_config(void *p, const char *dev, const char *key, const char *value) {
   native_obj_t *nativeObj;
 
   nativeObj = p;
@@ -122,10 +123,14 @@ static void set_config(void *p, char *dev, char *key, char *value) {
     if ((encoding = vt_get_char_encoding(value)) != VT_UNKNOWN_ENCODING) {
       vt_term_change_encoding(nativeObj->term, encoding);
     }
+  } else {
+    return 0;
   }
+
+  return 1;
 }
 
-static void get_config(void *p, char *dev, char *key, int to_menu) {
+static void get_config(void *p, const char *dev, const char *key, int to_menu) {
   native_obj_t *nativeObj;
   vt_term_t *term;
   char *value;
@@ -208,7 +213,7 @@ static int window_scroll_upward_region(void *p, int beg_row, int end_row, u_int 
   return 0;
 }
 
-static void resize(void *p, u_int width, u_int height) {
+static void resize(void *p, u_int width, u_int height, int mx_flag, int sb_flag) {
   static jmethodID mid;
   native_obj_t *nativeObj;
 
@@ -385,8 +390,8 @@ Java_mlterm_MLTermPty_nativeOpen(JNIEnv *env, jobject obj, jstring jstr_host,
   native_obj_t *nativeObj;
   char *encoding_str;
   char **argv;
-  char *host;
-  char *pass;
+  const char *host;
+  const char *pass;
   char *envv[4];
   char *cmd_path;
 
@@ -409,7 +414,7 @@ Java_mlterm_MLTermPty_nativeOpen(JNIEnv *env, jobject obj, jstring jstr_host,
   }
 
   if (jstr_encoding) {
-    char *p = (*env)->GetStringUTFChars(env, jstr_encoding, NULL);
+    const char *p = (*env)->GetStringUTFChars(env, jstr_encoding, NULL);
     if ((encoding_str = alloca(strlen(p) + 1))) {
       strcpy(encoding_str, p);
     }
@@ -455,7 +460,7 @@ Java_mlterm_MLTermPty_nativeOpen(JNIEnv *env, jobject obj, jstring jstr_host,
     argv = alloca(sizeof(char *) * (len + 1));
 
     for (count = 0; count < len; count++) {
-      char *p;
+      const char *p;
       jobject obj = (*env)->GetObjectArrayElement(env, jarray_argv, count);
       p = (*env)->GetStringUTFChars(env, obj, NULL);
       if ((argv[count] = alloca(strlen(p) + 1))) {
@@ -503,7 +508,7 @@ Java_mlterm_MLTermPty_nativeOpen(JNIEnv *env, jobject obj, jstring jstr_host,
   }
 
   if (nativeObj->term) {
-    return nativeObj;
+    return (jlong)nativeObj;
   }
 
 #ifdef __DEBUG
@@ -536,7 +541,7 @@ JNIEXPORT void JNICALL
 Java_mlterm_MLTermPty_nativeSetListener(JNIEnv *env, jobject obj, jlong nobj, jobject listener) {
   native_obj_t *nativeObj;
 
-  nativeObj = nobj;
+  nativeObj = (native_obj_t*)nobj;
 
   if (nativeObj->listener) {
     (*env)->DeleteGlobalRef(env, nativeObj->listener);
@@ -660,7 +665,7 @@ Java_mlterm_MLTermPty_nativeIsActive(JNIEnv *env, jobject obj, jlong nativeObj) 
 JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeRead(JNIEnv *env, jobject obj, jlong nObj) {
   native_obj_t *nativeObj;
 
-  nativeObj = nObj;
+  nativeObj = (native_obj_t*)nObj;
 
   if (nativeObj && nativeObj->term) {
     int ret;
@@ -730,7 +735,7 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeRead(JNIEnv *env, jobject
 
 JNIEXPORT jboolean JNICALL
 Java_mlterm_MLTermPty_nativeWrite(JNIEnv *env, jobject obj, jlong nativeObj, jstring jstr) {
-  char *str;
+  const char *str;
   u_char buf[128];
   size_t len;
 
@@ -1068,7 +1073,8 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeGetRedrawString(JNIEnv *e
   buf[redraw_len++] = '\0';
 #endif
 
-  (*env)->SetObjectField(env, region, region_str, ((*env)->NewString)(env, buf, redraw_len / 2));
+  (*env)->SetObjectField(env, region, region_str,
+                         ((*env)->NewString)(env, (jchar*)buf, redraw_len / 2));
   (*env)->SetIntField(env, region, region_start, start);
 
   if (num_styles > 0) {
@@ -1169,7 +1175,7 @@ JNIEXPORT jboolean JNICALL Java_mlterm_MLTermPty_nativeIsTrackingMouse(JNIEnv *e
                                                                        jboolean isMotion) {
   native_obj_t *nativeObj;
 
-  nativeObj = nobj;
+  nativeObj = (native_obj_t*)nobj;
 
   if (!nativeObj || !nativeObj->term || !vt_term_get_mouse_report_mode(nativeObj->term) ||
       (isMotion &&
@@ -1191,7 +1197,7 @@ Java_mlterm_MLTermPty_nativeReportMouseTracking(JNIEnv *env, jobject obj, jlong 
   int col;
   int key_state;
 
-  nativeObj = nobj;
+  nativeObj = (native_obj_t*)nobj;
 
 #if 0
   if (!Java_mlterm_MLTermPty_nativeIsTrackingMouse(env, obj, nobj, button, state, isMotion,

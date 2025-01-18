@@ -5153,14 +5153,13 @@ static void get_config_intern(ui_screen_t *screen, const char *dev, /* can be NU
   }
 }
 
-static void get_config(void *p, char *dev, /* can be NULL */
-                       char *key,          /* can be "error" */
-                       int to_menu) {
+static void get_config(void *p, const char *dev /* can be NULL */,
+                       const char *key /* can be "error" */, int to_menu) {
   get_config_intern(p, dev, key, to_menu, NULL);
 }
 
-static void set_font_config(void *p, char *file, /* can be NULL */
-                            char *cs, char *val, int save) {
+static void set_font_config(void *p, const char *file, /* can be NULL */
+                            const char *cs, char *val, int save) {
   ui_screen_t *screen;
 
   screen = p;
@@ -5175,8 +5174,8 @@ static void set_font_config(void *p, char *file, /* can be NULL */
   }
 }
 
-static void get_font_config(void *p, char *file, /* can be NULL */
-                            char *cs, int to_menu) {
+static void get_font_config(void *p, const char *file, /* can be NULL */
+                            const char *cs, int to_menu) {
   ui_screen_t *screen;
   char *font_name;
 
@@ -5200,8 +5199,8 @@ static void get_font_config(void *p, char *file, /* can be NULL */
   return;
 }
 
-static void set_color_config(void *p, char *file, /* ignored */
-                             char *key, char *val, int save)
+static void set_color_config(void *p, const char *file, /* ignored */
+                             const char *key, const char *val, int save)
 
 {
   ui_screen_t *screen;
@@ -5213,7 +5212,7 @@ static void set_color_config(void *p, char *file, /* ignored */
   }
 }
 
-static void get_color_config(void *p, char *key, int to_menu) {
+static void get_color_config(void *p, const char *key, int to_menu) {
   ui_screen_t *screen;
   vt_color_t color;
   ui_color_t *xcolor;
@@ -6744,7 +6743,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
 
   screen->config_listener.self = screen;
   screen->config_listener.exec = (int (*)(void*, char*))ui_screen_exec_cmd;
-  screen->config_listener.set = (int (*)(void*, char*, char*, char*))ui_screen_set_config;
+  screen->config_listener.set = (int (*)(void*, const char*, const char*, const char*))ui_screen_set_config;
   screen->config_listener.get = get_config;
   screen->config_listener.saved = NULL;
   screen->config_listener.set_font = set_font_config;

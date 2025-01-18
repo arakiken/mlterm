@@ -461,7 +461,7 @@ static int color_config_get_rgb(vt_color_t color, u_int8_t *red, u_int8_t *green
   return 1;
 }
 
-static int parse_conf(char *color_name, char *rgb) {
+static int parse_conf(const char *color_name, const char *rgb) {
   u_int8_t red;
   u_int8_t green;
   u_int8_t blue;
@@ -589,7 +589,7 @@ void vt_color_config_final(void) {
  * Return value 0 means customization failed or not changed.
  * Return value -1 means saving failed.
  */
-int vt_customize_color_file(char *color, char *rgb, int save) {
+int vt_customize_color_file(const char *color, const char *rgb, int save) {
   if (!color_config || !parse_conf(color, rgb)) {
     return 0;
   }

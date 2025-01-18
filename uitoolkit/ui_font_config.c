@@ -613,7 +613,7 @@ static int write_conf(char *path, /* Can be destroyed in this function. */
 }
 
 static int save_conf(const char *file, const char *key,
-                     char *value /* Includes multiple entries. Destroyed in this function. */
+                     const char *value /* Includes multiple entries. Destroyed in this function. */
                      ) {
   char *path;
   int ret;
@@ -852,9 +852,9 @@ void ui_font_config_destroy(ui_font_config_t *font_config) {
  * -1 => customization is succeeded but saving is failed.
  * 1 => succeeded.
  */
-int ui_customize_font_file(const char *file, /* if null, use "mlterm/font" file. */
-                           char *key,        /* charset name */
-                           char *value,      /* font list */
+int ui_customize_font_file(const char *file /* if null, use "mlterm/font" file. */,
+                           const char *key /* charset name */,
+                           const char *value /* font list */,
                            int save) {
   /*
    * Max number of target font_config is 6.
@@ -1067,7 +1067,7 @@ char *ui_get_config_font_name(ui_font_config_t *font_config, u_int font_size, vt
 }
 
 char *ui_get_config_font_name2(const char *file, /* can be NULL */
-                               u_int font_size, char *font_cs) {
+                               u_int font_size, const char *font_cs) {
   vt_font_t font;
   ui_font_config_t *font_config;
   ui_type_engine_t engine;

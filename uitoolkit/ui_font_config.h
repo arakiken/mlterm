@@ -40,11 +40,11 @@ ui_font_config_t *ui_font_config_new(ui_type_engine_t type_engine, ui_font_prese
 
 void ui_font_config_destroy(ui_font_config_t *font_config);
 
-int ui_customize_font_file(const char *file, char *key, char *value, int save);
+int ui_customize_font_file(const char *file, const char *key, const char *value, int save);
 
 char *ui_get_config_font_name(ui_font_config_t *font_config, u_int font_size, vt_font_t font);
 
-char *ui_get_config_font_name2(const char *file, u_int font_size, char *font_cs);
+char *ui_get_config_font_name2(const char *file, u_int font_size, const char *font_cs);
 
 char *ui_get_config_font_names_all(ui_font_config_t *font_config, u_int font_size);
 

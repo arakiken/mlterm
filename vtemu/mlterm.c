@@ -37,8 +37,8 @@
 
 /* --- global functions --- */
 
-vt_term_t *mlterm_open(char *host, char *pass, int cols, int rows, u_int log_size,
-                       char *encoding_str, char **argv,
+vt_term_t *mlterm_open(const char *host, const char *pass, int cols, int rows, u_int log_size,
+                       const char *encoding_str, char **argv,
                        vt_xterm_event_listener_t *xterm_listener,
                        vt_config_event_listener_t *config_listener,
                        vt_screen_event_listener_t *screen_listener,

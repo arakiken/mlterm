@@ -150,16 +150,16 @@ typedef struct vt_config_event_listener {
 
   /* Assume that exec, set and get affect each window. */
   int (*exec)(void *, char *);
-  int (*set)(void *, char *, char *, char *);
-  void (*get)(void *, char *, char *, int);
+  int (*set)(void *, const char *, const char *, const char *);
+  void (*get)(void *, const char *, const char *, int);
 
   /* Assume that saved, set_font and set_color affect all window. */
   void (*saved)(void); /* Event that mlterm/main file was changed. */
 
-  void (*set_font)(void *, char *, char *, char *, int);
-  void (*get_font)(void *, char *, char *, int);
-  void (*set_color)(void *, char *, char *, char *, int);
-  void (*get_color)(void *, char *, int);
+  void (*set_font)(void *, const char *, const char *, char *, int);
+  void (*get_font)(void *, const char *, const char *, int);
+  void (*set_color)(void *, const char *, const char *, const char *, int);
+  void (*get_color)(void *, const char *, int);
 
 } vt_config_event_listener_t;
 

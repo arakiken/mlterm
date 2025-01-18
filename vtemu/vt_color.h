@@ -85,7 +85,7 @@ void vt_color_config_init(void);
 
 void vt_color_config_final(void);
 
-int vt_customize_color_file(char *color, char *rgb, int save);
+int vt_customize_color_file(const char *color, const char *rgb, int save);
 
 char *vt_get_color_name(vt_color_t color);
 
