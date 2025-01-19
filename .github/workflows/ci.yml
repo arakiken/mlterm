@@ -34,7 +34,10 @@ jobs:
       - name: configure
         run: |
           (cd uitoolkit/wayland && sh ./rescanproto.sh)
-          CONFIGURE_ARGS="--with-gui=xlib,fb,console,wayland,sdl2"
+          curl -L https://github.com/arakiken/mosh/archive/refs/heads/sixel-winsock.zip > mosh.zip
+          unzip mosh.zip
+          (cd mosh-sixel-winsock; ./configure)
+          CONFIGURE_ARGS="--with-gui=xlib,fb,console,wayland,sdl2 --with-mosh=$PWD/mosh-sixel-winsock"
           CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" ./configure ${CONFIGURE_ARGS}
 
       - name: build
@@ -45,6 +48,20 @@ jobs:
           (cd gtk && make && make install)
           java_ver=`javac --version|sed 's/javac \([0-9]*\).*/\1/'`
           if test "$java_ver" != ""; then (cd java; cat Makefile | sed s/java-23-openjdk/java-${java_ver}-openjdk-amd64/ > Makefile.2; mv Makefile.2 Makefile; make); fi
+
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r26d
+      - name: build
+        run: |
+          (cd android; ./prepare-gradle.sh $HOME/mlterm-android)
+          (cd $HOME/mlterm-android; ./build-gradle.sh)
 
   build-macos:
     strategy:
