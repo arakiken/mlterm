@@ -139,7 +139,8 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:$GRADLE_VER'
+        //classpath 'com.android.tools.build:gradle:$GRADLE_VER'
+        classpath 'com.android.tools.build:gradle:8.8.0'
     }
 }
 
