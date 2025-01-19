@@ -1,5 +1,9 @@
 2025-01-19  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_pty_mosh.cpp: Add const.
+
+	* ci.yml: build-msys2 -> build-msys2 and build-msys2-with-mosh
+
 	* ci.yml: Add --with-mosh in build-msys2.
 
 	* prepare-gradle.sh: Add --scan and --overwrite options to gradle.
