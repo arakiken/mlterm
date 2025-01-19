@@ -131,7 +131,7 @@ cat << END > ${PROJECT_PATH}/build.gradle
 buildscript {
     repositories {
         jcenter()
-        //google()
+        google()
         maven {
             url 'https://maven.google.com/'
             name 'Google'
@@ -146,7 +146,7 @@ buildscript {
 allprojects {
    repositories {
        jcenter()
-       //google()
+       google()
        maven {
            url 'https://maven.google.com/'
            name 'Google'
