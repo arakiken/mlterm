@@ -13,7 +13,7 @@ if test "$JAVA_HOME" = ""; then
 	exit 1
 fi
 
-V=1 ./gradlew assembleRelease
+V=1 ./gradlew assembleRelease --scan
 
 jarsigner -verbose -sigalg MD5withRSA -digestalg SHA1 app/build/outputs/apk/release/app-release-unsigned.apk mlterm
 #"${ANDROID_HOME}/platform-tools/adb" connect localhost
