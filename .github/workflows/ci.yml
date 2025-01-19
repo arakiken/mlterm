@@ -160,7 +160,6 @@ jobs:
           curl -L https://github.com/arakiken/mosh/archive/refs/heads/sixel-winsock.zip > mosh.zip
           unzip mosh.zip
           sed 's/^Libs:.\(.*\)/Libs:\1 -lws2_32/' /ucrt64/lib/pkgconfig/libssh2.pc > libssh2.pc; mv libssh2.pc /ucrt64/lib/pkgconfig
-          (cd /ucrt64/include; mkdir netinet; touch langinfo.h netdb.h netinet/in.h sys/ioctl.h sys/resource.h sys/socket.h sys/stat.h termios.h)
           (cd mosh-sixel-winsock; autoconf; ./configure)
           CFLAGS="-Wall -g -O2" ./configure --with-gui=win32 --with-mosh=$PWD/mosh-sixel-winsock
           make
