@@ -154,12 +154,15 @@ jobs:
         with:
           msystem: UCRT64
           update: true
-          install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libssh2 mingw-w64-ucrt-x86_64-gtk3
+          install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libssh2 mingw-w64-ucrt-x86_64-gtk3 mingw-w64-ucrt-x86_64-protobuf
       - name: CI-Build
         run: |
           curl -L https://mlterm.sourceforge.net/vte-headers.tar.gz > vte-headers.tar.gz
           tar xzvf vte-headers.tar.gz -C D:/a/_temp/msys64/ucrt64
-          CFLAGS="-Wall -g -O2" ./configure --with-gui=win32
+          curl -L https://github.com/arakiken/mosh/archive/refs/heads/sixel-winsock.zip > mosh.zip
+          unzip mosh.zip
+          (cd mosh-sixel-winsock; autoconf; ./configure)
+          CFLAGS="-Wall -g -O2" ./configure --with-gui=win32 --with-mosh=$PWD/mosh-sixel-winsock
           make
           DESTDIR=/tmp make install
           (cd gtk && make && make install)
