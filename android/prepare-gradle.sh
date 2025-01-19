@@ -79,7 +79,7 @@ else
 	mkdir -p ${PROJECT_PATH}/app/src/main
 fi
 
-(cd ${PROJECT_PATH}; rm build.gradle settings.gradle app/build.gradle; gradle init)
+(cd ${PROJECT_PATH}; rm build.gradle settings.gradle app/build.gradle; gradle init --overwrite --scan)
 if [ $? != 0 ]; then
 	echo "Install and setup gradle in advance."
 	exit 1
