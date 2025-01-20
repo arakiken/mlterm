@@ -1,5 +1,7 @@
 2025-01-20  Araki Ken  <arakiken@users.sf.net>
 
+	* AndroidManifest.xml: android:minSdkVersion: 9 -> 21
+
 	* build.gradle:
 	  - minSdkVersion: 14 -> 21
 	  - abiFilters: x86 -> x86_64

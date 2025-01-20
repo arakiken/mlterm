@@ -364,7 +364,6 @@ void vt_destroy_term(vt_term_t *term) {
    */
 
   for (count = 0; count < num_terms; count++) {
-    bl_debug_printf("searching %p == %p\n", terms[count], term);
     if (terms[count] == term) {
       terms[count] = terms[--num_terms];
 

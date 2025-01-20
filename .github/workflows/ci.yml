@@ -175,7 +175,7 @@ jobs:
           mt=`ls /c/Program\ Files\ \(x86\)\/Windows\ Kits\/*\/bin\/*\/x64\/mt.exe | head -n 1`
           echo $mt
           if test "$mt" != ""; then for f in dist/*.exe; do "$mt" -manifest win32/mlterm.manifest -outputresource:$f; done; fi
-          (cd dist; ldd *.exe | sed -n 's/.*=> \([^ ]*\) .*/\1/p' | grep --ignore-case -v /WINDOWS/ | grep -v /dist/ | xargs | sed 's/\(.*\)/cp \1 ./' | sh)
+          (cd dist; ldd *.exe libptymosh.dll libptyssh.dll | sed -n 's/.*=> \([^ ]*\) .*/\1/p' | grep --ignore-case -v /WINDOWS/ | grep -v /dist/ | xargs | sed 's/\(.*\)/cp \1 ./' | sh)
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
