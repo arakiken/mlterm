@@ -4,12 +4,12 @@ android {
     namespace = "mlterm.native_activity"
 
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion 21
         targetSdkVersion 24
         compileSdkVersion 24
 
         ndk {
-            abiFilters 'x86', 'armeabi-v7a'
+            abiFilters 'x86_64', 'armeabi-v7a'
         }
     }
 
