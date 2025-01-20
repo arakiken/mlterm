@@ -9,7 +9,6 @@
 #if defined(__ANDROID__)
 #include <sys/stat.h>
 #elif defined(USE_WIN32API)
-#include <sys/stat.h>
 #include <windows.h> /* IsDBCSLeadByte */
 #endif
 

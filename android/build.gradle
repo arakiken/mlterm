@@ -1,6 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace = "mlterm.native_activity"
+
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 24

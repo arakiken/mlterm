@@ -1,3 +1,9 @@
+2025-01-20  Araki Ken  <arakiken@users.sf.net>
+
+	* AndroidManifest.xml, build.gradle: Remove package and add namespace.
+
+	* bl_path.c: Remove #include <sys/stat.h> if USE_WIN32API is defined.
+
 2025-01-19  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_pty_mosh.cpp: Add const.

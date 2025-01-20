@@ -54,10 +54,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
           ndk-version: r26d
+
       - name: build
         run: |
           (cd android; ./prepare-gradle.sh $HOME/mlterm-android)
@@ -104,6 +106,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Install packages and run configure and make (on the NetBSD VM)
         uses: vmactions/netbsd-vm@v1
         with:
@@ -129,6 +132,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Install packages and run configure and make (on the FreeBSD VM)
         uses: vmactions/freebsd-vm@v1
         with:
@@ -150,12 +154,14 @@ jobs:
         shell: msys2 {0}
     steps:
       - uses: actions/checkout@v3
+
       - uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
           update: true
           install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libssh2 mingw-w64-ucrt-x86_64-gtk3 unzip mingw-w64-ucrt-x86_64-autotools mingw-w64-ucrt-x86_64-protobuf
-      - name: CI-Build
+
+      - name: build
         run: |
           curl -L https://github.com/arakiken/mosh/archive/refs/heads/sixel-winsock.zip > mosh.zip
           unzip mosh.zip
@@ -164,13 +170,13 @@ jobs:
           CFLAGS="-Wall -g -O2" ./configure --with-gui=win32 --with-mosh=$PWD/mosh-sixel-winsock
           make
           DESTDIR=/tmp make install
-          (cd gtk && make && make install)
           mkdir dist
           cp /tmp/ucrt64/bin/*.exe /tmp/ucrt64/bin/*.dll /tmp/ucrt64/lib/*/*.dll dist/
           mt=`ls /c/Program\ Files\ \(x86\)\/Windows\ Kits\/*\/bin\/*\/x64\/mt.exe | head -n 1`
           echo $mt
           if test "$mt" != ""; then for f in dist/*.exe; do "$mt" -manifest win32/mlterm.manifest -outputresource:$f; done; fi
           (cd dist; ldd *.exe | sed -n 's/.*=> \([^ ]*\) .*/\1/p' | grep --ignore-case -v /WINDOWS/ | grep -v /dist/ | xargs | sed 's/\(.*\)/cp \1 ./' | sh)
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -185,12 +191,14 @@ jobs:
         shell: msys2 {0}
     steps:
       - uses: actions/checkout@v3
+
       - uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
           update: true
           install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libssh2 mingw-w64-ucrt-x86_64-gtk3
-      - name: CI-Build
+
+      - name: build
         run: |
           curl -L https://mlterm.sourceforge.net/vte-headers.tar.gz > vte-headers.tar.gz
           tar xzvf vte-headers.tar.gz -C D:/a/_temp/msys64/ucrt64
@@ -204,6 +212,7 @@ jobs:
           echo $mt
           if test "$mt" != ""; then for f in dist/*.exe; do "$mt" -manifest win32/mlterm.manifest -outputresource:$f; done; fi
           (cd dist; ldd *.exe | sed -n 's/.*=> \([^ ]*\) .*/\1/p' | grep --ignore-case -v /WINDOWS/ | grep -v /dist/ | xargs | sed 's/\(.*\)/cp \1 ./' | sh)
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
