@@ -3,11 +3,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 LOCAL_MODULE := mlterm
 
-ifneq (,$(wildcard src/main/jni))
-	JNI_PATH := src/main/jni/
-else
-	JNI_PATH :=
-endif
+JNI_PATH := $(LOCAL_PATH)/
 
 ifneq (,$(wildcard $(JNI_PATH)fribidi/fribidi.c))
 	FRIBIDI_SRC_FILES := fribidi/fribidi.c fribidi/fribidi-arabic.c \

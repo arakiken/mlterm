@@ -1,3 +1,7 @@
+2025-01-21  Araki Ken  <arakiken@users.sf.net>
+
+	* Android.mk: JNI_PATH: src/main/jni/ -> $(LOCAL_PATH)/
+
 2025-01-20  Araki Ken  <arakiken@users.sf.net>
 
 	* AndroidManifest.xml: android:minSdkVersion: 9 -> 21
