@@ -26,7 +26,7 @@ static void (*dl_zmodem)(unsigned char *, const unsigned int, unsigned char *, u
                       const unsigned int);
 static Q_BOOL (*dl_zmodem_start)(struct file_info *, const char *, const Q_BOOL,
                                  const ZMODEM_FLAVOR, int);
-static Q_BOOL (*dl_zmodem_cancel)(void);
+static void (*dl_zmodem_cancel)(void);
 static Q_BOOL (*dl_zmodem_is_processing)(int *, int *);
 
 static int is_tried;
