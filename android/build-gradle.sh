@@ -18,5 +18,8 @@ V=1 ./gradlew assembleRelease --scan --warning-mode all
 jarsigner -verbose -sigalg MD5withRSA -digestalg SHA1 app/build/outputs/apk/release/app-release-unsigned.apk mlterm
 #"${ANDROID_HOME}/platform-tools/adb" connect localhost
 #"${ANDROID_HOME}/platform-tools/adb" uninstall mlterm.native_activity
-"${ANDROID_HOME}/platform-tools/adb" install -r bin/mlterm-release-unsigned.apk
-"${ANDROID_HOME}/platform-tools/adb" logcat
+
+if [ "$1" = "install" ]; then
+	"${ANDROID_HOME}/platform-tools/adb" install -r app/build/outputs/apk/release/app-release-unsigned.apk
+	"${ANDROID_HOME}/platform-tools/adb" logcat
+fi

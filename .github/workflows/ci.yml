@@ -65,6 +65,12 @@ jobs:
           (cd android; ./prepare-gradle.sh $HOME/mlterm-android)
           (cd $HOME/mlterm-android; ./build-gradle.sh)
 
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlterm-android
+          path: $HOME/mlterm-android/app/build/outputs/apk/release/app-release-unsigned.apk
+
   build-macos:
     strategy:
       matrix:

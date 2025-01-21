@@ -1,5 +1,10 @@
 2025-01-22  Araki Ken  <arakiken@users.sf.net>
 
+	* ci.yml: Add "Upload artifacts" to build-android.
+
+	* build-ant.sh, build-gradle.sh: Execute "adb install" and "adb logcat"
+	  only if "install" argument is specified.
+
 	* vt_transfer.c: Change the return value of dl_zmodem_cancel from QBOOL
 	  to void.
 
