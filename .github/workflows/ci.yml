@@ -48,7 +48,7 @@ jobs:
           (cd gtk && make && make install)
           java_ver=`javac --version|sed 's/javac \([0-9]*\).*/\1/'`
           if test "$java_ver" != ""; then (cd java; cat Makefile | sed s/java-23-openjdk/java-${java_ver}-openjdk-amd64/ > Makefile.2; mv Makefile.2 Makefile; make); fi
-          (cd main; ./mlterm --test)
+          (cd main; ./mlterm --test --logmsg=false)
 
   build-android:
     runs-on: ubuntu-latest
@@ -65,12 +65,13 @@ jobs:
         run: |
           (cd android; ./prepare-gradle.sh $HOME/mlterm-android 8.8.0)
           (cd $HOME/mlterm-android; ./build-gradle.sh)
+          mkdir dist; cp `find $HOME/mlterm-android -name *.apk` dist
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: mlterm-android
-          path: $HOME/mlterm-android/app/build/outputs/apk/release/app-release-unsigned.apk
+          path: dist/*.apk
 
   build-macos:
     strategy:
