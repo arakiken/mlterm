@@ -14,6 +14,7 @@
 #include "fb/ui_display.h"
 #include "ui_window.h"
 #include "ui_screen.h"
+#include "ui_screen_manager.h"
 
 #define UIWINDOW_OF(term) \
   ((term)->parser->xterm_listener ? (term)->parser->xterm_listener->self : NULL)
