@@ -135,7 +135,7 @@ elif [ $# = 4 ]; then
 else
 	# gradle version and plugin version don't necessarily match.
 	# -> https://developer.android.com/build/releases/gradle-plugin?hl=ja#updating-gradle
-	PLUGIN_VER=`gradle --version|sed -n 's/Gradle \([0-9.]*\)/\1/p'`
+	PLUGIN_VERSION=`gradle --version|sed -n 's/Gradle \([0-9.]*\)/\1/p'`
 fi
 
 cat << END > ${PROJECT_PATH}/build.gradle
@@ -150,7 +150,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:$PLUGIN_VER'
+        classpath 'com.android.tools.build:gradle:$PLUGIN_VERSION'
     }
 }
 
