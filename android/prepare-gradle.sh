@@ -1,8 +1,10 @@
 #!/bin/sh
 
-if [ $# != 1 -a $# != 3 ]; then
+if [ $# -gt 0 -a $# -lt 5 ]; then
 	echo "Usage: prepare.sh [android project path]"
+	echo "Usage: prepare.sh [android project path] [plugin version]"
 	echo "       prepare.sh [android project path] [mosh src path] [openssl src path]"
+	echo "       prepare.sh [android project path] [mosh src path] [openssl src path] [plugin version]"
 	echo "(prepare.sh ~/work/mlterm-x.x.x/android => setup at ~/work/mlterm-x.x.x/android)"
 	echo "(prepare.sh . => setup at the current directory)"
 	exit 1
@@ -14,7 +16,7 @@ echo "Prepare to build for android. (project: ${PROJECT_PATH})"
 echo "Press enter key to continue."
 read IN
 
-if [ $# = 3 ]; then
+if [ $# = 3 -o $# = 4 ]; then
 	MOSH_SRC_PATH=$2
 	OPENSSL_SRC_PATH=$3
 
@@ -126,7 +128,16 @@ cp src/mlterm/native_activity/*.java ${PROJECT_PATH}/app/src/main/java/mlterm/na
 
 cp -R res ${PROJECT_PATH}/app/src/main
 
-GRADLE_VER=`gradle --version|sed -n 's/Gradle \([0-9.]*\)/\1/p'`
+if [ $# = 2 ]; then
+	PLUGIN_VERSION=$2
+elif [ $# = 4 ]; then
+	PLUGIN_VERSION=$4
+else
+	# gradle version and plugin version don't necessarily match.
+	# -> https://developer.android.com/build/releases/gradle-plugin?hl=ja#updating-gradle
+	PLUGIN_VER=`gradle --version|sed -n 's/Gradle \([0-9.]*\)/\1/p'`
+fi
+
 cat << END > ${PROJECT_PATH}/build.gradle
 buildscript {
     repositories {
@@ -139,8 +150,7 @@ buildscript {
     }
 
     dependencies {
-        //classpath 'com.android.tools.build:gradle:$GRADLE_VER'
-        classpath 'com.android.tools.build:gradle:8.8.0'
+        classpath 'com.android.tools.build:gradle:$PLUGIN_VER'
     }
 }
 

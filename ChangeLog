@@ -1,3 +1,16 @@
+2025-01-25  Araki Ken  <arakiken@users.sf.net>
+
+	* main_loop.c: Add --test option in debug mode.
+
+	* jni/ui_display.c, jni/ui_event_source.c, jni/main.c:
+	  ALooper_pollAll (deprecated) -> ALooper_pollOnce
+
+	* prepare-gradle.sh: Add [plugin version] option.
+
+	* ui_event_source.c: Fix error in 1c823122018564c0fffa010abefaf0273914296d.
+
+	* vt_pty.h: Revive OPEN_PTY_ASYNC in win32.
+
 2025-01-22  Araki Ken  <arakiken@users.sf.net>
 
 	* ci.yml: Add "Upload artifacts" to build-android.

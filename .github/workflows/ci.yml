@@ -38,7 +38,7 @@ jobs:
           unzip mosh.zip
           (cd mosh-sixel-winsock; autoconf; ./configure)
           CONFIGURE_ARGS="--with-gui=xlib,fb,console,wayland,sdl2 --with-mosh=$PWD/mosh-sixel-winsock"
-          CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" ./configure ${CONFIGURE_ARGS}
+          CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" ./configure --enable-debug ${CONFIGURE_ARGS}
 
       - name: build
         run: |
@@ -48,6 +48,7 @@ jobs:
           (cd gtk && make && make install)
           java_ver=`javac --version|sed 's/javac \([0-9]*\).*/\1/'`
           if test "$java_ver" != ""; then (cd java; cat Makefile | sed s/java-23-openjdk/java-${java_ver}-openjdk-amd64/ > Makefile.2; mv Makefile.2 Makefile; make); fi
+          (cd main; ./mlterm --test)
 
   build-android:
     runs-on: ubuntu-latest
@@ -62,7 +63,7 @@ jobs:
 
       - name: build
         run: |
-          (cd android; ./prepare-gradle.sh $HOME/mlterm-android)
+          (cd android; ./prepare-gradle.sh $HOME/mlterm-android 8.8.0)
           (cd $HOME/mlterm-android; ./build-gradle.sh)
 
       - name: Upload artifacts

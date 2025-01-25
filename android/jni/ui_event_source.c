@@ -230,8 +230,8 @@ int ui_event_source_process(void) {
    * Don't block ALooper_pollAll because commit_text or preedit_text can
    * be changed from main thread.
    */
-  ident = ALooper_pollAll(timeout, /* milisec. -1 blocks forever waiting for events */
-                          NULL, &events, (void **)&source);
+  ident = ALooper_pollOnce(timeout, /* milisec. -1 blocks forever waiting for events */
+                           NULL, &events, (void **)&source);
 
   pthread_mutex_lock(&mutex);
 

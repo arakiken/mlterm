@@ -3,7 +3,15 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 LOCAL_MODULE := mlterm
 
-JNI_PATH := $(LOCAL_PATH)/
+ifneq (,$(wildcard src/main/jni))
+	JNI_PATH := src/main/jni/
+else
+ifneq (,$(wildcard Android.mk))
+	JNI_PATH :=
+else
+	JNI_PATH := $(LOCAL_PATH)/
+endif
+endif
 
 ifneq (,$(wildcard $(JNI_PATH)fribidi/fribidi.c))
 	FRIBIDI_SRC_FILES := fribidi/fribidi.c fribidi/fribidi-arabic.c \

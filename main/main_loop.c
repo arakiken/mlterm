@@ -97,6 +97,9 @@ static int get_font_size_range(u_int *min, u_int *max, const char *str) {
 #ifdef USE_LIBSSH2
 static void ssh_keepalive(void) { vt_pty_ssh_keepalive(100); }
 #endif
+#ifdef BL_DEBUG
+void test(void); /* test.c */
+#endif
 
 /* --- global functions --- */
 
@@ -255,6 +258,9 @@ int main_loop_init(int argc, char **argv) {
                   " [false]"
 #endif
                   );
+#endif
+#ifdef BL_DEBUG
+  bl_conf_add_opt(conf, '\0', "test", 1, "test", "execute tests");
 #endif
 
   orig_argv = argv;
@@ -462,6 +468,15 @@ int main_loop_init(int argc, char **argv) {
   if ((value = bl_conf_get_value(conf, "use_point_size"))) {
     if (strcmp(value, "true") == 0) {
       ui_font_use_point_size(1);
+    }
+  }
+#endif
+
+#ifdef BL_DEBUG
+  if ((value = bl_conf_get_value(conf, "test"))) {
+    if (strcmp(value, "true") == 0) {
+      test();
+      exit(0);
     }
   }
 #endif

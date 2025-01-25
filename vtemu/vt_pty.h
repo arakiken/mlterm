@@ -23,6 +23,7 @@
  */
 #if (defined(USE_WIN32API) && !defined(OPEN_PTY_SYNC)) || \
     (defined(HAVE_PTHREAD) && (defined(__CYGWIN__) || defined(__MSYS__)))
+#define OPEN_PTY_ASYNC
 #endif
 
 #endif /* USE_LIBSSH2 */

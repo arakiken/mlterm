@@ -66,7 +66,7 @@ static void finish(struct android_app *app) {
 
     ui_display_final(); /* Calls ANativeActivity_finish() */
 
-    while ((ident = ALooper_pollAll(-1, NULL, &events, (void **)&source)) >= 0 &&
+    while ((ident = ALooper_pollOnce(-1, NULL, &events, (void **)&source)) >= 0 &&
            ui_display_process_event(source, ident));
 }
 

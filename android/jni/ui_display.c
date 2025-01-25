@@ -468,6 +468,9 @@ static int32_t on_input_event(struct android_app *app, AInputEvent *event) {
   }
 }
 
+/* XXX defined in fb/ui_window.c */
+void ui_window_clear_margin_area(ui_window_t *win);
+
 static void update_window(ui_window_t *win) {
   u_int count;
 
@@ -792,8 +795,8 @@ int ui_display_init(struct android_app *app) {
   app->onAppCmd = on_app_cmd;
 
   do {
-    if ((ident = ALooper_pollAll(-1 /* block forever waiting for events */, NULL, &events,
-                                 (void **)&source)) >= 0) {
+    if ((ident = ALooper_pollOnce(-1 /* block forever waiting for events */, NULL, &events,
+                                  (void **)&source)) >= 0) {
       /* Process this event. */
       if (source) {
         (*source->process)(app, source);
