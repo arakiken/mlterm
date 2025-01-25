@@ -9,6 +9,7 @@
 #endif
 #include "uitoolkit/fb/ui_display.h"
 #include "uitoolkit/ui_event_source.h"
+#include "main_loop.h"
 
 #ifdef SYSCONFDIR
 #define CONFIG_PATH SYSCONFDIR
@@ -71,6 +72,8 @@ static void finish(struct android_app *app) {
 }
 
 /* --- global functions --- */
+
+int ui_screen_manager_suspend(void); /* ui_screen_manager.c */
 
 void android_main(struct android_app *app) {
   int argc = 1;

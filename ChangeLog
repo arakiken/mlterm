@@ -1,7 +1,9 @@
 2025-01-25  Araki Ken  <arakiken@users.sf.net>
 
+	* jni/main.c: Add "#include "main_loop.h"" for main_loop_{init|start}().
+
 	* jni/ui_event_source.c:
-	  Add "#include "ui_screen_manager.h" for ui_close_dead_screens().
+	  Add "#include "ui_screen_manager.h"" for ui_close_dead_screens().
 
 	* main_loop.c: Add --test option in debug mode.
 
