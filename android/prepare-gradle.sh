@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ $# -gt 0 -a $# -lt 5 ]; then
+if [ $# -lt 1 -o $# -gt 4 ]; then
 	echo "Usage: prepare.sh [android project path]"
 	echo "Usage: prepare.sh [android project path] [plugin version]"
 	echo "       prepare.sh [android project path] [mosh src path] [openssl src path]"
