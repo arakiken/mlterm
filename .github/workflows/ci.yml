@@ -34,8 +34,8 @@ jobs:
       - name: configure
         run: |
           (cd uitoolkit/wayland && sh ./rescanproto.sh)
-          curl -L https://github.com/arakiken/mosh/archive/refs/heads/sixel-winsock.zip > mosh.zip
-          unzip mosh.zip
+          curl -L -O https://github.com/arakiken/mosh/archive/refs/heads/sixel-winsock.zip
+          unzip sixel-winsock.zip
           (cd mosh-sixel-winsock; autoconf; ./configure)
           CONFIGURE_ARGS="--with-gui=xlib,fb,console,wayland,sdl2 --with-mosh=$PWD/mosh-sixel-winsock"
           CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" ./configure --enable-debug ${CONFIGURE_ARGS}
@@ -81,7 +81,7 @@ jobs:
           (cd protobuf-3.20.1; CC="$CLANG_ARMV7A -fPIC" CXX="${CLANG_ARMV7A}++ -fPIC" ./configure --host=armv7a-linux-androideabi --disable-shared --prefix=$HOME/mlterm-android/jni/protobuf/armeabi-v7a; make; make install)
           curl -L -O https://github.com/arakiken/mosh/archive/refs/heads/sixel-winsock.zip
           unzip sixel-winsock.zip
-          (cd mosh-sixel-winsock; autoconf; PATH=$HOME/mlterm-android/jni/protobuf/armeabi-v7a/bin:$PATH LIBRARY_PATH=$HOME/libressl/lib:$LIBRARY_PATH C_INCLUDE_PATH=$HOME/libressl/include:$C_INCLUDE_PATH CC="$CLANG_ARMV7A -fPIC" CXX="${CLANG_ARMV7A}++ -fPIC" ./configure --host=armv7a-linux-androideabi)
+          (cd mosh-sixel-winsock; autoconf; PATH=$HOME/mlterm-android/jni/protobuf/armeabi-v7a/bin:$PATH CC="$CLANG_ARMV7A -fPIC -L$HOME/libressl/lib" CXX="${CLANG_ARMV7A}++ -fPIC -L$HOME/libressl/lib" ./configure --host=armv7a-linux-androideabi)
           (cd android; ./prepare-gradle.sh $HOME/mlterm-android $HOME/mosh-sixel-winsock $HOME/libressl 8.8.0)
           (cd $HOME/mlterm-android; ./build-gradle.sh)
           mkdir dist; cp `find $HOME/mlterm-android -name *.apk` dist
