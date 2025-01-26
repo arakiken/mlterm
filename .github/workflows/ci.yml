@@ -75,6 +75,7 @@ jobs:
           tar xvf libressl-4.0.0.tar.gz
           (cd libressl-4.0.0; CC="$CLANG_ARMV7A -fPIC" ./configure --host=armv7a-linux-androideabi --disable-shared --prefix=$HOME/libressl; make; make install)
           curl -L -O https://libssh2.org/download/libssh2-1.11.1.tar.gz
+          tar xvf libssh2-1.11.1.tar.gz
           (cd libssh2-1.11.1; CC="$CLANG_ARMV7A -fPIC" ./configure --host=armv7a-linux-androideabi --disable-shared --prefix=$HOME/mlterm-android/jni/libssh2/armeabi-v7a --with-libssl-prefix=$HOME/libressl; make; make install)
           (cd $HOME/mlterm-android; ./build-gradle.sh)
           mkdir dist; cp `find $HOME/mlterm-android -name *.apk` dist
