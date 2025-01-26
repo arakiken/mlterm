@@ -148,12 +148,12 @@ make install
     Check crash logs with logcat command.
 
   o Following steps enable mosh.
-    - Execute ./configure in mosh.
-
     - Build static library of protobuf for Android and place it as follows.
 
       C Header files: jni/protobuf/{armeabi,armeabi-v7,x86,mips}/include/
       Static library: jni/protobuf/{armeabi,armeabi-v7,x86,mips}/lib/
+
+    - Execute ./configure in mosh.
 
     - Build and install mlterm. (See "Build with gradle")
       Specify mosh and openssl (or libressl) src directories to 2nd and 3rd

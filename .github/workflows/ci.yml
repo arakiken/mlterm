@@ -63,7 +63,6 @@ jobs:
 
       - name: build
         run: |
-          (cd android; ./prepare-gradle.sh $HOME/mlterm-android 8.8.0)
           CLANG_ARMV7A=`ls $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi*-clang|tail -n 1`
           curl -L -O https://github.com/fribidi/fribidi/releases/download/0.19.6/fribidi-0.19.6.tar.bz2
           tar xvf fribidi-0.19.6.tar.bz2
@@ -77,6 +76,12 @@ jobs:
           curl -L -O https://libssh2.org/download/libssh2-1.11.1.tar.gz
           tar xvf libssh2-1.11.1.tar.gz
           (cd libssh2-1.11.1; CC="$CLANG_ARMV7A -fPIC" ./configure --host=armv7a-linux-androideabi --disable-shared --prefix=$HOME/mlterm-android/jni/libssh2/armeabi-v7a --with-libssl-prefix=$HOME/libressl; make; make install)
+          curl -L -O https://github.com/protocolbuffers/protobuf/releases/download/v3.20.1/protobuf-all-3.20.1.tar.gz
+          (cd protobuf-3.20.1; CC="$CLANG_ARMV7A -fPIC" CXX="${CLANG_ARMV7A}++ -fPIC" ./configure --host=armv7a-linux-androideabi --disable-shared --prefix=$HOME/mlterm-android/jni/protobuf/armeabi-v7a; make; make install)
+          curl -L -O https://github.com/arakiken/mosh/archive/refs/heads/sixel-winsock.zip
+          unzip sixel-winsock.zip
+          (cd mosh-sixel-winsock; autoconf; PATH=$HOME/mlterm-android/jni/protobuf/armeabi-v7a/bin:$PATH CC="$CLANG_ARMV7A -fPIC" CXX="${CLANG_ARMV7A}++ -fPIC" ./configure)
+          (cd android; ./prepare-gradle.sh $HOME/mlterm-android $HOME/mosh-sixel-winsock $HOME/libressl 8.8.0)
           (cd $HOME/mlterm-android; ./build-gradle.sh)
           mkdir dist; cp `find $HOME/mlterm-android -name *.apk` dist
 
