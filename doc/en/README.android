@@ -114,7 +114,7 @@ e.g.) freetype2
 export ANDROID_HOME=/usr/lib/android-sdk
 export ANDROID_NDK_HOME=/usr/lib/android-sdk/ndk/XX.X.XXXXXXX
 export JAVA_HOME=/usr/lib/jvm/java-X.X.X-openjdk-amd64/
-CC="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabiXX-clang -fPIC" ./configure --host=armv7a-linux-androideabi --prefix=/tmp --disable-shared --with-png=no
+CC="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabiXX-clang -fPIC" ./configure --host=armv7a-linux-androideabi --prefix=/tmp --disable-shared --with-png=no --with-harfbuzz=no --with-bzip2=no --with-brotli=no
 make
 make install
 
