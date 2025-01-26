@@ -63,17 +63,18 @@ jobs:
 
       - name: build
         run: |
+          CLANG_ARMV7A=`ls $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi*-clang`
           curl -L -O https://github.com/fribidi/fribidi/releases/download/0.19.6/fribidi-0.19.6.tar.bz2
           tar xvf fribidi-0.19.6.tar.bz2
-          (cd fribidi-0.19.6; CC="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi*-clang -fPIC" ./configure; mkdir $HOME/mlterm-android/jni/fribidi; cp `find . -name *.[chi]` $HOME/mlterm-android/jni/fribidi)
+          (cd fribidi-0.19.6; CC="$CLANG_ARMV7A -fPIC" ./configure; mkdir $HOME/mlterm-android/jni/fribidi; cp `find . -name *.[chi]` $HOME/mlterm-android/jni/fribidi)
           curl -L -O https://download.savannah.gnu.org/releases/freetype/freetype-2.13.3.tar.xz
           tar xvf freetype-2.13.3.tar.gz
-          (cd freetype-2.13.3; sh ./autogen.sh; CC="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi*-clang -fPIC" ./configure --prefix=$HOME/freetype/armeabi-v7a; make; make install)
+          (cd freetype-2.13.3; sh ./autogen.sh; CC="$CLANG_ARMV7A -fPIC" ./configure --prefix=$HOME/freetype/armeabi-v7a; make; make install)
           curl -L -O https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-4.0.0.tar.gz
           tar xvf libressl-4.0.0.tar.gz
-          (cd libressl-4.0.0; CC="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi*-clang -fPIC" ./configure --prefix=$HOME/libressl; make; make install)
+          (cd libressl-4.0.0; CC="$CLANG_ARMV7A -fPIC" ./configure --prefix=$HOME/libressl; make; make install)
           curl -L https://libssh2.org/download/libssh2-1.11.1.tar.gz
-          (cd libssh2-1.11.1; CC="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi*-clang -fPIC" ./configure --prefix=$HOME/freetype/armeabi-v7a --with-libssl-prefix=$HOME/libressl; make; make install)
+          (cd libssh2-1.11.1; CC="$CLANG_ARMV7A -fPIC" ./configure --prefix=$HOME/freetype/armeabi-v7a --with-libssl-prefix=$HOME/libressl; make; make install)
           (cd android; ./prepare-gradle.sh $HOME/mlterm-android 8.8.0)
           (cd $HOME/mlterm-android; ./build-gradle.sh)
           mkdir dist; cp `find $HOME/mlterm-android -name *.apk` dist
