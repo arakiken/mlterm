@@ -64,9 +64,9 @@ jobs:
       - name: build
         run: |
           CLANG_ARMV7A=`ls $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi*-clang|tail -n 1`
-          curl -L -O https://github.com/fribidi/fribidi/releases/download/0.19.6/fribidi-0.19.6.tar.bz2
-          tar xvf fribidi-0.19.6.tar.bz2
-          (cd fribidi-0.19.6; CC="$CLANG_ARMV7A -fPIC" ./configure --host=armv7a-linux-androideabi; mkdir -p $HOME/mlterm-android/jni/fribidi; cp `find . -name *.[chi]` $HOME/mlterm-android/jni/fribidi)
+          curl -L -O https://github.com/fribidi/fribidi/releases/download/0.19.7/fribidi-0.19.7.tar.bz2
+          tar xvf fribidi-0.19.7.tar.bz2
+          (cd fribidi-0.19.7; CC="$CLANG_ARMV7A -fPIC" ./configure --host=armv7a-linux-androideabi; mkdir -p $HOME/mlterm-android/jni/fribidi; cp `find . -name *.[chi]` $HOME/mlterm-android/jni/fribidi)
           curl -L -O https://download.savannah.gnu.org/releases/freetype/freetype-2.13.3.tar.gz
           tar xvf freetype-2.13.3.tar.gz
           (cd freetype-2.13.3; sh ./autogen.sh; CC="$CLANG_ARMV7A -fPIC" ./configure --host=armv7a-linux-androideabi --disable-shared --with-png=no --with-harfbuzz=no --with-bzip2=no --with-brotli=no --prefix=$HOME/mlterm-android/jni/freetype/armeabi-v7a; make; make install)
@@ -82,7 +82,7 @@ jobs:
           curl -L -O https://github.com/arakiken/mosh/archive/refs/heads/sixel-winsock.zip
           unzip sixel-winsock.zip
           (cd mosh-sixel-winsock; autoconf; PATH=$HOME/mlterm-android/jni/protobuf/armeabi-v7a/bin:$PATH PKG_CONFIG_PATH=$HOME/libressl/lib/pkgconfig:$HOME/mlterm-android/jni/protobuf/armeabi-v7a/lib/pkgconfig:$PKG_CONFIG_PATH CC="$CLANG_ARMV7A -fPIC -L$HOME/libressl/lib" CXX="${CLANG_ARMV7A}++ -fPIC -L$HOME/libressl/lib" ./configure --host=armv7a-linux-androideabi)
-          (cd android; ./prepare-gradle.sh $HOME/mlterm-android $HOME/mosh-sixel-winsock $HOME/libressl 8.8.0)
+          (cd android; ./prepare-gradle.sh $HOME/mlterm-android $PWD/../mosh-sixel-winsock $HOME/libressl 8.8.0)
           (cd $HOME/mlterm-android; ./build-gradle.sh)
           mkdir dist; cp `find $HOME/mlterm-android -name *.apk` dist
 
