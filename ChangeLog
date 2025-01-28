@@ -1,3 +1,9 @@
+2025-01-28  Araki Ken  <arakiken@users.sf.net>
+
+	* ci.yml:
+	  - Build libotf to build-android.
+	  - mlterm-android/jni -> mlterm-android/app/src/main/jni
+
 2025-01-26  Araki Ken  <arakiken@users.sf.net>
 
 	* ci.yml: Build fribidi, freetype2, libressl and libssh2.
