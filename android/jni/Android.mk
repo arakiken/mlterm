@@ -69,6 +69,9 @@ ifneq (,$(wildcard $(JNI_PATH)libssh2/$(TARGET_ARCH_ABI)/lib/libssh2.a))
 			vtemu/libptymosh/timestamp.cc vtemu/libptymosh/completeterminal.cc \
 			vtemu/libptymosh/user.cc vtemu/libptymosh/terminaloverlay.cc
 		MOSH_INCLUDES := $(JNI_PATH)protobuf/$(TARGET_ARCH_ABI)/include $(JNI_PATH)vtemu/libptymosh
+		ifneq (,$(wildcard $(JNI_PATH)vtemu/libptymosh/ocb.cc))
+			MOSH_INCLUDES += -DMOSH_VERSION=10302
+		endif
 		# If you use -lc++_shared, add "APP_STL := c++_shared" to Aplication.mk
 		# (See https://developer.android.com/ndk/guides/cpp-support?hl=ja)
 		MOSH_LDLIBS := $(JNI_PATH)protobuf/$(TARGET_ARCH_ABI)/lib/libprotobuf.a -lc++_static

@@ -30,7 +30,7 @@ if [ $# = 3 -o $# = 4 ]; then
 
 	mkdir -p ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
 
-	CRYPTO_FILES="ae.h base64.cc base64.h byteorder.h crypto.cc crypto.h ocb.cc prng.h"
+	CRYPTO_FILES="ae.h base64.cc base64.h byteorder.h crypto.cc crypto.h prng.h"
 	STATESYNC_FILES="completeterminal.cc completeterminal.h user.cc user.h"
 	NETWORK_FILES="compressor.cc compressor.h network.cc network.h networktransport.h \
 			networktransport-impl.h transportfragment.cc transportfragment.h \
@@ -44,6 +44,17 @@ if [ $# = 3 -o $# = 4 ]; then
 			terminalframebuffer.cc terminalframebuffer.h terminalfunctions.cc \
 			terminal.h terminaluserinput.cc terminaluserinput.h"
 	FRONTEND_FILES="terminaloverlay.cc terminaloverlay.h"
+
+	if [ -f ${MOSH_SRC_PATH}/config.h ]; then
+		# 1.3.2 or before
+		cp ${MOSH_SRC_PATH}/config.h ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
+		CRYPTO_FILES="$CRYPTO_FILES ocb.cc"
+	else
+		# 1.4.0 or later
+		cp ${MOSH_SRC_PATH}/src/include/config.h ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
+		CRYPTO_FILES="$CRYPTO_FILES ocb_internal.cc"
+	fi
+	(cd ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh; cat config.h | sed 's/#define HAVE_TR1_MEMORY 1//' > config.h.2; mv config.h.2 config.h)
 
 	for f in $CRYPTO_FILES; do
 		cp ${MOSH_SRC_PATH}/src/crypto/$f ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
@@ -72,9 +83,6 @@ if [ $# = 3 -o $# = 4 ]; then
 	for f in $FRONTEND_FILES; do
 		cp ${MOSH_SRC_PATH}/src/frontend/$f ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
 	done
-
-	cp ${MOSH_SRC_PATH}/config.h ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
-	echo "Comment out \"#define HAVE_TR1_MEMORY 1\" in vtemu/libptymosh/config.h"
 
 	cp -r ${OPENSSL_SRC_PATH}/include/openssl ${PROJECT_PATH}/app/src/main/jni/vtemu/libptymosh
 else

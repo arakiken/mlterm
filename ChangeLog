@@ -1,3 +1,11 @@
+2025-01-30  Araki Ken  <arakiken@users.sf.net>
+
+	* prepare-gradle.sh: Add ocb_internal.cc instead of ocb.cc to CRYPTO_FILES
+	  if the version of mosh is 1.4.0 or later.
+
+	* Android.mk: Add -DMOSH_VERSION=10302 to MOSH_INCLUDES if the version
+	  of mosh is less than 1.4.0.
+
 2025-01-29  Araki Ken  <arakiken@users.sf.net>
 
 	* ci.yml: Build protobuf for not only armv7a but also x86.
