@@ -1,3 +1,7 @@
+2025-01-29  Araki Ken  <arakiken@users.sf.net>
+
+	* ci.yml: Build protobuf for not only armv7a but also x86.
+
 2025-01-28  Araki Ken  <arakiken@users.sf.net>
 
 	* ci.yml:
