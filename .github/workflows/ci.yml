@@ -82,7 +82,7 @@ jobs:
           curl -L -O https://github.com/protocolbuffers/protobuf/releases/download/v3.20.1/protobuf-cpp-3.20.1.tar.gz
           tar xvf protobuf-cpp-3.20.1.tar.gz
           (cd protobuf-3.20.1; CC="$CLANG_ARMV7A -fPIC" CXX="${CLANG_ARMV7A}++ -fPIC" ./configure --host=armv7a-linux-androideabi --disable-shared --prefix=$HOME/mlterm-android/app/src/main/jni/protobuf/armeabi-v7a; make; make install)
-          (cd protobuf-3.20.1; ./configure --disable-shared --prefix=$HOME/protobuf; make; make install)
+          (cd protobuf-3.20.1; ./configure --disable-shared --prefix=$HOME/protobuf; make clean; make; make install)
           curl -L -O https://github.com/arakiken/mosh/archive/refs/heads/sixel-winsock.zip
           unzip sixel-winsock.zip
           (cd mosh-sixel-winsock; autoconf; PATH=$HOME/protobuf/bin:$PATH PKG_CONFIG_PATH=$HOME/libressl/lib/pkgconfig:$HOME/mlterm-android/app/src/main/jni/protobuf/armeabi-v7a/lib/pkgconfig:$PKG_CONFIG_PATH CC="$CLANG_ARMV7A -fPIC -L$HOME/libressl/lib" CXX="${CLANG_ARMV7A}++ -fPIC -L$HOME/libressl/lib" ./configure --host=armv7a-linux-androideabi)
