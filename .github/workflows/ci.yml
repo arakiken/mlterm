@@ -70,9 +70,10 @@ jobs:
           curl -L -O https://download.savannah.gnu.org/releases/freetype/freetype-2.13.3.tar.gz
           tar xvf freetype-2.13.3.tar.gz
           (cd freetype-2.13.3; sh ./autogen.sh; CC="$CLANG_ARMV7A -fPIC" ./configure --host=armv7a-linux-androideabi --disable-shared --with-png=no --with-harfbuzz=no --with-bzip2=no --with-brotli=no --prefix=$HOME/mlterm-android/app/src/main/jni/freetype/armeabi-v7a; make; make install)
-          #curl -L -O https://download.savannah.nongnu.org/releases/m17n/libotf-0.9.16.tar.gz
-          #tar xvf libotf-0.9.16.tar.gz
-          #(cd libotf-0.9.16; CC="$CLANG_ARMV7A -fPIC" ./configure --host=armv7a-linux-androideabi; mkdir -p $HOME/mlterm-android/app/src/main/jni/libotf; cp `find . -name *.[ch]` $HOME/mlterm-android/app/src/main/jni/libotf)
+          curl -L -O https://download.savannah.nongnu.org/releases/m17n/libotf-0.9.16.tar.gz
+          tar xvf libotf-0.9.16.tar.gz
+          echo 'PKG_CONFIG_PATH=$HOME/mlterm-android/app/src/main/jni/freetype/armeabi-v7a/lib/pkgconfig:$PKG_CONFIG_PATH pkg-config freetype2 $*' > libotf-0.9.16/freetype-config
+          (cd libotf-0.9.16; chmod 755 freetype-config; PATH=$PWD:$PATH CC="$CLANG_ARMV7A -fPIC" ./configure --host=armv7a-linux-androideabi; mkdir -p $HOME/mlterm-android/app/src/main/jni/libotf; cp `find . -name *.[ch]` $HOME/mlterm-android/app/src/main/jni/libotf)
           curl -L -O https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-4.0.0.tar.gz
           tar xvf libressl-4.0.0.tar.gz
           (cd libressl-4.0.0; CC="$CLANG_ARMV7A -fPIC" ./configure --host=armv7a-linux-androideabi --disable-shared --prefix=$HOME/libressl; make; make install)
@@ -81,11 +82,11 @@ jobs:
           (cd libssh2-1.11.1; CC="$CLANG_ARMV7A -fPIC" ./configure --host=armv7a-linux-androideabi --disable-shared --prefix=$HOME/mlterm-android/app/src/main/jni/libssh2/armeabi-v7a --with-libssl-prefix=$HOME/libressl; make; make install)
           curl -L -O https://github.com/protocolbuffers/protobuf/releases/download/v3.20.1/protobuf-cpp-3.20.1.tar.gz
           tar xvf protobuf-cpp-3.20.1.tar.gz
-          (cd protobuf-3.20.1; CC="$CLANG_ARMV7A -fPIC" CXX="${CLANG_ARMV7A}++ -fPIC" ./configure --host=armv7a-linux-androideabi --disable-shared --prefix=$HOME/mlterm-android/app/src/main/jni/protobuf/armeabi-v7a; make; make install)
-          (cd protobuf-3.20.1; ./configure --disable-shared --prefix=$HOME/protobuf; make clean; make; make install)
+          (cd protobuf-3.20.1; CC="$CLANG_ARMV7A -fPIC" CXX="${CLANG_ARMV7A}++ -fPIC" ./configure --host=armv7a-linux-androideabi --disable-shared --prefix=$HOME/mlterm-android/app/src/main/jni/protobuf/armeabi-v7a; make; make install; make clean)
+          (cd protobuf-3.20.1; ./configure --disable-shared --prefix=$HOME/protobuf; make; make install)
           curl -L -O https://github.com/arakiken/mosh/archive/refs/heads/sixel-winsock.zip
           unzip sixel-winsock.zip
-          (cd mosh-sixel-winsock; autoconf; PATH=$HOME/protobuf/bin:$PATH PKG_CONFIG_PATH=$HOME/libressl/lib/pkgconfig:$HOME/mlterm-android/app/src/main/jni/protobuf/armeabi-v7a/lib/pkgconfig:$PKG_CONFIG_PATH CC="$CLANG_ARMV7A -fPIC -L$HOME/libressl/lib" CXX="${CLANG_ARMV7A}++ -fPIC -L$HOME/libressl/lib" ./configure --host=armv7a-linux-androideabi)
+          (cd mosh-sixel-winsock; autoconf; PATH=$HOME/protobuf/bin:$PATH PKG_CONFIG_PATH=$HOME/libressl/lib/pkgconfig:$HOME/mlterm-android/app/src/main/jni/protobuf/armeabi-v7a/lib/pkgconfig:$PKG_CONFIG_PATH CC="$CLANG_ARMV7A -fPIC -L$HOME/libressl/lib" CXX="${CLANG_ARMV7A}++ -fPIC -L$HOME/libressl/lib" ./configure --host=armv7a-linux-androideabi; for f in src/protobufs/*.proto; do $HOME/protobuf/bin/protoc --cpp_out=src/protobufs -Isrc/protobufs $f; done)
           (cd android; ./prepare-gradle.sh $HOME/mlterm-android $PWD/../mosh-sixel-winsock $HOME/libressl 8.8.0)
           (cd $HOME/mlterm-android; ./build-gradle.sh)
           mkdir dist; cp `find $HOME/mlterm-android -name *.apk` dist
