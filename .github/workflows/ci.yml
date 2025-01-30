@@ -150,7 +150,6 @@ jobs:
 
       - name: build
         run: |
-          rm tool/mlconfig/po/Makefile
           make; make install
           cp -R cocoa/mlterm-ios.app ~/
           cocoa/install-ios.sh ~/mlterm
