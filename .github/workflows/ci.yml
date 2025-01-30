@@ -120,8 +120,7 @@ jobs:
       - name: build
         run: |
           rm tool/mlconfig/po/Makefile
-          make
-          sudo make install
+          make; make install
           cp -R cocoa/mlterm.app ~/
           cocoa/install.sh ~/mlterm
           mkdir dist
@@ -131,6 +130,37 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mlterm-${{ matrix.os }}
+          path: dist/**
+
+  build-ios:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup build environment
+        run: |
+          #brew install gtk+3
+
+      - name: configure
+        run: |
+          SDK=`xcodebuild -showsdks|grep iphonesimulator|tail -n 1|sed 's/^.*\(iphonesimulator.*\)/\1/'`
+          CONFIGURE_ARGS="--prefix=$HOME/mlterm --disable-shared --with-gui=quartz --host=x86_64-apple-darwin --disable-fribidi --disable-ssh2 --disable-otl --without-tools --enable-debug --with-ios-sdk=$SDK --with-ios-arch=x86_64"
+          CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2 -fobjc-abi-version=2" ./configure ${CONFIGURE_ARGS}
+
+      - name: build
+        run: |
+          rm tool/mlconfig/po/Makefile
+          make; make install
+          cp -R cocoa/mlterm-ios.app ~/
+          cocoa/install-ios.sh ~/mlterm
+          mkdir dist
+          mv ~/mlterm-ios.app dist/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlterm-ios
           path: dist/**
 
   build-netbsd:
