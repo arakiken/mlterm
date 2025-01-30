@@ -73,7 +73,7 @@ jobs:
           curl -L -O https://download.savannah.nongnu.org/releases/m17n/libotf-0.9.16.tar.gz
           tar xvf libotf-0.9.16.tar.gz
           echo 'PKG_CONFIG_PATH=$HOME/mlterm-android/app/src/main/jni/freetype/armeabi-v7a/lib/pkgconfig:$PKG_CONFIG_PATH pkg-config freetype2 $*' > libotf-0.9.16/freetype-config
-          (cd libotf-0.9.16; chmod 755 freetype-config; PATH=$PWD:$PATH CC="$CLANG_ARMV7A -fPIC" ./configure --host=armv7a-linux-androideabi; mkdir -p $HOME/mlterm-android/app/src/main/jni/libotf; cp `find . -name *.[ch]` $HOME/mlterm-android/app/src/main/jni/libotf)
+          (cd libotf-0.9.16; chmod 755 freetype-config; ac_cv_func_malloc_0_nonnull=yes PATH=$PWD:$PATH CC="$CLANG_ARMV7A -fPIC" ./configure --host=armv7a-linux-androideabi; mkdir -p $HOME/mlterm-android/app/src/main/jni/libotf; cp `find . -name *.[ch]` $HOME/mlterm-android/app/src/main/jni/libotf)
           curl -L -O https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-4.0.0.tar.gz
           tar xvf libressl-4.0.0.tar.gz
           (cd libressl-4.0.0; CC="$CLANG_ARMV7A -fPIC" ./configure --host=armv7a-linux-androideabi --disable-shared --prefix=$HOME/libressl; make; make install)
