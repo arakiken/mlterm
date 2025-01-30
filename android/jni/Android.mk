@@ -61,7 +61,7 @@ ifneq (,$(wildcard $(JNI_PATH)libssh2/$(TARGET_ARCH_ABI)/lib/libssh2.a))
 			vtemu/libptymosh/hostinput.pb.cc vtemu/libptymosh/transportinstruction.pb.cc \
 			vtemu/libptymosh/compressor.cc vtemu/libptymosh/network.cc \
 			vtemu/libptymosh/transportfragment.cc vtemu/libptymosh/base64.cc vtemu/libptymosh/crypto.cc \
-			vtemu/libptymosh/ocb.cc vtemu/libptymosh/parser.cc vtemu/libptymosh/parseraction.cc \
+			vtemu/libptymosh/parser.cc vtemu/libptymosh/parseraction.cc \
 			vtemu/libptymosh/parserstate.cc vtemu/libptymosh/terminal.cc \
 			vtemu/libptymosh/terminaldispatcher.cc vtemu/libptymosh/terminaldisplay.cc \
 			vtemu/libptymosh/terminaldisplayinit.cc vtemu/libptymosh/terminalframebuffer.cc \
@@ -71,6 +71,9 @@ ifneq (,$(wildcard $(JNI_PATH)libssh2/$(TARGET_ARCH_ABI)/lib/libssh2.a))
 		MOSH_INCLUDES := $(JNI_PATH)protobuf/$(TARGET_ARCH_ABI)/include $(JNI_PATH)vtemu/libptymosh
 		ifneq (,$(wildcard $(JNI_PATH)vtemu/libptymosh/ocb.cc))
 			MOSH_INCLUDES += -DMOSH_VERSION=10302
+			MOSH_SRC_FILES += vtemu/libptymosh/ocb.cc
+		else
+			MOSH_SRC_FILES += vtemu/libptymosh/ocb_internal.cc
 		endif
 		# If you use -lc++_shared, add "APP_STL := c++_shared" to Aplication.mk
 		# (See https://developer.android.com/ndk/guides/cpp-support?hl=ja)
