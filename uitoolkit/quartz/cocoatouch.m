@@ -283,7 +283,7 @@ int cocoa_dialog_alert(const char *msg);
   [super sendEvent:event];
 
   if ([event respondsToSelector:@selector(_gsEvent)]) {
-    u_int32_t *buf = [event performSelector:@selector(_gsEvent)];
+    u_int32_t *buf = (u_int32_t*)[event performSelector:@selector(_gsEvent)];
 
     if (buf && buf[2] == 10 /* Event type */) {
       u_int num;
@@ -440,8 +440,8 @@ int cocoa_dialog_alert(const char *msg);
 
   ignoreKeyDown = FALSE;
   markedText = nil;
-  markedTextRange = [UITextRange alloc];
-  selectedTextRange = [UITextRange alloc];
+  markedTextRange = (TextRange*)[UITextRange alloc];
+  selectedTextRange = (TextRange*)[UITextRange alloc];
 
   UILongPressGestureRecognizer *longpress =
     [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPress:)];
