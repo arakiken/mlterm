@@ -38,9 +38,12 @@ static void set_lang(void) {
 
 #ifndef COCOA_TOUCH
 extern char *global_args;
-#endif
 
-int main(int argc, const char* argv[]) {
+int main(int argc, const char* argv[])
+#else
+int main(int argc, char* argv[])
+#endif
+{
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
   @try {
