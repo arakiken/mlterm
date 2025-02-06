@@ -18,6 +18,8 @@ iOS/Cocoa Touch support (Experimental)
   It is possible to use build-ios.sh or build-iossim.sh in cocoa/
   instead of executing ./configure manually.
 
+  Specify -fno-objc-arc option to clang because mlterm doesn't support ARC.
+
 * Configuration
   Edit main, font, key and color files mlterm-ios.app/etc/mlterm/
   See files in https://github.com/arakiken/mlterm/blob/master/etc/

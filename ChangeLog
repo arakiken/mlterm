@@ -1,3 +1,11 @@
+2025-02-07  Araki Ken  <arakiken@users.sf.net>
+
+	* cocoatouch.m:
+	  - Set self.window.rootViewController.
+	  - Fix segfault in TextRange::dealloc.
+
+	* mlterm-Info.plist: Add 414x896 to UILaunchImages.
+
 2025-02-01  Araki Ken  <arakiken@users.sf.net>
 
 	* cocoatouch.m: Add cast.

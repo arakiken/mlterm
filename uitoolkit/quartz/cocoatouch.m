@@ -315,6 +315,15 @@ int cocoa_dialog_alert(const char *msg);
 - (BOOL)application:(UIApplication *)application
                    didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+  /*
+   * In iOS 9 or later rootViewController == nil causes the following error.
+   *
+   * "Application windows are expected to have a root view controller at the end
+   *  of application launch".
+   * (See ~/Library/Logs/DiagnosticReports/)
+   */
+
+  self.window.rootViewController = [UIViewController new];
   [self.window makeKeyAndVisible];
 
   [[NSNotificationCenter defaultCenter] addObserver:self
@@ -397,10 +406,10 @@ int cocoa_dialog_alert(const char *msg);
 }
 
 - (void)dealloc {
-  [super dealloc];
-
   [start release];
   [end release];
+
+  [super dealloc];
 }
 @end
 
