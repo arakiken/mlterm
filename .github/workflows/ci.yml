@@ -265,7 +265,7 @@ jobs:
           CFLAGS="-Wall -g -O2" ./configure --with-gui=win32
           make
           DESTDIR=/tmp make install
-          (cd gtk && make && make install)
+          (cd gtk && make && DESTDIR=/tmp make install)
           mkdir dist
           cp /tmp/ucrt64/bin/*.exe /tmp/ucrt64/bin/*.dll /tmp/ucrt64/lib/*/*.dll dist/
           mt=`ls /c/Program\ Files\ \(x86\)\/Windows\ Kits\/*\/bin\/*\/x64\/mt.exe | head -n 1`
