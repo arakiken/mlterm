@@ -84,8 +84,8 @@ jobs:
           cp $HOME/libressl/lib/libcrypto.a $JNI_PATH/libssh2/armeabi-v7a/lib
           curl -L -O https://github.com/protocolbuffers/protobuf/releases/download/v3.20.1/protobuf-cpp-3.20.1.tar.gz
           tar xvf protobuf-cpp-3.20.1.tar.gz
-          (cd protobuf-3.20.1; CC="$CLANG_ARMV7A -fPIC" CXX="${CLANG_ARMV7A}++ -fPIC" ./configure --host=armv7a-linux-androideabi --enable-static-library --prefix=$JNI_PATH/protobuf/armeabi-v7a; make; make install; make clean)
-          (cd protobuf-3.20.1; ./configure --enable-static-library --prefix=$HOME/protobuf; make; make install)
+          (cd protobuf-3.20.1; CC="$CLANG_ARMV7A -fPIC" CXX="${CLANG_ARMV7A}++ -fPIC" ./configure --host=armv7a-linux-androideabi --prefix=$JNI_PATH/protobuf/armeabi-v7a; make; make install; make clean)
+          (cd protobuf-3.20.1; ./configure --prefix=$HOME/protobuf; make; make install)
           curl -L -O https://github.com/arakiken/mosh/archive/refs/heads/sixel-winsock.zip
           unzip sixel-winsock.zip
           # Without -L$HOME/libressl/lib in CC, ./configure stops in "checking for AES_encrypt in -lcrypto... no".
