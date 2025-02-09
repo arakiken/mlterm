@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ar\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-05-08 09:47+0900\n"
+"POT-Creation-Date: 2025-02-09 14:22+0900\n"
 "PO-Revision-Date: 2006-08-12 17:40+0300\n"
 "Last-Translator: Khaled Hosny <khaledhosny@eglug.org>\n"
 "Language-Team: Arabic <doc@arabeyes.org>\n"
@@ -84,7 +84,7 @@ msgstr ""
 msgid "Actual Value"
 msgstr ""
 
-#: tool/mlconfig/gtkxlfdsel.c:504 tool/mlconfig/main.c:724
+#: tool/mlconfig/gtkxlfdsel.c:504 tool/mlconfig/main.c:723
 msgid "Font"
 msgstr "الخط"
 
@@ -245,11 +245,11 @@ msgstr ""
 msgid "OK"
 msgstr ""
 
-#: tool/mlconfig/gtkxlfdsel.c:3484 tool/mlconfig/main.c:488
+#: tool/mlconfig/gtkxlfdsel.c:3484 tool/mlconfig/main.c:487
 msgid "Apply"
 msgstr "تطبيق"
 
-#: tool/mlconfig/gtkxlfdsel.c:3490 tool/mlconfig/main.c:491
+#: tool/mlconfig/gtkxlfdsel.c:3490 tool/mlconfig/main.c:490
 msgid "Cancel"
 msgstr "إلغاء"
 
@@ -258,106 +258,106 @@ msgstr "إلغاء"
 msgid "Font Selection"
 msgstr " اختر"
 
-#: tool/mlconfig/main.c:334
+#: tool/mlconfig/main.c:333
 msgid "Send"
 msgstr ""
 
-#: tool/mlconfig/main.c:335
+#: tool/mlconfig/main.c:334
 msgid "Recv"
 msgstr ""
 
-#: tool/mlconfig/main.c:336
+#: tool/mlconfig/main.c:335
 msgid "Return"
 msgstr ""
 
-#: tool/mlconfig/main.c:337
+#: tool/mlconfig/main.c:336
 #, fuzzy
 msgid "Exit"
 msgstr "حفظ ثم خروج"
 
-#: tool/mlconfig/main.c:352
+#: tool/mlconfig/main.c:351
 msgid "Local"
 msgstr ""
 
-#: tool/mlconfig/main.c:388
+#: tool/mlconfig/main.c:387
 msgid "Remote"
 msgstr ""
 
-#: tool/mlconfig/main.c:484
+#: tool/mlconfig/main.c:483
 msgid "Save&Exit"
 msgstr "حفظ ثم خروج"
 
-#: tool/mlconfig/main.c:487
+#: tool/mlconfig/main.c:486
 msgid "Apply&Exit"
 msgstr "تطبيق ثم خروج"
 
-#: tool/mlconfig/main.c:500
+#: tool/mlconfig/main.c:499
 msgid "Font size (temporary)"
 msgstr "حجم الخط (مؤقت)"
 
-#: tool/mlconfig/main.c:516
+#: tool/mlconfig/main.c:515
 msgid "Larger"
 msgstr "أكبر"
 
-#: tool/mlconfig/main.c:517
+#: tool/mlconfig/main.c:516
 msgid "Smaller"
 msgstr "أصغر"
 
-#: tool/mlconfig/main.c:532
+#: tool/mlconfig/main.c:531
 msgid "Command"
 msgstr ""
 
-#: tool/mlconfig/main.c:548
+#: tool/mlconfig/main.c:547
 msgid "Full reset"
 msgstr "إعادة تعيين"
 
-#: tool/mlconfig/main.c:549
+#: tool/mlconfig/main.c:548
 msgid "Snapshot"
 msgstr ""
 
-#: tool/mlconfig/main.c:551
+#: tool/mlconfig/main.c:550
 msgid "SCP"
 msgstr ""
 
-#: tool/mlconfig/main.c:567
+#: tool/mlconfig/main.c:566
 msgid "PTY List"
 msgstr "قائمة الـPTY"
 
-#: tool/mlconfig/main.c:585
+#: tool/mlconfig/main.c:584
 msgid " New "
 msgstr " جديد"
 
-#: tool/mlconfig/main.c:586 tool/mlconfig/mc_font.c:895
+#: tool/mlconfig/main.c:585 tool/mlconfig/mc_font.c:895
 #: tool/mlconfig/mc_wall_pic.c:86
 msgid "Select"
 msgstr " اختر"
 
-#: tool/mlconfig/main.c:619
+#: tool/mlconfig/main.c:618
 msgid "mlterm configuration"
 msgstr "إعداد mlterm"
 
-#: tool/mlconfig/main.c:671 tool/mlconfig/mc_char_encoding.c:159
+#: tool/mlconfig/main.c:670 tool/mlconfig/mc_char_encoding.c:159
 msgid "Encoding"
 msgstr "الترميز "
 
-#: tool/mlconfig/main.c:765
+#: tool/mlconfig/main.c:764
 msgid "Background"
 msgstr "الخلفية"
 
-#: tool/mlconfig/main.c:780
+#: tool/mlconfig/main.c:779
 msgid "Picture/Transparent"
 msgstr "صورة\\شفافة"
 
-#: tool/mlconfig/main.c:822 tool/mlconfig/mc_bgtype.c:144
+#: tool/mlconfig/main.c:821 tool/mlconfig/mc_bgtype.c:144
 #: tool/mlconfig/mc_bgtype.c:146
 msgid "Color"
 msgstr "لون"
 
-#: tool/mlconfig/main.c:847
+#: tool/mlconfig/main.c:846
 msgid "Scrollbar"
 msgstr "شريط التمرير"
 
-#: tool/mlconfig/main.c:882
+#: tool/mlconfig/main.c:881
 msgid "Others"
 msgstr "أخرى"
 
@@ -528,10 +528,6 @@ msgid "Ambiguouswidth = fullwidth"
 msgstr ""
 
 #: tool/mlconfig/mc_flags.c:34
-msgid "CLIPBOARD Selection"
-msgstr ""
-
-#: tool/mlconfig/mc_flags.c:34
 msgid "Local echo"
 msgstr ""
 
@@ -608,28 +604,28 @@ msgstr "خادم XIM "
 msgid "XIM locale"
 msgstr "محلية XIM "
 
-#: tool/mlconfig/mc_im.c:441
+#: tool/mlconfig/mc_im.c:446
 msgid "Option"
 msgstr "خيار"
 
-#: tool/mlconfig/mc_im.c:531
+#: tool/mlconfig/mc_im.c:536
 msgid "Dictionary"
 msgstr ""
 
-#: tool/mlconfig/mc_im.c:532
+#: tool/mlconfig/mc_im.c:537
 msgid "Sticky shift key"
 msgstr ""
 
-#: tool/mlconfig/mc_im.c:581
+#: tool/mlconfig/mc_im.c:586
 #, fuzzy
 msgid "Server"
 msgstr "خادم XIM "
 
-#: tool/mlconfig/mc_im.c:716
+#: tool/mlconfig/mc_im.c:721
 msgid "Input Method"
 msgstr "طريقة اﻹدخال"
 
-#: tool/mlconfig/mc_im.c:749 tool/mlconfig/mc_im.c:753
+#: tool/mlconfig/mc_im.c:754 tool/mlconfig/mc_im.c:758
 #: tool/mlconfig/mc_radio.c:41 tool/mlconfig/mc_radio.c:42
 #: tool/mlconfig/mc_radio.c:43 tool/mlconfig/mc_radio.c:44
 msgid "None"
@@ -643,15 +639,15 @@ msgstr "حجم السجل (أسطر)"
 msgid "Select opentype features"
 msgstr ""
 
-#: tool/mlconfig/mc_opentype.c:255
+#: tool/mlconfig/mc_opentype.c:256
 msgid "Select opentype scripts"
 msgstr ""
 
-#: tool/mlconfig/mc_opentype.c:327
+#: tool/mlconfig/mc_opentype.c:329
 msgid "Features"
 msgstr ""
 
-#: tool/mlconfig/mc_opentype.c:332
+#: tool/mlconfig/mc_opentype.c:334
 msgid "Script"
 msgstr ""
 

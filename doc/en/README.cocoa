@@ -38,6 +38,3 @@ MacOS X/Cocoa support (Experimental)
   o ISCII font is unavailable.
     (If you want to show indic characters, build mlterm with harfbuzz and
      enable -otl/use_ot_layout option.)
-
-* Executable binaries (MacOSX)
-  http://mlterm.sourceforge.net/bin.html

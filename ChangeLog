@@ -1,3 +1,9 @@
+2025-02-09  Araki Ken  <arakiken@users.sf.net>
+
+	* README, README.cocoa, README.indic: Updated.
+
+	* tool/mlconfig/po/*.po: Updated.
+
 2025-02-08  Araki Ken  <arakiken@users.sf.net>
 
 	* cocoatouch.m: Remove IBOutlet.

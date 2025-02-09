@@ -33,9 +33,6 @@ Following is a instruction of setting up mlterm indic support.
   $ make
   $ make install
 
-  You can download mlterm for win32gdi which supports indic scripts from
-  http://mlterm.sourceforge.net/bin.html
-
   If you build mlterm without --enable-anti-alias, install xfstt in advance
   to specify true type fonts by XLFD.
   http://mlterm.sourceforge.net/BNDR0ntt.pcf (for bengali) and

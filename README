@@ -214,17 +214,13 @@ Options for configure
 What you need for compilation
 -----------------------------
 
-  All you need for basic compilation is libc and Xlib.  You don't need
-  internationalization support of OS because mlterm has own i18n code.
+  gdk-pixbuf (2.0.1 or higher) or libpng (1.6 or later) for background image.
 
-  XFree86 4.0.2 or above and FreeType 2.0.2 or above are needed for
-  anti-alias.
+  Gtk+ (2.x 3.x 4.x) for GUI configurator "mlconfig".
 
-  gdk-pixbuf (Gtk+ 2.0.1 or higher) or libpng (1.6 or later) for background image.
+  Gtk+ (2.x 3.x) for GUI configurator "mlterm-menu".
 
-  Gtk+ (2.x ?) for GUI configurator "mlconfig" and "mlterm-menu".
-
-  Gtk+ (2.x ?) for libvte compatible library. (see gtk/README)
+  Gtk+ (2.x 3.x) for libvte compatible library. (see gtk/README)
 
   Fribidi (0.9.0 - ?) for Bidi.
 
