@@ -1,4 +1,4 @@
-comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
 
 mltermでは、オリジナルのスクロールバーを比較的簡単に実装するためのフレームワーク
 を提供しています。

@@ -1,4 +1,4 @@
-comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
 
 BiDi / Indic と Xft / cairo 対応機能は、実行時に動的にロードする module としてビ
 ルドすることができます。
