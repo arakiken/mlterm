@@ -224,6 +224,8 @@ What you need for compilation
 
   Fribidi (0.9.0 - ?) for Bidi.
 
+  Harfbuzz for indic scripts.
+
   libssh2 (https://www.libssh2.org) for ssh2 client and scp.
   (If you want to use camellia as common key cryptography or SSH agent forwarding,
    install alternative libssh2 of camellia-agentfwd branch at
