@@ -232,7 +232,9 @@ jobs:
           DESTDIR=/tmp make install
           mkdir dist
           cp /tmp/ucrt64/bin/*.exe /tmp/ucrt64/bin/*.dll /tmp/ucrt64/lib/*/*.dll dist/
-          cp dist/mlterm.exe dist/mlterm-nomt.ex_
+          cp -R /tmp/ucrt64/etc/mlterm dist/
+          # for debug by gdb.
+          mkdir dist/nomt; cp dist/*.exe dist/nomt/
           mt=`ls /c/Program\ Files\ \(x86\)\/Windows\ Kits\/*\/bin\/*\/x64\/mt.exe | head -n 1`
           echo $mt
           if test "$mt" != ""; then for f in dist/*.exe; do "$mt" -manifest win32/mlterm.manifest -outputresource:$f; done; fi
@@ -269,6 +271,9 @@ jobs:
           (cd gtk; sed 's/-luuid//g' Makefile > Makefile.2; mv Makefile.2 Makefile; make; DESTDIR=/tmp make install)
           mkdir dist
           cp /tmp/ucrt64/bin/*.exe /tmp/ucrt64/bin/*.dll /tmp/ucrt64/lib/*/*.dll dist/
+          cp -R /tmp/ucrt64/etc/mlterm dist/
+          # for debug by gdb.
+          mkdir dist/nomt; cp dist/*.exe dist/nomt/
           mt=`ls /c/Program\ Files\ \(x86\)\/Windows\ Kits\/*\/bin\/*\/x64\/mt.exe | head -n 1`
           echo $mt
           if test "$mt" != ""; then for f in dist/*.exe; do "$mt" -manifest win32/mlterm.manifest -outputresource:$f; done; fi
