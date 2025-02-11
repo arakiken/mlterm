@@ -16,7 +16,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
     (see doc/en/README.indic)
 
   o アンチエイリアス
-    フォントのアンチエイリアス表示をサポートしています。
+    X 上で、フォントのアンチエイリアス表示をサポートしています。
     これには、X の Xrender extension に対応した Xft or cairo を利用しています。
 
     なお、Xft、cairo、通常の X フォントのどれを使うかは、動的に切替え可能です。
@@ -146,7 +146,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
   $ make
 
   o 必要なもの
-    基本的な機能は、libc / Xlibがあれば動きます。
     多言語処理機能の多くは、自前でもってますので、OS のサポートがなくても、ほと
     んどの機能は使えます。
     (たとえば、libc に ja_JP.UTF-8 ローケールがなくても、ja_JP.eucJP ローケール

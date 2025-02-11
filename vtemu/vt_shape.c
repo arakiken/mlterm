@@ -189,18 +189,15 @@ u_int vt_shape_ot_layout(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int sr
               combine_replacing_code(--dst_shaped, vt_get_base_char(&src[--src_pos_mark]),
                                      shape_glyphs[count],
                                      prev_advance + xoffsets[count],
-                                     yoffsets[count], advances[count], &was_vcol)) {
-            if (advances[count] > 0) {
-              /*
-               * XXX
-               * xoff adv
-               *  0    0 -> base
-               *  0    5 -> comb
-               *  -1   2 -> comb
-               *  -3   0 -> comb (Drawn at the base char (-7), but xoffset is 2 - 3 = -1)
-               */
-              prev_advance = advances[count];
-            }
+                                     yoffsets[count], prev_advance + advances[count], &was_vcol)) {
+            /*
+             * xoff adv
+             *  0    0  base
+             *  0    5  comb (xoff 0, adv 5)
+             *  -1   2  comb (xoff 4, adv 7)
+             *  -3   0  comb (xoff 4, adv 7)
+             */
+            prev_advance += advances[count];
           } else {
             was_vcol = replace_code(dst_shaped, shape_glyphs[count], was_vcol);
             prev_advance = advances[count];
@@ -268,18 +265,15 @@ u_int vt_shape_ot_layout(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int sr
           combine_replacing_code(--dst_shaped, vt_get_base_char(&src[--src_pos_mark]),
                                  shape_glyphs[count],
                                  prev_advance + xoffsets[count],
-                                 yoffsets[count], advances[count], &was_vcol)) {
-        if (advances[count] > 0) {
-          /*
-           * XXX
-           * xoff adv
-           *  0    0 -> base
-           *  0    5 -> comb
-           *  -1   2 -> comb
-           *  -3   0 -> comb (Drawn at the base char, but xoffset is 2 - 3 = -1)
-           */
-          prev_advance = advances[count];
-        }
+                                 yoffsets[count], prev_advance + advances[count], &was_vcol)) {
+        /*
+         * xoff adv
+         *  0    0  base
+         *  0    5  comb (xoff 0, adv 5)
+         *  -1   2  comb (xoff 4, adv 7)
+         *  -3   0  comb (xoff 4, adv 7)
+         */
+        prev_advance += advances[count];
       } else {
         was_vcol = replace_code(dst_shaped, shape_glyphs[count], was_vcol);
         prev_advance = advances[count];

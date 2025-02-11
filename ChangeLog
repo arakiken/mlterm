@@ -1,5 +1,7 @@
 2025-02-11  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_shape.c: Fix drawing glyphs in incorrect position.
+
 	* doc/ja/README.*: Add "coding:euc-jp" to the header.
 
 2025-02-09  Araki Ken  <arakiken@users.sf.net>

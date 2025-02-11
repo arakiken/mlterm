@@ -46,6 +46,7 @@
   Fix an issue where Control+Shift+xxx shortcut didn't work in SDL2.
   Fix unexpected reset of inverted colors in selected area in SDL2.
   Fix --point / use_point_size option which broke font width in win32.
+  Fix drawing glyphs in incorrect position with some fonts, such as devanagari.
 
 ver 3.9.3
 * mlterm-wl supports xdg-decoration.

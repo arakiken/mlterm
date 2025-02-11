@@ -13,7 +13,7 @@
  * ADV  0 6 6  0
  *        ^    ^ -> Combined chars
  *
- * (XXX) offsets[idx] is ignored if it is greater than 0.
+ * (XXX) xoffsets[idx] is ignored if it is greater than 0.
  */
 #define OTL_IS_COMB(idx) \
   (xoffsets[(idx)] < 0 || (advances[(idx) - 1] == 0 && xoffsets[(idx) - 1] >= 0))
