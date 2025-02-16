@@ -585,6 +585,10 @@ The default is \fBtrue\fR.
 Specify ciphers (comma separated list) for encrypting the ssh session.
 (If mlterm -v doesn't output "ssh", this option is unavailable.)
 .TP
+\fB\-\-clp\fR(=\fIbool\fR)
+Whether to use clipping to keep from producing dots outside the text drawing area.
+The default is \fBfalse\fR.
+.TP
 \fB\-\-ckm\fR=\fIencoding\fR (Available for mlterm-con)
 Specify encoding of the console where mlterm-con works.
 Valid encodings are listed in \fBDESCRIPTION\fR section
@@ -1862,6 +1866,9 @@ Use anti alias font.
 .TP
 \fBuse_bold_font=\fIbool\fR (\fB\-\-bdfont\fR)
 Use bold font for characters with the bold attribute.
+.TP
+\fBuse_clipping=\fIbool\fR (\fB\-\-clp\fR)
+Use clipping to keep from producing dots outside the text drawing area.
 .TP
 \fBuse_combining=\fIbool\fR (\fB\-m\fR, \fB\-\-comb\fR)
 Enable combining characters.

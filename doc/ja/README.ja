@@ -721,6 +721,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
 
         e.g.) U+1234-5678,U+0123-4567
 
+      o use_clipping (true/*false*)
+        テキスト描画エリア外にゴミが残らないように、クリッピングする。
+
       o use_aafont (true/false) (mlterm-fb, mlterm-wl or mlterm-sdl2 用)
         mlterm-fb、mlterm-wl 又は mlterm-sdl2 で truetype フォントを使用する場合
         に、~/mlterm/*font-fb でなく ~/.mlterm/*aafont の設定を読み込み、

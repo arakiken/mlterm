@@ -14,6 +14,7 @@
 #include "ui_selection_encoding.h"
 #include "ui_emoji.h"
 #include "ui_sb_view_factory.h"
+#include "ui_draw_str.h"
 
 #if defined(__ANDROID__) || defined(USE_QUARTZ) || defined(USE_WIN32API)
 /* Shrink unused memory */
@@ -336,6 +337,8 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "device pixel ratio for simple scrollbar [1]");
   bl_conf_add_opt(conf, '\0', "norepkey", 0, "mod_keys_to_stop_mouse_report",
                   "modifier keys to stop mouse reporting [shift,control]");
+  bl_conf_add_opt(conf, '\0', "clp", 1, "use_clipping",
+                  "Use clipping to keep from producing dots outside the text drawing area [false]");
 #ifdef USE_WIN32API
   bl_conf_add_opt(conf, '\0', "winsize", 1, "output_xtwinops_in_resizing",
                   "output xtwinops sequence in resizing [false]");
@@ -1465,6 +1468,14 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
 
   if ((value = bl_conf_get_value(conf, "mod_keys_to_stop_mouse_report"))) {
     ui_set_mod_keys_to_stop_mouse_report(value);
+  }
+
+  if ((value = bl_conf_get_value(conf, "use_clipping"))) {
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      ui_set_use_clipping(flag);
+    }
   }
 
 #ifdef USE_WIN32API

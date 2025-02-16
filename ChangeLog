@@ -1,3 +1,9 @@
+2025-02-16  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_main_config.c: Add --clp/use_clipping option.
+
+	* ui_draw_str.[ch]: Add ui_set_use_clipping().
+
 2025-02-11  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_shape.c: Fix drawing glyphs in incorrect position.
