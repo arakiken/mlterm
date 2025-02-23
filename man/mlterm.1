@@ -568,8 +568,12 @@ Blink cursor. The default is \fBfalse\fR.
 Specify the position (offset from the default baseline) of baseline.
 The default is \fB0\fR.
 .TP
-\fB\-\-border\fR=\fIvalue\fR
+\fB\-\-border\fR=\fIvalue\fR\fB[\fR\fI,value2\fR\fB]\fR
 Specify inner border width. The default is \fB2\fR.
+If only \fBvalue\fR is specified, it sets both the horizontal and vertical
+border width.
+If \fBvalue2\fR is specified, \fBvalue\fR sets the horizontal border width
+and \fBvalue2\fR sets the vertical border width.
 The maximum value is \fB224\fR.
 .TP
 \fB\-\-boxdraw\fR=\fIvalue\fR
@@ -691,8 +695,12 @@ Specify interval seconds to send keepalive message to ssh server.
 The default is \fB0\fR.
 (If mlterm -v doesn't output "ssh", this option is unavailable.)
 .TP
-\fB\-\-lborder\fR=\fIvalue\fR
+\fB\-\-lborder\fR=\fIvalue\fR\fB[\fR\fI,value2\fR\fB]\fR
 Specify inner border width of a layout manager. The default is \fB0\fR.
+If only \fBvalue\fR is specified, it sets both the horizontal and vertical
+border width.
+If \fBvalue2\fR is specified, \fBvalue\fR sets the horizontal border width
+and \fBvalue2\fR sets the vertical border width.
 The maximum value is \fB224\fR.
 .TP
 \fB\-\-ldd\fR(=\fIbool\fR)
@@ -1674,7 +1682,7 @@ Path for the image file to be used as window icon.
 \fBignore_broadcasted_chars=\fIbool\fR (\fB\-\-ibc\fR)
 Whether to ignore broadcasted characters.
 .TP
-\fBinner_border=\fIvalue\fR (\fB\-\-border\fR)
+\fBinner_border=\fIvalue\fR\fB[\fR\fI,value2\fR\fB]\fR (\fB\-\-border\fR)
 Specify inner border width.
 .TP
 \fBinput_method\fR= \fIinput method\fR : \fB[\fR\fI arguments\fR \fB... ]\fR (\fB\-M\fR, \fB\-\-im\fR)
@@ -1686,7 +1694,7 @@ Use ISO8859-1 fonts for US-ASCII part of various encodings.
 \fBit_color=\fIvalue\fR (\fB\-\-it\fR)
 Specify the color to use to display italic characters.
 .TP
-\fBlayout_inner_border=\fIvalue\fR (\fB\-\-lborder\fR)
+\fBlayout_inner_border=\fIvalue\fR\fB[\fR\fI,value2\fR\fB]\fR (\fB\-\-lborder\fR)
 Specify inner border width of a layout manager.
 .TP
 \fBleftward_double_drawing=\fIbool\fR (\fB\-\-ldd\fR)
