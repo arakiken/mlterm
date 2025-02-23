@@ -144,7 +144,7 @@ jobs:
         run: |
           SDK=`xcodebuild -showsdks|grep iphonesimulator|tail -n 1|sed 's/^.*\(iphonesimulator.*\)/\1/'`
           SDKROOT=`xcrun --sdk $SDK --show-sdk-path`
-          SDKCC="`xcrun --sdk $SDK -f cc` -isysroot $SDKROOT"
+          SDKCC="`xcrun --sdk $SDK -f cc` -isysroot $SDKROOT -arch=x86_64"
           curl -L -O https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-4.0.0.tar.gz
           tar xvf libressl-4.0.0.tar.gz
           (cd libressl-4.0.0; CC="$SDKCC" ./configure --host=x86_64-apple-darwin --disable-shared --prefix=$HOME/libressl; make; make install)
