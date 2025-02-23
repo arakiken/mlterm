@@ -140,10 +140,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: setup build environment
-        run: |
-          brew install
-
       - name: configure
         run: |
           SDK=`xcodebuild -showsdks|grep iphonesimulator|tail -n 1|sed 's/^.*\(iphonesimulator.*\)/\1/'`
