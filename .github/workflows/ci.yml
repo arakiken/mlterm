@@ -142,13 +142,21 @@ jobs:
 
       - name: setup build environment
         run: |
-          brew install libssh2
+          brew install
 
       - name: configure
         run: |
           SDK=`xcodebuild -showsdks|grep iphonesimulator|tail -n 1|sed 's/^.*\(iphonesimulator.*\)/\1/'`
-          CONFIGURE_ARGS="--prefix=$HOME/mlterm --disable-shared --with-gui=quartz --host=arm64-apple-darwin --disable-fribidi --disable-otl --without-tools --enable-debug --with-ios-sdk=$SDK --with-ios-arch=arm64"
-          CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2 -fno-objc-arc -fobjc-weak" ./configure ${CONFIGURE_ARGS}
+           SDKROOT=`xcrun --sdk $SDK --show-sdk-path`
+           SDKCC="`xcrun --sdk $SDK -f cc` -isysroot $SDKROOT"
+           curl -L -O https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-4.0.0.tar.gz
+           tar xvf libressl-4.0.0.tar.gz
+           (cd libressl-4.0.0; CC="$SDKCC" ./configure --host=arm64-apple-darwin --disable-shared --prefix=$HOME/libressl; make; make install)
+           curl -L -O https://libssh2.org/download/libssh2-1.11.1.tar.gz
+           tar xvf libssh2-1.11.1.tar.gz
+           (cd libssh2-1.11.1; CC="$SDKCC" ./configure --host=arm64-apple-darwin --disable-shared --prefix=$HOME/libssh2 --with-libssl-prefix=$HOME/libressl; make; make install)
+           CONFIGURE_ARGS="--prefix=$HOME/mlterm --disable-shared --with-gui=quartz --host=arm64-apple-darwin --disable-fribidi --disable-otl --without-tools --enable-debug --with-ios-sdk=$SDK --with-ios-arch=arm64"
+           PKG_CONFIG_PATH=$HOME/libressl/lib/pkgconfig:$HOME/libssh2/lib/pkgconfig CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2 -fno-objc-arc -fobjc-weak" ./configure ${CONFIGURE_ARGS}
 
       - name: build
         run: |
