@@ -147,7 +147,7 @@ jobs:
       - name: configure
         run: |
           SDK=`xcodebuild -showsdks|grep iphonesimulator|tail -n 1|sed 's/^.*\(iphonesimulator.*\)/\1/'`
-          CONFIGURE_ARGS="--prefix=$HOME/mlterm --disable-shared --with-gui=quartz --host=arm64-apple-darwin --disable-fribidi --disable-otl --without-tools --enable-debug --with-ios-sdk=$SDK --with-ios-arch=x86_64"
+          CONFIGURE_ARGS="--prefix=$HOME/mlterm --disable-shared --with-gui=quartz --host=arm64-apple-darwin --disable-fribidi --disable-otl --without-tools --enable-debug --with-ios-sdk=$SDK --with-ios-arch=arm64"
           CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2 -fno-objc-arc -fobjc-weak" ./configure ${CONFIGURE_ARGS}
 
       - name: build
