@@ -150,7 +150,7 @@ jobs:
           (cd libressl-4.0.0; CC="$SDKCC" ./configure --host=x86_64-apple-darwin --disable-shared --prefix=$HOME/libressl; make; make install)
           curl -L -O https://libssh2.org/download/libssh2-1.11.1.tar.gz
           tar xvf libssh2-1.11.1.tar.gz
-          (cd libssh2-1.11.1; CC="$SDKCC" ./configure --host=x86_64-apple-darwin --disable-shared --prefix=$HOME/libssh2 --with-libssl-prefix=$HOME/libressl; make; make install)
+          (cd libssh2-1.11.1; curl -L https://raw.githubusercontent.com/palmerc/portable/5626ce43e30e936e870c123b4ac80e469de4d9b9/include/compat/endian.h > include/compat/endian.h; CC="$SDKCC" ./configure --host=x86_64-apple-darwin --disable-shared --prefix=$HOME/libssh2 --with-libssl-prefix=$HOME/libressl; make; make install)
           CONFIGURE_ARGS="--prefix=$HOME/mlterm --disable-shared --with-gui=quartz --host=x86_64-apple-darwin --disable-fribidi --disable-otl --without-tools --enable-debug --with-ios-sdk=$SDK --with-ios-arch=x86_64"
           PKG_CONFIG_PATH=$HOME/libressl/lib/pkgconfig:$HOME/libssh2/lib/pkgconfig CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2 -fno-objc-arc -fobjc-weak" ./configure ${CONFIGURE_ARGS}
 
