@@ -268,7 +268,7 @@ int cocoa_dialog_alert(const char *msg);
     ui_screen_t **screens;
     u_int num = ui_get_all_screens(&screens);
     if (num == 0) {
-      cocoa_dialog_alert("Failed to open screen");
+      /* cocoa_dialog_alert("Failed to open screen"); */
       exit(1);
     }
 
@@ -1659,10 +1659,10 @@ const char *cocoa_get_bundle_path(void) {
   return [[[NSBundle mainBundle] bundlePath] UTF8String];
 }
 
-char *cocoa_dialog_password(const char *msg) {
+int cocoa_dialog_connection(char **uri, char **pass, const char *msg) {
   NSAlert *alert = create_dialog(msg, 1);
   if (alert == nil) {
-    return NULL;
+    return 0;
   }
 
   NSTextField *text = [[MLSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 200, 20)];
@@ -1670,9 +1670,11 @@ char *cocoa_dialog_password(const char *msg) {
   [alert setAccessoryView:text];
 
   if ([alert runModal] == NSAlertFirstButtonReturn) {
-    return strdup([[text stringValue] UTF8String]);
+    *pass = strdup([[text stringValue] UTF8String]);
+
+    return 1;
   } else {
-    return NULL;
+    return 0;
   }
 }
 
@@ -1691,7 +1693,6 @@ int cocoa_dialog_okcancel(const char *msg) {
 
 int cocoa_dialog_alert(const char *msg) {
   NSAlert *alert = create_dialog(msg, 0);
-
   if ([alert runModal] == NSAlertFirstButtonReturn) {
     return 1;
   } else {

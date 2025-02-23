@@ -1041,6 +1041,11 @@ else
 				OUTPUT_FILES="${OUTPUT_FILES} vtemu/libptymosh/Makefile"
 			fi
 		fi
+
+		if test "$ios_sdk" != ""; then
+			# system() is disabled on ios.
+			SSH2_CFLAGS="$SSH2_CFLAGS -DNO_XAUTH"
+		fi
 	fi
 fi
 AC_SUBST(SSH2_LIBS)

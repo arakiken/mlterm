@@ -107,7 +107,7 @@ Pixmap cocoa_load_image(const char *path, u_int *width, u_int *height);
 
 /* Utility */
 
-char *cocoa_dialog_password(const char *msg);
+int cocoa_dialog_connection(char **uri, char **pass, const char *msg);
 
 int cocoa_dialog_okcancel(const char *msg);
 

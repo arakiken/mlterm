@@ -39,7 +39,7 @@
 @property (nonatomic, readonly) UITextPosition *end;
 @end
 
-@interface MLTermView : UIView<UITextInput> {
+@interface MLTermView : UIView <UITextInput, UITextInputTraits> {
   ui_window_t *uiwindow;
   CGContextRef ctx;
   CGLayerRef layer;
@@ -305,6 +305,48 @@ int cocoa_dialog_alert(const char *msg);
 
 @end
 
+static void init_mlterm_view(void) {
+  UIWindow *window = [[UIApplication sharedApplication] delegate].window;
+  CGRect r = [window screen].applicationFrame;
+  MLTermView *view = [[MLTermView alloc] initWithFrame:CGRectMake(0, 0,
+                                                                  r.size.width,
+                                                                  r.size.height)];
+  [window addSubview:view];
+  [window makeKeyAndVisible];
+}
+
+static char *server;
+static char *password;
+
+#ifdef USE_LIBSSH2
+@interface AlertViewDelegate : NSObject <UIAlertViewDelegate>
+@end
+
+@implementation AlertViewDelegate
+-(void)alertView:(UIAlertView*)alertView clickedButtonAtIndex:(NSInteger)button {
+  const char *s;
+
+  switch (button) {
+  case 0: /* Cancel */
+    break;
+
+  case 1: /* OK */
+    if (*(s = [[[alertView textFieldAtIndex:0] text] UTF8String])) {
+      server = strdup(s);
+    }
+
+    password = strdup([[[alertView textFieldAtIndex:1] text] UTF8String]);
+
+    break;
+  }
+}
+
+- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)button {
+  init_mlterm_view();
+}
+@end
+#endif
+
 @implementation AppDelegate
 
 @synthesize window;
@@ -322,7 +364,6 @@ int cocoa_dialog_alert(const char *msg);
    *  of application launch".
    * (See ~/Library/Logs/DiagnosticReports/)
    */
-
   self.window.rootViewController = [UIViewController new];
   [self.window makeKeyAndVisible];
 
@@ -335,13 +376,23 @@ int cocoa_dialog_alert(const char *msg);
                                                name:UIKeyboardDidHideNotification
                                              object:nil];
 
-  CGRect r = [self.window screen].applicationFrame;
-	MLTermView *view = [[MLTermView alloc] initWithFrame:CGRectMake(0, 0,
-                                                                  r.size.width, r.size.height)];
-	[self.window addSubview:view];
-	[self.window makeKeyAndVisible];
+#ifdef USE_LIBSSH2
+  AlertViewDelegate *delegate = [AlertViewDelegate alloc];
+  UIAlertView *alert = [[UIAlertView alloc]
+                             initWithTitle:@"Connection Dialog"
+                                   message:@"Input SSH server and password."
+                                  delegate:delegate
+                             cancelButtonTitle:@"Cancel"
+                             otherButtonTitles:@"OK", nil];
+  alert.alertViewStyle = UIAlertViewStyleLoginAndPasswordInput;
+  [alert textFieldAtIndex:0].placeholder = @"user@server";
+  [alert autorelease];
+  [alert show];
+#else
+  init_mlterm_view();
+#endif
 
-	return YES;
+  return YES;
 }
 
 - (void)keyboardDidShow:(NSNotification *)note {
@@ -433,7 +484,7 @@ int cocoa_dialog_alert(const char *msg);
     ui_screen_t **screens;
     u_int num = ui_get_all_screens(&screens);
     if (num == 0) {
-      cocoa_dialog_alert("Failed to open screen");
+      /* cocoa_dialog_alert("Failed to open screen"); */
       exit(1);
     }
 
@@ -974,8 +1025,11 @@ static ui_window_t *get_current_window(ui_window_t *win) {
       break;
 
     case 0x10:
-      /* iOS sends 0x10 for all function keys. It's impossible to distinguish them. */
-      key_code = NSF1FunctionKey;
+      /*
+       * iOS sends 0x10 for all function keys. It's impossible to distinguish them.
+       * Regard it as F2 to make Command+F2 work.
+       */
+      key_code = NSF2FunctionKey;
       break;
 
     default:
@@ -1417,6 +1471,16 @@ static ui_window_t *get_current_window(ui_window_t *win) {
     [[self window] setOpaque:NO];
   }
 }
+
+/* UITextTraits */
+
+- (UITextAutocapitalizationType)autocapitalizationType {
+  return UITextAutocapitalizationTypeNone;
+}
+
+- (UIKeyboardType)keyboardType {
+  return UIKeyboardTypeDefault;
+}
 @end
 
 /* --- global functions --- */
@@ -1492,11 +1556,14 @@ void view_set_rect(UIView *view, int x, int y, /* The origin is left-botom. */
 void view_set_hidden(UIView *view, int flag) { [view setHidden:flag]; }
 
 void window_alloc(ui_window_t *root) {
+#if 0
   uiwindow_for_mlterm_view = root->children[1];
 
+  /* mlterm-ios.app doesn't have Main.nib */
   UINib *nib = [[UINib alloc] nibWithNibName:@"Main" bundle:nil];
   [nib instantiateWithOwner:nil options:nil];
   [nib release];
+#endif
 }
 
 void window_dealloc(UIWindow *window) { [window release]; }
@@ -1656,24 +1723,19 @@ const char *cocoa_get_bundle_path(void) {
   return [[[NSBundle mainBundle] bundlePath] UTF8String];
 }
 
-char *cocoa_dialog_password(const char *msg) {
-#if 0
-  NSAlert *alert = create_dialog(msg, 1);
-  if (alert == nil) {
-    return NULL;
+int cocoa_dialog_connection(char **uri, char **pass, const char *msg) {
+  if (password) {
+    *pass = strdup(password);
+  } else {
+    return 0;
   }
 
-  NSTextField *text = [[MLSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 200, 20)];
-  [text autorelease];
-  [alert setAccessoryView:text];
-
-  if ([alert runModal] == NSAlertFirstButtonReturn) {
-    return strdup([[text stringValue] UTF8String]);
-  } else
-#endif
-  {
-    return NULL;
+  if (server) {
+    free(*uri);
+    *uri = strdup(server);
   }
+
+  return 1;
 }
 
 int cocoa_dialog_okcancel(const char *msg) {

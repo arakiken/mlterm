@@ -43,8 +43,8 @@ iOS/Cocoa Touch support (Experimental)
   o It is impossible to disable -s/--mdi option.
   o INSERT_SELECTION shortcut key is Command+v.
   o OPEN_SCREEN, OPEN_PTY, NEXT_PTY and PREV_PTY shortcut keys are
-    Command+F1, Command+F2, Command+F3 and Command+F4, but these keys don't
-    work for now.
+    Command+F1, Command+F2, Command+F3 and Command+F4, but function keys except
+    F2 don't work.
   o ISCII font is unavailable.
     (If you want to show indic characters, build mlterm with harfbuzz and
      enable -otl/use_ot_layout option.)

@@ -1449,6 +1449,8 @@ u_int ui_screen_manager_startup(void) {
     if (!open_screen_intern(main_config.disp_name, vt_get_detached_term(NULL), NULL, 0, 0,
 #if (defined(USE_LIBSSH2) && defined(__ANDROID__)) || defined(USE_WIN32API)
                             !start_with_local_pty
+#elif defined(USE_LIBSSH2) && defined(COCOA_TOUCH)
+                            1
 #else
                             0
 #endif

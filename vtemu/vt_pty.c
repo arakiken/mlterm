@@ -36,7 +36,6 @@ vt_pty_t *vt_pty_new(const char *cmd_path, /* can be NULL */
                      u_int cols, u_int rows, u_int width_pix, u_int height_pix) {
   vt_pty_t *pty;
 
-
   if (!pass) {
 #ifdef USE_WIN32API
     pty = vt_pty_win32_new(cmd_path, cmd_argv, env, host, pass, cols, rows);

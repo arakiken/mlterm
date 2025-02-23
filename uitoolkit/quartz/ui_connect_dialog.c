@@ -26,14 +26,10 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
   }
 
   if ((msg = alloca(19 + strlen(*uri) + 1))) {
-    char *p;
-
     sprintf(msg, "Enter password for %s", *uri);
 
-    if ((p = cocoa_dialog_password(msg))) {
-      *pass = p;
+    if (cocoa_dialog_connection(uri, pass, msg)) {
       *exec_cmd = NULL;
-
       return 1;
     }
   }

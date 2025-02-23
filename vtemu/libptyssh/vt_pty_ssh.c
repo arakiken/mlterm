@@ -1333,8 +1333,8 @@ static int setup_x11(LIBSSH2_CHANNEL *channel) {
   proto = NULL;
   data = NULL;
 
-/* I don't know why but system() and popen() can freeze if OPEN_PTY_ASYNC. */
-#if !defined(USE_WIN32API) && !defined(OPEN_PTY_ASYNC)
+/* XXX I don't know why but system() and popen() can freeze if OPEN_PTY_ASYNC is defined. */
+#if !defined(USE_WIN32API) && !defined(OPEN_PTY_ASYNC) && !defined(NO_XAUTH)
 #ifdef TRUSTED
   if ((cmd = alloca(24 + strlen(display) + 1))) {
     sprintf(cmd, "xauth list %s 2> /dev/null", display);
@@ -1977,6 +1977,10 @@ vt_pty_t *vt_pty_ssh_new(const char *cmd_path, /* can be NULL */
   if (user_tmp) {
     user = user_tmp;
   } else if (!(user = bl_get_user_name())) {
+#ifdef DEBUG
+    bl_debug_printf(BL_DEBUG_TAG " user name to connect ssh server is unknown.\n");
+#endif
+
     return NULL;
   }
 
@@ -2018,11 +2022,20 @@ void *vt_search_ssh_session(const char *host, const char *port, /* can be NULL *
     if (strcmp(sessions[count]->host, host) == 0 &&
         (port == NULL || strcmp(sessions[count]->port, port) == 0) &&
         strcmp(sessions[count]->user, user) == 0) {
+      if (!sessions[count]->suspended) {
 #ifdef DEBUG
-      bl_debug_printf(BL_DEBUG_TAG " Find cached session for %s %s %s.\n", host, port, user);
+        bl_debug_printf(BL_DEBUG_TAG " Find cached session for %s %s %s.\n", host, port, user);
 #endif
 
-      return sessions[count];
+        return sessions[count];
+      }
+#ifdef DEBUG
+      else {
+        bl_debug_printf(BL_DEBUG_TAG
+                        " Skip cached session for %s %s %s because it is suspended.\n",
+                        host, port, user);
+      }
+#endif
     }
   }
 

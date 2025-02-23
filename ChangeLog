@@ -1,3 +1,25 @@
+2025-02-23  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_pty.h: OPEN_PTY_ASYNC is not defined in platforms except win32api
+	  because executing xauth can freeze if OPEN_PTY_ASYNC is defined.
+
+	* libptyssh/vt_pty_ssh.c: vt_search_ssh_session() doesn't return
+	  suspended session.
+
+	* cocoatouch.m:
+	  - Show connection dialog in startup if libssh2 is supported.
+	  - Add autocapitalizationType and keyboardType to MLTermView.
+
+	* cocoa.[mh], cocoatouch.m:
+	  cocoa_dialog_password() -> cocoa_dialog_connection().
+
+	* README.cocoatouch: Updated.
+
+	* configure.in: Define NO_XAUTH in building for iOS where
+	  system() is probihited.
+
+	* ci.yml: Add libssh2 to build-macos and build-ios.
+
 2025-02-16  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_main_config.c: Add --clp/use_clipping option.

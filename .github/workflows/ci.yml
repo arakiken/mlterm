@@ -112,7 +112,7 @@ jobs:
 
       - name: setup build environment
         run: |
-          brew install gtk+3
+          brew install gtk+3 libssh2
 
       - name: configure
         run: |
@@ -140,10 +140,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: setup build environment
+        run: |
+          brew install libssh2
+
       - name: configure
         run: |
           SDK=`xcodebuild -showsdks|grep iphonesimulator|tail -n 1|sed 's/^.*\(iphonesimulator.*\)/\1/'`
-          CONFIGURE_ARGS="--prefix=$HOME/mlterm --disable-shared --with-gui=quartz --host=x86_64-apple-darwin --disable-fribidi --disable-ssh2 --disable-otl --without-tools --enable-debug --with-ios-sdk=$SDK --with-ios-arch=x86_64"
+          CONFIGURE_ARGS="--prefix=$HOME/mlterm --disable-shared --with-gui=quartz --host=x86_64-apple-darwin --disable-fribidi --disable-otl --without-tools --enable-debug --with-ios-sdk=$SDK --with-ios-arch=x86_64"
           CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2 -fno-objc-arc -fobjc-weak" ./configure ${CONFIGURE_ARGS}
 
       - name: build
