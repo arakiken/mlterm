@@ -147,7 +147,7 @@ jobs:
            SDKCC="`xcrun --sdk $SDK -f cc` -isysroot $SDKROOT"
            curl -L -O https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-4.0.0.tar.gz
            tar xvf libressl-4.0.0.tar.gz
-           (cd libressl-4.0.0; CC="$SDKCC" ./configure --host=arm64-apple-darwin --disable-shared --prefix=$HOME/libressl; make; make install)
+           (cd libressl-4.0.0; CC="$SDKCC" CFLAGS="-Wno-error=implicit-function-declaration" ./configure --host=arm64-apple-darwin --disable-shared --prefix=$HOME/libressl; make; make install)
            curl -L -O https://libssh2.org/download/libssh2-1.11.1.tar.gz
            tar xvf libssh2-1.11.1.tar.gz
            (cd libssh2-1.11.1; CC="$SDKCC" ./configure --host=arm64-apple-darwin --disable-shared --prefix=$HOME/libssh2 --with-libssl-prefix=$HOME/libressl; make; make install)
