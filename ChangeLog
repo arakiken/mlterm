@@ -1,5 +1,9 @@
 2025-02-24  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_shape.c: Add TEST_vt_shape().
+
+	* test.c: Execute TEST_vt_shape() if BL_DEBUG is defined.
+
 	* ui_main_config.[ch]: Change the type of parent_window from u_int to u_long.
 
 2025-02-23  Araki Ken  <arakiken@users.sf.net>

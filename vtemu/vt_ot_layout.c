@@ -337,8 +337,28 @@ void vt_ot_layout_set_shape_func(u_int (*func1)(void *, u_int32_t *, u_int, int8
                                                 u_int8_t *, u_int32_t *, u_int32_t *, u_int,
                                                 const char *, const char *),
                                  void *(*func2)(void *, vt_font_t)) {
+#ifdef BL_DEBUG
+  /* see void TEST_vt_shape in vt_shape.c */
+  static u_int (*orig_shape_func)(void *, u_int32_t *, u_int, int8_t *, int8_t *, u_int8_t *,
+                                  u_int32_t *, u_int32_t *, u_int, const char *, const char *);
+  static void *(*orig_get_font_func)(void *, vt_font_t);
+
+  if (func1 == NULL) {
+    shape_func = orig_shape_func;
+  } else {
+    orig_shape_func = shape_func;
+    shape_func = func1;
+  }
+  if (func2 == NULL) {
+    get_font_func = orig_get_font_func;
+  } else {
+    orig_get_font_func = get_font_func;
+    get_font_func = func2;
+  }
+#else
   shape_func = func1;
   get_font_func = func2;
+#endif
 }
 
 u_int vt_ot_layout_shape(void *font, u_int32_t *shape_glyphs, u_int num_shape_glyphs,

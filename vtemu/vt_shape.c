@@ -160,7 +160,6 @@ u_int vt_shape_ot_layout(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int sr
       if (ucs_filled) {
         num_shape_glyphs = get_shape_info(ctl_info.ot_layout, &shape_glyphs, &xoffsets, &yoffsets,
                                           &advances, &cur_pos);
-
         /*
          * If EOL char is a ot_layout byte which presents two ot_layouts
          * and its second ot_layout is out of screen, 'num_shape_glyphs' is
@@ -285,4 +284,79 @@ u_int vt_shape_ot_layout(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int sr
 
   return dst_filled;
 }
+
+#ifdef BL_DEBUG
+
+#include <assert.h>
+#include <pobl/bl_util.h>
+#include <pobl/bl_debug.h>
+
+static u_int convert_text_to_glyphs(void *hbfont, u_int32_t *shape_glyphs, u_int num_shape_glyphs,
+                                    int8_t *xoffsets, int8_t *yoffsets, u_int8_t *advances,
+                                    u_int32_t *noshape_glyphs, u_int32_t *src, u_int src_len,
+                                    const char *script, const char *features) {
+  u_int off_tbl[] = { 0, 0, -1, -3 };
+  u_int adv_tbl[] = { 0, 5, 2, 0 };
+  u_int count;
+
+  for (count = 0; count < num_shape_glyphs; count++) {
+    shape_glyphs[count] = noshape_glyphs[count] = 0x20;
+    xoffsets[count] = off_tbl[count];
+    yoffsets[count] = 0;
+    advances[count] = adv_tbl[count];
+  }
+
+  return 4;
+}
+
+static void *get_ot_layout_font(void * a, vt_font_t b) {
+  return (void*)1;
+}
+
+void TEST_vt_shape(void) {
+  vt_char_t dst[4];
+  vt_char_t src[4];
+  ctl_info_t info;
+  u_int num;
+  u_int ncomb;
+  vt_char_t *comb;
+  u_int count;
+  u_int off_tbl[] = { 0, 4, 4 };
+  u_int adv_tbl[] = { 5, 7, 7 };
+
+  vt_ot_layout_set_shape_func(convert_text_to_glyphs, get_ot_layout_font);
+
+  info.ot_layout = vt_ot_layout_new();
+
+  vt_str_init(dst, BL_ARRAY_SIZE(dst));
+  vt_str_init(src, BL_ARRAY_SIZE(src));
+  for (count = 0; count < BL_ARRAY_SIZE(src); count++) {
+    vt_char_init(&src[count]);
+    vt_char_copy(&src[count], vt_sp_ch());
+  }
+
+  vt_ot_layout(info.ot_layout, src, BL_ARRAY_SIZE(src));
+  num = vt_shape_ot_layout(dst, BL_ARRAY_SIZE(dst), src, BL_ARRAY_SIZE(src), info);
+
+  assert(num == 1);
+  comb = vt_get_combining_chars(dst, &ncomb);
+  assert(ncomb == 3);
+
+  for (count = 0; count < ncomb; count++) {
+    assert(vt_char_get_xoffset(comb + count) == off_tbl[count]);
+    assert(vt_char_get_advance(comb + count) == adv_tbl[count]);
+  }
+
+  /* Revert to original functions. */
+  vt_ot_layout_set_shape_func(NULL, NULL);
+
+  vt_str_final(src, BL_ARRAY_SIZE(src));
+  vt_str_final(dst, num);
+
+  vt_ot_layout_destroy(info.ot_layout);
+
+  bl_msg_printf("PASS vt_shape test.\n");
+}
+#endif
+
 #endif
