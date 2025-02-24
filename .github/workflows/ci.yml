@@ -71,7 +71,7 @@ jobs:
       - name: build
         run: |
           make
-          make install
+          sudo make install
 
   build-android:
     runs-on: ubuntu-latest
