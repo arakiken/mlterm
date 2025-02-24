@@ -1,3 +1,7 @@
+2025-02-24  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_main_config.[ch]: Change the type of parent_window from u_int to u_long.
+
 2025-02-23  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_pty.h: OPEN_PTY_ASYNC is not defined in platforms except win32api

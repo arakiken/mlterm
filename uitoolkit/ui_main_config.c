@@ -2,6 +2,7 @@
 
 #include "ui_main_config.h"
 
+#include <stdlib.h> /* strtol */
 #include <pobl/bl_conf_io.h>
 #include <pobl/bl_mem.h>    /* malloc/realloc */
 #include <pobl/bl_str.h>    /* bl_str_to_uint */
@@ -1111,9 +1112,11 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   }
 
   if ((value = bl_conf_get_value(conf, "parent_window"))) {
-    u_int parent_window;
+    u_long parent_window;
+    char *end;
 
-    if (bl_str_to_uint(&parent_window, value)) {
+    parent_window = strtol(value, &end, 0);
+    if (parent_window != 0 && parent_window != LONG_MIN && parent_window != LONG_MAX) {
       main_config->parent_window = parent_window;
     } else {
       bl_msg_printf(invalid_msg, "parent_window", value);
