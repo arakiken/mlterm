@@ -58,9 +58,9 @@ jobs:
 
       - name: setup build environment
         run: |
-          apt update
-          apt upgrade -y
-          apt install -y build-essential flex
+          sudo apt update
+          sudo apt upgrade -y
+          sudo apt install -y build-essential flex
 
       - name: configure
         run: |
