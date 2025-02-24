@@ -37,8 +37,8 @@ jobs:
           curl -L -O https://github.com/arakiken/mosh/archive/refs/heads/sixel-winsock.zip
           unzip sixel-winsock.zip
           (cd mosh-sixel-winsock; autoconf; ./configure)
-          CONFIGURE_ARGS="--with-gui=xlib,fb,console,wayland,sdl2 --with-mosh=$PWD/mosh-sixel-winsock"
-          CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" ./configure --enable-debug ${CONFIGURE_ARGS}
+          CONFIGURE_ARGS="--with-gui=xlib,fb,console,wayland,sdl2 --with-mosh=$PWD/mosh-sixel-winsock --enable-debug"
+          CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" ./configure ${CONFIGURE_ARGS}
 
       - name: build
         run: |
@@ -49,6 +49,29 @@ jobs:
           java_ver=`javac --version|sed 's/javac \([0-9]*\).*/\1/'`
           if test "$java_ver" != ""; then (cd java; cat Makefile | sed s/java-23-openjdk/java-${java_ver}-openjdk-amd64/ > Makefile.2; mv Makefile.2 Makefile; make); fi
           (cd main; ./mlterm --test --logmsg=false)
+
+  build-linux-min:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup build environment
+        run: |
+          apt update
+          apt upgrade -y
+          apt install -y build-essential flex
+
+      - name: configure
+        run: |
+          (cd uitoolkit/wayland && sh ./rescanproto.sh)
+          CONFIGURE_ARGS="--with-gui=xlib,fb,console,wayland,sdl2 --without-map-table --without-prop-table --disable-image --disable-dl-ctl --disable-fribidi --disable-dl-type --disable-otl --disable-ssh2 --with-utmp=none --disable-dnd --disable-kbd --disable-uim --disable-m17nlib --disable-ibus --disable-fcitx --disable-scim --disable-canna --disable-wnn --disable-skk --disable-iiimf --disable-ind --with-type-engines=xcore --disable-anti-alias --disable-fontconfig --disable-daemon --disable-split --disable-zmodem --disable-compact-truecolor"
+          CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" ./configure ${CONFIGURE_ARGS}
+
+      - name: build
+        run: |
+          make
+          make install
 
   build-android:
     runs-on: ubuntu-latest

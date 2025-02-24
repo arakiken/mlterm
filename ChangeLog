@@ -1,5 +1,7 @@
 2025-02-24  Araki Ken  <arakiken@users.sf.net>
 
+	* ci.yml: Add build-linux-min.
+
 	* vt_termcap.c: Fix memory leaks in TEST_vt_termcap().
 
 	* vt_shape.c: Add TEST_vt_shape().
