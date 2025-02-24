@@ -13,7 +13,9 @@ void TEST_ui_font_config(void);
 void TEST_ui_emoji(void);
 void TEST_vt_parser(void);
 void TEST_vt_termcap(void);
+#ifdef USE_OT_LAYOUT
 void TEST_vt_shape(void);
+#endif
 
 #ifndef NO_IMAGE
 void TEST_sixel_realloc_pixels(void);
@@ -35,7 +37,9 @@ void test(void) {
   TEST_ui_emoji();
   TEST_vt_parser();
   TEST_vt_termcap();
+#ifdef USE_OT_LAYOUT
   TEST_vt_shape();
+#endif
 
 #ifndef NO_IMAGE
   TEST_sixel_realloc_pixels();
