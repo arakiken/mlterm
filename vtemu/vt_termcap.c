@@ -631,6 +631,10 @@ void TEST_vt_termcap(void) {
 
   assert(search_termcap("term", 0) == NULL);
 
+  entry_final(&entries[0]);
+  entry_final(&entries[1]);
+  entry_final(&entries[2]);
+
   entries = orig_entries;
   num_entries = orig_num_entries;
 
