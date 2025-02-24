@@ -60,7 +60,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt upgrade -y
-          sudo apt install -y build-essential flex
+          sudo apt install -y build-essential flex libwayland-bin
 
       - name: configure
         run: |
