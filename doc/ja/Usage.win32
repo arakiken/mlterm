@@ -1,4 +1,4 @@
-comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
+comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
 
 cygwin/win32gdi 版 mlterm によるコンソール環境整備に関する備忘録
 
@@ -15,15 +15,8 @@ cygwin/win32gdi 版 mlterm によるコンソール環境整備に関する備忘録
 
   http://mlterm.sourceforge.net/mlterm-cygwin.png
 
-* cygwin/win32gdi 版 mlterm の入手
-  http://mlterm.sourceforge.net/bin.html にある
-  http://mlterm.sourceforge.net/mlterm-cygwin17-YYYYMMDD.zip をダウンロードし、
-  c:\cygwin 以下に展開。
-
-  設定等については、
-  https://github.com/arakiken/mlterm/blob/master/doc/ja/README.win32
-  https://github.com/arakiken/mlterm/blob/master/doc/ja/README.ja
-  を参照。
+* cygwin/win32gdi 版 mlterm のビルド
+  https://github.com/arakiken/mlterm/blob/master/doc/ja/README.win32 を参照。
 
 * ゲスト OS への接続
   mlterm は、libssh2 を使って ssh サーバ に接続する機能を持っています。

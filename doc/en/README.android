@@ -5,50 +5,6 @@ Android support
 * Tested environment
   Android 4.0 (x86)
 
-* Install
-  Check "Unknown sources" from Settings => Security => DEVICE ADMINISTRATION.
-  Download mlterm-android-YYYYMMDD.apk from http://mlterm.sourceforge.net/bin.html
- and install it.
-
-* Configuration
-  Place configuration files (see README.fb in detail) in /sdcard/.mlterm/.
-
-* Note
-  o Available font formats are pcf and ttf.
-  o mlterm uses /system/fonts/DroidSansMono.ttf by default.
-    If you want to customize it, add "DEFAULT=/foo/bar/font.ttf" to
-    /sdcard/.mlterm/font-fb.
-    If you want to change the size of it, add "fontsize=<pixel size>" to
-    /sdcard/.mlterm/main or append ":<percent>" (":100" means the normal size) to
-    a font path in /sdcard/.mlterm/font-fb.
-  o If you want to show emoji, copy images/emoji/unicode/*.png in
-    https://github.com/github/gemoji/archive/master.zip to /sdcard/.mlterm/emoji/
-    in advance.
-  o mlterm-android-YYYYMMDD.apk contains the feature of rendering bidi and
-    hindi (ISCII).
-    Following steps are necessary to enable it.
-    - Install DVYG0ntt.ttf.
-    - Add "ISCII_HINDI=.../DVYG0ntt.ttf" to /sdcard/.mlterm/font-fb
-    If you want to show other scripts of ISCII, edit 'tables' in
-    vtemu/libctl/vt_iscii.c, install ISCII fonts and add it to
-    /sdcard/.mlterm/font-fb.
-  o You can show a software keyboard if you double-click the left mouse
-    button (Button1) at the lower right corner of the screen.
-  o Context menu (copy&paste and configuration) pops up by long click at the
-    lower right corner.
-  o You can rotate display by "rotate_display = right" or "rotate_display = left"
-    in /sdcard/.mlterm/main.
-  o The default values of following options are as below on Android.
-    "font_size_range"       => 1-200
-    "only_use_unicode_font" => "true"
-    "box_drawing_font"      => "unicode"
-  o "use_local_echo" option is unavailable.
-  o "start_with_local_pty" option disables ssh connection dialog on startup if
-    "default_server" option is not specified.
-  o Input method plugin is not supported.
-  o Scroll upward or downward by flick gesture. If you want to select characters
-    instead of scrolling, touch screen for more than 0.5 sec.
-
 * Build
   o Build with apache ant
     $ cd mlterm-x.x.x/android
@@ -161,3 +117,42 @@ make install
 
     - Specify "mosh://" before a mosh server address or name in the connect
       dialog.
+
+* Configuration
+  Place configuration files (see README.fb in detail) in /sdcard/.mlterm/.
+
+* Note
+  o Available font formats are pcf and ttf.
+  o mlterm uses /system/fonts/DroidSansMono.ttf by default.
+    If you want to customize it, add "DEFAULT=/foo/bar/font.ttf" to
+    /sdcard/.mlterm/font-fb.
+    If you want to change the size of it, add "fontsize=<pixel size>" to
+    /sdcard/.mlterm/main or append ":<percent>" (":100" means the normal size) to
+    a font path in /sdcard/.mlterm/font-fb.
+  o If you want to show emoji, copy images/emoji/unicode/*.png in
+    https://github.com/github/gemoji/archive/master.zip to /sdcard/.mlterm/emoji/
+    in advance.
+  o mlterm-android-YYYYMMDD.apk contains the feature of rendering bidi and
+    hindi (ISCII).
+    Following steps are necessary to enable it.
+    - Install DVYG0ntt.ttf.
+    - Add "ISCII_HINDI=.../DVYG0ntt.ttf" to /sdcard/.mlterm/font-fb
+    If you want to show other scripts of ISCII, edit 'tables' in
+    vtemu/libctl/vt_iscii.c, install ISCII fonts and add it to
+    /sdcard/.mlterm/font-fb.
+  o You can show a software keyboard if you double-click the left mouse
+    button (Button1) at the lower right corner of the screen.
+  o Context menu (copy&paste and configuration) pops up by long click at the
+    lower right corner.
+  o You can rotate display by "rotate_display = right" or "rotate_display = left"
+    in /sdcard/.mlterm/main.
+  o The default values of following options are as below on Android.
+    "font_size_range"       => 1-200
+    "only_use_unicode_font" => "true"
+    "box_drawing_font"      => "unicode"
+  o "use_local_echo" option is unavailable.
+  o "start_with_local_pty" option disables ssh connection dialog on startup if
+    "default_server" option is not specified.
+  o Input method plugin is not supported.
+  o Scroll upward or downward by flick gesture. If you want to select characters
+    instead of scrolling, touch screen for more than 0.5 sec.

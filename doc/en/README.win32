@@ -78,6 +78,3 @@ Memo about WIN32 native GUI.
     Start X server as follows to enable mlterm (built with MinGW) to connect to
     X server.
     $ startxwin -- :0 -listen tcp &
-
-* Executable binaries
-  http://mlterm.sourceforge.net/bin.html

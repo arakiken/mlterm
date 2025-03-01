@@ -132,7 +132,3 @@ Windows GDI 対応に関するメモ
     forwarding を行えるようにするためには、X サーバを次のとおり起動する必要があ
     ります。
     $ startxwin -- :0 -listen tcp &
-
-* 実行可能バイナリの入手
-  http://mlterm.sourceforge.net/bin.html から cygwin/msys 用の実行可能バイナリ
-  を入手することができます(不定期更新)。
