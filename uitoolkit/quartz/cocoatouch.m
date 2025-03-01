@@ -306,7 +306,7 @@ int cocoa_dialog_alert(const char *msg);
 @end
 
 static void init_mlterm_view(void) {
-  UIWindow *window = [[UIApplication sharedApplication] delegate].window;
+  UIWindow *window = [[[UIApplication sharedApplication] delegate] window];
   CGRect r = [window screen].applicationFrame;
   MLTermView *view = [[MLTermView alloc] initWithFrame:CGRectMake(0, 0,
                                                                   r.size.width,
