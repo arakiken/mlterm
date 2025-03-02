@@ -15,7 +15,7 @@
 * Support Emoji variation selectors 15 and 16. (https://github.com/arakiken/mlterm/issues/84)
 * Add --conpty/use_conpty and --winsize/output_xtwinops_in_resizing options in win32.
 * Add --norepkey/mod_keys_to_stop_mouse_report option.
-* Add --clp/use_clipping option.
+* Add --clp/use_clipping option. (https://github.com/arakiken/mlterm/issues/132)
 * Add tool/accessories/applycfg.sh and applyfontcfg.sh
   (https://github.com/arakiken/mlterm/issues/71)
 * Add "de", "fr", "es", "pt" and "jp106" to available values for "kbd"
@@ -43,6 +43,8 @@
   https://github.com/arakiken/mlterm/issues/113
   https://github.com/arakiken/mlterm/issues/125
   https://github.com/arakiken/mlterm/issues/126
+  https://github.com/arakiken/mlterm/issues/127
+  https://github.com/arakiken/mlterm/issues/128
   Fix an issue where mlconfig was not displayed.
   Fix an issue where Control+Shift+xxx shortcut didn't work in SDL2.
   Fix unexpected reset of inverted colors in selected area in SDL2.
