@@ -237,7 +237,7 @@ jobs:
             make install
             (cd gtk && make && make install)
 
-  build-msys2-with-mosh:
+  build-mingw-with-mosh:
     runs-on: windows-latest
 
     defaults:
@@ -277,7 +277,7 @@ jobs:
           name: mlterm-mingw-w64-with-mosh
           path: dist/**
 
-  build-msys2:
+  build-mingw:
     runs-on: windows-latest
 
     defaults:
@@ -314,4 +314,39 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mlterm-mingw-w64
+          path: dist/**
+
+  build-msys2:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: git base-devel gcc
+
+      - name: build
+        run: |
+          CFLAGS="-Wall -g -O2" ./configure --with-gui=win32
+          make
+          DESTDIR=/tmp make install
+          mkdir dist
+          cp -R /tmp/etc/mlterm dist/
+          cp /tmp/bin/*.exe /tmp/bin/*.dll /tmp/lib/*/*.dll dist/
+          # for debug by gdb.
+          mkdir dist/nomt; cp dist/*.exe dist/nomt/
+          mt=`ls /c/Program\ Files\ \(x86\)\/Windows\ Kits\/*\/bin\/*\/x64\/mt.exe | head -n 1`
+          echo $mt
+          if test "$mt" != ""; then for f in dist/*.exe; do "$mt" -manifest win32/mlterm.manifest -outputresource:$f; done; fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlterm-msys2
           path: dist/**

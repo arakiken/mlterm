@@ -3,7 +3,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 BeOS (Haiku) support
 
 * Tested environment
-  Haiku R1 Beta4
+  Haiku R1 Beta5
 
 * Build
   ./configure --with-gui=beos ...

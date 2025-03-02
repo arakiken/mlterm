@@ -1,5 +1,11 @@
 2025-03-02  Araki Ken  <arakiken@users.sf.net>
 
+	* ci.yml:
+	  - build-msys2 -> build-mingw, build-msys2-with-mosh -> build-mingw-with-mosh,
+	  - Add build-msys2.
+
+	* README, README.beos: Updated.
+
 	* config.sub, config.guess: Updated.
 
 2025-03-01  Araki Ken  <arakiken@users.sf.net>
