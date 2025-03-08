@@ -327,7 +327,7 @@ jobs:
 
       - uses: msys2/setup-msys2@v2
         with:
-          msystem: UCRT64
+          msystem: MSYS
           update: true
           install: git base-devel gcc
 
