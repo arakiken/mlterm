@@ -1,5 +1,7 @@
 2025-03-09  Araki Ken  <arakiken@users.sf.net>
 
+	* bl_path.h: Include <winnls.h> for IsDBCSLeadByte().
+
 	* ci.yml: --with-gui=win32 -> --with-gui=win32,sdl2 in build-mingw.
 
 	* ui_screen.c: Fix compiling error in sdl2/win32.

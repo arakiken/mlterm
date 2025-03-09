@@ -49,6 +49,7 @@ char *__bl_basename(char *path);
 #endif
 
 #ifdef USE_WIN32API
+#include <winnls.h> /* IsDBCSLeadByte */
 #define bl_basename_simple(dst, src) \
   { \
     size_t pos; \
