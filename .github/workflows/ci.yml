@@ -299,7 +299,7 @@ jobs:
           CFLAGS="-Wall -g -O2" ./configure --with-gui=win32,sdl2
           # cp these files fails with 'cannot create symbolic link' because
           # ../win32 and ../xlib have not been copied yet.
-          cp uitoolkit/xlib/ui_selection_encoding.c uitoolkt/win32/ui.c sdl2/uitoolkit/sdl2/
+          cp uitoolkit/xlib/ui_selection_encoding.c uitoolkt/win32/ui.c gui/sdl2/uitoolkit/sdl2/
           make
           DESTDIR=/tmp make install
           (cd gtk; sed 's/-luuid//g' Makefile > Makefile.2; mv Makefile.2 Makefile; make; DESTDIR=/tmp make install)
