@@ -342,7 +342,8 @@ jobs:
           mkdir dist/usr/bin/nomt; cp dist/usr/bin/*.exe dist/usr/bin/nomt/
           mt=`ls /c/Program\ Files\ \(x86\)\/Windows\ Kits\/*\/bin\/*\/x64\/mt.exe | head -n 1`
           echo $mt
-          if test "$mt" != ""; then for f in dist/usr/bin/*.exe dist/usr/libexec/mlterm/*.exe; do "$mt" -manifest win32/mlterm.manifest -outputresource:$f; done; fi
+          # No exe files in dist/usr/libexec/mlterm for now.
+          if test "$mt" != ""; then for f in dist/usr/bin/*.exe; do "$mt" -manifest win32/mlterm.manifest -outputresource:$f; done; fi
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
