@@ -1,5 +1,9 @@
 2025-03-09  Araki Ken  <arakiken@users.sf.net>
 
+	* ci.yml: --with-gui=win32 -> --with-gui=win32,sdl2 in build-mingw.
+
+	* ui_screen.c: Fix compiling error in sdl2/win32.
+
 	* README, doc/en/README.{console|sdl2|win32}, doc/ja/README.win32,
 	  PLATFORMS.old: Updated.
 

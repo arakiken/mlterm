@@ -2131,6 +2131,10 @@ static void start_menu(ui_screen_t *screen, char *str, int x, int y) {
 #endif
 }
 
+#if defined(USE_SDL2) && defined(USE_WIN32API)
+#include <windows.h> /* CreateProcess */
+#endif
+
 static int shortcut_str(ui_screen_t *screen, KeySym ksym, u_int state, int x, int y) {
   char *str;
 
