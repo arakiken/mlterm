@@ -5,8 +5,8 @@ SDL2 support
 * Tested environment
   Arch Linux
   MacOSX 10.6
-  MS Windows 8 + Cygwin 2.10.0 / GDI (CC="i686-pc-mingw32-gcc")
-  Haiku R1 Beta4
+  MS Windows 10 + Cygwin 3.5.7 / GDI (CC="i686-pc-mingw32-gcc")
+  Haiku R1 Beta5
 
 * Build
   ./configure --with-gui=sdl2 ...

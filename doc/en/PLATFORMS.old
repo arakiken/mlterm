@@ -49,9 +49,10 @@ in the past and are probably supported now.
 * MS Windows 7 + Cygwin 1.7.26 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
 * MS Windows 7 + Cygwin 1.7.26 / X (x86)
 * MS Windows 8 + Cygwin 2.4.1 / GDI (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
+* MS Windows 10 + Cygwin 3.4.3 / GDI, SDL2 (CC=gcc, CC="i686-pc-mingw32-gcc") (x86)
 * MS Windows 7 / GDI (x86)
 * MS Windows 7 + MSYS 1.0.10 / GDI (x86)
-
+* MS Windows 10 + MSYS2 3.1.7 / GDI (x86)
 
 supported platforms (mlterm-2.9.3 pre/cvs-1.922)
 
