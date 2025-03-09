@@ -165,6 +165,7 @@ if test `echo $gui | grep ,`; then
 				done
 				mkdir -p ${top_srcdir-$srcdir}/gui/$g/contrib
 				cp -R ${top_srcdir-$srcdir}/contrib/scrollbar ${top_srcdir-$srcdir}/gui/$g/contrib/
+				cp -R ${top_srcdir-$srcdir}/contrib/icon ${top_srcdir-$srcdir}/gui/$g/contrib/
 			fi
 		fi
 	done
