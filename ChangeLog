@@ -1,3 +1,11 @@
+2025-03-13  Araki Ken  <arakiken@users.sf.net>
+
+	* bl_map.h: Add bl_hash_func_t with the use of typeof.
+
+	* bl_config.h: Add HAVE_TYPEOF and typeof.
+
+	* configure.in, baselib/configure.in: Add AC_C_TYPEOF.
+
 2025-03-10  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in: Copy contrib/icon to gui/*/contrib/icon for win32 or sdl2/win32.

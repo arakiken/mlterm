@@ -114,6 +114,13 @@
 
 #endif
 
+#ifdef HAVE_TYPEOF
+#define bl_hash_func_t(map) typeof((map)->hash_func)
+#else
+/* XXX int (*)() should be int (*)(key_type, u_int) */
+#define bl_hash_func_t(map) int (*)()
+#endif
+
 #define bl_map_set(result, map, __key, __value)                                                \
   {                                                                                            \
     int __hash_key;                                                                            \
@@ -141,12 +148,10 @@
         if ((int (*)(int, u_int))(map)->hash_func == bl_map_hash_int ||                        \
             (int (*)(int, u_int))(map)->hash_func == bl_map_hash_int_fast) {                   \
           if (__new_size & (__new_size - 1)) {                                                 \
-            /* XXX int (*)() should be int (*)(key_type, u_int) */                             \
-            (map)->hash_func = (int (*)())bl_map_hash_int;                                     \
+            (map)->hash_func = (bl_hash_func_t(map))bl_map_hash_int;                           \
           } else {                                                                             \
             /* __new_size == 2^n */                                                            \
-            /* XXX int (*)() should be int (*)(key_type, u_int) */                             \
-            (map)->hash_func = (int (*)())bl_map_hash_int_fast;                                \
+            (map)->hash_func = (bl_hash_func_t(map))bl_map_hash_int_fast;                      \
           }                                                                                    \
         }                                                                                      \
                                                                                                \

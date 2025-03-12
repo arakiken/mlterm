@@ -152,4 +152,8 @@
 
 #undef size_t
 
+#undef HAVE_TYPEOF
+
+#undef typeof
+
 #endif

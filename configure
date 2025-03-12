@@ -24876,6 +24876,61 @@ _ACEOF
 fi
 
 
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for typeof syntax and keyword spelling" >&5
+$as_echo_n "checking for typeof syntax and keyword spelling... " >&6; }
+if ${ac_cv_c_typeof+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_cv_c_typeof=no
+     for ac_kw in typeof __typeof__ no; do
+       test $ac_kw = no && break
+       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+	   int value;
+	   typedef struct {
+		   char a [1
+			   + ! (($ac_kw (value))
+				(($ac_kw (value)) 0 < ($ac_kw (value)) -1
+				 ? ($ac_kw (value)) - 1
+				 : ~ (~ ($ac_kw (value)) 0
+				      << sizeof ($ac_kw (value)))))]; }
+	      ac__typeof_type_;
+	   return
+	     (! ((void) ((ac__typeof_type_ *) 0), 0));
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_c_typeof=$ac_kw
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+       test $ac_cv_c_typeof != no && break
+     done
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_c_typeof" >&5
+$as_echo "$ac_cv_c_typeof" >&6; }
+  if test $ac_cv_c_typeof != no; then
+
+$as_echo "#define HAVE_TYPEOF 1" >>confdefs.h
+
+    if test $ac_cv_c_typeof != typeof; then
+
+cat >>confdefs.h <<_ACEOF
+#define typeof $ac_cv_c_typeof
+_ACEOF
+
+    fi
+  fi
+
+
 #
 # --- Platform dependent stuff ---
 #
