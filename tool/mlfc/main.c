@@ -6,7 +6,7 @@
 #include <stdlib.h> /* alloca */
 #include <stdbool.h>
 #include <sys/stat.h>
-#ifdef __sunos
+#if defined(__sunos) || defined(__sun)
 #include <alloca.h>
 #endif
 

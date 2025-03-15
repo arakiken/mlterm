@@ -1,3 +1,17 @@
+2025-03-15  Araki Ken  <arakiken@users.sf.net>
+
+	* libptyssh/vt_pty_ssh.c: Define USE_LARGEFILE_FLAGS before including
+	  <pobl/bl_def.h>.
+
+	* bl_config.h.in: _FILE_OFFSET_BITS and _LARGE_FILES macros are defined
+	  only if USE_LARGE_FILE_FLAGS is defined.
+
+	* mlcc/main.c, mlfc/main.c: #ifdef __sunos -> #if defined(__sunos) || defined(__sun)
+
+	* vt_char.c: Remove return for functions which do not return values.
+
+	* libind/Makefile: Add $(TBL_OBJ) to all: target.
+
 2025-03-13  Araki Ken  <arakiken@users.sf.net>
 
 	* bl_map.h: Add bl_hash_func_t with the use of typeof.

@@ -727,7 +727,7 @@ void vt_char_set_fullwidth(vt_char_t *ch, int is_fullwidth) {
   if (IS_SINGLE_CH(attr)) {
     ch->u.ch.attr = SET_FULLWIDTH(attr, is_fullwidth);
   } else {
-    return vt_char_set_fullwidth(ch->u.multi_ch, is_fullwidth);
+    vt_char_set_fullwidth(ch->u.multi_ch, is_fullwidth);
   }
 }
 
@@ -739,7 +739,7 @@ void vt_char_set_zerowidth(vt_char_t *ch, int is_zerowidth) {
   if (IS_SINGLE_CH(attr)) {
     SET_ZEROWIDTH(ch, is_zerowidth);
   } else {
-    return vt_char_set_zerowidth(ch->u.multi_ch, is_zerowidth);
+    vt_char_set_zerowidth(ch->u.multi_ch, is_zerowidth);
   }
 }
 

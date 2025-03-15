@@ -1,6 +1,8 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
-#include <pobl/bl_def.h> /* _FILE_OFFSET_BITS for the size of struct stat (libssh2_struct_stat) */
+/* _FILE_OFFSET_BITS for the size of struct stat (libssh2_struct_stat) */
+#define USE_LARGEFILE_FLAGS
+#include <pobl/bl_def.h>
 
 #include "../vt_pty_intern.h"
 

@@ -33,7 +33,7 @@ LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 
-all : $(LIBNAME).a $(TBL_OBJ:.o=.la) collect-headers
+all : $(LIBNAME).a $(TBL_OBJ) $(TBL_OBJ:.o=.la) collect-headers
 
 debug : $(LIBNAME).a
 

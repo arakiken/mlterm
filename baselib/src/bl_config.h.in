@@ -29,8 +29,10 @@
 #undef WORDS_BIGENDIAN
 
 /* AC_SYS_LARGEFILE */
+#ifdef USE_LARGEFILE_FLAGS
 #undef _FILE_OFFSET_BITS
 #undef _LARGE_FILES
+#endif
 
 #undef HAVE_STRSEP
 

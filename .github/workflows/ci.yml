@@ -37,7 +37,7 @@ jobs:
           curl -L -O https://github.com/arakiken/mosh/archive/refs/heads/sixel-winsock.zip
           unzip sixel-winsock.zip
           (cd mosh-sixel-winsock; autoconf; ./configure)
-          CONFIGURE_ARGS="--with-gui=xlib,fb,console,wayland,sdl2 --with-mosh=$PWD/mosh-sixel-winsock --enable-debug"
+          CONFIGURE_ARGS="--with-gui=xlib,fb,console,wayland,sdl2 --with-mosh=$PWD/mosh-sixel-winsock --enable-debug --enable-optimize-redrawing --enable-vt52"
           CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" ./configure ${CONFIGURE_ARGS}
 
       - name: build

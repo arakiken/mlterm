@@ -4,7 +4,7 @@
 #include <signal.h> /* sigaction */
 #include <stdlib.h>
 #include <string.h>
-#ifdef __sunos
+#if defined(__sunos) || defined(__sun)
 #include <alloca.h>
 #endif
 
