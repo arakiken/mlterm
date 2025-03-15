@@ -1,8 +1,11 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
-#include <pobl/bl_locale.h> /* bl_get_codeset() */
-
 #ifdef NO_DYNAMIC_LOAD_SSH
+/*
+ * Don't include anything before this, because _FILE_OFFSET_BITS and _LARGE_FILES
+ * in bl_config.h are defined only in libptyssh/vt_pty_ssh.c by defining
+ * USE_LARGEFILE_FLAGS.
+ */
 #include "libptyssh/vt_pty_ssh.c"
 #else /* NO_DYNAMIC_LOAD_SSH */
 
@@ -224,6 +227,8 @@ void vt_pty_ssh_set_pty_read_trigger(void (*func)(void)) {
 #endif
 
 #endif /* NO_DYNAMIC_LOAD_SSH */
+
+#include <pobl/bl_locale.h> /* bl_get_codeset() */
 
 int vt_pty_ssh_scp(vt_pty_t *pty, vt_char_encoding_t pty_encoding, /* Not VT_UNKNOWN_ENCODING */
                    vt_char_encoding_t path_encoding,                  /* Not VT_UNKNOWN_ENCODING */
