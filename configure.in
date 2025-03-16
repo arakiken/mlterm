@@ -788,13 +788,16 @@ cairo)
 		AC_CHECK_LIB(cairo,cairo_create,
 			[
 			have_cairo=yes
-			# -lfontconfig is necessary because ui_font.c refers FcXXX
+			# -lfontconfig is necessary because ui_font_ft.c refers FcXXX
 			# functions directly.
-			CAIRO_LIBS="-lcairo -lfontconfig"
+			# -lfreetype is necessary because ui_window_cairo.c refers FT_XXX
+			# functions directly.
+			CAIRO_LIBS="-lcairo -lfontconfig -lfreetype"
 			])
-	elif test "$gui" = "xlib" -a "$enable_shared" = "no" ; then
-		# In case --disable-shared is specified on some platforms
-		# (e.g. ubuntu 14.04) where dependency_libs="" in libcairo.la.
+	elif test "$gui" = "xlib" ; then
+		# In some platforms (e.g. ubuntu 14.04) dependency_libs="" in libcairo.la.
+		# (If --disable-shared is specified or allow_undefined_flags = unsupported,
+		# compiling fails.)
 		CAIRO_LIBS="$CAIRO_LIBS -lfontconfig -lfreetype"
 	fi
 

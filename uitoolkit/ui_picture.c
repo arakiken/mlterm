@@ -16,6 +16,11 @@
 #include <pobl/bl_util.h>    /* DIGIT_STR_LEN */
 #include <pobl/bl_conf_io.h> /* bl_get_user_rc_path */
 
+#ifdef USE_XLIB
+/* HAVE_WINDOWS_H is undefined on cygwin/x11 */
+#undef HAVE_WINDOWS_H
+#endif
+
 #ifdef HAVE_WINDOWS_H
 #include <windows.h> /* for CreateEvent */
 #endif
@@ -31,11 +36,6 @@
 #include <sys/select.h>
 #include <unistd.h>
 #endif
-#endif
-
-#ifdef USE_XLIB
-/* HAVE_WINDOWS_H is undefined on cygwin/x11 */
-#undef HAVE_WINDOWS_H
 #endif
 
 #include "ui_imagelib.h"

@@ -1,5 +1,9 @@
 2025-03-16  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_picture.c: Move "#undef HAVE_WINDOWS_H" first.
+
+	* configure.in: Add -lfontconfig and -lfreetype to CAIRO_LIBS.
+
 	* vt_pty_ssh.c: Include <pobl/bl_locale.h> after including
 	  "libptyssh/vt_pty_ssh.c" to fix compiling error in mingw.
 
