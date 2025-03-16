@@ -1,5 +1,9 @@
 2025-03-16  Araki Ken  <arakiken@users.sf.net>
 
+	* configure.in: Add -lfontconfig and -lfreetype to XFT_LIBS.
+
+2025-03-16  Araki Ken  <arakiken@users.sf.net>
+
 	* ui_picture.c: Move "#undef HAVE_WINDOWS_H" first.
 
 	* configure.in: Add -lfontconfig and -lfreetype to CAIRO_LIBS.

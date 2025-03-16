@@ -760,14 +760,17 @@ xft)
 			AC_CHECK_LIB(Xft,XftDrawCreate,
 				[
 				have_xft=yes
-				# -lfontconfig is necessary because ui_font.c refers FcXXX
+				# -lfontconfig is necessary because ui_font_ft.c refers FcXXX
 				# functions directly.
-				XFT_LIBS="-lXft -lfontconfig"
+				# -lfreetype is necessary because ui_window_xft.c refers FT_XXX
+				# functions directly.
+				XFT_LIBS="-lXft -lfontconfig -lfreetype"
 				])
 		fi
-	elif test "$gui" = "xlib" -a "$enable_shared" = "no" ; then
-		# In case --disable-shared is specified on some platforms
-		# (e.g. ubuntu 14.04) where dependency_libs="" in libXft.la.
+	elif test "$gui" = "xlib" ; then
+		# In some platforms (e.g. ubuntu 14.04) dependency_libs="" in libXft.la.
+		# So if --disable-shared is specified or allow_undefined_flags = unsupported,
+		# compiling fails.
 		XFT_LIBS="$XFT_LIBS -lfontconfig -lfreetype"
 	fi
 
@@ -796,8 +799,8 @@ cairo)
 			])
 	elif test "$gui" = "xlib" ; then
 		# In some platforms (e.g. ubuntu 14.04) dependency_libs="" in libcairo.la.
-		# (If --disable-shared is specified or allow_undefined_flags = unsupported,
-		# compiling fails.)
+		# So if --disable-shared is specified or allow_undefined_flags = unsupported,
+		# compiling fails.
 		CAIRO_LIBS="$CAIRO_LIBS -lfontconfig -lfreetype"
 	fi
 
