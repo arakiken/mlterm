@@ -4350,6 +4350,33 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL}'
 test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 
 
+#detect glibc
+
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <features.h>
+int
+main ()
+{
+
+#ifdef __GLIBC__
+#else
+#error
+int boil\[-1\];
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+$as_echo "#define HAVE_GNU_SOURCE 1" >>confdefs.h
+
+CFLAGS="$CFLAGS -D_GNU_SOURCE"
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for inline" >&5
 $as_echo_n "checking for inline... " >&6; }
@@ -23772,30 +23799,6 @@ pobl_top_builddir_suffix="/.."
 
 ac_config_headers="$ac_config_headers baselib/src/bl_config.h"
 
-
-#detect glibc
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <features.h>
-int
-main ()
-{
-
-#ifdef __GLIBC__
-#else
-#error
-int boil\[-1\];
-#endif
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  $as_echo "#define HAVE_GNU_SOURCE 1" >>confdefs.h
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 #
 # --- Checks for header files ---

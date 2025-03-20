@@ -23,7 +23,11 @@ AC_TRY_COMPILE([#include <features.h>],
 #error
 int boil\[-1\];
 #endif
-], AC_DEFINE(HAVE_GNU_SOURCE))
+],
+[
+AC_DEFINE(HAVE_GNU_SOURCE)
+CFLAGS="$CFLAGS -D_GNU_SOURCE"
+])
 
 #
 # --- debug ---

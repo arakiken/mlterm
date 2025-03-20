@@ -101,6 +101,20 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
 
+#detect glibc
+AC_TRY_COMPILE([#include <features.h>],
+[
+#ifdef __GLIBC__
+#else
+#error
+int boil\[-1\];
+#endif
+],
+[
+AC_DEFINE(HAVE_GNU_SOURCE)
+CFLAGS="$CFLAGS -D_GNU_SOURCE"
+])
+
 AC_C_INLINE
 
 AC_ARG_ENABLE(debug,
@@ -1955,16 +1969,6 @@ AC_SUBST(pobl_top_srcdir_suffix)
 AC_SUBST(pobl_top_builddir_suffix)
 
 AC_CONFIG_HEADER(baselib/src/bl_config.h)
-
-#detect glibc
-AC_TRY_COMPILE([#include <features.h>],
-[
-#ifdef __GLIBC__
-#else
-#error
-int boil\[-1\];
-#endif
-], AC_DEFINE(HAVE_GNU_SOURCE))
 
 #
 # --- Checks for header files ---
