@@ -1,5 +1,9 @@
 2025-03-20  Araki Ken  <arakiken@users.sf.net>
 
+	* configure.in, bl_config.h.in: Remove HAVE_GNU_SOURCE.
+
+2025-03-20  Araki Ken  <arakiken@users.sf.net>
+
 	* configure.in: Add -D_GNU_SOURCE to CFLAGS if glibc is installed.
 
 2025-03-16  Araki Ken  <arakiken@users.sf.net>

@@ -1,16 +1,5 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
-/*
- * _GNU_SOURCE must be defined before including <features.h> to take effect.
- * since standard headers, bl_types.h and bl_def.h include features.h
- * indirectly,
- * ecplicitly evaluate only the autoconf's result here.
- */
-#include "bl_config.h"
-#ifdef HAVE_GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-
 #include "bl_pty.h"
 
 #include <fcntl.h>
