@@ -753,7 +753,7 @@ static void __exit(void *p, int status) {
   u_int count;
 
   for (count = 0; count < num_screens; count++) {
-    SendMessage(ui_get_root_window(&screens[count]->window), WM_CLOSE, 0, 0);
+    SendMessage(ui_get_root_window(&screens[count]->window)->my_window, WM_CLOSE, 0, 0);
   }
 #endif
 #if 1

@@ -1,5 +1,7 @@
 2025-03-22  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_screen_manager.c: Fix compiling error.
+
 	* bl_file.c, test.c: Add TEST_bl_file().
 
 	* ci.yml: Add --enable-debug to ./configure in build-mingw.
