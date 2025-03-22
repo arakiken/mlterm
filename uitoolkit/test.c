@@ -7,6 +7,7 @@
 void TEST_bl_args(void);
 void TEST_bl_map(void);
 void TEST_bl_path(void);
+void TEST_bl_file(void);
 void TEST_bl_str(void);
 void TEST_encodefilter(void);
 void TEST_ui_font_config(void);
@@ -31,6 +32,7 @@ void test(void) {
   TEST_bl_args();
   TEST_bl_map();
   TEST_bl_path();
+  TEST_bl_file();
   TEST_bl_str();
   TEST_encodefilter();
   TEST_ui_font_config();

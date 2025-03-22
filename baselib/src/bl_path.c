@@ -9,7 +9,7 @@
 #if defined(__ANDROID__)
 #include <sys/stat.h>
 #elif defined(USE_WIN32API)
-#include <windows.h> /* IsDBCSLeadByte */
+#include <winnls.h> /* IsDBCSLeadByte */
 #endif
 
 #include "bl_debug.h"
@@ -35,9 +35,10 @@ char* __bl_basename(char *path) {
       return p;
     } else if (*p == '/'
 #ifdef USE_WIN32API
-               || (*p == '\\' && (p - 1 == path || !IsDBCSLeadByte(*(p - 1))))
+               /* p - 1 is always equal to or greater than path */
+               || (*p == '\\' && !IsDBCSLeadByte(*(p - 1)))
 #endif
-                   ) {
+               ) {
       *(p--) = '\0';
     } else {
       break;
@@ -45,19 +46,19 @@ char* __bl_basename(char *path) {
   }
 
   while (1) {
+    p--;
     if (*p == '/'
 #ifdef USE_WIN32API
-        || (*p == '\\' && (p - 1 == path || !IsDBCSLeadByte(*(p - 1))))
+        /* p - 1 is always equal to or greater than path */
+        || (*p == '\\' && !IsDBCSLeadByte(*(p - 1)))
 #endif
-            ) {
+        ) {
       return p + 1;
     } else {
       if (p == path) {
         return p;
       }
     }
-
-    p--;
   }
 }
 
@@ -472,6 +473,10 @@ static void TEST_bl_basename(void) {
   char path3[] = "/f o o/ b a r";
   /* Hyou (SJIS) = \x95\x5c (0x5c = \) */
   char path4[] = "/foo/\x95\x5c bar";
+  char path5[] = "\x95\x5c bar";
+#ifdef USE_WIN32API
+  char path6[] = "\\bar\x95\x5c";
+#endif
   char *basename;
 
   bl_basename_simple(basename, path1);
@@ -487,6 +492,10 @@ static void TEST_bl_basename(void) {
   assert(strcmp(__bl_basename(path2), "bar") == 0);
   assert(strcmp(__bl_basename(path3), " b a r") == 0);
   assert(strcmp(__bl_basename(path4), "\x95\x5c bar") == 0);
+  assert(strcmp(__bl_basename(path5), "\x95\x5c bar") == 0);
+#ifdef USE_WIN32API
+  assert(strcmp(__bl_basename(path6), "bar\x95\x5c") == 0);
+#endif
 }
 
 void TEST_bl_path(void) {

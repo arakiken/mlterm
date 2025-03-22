@@ -296,7 +296,7 @@ jobs:
         run: |
           curl -L -O https://mlterm.sourceforge.net/vte-headers.tar.gz
           tar xzvf vte-headers.tar.gz -C D:/a/_temp/msys64/ucrt64
-          CFLAGS="-Wall -g -O2" ./configure --with-gui=win32,sdl2
+          CFLAGS="-Wall -g -O2" ./configure --with-gui=win32,sdl2 --enable-debug
           # cp these files fails with 'cannot create symbolic link' because
           # ../win32 and ../xlib have not been copied yet.
           cp uitoolkit/xlib/ui_selection_encoding.c uitoolkit/win32/ui.c uitoolkit/win32/winrs.rs gui/sdl2/uitoolkit/sdl2/
@@ -312,6 +312,7 @@ jobs:
           echo $mt
           if test "$mt" != ""; then for f in dist/*.exe; do "$mt" -manifest win32/mlterm.manifest -outputresource:$f; done; fi
           (cd dist; ldd *.exe | sed -n 's/.*=> \([^ ]*\) .*/\1/p' | grep --ignore-case -v /WINDOWS/ | grep -v /dist/ | xargs | sed 's/\(.*\)/cp \1 ./' | sh)
+          (cd dist; ./mlterm --test --logmsg=false)
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

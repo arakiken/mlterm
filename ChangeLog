@@ -1,3 +1,9 @@
+2025-03-22  Araki Ken  <arakiken@users.sf.net>
+
+	* bl_file.c, test.c: Add TEST_bl_file().
+
+	* ci.yml: Add --enable-debug to ./configure in build-mingw.
+
 2025-03-20  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in, bl_config.h.in: Remove HAVE_GNU_SOURCE.

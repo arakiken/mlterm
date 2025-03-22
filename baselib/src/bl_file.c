@@ -11,6 +11,10 @@
 #include "bl_mem.h" /* malloc */
 #include "bl_debug.h"
 
+#if defined(USE_WIN32API)
+#include <winnls.h> /* IsDBCSLeadByte */
+#endif
+
 #define BUF_UNIT_SIZE 512
 
 /* --- global functions --- */
@@ -237,7 +241,7 @@ int bl_mkdir_for_file(char *file_path, /* Not const. Don't specify read only dat
   while (*p) {
     if (*p == '/'
 #ifdef USE_WIN32API
-        || *p == '\\'
+        || (*p == '\\' && !IsDBCSLeadByte(*(p - 1)))
 #endif
         ) {
       struct stat s;
@@ -270,3 +274,37 @@ int bl_mkdir_for_file(char *file_path, /* Not const. Don't specify read only dat
 
   return 1;
 }
+
+#ifdef BL_DEBUG
+#include <assert.h>
+#include <unistd.h>
+
+int TEST_bl_file() {
+#ifdef USE_WIN32API
+  char path1[] = "testdir\\\x95\x5c\\a\\i\\";
+  char path2[] = "testdir\\\x95\x5c\\a\\i";
+#else
+  char path1[] = "testdir/a/b";
+  char path2[] = "testdir/a";
+#endif
+  struct stat s;
+
+  bl_mkdir_for_file(path1, 0777);
+
+  assert(stat(path2, &s) == 0);
+
+#ifdef USE_WIN32API
+  rmdir("testdir\\\x95\x5c\\a\\i");
+  rmdir("testdir\\\x95\x5c\\a");
+  rmdir("testdir\\\x95\x5c");
+  rmdir("testdir\\\x95");
+  rmdir("testdir");
+#else
+  rmdir("testdir/a");
+  rmdir("testdir");
+#endif
+
+  bl_msg_printf("PASS bl_file test.\n");
+}
+
+#endif
