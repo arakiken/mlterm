@@ -747,6 +747,9 @@ error:
  */
 #ifdef DEBUG
 #include "../main/main_loop.h"
+#if defined(USE_WIN32API) && defined(USE_LIBSSH2)
+int WSACleanup(void);
+#endif
 
 static void __exit(void *p, int status) {
 #ifdef USE_WIN32GUI
