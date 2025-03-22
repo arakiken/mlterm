@@ -312,7 +312,7 @@ jobs:
           echo $mt
           if test "$mt" != ""; then for f in dist/*.exe; do "$mt" -manifest win32/mlterm.manifest -outputresource:$f; done; fi
           (cd dist; ldd *.exe | sed -n 's/.*=> \([^ ]*\) .*/\1/p' | grep --ignore-case -v /WINDOWS/ | grep -v /dist/ | xargs | sed 's/\(.*\)/cp \1 ./' | sh)
-          (cd dist; ./mlterm --test --logmsg=false)
+          (cd dist; ./mlterm.exe --test --logmsg=false)
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
