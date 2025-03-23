@@ -360,7 +360,8 @@ static void TEST_bl_path_win32(void) {
   assert(strcasecmp(path, "c:\\cygwin64\\foo\\bar") == 0 ||
          strcasecmp(path, "c:\\cygwin\\foo\\bar") == 0);
 #else /* if defined(__MSYS__) */
-  assert(strcasecmp(path, "c:\\msys64\\foo\\bar") == 0);
+  assert(strcasecmp(path, "c:\\msys64\\foo\\bar") == 0 ||
+         strcasecmp(path, "c:\\ucrt64\\foo\\bar") == 0);
 #endif
 
   assert(bl_conv_to_win32_path(
@@ -403,6 +404,7 @@ static void TEST_bl_path_common(void) {
   char *path;
 
   bl_parse_uri(&proto, &user, &host, &port, &path, &encoding, uri1);
+  bl_msg_printf("1 %s %s %s %s %s %s\n", proto, user, host, port, path, encoding);
   assert(strcmp(proto, "ssh") == 0);
   assert(strcmp(user, "ken") == 0);
   assert(strcmp(host, "localhost.localdomain") == 0);
@@ -411,6 +413,7 @@ static void TEST_bl_path_common(void) {
   assert(encoding == NULL);
 
   bl_parse_uri(&proto, &user, &host, &port, &path, &encoding, uri2);
+  bl_msg_printf("2 %s %s %s %s %s %s\n", proto, user, host, port, path, encoding);
   assert(proto == NULL);
   assert(strcmp(user, "ken") == 0);
   assert(strcmp(host, "localhost.localdomain") == 0);
@@ -419,6 +422,7 @@ static void TEST_bl_path_common(void) {
   assert(encoding == NULL);
 
   bl_parse_uri(&proto, &user, &host, &port, &path, &encoding, uri3);
+  bl_msg_printf("3 %s %s %s %s %s %s\n", proto, user, host, port, path, encoding);
   assert(proto == NULL);
   assert(strcmp(user, "ken") == 0);
   assert(strcmp(host, "localhost.localdomain") == 0);
@@ -427,6 +431,7 @@ static void TEST_bl_path_common(void) {
   assert(strcmp(encoding, "utf8") == 0);
 
   bl_parse_uri(&proto, &user, &host, &port, &path, &encoding, uri4);
+  bl_msg_printf("4 %s %s %s %s %s %s\n", proto, user, host, port, path, encoding);
   assert(proto == NULL);
   assert(strcmp(user, "ken") == 0);
   assert(strcmp(host, "localhost.localdomain") == 0);
@@ -435,6 +440,7 @@ static void TEST_bl_path_common(void) {
   assert(encoding == NULL);
 
   bl_parse_uri(&proto, &user, &host, &port, &path, &encoding, uri5);
+  bl_msg_printf("5 %s %s %s %s %s %s\n", proto, user, host, port, path, encoding);
   assert(strcmp(proto, "ssh") == 0);
   assert(user == NULL);
   assert(strcmp(host, "localhost.localdomain") == 0);
@@ -443,6 +449,7 @@ static void TEST_bl_path_common(void) {
   assert(encoding == NULL);
 
   bl_parse_uri(&proto, &user, &host, &port, &path, &encoding, uri6);
+  bl_msg_printf("6 %s %s %s %s %s %s\n", proto, user, host, port, path, encoding);
   assert(strcmp(proto, "telnet") == 0);
   assert(strcmp(user, "ken") == 0);
   assert(strcmp(host, "localhost.localdomain") == 0);
@@ -451,6 +458,7 @@ static void TEST_bl_path_common(void) {
   assert(strcmp(encoding, "eucjp") == 0);
 
   bl_parse_uri(&proto, &user, &host, &port, &path, &encoding, uri7);
+  bl_msg_printf("7 %s %s %s %s %s %s\n", proto, user, host, port, path, encoding);
   assert(strcmp(proto, "ssh") == 0);
   assert(strcmp(user, "ken") == 0);
   assert(strcmp(host, "localhost.localdomain") == 0);
@@ -459,6 +467,7 @@ static void TEST_bl_path_common(void) {
   assert(strcmp(encoding, "eucjp") == 0);
 
   bl_parse_uri(&proto, &user, &host, &port, &path, &encoding, uri8);
+  bl_msg_printf("8 %s %s %s %s %s %s\n", proto, user, host, port, path, encoding);
   assert(strcmp(proto, "ssh") == 0);
   assert(user == NULL);
   assert(strcmp(host, "localhost") == 0);
@@ -480,21 +489,37 @@ static void TEST_bl_basename(void) {
   char *basename;
 
   bl_basename_simple(basename, path1);
+  bl_msg_printf("10 %s\n", basename);
   assert(strcmp(basename, "") == 0);
   bl_basename_simple(basename, path2);
+  bl_msg_printf("11 %s\n", basename);
   assert(strcmp(basename, "bar") == 0);
   bl_basename_simple(basename, path3);
+  bl_msg_printf("12 %s\n", basename);
   assert(strcmp(basename, " b a r") == 0);
   bl_basename_simple(basename, path4);
+  bl_msg_printf("13 %s\n", basename);
   assert(strcmp(basename, "\x95\x5c bar") == 0);
 
-  assert(strcmp(__bl_basename(path1), "bar") == 0);
-  assert(strcmp(__bl_basename(path2), "bar") == 0);
-  assert(strcmp(__bl_basename(path3), " b a r") == 0);
-  assert(strcmp(__bl_basename(path4), "\x95\x5c bar") == 0);
-  assert(strcmp(__bl_basename(path5), "\x95\x5c bar") == 0);
+  basename = __bl_basename(path1);
+  bl_msg_printf("14 %s\n", basename);
+  assert(strcmp(basename, "bar") == 0);
+  basename = __bl_basename(path2);
+  bl_msg_printf("15 %s\n", basename);
+  assert(strcmp(basename, "bar") == 0);
+  basename = __bl_basename(path3);
+  bl_msg_printf("16 %s\n", basename);
+  assert(strcmp(basename, " b a r") == 0);
+  basename = __bl_basename(path4);
+  bl_msg_printf("17 %s\n", basename);
+  assert(strcmp(basename, "\x95\x5c bar") == 0);
+  basename = __bl_basename(path5);
+  bl_msg_printf("18 %s\n", basename);
+  assert(strcmp(basename, "\x95\x5c bar") == 0);
 #ifdef USE_WIN32API
-  assert(strcmp(__bl_basename(path6), "bar\x95\x5c") == 0);
+  basename = __bl_basename(path6);
+  bl_msg_printf("19 %s\n", basename);
+  assert(strcmp(basename, "bar\x95\x5c") == 0);
 #endif
 }
 
