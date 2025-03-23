@@ -31,7 +31,9 @@ void TEST_xstringtokeysym(void);
 void test(void) {
   TEST_bl_args();
   TEST_bl_map();
+#ifndef USE_WIN32API
   TEST_bl_path();
+#endif
   TEST_bl_file();
   TEST_bl_str();
   TEST_encodefilter();
