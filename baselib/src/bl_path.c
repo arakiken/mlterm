@@ -50,14 +50,12 @@ char* __bl_basename(char *path) {
     if (*p == '/'
 #ifdef USE_WIN32API
         /* p - 1 is always equal to or greater than path */
-        || (*p == '\\' && !IsDBCSLeadByte(*(p - 1)))
+        || (*p == '\\' && (p == path || !IsDBCSLeadByte(*(p - 1))))
 #endif
         ) {
       return p + 1;
-    } else {
-      if (p == path) {
-        return p;
-      }
+    } else if (p == path) {
+      return p;
     }
   }
 }
