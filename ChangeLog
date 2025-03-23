@@ -1,3 +1,7 @@
+2025-03-23  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_shape.c: Fix illegal memory access in convert_text_to_glyphs().
+
 2025-03-22  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen_manager.c: Fix compiling error.

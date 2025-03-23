@@ -295,18 +295,32 @@ static u_int convert_text_to_glyphs(void *hbfont, u_int32_t *shape_glyphs, u_int
                                     int8_t *xoffsets, int8_t *yoffsets, u_int8_t *advances,
                                     u_int32_t *noshape_glyphs, u_int32_t *src, u_int src_len,
                                     const char *script, const char *features) {
-  u_int off_tbl[] = { 0, 0, -1, -3 };
-  u_int adv_tbl[] = { 0, 5, 2, 0 };
   u_int count;
 
-  for (count = 0; count < num_shape_glyphs; count++) {
-    shape_glyphs[count] = noshape_glyphs[count] = 0x20;
-    xoffsets[count] = off_tbl[count];
-    yoffsets[count] = 0;
-    advances[count] = adv_tbl[count];
-  }
+  if (shape_glyphs) {
+    u_int off_tbl[] = { 0, 0, -1, -3 };
+    u_int adv_tbl[] = { 0, 5, 2, 0 };
 
-  return 4;
+    if (num_shape_glyphs < 4) {
+      /* error */
+      return 0;
+    }
+
+    for (count = 0; count < 4; count++) {
+      shape_glyphs[count] = noshape_glyphs[count] = 0x20;
+      xoffsets[count] = off_tbl[count];
+      yoffsets[count] = 0;
+      advances[count] = adv_tbl[count];
+    }
+
+    return 4;
+  } else {
+    for (count = 0; count < src_len; count++) {
+      noshape_glyphs[count] = 0x20;
+    }
+
+    return src_len;
+  }
 }
 
 static void *get_ot_layout_font(void * a, vt_font_t b) {
