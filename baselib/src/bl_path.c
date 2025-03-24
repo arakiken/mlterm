@@ -485,7 +485,10 @@ static void TEST_bl_basename(void) {
   assert(strcmp(basename, "bar") == 0);
   bl_basename_simple(basename, path3);
   assert(strcmp(basename, " b a r") == 0);
-  if (GetACP() == 932) {
+#ifdef USE_WIN32API
+  if (GetACP() == 932)
+#endif
+  {
     bl_basename_simple(basename, path4);
     assert(strcmp(basename, "\x95\x5c bar") == 0);
     bl_basename_simple(basename, path5);
@@ -497,7 +500,10 @@ static void TEST_bl_basename(void) {
   assert(strcmp(__bl_basename(path1), "bar") == 0);
   assert(strcmp(__bl_basename(path2), "bar") == 0);
   assert(strcmp(__bl_basename(path3), " b a r") == 0);
-  if (GetACP() == 932) {
+#ifdef USE_WIN32API
+  if (GetACP() == 932)
+#endif
+  {
     assert(strcmp(__bl_basename(path4), "\x95\x5c bar") == 0);
     assert(strcmp(__bl_basename(path5), "\x95\x5c bar") == 0);
   }
