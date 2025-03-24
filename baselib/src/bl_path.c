@@ -485,27 +485,27 @@ static void TEST_bl_basename(void) {
   assert(strcmp(basename, "bar") == 0);
   bl_basename_simple(basename, path3);
   assert(strcmp(basename, " b a r") == 0);
-  bl_basename_simple(basename, path4);
-  assert(strcmp(basename, "\x95\x5c bar") == 0);
-  bl_basename_simple(basename, path5);
-  bl_msg_printf("%s (%x %x)\n", basename, (u_char)basename[0], basename[1]);
-  assert(strcmp(basename, "\x95\x5c bar") == 0);
-  bl_msg_printf("assert ok\n");
-  bl_basename_simple(basename, path6);
-  assert(strcmp(basename, "") == 0);
+  if (GetACP() == 932) {
+    bl_basename_simple(basename, path4);
+    assert(strcmp(basename, "\x95\x5c bar") == 0);
+    bl_basename_simple(basename, path5);
+    assert(strcmp(basename, "\x95\x5c bar") == 0);
+    bl_basename_simple(basename, path6);
+    assert(strcmp(basename, "") == 0);
+  }
 
-  bl_msg_printf("%s -> ", path1);
-  basename = __bl_basename(path1);
-  bl_msg_printf("%s\n", basename);
-  assert(strcmp(basename, "bar") == 0);
-  bl_msg_printf("assert ok\n");
+  assert(strcmp(__bl_basename(path1), "bar") == 0);
   assert(strcmp(__bl_basename(path2), "bar") == 0);
   assert(strcmp(__bl_basename(path3), " b a r") == 0);
-  assert(strcmp(__bl_basename(path4), "\x95\x5c bar") == 0);
-  assert(strcmp(__bl_basename(path5), "\x95\x5c bar") == 0);
+  if (GetACP() == 932) {
+    assert(strcmp(__bl_basename(path4), "\x95\x5c bar") == 0);
+    assert(strcmp(__bl_basename(path5), "\x95\x5c bar") == 0);
+  }
   assert(strcmp(__bl_basename(path6), "/") == 0);
 #ifdef USE_WIN32API
-  assert(strcmp(__bl_basename(path7), "bar\x95\x5c") == 0);
+  if (GetACP() == 932) {
+    assert(strcmp(__bl_basename(path7), "bar\x95\x5c") == 0);
+  }
 #endif
 }
 
