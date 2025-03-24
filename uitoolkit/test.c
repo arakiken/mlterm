@@ -31,9 +31,7 @@ void TEST_xstringtokeysym(void);
 void test(void) {
   TEST_bl_args();
   TEST_bl_map();
-#if 0
   TEST_bl_path();
-#endif
   TEST_bl_file();
   TEST_bl_str();
   TEST_encodefilter();

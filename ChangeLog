@@ -1,5 +1,9 @@
 2025-03-23  Araki Ken  <arakiken@users.sf.net>
 
+	* bl_path.c: Add a test case to TEST_bl_basename().
+
+2025-03-23  Araki Ken  <arakiken@users.sf.net>
+
 	* vt_shape.c: Fix illegal memory access in convert_text_to_glyphs().
 
 2025-03-22  Araki Ken  <arakiken@users.sf.net>
