@@ -1,5 +1,5 @@
 .\" mlterm.1   -*- nroff -*-
-.TH MLTERM 1 "2022-01-16"
+.TH MLTERM 1 "2025-03-30"
 .SH NAME
 mlterm \- Multi Lingual TERMinal emulator on X
 .SH SYNOPSIS
@@ -581,7 +581,7 @@ Use either unicode font or DEC Special font forcibly to draw box-drawing charact
 \fBunicode\fR for unicode font and \fBdecsp\fR for DEC special font.
 The default is \fBnoconv\fR which draw them as they are.
 .TP
-\fB\-\-chsel\fR(=\fIbool\fR) (Available for anything except mlterm and mlterm-wl)
+\fB\-\-chsel\fR(=\fIbool\fR) (Available for platforms except x11 and wayland)
 Whether to enable to change selection just after selecting text by mouse.
 The default is \fBtrue\fR.
 .TP
@@ -1035,7 +1035,7 @@ Use xft for rendering engine. (\fB\-*\fR, \fB\-\-type\fR)
 Cairo
 Use cairo for rendering engine. (\fB\-*\fR, \fB\-\-type\fR)
 .TP
-Anti alias
+Anti Alias
 Use anti-alias fonts by using Xft or cairo. (\fB\-A\fR, \fB\-\-aa\fR)
 .TP
 Variable column width
@@ -1136,7 +1136,7 @@ Specify background color of scrollbar. (\fB\-B\fR, \fB\-\-sbbg\fR)
 .SS Others page
 Other configurations are located in this page.
 .TP
-Tab size
+Tab width
 Column number of tab. (\fB\-x\fR, \fB\-\-tw\fR)
 .TP
 Backlog size
@@ -1188,8 +1188,8 @@ Whether to trim new line characters at the end in pasting text. (\fB\-\-trim\fR)
 .SS Buttons
 There are buttons which is independent from OK/Apply/Cancel buttons.
 .TP
-OK/Apply/Cancel
-OK button applies the modified configuration to the current mlterm
+Save&Exit / Apply&Exit / Apply / Cancel
+Save&Exit button applies the modified configuration to the current mlterm
 session, saves it to "\fB~/.mlterm/main\fR" configuration file,
 and quits the GUI Configurator.
 Apply button just applies the modified configuration to the current
@@ -1204,7 +1204,7 @@ Reset internal status.
 Snapshot
 Snapshot the screen and save it to ~/.mlterm/*.snp.
 .TP
-SSH SCP
+SCP
 Transfer a file via SCP.
 .TP
 PTY List
@@ -1586,7 +1586,7 @@ Specify the amount of darkening or lightening the background image.
 Whether to broadcast input or pasted characters to all ptys whose value of
 "ignore_broadcasted_chars" option is false.
 .TP
-\fBchange_selection_immediately=\fIbool\fR (\-\-chsel\fR) (Available for anything except mlterm and mlterm-wl)
+\fBchange_selection_immediately=\fIbool\fR (\-\-chsel\fR) (Available for platforms except x11 and wayland)
 Whether to enable to change selection just after selecting text by mouse.
 .TP
 \fBcipher_list\fR=\fIvalue\fR (\fB\-\-ciphlist\fR)
@@ -1856,7 +1856,7 @@ Force half width regardless of EastAsianWidth.txt.
 \fBunicode_noconv_areas\fR=\fIvalue\fR (\fB\-\-ucsnoconv\fR)
 Use unicode fonts partially regardless of -n option.
 .TP
-\fBuse_aafont=\fIbool\fR (\fB\-\-aafont\fR) (Available for mlterm-fb or mlterm-wl)
+\fBuse_aafont=\fIbool\fR (\fB\-\-aafont\fR) (Available for mlterm-fb, mlterm-wl or mlterm-sdl2)
 Use ~/.mlterm/*aafont configurations with the use of fontconfig.
 .TP
 \fBuse_auto_detect=\fIbool\fR (\fB\-\-auto\fR)
@@ -1881,7 +1881,7 @@ Use clipping to keep from producing dots outside the text drawing area.
 \fBuse_combining=\fIbool\fR (\fB\-m\fR, \fB\-\-comb\fR)
 Enable combining characters.
 .TP
-\fBuse_conpty=\fIbool\fR (\fB\-\-conpty\fR)
+\fBuse_conpty=\fIbool\fR (\fB\-\-conpty\fR) (Available for win32)
 Use ConPTY.
 .TP
 \fBuse_cp932_ucs_for_xft=\fIbool\fR (\fB\-c\fR, \fB\-\-cp932\fR)

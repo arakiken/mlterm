@@ -92,7 +92,7 @@ vt_term_t *mlterm_open(const char *host, const char *pass, int cols, int rows, u
     CreateEvent(NULL, FALSE, FALSE, "PTY_READ_READY");
 #endif
 
-    bl_init_prog("mlterm", "3.9.3");
+    bl_init_prog("mlterm", "3.9.4");
     bl_set_sys_conf_dir(CONFIG_PATH);
     bl_locale_init("");
     /*

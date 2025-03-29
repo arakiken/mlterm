@@ -1,3 +1,4 @@
+ver 3.9.4
 * Support Shift+Control+v and Shift+Control+c to copy&paste via clipboard by default.
   Drop -P/--clip/use_clipboard option.
   Add --chsel/change_selection_immediately option in anything except xlib and wayland.
@@ -41,15 +42,20 @@
   https://github.com/arakiken/mlterm/issues/107
   https://github.com/arakiken/mlterm/issues/111
   https://github.com/arakiken/mlterm/issues/113
+  https://github.com/arakiken/mlterm/issues/118
+  https://github.com/arakiken/mlterm/issues/124
   https://github.com/arakiken/mlterm/issues/125
   https://github.com/arakiken/mlterm/issues/126
   https://github.com/arakiken/mlterm/issues/127
   https://github.com/arakiken/mlterm/issues/128
+  https://github.com/arakiken/mlterm/issues/129
+  https://github.com/arakiken/mlterm/issues/137
   Fix an issue where mlconfig was not displayed.
   Fix an issue where Control+Shift+xxx shortcut didn't work in SDL2.
   Fix unexpected reset of inverted colors in selected area in SDL2.
   Fix --point / use_point_size option which broke font width in win32.
   Fix drawing glyphs in incorrect position with some fonts, such as devanagari.
+  (https://github.com/arakiken/mlterm/issues/131)
 
 ver 3.9.3
 * mlterm-wl supports xdg-decoration.

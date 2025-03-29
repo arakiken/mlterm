@@ -1,5 +1,14 @@
 2025-03-30  Araki Ken  <arakiken@users.sf.net>
 
+	* 3.9.4 released.
+	  (tag "3.9.4")
+
+	* configure.in, mlterm.spec, main/version.h.in,
+	  mlterm.c, android/jni/version.h, vt_parser.c:
+	  updated for 3.9.4.
+
+2025-03-30  Araki Ken  <arakiken@users.sf.net>
+
 	* w3mmlconfig: Fix.
 
 	* README.ja, README.android, etc/main, etc/main.ja: Updated.

@@ -1,7 +1,7 @@
 comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 
 mlterm configuration protocol
-version 20230401
+version 20250330
 
 * Protocol
   exec          = "\x1b]5379;" <command> "\x07"
@@ -53,11 +53,11 @@ version 20230401
                   trim_trailing_newline_in_pasting | type_engine | ul_color |
                   underline_offset | unicode_full_width_areas | unicode_half_width_areas |
                   unicode_noconv_areas | use_alt_buffer | use_ansi_colors | use_anti_alias |
-                  use_auto_detect | use_bold_font | use_combining | use_ctl | use_dynamic_comb |
-                  use_italic_font | use_local_echo | use_locked_title | use_multi_column_char |
-                  use_ot_layout | use_transbg | use_urgent_bell | use_variable_column_width |
-                  use_vertical_cursor | vertical_mode | vt_color_mode | vt_seq_format |
-                  wall_picture | word_separators
+                  use_auto_detect | use_bold_font | use_clipping | use_combining | use_ctl |
+                  use_dynamic_comb | use_italic_font | use_local_echo | use_locked_title |
+                  use_multi_column_char | use_ot_layout | use_transbg | use_urgent_bell |
+                  use_variable_column_width | use_vertical_cursor | vertical_mode |
+                  vt_color_mode | vt_seq_format | wall_picture | word_separators
 
   get key       = alpha | allow_osc52 | allow_scp | auto_detect_encodings | baseline_offset |
                   bd_color | bel_mode | bg_color | bidi_mode | bidi_separators | bl_color |
@@ -75,10 +75,11 @@ version 20230401
                   trim_trailing_newline_in_pasting | type_engine | ul_color | underline_offset |
                   unicode_full_width_areas | unicode_half_width_areas | unicode_noconv_areas |
                   use_aafont | use_alt_buffer | use_ansi_colors | use_anti_alias |
-                  use_auto_detect | use_bold_font | use_combining | use_ctl | use_dynamic_comb |
-                  use_italic_font | use_local_echo | use_locked_title | use_multi_column_char |
-                  use_ot_layout | use_transbg | use_variable_column_width | use_vertical_cursor |
-                  vertical_mode | vt_seq_format | wall_picture | word_separators
+                  use_auto_detect | use_bold_font | use_clipping | use_combining | use_ctl |
+                  use_dynamic_comb | use_italic_font | use_local_echo | use_locked_title |
+                  use_multi_column_char | use_ot_layout | use_transbg | use_variable_column_width |
+                  use_vertical_cursor | vertical_mode | vt_seq_format | wall_picture |
+                  word_separators
 
                   (*): Works as "proto:xxxx" shortcut in ~/.mlterm/key alone.
 
@@ -123,7 +124,7 @@ version 20230401
   encoding = <encoding name> | auto
   fade_ratio = <any ASCII decimal digit>
   fg_color = <color name> | <color rgb>
-  format_other_keys = true | false
+  format_other_keys = true | false | switch
   fontsize = <any ASCII decimal digit> | larger | smaller
   gamma = <any ASCII decimal digit>
   hide_underline = true | false | switch
@@ -170,6 +171,7 @@ version 20230401
   use_anti_alias = true | false | switch
   use_auto_detect = true | false | switch
   use_bold_font = true | false | switch
+  use_clipping = true | false | switch
   use_ctl = true | false | switch
   use_combining = true | false | switch
   use_italic_font = true | false | switch
