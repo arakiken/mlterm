@@ -1,4 +1,4 @@
-#
+# comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
 # main にコピーして使用してください。
 #
 
@@ -186,6 +186,9 @@
 
 # emoji_path オプションで指定したディレクトリ内の画像ファイルのファイル名のフォーマットを指定
 # emoji_file_format =
+
+# テキスト描画エリア外にゴミが残らないように、クリッピングする。
+# use_clipping = false
 
 # mlterm-fb、mlterm-wl 又は mlterm-sdl2 で truetype フォントを使用する場合に、
 # ~/mlterm/*font-fb でなく ~/.mlterm/*aafont の設定を読み込み、fontconfig
@@ -417,6 +420,24 @@ scrollbar_view_name = sample
 
 # xterm の formatOtherKeys と同じ
 # format_other_keys = false
+
+# マウス操作時に、コンソールアプリケーションにマウスの状態を通知しないよう
+# にするキーを指定
+# (shift,control,mod1,mod2,mod3,mod4,mod5,mod,alt)
+# mod_keys_to_stop_mouse_report = shift,control
+
+# マウスでテキストを選択した場合に、選択したテキストをすぐに Selection に反映
+# (x11 and mlterm-wl 以外用)
+# change_selection_immediately = true
+
+# ConPTY を使用する。
+# (win32 用)
+# use_conpty = true
+
+# pipe 経由で子プロセスと通信する場合、画面リサイズ時に XTWINOPS シーケンス
+# で画面サイズを子プロセスに送信する。
+# (win32 用)
+# output_xtwinops_in_resizing = false
 
 # default_server オプションが指定されていない場合に、起動時の SSH 接続ダイ
 # アログを表示しないようにします。

@@ -5128,6 +5128,12 @@ static void get_config_intern(ui_screen_t *screen, const char *dev, /* can be NU
       free(value);
       value = "";
     }
+  } else if (strcmp(key, "use_clipping") == 0) {
+    if (ui_get_use_clipping()) {
+      value = "true";
+    } else {
+      value = "false";
+    }
   }
 #ifdef USE_XLIB
   else if (strcmp(key, "depth") == 0) {
@@ -7616,6 +7622,12 @@ int ui_screen_set_config(ui_screen_t *screen, const char *dev, /* can be NULL */
     ui_emoji_set_file_format(value);
   } else if (strcmp(key, "mod_keys_to_stop_mouse_report") == 0) {
     ui_set_mod_keys_to_stop_mouse_report(value);
+  } else if (strcmp(key, "use_clipping") == 0) {
+    int flag;
+
+    if ((flag = true_or_false(value)) != -1) {
+      ui_set_use_clipping(flag);
+    }
   }
 #ifdef ROTATABLE_DISPLAY
   else if (strcmp(key, "rotate_display") == 0) {

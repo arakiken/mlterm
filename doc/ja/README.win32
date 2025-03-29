@@ -14,6 +14,8 @@ Windows GDI 対応に関するメモ
   make
   (DESTDIR=/foo/bar) make install
 
+  (See .github/workflows/ci.yml)
+
 * configure オプション
   --with-gui=(xlib|win32)
   GUI ライブラリとして xlib の API を使用するか win32 の API を使用

@@ -49,12 +49,15 @@ static DWORD WINAPI wait_child_exited(LPVOID thr_param) {
       config_menu->pid = 0;
 
 #ifdef USE_LIBSSH2
-      if (vt_pty_get_mode(config_menu->pty) == PTY_MOSH) {
-        vt_pty_mosh_set_use_loopback(config_menu->pty, 0);
-      } else {
-        vt_pty_ssh_set_use_loopback(config_menu->pty, 0);
+      /* config_menu->pty is NULL in using conpty. */
+      if (config_menu->pty) {
+        if (vt_pty_get_mode(config_menu->pty) == PTY_MOSH) {
+          vt_pty_mosh_set_use_loopback(config_menu->pty, 0);
+        } else {
+          vt_pty_ssh_set_use_loopback(config_menu->pty, 0);
+        }
+        config_menu->pty = NULL;
       }
-      config_menu->pty = NULL;
 #endif
 
       break;
