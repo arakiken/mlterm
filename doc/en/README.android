@@ -30,6 +30,8 @@ Android support
     $ ./build-gradle.sh
       => Install app/build/outputs/apk/release/app-release-unsigned.apk to Android.
 
+    (See .github/workflows/ci.yml)
+
   o Prepare some libraries (Optional)
     - fribidi
       Copy following files of fribidi (0.19.6) to jni/fribidi/.

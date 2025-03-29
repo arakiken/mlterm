@@ -2,70 +2,9 @@
 # main にコピーして使用してください。
 #
 
-# -- Window 関連 --
-
-# X の DISPLAY を指定
-# display =
-
-# 表示位置を指定
-# geometry =
-
-# アプリケーション名
-# app_name = mlterm
-  
-# タイトル名
-# title = mlterm
-  
-# アイコン名
-# icon_name = mlterm
-
-# アイコン画像のファイル名
-# icon_path =
-
-# 実スクリーンの横幅(百分率)
-# screen_width_ratio = 100
-
-# ウィンドウの内側のボーダー幅
-# inner_border = 2
-
-# レイアウトマネージャの内側のボーダー幅
-# layout_inner_border = 0
-
-# WM_WINDOW_ROLE
-# wm_role =
-
-# -- Terminal 関連 --
-# ログインシェルを使うかどうか
-# use_login_shell = false
-
-# 端末タイプ(xterm,mlterm,kterm)
-# termtype = xterm
-
-# 同時に立ち上げられる pty の最大数
-# max_ptys = 32
-
-# 起動時に立ち上げるウィンドウの数
-# startup_screens = 1
-
-# mlterm-con がセルの幅と高さのピクセル数を取得できなかった場合に使用するデフォルトの幅と高さ
-# (mlterm-con 用)
-# default_cell_size = 8,16
-
-# mlterm-con が動作するコンソールがサポートしている Sixel Graphics の色数
-# (mlterm-con 用)
-# console_sixel_colors = 16
-
 # -- Encoding 関連 --
-# エンコーディングの指定
-# (ISO-8859-[1-11], ISO-8859-[13-16], TIS-620 (same as ISO-8859-11),
-#  KOI8-[RUT], ISCII, VISCII, TCVN5712, GEORGIAN_PS, CP125[0-8], CP874,
-#  EUC-JP, EUC-JISX0213, Shift_JIS, Shift_JISX0213, ISO-2022-JP[1-3],
-#  EUC-KR, UHC, JOHAB, ISO-2022-KR, GB2312 (EUC-CN), GBK, GB18030,
-#  ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, UTF-8, AUTO)
-# ENCODING = auto
-
-# Complext Text Layouting を有効にする
-# use_ctl = true
+# 文字コードを自動判定する場合の候補とするエンコーディング
+# auto_detect_encodings =
 
 # BiDi レンダリングの方法(normal,left,right)
 # bidi_mode = normal
@@ -73,82 +12,58 @@
 # BiDi レンダリングを行う範囲を区切る文字を指定する
 # bidi_separators =
 
-# 結合文字を処理する  
-# use_combining = true
-
-# 結合文字を動的に合成する
-# use_dynamic_comb = false
-
-# ISCII にて、使用する言語を指定する
-# (assamese,bengali,gujarati,hindi,kannada,malayalam,oriya,punjabi,roman,tamil,telugu)
-# iscii_lang = malayalam
-
 # Big5 CTEXT のバグ (XFree86 4.1.0 以前) に対応する
 # big5_buggy = false
 
 # UNICODE の EastAsianWidth.txt の A プロパティのコラム数
 # col_size_of_width_a = 1
 
-# 縦表示のスタイルを指定 (none,cjk,mongol)
-# vertical_mode = none
+# mlterm-con が動作するコンソールのエンコーディング (mlterm-con 用)
+# console_encoding = auto
 
-# 縦書き用カーソル
-# use_vertical_cursor = false
+# エンコーディングの指定
+# (ISO-8859-[1-11], ISO-8859-[13-16], TIS-620 (same as ISO-8859-11),
+#  KOI8-[RUT], ISCII, VISCII, TCVN5712, GEORGIAN_PS, CP125[0-8], CP874,
+#  EUC-JP, EUC-JISX0213, Shift_JIS, Shift_JISX0213, ISO-2022-JP[1-3],
+#  EUC-KR, UHC, JOHAB, ISO-2022-KR, GB2312 (EUC-CN), GBK, GB18030,
+#  ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, UTF-8, AUTO)
+# encoding = auto
 
-# 1 文字で複数コラムを占有する文字の処理を行なう
-# use_multi_column_char = false
+# インプットメソッド
+# (xim,uim,scim,m17n-lib,ibus,fcitx,wnn,canna,skk,iiimf,none)
+# input_method = xim
 
 # copy and paste で受け取った XCOMPOUND TEXT や、XIM から入力された文字列
 # を、一旦 UNICODE を経由してから端末エンコーディングに変換する
 # receive_string_via_ucs = false
 
-# 文字コードを自動判定する場合の候補とするエンコーディング
-# auto_detect_encodings =
-
 # 文字コードの自動判定を行う
 # use_auto_detect = false
 
-# mlterm-con が動作するコンソールのエンコーディング (mlterm-con 用)
-# console_encoding = auto
+# 結合文字を処理する  
+# use_combining = true
+
+# Complext Text Layouting を有効にする
+# use_ctl = true
+
+# 結合文字を動的に合成する
+# use_dynamic_comb = false
+
+# 1 文字で複数コラムを占有する文字の処理を行なう
+# use_multi_column_char = false
+
+# 縦書き用カーソル
+# use_vertical_cursor = false
+
+# XIM を使う
+# use_xim = true
+
+# 縦表示のスタイルを指定 (none,cjk,mongol)
+# vertical_mode = none
 
 # -- Font 関連 --
-# デフォルトフォントサイズ
-# fontsize = 16
-
-# 変更可能なフォントサイズの範囲
-# font_size_range = 1-100
-
-# fontsizeオプションで指定した数値をピクセルでなくポイントとして扱う。
-# use_point_size = false
-
-# larger,smaller ボタンでのフォントサイズの変化量
-# step_in_changing_font_size = 1
-  
-# 可変長コラム幅を使用する
-# use_variable_column_width = false 
-
-# テキスト表示に xcore, xft, cairo のいずれを使用するかを指定する
-# type_engine = cairo
-
-# アンチエイリアスフォントを使用する
-# use_anti_alias = false
-
-# アンチエイリアス(Xft)時、JISX0208 の Unicode 変換に CP932 の変換テーブル
-# を使う
-# use_cp932_ucs_for_xft = true
-
-# UNICODE を適当な文字集合にmapして、UNICODE フォントを使わずに表示する
-# not_use_unicode_font = false
-
-# not_use_unicode_font を true とした場合でも、このオプションで指定した範囲の
-# 文字は、常に UNICODE のまま表示
-# unicode_noconv_areas =
-
-# すべての文字を UNICODE フォントだけを使って表示する
-# only_use_unicode_font = false
-
-# US_ASCII の表示には、必ず ISO8859-1 フォントを使用する
-# iso88591_font_for_usascii = false
+# ベースラインの相対位置
+# baseline_offset = 0
 
 # 罫線文字について、常に Unicode フォント又は DEC Special フォントで表示
 # box_drawing_font = noconv
@@ -156,24 +71,42 @@
 # DEC_SPECIAL フォントの罫線文字のグリフを動的に合成
 # compose_dec_special_font = false
 
-# ボールドフォントを使用
-# use_bold_font = true
+# emoji_path オプションで指定したディレクトリ内の画像ファイルのファイル名のフォーマットを指定
+# emoji_file_format =
 
-# イタリックフォントを使用
-# use_italic_font = true
+# 絵文字表示に使用する画像のあるディレクトリ又は絵文字フォント(NotoColorEmoji.ttfなど)のパスを指定
+# emoji_path =
+
+# 端末画面の前景色
+# fg_color = black
+
+# デフォルトフォントサイズ
+# fontsize = 16
+
+# 変更可能なフォントサイズの範囲
+# font_size_range = 1-100
+
+# アンダーラインを描画しない。
+# hide_underline = false
+
+# US_ASCII の表示には、必ず ISO8859-1 フォントを使用する
+# iso88591_font_for_usascii = false
 
 # medium フォントを重ね打ちする場合の開始位置を1ピクセル左(デフォルトは右)からと
 # します。
 # leftward_double_drawing = false
 
-# EastAsianWidth.txt に関わらず、常に全角幅で表示する文字の範囲
-# unicode_full_width_areas =
+# 字間の広さ
+# letter_space = 0
 
-# EastAsianWidth.txt に関わらず、常に半角幅で表示する文字の範囲
-# unicode_half_width_areas =
+# 行間の広さ
+# line_space = 0
 
-# Open Type フォントの置換グリフ等を使ってテキストを表示
-# use_ot_layout = false
+# UNICODE を適当な文字集合にmapして、UNICODE フォントを使わずに表示する
+# not_use_unicode_font = false
+
+# すべての文字を UNICODE フォントだけを使って表示する
+# only_use_unicode_font = false
 
 # Open Type フォントの置換グリフ等を使う場合の script を指定
 # ot_script = latn
@@ -181,14 +114,27 @@
 # Open Type フォントの置換グリフ等を使う場合の feature を指定
 # ot_features = liga,clig,dlig,hlig,rlig
 
-# 絵文字表示に使用する画像のあるディレクトリ又は絵文字フォント(NotoColorEmoji.ttfなど)のパスを指定
-# emoji_path =
+# 実スクリーンの横幅(百分率)
+# screen_width_ratio = 100
 
-# emoji_path オプションで指定したディレクトリ内の画像ファイルのファイル名のフォーマットを指定
-# emoji_file_format =
+# larger,smaller ボタンでのフォントサイズの変化量
+# step_in_changing_font_size = 1
 
-# テキスト描画エリア外にゴミが残らないように、クリッピングする。
-# use_clipping = false
+# テキスト表示に xcore, xft, cairo のいずれを使用するかを指定する
+# type_engine = cairo
+
+# アンダーラインの位置(フォントのベースラインからの相対位置)
+# underline_offset = 0
+
+# EastAsianWidth.txt に関わらず、常に全角幅で表示する文字の範囲
+# unicode_full_width_areas =
+
+# EastAsianWidth.txt に関わらず、常に半角幅で表示する文字の範囲
+# unicode_half_width_areas =
+
+# not_use_unicode_font を true とした場合でも、このオプションで指定した範囲の
+# 文字は、常に UNICODE のまま表示
+# unicode_noconv_areas =
 
 # mlterm-fb、mlterm-wl 又は mlterm-sdl2 で truetype フォントを使用する場合に、
 # ~/mlterm/*font-fb でなく ~/.mlterm/*aafont の設定を読み込み、fontconfig
@@ -196,84 +142,38 @@
 # (mlterm-fb, mlterm-wl or mlterm-sdl2 用)
 # use_aafont = false
 
-# -- Appearance 関連 --
-# 背景透過する
-# use_transbg = false
+# アンチエイリアスフォントを使用する
+# use_anti_alias = false
+
+# ボールドフォントを使用
+# use_bold_font = true
+
+# テキスト描画エリア外にゴミが残らないように、クリッピングする。
+# use_clipping = false
+
+# アンチエイリアス(Xft)時、JISX0208 の Unicode 変換に CP932 の変換テーブル
+# を使う
+# use_cp932_ucs_for_xft = true
+
+# イタリックフォントを使用
+# use_italic_font = true
+
+# Open Type フォントの置換グリフ等を使ってテキストを表示
+# use_ot_layout = false
+
+# fontsizeオプションで指定した数値をピクセルでなくポイントとして扱う。
+# use_point_size = false
+
+# 可変長コラム幅を使用する
+# use_variable_column_width = false
+
+# -- Background 関連 --
 
 # 背景透過のアルファ値
 # alpha = 255
 
-# Visual の深さ (8,16,24,32)
-# depth = 0
-
-# スクロールバーをつける
-# use_scrollbar = true
-
-# スクロールバーのつけ方
-# scrollbar_mode = left
-
-# 使いたいスクロールバーの名前
-# (simple,sample,sample3,next,motif,athena,mozmodern)
-# scrollbar_view_name = simple
-scrollbar_view_name = sample
-
-# "simple" スクロールバーの横幅を決めるための device pixel ratio
-# simple_scrollbar_dpr = 1
-
-# 端末画面の前景色
-# fg_color = black
-
 # 同背景色
 # bg_color = white
-
-# スクロールバーの前景色
-# sb_fg_color =
-
-# 同背景色
-# sb_bg_color =
-
-# カーソルの前景色
-# cursor_fg_color = 
-
-# 同背景色
-# cursor_bg_color =
-
-# ボールドの代わりに文字に色を付けるのに使用する色
-# bd_color =
-
-# アンダーラインの代わりに文字に色をつけるのに使用する色
-# ul_color =
-
-# 点滅の代わりに文字に色を付けるのに使用する色
-# bl_color =
-
-# 反転の代わりに文字に色を付けるのに使用する色
-# rv_color =
-
-# イタリックの代わりに文字に色を付けるのに使用する色
-# it_color =
-
-# 打ち消し線の代わりに文字に色を付けるのに使用する色
-# co_color =
-
-# CSI 38;2;r;g;b m 又は CSI 48;2;r;g;b m で指定された RGB により表示される色につ
-# いて、256色からの近似値とするか、high color 又は true color で表示するか
-# vt_color_mode = high
-
-# アンダーラインを描画しない。
-# hide_underline = false
-
-# アンダーラインの位置(フォントのベースラインからの相対位置)
-# underline_offset = 0
-
-# ベースラインの相対位置
-# baseline_offset = 0
-
-# 壁紙にする画像ファイルのパス
-# wall_picture =
-
-# Focus から外れたときの前景/背景色の Fade 率(百分率)
-# fade_ratio = 100
 
 # 背景画像(透過処理含む)の輝度調整(百分率)
 # brightness = 100
@@ -281,43 +181,194 @@ scrollbar_view_name = sample
 # 背景画像(透過処理含む)のコントラスト(百分率)
 # contrast = 100
 
+# Focus から外れたときの前景/背景色の Fade 率(百分率)
+# fade_ratio = 100
+
 # 背景画像(透過処理含む)のガンマ値(百分率)
 # gamma = 100
 
-# 行間の広さ
-# line_space = 0
+# 壁紙のみ Graphic VRAM ではなく Text VRAM に描画し、スクロール測度を改善
+# (mlterm-fb on NetBSD/x68k 用)
+# separate_wall_picture = false
 
-# 字間の広さ
-# letter_space = 0
+# 疑似的な背景透過を行う
+# use_transbg = false
 
-# Window Manager の飾りを外す
-# borderless = false
+# 壁紙にする画像ファイルのパス
+# wall_picture =
+
+# -- Color 関連 --
+
+# ボールドの代わりに文字に色を付けるのに使用する色
+# bd_color =
+
+# 点滅の代わりに文字に色を付けるのに使用する色
+# bl_color =
+
+# 打ち消し線の代わりに文字に色を付けるのに使用する色
+# co_color =
+
+# カーソルの前景色
+# cursor_fg_color =
+
+# 同背景色
+# cursor_bg_color =
+
+# イタリックの代わりに文字に色を付けるのに使用する色
+# it_color =
+
+# 反転の代わりに文字に色を付けるのに使用する色
+# rv_color =
+
+# アンダーラインの代わりに文字に色をつけるのに使用する色
+# ul_color =
+
+# CSI 38;2;r;g;b m 又は CSI 48;2;r;g;b m で指定された RGB により表示される色につ
+# いて、256色からの近似値とするか、high color 又は true color で表示するか
+# vt_color_mode = high
+
+# -- Scrollbar 関連 --
+
+# スクロールバーの前景色
+# sb_fg_color =
+
+# 同背景色
+# sb_bg_color =
+
+# スクロールバーのつけ方
+# scrollbar_mode = left
+
+# 使いたいスクロールバーの名前
+# (simple,sample,sample3,next,motif,athena,mozmodern)
+# scrollbar_view_name = simple
+
+# "simple" スクロールバーの横幅を決めるための device pixel ratio
+# simple_scrollbar_dpr = 1
+
+# スクロールバー及び画面分割を有効
+# use_mdi = true
+
+# -- その他 --
+
+# OSC 5379 の "set_shortcut" による動的なショートカットキー定義を有効
+# allow_change_shortcut = false
+
+# OSC 52 シーケンスによるクリップボード操作
+# allow_osc52 = false
+
+# ssh 接続時に OSC 5379 scp を許可
+# allow_scp = false
+
+# 既に確立された SSH セッションがあり、そのセッション上に新しいチャンネルを開く
+# ことができる場合でも、必ず接続先のサーバを指定するためのダイアログを表示
+# always_show_dialog = false
+
+# アプリケーション名
+# app_name = mlterm
+
+# SIGSEGV, SIGBUS, SIGFPE, SIGILL が発生した場合に、mlterm 内部の console
+# application (ssh 接続を除く。)を引き継いだ mlterm を起動し直す。
+# auto_restart = true
+
+# BEL(0x7)を受け取った時の挙動(none,sound,visual,sound|visual)
+# bel_mode = sound
 
 # カーソルを点滅させる
 # blink_cursor = false
 
-# -- その他 --
-# XIM を使う
-# use_xim = true
-  
-# インプットメソッド
-# (xim,uim,scim,m17n-lib,ibus,fcitx,wnn,canna,skk,iiimf,none)
-# input_method = xim
+# Window Manager の飾りを外す
+# borderless = false
 
-# タブ幅
-# tabsize = 8
+# キー入力及びペーストされた文字列を、全ての pty (ignore_broadcasted_chars オプ
+# ションの値が false なものに限る) に送信
+# broadcast = false
 
-# ログの行数 
+# マウスでテキストを選択した場合に、選択したテキストをすぐに Selection に反映
+# (x11 and mlterm-wl 以外用)
+# change_selection_immediately = true
+
+# ssh 接続で使用する共通鍵暗号を指定
+# cipher_list =
+
+# ダブルクリックの間隔(ミリ秒)
+# click_interval = 250
+
+# mlterm-con が動作するコンソールがサポートしている Sixel Graphics の色数
+# (mlterm-con 用)
+# console_sixel_colors = 16
+
+# daemon process となるかどうか(none,blend,genuine)
+# daemon_mode = none
+
+# mlterm-con がセルの幅と高さのピクセル数を取得できなかった場合に使用するデフォルトの幅と高さ
+# (mlterm-con 用)
+# default_cell_size = 8,16
+
+# ssh 等により直接ログインするサーバを指定
+# default_server =
+
+# Visual の深さ (8,16,24,32)
+# depth = 0
+
+# X の DISPLAY を指定
+# display =
+
+# 指定したコマンドを起動
+# exec_cmd =
+
+# バックスクロール中に、端末出力があった場合、バックスクロールを抜ける。
+# exit_backscroll_by_pty = false
+
+# 768x512x4 のような形式で解像度を指定
+# (mlterm-fb on NetBSD/x68k 用)
+# fb_resolution =
+
+# xterm の formatOtherKeys と同じ
+# format_other_keys = false
+
+# 表示位置を指定
+# geometry =
+
+# アイコン名
+# icon_name = mlterm
+
+# アイコン画像のファイル名
+# icon_path =
+
+# broadcast オプションが true の場合でも、ブロードキャストを受け付けない。
+# ignore_broadcasted_chars = false
+
+# pty をオープンしたときに、端末に送られる初期化文字列を指定
+# init_str =
+
+# ウィンドウの内側のボーダー幅
+# inner_border = 2
+
+# レイアウトマネージャの内側のボーダー幅
+# layout_inner_border = 0
+
+# local echo 状態を保持する時間 (ミリ秒)
+# local_echo_wait = 250
+
+# 指定したローケールに setlocale() します
+# locale =
+
+# mlterm が出力するメッセージを ~/.mlterm/msg[pid].log に出力
+# logging_msg = true
+
+# pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録
+# logging_vt_seq = false
+
+# ログの行数
 # logsize = 128
 
-# 単語の区切り文字を指定
-# word_separators = " ,.:;/@"
+# 同時に立ち上げられる pty の最大数
+# max_ptys = 32
 
-# ダブルクリックで URI を選択
-# regard_uri_as_word = false
-
-# リサイズ時における、画面に表示されている文字の表示方法
-# resize_mode = wrap
+# マウス操作時に、コンソールアプリケーションにマウスの状態を通知しないよう
+# にするキーを指定
+# (shift,control,mod1,mod2,mod3,mod4,mod5,mod,alt)
+# mod_keys_to_stop_mouse_report = shift,control
 
 # Meta キーとして使用するキーを指定
 # (none,mod1,mod2,mod3,mod4,meta,alt,super,hyper)
@@ -327,71 +378,69 @@ scrollbar_view_name = sample
 # (none,esc,8bit)
 # mod_meta_mode = none
 
-# BEL(0x7)を受け取った時の挙動(none,sound,visual,sound|visual)
-# bel_mode = sound
+# pipe 経由で子プロセスと通信する場合、画面リサイズ時に XTWINOPS シーケンス
+# で画面サイズを子プロセスに送信する。
+# (win32 用)
+# output_xtwinops_in_resizing = false
 
-# フォーカスを失った画面上でBEL(0x7)を受け取った時に、ユーザに警告
-# use_urgent_bell = false
+# 親 Window の Window ID を指定
+# parent_window = 0
 
-# daemon process となるかどうか(none,blend,genuine)
-# daemon_mode = none
+# CSI c に対する応答文字列
+# primary_da = 63;1;2;3;4;7;15;18;22;29
 
-# pty をオープンしたときに、端末に送られる初期化文字列を指定
-# init_str =
+# zmodem や scp で受信したファイルを保存するディレクトリ
+# receive_directory =
 
-# ダブルクリックの間隔(ミリ秒)
-# click_interval = 250
-  
-# バックスクロール時に端末出力があっても画面が流れないようにします。
-# static_backscroll_mode = false
+# ダブルクリックで URI を選択
+# regard_uri_as_word = false
 
-# バックスクロール中に、端末出力があった場合、バックスクロールを抜ける。
-# exit_backscroll_by_pty = false
+# リサイズ時における、画面に表示されている文字の表示方法
+# resize_mode = wrap
 
-# pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録
-# logging_vt_seq = false
+# スクロールバーをつける
+# use_scrollbar = true
 
-# ~/.mlterm/[device].log に記録するフォーマットを指定 (raw,ttyrec)
-# vt_seq_format = raw
-
-# mlterm が出力するメッセージを ~/.mlterm/msg[pid].log に出力
-# logging_msg = true
-
-# ssh 等により直接ログインするサーバを指定
-# default_server =
-
-# always_show_dialog = false
-
-# ssh 接続の認証で使用する公開鍵のファイルを指定
-# ssh_public_key = 
-
-# ssh 接続の認証で使用する秘密鍵のファイルを指定
-# ssh_private_key = 
-
-# ssh 接続で使用する共通鍵暗号を指定
-# cipher_list =
-
-# ssh 接続中に、指定した秒数ごとに、SSH_MSG_IGNORE を送信
-# ssh_keepalive_interval = 0
-
-# ssh 接続で x11 forwarding を有効
-# ssh_x11_forwarding = false
-
-# ssh 接続時に OSC 5379 scp を許可
-# allow_scp = false
+# CSI > c に対する応答文字列
+# secondary_da = 24;279;0
 
 # ssh の接続が予期せず切断した場合に、自動的に再接続を試みる。
 # ssh_auto_reconnect = false
 
-# SIGSEGV, SIGBUS, SIGFPE, SIGILL が発生した場合に、mlterm 内部の console
-# application (ssh 接続を除く。)を引き継いだ mlterm を起動し直す。
-# auto_restart = true
+# ssh 接続中に、指定した秒数ごとに、SSH_MSG_IGNORE を送信
+# ssh_keepalive_interval = 0
 
-# OSC 52 シーケンスによるクリップボード操作
-# allow_osc52 = false
+# ssh 接続の認証で使用する秘密鍵のファイルを指定
+# ssh_private_key =
 
-# local echo mode を有効
-# use_local_echo = false
+# ssh 接続の認証で使用する公開鍵のファイルを指定
+# ssh_public_key =
+
+# ssh 接続で x11 forwarding を有効
+# ssh_x11_forwarding = false
+
+# default_server オプションが指定されていない場合に、起動時の SSH 接続ダイ
+# アログを表示しないようにします。
+# (Android or win32 用)
+# start_with_local_pty = false
+
+# 起動時に立ち上げるウィンドウの数
+# startup_screens = 1
+
+# バックスクロール時に端末出力があっても画面が流れないようにします。
+# static_backscroll_mode = false
+
+# タブ幅
+# tabsize = 8
+
+# 端末タイプ(xterm,mlterm,kterm)
+# termtype = xterm
+
+# タイトル名
+# title = mlterm
+
+# ペーストする文字列の末尾の改行を削除
+# trim_trailing_newline_in_pasting = false
 
 # Alternate screen buffer を有効
 # use_alt_buffer = true
@@ -399,55 +448,30 @@ scrollbar_view_name = sample
 # ANSI color change escape sequences を有効
 # use_ansi_colors = true
 
-# OSC 5379 の "set_shortcut" による動的なショートカットキー定義を有効
-# allow_change_shortcut = false
-
-# 子プロセス(シェル)のカレントディレクトリを指定
-# working_directory =
-
-# ペーストする文字列の末尾の改行を削除
-# trim_trailing_newline_in_pasting = false
-
-# キー入力及びペーストされた文字列を、全ての pty (ignore_broadcasted_chars オプ
-# ションの値が false なものに限る) に送信
-# broadcast = false
-
-# broadcast オプションが true の場合でも、ブロードキャストを受け付けない。
-# ignore_broadcasted_chars = false
-
-# zmodem や scp で受信したファイルを保存するディレクトリ
-# receive_directory =
-
-# xterm の formatOtherKeys と同じ
-# format_other_keys = false
-
-# マウス操作時に、コンソールアプリケーションにマウスの状態を通知しないよう
-# にするキーを指定
-# (shift,control,mod1,mod2,mod3,mod4,mod5,mod,alt)
-# mod_keys_to_stop_mouse_report = shift,control
-
-# マウスでテキストを選択した場合に、選択したテキストをすぐに Selection に反映
-# (x11 and mlterm-wl 以外用)
-# change_selection_immediately = true
-
 # ConPTY を使用する。
 # (win32 用)
 # use_conpty = true
 
-# pipe 経由で子プロセスと通信する場合、画面リサイズ時に XTWINOPS シーケンス
-# で画面サイズを子プロセスに送信する。
-# (win32 用)
-# output_xtwinops_in_resizing = false
+# local echo mode を有効
+# use_local_echo = false
 
-# default_server オプションが指定されていない場合に、起動時の SSH 接続ダイ
-# アログを表示しないようにします。
-# (mlterm-fb on NetBSD/x68k or OpenBSD 用)
-# start_with_local_pty = false
+# window or icon title の変更を許可しない
+# use_locked_title = false
 
-# 768x512x4 のような形式で解像度を指定
-# (mlterm-fb on NetBSD/x68k 用)
-# fb_resolution =
+# ログインシェルを使うかどうか
+# use_login_shell = false
 
-# 壁紙のみ Graphic VRAM ではなく Text VRAM に描画し、スクロール測度を改善
-# (mlterm-fb on NetBSD/x68k 用)
-# separate_wall_picture = false
+# フォーカスを失った画面上でBEL(0x7)を受け取った時に、ユーザに警告
+# use_urgent_bell = false
+
+# ~/.mlterm/[device].log に記録するフォーマットを指定 (raw,ttyrec)
+# vt_seq_format = raw
+
+# 単語の区切り文字を指定
+# word_separators = " ,.:;/@"
+
+# 子プロセス(シェル)のカレントディレクトリを指定
+# working_directory =
+
+# WM_WINDOW_ROLE
+# wm_role =

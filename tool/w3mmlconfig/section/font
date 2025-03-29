@@ -1,0 +1,9 @@
+# key		type		default	col	title
+fontsize	text:digit	16	0	Font size (pixels)
+fg_color	text:lower	black	0	Foreground color
+type_engine	text:lower	left	0	Type engine(xcore,xft,cairo)
+use_anti_alias	checkbox	false	0	Anti Alias
+use_variable_column_width	checkbox	false	1	Variable column width
+vertical_mode	radio:lower	none	0	Vertical mode
+line_space	text:digit	0	0	Line space (pixels)
+screen_width_ratio	text:digit	100	0	Screen size ration againt font size

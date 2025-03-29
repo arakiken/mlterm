@@ -11,10 +11,12 @@ libexecdir	= @libexecdir@
 BIN_DIR		= $(DESTDIR)$(prefix)/bin
 LIB_DIR		= $(DESTDIR)$(libexecdir)/w3mmlconfig
 
+VPATH = $(top_srcdir)/tool/w3mmlconfig
+
 TARGETS		= w3mmlconfig
 LIB_TARGETS	= mlconfig.cgi
 DATA_TARGETS	= mlconfig-data.pl
-DATA		= mlconfig-data section/* key/*
+DATA		= mlconfig-data section/background section/encoding section/font section/others section/scrollbar key/bel_mode key/encoding key/mod_meta_mode key/scrollbar_mode key/vertical_mode
 
 PERL		= @PERL@
 
@@ -25,8 +27,8 @@ INSTALL_DATA	= $(INSTALL) -m 644
 
 all: $(TARGETS) $(LIB_TARGETS) $(DATA_TARGETS)
 
-mlconfig-data.pl: $(DATA)
-	$(PERL) mk_mlconfig-data.pl mlconfig-data > $@
+$(DATA_TARGETS): $(DATA)
+	(cd $(VPATH); $(PERL) mk_mlconfig-data.pl mlconfig-data) > $@
 
 install: all
 	-$(MKDIR) $(BIN_DIR)

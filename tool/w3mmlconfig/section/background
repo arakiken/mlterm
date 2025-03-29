@@ -1,0 +1,9 @@
+# key		type		default	col	title
+bg_color	text:lower	white	0	Background color
+wall_picture	text		none	0	Wall picture
+use_transbg	checkbox	false	0	Pseudo Transparent
+brightness	text:digit	100	0	Brightness
+contrast	text:digit	100	0	Contrast
+gamma		text:digit	100	0	Gamma
+alpha		text:digit	100	0	Alpha
+fade_ratio	text:digit	100	0	Fade ratio on unfocus

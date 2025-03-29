@@ -599,10 +599,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
         このオプションが指定された場合、"font" ファイルで DEC_SPECIAL として
         指定したフォントは無視されます。
 
-      o emoji_path (~/.mlterm/emoji)
-        絵文字表示に使用する画像のあるディレクトリ又は絵文字フォント
-        (NotoColorEmoji.ttfなど)のパスを指定します。
-
       o emoji_file_format (%.4x.png,%.4x-%.4x.png)
         emoji_path オプションで指定したディレクトリ内の画像ファイルのファイル名の
         フォーマットを指定します。
@@ -617,6 +613,10 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
 
         ファイル名のうちコードポイントを示す部分は、printf のフォーマット指定子を
         使用してください。
+
+      o emoji_path (~/.mlterm/emoji)
+        絵文字表示に使用する画像のあるディレクトリ又は絵文字フォント
+        (NotoColorEmoji.ttfなど)のパスを指定します。
 
       o fg_color  (*black*) (#)
         端末画面の前景色
@@ -721,9 +721,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
 
         e.g.) U+1234-5678,U+0123-4567
 
-      o use_clipping (true/*false*)
-        テキスト描画エリア外にゴミが残らないように、クリッピングする。
-
       o use_aafont (true/false) (mlterm-fb, mlterm-wl or mlterm-sdl2 用)
         mlterm-fb、mlterm-wl 又は mlterm-sdl2 で truetype フォントを使用する場合
         に、~/mlterm/*font-fb でなく ~/.mlterm/*aafont の設定を読み込み、
@@ -738,6 +735,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
 
       o use_bold_font (*true*/false)
         ボールドフォントを使用
+
+      o use_clipping (true/*false*)
+        テキスト描画エリア外にゴミが残らないように、クリッピングする。
 
       o use_cp932_ucs_for_xft (*true*/false)
         Xft 又は cairo 使用時、JISX0208 の Unicode 変換に CP932 の変換テーブル
@@ -848,14 +848,13 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
       o scrollbar_view_name (*simple*/sample/sample3/next/motif/athena/mozmodern) (#)
         使いたいスクロールバーの名前
 
-      o use_mdi (*true*/false)
-        スクロールバー及び画面分割を有効
-
-        scrollbar_mode , scrollbar_view_name オプションは、これが true の場合の
-        み有効です。
-
       o simple_scrollbar_dpr (*1*)
         "simple" スクロールバーの横幅を決めるための device pixel ratio
+
+      o use_mdi (*true*/false)
+        スクロールバー及び画面分割を有効
+        scrollbar_mode, scrollbar_view_name オプションは、これが true の場合の
+        み有効です。
 
       -- その他 --
       o allow_change_shortcut (true/*false*)
@@ -875,13 +874,18 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
         false の場合は、転送先ホストの "." (~/.mlterm/recv) ディレクトリ以下に
         保存されます。
 
+      o always_show_dialog (true/*false*)
+        既に確立された SSH セッションがあり、そのセッション上に新しいチャンネル
+        を開くことができる場合でも、必ず接続先のサーバを指定するためのダイアロ
+        グを表示します。
+
       o app_name (*mlterm*)
         アプリケーション名
         (xlib版では WM_CLASS プロパティにセットされます)
 
       o auto_restart (*true*/false)
         SIGSEGV, SIGBUS, SIGFPE, SIGILL が発生した場合に、mlterm 内部の console
-        application (ssh 接続を除く。)を引き継いだ mlterm を起動し直す。
+        application (ssh 接続を除く。)を引き継いだ mlterm を起動し直します。
 
         デバッグのため core dump を取得する場合は、必ず false にしてください。
 
@@ -946,6 +950,11 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
       o display
         X の DISPLAY を指定
 
+      o exec_cmd
+        指定したコマンドを起動
+
+        デフォルトでは、SHELL 環境変数で指定したシェルを起動します。
+
       o exit_backscroll_by_pty (true/*false*)
         バックスクロール中に、端末出力があった場合、バックスクロールを抜ける。
 
@@ -978,17 +987,17 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
         "H,V"形式で値を指定すると、横方向と縦方向で別々に inner border の値を指
         定できます。
 
-      o local_echo_wait (*250*)
-        local echo 状態を保持する時間 (ミリ秒)
-
-      o locale
-        指定したローケールに setlocale() します。
-
       o layout_inner_border (*0*)
         Layout Manager の inner border (0-224)
 
         "H,V"形式で値を指定すると、横方向と縦方向で別々に inner border の値を指
         定できます。
+
+      o local_echo_wait (*250*)
+        local echo 状態を保持する時間 (ミリ秒)
+
+      o locale
+        指定したローケールに setlocale() します。
 
       o logging_msg (*true*/false)
         mlterm が出力するメッセージを ~/.mlterm/msg.log に出力
@@ -1125,11 +1134,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
 
       o wm_role
         WM_WINDOW_ROLE プロパティ
-
-      o exec_cmd
-        指定したコマンドを起動
-
-        デフォルトでは、SHELL 環境変数で指定したシェルを起動します。
 
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)

@@ -1,3 +1,9 @@
+2025-03-30  Araki Ken  <arakiken@users.sf.net>
+
+	* w3mmlconfig: Fix.
+
+	* README.ja, README.android, etc/main, etc/main.ja: Updated.
+
 2025-03-29  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja, doc/{ja,en}/README.win32, etc/main, etc/main.ja: Updated.

@@ -1,6 +1,6 @@
 # id		title
 encoding	Encoding
-color		Color
+font		Font
+background	Background
 scrollbar	Scrollbar
-appearance	Appearance
 others		Others
