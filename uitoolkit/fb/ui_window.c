@@ -8,7 +8,8 @@
 #include <pobl/bl_unistd.h> /* bl_usleep */
 #include <mef/ef_ucs4_map.h>
 #ifdef USE_WAYLAND
-#include <mef/ef_utf8_parser.h>
+#include "../ui_selection_encoding.h"
+#include "../ui_xic.h"
 #endif
 #include <mef/ef_utf16_parser.h>
 
@@ -2016,6 +2017,9 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
 
 size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parser_t **parser,
                          KeySym *keysym, XKeyEvent *event) {
+#if defined(USE_WAYLAND) || defined(USE_SDL2)
+  size_t len;
+#endif
   u_int32_t ch;
 
   if (seq_len == 0) {
@@ -2025,20 +2029,17 @@ size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parse
   *parser = NULL;
 
 #ifdef USE_WAYLAND
-  *keysym = event->ksym;
-  {
+  if ((len = ui_xic_get_str(win, seq, seq_len, parser, keysym, event)) > 0) {
+    return len;
+  } else {
     u_char buf[7]; /* UTF_MAX_SIZE + 1 */
-    size_t len = ui_display_get_utf8(buf, event->ksym);
+    len = ui_display_get_utf8(buf, event->ksym);
+
+    *keysym = event->ksym;
 
     if (len >= 2) {
       if (seq_len >= len) {
-        static ef_parser_t *utf8_parser;
-
-        if (utf8_parser == NULL) {
-          utf8_parser = ef_utf8_parser_new(); /* XXX leaked */
-        }
-
-        *parser = utf8_parser;
+        *parser = ui_get_selection_parser(1);
         memcpy(seq, buf, len);
       }
 
@@ -2052,7 +2053,7 @@ size_t ui_window_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parse
 #else
 #ifdef USE_SDL2
   if (event->str) {
-    size_t len = strlen(event->str);
+    len = strlen(event->str);
     if (len <= seq_len) {
       strncpy(seq, event->str, len);
       *parser = event->parser;

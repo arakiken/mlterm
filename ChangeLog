@@ -1,3 +1,14 @@
+2025-04-19  Araki Ken  <arakiken@users.sf.net>
+
+	* fb/ui_window.c, ui_xic.c, wayland/ui.h, wayland/ui_display.[ch],
+	  wayland/ui_xic.c: Support text-input-unstable-v3.
+
+	* text-input-unstable-v3-client-protocol.[ch]: Added.
+
+	* rescanproto.sh: Add text-input-unstable-v3.xml.
+
+	* version.h: 3.9.4 -> 3.9.4post
+
 2025-03-30  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.9.4 released.

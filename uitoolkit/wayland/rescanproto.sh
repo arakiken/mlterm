@@ -17,38 +17,50 @@ else
 	CODE="code"
 fi
 
-if test -f /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml; then
-	XML_FILE=/usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml
+LOCAL=/usr/share/wayland-protocols
+REMOTE=https://gitlab.freedesktop.org/wayland/wayland-protocols/-/raw/main
+
+if test -f $LOCAL/stable/xdg-shell/xdg-shell.xml; then
+	XML_FILE=$LOCAL/stable/xdg-shell/xdg-shell.xml
 else
-	curl https://gitlab.freedesktop.org/wayland/wayland-protocols/-/raw/main/stable/xdg-shell/xdg-shell.xml > xdg-shell.xml
+	curl -O $REMOTE/stable/xdg-shell/xdg-shell.xml
 	XML_FILE=xdg-shell.xml
 fi
 wayland-scanner $CODE $XML_FILE xdg-shell-client-protocol.c
 wayland-scanner client-header $XML_FILE xdg-shell-client-protocol.h
 
-if test -f /usr/share/wayland-protocols/unstable/xdg-shell/xdg-shell-unstable-v6.xml; then
-	XML_FILE=/usr/share/wayland-protocols/unstable/xdg-shell/xdg-shell-unstable-v6.xml 
+if test -f $LOCAL/unstable/xdg-shell/xdg-shell-unstable-v6.xml; then
+	XML_FILE=$LOCAL/unstable/xdg-shell/xdg-shell-unstable-v6.xml
 else
-	curl https://gitlab.freedesktop.org/wayland/wayland-protocols/-/raw/main/unstable/xdg-shell/xdg-shell-unstable-v6.xml > xdg-shell-unstable-v6.xml
+	curl -O $REMOTE/unstable/xdg-shell/xdg-shell-unstable-v6.xml
 	XML_FILE=xdg-shell-unstable-v6.xml
 fi
 wayland-scanner $CODE $XML_FILE xdg-shell-unstable-v6-client-protocol.c
 wayland-scanner client-header $XML_FILE xdg-shell-unstable-v6-client-protocol.h
 
-if test -f /usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml; then
-	XML_FILE=/usr/share/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml
+if test -f $LOCAL/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml; then
+	XML_FILE=$LOCAL/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml
 else
-	curl https://gitlab.freedesktop.org/wayland/wayland-protocols/-/raw/main/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml > xdg-decoration-unstable-v1.xml
+	curl -O $REMOTE/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml
 	XML_FILE=xdg-decoration-unstable-v1.xml
 fi
 wayland-scanner $CODE $XML_FILE xdg-decoration-unstable-v1-client-protocol.c
 wayland-scanner client-header $XML_FILE xdg-decoration-unstable-v1-client-protocol.h
 
-if test -f /usr/share/wayland-protocols/unstable/primary-selection/primary-selection-unstable-v1.xml; then
-	XML_FILE=/usr/share/wayland-protocols/unstable/primary-selection/primary-selection-unstable-v1.xml
+if test -f $LOCAL/unstable/primary-selection/primary-selection-unstable-v1.xml; then
+	XML_FILE=$LOCAL/unstable/primary-selection/primary-selection-unstable-v1.xml
 else
-	curl https://gitlab.freedesktop.org/wayland/wayland-protocols/-/raw/main/unstable/primary-selection/primary-selection-unstable-v1.xml > primary-selection-unstable-v1.xml
+	curl -O $REMOTE/unstable/primary-selection/primary-selection-unstable-v1.xml
 	XML_FILE=primary-selection-unstable-v1.xml
 fi
 wayland-scanner $CODE $XML_FILE primary-selection-unstable-v1-client-protocol.c
 wayland-scanner client-header $XML_FILE primary-selection-unstable-v1-client-protocol.h
+
+if test -f $LOCAL/unstable/text-input/text-input-unstable-v3.xml; then
+	XML_FILE=$LOCAL/unstable/text-input/text-input-unstable-v3.xml
+else
+	curl -O $REMOTE/unstable/text-input/text-input-unstable-v3.xml
+	XML_FILE=text-input-unstable-v3.xml
+fi
+wayland-scanner $CODE $XML_FILE text-input-unstable-v3-client-protocol.c
+wayland-scanner client-header $XML_FILE text-input-unstable-v3-client-protocol.h

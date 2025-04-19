@@ -30,6 +30,7 @@
 #ifndef COMPAT_LIBVTE
 #include "xdg-decoration-unstable-v1-client-protocol.h"
 #endif
+#include "text-input-unstable-v3-client-protocol.h"
 
 typedef int KeyCode; /* Same as type of wparam */
 typedef int KeySym;  /* Same as type of wparam */
@@ -42,6 +43,7 @@ typedef struct {
   unsigned int state;
   KeySym ksym;
   unsigned int keycode;
+  const char *utf8;
 
 } XKeyEvent;
 
@@ -164,6 +166,8 @@ typedef struct {
 #endif
 #endif
 
+  struct zwp_text_input_manager_v3 *text_input_manager;
+
 } ui_wlserv_t;
 
 typedef struct {
@@ -225,6 +229,8 @@ typedef struct {
   struct zxdg_toplevel_decoration_v1 *toplevel_decoration;
 #endif
 #endif /* COMPAT_LIBVTE */
+
+  struct zwp_text_input_v3 *text_input;
 
 } Display;
 
@@ -524,7 +530,7 @@ KeySym XStringToKeysym(const char *str);
 #undef MANAGE_ROOT_WINDOWS_BY_MYSELF
 #define INLINE_PICTURE_MOVABLE_BETWEEN_DISPLAYS
 #undef SUPPORT_POINT_SIZE_FONT
-#undef XIM_SPOT_IS_LINE_TOP
+#define XIM_SPOT_IS_LINE_TOP
 #undef USE_GC
 #undef CHANGEABLE_CURSOR
 #define PLUGIN_MODULE_SUFFIX "wl"
@@ -547,6 +553,6 @@ KeySym XStringToKeysym(const char *str);
 #endif
 #undef NO_DISPLAY_FD
 #undef FLICK_SCROLL
-#undef UIWINDOW_SUPPORTS_PREEDITING
+#define UIWINDOW_SUPPORTS_PREEDITING
 
 #endif

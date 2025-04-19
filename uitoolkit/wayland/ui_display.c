@@ -408,6 +408,10 @@ static void registry_global(void *data, struct wl_registry *registry, uint32_t n
       wl_registry_bind(registry, name, &zxdg_decoration_manager_v1_interface, 1);
   }
 #endif
+  else if (strcmp(interface, "zwp_text_input_manager_v3") == 0) {
+    wlserv->text_input_manager =
+      wl_registry_bind(registry, name, &zwp_text_input_manager_v3_interface, 1);
+  }
 #ifdef __DEBUG
   else {
     bl_debug_printf("Unknown interface: %s\n", interface);
@@ -597,6 +601,7 @@ static void keyboard_key(void *data, struct wl_keyboard *keyboard,
     ev.keycode = key + 8;
     ev.state = wlserv->xkb->mods;
     ev.time = time;
+    ev.utf8 = NULL;
 
     if (kbd_repeat_N == 0) {
       /* disable key repeating */
@@ -2212,6 +2217,10 @@ static void close_wl_display(ui_wlserv_t *wlserv) {
   bl_debug_printf("Closing wldisplay.\n");
 #endif
 
+  if (wlserv->text_input_manager) {
+    zwp_text_input_manager_v3_destroy(wlserv->text_input_manager);
+  }
+
   /* dnd_offer and sel_offer are destroyed in data_device_leave() */
 #if 0
   if (wlserv->dnd_offer) {
@@ -2402,6 +2411,8 @@ static void close_display(ui_display_t *disp) {
   }
 #endif
 
+  ui_display_set_use_text_input(disp, 0);
+
   if (disp->display->wlserv->ref_count == 1) {
     u_int count;
 
@@ -2548,6 +2559,70 @@ static const struct zxdg_toplevel_decoration_v1_listener decoration_listener = {
   decoration_configure
 };
 #endif
+
+static void input_enter(void *data, struct zwp_text_input_v3 *text_input,
+                        struct wl_surface *surface) {
+  ui_display_t *disp = data;
+  ui_window_t *win;
+  int x, y;
+
+  zwp_text_input_v3_enable(text_input);
+  zwp_text_input_v3_commit(text_input);
+}
+
+static void input_leave(void *data, struct zwp_text_input_v3 *text_input,
+                        struct wl_surface *surface) {
+  zwp_text_input_v3_disable(text_input);
+  zwp_text_input_v3_commit(text_input);
+}
+
+static void input_preedit_string(void *data, struct zwp_text_input_v3 *text_input,
+                                 const char *text, int32_t cursor_begin, int32_t cursor_end) {
+  ui_display_t *disp = data;
+  ui_window_t *win;
+
+  if ((win = search_inputtable_window(NULL, disp->roots[0]))) {
+    (*win->preedit)(win, text ? text : "", NULL);
+  }
+}
+
+static void input_commit_string(void *data, struct zwp_text_input_v3 *text_input,
+                                const char *text) {
+  ui_display_t *disp = data;
+  ui_window_t *win;
+  XKeyEvent kev;
+
+  kev.type = KeyPress;
+  kev.time = CurrentTime;
+  kev.state = 0;
+  kev.ksym = 0;
+  kev.keycode = 0;
+  kev.utf8 = text;
+
+  if ((win = search_inputtable_window(NULL, disp->roots[0]))) {
+    ui_window_receive_event(win, (XEvent *)&kev);
+  }
+}
+
+static void input_delete_surrounding_text(void *data, struct zwp_text_input_v3 *text_input,
+                                          uint32_t before_length, uint32_t after_length) {
+#ifdef DEBUG
+  bl_debug_printf(BL_DEBUG_TAG " text_input delete_surrounding_text | "
+                  "before_length:%u, after_length:%u\n",
+                  before_length, after_length);
+#endif
+}
+
+static void input_done(void *data, struct zwp_text_input_v3 *text_input, uint32_t serial) {
+#ifdef DEBUG
+  bl_debug_printf(BL_DEBUG_TAG " text_input done | serial:%u\n", serial);
+#endif
+}
+
+static const struct zwp_text_input_v3_listener text_input_listener = {
+  input_enter, input_leave, input_preedit_string,
+  input_commit_string, input_delete_surrounding_text, input_done
+};
 
 static void create_surface(ui_display_t *disp, int x, int y, u_int width, u_int height,
                            char *app_name) {
@@ -3556,6 +3631,27 @@ void ui_display_set_title(ui_display_t *disp, const u_char *name) {
     wl_shell_surface_set_title(disp->display->shell_surface, name);
   }
 #endif
+}
+
+void ui_display_set_use_text_input(ui_display_t *disp, int use) {
+  if (use) {
+    if (disp->display->text_input == NULL) {
+      disp->display->text_input =
+        zwp_text_input_manager_v3_get_text_input(disp->display->wlserv->text_input_manager,
+                                                 disp->display->wlserv->seat);
+      zwp_text_input_v3_add_listener(disp->display->text_input, &text_input_listener, disp);
+    }
+  } else {
+    if (disp->display->text_input) {
+      zwp_text_input_v3_destroy(disp->display->text_input);
+      disp->display->text_input = NULL;
+    }
+  }
+}
+
+void ui_display_set_text_input_spot(ui_display_t *disp, int x, int y) {
+  zwp_text_input_v3_set_cursor_rectangle(disp->display->text_input, x, y, 10, 20); /* XXX */
+  zwp_text_input_v3_commit(disp->display->text_input);
 }
 
 #ifdef COMPAT_LIBVTE

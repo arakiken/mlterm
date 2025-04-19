@@ -18,7 +18,7 @@ typedef struct ui_xic {
 #if defined(USE_WIN32GUI)
   WORD prev_keydown_wparam;
   ef_parser_t *parser;
-#elif defined(USE_QUARTZ) || defined(USE_BEOS)
+#elif defined(USE_QUARTZ) || defined(USE_BEOS) || defined(USE_WAYLAND)
   ef_parser_t *parser;
 #elif defined(USE_XLIB)
   XFontSet fontset;

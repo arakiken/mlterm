@@ -1,3 +1,5 @@
+* Support text-input-unstable-v3.
+
 ver 3.9.4
 * Support Shift+Control+v and Shift+Control+c to copy&paste via clipboard by default.
   Drop -P/--clip/use_clipboard option.
