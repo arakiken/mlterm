@@ -1,4 +1,6 @@
 * Support text-input-unstable-v3.
+* Bug fixes:
+  https://github.com/arakiken/mlterm/issues/138
 
 ver 3.9.4
 * Support Shift+Control+v and Shift+Control+c to copy&paste via clipboard by default.

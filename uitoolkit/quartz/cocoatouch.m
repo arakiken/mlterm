@@ -114,7 +114,7 @@ static u_int key_mod;
 #endif
 
 #ifdef DEBUG
-int main_loop_final(void);
+void main_loop_final(void);
 #endif
 
 static void exit_program(void) {

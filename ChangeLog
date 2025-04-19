@@ -1,5 +1,9 @@
 2025-04-19  Araki Ken  <arakiken@users.sf.net>
 
+	* cocoa.m: Add main_loop_final() declaration to fix implicit function
+	  declaration error.
+	  (https://github.com/arakiken/mlterm/issues/138)
+
 	* fb/ui_window.c, ui_xic.c, wayland/ui.h, wayland/ui_display.[ch],
 	  wayland/ui_xic.c: Support text-input-unstable-v3.
 

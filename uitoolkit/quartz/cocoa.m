@@ -89,6 +89,10 @@ char *global_args;
   ((uiwindow->bg_color.pixel & 0xff000000) == 0xff000000 || \
    ui_window_has_wall_picture(uiwindow))
 
+#ifdef DEBUG
+void main_loop_final(void);
+#endif
+
 static void exit_program(void) {
   /* This function is called twice from willClose() and monitor_pty() */
   static int exited;
