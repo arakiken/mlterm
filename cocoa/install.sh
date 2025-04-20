@@ -13,8 +13,8 @@ fi
 prefix="${1}"
 
 cd $HOME/mlterm.app
-mkdir -p mlterm
-cp -f $prefix/etc/mlterm/* mlterm/
+mkdir -p Contents/Resources/mlterm
+cp -f $prefix/etc/mlterm/* Contents/Resources/mlterm/
 rm mlterm/*aafont
 rm mlterm/font-fb
 rm mlterm/[tv]font

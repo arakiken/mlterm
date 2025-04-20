@@ -51,17 +51,21 @@ int main(int argc, char* argv[])
       set_lang();
     }
 
-#ifdef COCOA_TOUCH
     const char *bundle = [[[NSBundle mainBundle] bundlePath] UTF8String];
     char *path;
 
+#ifdef COCOA_TOUCH
     if ((path = alloca(strlen(bundle) + 5))) {
       strcpy(path, bundle);
       strcat(path, "/etc");
       bl_set_sys_conf_dir(path);
     }
 #else
-    bl_set_sys_conf_dir([[[NSBundle mainBundle] bundlePath] UTF8String]);
+    if ((path = alloca(strlen(bundle) + 20))) {
+      strcpy(path, bundle);
+      strcat(path, "/Contents/Resources");
+      bl_set_sys_conf_dir(path);
+    }
 #endif
   }
   @finally {

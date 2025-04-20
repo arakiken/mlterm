@@ -1,3 +1,16 @@
+2025-04-20  Araki Ken  <arakiken@users.sf.net>
+
+	* quartz/ui_color.c, win32/ui_color.c: Cast u_int8_t to u_int32_t in
+	  shifting bits by <<.
+	  (https://github.com/arakiken/mlterm/issues/139)
+
+	* ui_screen_manager.c, vt_term_manager.c: 0x1 -> 0x1u
+	  (https://github.com/arakiken/mlterm/issues/139)
+
+	* install.sh, main-cocoa.m: Move config files to mlterm.app/Contents/Resources/mlterm
+	  instead of mlterm.app/mlterm.
+	  (https://github.com/arakiken/mlterm/issues/141)
+
 2025-04-19  Araki Ken  <arakiken@users.sf.net>
 
 	* cocoa.m: Add main_loop_final() declaration to fix implicit function

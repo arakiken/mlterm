@@ -143,7 +143,7 @@ static void sig_child(void *p, pid_t pid) {
 #endif
 
       idx = count / MTU;
-      dead_mask[idx] |= (1 << (count - MTU * idx));
+      dead_mask[idx] |= (0x1u << (count - MTU * idx));
     }
   }
 }
@@ -495,7 +495,7 @@ void vt_close_dead_terms(void) {
         memset(&dead_mask[idx], 0, sizeof(dead_mask[idx]));
 
         for (count = MTU - 1; count >= 0; count--) {
-          if (mask & (0x1 << count)) {
+          if (mask & (0x1u << count)) {
             vt_term_t *term;
 
 #ifdef DEBUG

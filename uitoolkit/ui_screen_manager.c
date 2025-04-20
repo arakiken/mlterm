@@ -1087,7 +1087,7 @@ static int close_screen(void *p, ui_screen_t *screen, /* Screen which triggers t
     close_screen_intern(screen);
 #else
     idx = count / MSU; /* count / 8 */
-    dead_mask[idx] |= (1 << (count - MSU * idx));
+    dead_mask[idx] |= (0x1u << (count - MSU * idx));
 #endif
 
     break;
@@ -1478,7 +1478,7 @@ void ui_close_dead_screens(void) {
         int count;
 
         for (count = MSU - 1; count >= 0; count--) {
-          if (dead_mask[idx] & (0x1 << count)) {
+          if (dead_mask[idx] & (0x1u << count)) {
             ui_screen_t *screen;
 
 #ifdef __DEBUG
