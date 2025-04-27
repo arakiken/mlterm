@@ -1,3 +1,7 @@
+2025-04-27  Araki Ken  <arakiken@users.sf.net>
+
+	* wayland/ui.h, wayland/ui_display.c: Draw preediting text only if it was changed.
+
 2025-04-20  Araki Ken  <arakiken@users.sf.net>
 
 	* quartz/ui_color.c, win32/ui_color.c: Cast u_int8_t to u_int32_t in

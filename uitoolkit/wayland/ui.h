@@ -231,6 +231,7 @@ typedef struct {
 #endif /* COMPAT_LIBVTE */
 
   struct zwp_text_input_v3 *text_input;
+  char *preedit_text;
 
 } Display;
 

@@ -2566,6 +2566,10 @@ static void input_enter(void *data, struct zwp_text_input_v3 *text_input,
   ui_window_t *win;
   int x, y;
 
+#ifdef __DEBUG
+  bl_debug_printf(BL_DEBUG_TAG " input_enter\n");
+#endif
+
   zwp_text_input_v3_enable(text_input);
   zwp_text_input_v3_commit(text_input);
 }
@@ -2580,6 +2584,21 @@ static void input_preedit_string(void *data, struct zwp_text_input_v3 *text_inpu
                                  const char *text, int32_t cursor_begin, int32_t cursor_end) {
   ui_display_t *disp = data;
   ui_window_t *win;
+
+#ifdef __DEBUG
+  bl_debug_printf(BL_DEBUG_TAG " preedit_string %s\n", text);
+#endif
+
+  if (bl_compare_str(disp->display->preedit_text, text) == 0) {
+    return;
+  }
+
+  free(disp->display->preedit_text);
+  if (text) {
+    disp->display->preedit_text = strdup(text);
+  } else {
+    disp->display->preedit_text = NULL;
+  }
 
   if ((win = search_inputtable_window(NULL, disp->roots[0]))) {
     (*win->preedit)(win, text ? text : "", NULL);
@@ -2602,6 +2621,9 @@ static void input_commit_string(void *data, struct zwp_text_input_v3 *text_input
   if ((win = search_inputtable_window(NULL, disp->roots[0]))) {
     ui_window_receive_event(win, (XEvent *)&kev);
   }
+
+  free(disp->display->preedit_text);
+  disp->display->preedit_text = NULL;
 }
 
 static void input_delete_surrounding_text(void *data, struct zwp_text_input_v3 *text_input,
@@ -3645,6 +3667,9 @@ void ui_display_set_use_text_input(ui_display_t *disp, int use) {
     if (disp->display->text_input) {
       zwp_text_input_v3_destroy(disp->display->text_input);
       disp->display->text_input = NULL;
+
+      free(disp->display->preedit_text);
+      disp->display->preedit_text = NULL;
     }
   }
 }
