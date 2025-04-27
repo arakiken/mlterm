@@ -1,5 +1,7 @@
 2025-04-27  Araki Ken  <arakiken@users.sf.net>
 
+	* bl_map.h: Use bl_hash_func_t in bl_map_erase().
+
 	* wayland/ui.h, wayland/ui_display.c: Draw preediting text only if it was changed.
 
 2025-04-20  Araki Ken  <arakiken@users.sf.net>

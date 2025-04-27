@@ -267,12 +267,10 @@
         if ((int (*)(int, u_int))(map)->hash_func == bl_map_hash_int ||                        \
             (int (*)(int, u_int))(map)->hash_func == bl_map_hash_int_fast) {                   \
           if (__new_size & (__new_size - 1)) {                                                 \
-            /* XXX int (*)() should be int (*)(key_type, u_int) */                             \
-            (map)->hash_func = (int (*)())bl_map_hash_int;                                     \
+            (map)->hash_func = (bl_hash_func_t(map))bl_map_hash_int;                           \
           } else {                                                                             \
             /* __new_size == 2^n */                                                            \
-            /* XXX int (*)() should be int (*)(key_type, u_int) */                             \
-            (map)->hash_func = (int (*)())bl_map_hash_int_fast;                                \
+            (map)->hash_func = (bl_hash_func_t(map))bl_map_hash_int_fast;                      \
           }                                                                                    \
         }                                                                                      \
                                                                                                \
