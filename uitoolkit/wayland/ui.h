@@ -232,6 +232,9 @@ typedef struct {
 
   struct zwp_text_input_v3 *text_input;
   char *preedit_text;
+  int text_input_x;
+  int text_input_y;
+  unsigned int text_input_line_height;
 
 } Display;
 

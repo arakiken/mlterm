@@ -77,7 +77,10 @@ int ui_xic_set_spot(ui_window_t *win) {
     return 0;
   }
 
-  ui_display_set_text_input_spot(win->disp, x, y);
+  ui_display_set_text_input_spot(win->disp, x, y,
+                                 win->xim_listener->get_line_height
+                                   ? (*win->xim_listener->get_line_height)(win->xim_listener->self)
+                                   : 20);
 
   return 1;
 }

@@ -5537,8 +5537,6 @@ static int get_im_spot(void *p, vt_char_t *chars, int segment_offset, int *x, in
   return 1;
 }
 
-static u_int get_line_height(void *p) { return ui_line_height((ui_screen_t *)p); }
-
 static int is_vertical(void *p) {
   if (vt_term_get_vertical_mode(((ui_screen_t *)p)->term)) {
     return 1;
@@ -6781,6 +6779,9 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->xim_listener.get_fontset = get_fontset;
   screen->xim_listener.get_fg_color = get_fg_color;
   screen->xim_listener.get_bg_color = get_bg_color;
+#ifdef USE_WAYLAND
+  screen->xim_listener.get_line_height = (u_int (*)(void *))ui_line_height;
+#endif
   screen->window.xim_listener = &screen->xim_listener;
 
   if (input_method) {
@@ -6789,7 +6790,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
 
   screen->im_listener.self = screen;
   screen->im_listener.get_spot = get_im_spot;
-  screen->im_listener.get_line_height = get_line_height;
+  screen->im_listener.get_line_height = (u_int (*)(void *))ui_line_height;;
   screen->im_listener.is_vertical = is_vertical;
   screen->im_listener.draw_preedit_str = draw_preedit_str;
   screen->im_listener.im_changed = im_changed;

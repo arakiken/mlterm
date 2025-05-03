@@ -2571,6 +2571,14 @@ static void input_enter(void *data, struct zwp_text_input_v3 *text_input,
 #endif
 
   zwp_text_input_v3_enable(text_input);
+
+  if (disp->display->text_input_x > 0 || disp->display->text_input_y > 0) {
+    zwp_text_input_v3_set_cursor_rectangle(disp->display->text_input,
+                                           disp->display->text_input_x,
+                                           disp->display->text_input_y,
+                                           0, disp->display->text_input_line_height);
+  }
+
   zwp_text_input_v3_commit(text_input);
 }
 
@@ -3674,8 +3682,11 @@ void ui_display_set_use_text_input(ui_display_t *disp, int use) {
   }
 }
 
-void ui_display_set_text_input_spot(ui_display_t *disp, int x, int y) {
-  zwp_text_input_v3_set_cursor_rectangle(disp->display->text_input, x, y, 10, 20); /* XXX */
+void ui_display_set_text_input_spot(ui_display_t *disp, int x, int y, u_int line_height) {
+  disp->display->text_input_x = x;
+  disp->display->text_input_y = y;
+  disp->display->text_input_line_height = line_height;
+  zwp_text_input_v3_set_cursor_rectangle(disp->display->text_input, x, y, 0, line_height);
   zwp_text_input_v3_commit(disp->display->text_input);
 }
 

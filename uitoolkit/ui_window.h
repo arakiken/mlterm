@@ -70,6 +70,9 @@ typedef struct ui_xim_event_listener {
   XFontSet (*get_fontset)(void *);
   ui_color_t *(*get_fg_color)(void *);
   ui_color_t *(*get_bg_color)(void *);
+#ifdef USE_WAYLAND
+  u_int (*get_line_height)(void *);
+#endif
 
 } ui_xim_event_listener_t;
 

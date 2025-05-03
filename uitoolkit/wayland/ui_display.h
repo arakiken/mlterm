@@ -61,6 +61,6 @@ void ui_display_request_text_clipboard(ui_display_t *disp);
 
 void ui_display_set_use_text_input(ui_display_t *disp, int use);
 
-void ui_display_set_text_input_spot(ui_display_t *disp, int x, int y);
+void ui_display_set_text_input_spot(ui_display_t *disp, int x, int y, u_int line_height);
 
 #endif

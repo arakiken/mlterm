@@ -1,3 +1,12 @@
+2025-05-03  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_window.h, ui_screen.c: Add get_line_height to ui_xim_event_listener_t.
+
+	* ui_display.[ch], ui.h:
+	  - Add 'u_int line_height' to arguments of ui_display_set_text_input_spot().
+	  - Call zwp_text_input_v3_set_cursor_rectangle() in input_enter().
+	  - Add text_input_x, text_input_y, text_input_line_height to Display.
+
 2025-04-27  Araki Ken  <arakiken@users.sf.net>
 
 	* bl_map.h: Use bl_hash_func_t in bl_map_erase().
