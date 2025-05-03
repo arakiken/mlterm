@@ -1,5 +1,7 @@
 2025-05-03  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_connect_dialog.c: Fix incompatible pointer type error in compiling.
+
 	* ui_window.h, ui_screen.c: Add get_line_height to ui_xim_event_listener_t.
 
 	* ui_display.[ch], ui.h:

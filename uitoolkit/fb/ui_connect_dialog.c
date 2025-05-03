@@ -68,7 +68,7 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
   ui_screen_t *screen;
   char *prompt;
   size_t prompt_len;
-  void (*orig_key_pressed)();
+  void (*orig_key_pressed)(ui_window_t *, XKeyEvent *);
 
   prompt_len = 12 + strlen(def_server) + 11;
   if (!(prompt = alloca(prompt_len + 1))) {
