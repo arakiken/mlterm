@@ -7,6 +7,7 @@
 	    only if font_man->use_ot_layout is true.
 
 	* ui_screen.c: Hide the cursor if it is at the transparent sixel graphics.
+	  (https://misskey.io/notes/a6r6iux7xawb0gt3)
 
 2025-05-03  Araki Ken  <arakiken@users.sf.net>
 

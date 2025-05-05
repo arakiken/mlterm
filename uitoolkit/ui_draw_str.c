@@ -1364,6 +1364,7 @@ int ui_draw_str_to_eol(ui_window_t *window, ui_font_manager_t *font_man,
        * in draw_line() in ui_screen.c.^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
        *                               -> font_man->use_ot_layout
        */
+#ifdef USE_OT_LAYOUT
       if (font_man->use_ot_layout) {
         /* This shows indic scripts correctly. */
         ui_window_clear(window, x, y, window->width - x, height);
@@ -1372,7 +1373,9 @@ int ui_draw_str_to_eol(ui_window_t *window, ui_font_manager_t *font_man,
                              NULL /* NULL disables ui_window_clear() in xcore_draw_str() */,
                              chars, num_chars, x, y, height, ascent, top_margin, hide_underline,
                              underline_offset);
-      } else {
+      } else
+#endif
+      {
         /*
          * XXX
          * When scrolling the screen with a transparent sixel, garbage remains
