@@ -445,6 +445,7 @@ static void draw_cursor(ui_screen_t *screen) {
   vt_line_t *orig;
   vt_char_t ch;
   vt_cursor_style_t cursor_style;
+  vt_char_t *pic_ch;
   int is_picture;
 #ifdef USE_IM_CURSOR_COLOR
   char *orig_cursor_bg;
@@ -521,7 +522,17 @@ static void draw_cursor(ui_screen_t *screen) {
   cursor_style = vt_term_get_cursor_style(screen->term);
   vt_char_init(&ch);
   vt_char_copy(&ch, vt_char_at(line, char_index));
-  if (vt_get_picture_char(&ch)) {
+  if ((pic_ch = vt_get_picture_char(&ch))) {
+    ui_inline_picture_t *pic;
+
+    if ((pic = ui_get_inline_picture(vt_char_picture_id(pic_ch))) && pic->transparent) {
+      /*
+       * Don't draw cursor in a transparent picture because it is impossible to
+       * clear cursor completely by drawing a transparent picture.
+       */
+      return;
+    }
+
     cursor_style = CS_BOX;
     is_picture = 1;
   } else {

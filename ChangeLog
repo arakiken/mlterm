@@ -1,3 +1,13 @@
+2025-05-05  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_draw_str.c:
+	  - If updated_width == NULL, use ui_window_draw_string() instead of
+	    ui_window_draw_image_string().
+	  - ui_draw_str_to_eol() calls ui_window_clear() before xcore_draw_str()
+	    only if font_man->use_ot_layout is true.
+
+	* ui_screen.c: Hide the cursor if it is at the transparent sixel graphics.
+
 2025-05-03  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_connect_dialog.c: Fix incompatible pointer type error in compiling.

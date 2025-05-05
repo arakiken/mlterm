@@ -256,7 +256,7 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
 #endif
       ) {
 #ifdef __DEBUG
-    bl_debug_printf("*Drawing picture at %d %d (pix %p mask %p x %d y %d w %d h %d)\n", dst_x,
+    bl_debug_printf("Drawing picture at %d %d (pix %p mask %p x %d y %d w %d h %d)\n", dst_x,
                     dst_y, cur_pic->pixmap, cur_pic->mask, src_x, src_y, src_width, src_height);
 #endif
 
@@ -1084,6 +1084,15 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       }
 #else /* !USE_CONSOLE */
 #ifdef USE_SDL2
+      /*
+       * Use ui_window_draw_image_string() instead of ui_window_draw_string()
+       * which can cause corrupt screen.
+       * SDL_LockTexture (https://wiki.libsdl.org/SDL2/SDL_LockTexture)
+       * "As an optimization, the pixels made available for editing don't
+       *  necessarily contain the old texture data. This is a write-only
+       *  operation, and if you need to keep a copy of the texture data you
+       *  should do that at the application level."
+       */
       if (uifont->height != height || state == 3 ||
           (uifont->is_proportional && ui_window_has_wall_picture(window))) {
         if (bg_color == VT_BG_COLOR) {
@@ -1110,7 +1119,7 @@ static int xcore_draw_str(ui_window_t *window, ui_font_manager_t *font_man,
       }
 #else /* !USE_SDL2 */
 #ifndef NO_DRAW_IMAGE_STRING
-      if (uifont->height != height || state == 3
+      if (updated_width == NULL || uifont->height != height || state == 3
 #ifdef DRAW_SCREEN_IN_PIXELS
 #ifdef USE_FREETYPE
           /*
@@ -1350,23 +1359,37 @@ int ui_draw_str_to_eol(ui_window_t *window, ui_font_manager_t *font_man,
 
 #if !defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
     case TYPE_XCORE:
-#ifndef USE_XLIB
-      /* This shows indic scripts correctly. */
+      /*
+       * ui_font_manager_set_attr(..., vt_line_has_ot_substitute_glyphs(line))
+       * in draw_line() in ui_screen.c.^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+       *                               -> font_man->use_ot_layout
+       */
+      if (font_man->use_ot_layout) {
+        /* This shows indic scripts correctly. */
+        ui_window_clear(window, x, y, window->width - x, height);
 
-      ui_window_clear(window, x, y, window->width - x, height);
-
-      ret = xcore_draw_str(window, font_man, color_man,
-                           NULL /* NULL disables ui_window_clear() in fc_draw_str() */,
-                           chars, num_chars, x, y, height, ascent, top_margin, hide_underline,
-                           underline_offset);
-#else
-      ret = xcore_draw_str(window, font_man, color_man, &updated_width,
-                           chars, num_chars, x, y, height, ascent, top_margin, hide_underline,
-                           underline_offset);
-      if (updated_width < window->width) {
-        ui_window_clear(window, updated_width, y, window->width - updated_width, height);
+        ret = xcore_draw_str(window, font_man, color_man,
+                             NULL /* NULL disables ui_window_clear() in xcore_draw_str() */,
+                             chars, num_chars, x, y, height, ascent, top_margin, hide_underline,
+                             underline_offset);
+      } else {
+        /*
+         * XXX
+         * When scrolling the screen with a transparent sixel, garbage remains
+         * on the screen.
+         * (https://misskey.io/notes/a796wlxcfwhg07xp)
+         * Calling ui_window_clear() before ui_draw_str() fixes this problem,
+         * but it takes longer in scrolling the framebuffer of old machines
+         * because "Optimization for most cases" processing in fb/ui_window.c
+         * is not executed.
+         */
+        ret = xcore_draw_str(window, font_man, color_man, &updated_width,
+                             chars, num_chars, x, y, height, ascent, top_margin, hide_underline,
+                             underline_offset);
+        if (updated_width < window->width) {
+          ui_window_clear(window, updated_width, y, window->width - updated_width, height);
+        }
       }
-#endif
 
       break;
 #endif
