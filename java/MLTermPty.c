@@ -1206,7 +1206,7 @@ Java_mlterm_MLTermPty_nativeReportMouseTracking(JNIEnv *env, jobject obj, jlong 
   }
 #endif
 
-  if (vt_term_get_mouse_report_mode(nativeObj->term) >= LOCATOR_CHARCELL_REPORT) {
+  if (vt_term_get_mouse_report_mode(nativeObj->term) >= LOCATOR_REPORT) {
     /* Not supported */
 
     return;
