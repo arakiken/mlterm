@@ -529,6 +529,7 @@ static void draw_cursor(ui_screen_t *screen) {
       /*
        * Don't draw cursor in a transparent picture because it is impossible to
        * clear cursor completely by drawing a transparent picture.
+       * (https://misskey.io/clips/a6tbwy07ejyb084o)
        */
       return;
     }
@@ -3296,7 +3297,7 @@ static void report_mouse_tracking(ui_screen_t *screen, int x, int y, int button,
     }
   }
 
-  if (vt_term_get_mouse_report_mode(screen->term) == LOCATOR_PIXEL_REPORT) {
+  if (vt_term_get_mouse_report_mode(screen->term) & MOUSE_REPORT_BY_PIXEL) {
     screen->prev_mouse_report_col = x + 1;
     screen->prev_mouse_report_row = y + 1;
 
@@ -7735,7 +7736,8 @@ void ui_screen_set_pointer_motion_event_mask(ui_screen_t *screen, int flag) {
       /* No need to remove PointerMotionMask after reviving the pointer in moving it. */
       screen->hide_pointer = 1;
     }
-  } else if (vt_term_get_mouse_report_mode(screen->term) != ANY_EVENT_MOUSE_REPORT &&
+  } else if ((vt_term_get_mouse_report_mode(screen->term) & ~MOUSE_REPORT_BY_PIXEL) !=
+               ANY_EVENT_MOUSE_REPORT &&
              /* pointer_motion may be overridden by ui_layout */
              screen->window.pointer_motion == pointer_motion) {
     show_pointer(screen);

@@ -47,9 +47,9 @@ int ui_font_manager_usascii_font_cs_changed(ui_font_manager_t *font_man,
 int ui_change_font_present(ui_font_manager_t *font_man, ui_type_engine_t type_engine,
                            ui_font_present_t font_present);
 
-ui_type_engine_t ui_get_type_engine(ui_font_manager_t *font_man);
+#define ui_get_type_engine(font_man) ((font_man)->font_config->type_engine)
 
-ui_font_present_t ui_get_font_present(ui_font_manager_t *font_man);
+#define ui_get_font_present(font_man) ((font_man)->font_config->font_present)
 
 int ui_change_font_size(ui_font_manager_t *font_man, u_int font_size);
 

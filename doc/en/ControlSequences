@@ -290,6 +290,7 @@ O XTMSEWIN (Send FocusIn/FocusOut events)                   CSI ? 1004 [hl]
 O XTMSEX11 (Send Mouse X & Y on button press and release)   CSI ? 1000 [hl]
 O (Scroll to bottom on tty output (rxvt))                   CSI ? 1010 [hl]
 X (Scroll to bottom on key press (rxvt))                    CSI ? 1011 [hl]
+O (Enable SGR Mouse Pixel Mode)                             CSI ? 1016 [hl]
 O (Interpret "meta" key (set eighth bit of keyboard input)) CSI ? 1034 [hl]
 O (Send ESC when Meta modifiers a key)                      CSI ? 1036 [hl]
 O XTSMPOINTER (Set resource value pointerMode)              CSI > Pn p

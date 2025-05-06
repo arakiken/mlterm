@@ -1,4 +1,5 @@
 * Support text-input-unstable-v3.
+* Support SGR Mouse Pixel Mode.
 * Bug fixes:
   https://github.com/arakiken/mlterm/issues/138
 

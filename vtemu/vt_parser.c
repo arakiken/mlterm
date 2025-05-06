@@ -188,7 +188,8 @@ typedef enum {
   DECMODE_1004,
   DECMODE_1005,
   DECMODE_1006,
-  DECMODE_1015, /* Don't add an entry between 1005 and 1015 (see set_vtmode() idx - DECMODE_1005) */
+  DECMODE_1015,
+  DECMODE_1016, /* Don't add an entry between 1005 and 1016 (see set_vtmode() idx - DECMODE_1005) */
   DECMODE_1010,
   DECMODE_1034,
   DECMODE_1036,
@@ -197,9 +198,9 @@ typedef enum {
   DECMODE_1048,
   DECMODE_1049,
   DECMODE_2004,
-  DECMODE_7727,
 
   /* vtmode_flags[1] */
+  DECMODE_7727,
   DECMODE_8428,
   DECMODE_8452,
   DECMODE_8800,
@@ -227,7 +228,8 @@ static u_int16_t vtmodes[] = {
   /* DECSET/DECRST */
   1, 2, 3, 5, 6, 7, 25, 40, 47, 66, 67, 69, 80, 95, 116, 117,
   1000, 1002, /* Don't add an entry between 1000 and 1002 (see set_vtmode()) */
-  1003, 1004, 1005, 1006, 1015, /* Don't add an entry between 1005 and 1015 (see set_vtmode()) */
+  1003, 1004,
+  1005, 1006, 1015, 1016, /* Don't add an entry between 1005 and 1016 (see set_vtmode()) */
   1010, 1034, 1036,
   1042, 1047, 1048, 1049, 2004, 7727, 8428, 8452, 8800,
 
@@ -1493,7 +1495,11 @@ static void set_mouse_report(vt_parser_t *vt_parser, vt_mouse_report_mode_t mode
     stop_vt100_cmd(vt_parser, 0);
 #endif
 
-    vt_parser->mouse_mode = mode;
+    if ((vt_parser->mouse_mode = mode) > 0 &&
+        vt_parser->ext_mouse_mode == EXTENDED_MOUSE_REPORT_SGR_PIXEL) {
+      vt_parser->mouse_mode |= MOUSE_REPORT_BY_PIXEL;
+    }
+
     (*vt_parser->xterm_listener->set_mouse_report)(vt_parser->xterm_listener->self);
 
 #if 0
@@ -1510,9 +1516,9 @@ static void request_locator(vt_parser_t *vt_parser) {
     stop_vt100_cmd(vt_parser, 0);
 #endif
 
-    if (vt_parser->mouse_mode < LOCATOR_CHARCELL_REPORT) {
+    if (vt_parser->mouse_mode < LOCATOR_REPORT) {
       orig = vt_parser->mouse_mode;
-      vt_parser->mouse_mode = LOCATOR_CHARCELL_REPORT;
+      vt_parser->mouse_mode = LOCATOR_REPORT;
     } else {
       orig = 0;
     }
@@ -4036,7 +4042,7 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
   case DECMODE_1000: /* MOUSE_REPORT */
   case DECMODE_1002: /* BUTTON_EVENT */
   case DECMODE_1003: /* ANY_EVENT */
-    set_mouse_report(vt_parser, flag ? (MOUSE_REPORT + idx - DECMODE_1000) : 0);
+    set_mouse_report(vt_parser, flag ? MOUSE_REPORT + ((idx - DECMODE_1000) << 4) : 0);
     break;
 
 #if 0
@@ -4052,6 +4058,7 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
   case DECMODE_1005: /* UTF8 */
   case DECMODE_1006: /* SGR */
   case DECMODE_1015: /* URXVT */
+  case DECMODE_1016: /* SGR-PIXEL */
     if (flag) {
       vt_parser->ext_mouse_mode = EXTENDED_MOUSE_REPORT_UTF8 + idx - DECMODE_1005;
     } else {
@@ -4132,6 +4139,7 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
     break;
 
   case DECMODE_7727:
+    /* Do nothing because IS_APP_ESCAPE() macro is used to check app escape mode. */
     break;
 
   case DECMODE_8428:
@@ -4230,14 +4238,6 @@ static void soft_reset(vt_parser_t *vt_parser) {
   set_vtmode(vt_parser, 7, 1); /* DECAWM */
   set_vtmode(vt_parser, 25, 1); /* DECTCEM */
   set_vtmode(vt_parser, 66, 0); /* DECNKM */
-  set_vtmode(vt_parser, 1000, 0); /* compatible with xterm */
-  set_vtmode(vt_parser, 1002, 0); /* compatible with xterm */
-  set_vtmode(vt_parser, 1003, 0); /* compatible with xterm */
-  set_vtmode(vt_parser, 1005, 0); /* compatible with xterm */
-  set_vtmode(vt_parser, 1006, 0); /* compatible with xterm */
-  set_vtmode(vt_parser, 1015, 0); /* compatible with xterm */
-  set_vtmode(vt_parser, 2004, 0); /* compatible with xterm */
-  set_vtmode(vt_parser, 7727, 0); /* compatible with xterm */
   set_vtmode(vt_parser, VTMODE(2), 0); /* KAM */
   set_vtmode(vt_parser, VTMODE(4), 0); /* IRM */
 
@@ -4266,9 +4266,15 @@ static void soft_reset(vt_parser_t *vt_parser) {
 }
 
 static void full_reset(vt_parser_t *vt_parser) {
+  int mode;
+
   vt_screen_use_normal_edit(vt_parser->screen);
   vt_screen_goto_page(vt_parser->screen, 0);
-  set_vtmode(vt_parser, 3, 0); /* DECCOLM */
+  vt_parser->saved_vtmode_flags[0] = vt_parser->vtmode_flags[0] = INITIAL_VTMODE_FLAGS_0;
+  vt_parser->saved_vtmode_flags[1] = vt_parser->vtmode_flags[1] = INITIAL_VTMODE_FLAGS_1;
+  for (mode = 0; mode < VTMODE_NUM; mode++) {
+    set_vtmode(vt_parser, vtmodes[mode], GET_VTMODE_FLAG2(vt_parser, mode));
+  }
   soft_reset(vt_parser); /* XXX insufficient */
   vt_screen_goto(vt_parser->screen, 0, 0);
   vt_screen_set_tab_size(vt_parser->screen, 8);
@@ -5384,15 +5390,15 @@ inline static int parse_vt100_escape_sequence(
           vt_parser->locator_mode &= ~LOCATOR_FILTER_RECT;
           memset(&vt_parser->loc_filter, 0, sizeof(vt_parser->loc_filter));
           if (ps[0] <= 0) {
-            if (vt_parser->mouse_mode >= LOCATOR_CHARCELL_REPORT) {
+            if (vt_parser->mouse_mode >= LOCATOR_REPORT) {
               set_mouse_report(vt_parser, 0);
             }
           } else {
             vt_parser->locator_mode |= ps[0] == 2 ? LOCATOR_ONESHOT : 0;
 
             set_mouse_report(vt_parser, (num == 1 || ps[1] <= 0 || ps[1] == 2)
-                                               ? LOCATOR_CHARCELL_REPORT
-                                               : LOCATOR_PIXEL_REPORT);
+                                               ? LOCATOR_REPORT
+                                               : (LOCATOR_REPORT|MOUSE_REPORT_BY_PIXEL));
           }
         }
       } else if (intmed_ch == '\"') {
@@ -8541,7 +8547,7 @@ void vt_parser_report_mouse_tracking(vt_parser_t *vt_parser, int col, int row,
                                            int button,
                                            int is_released, /* is_released is 0 if PointerMotion */
                                            int key_state, int button_state) {
-  if (vt_parser->mouse_mode >= LOCATOR_CHARCELL_REPORT) {
+  if (vt_parser->mouse_mode >= LOCATOR_REPORT) {
     char seq[10 + DIGIT_STR_LEN(int)*4 + 1];
     int ev;
     int is_outside_filter_rect;
@@ -8600,8 +8606,15 @@ void vt_parser_report_mouse_tracking(vt_parser_t *vt_parser, int col, int row,
      */
     u_char seq[17];
     size_t seq_len;
+    vt_extended_mouse_report_mode_t ext_mouse_mode;
 
-    if (is_released && vt_parser->ext_mouse_mode != EXTENDED_MOUSE_REPORT_SGR) {
+    if (vt_parser->ext_mouse_mode == EXTENDED_MOUSE_REPORT_SGR_PIXEL) {
+      ext_mouse_mode = EXTENDED_MOUSE_REPORT_SGR;
+    } else {
+      ext_mouse_mode = vt_parser->ext_mouse_mode;
+    }
+
+    if (is_released && ext_mouse_mode != EXTENDED_MOUSE_REPORT_SGR) {
       key_state = 0;
       button = 3;
     } else if (button == 0) {
@@ -8622,18 +8635,18 @@ void vt_parser_report_mouse_tracking(vt_parser_t *vt_parser, int col, int row,
       }
     }
 
-    if (vt_parser->ext_mouse_mode == EXTENDED_MOUSE_REPORT_SGR) {
+    if (ext_mouse_mode == EXTENDED_MOUSE_REPORT_SGR) {
       sprintf(seq, "\x1b[<%d;%d;%d%c", (button + key_state) & 0x7f, col, row,
               ((button + key_state) & 0x80) ? 'm' : 'M');
       seq_len = strlen(seq);
-    } else if (vt_parser->ext_mouse_mode == EXTENDED_MOUSE_REPORT_URXVT) {
+    } else if (ext_mouse_mode == EXTENDED_MOUSE_REPORT_URXVT) {
       sprintf(seq, "\x1b[%d;%d;%dM", 0x20 + button + key_state, col, row);
       seq_len = strlen(seq);
     } else {
       memcpy(seq, "\x1b[M", 3);
       seq[3] = 0x20 + button + key_state;
 
-      if (vt_parser->ext_mouse_mode == EXTENDED_MOUSE_REPORT_UTF8) {
+      if (ext_mouse_mode == EXTENDED_MOUSE_REPORT_UTF8) {
         int ch;
         u_char *p;
 

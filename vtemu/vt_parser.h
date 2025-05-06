@@ -40,14 +40,18 @@ typedef enum vt_unicode_policy {
 
 } vt_unicode_policy_t;
 
+/*
+ * Don't use <= for conditional branching because MOUSE_REPORT_BY_PIXEL
+ * flag can be appended.
+ */
 typedef enum vt_mouse_report_mode {
   NO_MOUSE_REPORT = 0,
 
-  MOUSE_REPORT = 0x1,
-  BUTTON_EVENT_MOUSE_REPORT = 0x2,
-  ANY_EVENT_MOUSE_REPORT = 0x3,
-  LOCATOR_CHARCELL_REPORT = 0x4,
-  LOCATOR_PIXEL_REPORT = 0x5,
+  MOUSE_REPORT_BY_PIXEL = 0x1,
+  MOUSE_REPORT = 0x10,
+  BUTTON_EVENT_MOUSE_REPORT = 0x20,
+  ANY_EVENT_MOUSE_REPORT = 0x30,
+  LOCATOR_REPORT = 0x40,
 
 } vt_mouse_report_mode_t;
 
@@ -57,6 +61,7 @@ typedef enum vt_extended_mouse_report_mode {
   EXTENDED_MOUSE_REPORT_UTF8 = 0x1,
   EXTENDED_MOUSE_REPORT_SGR = 0x2,
   EXTENDED_MOUSE_REPORT_URXVT = 0x3,
+  EXTENDED_MOUSE_REPORT_SGR_PIXEL = 0x4,
 
 } vt_extended_mouse_report_mode_t;
 

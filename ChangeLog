@@ -1,3 +1,16 @@
+2025-05-06  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.[ch], ui_screen.c:
+	  - Add MOUSE_REPORT_BY_PIXEL to vt_mouse_report_mode_t.
+	  - LOCATOR_CHARCELL_REPORT -> LOCATOR_REPORT
+	    LOCATOR_PIXEL_REPORT -> LOCATOR_REPORT|MOUSE_REPORT_BY_PIXEL
+	  - Add EXTENDED_MOUSE_REPORT_SGR_PIXEL to vt_extended_mouse_report_mode_t.
+	  - Add DECMODE_1016 to vtmode_t.
+	  - Unreset mouse report mode in DECSTR.
+
+	* ui_font_manager.[ch]: Define ui_get_type_engine() and ui_get_font_present()
+	  as macros instead of functions.
+
 2025-05-05  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_draw_str.c:
