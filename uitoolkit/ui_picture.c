@@ -1079,6 +1079,16 @@ ui_inline_picture_t *ui_get_inline_picture(int idx) {
   }
 }
 
+void ui_inline_picture_clear_transparent_flag(vt_term_t *term) {
+  u_int count;
+
+  for (count = 0; count < num_inline_pics; count++) {
+    if (inline_pics[count].term == term) {
+      inline_pics[count].transparent = 0;
+    }
+  }
+}
+
 int ui_add_frame_to_animation(int prev_idx, int next_idx) {
   ui_inline_picture_t *prev_pic;
   ui_inline_picture_t *next_pic;

@@ -1,3 +1,10 @@
+2025-05-07  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.c: Call ui_inline_picture_clear_transparent_flag() in entering
+	  backscroll mode.
+
+	* ui_picture.[ch]: Add ui_inline_picture_clear_transparent_flag().
+
 2025-05-06  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.[ch], ui_screen.c:

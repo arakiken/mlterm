@@ -102,6 +102,8 @@ int ui_load_inline_picture(ui_display_t *disp, char *file_path, u_int *width, u_
 
 ui_inline_picture_t *ui_get_inline_picture(int idx);
 
+void ui_inline_picture_clear_transparent_flag(vt_term_t *term);
+
 int ui_add_frame_to_animation(int prev_idx, int next_idx);
 
 int ui_animate_inline_pictures(vt_term_t *term);

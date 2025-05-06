@@ -67,6 +67,9 @@ static u_int mod_keys_to_stop_mouse_report = ShiftMask | ControlMask;
 #ifdef USE_IM_CURSOR_COLOR
 static char *im_cursor_color = NULL;
 #endif
+#ifndef NO_IMAGE
+static int has_transparent_inline_pics;
+#endif
 
 /* --- static functions --- */
 
@@ -922,6 +925,22 @@ static void enter_backscroll_mode(ui_screen_t *screen) {
   if (vt_term_is_backscrolling(screen->term)) {
     return;
   }
+
+#ifndef NO_IMAGE
+  /*
+   * Transparent sixel graphics can remain unexpected garbage in the screen
+   * in backscrolling.
+   * (https://misskey.io/notes/a796wlxcfwhg07xp)
+   *
+   * XXX
+   * change_edit() in vt_screen.c can cause a similar problem, but it is not
+   * considered for now.
+   */
+  if (has_transparent_inline_pics) {
+    ui_inline_picture_clear_transparent_flag(screen->term);
+    has_transparent_inline_pics = 0;
+  }
+#endif
 
   if (vt_term_enter_backscroll_mode(screen->term) == 2) {
     if (HAS_SCROLL_LISTENER(screen, term_changed)) {
@@ -6396,8 +6415,16 @@ static vt_char_t *xterm_get_picture_data(void *p, char *file_path, int *num_cols
       *num_cols += (cols_padding[0] + cols_padding[1]);
       *num_rows += (rows_padding[0] + rows_padding[1]);
 
-      if (transparent) {
-        *transparent = ui_get_inline_picture(idx)->transparent;
+      if (ui_get_inline_picture(idx)->transparent) {
+        has_transparent_inline_pics = 1;
+
+        if (transparent) {
+          *transparent = 1;
+        }
+      } else {
+        if (transparent) {
+          *transparent = 0;
+        }
       }
 
       return buf;
