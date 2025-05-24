@@ -2120,6 +2120,8 @@ int vt_pty_ssh_scp_intern(vt_pty_t *pty, int src_is_remote, char *dst_path, char
 
       goto error;
     }
+
+    scp->src_size = sshst.st_size;
   } else {
     if ((scp->local = open(src_path, O_RDONLY
 #ifdef USE_WIN32API
@@ -2152,10 +2154,11 @@ int vt_pty_ssh_scp_intern(vt_pty_t *pty, int src_is_remote, char *dst_path, char
 
       goto error;
     }
+
+    scp->src_size = st.st_size;
   }
 
   scp->src_is_remote = src_is_remote;
-  scp->src_size = st.st_size;
 
   if (!use_loopback(pty)) {
     while (libssh2_channel_free(scp->remote) == LIBSSH2_ERROR_EAGAIN)

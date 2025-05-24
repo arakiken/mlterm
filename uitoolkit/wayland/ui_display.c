@@ -2584,6 +2584,10 @@ static void input_enter(void *data, struct zwp_text_input_v3 *text_input,
 
 static void input_leave(void *data, struct zwp_text_input_v3 *text_input,
                         struct wl_surface *surface) {
+#ifdef __DEBUG
+  bl_debug_printf(BL_DEBUG_TAG " input_leave\n");
+#endif
+
   zwp_text_input_v3_disable(text_input);
   zwp_text_input_v3_commit(text_input);
 }
@@ -2594,7 +2598,7 @@ static void input_preedit_string(void *data, struct zwp_text_input_v3 *text_inpu
   ui_window_t *win;
 
 #ifdef __DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " preedit_string %s\n", text);
+  bl_debug_printf(BL_DEBUG_TAG " input_preedit_string %s\n", text);
 #endif
 
   if (bl_compare_str(disp->display->preedit_text, text) == 0) {
@@ -2619,6 +2623,10 @@ static void input_commit_string(void *data, struct zwp_text_input_v3 *text_input
   ui_window_t *win;
   XKeyEvent kev;
 
+#ifdef __DEBUG
+  bl_debug_printf(BL_DEBUG_TAG " input_commit_string %s\n", text);
+#endif
+
   kev.type = KeyPress;
   kev.time = CurrentTime;
   kev.state = 0;
@@ -2636,16 +2644,16 @@ static void input_commit_string(void *data, struct zwp_text_input_v3 *text_input
 
 static void input_delete_surrounding_text(void *data, struct zwp_text_input_v3 *text_input,
                                           uint32_t before_length, uint32_t after_length) {
-#ifdef DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " text_input delete_surrounding_text | "
+#ifdef __DEBUG
+  bl_debug_printf(BL_DEBUG_TAG " input_delete_surrounding_text | "
                   "before_length:%u, after_length:%u\n",
                   before_length, after_length);
 #endif
 }
 
 static void input_done(void *data, struct zwp_text_input_v3 *text_input, uint32_t serial) {
-#ifdef DEBUG
-  bl_debug_printf(BL_DEBUG_TAG " text_input done | serial:%u\n", serial);
+#ifdef __DEBUG
+  bl_debug_printf(BL_DEBUG_TAG " input_done | serial:%u\n", serial);
 #endif
 }
 

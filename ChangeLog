@@ -1,3 +1,7 @@
+2025-05-25  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_pty_ssh.c: Fix the previous commit.
+
 2025-05-24  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_pty_ssh.c: Fix compiling error.
