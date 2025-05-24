@@ -2060,8 +2060,10 @@ int vt_pty_ssh_scp_intern(vt_pty_t *pty, int src_is_remote, char *dst_path, char
                           u_int progress_len /* > 0 */) {
   scp_t *scp;
 #if defined(LIBSSH2_VERSION_NUM) && LIBSSH2_VERSION_NUM >= 0x010700
-  libssh2_struct_stat st;
+  libssh2_struct_stat sshst;
+  struct stat st;
 #else
+#define sshst st
   struct stat st;
 #endif
   char *msg;
@@ -2092,9 +2094,9 @@ int vt_pty_ssh_scp_intern(vt_pty_t *pty, int src_is_remote, char *dst_path, char
   if (src_is_remote) {
     while (
 #if defined(LIBSSH2_VERSION_NUM) && LIBSSH2_VERSION_NUM >= 0x010700
-           !(scp->remote = libssh2_scp_recv2(scp->pty_ssh->session->obj, src_path, &st))
+           !(scp->remote = libssh2_scp_recv2(scp->pty_ssh->session->obj, src_path, &sshst))
 #else
-           !(scp->remote = libssh2_scp_recv(scp->pty_ssh->session->obj, src_path, &st))
+           !(scp->remote = libssh2_scp_recv(scp->pty_ssh->session->obj, src_path, &sshst))
 #endif
            && libssh2_session_last_errno(scp->pty_ssh->session->obj) == LIBSSH2_ERROR_EAGAIN)
       ;
@@ -2110,7 +2112,7 @@ int vt_pty_ssh_scp_intern(vt_pty_t *pty, int src_is_remote, char *dst_path, char
                                          | O_BINARY
 #endif
                            ,
-                           st.st_mode)) < 0) {
+                           sshst.st_mode)) < 0) {
       bl_msg_printf("SCP: Failed to open local:%s.\n", dst_path);
 
       while (libssh2_channel_free(scp->remote) == LIBSSH2_ERROR_EAGAIN)

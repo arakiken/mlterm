@@ -1,5 +1,7 @@
 2025-05-24  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_pty_ssh.c: Fix compiling error.
+
 	* man/mlterm.1, README.ja: Updated.
 
 	* ui_im_{candidate|status}_screen.[ch]: Process window_resized event.
