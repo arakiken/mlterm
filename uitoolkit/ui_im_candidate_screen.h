@@ -46,6 +46,7 @@ typedef struct ui_im_candidate_screen {
   int8_t is_vertical_term;
   int8_t is_vertical_direction;
   int8_t need_redraw;
+  int8_t need_resize;
 
   /* ui_im_candidate_screen.c -> im plugins */
   ui_im_candidate_event_listener_t listener;

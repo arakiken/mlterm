@@ -1351,7 +1351,8 @@ static void window_realized(ui_window_t *win) {
 
   if (screen->input_method) {
     /* XIM or other input methods? */
-    if (strncmp(screen->input_method, "xim", 3) == 0) {
+    if (strncmp(screen->input_method, "xim", 3) == 0 ||
+        strcmp(screen->input_method, "default") == 0) {
       activate_xic(screen);
     } else {
       ui_xic_activate(&screen->window, "unused", "");
@@ -4876,7 +4877,8 @@ static void change_im(ui_screen_t *screen, const char *input_method) {
 
   screen->input_method = strdup(input_method);
 
-  if (strncmp(screen->input_method, "xim", 3) == 0) {
+  if (strncmp(screen->input_method, "xim", 3) == 0 ||
+      strcmp(screen->input_method, "default") == 0) {
     activate_xic(screen);
     screen->im = NULL;
   } else {

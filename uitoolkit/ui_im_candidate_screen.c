@@ -524,7 +524,10 @@ static void draw_screen(ui_im_candidate_screen_t *cand_screen, u_int old_index, 
   VISIBLE_INDEX(cand_screen->num_candidates, cand_screen->num_per_window, cand_screen->index,
                 top, last);
 
-  if (old_index != cand_screen->index && old_index != INVALID_INDEX) {
+  if (cand_screen->need_resize) {
+    do_resize = 1;
+    cand_screen->need_resize = 0;
+  } else if (old_index != cand_screen->index && old_index != INVALID_INDEX) {
     u_int old_top;
     u_int old_last;
 
@@ -820,6 +823,18 @@ static void window_realized(ui_window_t *win) {
   ui_window_set_override_redirect(&cand_screen->window, 1);
 }
 
+static void window_resized(ui_window_t *win) {
+  ui_im_candidate_screen_t *cand_screen;
+
+  cand_screen = (ui_im_candidate_screen_t *)win;
+
+  /*
+   * kde plasma 6.3.4 (wayland) forcibly resizes a candidate screen to 6x6.
+   * Resize it to the appropriate size before drawing its screen.
+   */
+  cand_screen->need_resize = 1;
+}
+
 static void window_exposed(ui_window_t *win, int x, int y, u_int width, u_int height) {
   ui_im_candidate_screen_t *cand_screen;
 
@@ -933,6 +948,7 @@ ui_im_candidate_screen_t *ui_im_candidate_screen_new(ui_display_t *disp,
 
   /* callbacks for window events */
   cand_screen->window.window_realized = window_realized;
+  cand_screen->window.window_resized = window_resized;
 #if 0
   cand_screen->window.window_finalized = window_finalized;
 #endif

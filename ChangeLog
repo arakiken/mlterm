@@ -1,3 +1,13 @@
+2025-05-24  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja: Updated.
+
+	* ui_im_{candidate|status}_screen.[ch]: Process window_resized event.
+
+	* ui_screen.c: Regard "default" value of screen->input_method as "xim".
+
+	* ui_main_config.c: Add "default" as a value of "input_method" option.
+
 2025-05-07  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.c: Call ui_inline_picture_clear_transparent_flag() in entering

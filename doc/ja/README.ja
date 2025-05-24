@@ -439,8 +439,10 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
           調べ、適当なエンコーディングを選択します。
           ENCODING 指定を行なわなかった場合も同様です。
 
-      o input_method (#)
+      o input_method (*default*) (#)
         使用するインプットメソッド
+        default は、x11 版の mlterm では xim、それ以外は、システムが提供する標準
+        のインプットメソッドが使用されます。
         フォーマットは以下のようになります。
 
         [input method];[option1]:[option2]

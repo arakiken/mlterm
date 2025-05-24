@@ -82,6 +82,11 @@ static void draw_screen(ui_im_status_screen_t *stat_screen, int do_resize,
   int *heads;
   u_int i;
 
+  if (stat_screen->need_resize) {
+    do_resize = 1;
+    stat_screen->need_resize = 0;
+  }
+
   ui_font_manager_set_attr(stat_screen->font_man, 0, 0);
   font = ui_get_usascii_font(stat_screen->font_man);
   line_height = font->height + LINE_SPACE;
@@ -359,6 +364,18 @@ static void window_realized(ui_window_t *win) {
   ui_window_set_override_redirect(&stat_screen->window, 1);
 }
 
+static void window_resized(ui_window_t *win) {
+  ui_im_status_screen_t *stat_screen;
+
+  stat_screen = (ui_im_status_screen_t *)win;
+
+  /*
+   * kde plasma 6.3.4 (wayland) forcibly resizes a status screen to 6x6.
+   * Resize it to the appropriate size before drawing its screen.
+   */
+  stat_screen->need_resize = 1;
+}
+
 static void window_exposed(ui_window_t *win, int x, int y, u_int width, u_int height) {
   draw_screen((ui_im_status_screen_t *)win, 0, 0);
 
@@ -428,6 +445,7 @@ ui_im_status_screen_t *ui_im_status_screen_new(ui_display_t *disp, ui_font_manag
 
   /* callbacks for window events */
   stat_screen->window.window_realized = window_realized;
+  stat_screen->window.window_resized = window_resized;
 #if 0
   stat_screen->window.window_finalized = window_finalized;
 #endif

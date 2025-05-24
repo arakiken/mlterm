@@ -24,7 +24,8 @@ typedef struct ui_im_status_screen {
   int y;             /* not adjusted by window size */
   u_int line_height; /* line height of attaced screen */
 
-  int is_vertical;
+  int8_t is_vertical;
+  int8_t need_resize;
 
   /*
    * methods of ui_im_status_screen_t which is called from im
