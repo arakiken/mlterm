@@ -1,5 +1,9 @@
 2025-05-25  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_parser.c:
+	  - RIS doesn't reset DECMODE_40, like xterm.
+	  - VTMODE_33 is on by default.
+
 	* vt_pty_ssh.c: Fix the previous commit.
 
 2025-05-24  Araki Ken  <arakiken@users.sf.net>

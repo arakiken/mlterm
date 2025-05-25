@@ -124,13 +124,15 @@ int wcwidth(wchar_t c);
   SHIFT_FLAG_0(DECMODE_7) | /* auto_wrap == 1 (compatible with xterm, not with VT220) */ \
   SHIFT_FLAG_0(DECMODE_25) | /* is_visible_cursor == 1 */ \
   SHIFT_FLAG_0(DECMODE_1034) | /* mod_meta_mode = 8bit (compatible with xterm) */ \
-  SHIFT_FLAG_0(VTMODE_12); /* local echo is false */
+  SHIFT_FLAG_0(VTMODE_12) | /* local echo is false */ \
+  SHIFT_FLAG_0(VTMODE_33) /* Cursor mode is steady */
 #define INITIAL_VTMODE_FLAGS_1 \
   SHIFT_FLAG_1(DECMODE_2) | /* is_vt52_mode == 0 */ \
   SHIFT_FLAG_1(DECMODE_7) | /* auto_wrap == 1 (compatible with xterm, not with VT220) */ \
   SHIFT_FLAG_1(DECMODE_25) | /* is_visible_cursor == 1 */ \
   SHIFT_FLAG_1(DECMODE_1034) | /* mod_meta_mode = 8bit (compatible with xterm) */ \
-  SHIFT_FLAG_1(VTMODE_12); /* local echo is false */
+  SHIFT_FLAG_1(VTMODE_12) | /* local echo is false */ \
+  SHIFT_FLAG_1(VTMODE_33) /* Cursor mode is steady */
 
 #define SHIFT_FLAG(mode) (1 << MOD32(mode))
 #define GET_VTMODE_FLAG(vt_parser, mode) \
@@ -4270,8 +4272,11 @@ static void full_reset(vt_parser_t *vt_parser) {
 
   vt_screen_use_normal_edit(vt_parser->screen);
   vt_screen_goto_page(vt_parser->screen, 0);
-  vt_parser->saved_vtmode_flags[0] = vt_parser->vtmode_flags[0] = INITIAL_VTMODE_FLAGS_0;
-  vt_parser->saved_vtmode_flags[1] = vt_parser->vtmode_flags[1] = INITIAL_VTMODE_FLAGS_1;
+  /* RIS doesn't reset DECMODE_40 in xterm (see test_RIS_ResetDECCOLM in ris.py in esctest) */
+  vt_parser->saved_vtmode_flags[0] = vt_parser->vtmode_flags[0] =
+    INITIAL_VTMODE_FLAGS_0 | (DIV32(DECMODE_40) == 0 ? GET_VTMODE_FLAG(vt_parser, DECMODE_40) : 0);
+  vt_parser->saved_vtmode_flags[1] = vt_parser->vtmode_flags[1] =
+    INITIAL_VTMODE_FLAGS_1 | (DIV32(DECMODE_40) == 1 ? GET_VTMODE_FLAG(vt_parser, DECMODE_40) : 0);
   for (mode = 0; mode < VTMODE_NUM; mode++) {
     set_vtmode(vt_parser, vtmodes[mode], GET_VTMODE_FLAG2(vt_parser, mode));
   }
