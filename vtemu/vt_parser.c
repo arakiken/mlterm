@@ -3640,9 +3640,11 @@ static void report_char_attr_status(vt_parser_t *vt_parser) {
   if (IS_VTSYS_BASE_COLOR(vt_parser->fg_color)) {
     color[1] = '3';
     color[2] = '0' + vt_parser->fg_color;
+    color[3] = '\0';
   } else if (IS_VTSYS_COLOR(vt_parser->fg_color)) {
     color[1] = '9';
     color[2] = '0' + (vt_parser->fg_color - 8);
+    color[3] = '\0';
   } else if (IS_VTSYS256_COLOR(vt_parser->fg_color)) {
     sprintf(color + 1, "38;5;%d", vt_parser->fg_color);
   } else {
@@ -3654,12 +3656,14 @@ bg_color:
   if (IS_VTSYS_BASE_COLOR(vt_parser->bg_color)) {
     color[1] = '4';
     color[2] = '0' + vt_parser->bg_color;
+    color[3] = '\0';
   } else if (IS_VTSYS_COLOR(vt_parser->bg_color)) {
     color[1] = '1';
     color[2] = '0';
     color[3] = '0' + (vt_parser->bg_color - 8);
+    color[4] = '\0';
   } else if (IS_VTSYS256_COLOR(vt_parser->bg_color)) {
-    sprintf(color, ";48;5;%d", vt_parser->bg_color);
+    sprintf(color + 1, "48;5;%d", vt_parser->bg_color);
   } else {
     goto end;
   }

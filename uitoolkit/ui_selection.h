@@ -8,10 +8,6 @@
 
 #include "ui.h"
 
-#if !defined(USE_XLIB) && !defined(USE_WAYLAND)
-#define SELECTION_STYLE_CHANGEABLE
-#endif
-
 typedef enum {
   SEL_CHAR = 0x1,
   SEL_WORD = 0x2,

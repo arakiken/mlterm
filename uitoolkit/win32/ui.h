@@ -411,5 +411,6 @@ KeySym XStringToKeysym(const char *str);
 #endif
 #undef FLICK_SCROLL
 #undef UIWINDOW_SUPPORTS_PREEDITING
+#define SELECTION_STYLE_CHANGEABLE
 
 #endif

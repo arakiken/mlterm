@@ -545,5 +545,6 @@ KeySym XStringToKeysym(const char *str);
 #undef NO_DISPLAY_FD
 #undef FLICK_SCROLL
 #undef UIWINDOW_SUPPORTS_PREEDITING
+#define SELECTION_STYLE_CHANGEABLE
 
 #endif

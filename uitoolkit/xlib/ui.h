@@ -51,5 +51,6 @@ typedef Pixmap PixmapMask;
 #undef NO_DISPLAY_FD
 #undef FLICK_SCROLL
 #undef UIWINDOW_SUPPORTS_PREEDITING
+#undef SELECTION_STYLE_CHANGEABLE
 
 #endif

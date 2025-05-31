@@ -1,7 +1,9 @@
 * Support text-input-unstable-v3.
 * Support SGR Mouse Pixel Mode.
+* Add vte 0.80 API symbols to libvte compatible library.
 * Bug fixes:
   https://github.com/arakiken/mlterm/issues/138
+  https://github.com/arakiken/mlterm/issues/143
 
 ver 3.9.4
 * Support Shift+Control+v and Shift+Control+c to copy&paste via clipboard by default.

@@ -1,3 +1,15 @@
+2025-05-31  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c: Add null character to the color response sequence
+	  in report_char_attr_status().
+	  (https://github.com/arakiken/mlterm/issues/143)
+
+	* */ui.h: Add SELECTION_STYLE_CHANGEABLE macro.
+
+	* ui_selection.h: Remove SELECTION_STYLE_CHANGEABLE macro.
+
+	* vte.c: Add vte 0.80 apis.
+
 2025-05-25  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c:

@@ -529,5 +529,6 @@ KeySym XStringToKeysym(const char *str);
 #undef FLICK_SCROLL
 #endif
 #define UIWINDOW_SUPPORTS_PREEDITING
+#define SELECTION_STYLE_CHANGEABLE
 
 #endif

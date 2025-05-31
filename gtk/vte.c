@@ -5251,6 +5251,40 @@ GVariant *vte_terminal_ref_termprop_variant_by_id(VteTerminal *terminal, int pro
 }
 #endif
 
+#if VTE_CHECK_VERSION(0, 80, 0)
+cairo_surface_t *vte_terminal_ref_termprop_image_surface_by_id(VteTerminal* terminal,
+                                                               int prop) {
+  return NULL;
+}
+
+cairo_surface_t *vte_terminal_ref_termprop_image_surface(VteTerminal* terminal,
+                                                         char const* prop) {
+  return NULL;
+}
+
+#if _VTE_GTK == 3
+GdkPixbuf *vte_terminal_ref_termprop_image_pixbuf_by_id(VteTerminal* terminal,
+                                                        int prop) {
+  return NULL;
+}
+
+GdkPixbuf *vte_terminal_ref_termprop_image_pixbuf(VteTerminal* terminal,
+                                                  char const* prop) {
+  return NULL;
+}
+#elif _VTE_GTK == 4
+GdkTexture *vte_terminal_ref_termprop_image_texture_by_id(VteTerminal* terminal,
+                                                          int prop) {
+  return NULL;
+}
+
+GdkTexture *vte_terminal_ref_termprop_image_texture(VteTerminal* terminal,
+                                                    char const* prop) {
+  return NULL;
+}
+#endif
+#endif
+
 #if VTE_CHECK_VERSION(0, 56, 0)
 char *vte_regex_substitute(VteRegex *regex, const char *subject, const char *replacement,
                            guint32 flags, GError **error) {
