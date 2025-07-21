@@ -3703,6 +3703,15 @@ static void pointer_motion(ui_window_t *win, XMotionEvent *event) {
   }
 }
 
+#ifdef FLICK_SCROLL
+static void
+reset_flick_scroll_state(ui_screen_t *screen) {
+  screen->flick_time = 0;
+  screen->flick_base_x = screen->flick_cur_y = screen->flick_base_y = 0;
+  screen->grab_scroll = 0;
+}
+#endif
+
 static void button_motion(ui_window_t *win, XMotionEvent *event) {
   ui_screen_t *screen;
 
@@ -3719,13 +3728,24 @@ static void button_motion(ui_window_t *win, XMotionEvent *event) {
       bl_debug_printf("Motion Time %d %d y %d %d\n", screen->flick_time, event->time,
                       screen->flick_cur_y, event->y);
 #endif
-      if (abs(diff) < 20) {
+      if (abs(diff) >= ui_line_height(screen)) {
+        if (screen->flick_time + 250 /* msec */ > event->time) {
+          screen->grab_scroll = 1;
+        } else {
+          /* fall back to the original position in pressing button. */
+          event->x = screen->flick_base_x;
+          event->y = screen->flick_base_y;
+          event->time = screen->flick_time;
+          reset_flick_scroll_state(screen);
+        }
+      } else if (abs(event->x - screen->flick_base_x) < ui_col_width(screen) / 2) {
         return;
-      } else if (screen->flick_time + 250 /* msec */ > event->time) {
-        screen->grab_scroll = 1;
       } else {
-        screen->flick_time = 0;
-        screen->flick_cur_y = screen->flick_base_y = 0;
+        /* fall back to the original position in pressing button. */
+        event->x = screen->flick_base_x;
+        event->y = screen->flick_base_y;
+        event->time = screen->flick_time;
+        reset_flick_scroll_state(screen);
       }
     }
 
@@ -3836,7 +3856,9 @@ static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num)
   show_pointer(screen);
 
 #ifdef FLICK_SCROLL
-  if (event->button == Button1) {
+  if (event->button == Button10) {
+    /* touch finger event */
+    screen->flick_base_x = event->x;
     screen->flick_cur_y = screen->flick_base_y = event->y;
     screen->flick_time = event->time;
     if (screen->autoscroll_count) {
@@ -3970,9 +3992,7 @@ static void button_released(ui_window_t *win, XButtonEvent *event) {
     }
 
   end:
-    screen->flick_time = 0;
-    screen->flick_cur_y = screen->flick_base_y = 0;
-    screen->grab_scroll = 0;
+    reset_flick_scroll_state(screen);
   }
 #endif
 

@@ -70,6 +70,18 @@
 #ifndef Button7Mask
 #define Button7Mask (Button5Mask << 2)
 #endif
+
+/* touch finger event */
+#ifdef __ANDROID__
+#undef Button10
+/* It is impossible to distinguish mouse events from touch finger events on android. */
+#define Button10 Button1
+#else
+#ifndef Button10
+#define Button10 10
+#endif
+#endif
+
 #define ButtonMask \
   (Button1Mask | Button2Mask | Button3Mask | Button4Mask | Button5Mask | Button6Mask | Button7Mask)
 

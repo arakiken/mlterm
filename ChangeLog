@@ -1,3 +1,15 @@
+2025-07-21  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_screen.[ch]: Adjust the trigger to enter flick scroll mode.
+
+	* sdl2/ui.h: Define FLICK_SCROLL.
+
+	* sdl2/ui_display.c:
+	  - Ignore SDL_CLIPBOARDUPDATE event.
+	  - Process SDL_FINGERDOWN, SDL_FINGERUP and SDL_FINGERMOTION events.
+
+	* sdl2/ui.h: Add Button10 for touch finger events.
+
 2025-05-31  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: Add null character to the color response sequence

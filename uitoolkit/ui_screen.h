@@ -102,6 +102,7 @@ typedef struct ui_screen {
 #ifdef FLICK_SCROLL
   int8_t grab_scroll;
   Time flick_time;
+  int16_t flick_base_x;
   int16_t flick_cur_y;
   int16_t flick_base_y;
 #endif

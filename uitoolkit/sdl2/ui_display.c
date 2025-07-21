@@ -813,6 +813,40 @@ static void poll_event(void) {
 
     break;
 
+  case SDL_FINGERDOWN:
+  case SDL_FINGERUP:
+    disp = get_display(ev.window.windowID);
+
+    if (ev.button.type == SDL_MOUSEBUTTONDOWN) {
+      xev.type = ButtonPress;
+    } else {
+      xev.type = ButtonRelease;
+    }
+    xev.xbutton.time = ev.tfinger.timestamp;
+    xev.xbutton.button = 10;
+    xev.xbutton.state = 0;
+
+    xev.xbutton.x = ev.tfinger.x;
+    xev.xbutton.y = ev.tfinger.y;
+
+    receive_mouse_event(disp, &xev.xbutton);
+
+    break;
+
+  case SDL_FINGERMOTION:
+    disp = get_display(ev.window.windowID);
+
+    xev.xmotion.type = MotionNotify;
+    xev.xmotion.time = ev.tfinger.timestamp;
+    xev.xmotion.state = 0;
+
+    xev.xmotion.x = ev.tfinger.x;
+    xev.xmotion.y = ev.tfinger.y;
+
+    receive_mouse_event(disp, (XButtonEvent*)&xev.xmotion);
+
+    break;
+
   case SDL_WINDOWEVENT:
     disp = get_display(ev.window.windowID);
 
@@ -881,11 +915,23 @@ static void poll_event(void) {
       break;
     }
 
+    /*
+     * XXX
+     * It is impossible to determine whether another process or my process
+     * changed the clipboard.
+     * 'type' field is valid in SDL_Event in SDL2.
+     * https://github.com/zielmicha/SDL2/blob/master/src/events/SDL_clipboardevents.c
+     *
+     * SDL_ClipboardEvent in SDL3 realizes it.
+     * https://wiki.libsdl.org/SDL3/SDL_ClipboardEvent
+     */
+#if 0
   case SDL_CLIPBOARDUPDATE:
     disp = get_display(ev.window.windowID);
     if (disp->selection_owner) {
       ui_display_clear_selection(NULL, disp->selection_owner);
     }
+#endif
 
   default:
     if (ev.type == pty_event_type) {
