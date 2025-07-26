@@ -717,7 +717,9 @@ static u_int __stdcall
 static void*
 #endif
     xct_selection_request(LPVOID thr_param) {
-  return selection_request(thr_param, CF_TEXT);
+  selection_request(thr_param, CF_TEXT);
+
+  return 0;
 }
 
 #ifdef USE_WIN32API
@@ -726,7 +728,9 @@ static u_int __stdcall
 static void*
 #endif
     utf_selection_request(LPVOID thr_param) {
-  return selection_request(thr_param, CF_UNICODETEXT);
+  selection_request(thr_param, CF_UNICODETEXT);
+
+  return 0;
 }
 
 /*
