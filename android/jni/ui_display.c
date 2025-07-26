@@ -311,6 +311,8 @@ static int process_mouse_event(int source, int action, int64_t time, int x, int 
     XButtonEvent xev;
     ui_window_t *win;
 
+    xev.state = _display.key_state;
+
     switch (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) {
       case 0x100:
         _display.button_state = Button1Mask;
@@ -357,6 +359,8 @@ static int process_mouse_event(int source, int action, int64_t time, int x, int 
         if (_display.long_press_counter > 0) {
           xev.button = Button1;
           _display.button_state = Button1Mask;
+        } else {
+          xev.state |= _display.button_state;
         }
         break;
 
@@ -367,7 +371,6 @@ static int process_mouse_event(int source, int action, int64_t time, int x, int 
     xev.time = time / 1000000;
     xev.x = x;
     xev.y = y;
-    xev.state = _display.key_state;
 
     if (xev.type == ButtonPress) {
       static int click_num;
