@@ -103,13 +103,15 @@ void android_main(struct android_app *app) {
 #endif
 
     finish(app);
-  } else if (!main_loop_start()) {
-    /* Unable to open any screen. */
-    finish(app);
-  }
+  } else {
+    if (!main_loop_start()) {
+      /* Unable to open any screen. */
+      finish(app);
+    }
 
-  /* Only screen objects are closed. */
-  ui_screen_manager_suspend();
+    /* Only screen objects are closed. */
+    ui_screen_manager_suspend();
+  }
 
   detach_current_thread(app->activity->vm);
 

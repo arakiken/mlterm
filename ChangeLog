@@ -1,3 +1,8 @@
+2025-07-27  Araki Ken  <arakiken@users.sf.net>
+
+	* android/jni/main.c: Call ui_screen_manager_suspend() only if
+	  main_loop_init() ends successfully.
+
 2025-07-26  Araki Ken  <arakiken@users.sf.net>
 
 	* android/jni/ui_display.c: 'xev.state |= _display.button_state' in
