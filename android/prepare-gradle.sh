@@ -149,7 +149,7 @@ fi
 cat << END > ${PROJECT_PATH}/build.gradle
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
         google()
         maven {
             url 'https://maven.google.com/'
@@ -164,7 +164,7 @@ buildscript {
 
 allprojects {
    repositories {
-       jcenter()
+       mavenCentral()
        google()
        maven {
            url 'https://maven.google.com/'
