@@ -1,3 +1,15 @@
+2025-08-10  Araki Ken  <arakiken@users.sf.net>
+
+	* MLActivity.java:
+	  If WRITE_EXTERNAL_STORAGE permission is not allowed, onStart() calls
+	  requestPermissions() and showConnectDialog() returns without doing anything.
+
+	* ui_screen.c:
+	  Change the threshold in button_motion() to enter flick scrolling from
+	  250 to 500 msec.
+
+	* vt_parser.h: vt_parser_init() ignores the return code of vt_config_proto_init().
+
 2025-07-27  Araki Ken  <arakiken@users.sf.net>
 
 	* android/jni/main.c: Call ui_screen_manager_suspend() only if

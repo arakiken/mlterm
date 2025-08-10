@@ -3729,7 +3729,7 @@ static void button_motion(ui_window_t *win, XMotionEvent *event) {
                       screen->flick_cur_y, event->y);
 #endif
       if (abs(diff) >= ui_line_height(screen)) {
-        if (screen->flick_time + 250 /* msec */ > event->time) {
+        if (screen->flick_time + 500 /* msec */ > event->time) {
           screen->grab_scroll = 1;
         } else {
           /* fall back to the original position in pressing button. */

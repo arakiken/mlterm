@@ -215,6 +215,36 @@ public class MLActivity extends NativeActivity {
   }
 
   @Override
+  public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                         int[] grantResults) {
+    if (grantResults.length == 0 ||
+        grantResults[0] != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+      Toast.makeText(this, "Allow WRITE_EXTERNAL_STORAGE permission to save settings",
+                     Toast.LENGTH_LONG).show();
+    } else {
+      Toast.makeText(this, "Restart mlterm to read settings",
+                     Toast.LENGTH_LONG).show();
+    }
+  }
+
+  @Override
+  protected void onStart() {
+    super.onStart();
+
+    if (android.os.Build.VERSION.SDK_INT >= 23) {
+      /* See AndroidManifest.xml */
+      String[] permissions = {
+        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+      };
+
+      if (checkSelfPermission(permissions[0]) !=
+          android.content.pm.PackageManager.PERMISSION_GRANTED) {
+        requestPermissions(permissions, 1);
+      }
+    }
+  }
+
+  @Override
   protected void onCreate(Bundle state) {
     super.onCreate(state);
 
@@ -522,7 +552,8 @@ public class MLActivity extends NativeActivity {
   private TableLayout servListDialogLayout;
   private boolean openLocalPty = false;
 
-  @Override protected Dialog onCreateDialog(int id) {
+  @Override
+  protected Dialog onCreateDialog(int id) {
     if (id == 1) {
       Dialog dialog = new AlertDialog.Builder(this)
         .setIcon(android.R.drawable.ic_dialog_info)
@@ -644,7 +675,7 @@ public class MLActivity extends NativeActivity {
         file = new File("/extsdcard");
 
         if (file.isDirectory()) {
-          configDir = "/extsdcard";
+          configDir = "/extsdcard/.mlterm";
         } else {
           showMessage("Config dir not found");
 
@@ -867,6 +898,13 @@ public class MLActivity extends NativeActivity {
   /* Called from native activity thread */
   private void showConnectDialog(String proto, String user, String serv, String port,
                                  String encoding, String privkey) {
+    if (android.os.Build.VERSION.SDK_INT >= 23 &&
+        checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+        android.content.pm.PackageManager.PERMISSION_GRANTED) {
+      /* skip server list and connection dialogs */
+      return;
+    }
+
     nativeThread = Thread.currentThread();
 
     if (serv == null) {

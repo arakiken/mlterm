@@ -356,7 +356,12 @@ void vt_set_local_echo_wait(u_int msec);
 
 void vt_set_format_other_keys(int flag);
 
-#define vt_parser_init vt_config_proto_init
+/*
+ * Ignore the return value of vt_config_proto_init().
+ * Mlterm starts normally even if ~/.mlterm/challenge cannot be generated due to
+ * lack of permission (in android).
+ */
+#define vt_parser_init() (vt_config_proto_init() || 1)
 
 void vt_parser_final(void);
 
