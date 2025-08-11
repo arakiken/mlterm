@@ -1,3 +1,8 @@
+2025-08-11  Araki Ken  <arakiken@users.sf.net>
+
+	* MLActivity.java: Use reflection to call checkSelfPermission and
+	  requestPermissions to enable compiling with old apis.
+
 2025-08-10  Araki Ken  <arakiken@users.sf.net>
 
 	* MLActivity.java:

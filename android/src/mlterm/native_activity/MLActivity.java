@@ -33,6 +33,7 @@ import android.util.AttributeSet;
 import java.net.URI;
 import java.net.URL;
 import java.io.*;
+import java.lang.reflect.Method;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.LinearLayout;
@@ -214,7 +215,7 @@ public class MLActivity extends NativeActivity {
     return super.dispatchKeyEvent(event);
   }
 
-  @Override
+  /* @Override */ /* avoid compiling error in old sdk */
   public void onRequestPermissionsResult(int requestCode, String[] permissions,
                                          int[] grantResults) {
     if (grantResults.length == 0 ||
@@ -232,15 +233,22 @@ public class MLActivity extends NativeActivity {
     super.onStart();
 
     if (android.os.Build.VERSION.SDK_INT >= 23) {
-      /* See AndroidManifest.xml */
-      String[] permissions = {
-        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-      };
+      try {
+        Class<MLActivity> activityClass = MLActivity.class;
+        Method checkMethod = activityClass.getMethod("checkSelfPermission", String.class);
+        Method requestMethod = activityClass.getMethod("requestPermissions",
+                                                       String[].class, int.class);
 
-      if (checkSelfPermission(permissions[0]) !=
-          android.content.pm.PackageManager.PERMISSION_GRANTED) {
-        requestPermissions(permissions, 1);
-      }
+        /* See AndroidManifest.xml */
+        String[] permissions = {
+          android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+        };
+
+        int ret = (Integer)checkMethod.invoke(this, permissions[0]);
+        if (ret != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+          requestMethod.invoke(this, permissions, 1);
+        }
+      } catch (Exception e) {}
     }
   }
 
@@ -898,11 +906,24 @@ public class MLActivity extends NativeActivity {
   /* Called from native activity thread */
   private void showConnectDialog(String proto, String user, String serv, String port,
                                  String encoding, String privkey) {
-    if (android.os.Build.VERSION.SDK_INT >= 23 &&
-        checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
-        android.content.pm.PackageManager.PERMISSION_GRANTED) {
-      /* skip server list and connection dialogs */
-      return;
+    if (android.os.Build.VERSION.SDK_INT >= 23) {
+      try {
+        Class<MLActivity> activityClass = MLActivity.class;
+        Method checkMethod = activityClass.getMethod("checkSelfPermission", String.class);
+
+        int ret = (Integer)checkMethod.invoke(this,
+                                              android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (ret != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+          /*
+           * skip server list and connection dialogs.
+           *
+           * XXX
+           * I do not know why but these dialogs block eternally
+           * if requestPermissions() in onStart() is called.
+           */
+          return;
+        }
+      } catch (Exception e) {}
     }
 
     nativeThread = Thread.currentThread();
