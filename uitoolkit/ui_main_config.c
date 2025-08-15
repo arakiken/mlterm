@@ -12,6 +12,7 @@
 #include <pobl/bl_unistd.h> /* bl_setenv */
 
 #include <vt_term_manager.h>
+#include <vt_shape.h> /* vt_set_use_arabic_dynamic_comb */
 #include "ui_selection_encoding.h"
 #include "ui_emoji.h"
 #include "ui_sb_view_factory.h"
@@ -340,6 +341,8 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "modifier keys to stop mouse reporting [shift,control]");
   bl_conf_add_opt(conf, '\0', "clp", 1, "use_clipping",
                   "Use clipping to keep from producing dots outside the text drawing area [false]");
+  bl_conf_add_opt(conf, '\0', "adc", 1, "use_arabic_dynamic_comb",
+                  "Use dynamic combining to show arabic presentation forms [true]");
 #ifdef USE_WIN32API
   bl_conf_add_opt(conf, '\0', "winsize", 1, "output_xtwinops_in_resizing",
                   "output xtwinops sequence in resizing [false]");
@@ -464,6 +467,14 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   if ((value = bl_conf_get_value(conf, "use_dynamic_comb"))) {
     if (strcmp(value, "true") == 0) {
       main_config->use_dynamic_comb = 1;
+    }
+  }
+
+  if ((value = bl_conf_get_value(conf, "use_arabic_dynamic_comb"))) {
+    int flag = true_or_false(value);
+
+    if (flag != -1) {
+      vt_set_use_arabic_dynamic_comb(flag);
     }
   }
 

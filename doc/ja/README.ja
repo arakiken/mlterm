@@ -540,6 +540,10 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
         copy and paste で受け取った XCOMPOUND TEXT や、XIM から入力された文字列
         を、一旦 UNICODE を経由してから端末エンコーディングに変換する
 
+      o use_arabic_dynamic_combining (*true*/false)
+        アラビア表示形のグリフを表示する場合に、2カラム分の文字を1カラム分となる
+        グリフを表示する。
+
       o use_auto_detect (#)
         文字コードを自動的に判定
 

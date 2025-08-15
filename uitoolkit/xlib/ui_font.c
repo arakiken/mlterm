@@ -665,8 +665,8 @@ int xft_set_ot_font(ui_font_t *font);
                                    advances, noshape_glyphs, src, src_len, script, features) \
   ft_convert_text_to_glyphs(font, shape_glyphs, num_shape_glyphs, xoffsets, yoffsets, advances, \
                             noshape_glyphs, src, src_len, script, features)
-u_int ft_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shape_glyphs, int8_t *xoffsets,
-                                int8_t *yoffsets, u_int8_t *advances, u_int num_shape_glyphs,
+u_int ft_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shape_glyphs, u_int shaped_len,
+                                int8_t *xoffsets, int8_t *yoffsets, u_int8_t *advances,
                                 u_int32_t *noshape_glyphs, u_int32_t *src, u_int src_len,
                                 const char *script, const char *features);
 #endif
@@ -734,8 +734,8 @@ int cairo_set_ot_font(ui_font_t *font);
   ft_convert_text_to_glyphs(font, shape_glyphs, num_shape_glyphs, xoffsets, yoffsets, advances, \
                             noshape_glyphs, src, src_len, script, features)
 #ifndef USE_TYPE_XFT
-u_int ft_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shape_glyphs, int8_t *xoffsets,
-                                int8_t *yoffsets, u_int8_t *advances, u_int num_shape_glyphs,
+u_int ft_convert_text_to_glyphs(ui_font_t *font, u_int32_t *shape_glyphs, u_int shaped_len,
+                                int8_t *xoffsets, int8_t *yoffsets, u_int8_t *advances,
                                 u_int32_t *noshape_glyphs, u_int32_t *src, u_int src_len,
                                 const char *script, const char *features);
 #endif

@@ -53,22 +53,22 @@ int vt_bidi_destroy(vt_bidi_state_t state) {
 }
 
 /* vt_shape_bidi.c */
-u_int vt_is_arabic_combining(u_int32_t *str, u_int len);
+u_int vt_is_arabic_combining(u_int32_t *str, u_int len, int force);
 
 static void adjust_comb_pos_in_order(vt_char_t *vtstr, FriBidiChar *str,
                                      FriBidiStrIndex *order, u_int size) {
   u_int pos;
 
   /*
-   *         0x644 0x622
-   * Logical 0     1
-   * Visual  1     0     (fribidi_log2vis)
-   * Visual  0     0
+   *           0x644 0x622
+   * Logical   0     1
+   * Visual    1     0     (fribidi_log2vis)
+   * -> Visual 0     0
    */
   for (pos = 0; pos < size - 1 /* Not necessary to check the last ch */; pos++) {
     u_int comb_num;
 
-    if ((comb_num = vt_is_arabic_combining(str + pos, size - pos)) > 0) {
+    if ((comb_num = vt_is_arabic_combining(str + pos, size - pos, 0)) > 0) {
       u_int pos2;
       u_int count;
 
@@ -77,9 +77,10 @@ static void adjust_comb_pos_in_order(vt_char_t *vtstr, FriBidiChar *str,
 #endif
       {
         /*
-         * 0x644 0x622 -> arabic combining
-         * 0x644 0xXXX 0x622 0xXXX -> not arabic combining
-         * (0xXXX: combining character)
+         * If str is 0x644 0x622, vtstr can be one of the following:
+         * - 0x644 0x622 -> arabic combining
+         * - 0x644 0xXXX 0x622 0xXXX -> not arabic combining
+         *   (0xXXX: combining character)
          */
         for (count = 0; count < comb_num + 1; count++) {
           u_int num;

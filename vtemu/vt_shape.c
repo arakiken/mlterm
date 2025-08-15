@@ -93,6 +93,26 @@ static u_int get_shape_info(vt_ot_layout_state_t state, u_int32_t **glyphs,
 u_int vt_shape_arabic(vt_char_t *, u_int, vt_char_t *, u_int) __attribute__((weak));
 u_int vt_shape_iscii(vt_char_t *, u_int, vt_char_t *, u_int) __attribute__((weak));
 #endif
+#include <stdio.h>
+void vt_set_use_arabic_dynamic_comb(int use) {
+  void (*func)(int);
+
+  if (!(func = vt_load_ctl_bidi_func(VT_SET_USE_ARABIC_DYNAMIC_COMB))) {
+    return;
+  }
+
+  (*func)(use);
+}
+
+int vt_get_use_arabic_dynamic_comb(void) {
+  int (*func)();
+
+  if (!(func = vt_load_ctl_bidi_func(VT_GET_USE_ARABIC_DYNAMIC_COMB))) {
+    return 1;
+  }
+
+  return (*func)();
+}
 
 u_int vt_shape_arabic(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int src_len) {
   u_int (*func)(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int src_len);

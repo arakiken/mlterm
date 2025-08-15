@@ -43,6 +43,7 @@ int wcwidth(wchar_t c);
 #include "vt_iscii.h"
 #include "vt_str_parser.h"
 #include "vt_transfer.h"
+#include "vt_shape.h" /* vt_{set|get}_use_arabic_dynamic_comb */
 
 #if defined(__CYGWIN__) || defined(__MSYS__)
 #include "cygfile.h"
@@ -8163,6 +8164,12 @@ int vt_parser_get_config(
     } else {
       value = "false";
     }
+  } else if (strcmp(key, "use_arabic_dynamic_comb") == 0) {
+    if (vt_get_use_arabic_dynamic_comb()) {
+      value = "true";
+    } else {
+      value = "false";
+    }
   } else if (strcmp(key, "challenge") == 0) {
     value = vt_get_proto_challenge();
     if (to_menu < 0) {
@@ -8375,6 +8382,12 @@ int vt_parser_set_config(vt_parser_t *vt_parser, const char *key, const char *va
 
     if ((flag = true_or_false(value)) != -1) {
       vt_parser->use_locked_title = flag;
+    }
+  } else if (strcmp(key, "use_arabic_dynamic_comb") == 0) {
+    int flag;
+
+    if ((flag = true_or_false(value)) != -1) {
+      vt_set_use_arabic_dynamic_comb(flag);
     }
   } else if (strncmp(key, "send_file", 9) == 0) {
     if (strstr(value, "..")) {

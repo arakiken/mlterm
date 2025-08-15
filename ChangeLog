@@ -1,3 +1,27 @@
+2025-08-15  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja, PROTOCOL: Updated.
+
+	* ui_main_config.c: Add --adc/use_arabic_dynamic_comb option.
+
+	* vt_parser.c: vt_parser_{set|get}_config() supports "use_arabic_dynamic_comb".
+
+	* vt_shape.[ch], vt_functbl_bidi.c: Add vt_{get|set}_use_arabic_dynamic_comb.
+
+	* vt_ctl_loader.h:
+	  - Add VT_{SET|GET}_USE_ARABIC_DYNAMIC_COMB.
+	  - CTL_API_VERSION: 0x3 -> 0x4
+
+	* vt_shape_bidi.c:
+	  - Add vt_{get|set}_use_arabic_dynamic_comb().
+	  - Add 'int force' argument to vt_is_arabic_combining().
+	  - vt_is_arabic_combining() returns false if use_arabic_dynamic_comb is false
+	    and force is false.
+
+	* xlib/ui_font.c: Fix compiling error if NO_DYNAMIC_LOAD_TYPE is defined.
+
+	* cocoa.m: CGRect -> NSRect
+
 2025-08-11  Araki Ken  <arakiken@users.sf.net>
 
 	* MLActivity.java: Use reflection to call checkSelfPermission and

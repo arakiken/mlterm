@@ -16,9 +16,15 @@
 
 u_int vt_shape_arabic(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int src_len);
 
+void vt_set_use_arabic_dynamic_comb(int use);
+
+int vt_get_use_arabic_dynamic_comb(void);
+
 #else
 
 #define vt_shape_arabic (NULL)
+#define vt_set_use_arabic_dynamic_comb(use) (0)
+#define vt_get_use_arabic_dynamic_comb() (0)
 
 #endif
 

@@ -167,6 +167,8 @@ static arabic_comb4_present_t arabic_comb4_present_table[] = {
 };
 #endif
 
+static int use_arabic_dynamic_comb = 1;
+
 /* --- static functions --- */
 
 static arabic_present_t *get_arabic_present(vt_char_t *ch) {
@@ -289,6 +291,14 @@ static u_int16_t get_arabic_comb4_present_code(vt_char_t *comb, u_int len) {
 
 /* --- global functions --- */
 
+void vt_set_use_arabic_dynamic_comb(int use) {
+  use_arabic_dynamic_comb = use;
+}
+
+int vt_get_use_arabic_dynamic_comb(void) {
+  return use_arabic_dynamic_comb;
+}
+
 #ifdef BL_DEBUG
 void TEST_vt_shape_bidi(void);
 #endif
@@ -401,7 +411,14 @@ u_int vt_shape_arabic(vt_char_t *dst, u_int dst_len, vt_char_t *src, u_int src_l
   return count;
 }
 
-u_int vt_is_arabic_combining(u_int32_t *str, u_int len) {
+/*
+ * force == 1: str contains already dynamically combined arabic chars (see vt_line_bidi.c)
+ */
+u_int vt_is_arabic_combining(u_int32_t *str, u_int len, int force) {
+  if (!use_arabic_dynamic_comb && !force) {
+    return 0;
+  }
+
   if (len >= 2) {
 #if 0
     if (str[0] == 0x626) {
@@ -456,6 +473,9 @@ void TEST_vt_shape_bidi(void) {
   int count;
   vt_char_t ch;
   arabic_present_t *present;
+  int orig_use_arabic_dynamic_comb = use_arabic_dynamic_comb;
+
+  use_arabic_dynamic_comb = 1;
 
   vt_char_init(&ch);
   vt_char_set_cs(&ch, ISO10646_UCS4_1);
@@ -465,6 +485,8 @@ void TEST_vt_shape_bidi(void) {
     present = get_arabic_present(&ch);
     assert(arabic_present_table[count].base == present->base);
   }
+
+  use_arabic_dynamic_comb = orig_use_arabic_dynamic_comb;
 
   bl_msg_printf("PASS vt_shape_bidi test.\n");
 }

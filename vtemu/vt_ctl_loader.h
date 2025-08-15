@@ -22,6 +22,8 @@ typedef enum vt_ctl_bidi_id {
   VT_LINE_BIDI_RENDER,
   VT_LINE_BIDI_VISUAL,
   VT_LINE_BIDI_LOGICAL,
+  VT_SET_USE_ARABIC_DYNAMIC_COMB,
+  VT_GET_USE_ARABIC_DYNAMIC_COMB,
   MAX_CTL_BIDI_FUNCS,
 
 } vt_ctl_bidi_id_t;
@@ -45,7 +47,7 @@ typedef enum vt_ctl_iscii_id {
 
 } vt_ctl_iscii_id_t;
 
-#define CTL_API_VERSION 0x03
+#define CTL_API_VERSION 0x04
 #define CTL_API_COMPAT_CHECK_MAGIC \
   (((CTL_API_VERSION & 0x0f) << 28) | ((sizeof(vt_line_t) & 0xff) << 20))
 

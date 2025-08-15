@@ -532,6 +532,10 @@ The default is \fBfalse\fR for mlterm-fb and \fBtrue\fR for mlterm-wl and mlterm
 \fB\-\-ade\fR=\fIvalue\fR
 Specify character encodings detected automatically.
 .TP
+\fB\-\-adc\fR(=\fIbool\fR)
+Whether to use dynamic combining to show arabic presentation forms.
+The default is \fBtrue\fR.
+.TP
 \fB\-\-auto\fR(=\fIbool\fR)
 Automatically detect appropriate character encoding from the encodings
 specified by \-\-ade option. The default is \fBfalse\fR.
@@ -539,6 +543,7 @@ specified by \-\-ade option. The default is \fBfalse\fR.
 \fB\-\-altbuf\fR(=\fIbool\fR)
 Whether to enable alternate screen buffer.
 This option is similar to "titeInhibit" of xterm.
+The default is \fBtrue\fR.
 .TP
 \fB\-\-bc\fR(=\fIbool\fR)
 Whether to broadcast input or pasted characters to all ptys whose value of
@@ -1862,10 +1867,6 @@ Use unicode fonts partially regardless of -n option.
 \fBuse_aafont=\fIbool\fR (\fB\-\-aafont\fR) (Available for mlterm-fb, mlterm-wl or mlterm-sdl2)
 Use ~/.mlterm/*aafont configurations with the use of fontconfig.
 .TP
-\fBuse_auto_detect=\fIbool\fR (\fB\-\-auto\fR)
-Automatically detect appropriate character encoding from the encodings
-specified by auto_detect_encodings option.
-.TP
 \fBuse_alt_buffer=\fIbool\fR (\fB\-\-altbuf\fR)
 Use alternate screen buffer.
 .TP
@@ -1874,6 +1875,13 @@ Recognize ANSI color change escape sequences.
 .TP
 \fBuse_anti_alias=\fIbool\fR (\fB\-A\fR, \fB\-\-aa\fR)
 Use anti alias font.
+.TP
+\fBuse_arabic_dynamic_combining=\fIbool\fR (\fB\-\-adc\fR)
+Use dynamic combining to show arabic presentation forms.
+.TP
+\fBuse_auto_detect=\fIbool\fR (\fB\-\-auto\fR)
+Automatically detect appropriate character encoding from the encodings
+specified by auto_detect_encodings option.
 .TP
 \fBuse_bold_font=\fIbool\fR (\fB\-\-bdfont\fR)
 Use bold font for characters with the bold attribute.

@@ -53,11 +53,11 @@ version 20250330
                   trim_trailing_newline_in_pasting | type_engine | ul_color |
                   underline_offset | unicode_full_width_areas | unicode_half_width_areas |
                   unicode_noconv_areas | use_alt_buffer | use_ansi_colors | use_anti_alias |
-                  use_auto_detect | use_bold_font | use_clipping | use_combining | use_ctl |
-                  use_dynamic_comb | use_italic_font | use_local_echo | use_locked_title |
-                  use_multi_column_char | use_ot_layout | use_transbg | use_urgent_bell |
-                  use_variable_column_width | use_vertical_cursor | vertical_mode |
-                  vt_color_mode | vt_seq_format | wall_picture | word_separators
+                  use_arabic_dynamic_comb | use_auto_detect | use_bold_font | use_clipping |
+                  use_combining | use_ctl | use_dynamic_comb | use_italic_font | use_local_echo |
+                  use_locked_title | use_multi_column_char | use_ot_layout | use_transbg |
+                  use_urgent_bell | use_variable_column_width | use_vertical_cursor |
+                  vertical_mode | vt_color_mode | vt_seq_format | wall_picture | word_separators
 
   get key       = alpha | allow_osc52 | allow_scp | auto_detect_encodings | baseline_offset |
                   bd_color | bel_mode | bg_color | bidi_mode | bidi_separators | bl_color |
@@ -75,11 +75,11 @@ version 20250330
                   trim_trailing_newline_in_pasting | type_engine | ul_color | underline_offset |
                   unicode_full_width_areas | unicode_half_width_areas | unicode_noconv_areas |
                   use_aafont | use_alt_buffer | use_ansi_colors | use_anti_alias |
-                  use_auto_detect | use_bold_font | use_clipping | use_combining | use_ctl |
-                  use_dynamic_comb | use_italic_font | use_local_echo | use_locked_title |
-                  use_multi_column_char | use_ot_layout | use_transbg | use_variable_column_width |
-                  use_vertical_cursor | vertical_mode | vt_seq_format | wall_picture |
-                  word_separators
+                  use_arabic_dynamic_comb | use_auto_detect | use_bold_font | use_clipping |
+                  use_combining | use_ctl | use_dynamic_comb | use_italic_font | use_local_echo |
+                  use_locked_title | use_multi_column_char | use_ot_layout | use_transbg |
+                  use_variable_column_width | use_vertical_cursor | vertical_mode |
+                  vt_seq_format | wall_picture | word_separators
 
                   (*): Works as "proto:xxxx" shortcut in ~/.mlterm/key alone.
 
@@ -169,6 +169,7 @@ version 20250330
   use_alt_buffer = true | false | switch
   use_ansi_colors = true | false | switch
   use_anti_alias = true | false | switch
+  use_arabic_dynamic_comb = true | false | switch
   use_auto_detect = true | false | switch
   use_bold_font = true | false | switch
   use_clipping = true | false | switch

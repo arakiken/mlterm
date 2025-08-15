@@ -456,8 +456,8 @@ static void reset_position(ui_window_t *uiwindow) {
 
   /* Creating scrollbar */
 
-  CGRect r =
-      CGRectMake(term->scrollbar.window.x, y, sb_width, ACTUAL_HEIGHT(uiwindow));
+  NSRect r =
+      NSMakeRect(term->scrollbar.window.x, y, sb_width, ACTUAL_HEIGHT(uiwindow));
   NSScroller *scroller = [[NSScroller alloc] initWithFrame:r];
   [scroller setEnabled:YES];
   [scroller setTarget:self];
@@ -1486,8 +1486,8 @@ void window_resize(NSWindow *window, int width, int height) {
 }
 
 void window_move_resize(NSWindow *window, int x, int y, int width, int height) {
-  CGRect wr = window.frame;
-  CGSize vs = ((NSView *)window.contentView).frame.size;
+  NSRect wr = window.frame;
+  NSSize vs = ((NSView *)window.contentView).frame.size;
   int diff_x = wr.size.width - vs.width;
   int diff_y = wr.size.height - vs.height;
 

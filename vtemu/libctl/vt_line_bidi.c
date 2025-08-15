@@ -294,7 +294,7 @@ int vt_line_bidi_visual(vt_line_t *line) {
   return 1;
 }
 
-u_int vt_is_arabic_combining(u_int32_t *str, u_int len);
+u_int vt_is_arabic_combining(u_int32_t *str, u_int len, int force);
 
 /* The caller should check vt_line_is_using_bidi() in advance. */
 int vt_line_bidi_logical(vt_line_t *line) {
@@ -333,7 +333,8 @@ int vt_line_bidi_logical(vt_line_t *line) {
       if ((comb = vt_get_combining_chars(src + vis_pos, &num))) {
         str[0] = vt_char_code(src + vis_pos);
         str[1] = vt_char_code(comb);
-        if (vt_is_arabic_combining(str, 2)) {
+        /* force == 1 to check if str contains already dynamically combined arabic chars. */
+        if (vt_is_arabic_combining(str, 2, 1)) {
 #ifdef __DEBUG
           bl_debug_printf("Uncombine arabic character %x from %x\n",
                           vt_char_code(comb), vt_char_code(src + vis_pos));

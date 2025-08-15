@@ -24,6 +24,5 @@ void *vt_ctl_bidi_func_table[MAX_CTL_BIDI_FUNCS] = {
     vt_line_bidi_convert_visual_char_index_to_logical, vt_line_bidi_copy_logical_str,
     vt_line_bidi_is_rtl, vt_shape_arabic, vt_is_rtl_char, vt_bidi_copy,
     vt_bidi_reset, vt_line_bidi_need_shape, vt_line_bidi_render, vt_line_bidi_visual,
-    vt_line_bidi_logical,
-
+    vt_line_bidi_logical, vt_set_use_arabic_dynamic_comb, vt_get_use_arabic_dynamic_comb,
 };
