@@ -1474,8 +1474,8 @@ void window_alloc(ui_window_t *root) {
 void window_dealloc(NSWindow *window) { [window close]; }
 
 void window_resize(NSWindow *window, int width, int height) {
-  CGRect wr = window.frame;
-  CGSize vs = ((NSView *)window.contentView).frame.size;
+  NSRect wr = window.frame;
+  NSSize vs = ((NSView *)window.contentView).frame.size;
   int diff_x = wr.size.width - vs.width;
   int diff_y = wr.size.height - vs.height;
 

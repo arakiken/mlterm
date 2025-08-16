@@ -1,3 +1,7 @@
+2025-08-16  Araki Ken  <arakiken@users.sf.net>
+
+	* cocoa.m: CGRect -> NSRect
+
 2025-08-15  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, README.ja, PROTOCOL: Updated.
