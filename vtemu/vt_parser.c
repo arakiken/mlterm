@@ -4345,7 +4345,7 @@ static void send_device_status(vt_parser_t *vt_parser, int num, int id) {
   vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
 }
 
-static void send_device_attributes(vt_pty_t *pty, int rank) {
+static void send_device_attributes(vt_parser_t *vt_parser, int rank) {
   char *seq;
 
   if (rank == 1) {
@@ -4363,11 +4363,20 @@ static void send_device_attributes(vt_pty_t *pty, int rank) {
        * 18 Windowing capability
        * 22 Color
        * 29 ANSI text locator (i.e., DEC Locator mode)
+       * 52 OSC 52 (https://github.com/arakiken/mlterm/issues/144)
        */
 #ifndef NO_IMAGE
-      seq = "\x1b[?63;1;2;3;4;6;7;15;18;22;29c";
+      if (HAS_XTERM_LISTENER(vt_parser, set_selection)) {
+        seq = "\x1b[?63;1;2;3;4;6;7;15;18;22;29;52c";
+      } else {
+        seq = "\x1b[?63;1;2;3;4;6;7;15;18;22;29c";
+      }
 #else
-      seq = "\x1b[?63;1;2;6;7;15;18;22;29c";
+      if (HAS_XTERM_LISTENER(vt_parser, set_selection)) {
+        seq = "\x1b[?63;1;2;6;7;15;18;22;29;52c";
+      } else {
+        seq = "\x1b[?63;1;2;6;7;15;18;22;29c";
+      }
 #endif
     }
   } else if (rank == 2) {
@@ -4388,7 +4397,7 @@ static void send_device_attributes(vt_pty_t *pty, int rank) {
     return;
   }
 
-  vt_write_to_pty(pty, seq, strlen(seq));
+  vt_write_to_pty(vt_parser->pty, seq, strlen(seq));
 }
 
 static void send_display_extent(vt_pty_t *pty, u_int cols, u_int rows, int vmargin,
@@ -4709,7 +4718,7 @@ inline static int parse_vt100_escape_sequence(
     } else if (*str_p == 'Z') {
       /* "ESC Z" return terminal id (Obsolete form of CSI c) */
 
-      send_device_attributes(vt_parser->pty, 1);
+      send_device_attributes(vt_parser, 1);
     } else if (*str_p == 'c') {
       /* "ESC c" full reset (RIS) */
 
@@ -5008,7 +5017,7 @@ inline static int parse_vt100_escape_sequence(
         if (*str_p == 'c') {
           /* "CSI > c" Secondary DA (DA2) */
 
-          send_device_attributes(vt_parser->pty, 2);
+          send_device_attributes(vt_parser, 2);
         } else if (*str_p == 'm') {
           /* "CSI > m" */
 
@@ -5096,7 +5105,7 @@ inline static int parse_vt100_escape_sequence(
         if (*str_p == 'c') {
           /* "CSI = c" Tertiary DA (DA3) */
 
-          send_device_attributes(vt_parser->pty, 3);
+          send_device_attributes(vt_parser, 3);
         }
       } else if (intmed_ch == '!') {
         if (*str_p == 'p') {
@@ -5717,7 +5726,7 @@ inline static int parse_vt100_escape_sequence(
       } else if (*str_p == 'c') {
         /* "CSI c" Primary DA (DA1) */
 
-        send_device_attributes(vt_parser->pty, 1);
+        send_device_attributes(vt_parser, 1);
       } else if (*str_p == 'd') {
         /* "CSI d" line position absolute(VPA) */
 

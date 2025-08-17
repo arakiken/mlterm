@@ -1,3 +1,8 @@
+2025-08-17  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c: Add 52 to DA1.
+	  (https://github.com/arakiken/mlterm/issues/144)
+
 2025-08-16  Araki Ken  <arakiken@users.sf.net>
 
 	* cocoa.m: CGRect -> NSRect

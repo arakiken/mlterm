@@ -1,7 +1,9 @@
 * Support text-input-unstable-v3.
 * Support SGR Mouse Pixel Mode.
 * Add --adc/use_arabic_dynamic_comb option.
+  (https://github.com/arakiken/mlterm/issues/136)
 * Add vte 0.80 API symbols to libvte compatible library.
+* Add 52 to DA1. (https://github.com/arakiken/mlterm/issues/144)
 * Check permissions in Android.
 * Bug fixes:
   https://github.com/arakiken/mlterm/issues/138
