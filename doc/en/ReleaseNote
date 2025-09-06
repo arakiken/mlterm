@@ -1,5 +1,6 @@
 * Support text-input-unstable-v3.
 * Support SGR Mouse Pixel Mode.
+* Support libvte-2.91-gtk4 compatible library. (Experimental)
 * Add --adc/use_arabic_dynamic_comb option.
   (https://github.com/arakiken/mlterm/issues/136)
 * Add vte 0.80 API symbols to libvte compatible library.

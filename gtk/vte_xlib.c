@@ -2,13 +2,22 @@
 
 #include <X11/keysym.h>
 #include <xlib/ui_xim.h> /* ui_xim_display_opened */
+#if _VTE_GTK == 3
 #include <gdk/gdkx.h>
+#else
+#include <gdk/x11/gdkx.h>
+#endif
 #if GTK_CHECK_VERSION(2, 90, 0) && defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2)
 #include <X11/extensions/XInput2.h>
 #endif
 
 #if GTK_CHECK_VERSION(2, 90, 0)
+#if _VTE_GTK == 3
 #define gdk_x11_drawable_get_xid(window) gdk_x11_window_get_xid(window)
+#else
+#define gdk_x11_drawable_get_xid(d) gdk_x11_surface_get_xid(d)
+/* #define GdkDeviceManager GdkX11DeviceManagerXI2 */
+#endif
 #endif
 
 #if 0
@@ -43,7 +52,11 @@ static gboolean toplevel_configure(gpointer data) {
   return FALSE;
 }
 
+#if _VTE_GTK >= 4
+static void vte_terminal_size_allocate(GtkWidget *widget, int width, int height, int baseline);
+#else
 static void vte_terminal_size_allocate(GtkWidget *widget, GtkAllocation *allocation);
+#endif
 
 #if GTK_CHECK_VERSION(2, 90, 0) && defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2)
 static u_int xi2_get_state (XIModifierState *mods_state,
@@ -174,6 +187,7 @@ static int xievent_to_xevent(XIDeviceEvent *xiev, XEvent *xev) {
 }
 #endif
 
+#if _VTE_GTK == 3
 /*
  * Don't call vt_close_dead_terms() before returning GDK_FILTER_CONTINUE,
  * because vt_close_dead_terms() will destroy widget in pty_closed and
@@ -367,7 +381,11 @@ static GdkFilterReturn vte_terminal_filter(GdkXEvent *xevent, GdkEvent *event, /
         bl_debug_printf(BL_DEBUG_TAG " child is resized\n");
 #endif
 
+#if _VTE_GTK >= 4
+        vte_terminal_size_allocate(GTK_WIDGET(terminal), alloc.width, alloc.height, 0);
+#else
         vte_terminal_size_allocate(GTK_WIDGET(terminal), &alloc);
+#endif
       }
 
       return GDK_FILTER_REMOVE;
@@ -376,6 +394,7 @@ static GdkFilterReturn vte_terminal_filter(GdkXEvent *xevent, GdkEvent *event, /
 
   return GDK_FILTER_CONTINUE;
 }
+#endif
 
 #ifdef FORCE_TRANSPARENCY
 #if VTE_CHECK_VERSION(0, 38, 0)
@@ -414,8 +433,10 @@ static void vte_terminal_hierarchy_changed(GtkWidget *widget, GtkWidget *old_top
     g_signal_handlers_disconnect_by_func(old_toplevel, toplevel_configure, widget);
   }
 
+#if _VTE_GTK == 3
   g_signal_connect_swapped(toplevel, "configure-event",
                            G_CALLBACK(toplevel_configure), VTE_TERMINAL(widget));
+#endif
 
 #ifdef FORCE_TRANSPARENCY
 #if VTE_CHECK_VERSION(0, 38, 0)
@@ -443,9 +464,123 @@ static void vte_terminal_hierarchy_changed(GtkWidget *widget, GtkWidget *old_top
 #endif
 }
 
+#if _VTE_GTK >= 4
+static gboolean evctl_key_pressed(GtkEventControllerKey *controller,
+                                  guint keyval, guint keycode, GdkModifierType state,
+                                  gpointer user_data)
+{
+  VteTerminal *terminal = user_data;
+  XKeyEvent xev;
+
+  xev.type = KeyPress;
+  xev.serial = 0;
+  xev.send_event = False;
+  xev.display = PVT(terminal)->screen->window.disp->display;
+  xev.window = PVT(terminal)->screen->window.my_window;
+  xev.root = DefaultRootWindow(xev.display);
+  xev.subwindow = None;
+  xev.time = CurrentTime;
+  xev.x = xev.y = xev.x_root = xev.y_root = 0;
+  xev.state = state;
+  xev.keycode = keycode;
+  xev.same_screen = True;
+
+  ui_window_receive_event(&PVT(terminal)->screen->window, (XEvent*)&xev);
+
+  return GDK_EVENT_STOP;
+}
+
+static void evctl_enter(GtkEventControllerFocus *controller, gpointer user_data) {
+  VteTerminal *terminal = user_data;
+
+  if (GTK_WIDGET_MAPPED(GTK_WIDGET(terminal))) {
+    XFocusChangeEvent xev;
+
+    xev.type = FocusIn;
+    xev.serial = 0;
+    xev.send_event = False;
+    xev.display = PVT(terminal)->screen->window.disp->display;
+    xev.window = PVT(terminal)->screen->window.my_window;
+    xev.mode = NotifyNormal;
+    xev.detail = NotifyDetailNone;
+
+    ui_window_receive_event(&PVT(terminal)->screen->window, (XEvent*)&xev);
+  } else {
+    PVT(terminal)->screen->window.is_focused = 1;
+  }
+}
+
+static void evctl_leave(GtkEventControllerFocus *controller, gpointer user_data) {
+  VteTerminal *terminal = user_data;
+
+  if (GTK_WIDGET_MAPPED(GTK_WIDGET(terminal))) {
+    XFocusChangeEvent xev;
+
+    xev.type = FocusOut;
+    xev.serial = 0;
+    xev.send_event = False;
+    xev.display = PVT(terminal)->screen->window.disp->display;
+    xev.window = PVT(terminal)->screen->window.my_window;
+    xev.mode = NotifyNormal;
+    xev.detail = NotifyDetailNone;
+
+    ui_window_receive_event(&PVT(terminal)->screen->window, (XEvent*)&xev);
+  } else {
+    PVT(terminal)->screen->window.is_focused = 0;
+  }
+}
+
+static gboolean receive_xevent(GdkDisplay *display, const XEvent *xevent, gpointer user_data) {
+  VteTerminal *terminal = user_data;
+
+  if (GTK_WIDGET_MAPPED(GTK_WIDGET(terminal))) {
+    if (PVT(terminal)->screen->window.my_window == xevent->xany.window) {
+      if (xevent->type == FocusOut || xevent->type == FocusIn) {
+        /*
+         * If pressing mlterm window, evctl_enter() is called, but FocusOut is also
+         * received here. So forcibly ignore FocusOut.
+         */
+        return TRUE;
+      }
+
+#if 0
+      if (xevent->type == ButtonPress || xevent->type == ButtonRelease ||
+          xevent->type == MotionNotify) {
+        XEvent xev = *xevent;
+
+        xev.xany.window = gdk_x11_drawable_get_xid(gtk_widget_get_window(GTK_WIDGET(terminal)));
+        xev.xbutton.time = CurrentTime;
+
+        XSendEvent(xev.xany.display, xev.xany.window, False,
+                   ButtonPressMask|ButtonReleaseMask|ButtonMotionMask|PointerMotionMask, &xev);
+      }
+#endif
+
+      if (ui_window_receive_event(&PVT(terminal)->screen->window, xevent)) {
+        return TRUE;
+      }
+    }
+  }
+
+  return FALSE;
+}
+
+gboolean stop_receive_xevent(GtkWidget *widget, gpointer user_data) {
+  g_signal_handlers_disconnect_by_func(user_data, receive_xevent, widget);
+
+  return FALSE;
+}
+#endif
+
 static void show_root(ui_display_t *disp, GtkWidget *widget) {
   VteTerminal *terminal = VTE_TERMINAL(widget);
   XID xid = gdk_x11_drawable_get_xid(gtk_widget_get_window(widget));
+#if _VTE_GTK >= 4
+  GdkDisplay *display = gdk_surface_get_display(gtk_widget_get_window(widget));
+
+  g_signal_connect(display, "xevent", G_CALLBACK(receive_xevent), widget);
+  g_signal_connect(widget, "destroy", G_CALLBACK(stop_receive_xevent), display);
+#endif
 
   if (disp->gc->gc == DefaultGC(disp->display, disp->screen)) {
     /*
@@ -502,6 +637,14 @@ static void show_root(ui_display_t *disp, GtkWidget *widget) {
 
   ui_display_show_root(disp, &PVT(terminal)->screen->window, 0, 0,
                        HINT_CHILD_WINDOW_ATTR, "mlterm", NULL, xid);
+#if 0
+  PVT(terminal)->screen->window.event_mask |=
+    (KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
+     PointerMotionMask | ExposureMask | FocusChangeMask);
+  XSelectInput(PVT(terminal)->screen->window.disp->display,
+               PVT(terminal)->screen->window.my_window,
+               PVT(terminal)->screen->window.event_mask);
+#endif
 
 #if GTK_CHECK_VERSION(2, 90, 0) && defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2)
   if (is_xinput2) {
@@ -527,25 +670,46 @@ static void show_root(ui_display_t *disp, GtkWidget *widget) {
 #endif
 }
 
+#if _VTE_GTK >= 4
+static void vte_terminal_map(GtkWidget *widget) {
+  (*GTK_WIDGET_CLASS(vte_terminal_parent_class)->map)(widget);
+
+  ui_window_map(&PVT(VTE_TERMINAL(widget))->screen->window);
+}
+
+static void vte_terminal_unmap(GtkWidget *widget) {
+  ui_window_unmap(&PVT(VTE_TERMINAL(widget))->screen->window);
+
+  (*GTK_WIDGET_CLASS(vte_terminal_parent_class)->unmap)(widget);
+}
+#endif
+
 static void init_display(ui_display_t *disp, VteTerminalClass *vclass) {
   GdkDisplay *gdkdisp = gdk_display_get_default();
   const char *name = gdk_display_get_name(gdkdisp);
 #if GTK_CHECK_VERSION(2, 90, 0) && defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2)
+#if _VTE_GTK == 3
   GdkDeviceManager *devman = gdk_display_get_device_manager(gdkdisp);
 
   if (G_OBJECT_TYPE(devman) == GDK_TYPE_X11_DEVICE_MANAGER_XI2) {
     is_xinput2 = 1;
   }
 #endif
+#endif
 
+  /* gtk+-2.0 doesn't support wayland */
+#if GTK_CHECK_VERSION(2, 90, 0)
   if (name && strstr(name, "wayland")) {
+#if _VTE_GTK == 3
     GtkWidget *dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR,
                                                GTK_BUTTONS_CLOSE,
                                                "%s display is not supported on xlib", name);
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
+#endif
     exit(1);
   }
+#endif
 
   disp->display = gdk_x11_display_get_xdisplay(gdkdisp);
   disp->screen = DefaultScreen(disp->display);
@@ -561,5 +725,12 @@ static void init_display(ui_display_t *disp, VteTerminalClass *vclass) {
 
   ui_xim_display_opened(disp->display);
 
+#if _VTE_GTK >= 4
+  GTK_WIDGET_CLASS(vclass)->map = vte_terminal_map;
+  GTK_WIDGET_CLASS(vclass)->unmap = vte_terminal_unmap;
+#endif
+
+#if _VTE_GTK == 3
   gdk_window_add_filter(NULL, vte_terminal_filter, NULL);
+#endif
 }

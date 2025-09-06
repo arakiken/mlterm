@@ -1,3 +1,9 @@
+2025-09-07  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c, vte_{x11|wayland}.c, ui_screen.c, wayland/ui_display.c,
+	  gtk/Makefile.in, Makefile.in:
+	  Support libvte-2.91-gtk4.
+
 2025-08-17  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: Add 52 to DA1.

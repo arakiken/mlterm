@@ -37,6 +37,14 @@ install-vte:
 clean-vte:
 	(cd gtk; $(MAKE) clean)
 
+vte4:
+	(cd gtk; $(MAKE) gtk4)
+
+install-vte4:
+	(cd gtk; $(MAKE) install-gtk4)
+
+clean-vte4: clean-vte
+
 vterm:
 	(cd libvterm; $(MAKE))
 

@@ -24,10 +24,10 @@ jobs:
           ubuntu*|debian*)
             apt update
             apt upgrade -y
-            apt install -y build-essential flex libutempter-dev libgtk-3-dev libvterm-dev libvte-2.91-dev libsdl2-dev libfribidi-dev libuim-dev libfcitx5core-dev libfcitx5gclient-dev libscim-dev libibus-1.0-dev libm17n-dev libwnn-dev libcanna1g-dev libssh2-1-dev curl unzip protobuf-compiler libprotobuf-dev libncurses-dev libssl-dev default-jdk libswt-gtk-4-java
+            apt install -y build-essential flex libutempter-dev libgtk-3-dev libvterm-dev libvte-2.91-dev libvte-2.91-gtk4 libsdl2-dev libfribidi-dev libuim-dev libfcitx5core-dev libfcitx5gclient-dev libscim-dev libibus-1.0-dev libm17n-dev libwnn-dev libcanna1g-dev libssh2-1-dev curl unzip protobuf-compiler libprotobuf-dev libncurses-dev libssl-dev default-jdk libswt-gtk-4-java
             ;;
           archlinux*)
-            pacman -Syyu --noconfirm base-devel intltool libutempter wayland gtk3 libvterm vte3 sdl2 fribidi fcitx5 fcitx5-gtk scim ibus m17n-lib libssh2 curl unzip protobuf
+            pacman -Syyu --noconfirm base-devel intltool libutempter wayland gtk3 libvterm vte3 vte4 sdl2 fribidi fcitx5 fcitx5-gtk scim ibus m17n-lib libssh2 curl unzip protobuf
             ;;
           esac
 
@@ -46,6 +46,7 @@ jobs:
           make install
           (cd libvterm && make && make install)
           (cd gtk && make && make install)
+          (cd gtk && make gtk4 && make install-gtk4)
           java_ver=`javac --version|sed 's/javac \([0-9]*\).*/\1/'`
           if test "$java_ver" != ""; then (cd java; cat Makefile | sed s/java-23-openjdk/java-${java_ver}-openjdk-amd64/ > Makefile.2; mv Makefile.2 Makefile; make); fi
           (cd main; ./mlterm --test --logmsg=false)

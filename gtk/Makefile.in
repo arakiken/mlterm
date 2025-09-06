@@ -41,11 +41,14 @@ CFLAGS = $(CFLAGS_LOCAL) @POBL_CFLAGS@ @MEF_CFLAGS@ @TYPE_CFLAGS@ @DEB_CFLAGS@ \
 	@TRUECOLOR_CFLAGS@ @SSH2_CFLAGS@ @GUI_CFLAGS@ @FT_CFLAGS@ \
 	-DSYSCONFDIR=\"$(sysconfdir)\" `$(PKG_CONFIG) --cflags $(PKG_NAME)` \
 	@BRLAPI_CFLAGS@ @CFLAGS@ @CPPFLAGS@
-LIBS = $(LPOBL) $(LMEF) @IMAGELIB_LIBS@ @DL_LIBS_IM@ @GTK_LIBS@ \
+LIBS = $(LPOBL) $(LMEF) @IMAGELIB_LIBS@ @DL_LIBS_IM@ $(LIBS_GTK) \
 	@CTL_LIBS_FOR_VTE@ @TYPE_LIBS_FOR_VTE@ @SSH2_LIBS_FOR_VTE@ @BRLAPI_LIBS@ \
 	@REGEX_LIBS@ @DEXPORT@
+LIBS_wayland = @WAYLAND_LIBS@
+LIBS_GTK = @GTK_LIBS@
+LIBS_GTK4 = `$(PKG_CONFIG) --libs gtk4` $(LIBS_@GUI@)
 
-LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
@@ -82,10 +85,10 @@ vte.o: vte.c vte_@GUI@.c
 		-I$(top_builddir)/uitoolkit -I../encodefilter/include -I../baselib/include -c $<
 
 clean:
-	rm -rf $(OBJ) $(OBJ:.o=.lo) $(TARGET).* *.core .libs
+	rm -rf $(OBJ) $(OBJ:.o=.lo) *.la *.core .libs
 
 distclean: clean
-	rm -f Makefile
+	rm -f Makefile Makefile.gtk4
 
 install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) $(TARGET).la $(LIBDIR)
@@ -95,3 +98,10 @@ $(LIBDIR):
 
 uninstall:
 	rm -f $(LIBDIR)/$(TARGET).*
+
+gtk4:
+	cat Makefile | sed 's/vte-2.91/vte-2.91-gtk4/' |  sed 's/(LIBS_GTK)/(LIBS_GTK4)/' > Makefile.gtk4
+	make -f Makefile.gtk4
+
+install-gtk4:
+	make install -f Makefile.gtk4

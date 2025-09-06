@@ -4,12 +4,12 @@ How to build & install libvte compatible library using mlterm engine.
 
 * Requirements
   o vte library and headers
-  o gtk+ 2.x or 3.x
+  o gtk+ 2.x, 3.x or 4.x
   o terminal emulators or other applications using libvte 
     (gnome-terminal, roxterm, synaptic or etc)
 
 * Supported API
-  vte 0.78
+  vte 0.80
 
 * Build
   $ ./configure (--with-type-engine=cairo --with-imagelib=gdk-pixbuf --enable-pty-helper \
@@ -21,9 +21,14 @@ How to build & install libvte compatible library using mlterm engine.
     - If you want to use gnome-pty-helper, specify --enable-pty-helper option and
      place gnome-pty-helper (or its symbolic link file) at ${libexecdir}/mlterm/.
     - If libvte on your system depends on gtk+-2.x, specify --with-gtk=2.0 option.
-      (libvte.so.9 => gtk+-2.x, libvte2_90.so.9 and libvte-2.91.so.9 => gtk+-3.0)
+      - libvte.so.9 => gtk+-2.x
+      - libvte2_90.so.9 and libvte-2.91.so.9 => gtk+-3.0
+      - libvte-2.91-gtk4.so.0 => gtk-4.0
   $ make
-  $ make vte (== "cd gtk ; make")
+  $ make vte (== "cd gtk; make")
+
+  To build libvte-2.91-gtk4, execute following commands.
+  $ make vte4 (== "cd gtk; make gtk4")
 
 * Build in MSYS2/MinGW-w64
   (It supports gtk-3.x alone for now)

@@ -2281,7 +2281,8 @@ static int shortcut_str(ui_screen_t *screen, KeySym ksym, u_int state, int x, in
     }
   }
   /* XXX Hack for libvte */
-  else if (IS_LIBVTE(screen) && ksym == 0 && state == Button3Mask && strcmp(str, "none") == 0) {
+  else if (IS_LIBVTE(screen) && ksym == 0 &&
+           (state & ~Mod2Mask /* XXX NumLock */) == Button3Mask && strcmp(str, "none") == 0) {
     /* do nothing */
   } else {
     write_to_pty(screen, str, strlen(str), NULL);

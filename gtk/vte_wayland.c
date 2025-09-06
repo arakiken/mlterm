@@ -1,7 +1,16 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
+#if _VTE_GTK == 3
 #include <gdk/gdkwayland.h>
+#else
+#include <gdk/wayland/gdkwayland.h>
+#endif
 #include <locale.h>
+
+#if _VTE_GTK >= 4
+#define gdk_wayland_window_get_wl_surface(window) gdk_wayland_surface_get_wl_surface(window)
+typedef GdkSurface GdkWindow;
+#endif
 
 /* wayland/ui_display.h */
 int ui_display_resize(ui_display_t *disp, u_int width, u_int height);
@@ -74,11 +83,19 @@ static void show_root(ui_display_t *disp, GtkWidget *widget) {
   wl_surface_set_user_data(win->disp->display->surface, window);
 
   if (cursor == NULL) {
+#if _VTE_GTK == 3
     cursor = gdk_cursor_new_for_display(gdk_window_get_display(window), GDK_XTERM);
+#else
+    cursor = gdk_cursor_new_from_name("text", NULL);
+#endif
   }
 
   /* wl_surface_set_user_data() above disables cursor settings in wayland/ui_display.c */
+#if _VTE_GTK == 3
   gdk_window_set_cursor(window, cursor);
+#else
+  gtk_widget_set_cursor(widget, cursor);
+#endif
 }
 
 static int is_initial_allocation(GtkAllocation *allocation);
@@ -111,11 +128,13 @@ static void init_display(ui_display_t *disp, VteTerminalClass *vclass) {
   disp->display = &display;
   disp->name = strdup(gdk_display_get_name(gdkdisp));
   if (!strstr(disp->name, "wayland")) {
+#if _VTE_GTK == 3
     GtkWidget *dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR,
                                                GTK_BUTTONS_CLOSE,
                                                "%s is not supported on wayland", disp->name);
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
+#endif
     exit(1);
   }
 
@@ -153,7 +172,16 @@ void focus_gtk_window(ui_window_t *win, uint32_t time) {
   VteTerminal *terminal = VTE_WIDGET((ui_screen_t*)win);
 
   if (!gtk_widget_has_focus(GTK_WIDGET(terminal))) {
+#if _VTE_GTK == 3
     gdk_window_focus(gtk_widget_get_window(gtk_widget_get_toplevel(GTK_WIDGET(terminal))),
                      time /* gtk_window_focus() does nothing if GDK_CURRENT_TIME */);
+#else
+#if 1
+    gtk_window_set_focus(GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(terminal))),
+                         GTK_WIDGET(terminal));
+#else
+    gtk_widget_grab_focus(GTK_WIDGET(terminal));
+#endif
+#endif
   }
 }
