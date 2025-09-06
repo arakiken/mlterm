@@ -1,5 +1,13 @@
 2025-09-07  Araki Ken  <arakiken@users.sf.net>
 
+	* README.cocoa, README.cocoatouch: Updated.
+
+	* ui_shortcut.c:
+	  Change the default values of the following shortcuts on MacOSX.
+	  - INSERT_CLIPBOARD = Command+v
+	  - COPY_CLIPBOARD = Command+c
+	  (https://github.com/arakiken/mlterm/issues/150)
+
 	* vte.c, vte_{x11|wayland}.c, ui_screen.c, wayland/ui_display.c,
 	  gtk/Makefile.in, Makefile.in:
 	  Support libvte-2.91-gtk4.

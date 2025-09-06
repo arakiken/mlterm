@@ -176,9 +176,18 @@ void ui_shortcut_init(ui_shortcut_t *shortcut) {
 #endif
 
     /* INSERT_CLIPBOARD */
+#if defined(USE_QUARTZ) || (defined(USE_SDL2) && defined(__APPLE__))
+    { 'v', CommandMask, 1, },
+#else
     { 'v', ControlMask|ShiftMask, 1, },
+#endif
+
     /* COPY_CLIPBOARD */
+#if defined(USE_QUARTZ) || (defined(USE_SDL2) && defined(__APPLE__))
+    { 'c', CommandMask, 1, },
+#else
     { 'c', ControlMask|ShiftMask, 1, },
+#endif
 
     /* RESET */
     { XK_Pause, 0, 1, },
