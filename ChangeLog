@@ -1,5 +1,9 @@
 2025-09-07  Araki Ken  <arakiken@users.sf.net>
 
+	* vte.c: Cast pid_t -> GPid
+
+2025-09-07  Araki Ken  <arakiken@users.sf.net>
+
 	* README.cocoa, README.cocoatouch: Updated.
 
 	* ui_shortcut.c:

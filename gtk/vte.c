@@ -5146,7 +5146,9 @@ void vte_terminal_set_pty(VteTerminal *terminal, VtePty *pty)
 void vte_terminal_set_pty_object(VteTerminal *terminal, VtePty *pty)
 #endif
 {
+#if 0
   pid_t pid;
+#endif
 
   if (PVT(terminal)->pty || !pty) {
     return;
@@ -5258,7 +5260,7 @@ gboolean vte_pty_spawn_finish(VtePty *pty, GAsyncResult *result, GPid *child_pid
   }
 
   if (pty->terminal) {
-    *child_pid = PVT(pty->terminal)->term->pty->child_pid;
+    *child_pid = (GPid)PVT(pty->terminal)->term->pty->child_pid;
 
     return TRUE;
   } else {
