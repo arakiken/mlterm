@@ -1,5 +1,7 @@
 2025-09-07  Araki Ken  <arakiken@users.sf.net>
 
+	* vte.c: Implement vte_terminal_get_scrollback_lines().
+
 	* vte.c: Cast pid_t -> GPid
 
 2025-09-07  Araki Ken  <arakiken@users.sf.net>

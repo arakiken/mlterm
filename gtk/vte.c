@@ -4353,6 +4353,16 @@ void vte_terminal_set_scrollback_lines(VteTerminal *terminal, glong lines) {
   }
 }
 
+#if VTE_CHECK_VERSION(0, 52, 0)
+glong vte_terminal_get_scrollback_lines(VteTerminal *terminal) {
+  if (vt_term_log_size_is_unlimited(PVT(terminal)->term)) {
+    return -1;
+  } else {
+    return vt_term_get_num_logged_lines(PVT(terminal)->term);
+  }
+}
+#endif
+
 #if !VTE_CHECK_VERSION(0, 38, 0)
 void vte_terminal_im_append_menuitems(VteTerminal *terminal, GtkMenuShell *menushell) {}
 #endif
