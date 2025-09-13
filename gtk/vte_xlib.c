@@ -535,7 +535,9 @@ static gboolean receive_xevent(GdkDisplay *display, const XEvent *xevent, gpoint
 
   if (GTK_WIDGET_MAPPED(GTK_WIDGET(terminal))) {
     if (PVT(terminal)->screen->window.my_window == xevent->xany.window) {
-      if (xevent->type == FocusOut || xevent->type == FocusIn) {
+      XEvent xev = *xevent;
+
+      if (xev.type == FocusOut || xev.type == FocusIn) {
         /*
          * If pressing mlterm window, evctl_enter() is called, but FocusOut is also
          * received here. So forcibly ignore FocusOut.
@@ -544,10 +546,8 @@ static gboolean receive_xevent(GdkDisplay *display, const XEvent *xevent, gpoint
       }
 
 #if 0
-      if (xevent->type == ButtonPress || xevent->type == ButtonRelease ||
-          xevent->type == MotionNotify) {
-        XEvent xev = *xevent;
-
+      if (xev.type == ButtonPress || xev.type == ButtonRelease ||
+          xev.type == MotionNotify) {
         xev.xany.window = gdk_x11_drawable_get_xid(gtk_widget_get_window(GTK_WIDGET(terminal)));
         xev.xbutton.time = CurrentTime;
 
@@ -556,7 +556,7 @@ static gboolean receive_xevent(GdkDisplay *display, const XEvent *xevent, gpoint
       }
 #endif
 
-      if (ui_window_receive_event(&PVT(terminal)->screen->window, xevent)) {
+      if (ui_window_receive_event(&PVT(terminal)->screen->window, &xev)) {
         return TRUE;
       }
     }
@@ -706,6 +706,8 @@ static void init_display(ui_display_t *disp, VteTerminalClass *vclass) {
                                                "%s display is not supported on xlib", name);
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
+#else
+    bl_error_printf("%s display is not supported on xlib.\n", name);
 #endif
     exit(1);
   }

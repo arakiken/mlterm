@@ -1,3 +1,8 @@
+2025-09-13  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c, vte_xlib.c: Pressing Button3 popups a context menu with the use
+	  of GMenuModel set by vte_terminal_set_context_menu_model() in gtk4.
+
 2025-09-07  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: Implement vte_terminal_get_scrollback_lines().

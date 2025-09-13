@@ -234,6 +234,12 @@ struct _VteTerminalPrivate {
 #define COLUMN_COUNT(terminal) (terminal)->column_count
 #endif
 
+#if VTE_CHECK_VERSION(0, 76, 0)
+  GMenuModel *menu_model;
+#if _VTE_GTK >= 4
+  GtkWidget *menu;
+#endif
+#endif
 #if _VTE_GTK >= 4
   long root_surface_state_notify_id;
 #endif
@@ -397,6 +403,9 @@ static guint signals[LAST_SIGNAL];
 #endif
 
 static int (*orig_select_in_window)(void *);
+#if _VTE_GTK >= 4
+static void (*orig_button_pressed)(ui_window_t *, XButtonEvent *, int);
+#endif
 
 static int is_sending_data;
 
@@ -436,6 +445,76 @@ static int select_in_window(void *p) {
 
   return ret;
 }
+
+#if _VTE_GTK >= 4
+static void context_menu_closed(GtkWidget *menu, gpointer user_data) {
+  VteTerminal *terminal = user_data;
+
+  PVT(terminal)->menu = NULL;
+}
+
+static void unset_context_menu(VteTerminal *terminal) {
+  g_signal_handlers_disconnect_matched(PVT(terminal)->menu, G_SIGNAL_MATCH_DATA,
+                                       0, 0, NULL, NULL, terminal);
+  if (gtk_widget_get_visible(PVT(terminal)->menu)) {
+    gtk_popover_popdown(GTK_POPOVER(PVT(terminal)->menu)); /* make invisible */
+  }
+  gtk_widget_unparent(PVT(terminal)->menu);
+
+  PVT(terminal)->menu = NULL;
+}
+
+static void show_context_menu(VteTerminal *terminal, int x, int y) {
+  GtkWidget *menu;
+  GdkRectangle rect;
+
+  g_signal_emit(G_OBJECT(terminal), signals[SIGNAL_SETUP_CONTEXT_MENU], 0,
+                NULL /* VteEventContext */);
+
+  if (PVT(terminal)->menu_model) {
+    menu = gtk_popover_menu_new_from_model(PVT(terminal)->menu_model);
+  } else {
+    return;
+  }
+
+  gtk_style_context_add_class(gtk_widget_get_style_context(GTK_WIDGET(menu)), "context-menu");
+
+  gtk_widget_set_parent(menu, GTK_WIDGET(terminal));
+  gtk_widget_set_halign(menu, GTK_ALIGN_START);
+  gtk_popover_set_autohide(GTK_POPOVER(menu), FALSE); /* Menu disappers for a moment if TRUE */
+  gtk_popover_set_cascade_popdown(GTK_POPOVER(menu), TRUE);
+  gtk_popover_set_has_arrow(GTK_POPOVER(menu), FALSE);
+  gtk_popover_set_mnemonics_visible(GTK_POPOVER(menu), FALSE);
+  gtk_popover_set_position(GTK_POPOVER(menu), GTK_POS_BOTTOM);
+
+  memset(&rect, 0, sizeof(GdkRectangle));
+  rect.x = x;
+  rect.y = y;
+  gtk_popover_set_pointing_to(GTK_POPOVER(menu), &rect);
+
+  g_signal_connect(menu, "closed", G_CALLBACK(context_menu_closed), terminal);
+
+  gtk_popover_popup(GTK_POPOVER(menu));
+
+  PVT(terminal)->menu = menu;
+}
+
+static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num) {
+  VteTerminal *terminal = VTE_WIDGET((ui_screen_t*)win);
+
+  if (event->type == ButtonPress) {
+    if (PVT(terminal)->menu) {
+      unset_context_menu(terminal);
+    }
+
+    if (event->button == 3 && event->state == 0) {
+      show_context_menu(terminal, event->x, event->y);
+    }
+  }
+
+  (*orig_button_pressed)(win, event, click_num);
+}
+#endif
 
 static int selection(ui_selection_t *sel, int char_index_1, int row_1, int char_index_2,
                      int row_2) {
@@ -1446,24 +1525,31 @@ static void vte_terminal_set_property(GObject *obj, guint prop_id, const GValue 
 
   switch (prop_id) {
 #if GTK_CHECK_VERSION(2, 90, 0)
-    case PROP_VADJUSTMENT:
-      set_adjustment(terminal, g_value_get_object(value));
-      break;
+  case PROP_VADJUSTMENT:
+    set_adjustment(terminal, g_value_get_object(value));
+    break;
+#endif
+
+#if VTE_CHECK_VERSION(0, 76, 0)
+  case PROP_CONTEXT_MENU_MODEL:
+    vte_terminal_set_context_menu_model(terminal,
+                                        G_MENU_MODEL(g_value_get_object(value)));
+    break;
 #endif
 
 #if 0
-    case PROP_ICON_TITLE:
-      set_icon_name(PVT(terminal)->screen, g_value_get_string(value));
-      break;
+  case PROP_ICON_TITLE:
+    set_icon_name(PVT(terminal)->screen, g_value_get_string(value));
+    break;
 
-    case PROP_WINDOW_TITLE:
-      set_window_name(PVT(terminal)->screen, g_value_get_string(value));
-      break;
+  case PROP_WINDOW_TITLE:
+    set_window_name(PVT(terminal)->screen, g_value_get_string(value));
+    break;
 #endif
 
 #if 0
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec);
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec);
 #endif
   }
 }
@@ -1546,6 +1632,10 @@ static void init_screen(VteTerminal *terminal, ui_font_manager_t *font_man,
 
   orig_select_in_window = PVT(terminal)->screen->sel_listener.select_in_window;
   PVT(terminal)->screen->sel_listener.select_in_window = select_in_window;
+#if _VTE_GTK >= 4
+  orig_button_pressed = PVT(terminal)->screen->window.button_pressed;
+  PVT(terminal)->screen->window.button_pressed = button_pressed;
+#endif
 
   /* overriding */
   PVT(terminal)->screen->pty_listener.closed = pty_closed;
@@ -5726,16 +5816,26 @@ gboolean vte_terminal_get_yfill(VteTerminal *terminal) {
   return TRUE;
 }
 
-void vte_terminal_set_context_menu_model(VteTerminal *terminal, GMenuModel *model) {}
+void vte_terminal_set_context_menu_model(VteTerminal *terminal, GMenuModel *model) {
+  if (PVT(terminal)->menu_model) {
+    g_object_unref(PVT(terminal)->menu_model);
+  }
+
+  PVT(terminal)->menu_model = g_object_ref(model); /* XXX leak */
+}
 
 GMenuModel *vte_terminal_get_context_menu_model(VteTerminal *terminal) {
-  return NULL;
+  return PVT(terminal)->menu_model;
 }
 
 void vte_terminal_set_context_menu(VteTerminal *terminal, GtkWidget *menu) {}
 
 GtkWidget *vte_terminal_get_context_menu(VteTerminal* terminal) {
+#if _VTE_GTK >= 4
+  return PVT(terminal)->menu;
+#else
   return NULL;
+#endif
 }
 
 G_DEFINE_POINTER_TYPE(VteEventContext, vte_event_context);
