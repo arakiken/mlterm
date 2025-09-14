@@ -447,15 +447,7 @@ static int select_in_window(void *p) {
 }
 
 #if _VTE_GTK >= 4
-static void context_menu_closed(GtkWidget *menu, gpointer user_data) {
-  VteTerminal *terminal = user_data;
-
-  PVT(terminal)->menu = NULL;
-}
-
 static void unset_context_menu(VteTerminal *terminal) {
-  g_signal_handlers_disconnect_matched(PVT(terminal)->menu, G_SIGNAL_MATCH_DATA,
-                                       0, 0, NULL, NULL, terminal);
   if (gtk_widget_get_visible(PVT(terminal)->menu)) {
     gtk_popover_popdown(GTK_POPOVER(PVT(terminal)->menu)); /* make invisible */
   }
@@ -470,6 +462,10 @@ static void show_context_menu(VteTerminal *terminal, int x, int y) {
 
   g_signal_emit(G_OBJECT(terminal), signals[SIGNAL_SETUP_CONTEXT_MENU], 0,
                 NULL /* VteEventContext */);
+
+  if (PVT(terminal)->menu) {
+    unset_context_menu(terminal);
+  }
 
   if (PVT(terminal)->menu_model) {
     menu = gtk_popover_menu_new_from_model(PVT(terminal)->menu_model);
@@ -492,12 +488,14 @@ static void show_context_menu(VteTerminal *terminal, int x, int y) {
   rect.y = y;
   gtk_popover_set_pointing_to(GTK_POPOVER(menu), &rect);
 
-  g_signal_connect(menu, "closed", G_CALLBACK(context_menu_closed), terminal);
-
   gtk_popover_popup(GTK_POPOVER(menu));
 
   PVT(terminal)->menu = menu;
 }
+
+#ifdef USE_WAYLAND
+#define ButtonPress 4 /* see uitoolkit/wayland/ui_display.h */
+#endif
 
 static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num) {
   VteTerminal *terminal = VTE_WIDGET((ui_screen_t*)win);
@@ -1730,6 +1728,77 @@ set_bg_image:
   vte_terminal_set_background_image_file(terminal, file);
 }
 
+#if _VTE_GTK >= 4
+#include <dlfcn.h>
+
+static int adw_checked;
+static GType (*adw_dialog_get_type)(void); /* #include <libadwaita-1/adwaita.h> */
+
+static GtkWidget *find_adw_dialog(GtkWidget *widget) {
+  if (G_TYPE_CHECK_INSTANCE_TYPE(widget, (*adw_dialog_get_type)())) { /* ADW_IS_DIALOG(widget) */
+    return widget;
+  } else {
+    GtkWidget *child = gtk_widget_get_first_child(widget);
+
+    while (child) {
+      widget = find_adw_dialog(child);
+      if (widget) {
+        return widget;
+      }
+      child = gtk_widget_get_next_sibling(child);
+    }
+
+    return NULL;
+  }
+}
+
+static void adw_dialog_unmapped(GtkWidget *widget, gpointer user_data) {
+  VteTerminal *terminal = user_data;
+
+  g_signal_handlers_disconnect_by_func(widget,
+                                       G_CALLBACK(adw_dialog_unmapped), terminal);
+  gtk_widget_map(GTK_WIDGET(terminal));
+}
+
+void window_focus_changed(GtkWidget *widget, GParamSpec *pspec, gpointer user_data) {
+  GtkWidget *focus = gtk_window_get_focus(GTK_WINDOW(widget));
+  VteTerminal *terminal = user_data;
+
+  if (focus != terminal && GTK_WIDGET_MAPPED(GTK_WIDGET(terminal))) {
+    /*
+     * If the application using libvte-2.91-gtk4 open AdwDialog,
+     * AdwDialog is hidden under libvte terminal screen.
+     * So unmap libvte terminal screen if AdwDialog is shown.
+     */
+    GtkWidget *adw;
+
+    if (adw_dialog_get_type == NULL) {
+      if (adw_checked) {
+        return;
+      } else {
+        void *d = dlopen(NULL, RTLD_LAZY);
+
+        if (d) {
+          adw_dialog_get_type = dlsym(d, "adw_dialog_get_type");
+          dlclose(d); /* dlclose() decrements reference counter but never gets 0. */
+        }
+        adw_checked = 1;
+
+        if (adw_dialog_get_type == NULL) {
+          return;
+        }
+      }
+    }
+
+    adw = find_adw_dialog(gtk_window_get_child(GTK_WINDOW(widget)));
+    if (adw && GTK_WIDGET_MAPPED(adw)) {
+      gtk_widget_unmap(GTK_WIDGET(terminal));
+      g_signal_connect(adw, "unmap", G_CALLBACK(adw_dialog_unmapped), terminal);
+    }
+  }
+}
+#endif
+
 static void vte_terminal_realize(GtkWidget *widget) {
   VteTerminal *terminal = VTE_TERMINAL(widget);
 #if _VTE_GTK == 3
@@ -1837,6 +1906,11 @@ static void vte_terminal_realize(GtkWidget *widget) {
   }
 
   update_wall_picture(terminal);
+
+#if _VTE_GTK >= 4
+  g_signal_connect(GTK_WINDOW(gtk_widget_get_toplevel(widget)), "notify::focus-widget",
+                   G_CALLBACK(window_focus_changed), terminal);
+#endif
 }
 
 static void vte_terminal_unrealize(GtkWidget *widget) {
@@ -1845,6 +1919,12 @@ static void vte_terminal_unrealize(GtkWidget *widget) {
 
 #ifdef DEBUG
   bl_debug_printf(BL_DEBUG_TAG " vte terminal unrealized.\n");
+#endif
+
+#if _VTE_GTK >= 4
+  if (PVT(terminal)->menu) {
+    unset_context_menu(terminal);
+  }
 #endif
 
   ui_screen_detach(screen);
@@ -1863,8 +1943,15 @@ static void vte_terminal_unrealize(GtkWidget *widget) {
   ui_display_remove_root(&disp, &screen->window);
 
 #ifdef USE_XLIB
+#if _VTE_GTK == 3
   g_signal_handlers_disconnect_by_func(gtk_widget_get_toplevel(GTK_WIDGET(terminal)),
                                        G_CALLBACK(toplevel_configure), terminal);
+#endif
+#endif
+
+#if _VTE_GTK >= 4
+  g_signal_handlers_disconnect_by_func(gtk_widget_get_toplevel(GTK_WIDGET(terminal)),
+                                       G_CALLBACK(window_focus_changed), terminal);
 #endif
 
   /* gtk_widget_unregister_window() and gdk_window_destroy() are called. */

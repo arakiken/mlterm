@@ -33,6 +33,7 @@ static int is_xinput2;
 
 /* --- static functions --- */
 
+#if _VTE_GTK == 3
 static gboolean toplevel_configure(gpointer data) {
   VteTerminal *terminal = data;
 
@@ -51,6 +52,7 @@ static gboolean toplevel_configure(gpointer data) {
 
   return FALSE;
 }
+#endif
 
 #if _VTE_GTK >= 4
 static void vte_terminal_size_allocate(GtkWidget *widget, int width, int height, int baseline);
@@ -429,11 +431,11 @@ static void vte_terminal_hierarchy_changed(GtkWidget *widget, GtkWidget *old_top
                                            gpointer data) {
   GtkWidget *toplevel = gtk_widget_get_toplevel(widget);
 
+#if _VTE_GTK == 3
   if (old_toplevel) {
     g_signal_handlers_disconnect_by_func(old_toplevel, toplevel_configure, widget);
   }
 
-#if _VTE_GTK == 3
   g_signal_connect_swapped(toplevel, "configure-event",
                            G_CALLBACK(toplevel_configure), VTE_TERMINAL(widget));
 #endif

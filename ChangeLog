@@ -1,3 +1,7 @@
+2025-09-14  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: Unmap libvte terminal screen temporarily if AdwDialog is shown.
+
 2025-09-13  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c, vte_xlib.c: Pressing Button3 popups a context menu with the use
