@@ -1,3 +1,9 @@
+2025-09-15  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c, vte_wayland.c:
+	  - Call vt_close_dead_terms() at the beginning of vte_terminal_unrealize().
+	  - Set key and focus event controllers in not only xlib but also wayland.
+
 2025-09-14  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: Unmap libvte terminal screen temporarily if AdwDialog is shown.

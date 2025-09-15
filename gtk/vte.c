@@ -1917,6 +1917,9 @@ static void vte_terminal_unrealize(GtkWidget *widget) {
   VteTerminal *terminal = VTE_TERMINAL(widget);
   ui_screen_t *screen = PVT(terminal)->screen;
 
+  /* pty_closed() will never be called after ui_screen_detach() below. */
+  vt_close_dead_terms();
+
 #ifdef DEBUG
   bl_debug_printf(BL_DEBUG_TAG " vte terminal unrealized.\n");
 #endif
@@ -3304,7 +3307,6 @@ static void vte_terminal_init(VteTerminal *terminal) {
   {
     GtkEventController *controller;
 
-#ifdef USE_XLIB
     controller = gtk_event_controller_key_new(); /* XXX leak */
     g_signal_connect(controller, "key-pressed", G_CALLBACK(evctl_key_pressed), terminal);
 #if 0
@@ -3319,7 +3321,6 @@ static void vte_terminal_init(VteTerminal *terminal) {
     g_signal_connect(controller, "leave", G_CALLBACK(evctl_leave), terminal);
     gtk_event_controller_set_name(controller, "vte-focus-controller");
     gtk_widget_add_controller(GTK_WIDGET(terminal), controller);
-#endif
 
 #if 0
     controller = gtk_event_controller_motion_new(); /* XXX leak */

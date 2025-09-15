@@ -8,6 +8,8 @@
 #include <locale.h>
 
 #if _VTE_GTK >= 4
+#define FocusOut 10 /* see wayland/ui_display.h */
+
 #define gdk_wayland_window_get_wl_surface(window) gdk_wayland_surface_get_wl_surface(window)
 typedef GdkSurface GdkWindow;
 #endif
@@ -168,6 +170,40 @@ static void init_display(ui_display_t *disp, VteTerminalClass *vclass) {
   GTK_WIDGET_CLASS(vclass)->unmap = vte_terminal_unmap;
 }
 
+#if _VTE_GTK >= 4
+/*
+ * keyboard_key() receives keys without this on wayland, but menus on the titlebar
+ * also use them for shortcut keys.
+ * (e.g. Up key focuses "New Tab" menu in kgx.)
+ */
+static gboolean evctl_key_pressed(GtkEventControllerKey *controller,
+                                  guint keyval, guint keycode, GdkModifierType state,
+                                  gpointer user_data) {}
+
+static void evctl_enter(GtkEventControllerFocus *controller, gpointer user_data) {
+  VteTerminal *terminal = user_data;
+
+  if (GTK_WIDGET_MAPPED(GTK_WIDGET(terminal))) {
+    ui_window_set_input_focus(&PVT(terminal)->screen->window);
+  } else {
+    PVT(terminal)->screen->window.is_focused = 1;
+  }
+}
+
+static void evctl_leave(GtkEventControllerFocus *controller, gpointer user_data) {
+  VteTerminal *terminal = user_data;
+
+  if (GTK_WIDGET_MAPPED(GTK_WIDGET(terminal))) {
+    XEvent xev;
+
+    xev.type = FocusOut;
+    ui_window_receive_event(&PVT(terminal)->screen->window, (XEvent*)&xev);
+  } else {
+    PVT(terminal)->screen->window.is_focused = 0;
+  }
+}
+#endif
+
 /* --- global functions --- */
 
 void focus_gtk_window(ui_window_t *win, uint32_t time) {
@@ -178,12 +214,9 @@ void focus_gtk_window(ui_window_t *win, uint32_t time) {
     gdk_window_focus(gtk_widget_get_window(gtk_widget_get_toplevel(GTK_WIDGET(terminal))),
                      time /* gtk_window_focus() does nothing if GDK_CURRENT_TIME */);
 #else
-#if 1
     gtk_window_set_focus(GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(terminal))),
                          GTK_WIDGET(terminal));
-#else
     gtk_widget_grab_focus(GTK_WIDGET(terminal));
-#endif
 #endif
   }
 }
