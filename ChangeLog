@@ -1,5 +1,8 @@
 2025-09-15  Araki Ken  <arakiken@users.sf.net>
 
+	* configure.in, bl_config.h.in: Remove HAVE_DL_H and HAVE_DLFCN_H which
+	  have been unused since 2.8.0.
+
 	* vte.c, vte_wayland.c:
 	  - Call vt_close_dead_terms() at the beginning of vte_terminal_unrealize().
 	  - Set key and focus event controllers in not only xlib but also wayland.

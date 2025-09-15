@@ -11,10 +11,6 @@
 
 #undef HAVE_LANGINFO_H
 
-#undef HAVE_DL_H
-
-#undef HAVE_DLFCN_H
-
 #undef HAVE_WINDOWS_H
 
 #undef HAVE_ERRNO_H
