@@ -709,7 +709,9 @@ static void init_display(ui_display_t *disp, VteTerminalClass *vclass) {
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
 #else
-    bl_error_printf("%s display is not supported on xlib.\n", name);
+    char *msg = alloca(strlen(name) + 38);
+    sprintf(msg, "  %s display is not supported on xlib  ", name);
+    gtk_dialog_run(msg);
 #endif
     exit(1);
   }

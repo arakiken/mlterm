@@ -409,6 +409,31 @@ static void (*orig_button_pressed)(ui_window_t *, XButtonEvent *, int);
 
 static int is_sending_data;
 
+/* --- static functions --- */
+
+#if _VTE_GTK >= 4
+static void dialog_response(GtkDialog *dialog, int response_id, gpointer user_data) {
+  GMainLoop *loop = user_data;
+  g_main_loop_quit(loop);
+}
+
+static void gtk_dialog_run(const char *msg) {
+  GtkWidget *dialog = gtk_dialog_new_with_buttons ("Error", NULL, 0, "OK",
+                                                   GTK_RESPONSE_NONE, NULL);
+  GtkWidget *content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
+  GtkWidget *label = gtk_label_new(msg);
+
+  gtk_box_append (GTK_BOX(content_area), label);
+
+  GMainLoop *loop = g_main_loop_new(NULL, FALSE);
+  g_signal_connect(dialog, "response", G_CALLBACK(dialog_response), loop);
+  gtk_widget_set_visible(dialog, TRUE);
+
+  g_main_loop_run(loop);
+  g_main_loop_unref(loop);
+}
+#endif
+
 #if defined(USE_XLIB)
 #include "vte_xlib.c"
 #elif defined(USE_WAYLAND)
@@ -418,8 +443,6 @@ static int is_sending_data;
 #else
 #error "Unsupported platform for libvte compatible library."
 #endif
-
-/* --- static functions --- */
 
 #if defined(__DEBUG) && defined(USE_XLIB)
 static int error_handler(Display *display, XErrorEvent *event) {

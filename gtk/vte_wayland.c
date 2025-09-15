@@ -137,7 +137,9 @@ static void init_display(ui_display_t *disp, VteTerminalClass *vclass) {
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
 #else
-    bl_error_printf("%s display is not supported on wayland.\n", disp->name);
+    char *msg = alloca(strlen(disp->name) + 41);
+    sprintf(msg, "  %s display is not supported on wayland  ", disp->name);
+    gtk_dialog_run(msg);
 #endif
     exit(1);
   }

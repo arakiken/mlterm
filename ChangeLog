@@ -1,5 +1,10 @@
 2025-09-15  Araki Ken  <arakiken@users.sf.net>
 
+	* vte.c, vte_wayland.c, vte_xlib.c: Show GtkDialog if the display is
+	  not supported.
+
+2025-09-15  Araki Ken  <arakiken@users.sf.net>
+
 	* wnnlib.c: Cast the type of errmsg from (int (*)(const char*)) to (int (*)()).
 
 	* configure.in, bl_config.h.in: Remove HAVE_DL_H and HAVE_DLFCN_H which
