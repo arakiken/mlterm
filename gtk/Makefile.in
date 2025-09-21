@@ -23,16 +23,19 @@ PKG_NAME = $(PKG_NAME_$(VTE_ABI))
 PKG_NAME_ = vte
 PKG_NAME_2.90 = vte-2.90
 PKG_NAME_2.91 = vte-2.91
+PKG_NAME_2.91-gtk4 = vte-2.91-gtk4
 
 LIB_VERSION = $(LIB_VERSION_$(VTE_ABI))
 LIB_VERSION_ = 9:0:0
 LIB_VERSION_2.90 = 9:0:0
 LIB_VERSION_2.91 = 0:0:0
+LIB_VERSION_2.91-gtk4 = 0:0:0
 
 TARGET = $(TARGET_$(VTE_ABI))
 TARGET_ = libvte
 TARGET_2.90 = libvte2_90
 TARGET_2.91 = libvte-2.91
+TARGET_2.91-gtk4 = libvte-2.91-gtk4
 
 LPOBL = @LPOBL@
 LMEF = @LMEF@
@@ -46,6 +49,7 @@ LIBS = $(LPOBL) $(LMEF) @IMAGELIB_LIBS@ @DL_LIBS_IM@ $(LIBS_GTK) \
 	@REGEX_LIBS@ @DEXPORT@
 LIBS_wayland = @WAYLAND_LIBS@
 LIBS_GTK = @GTK_LIBS@
+LIBS_GTK3 = `$(PKG_CONFIG) --libs gtk+-3.0` $(LIBS_@GUI@)
 LIBS_GTK4 = `$(PKG_CONFIG) --libs gtk4` $(LIBS_@GUI@)
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC)
@@ -100,8 +104,15 @@ uninstall:
 	rm -f $(LIBDIR)/$(TARGET).*
 
 gtk4:
-	cat Makefile | sed 's/vte-2.91/vte-2.91-gtk4/' |  sed 's/(LIBS_GTK)/(LIBS_GTK4)/' > Makefile.gtk4
+	cat Makefile | sed 's/VTE_ABI =.*/VTE_ABI = 2.91-gtk4/' |  sed 's/(LIBS_GTK)/(LIBS_GTK4)/' > Makefile.gtk4
 	make -f Makefile.gtk4
 
 install-gtk4:
 	make install -f Makefile.gtk4
+
+gtk3:
+	cat Makefile | sed 's/VTE_ABI =.*/VTE_ABI = 2.91/' |  sed 's/(LIBS_GTK)/(LIBS_GTK3)/' > Makefile.gtk3
+	make -f Makefile.gtk3
+
+install-gtk3:
+	make install -f Makefile.gtk3

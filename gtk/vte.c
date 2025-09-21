@@ -132,7 +132,12 @@ int vte_reaper_add_child(GPid pid);
 #define VteEraseBinding VteTerminalEraseBinding
 #endif
 
-#define STATIC_PARAMS (G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB)
+#ifndef G_PARAM_STATIC_STRINGS
+#define G_PARAM_STATIC_STRINGS (G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB)
+#endif
+#ifndef G_PARAM_EXPLICIT_NOTIFY
+#define G_PARAM_EXPLICIT_NOTIFY (0)
+#endif
 
 #define VTE_FONT_SCALE_MIN (.25)
 #define VTE_FONT_SCALE_MAX (4.)
@@ -320,14 +325,18 @@ enum {
 #endif
   PROP_ENCODING,
   PROP_FONT_DESC,
+#if VTE_CHECK_VERSION(0, 38, 0)
   PROP_FONT_SCALE,
+#endif
   PROP_ICON_TITLE,
   PROP_MOUSE_POINTER_AUTOHIDE,
   PROP_PTY,
 #if !VTE_CHECK_VERSION(0, 37, 0)
   PROP_SCROLL_BACKGROUND,
 #endif
+#if VTE_CHECK_VERSION(0, 52, 0)
   PROP_SCROLLBACK_LINES,
+#endif
   PROP_SCROLL_ON_KEYSTROKE,
   PROP_SCROLL_ON_OUTPUT,
 #if VTE_CHECK_VERSION(0, 66, 0)
@@ -1509,17 +1518,21 @@ static void vte_terminal_get_property(GObject *obj, guint prop_id, GValue *value
     g_value_set_boxed(value, vte_terminal_get_font(terminal));
     break;
 
+#if VTE_CHECK_VERSION(0, 38, 0)
   case PROP_FONT_SCALE:
     g_value_set_double(value, vte_terminal_get_font_scale(terminal));
     break;
+#endif
 
   case PROP_ICON_TITLE:
     g_value_set_string(value, vte_terminal_get_icon_title(terminal));
     break;
 
+#if VTE_CHECK_VERSION(0, 52, 0)
   case PROP_SCROLLBACK_LINES:
     g_value_set_uint(value, vte_terminal_get_scrollback_lines(terminal));
     break;
+#endif
 
 #if VTE_CHECK_VERSION(0, 66, 0)
   case PROP_SCROLL_UNIT_IS_PIXELS:
@@ -3031,21 +3044,26 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
       g_param_spec_boxed("font-desc", NULL, NULL, PANGO_TYPE_FONT_DESCRIPTION,
                          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY));
 
+#if VTE_CHECK_VERSION(0, 38, 0)
   g_object_class_install_property(
       oclass, PROP_FONT_SCALE,
       g_param_spec_double("font-scale", NULL, NULL, VTE_FONT_SCALE_MIN, VTE_FONT_SCALE_MAX, 1.,
                           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY));
+#endif
 
 #if VTE_CHECK_VERSION(0, 20, 0)
   g_object_class_install_property(
       oclass, PROP_ICON_TITLE,
-      g_param_spec_string("icon-title", NULL, NULL, NULL, G_PARAM_READABLE | STATIC_PARAMS));
+      g_param_spec_string("icon-title", NULL, NULL, NULL,
+                          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY));
 #endif
 
+#if VTE_CHECK_VERSION(0, 52, 0)
   g_object_class_install_property(
       oclass, PROP_SCROLLBACK_LINES,
       g_param_spec_uint("scrollback-lines", NULL, NULL, 0, G_MAXUINT, VTE_SCROLLBACK_INIT,
                         G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY));
+#endif
 
 #if VTE_CHECK_VERSION(0, 66, 0)
   g_object_class_install_property(
@@ -3057,7 +3075,8 @@ static void vte_terminal_class_init(VteTerminalClass *vclass) {
 #if VTE_CHECK_VERSION(0, 20, 0)
   g_object_class_install_property(
       oclass, PROP_WINDOW_TITLE,
-      g_param_spec_string("window-title", NULL, NULL, NULL, G_PARAM_READABLE | STATIC_PARAMS));
+      g_param_spec_string("window-title", NULL, NULL, NULL,
+                          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY));
 #endif
 
 #if VTE_CHECK_VERSION(0, 23, 2)

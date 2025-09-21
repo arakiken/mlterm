@@ -320,13 +320,14 @@ if test "$gtk_version" = "no" ; then
 	have_gtk=no
 else
 	if test "$gtk_version" = "4.0" ; then
-		PKG_CHECK_MODULES(GTK4, gtk4, have_gtk4=yes, have_gtk4=no)
-		# mlconfig supports gtk4, but mlterm-menu and libvte do not support it
-		gtk_version=3.0
-	elif test "$gtk_version" = "" ; then
-		gtk_version=3.0
+		PKG_CHECK_MODULES(GTK, gtk4, have_gtk=yes, have_gtk=no)
+	else
+		if test "$gtk_version" = "" ; then
+			gtk_version=3.0
+		fi
+		PKG_CHECK_MODULES(GTK, gtk+-$gtk_version, have_gtk=yes, have_gtk=no)
 	fi
-	PKG_CHECK_MODULES(GTK, gtk+-$gtk_version, have_gtk=yes, have_gtk=no)
+
 	if test "$have_gtk" != "yes"; then
 		if test "$gtk_version" = "3.0"; then
 			gtk_version=2.0
@@ -1086,6 +1087,17 @@ if test "${have_gtk}" = "yes" ; then
 				VTE_ABI=2.90
 			fi
 		fi
+	elif test "${gtk_version}" = "4.0" ; then
+		PKG_CHECK_MODULES(VTE, vte-2.91-gtk4, have_vte=yes, have_vte=no)
+		if test "$have_vte" = "yes" ; then
+			VTE_ABI=2.91-gtk4
+		else
+			# Even if vte-2.91-gtk4 is not found, create gtk/Makefile.in for 'make gtk3'.
+			PKG_CHECK_MODULES(VTE, vte-2.91, have_vte=yes, have_vte=no)
+			if test "$have_vte" = "yes"; then
+				VTE_ABI=2.91
+			fi
+		fi
 	else
 		PKG_CHECK_MODULES(VTE, vte, have_vte=yes, have_vte=no)
 	fi
@@ -1142,7 +1154,7 @@ for tool in ${tools} ; do
 case ${tool} in
 mlconfig)
 	if test "$gui_for_tool" != "fb" -a "$gui_for_tool" != "console" ; then
-		if test "${have_gtk}" = "yes" -o "${have_gtk4}" = "yes" ; then
+		if test "${have_gtk}" = "yes" ; then
 			AM_GLIB_GNU_GETTEXT
 			MAKE_DIRS2="tool/mlconfig ${MAKE_DIRS2}"
 			OUTPUT_FILES="tool/mlconfig/Makefile ${OUTPUT_FILES}"
@@ -1150,20 +1162,11 @@ mlconfig)
 				OUTPUT_FILES="tool/mlconfig/po/Makefile.in ${OUTPUT_FILES}"
 			fi
 			tools_result="$tools_result $tool"
-			if test "$have_gtk4" = "yes" ; then
-				GTK_CFLAGS_FOR_MLCONFIG=$GTK4_CFLAGS
-				GTK_LIBS_FOR_MLCONFIG=$GTK4_LIBS
-			else
-				if test "$gtk_version" = "2.0"; then
-					# for gtkxlfdsel.c
-					X_LIBS_FOR_MLCONFIG=$X_LIBS
-				fi
-				GTK_CFLAGS_FOR_MLCONFIG=$GTK_CFLAGS
-				GTK_LIBS_FOR_MLCONFIG=$GTK_LIBS
+			if test "$gtk_version" = "2.0"; then
+				# for gtkxlfdsel.c
+				X_LIBS_FOR_MLCONFIG=$X_LIBS
 			fi
 			AC_SUBST(X_LIBS_FOR_MLCONFIG)
-			AC_SUBST(GTK_CFLAGS_FOR_MLCONFIG)
-			AC_SUBST(GTK_LIBS_FOR_MLCONFIG)
 		else
 			echo ""
 			echo "** WARNING  **"
@@ -1173,7 +1176,8 @@ mlconfig)
 	fi
 	;;
 mlterm-menu)
-	if test "${have_gtk}" = "yes" -a "$gui_for_tool" != "fb" -a "$gui_for_tool" != "console" ; then
+	# gtk4 is not supported.
+	if test "${have_gtk}" = "yes" -a "${gtk_version}" != "4.0" -a "$gui_for_tool" != "fb" -a "$gui_for_tool" != "console" ; then
 		MAKE_DIRS2="contrib/tool/mlterm-menu ${MAKE_DIRS2}"
 		OUTPUT_FILES="contrib/tool/mlterm-menu/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
@@ -2462,17 +2466,9 @@ if test "$ml_cv_is_posix" = "no"; then
 fi
 echo "mosh directory                    : $MOSH_DIR"
 if test "$have_gtk" = "yes"; then
-	if test "$have_gtk4" = "yes"; then
-		echo "GTK+                              : yes ($gtk_version, 4.0)"
-	else
-		echo "GTK+                              : yes ($gtk_version)"
-	fi
+	echo "GTK+                              : yes ($gtk_version)"
 else
-	if test "$have_gtk4" = "yes"; then
-		echo "GTK+                              : yes (4.0)"
-	else
-		echo "GTK+                              : no"
-	fi
+	echo "GTK+                              : no"
 fi
 if test "$VTE_ABI" = ""; then
 	vte_version=""

@@ -157,8 +157,7 @@ Options for configure
 
   --with-gtk=(2.0|3.0|4.0)
     Use specified version of GTK+
-    (4.0 is available for mlconfig. libvte compatible library and mlterm-menu continue
-     to need 2.0 or 3.0.)
+    The default is 3.0.
 
   --enable-vt52
     Support vt52 emulation
@@ -220,7 +219,7 @@ What you need for compilation
 
   Gtk+ (2.x 3.x) for GUI configurator "mlterm-menu".
 
-  Gtk+ (2.x 3.x) for libvte compatible library. (see gtk/README)
+  Gtk+ (2.x 3.x 4.x) for libvte compatible library. (see gtk/README)
 
   Fribidi (0.9.0 - ?) for Bidi.
 

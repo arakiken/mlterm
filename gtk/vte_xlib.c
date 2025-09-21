@@ -688,9 +688,10 @@ static void vte_terminal_unmap(GtkWidget *widget) {
 
 static void init_display(ui_display_t *disp, VteTerminalClass *vclass) {
   GdkDisplay *gdkdisp = gdk_display_get_default();
+#if GTK_CHECK_VERSION(2, 90, 0)
   const char *name = gdk_display_get_name(gdkdisp);
-#if GTK_CHECK_VERSION(2, 90, 0) && defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2)
-#if _VTE_GTK == 3
+
+#if defined(GDK_TYPE_X11_DEVICE_MANAGER_XI2) && _VTE_GTK == 3
   GdkDeviceManager *devman = gdk_display_get_device_manager(gdkdisp);
 
   if (G_OBJECT_TYPE(devman) == GDK_TYPE_X11_DEVICE_MANAGER_XI2) {

@@ -1,3 +1,14 @@
+2025-09-21  Araki Ken  <arakiken@users.sf.net>
+
+	* README, gtk/README: Updated.
+
+	* configure.in, tool/mlconfig/Makefile.in: Remove GTK_CFLAGS_FOR_MLCONFIG
+	  and GTK_LIBS_FOR_MLCONFIG.
+
+	* gtk/Makefile.in: Add 'gtk3' and 'install-gtk3' targets.
+
+	* vte.c: STATIC_PARAMS => G_PARAM_STATIC_STRINGS
+
 2025-09-15  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c, vte_wayland.c, vte_xlib.c: Show GtkDialog if the display is

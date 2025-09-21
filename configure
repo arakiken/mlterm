@@ -702,8 +702,6 @@ MLIMGLOADER_LIB
 LIBPNG_LIBS
 LIBPNG_CFLAGS
 PERL
-GTK_LIBS_FOR_MLCONFIG
-GTK_CFLAGS_FOR_MLCONFIG
 X_LIBS_FOR_MLCONFIG
 MKINSTALLDIRS
 POSUB
@@ -836,8 +834,6 @@ GDK_PIXBUF_LIBS
 GDK_PIXBUF_CFLAGS
 GTK_LIBS
 GTK_CFLAGS
-GTK4_LIBS
-GTK4_CFLAGS
 PKG_CONFIG_LIBDIR
 PKG_CONFIG_PATH
 DEXPORT
@@ -1029,8 +1025,6 @@ XMKMF
 PKG_CONFIG
 PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
-GTK4_CFLAGS
-GTK4_LIBS
 GTK_CFLAGS
 GTK_LIBS
 GDK_PIXBUF_CFLAGS
@@ -1795,8 +1789,6 @@ Some influential environment variables:
               directories to add to pkg-config's search path
   PKG_CONFIG_LIBDIR
               path overriding pkg-config's built-in search path
-  GTK4_CFLAGS C compiler flags for GTK4, overriding pkg-config
-  GTK4_LIBS   linker flags for GTK4, overriding pkg-config
   GTK_CFLAGS  C compiler flags for GTK, overriding pkg-config
   GTK_LIBS    linker flags for GTK, overriding pkg-config
   GDK_PIXBUF_CFLAGS
@@ -17319,11 +17311,11 @@ $as_echo "no" >&6; }
 fi
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GTK4" >&5
-$as_echo_n "checking for GTK4... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GTK" >&5
+$as_echo_n "checking for GTK... " >&6; }
 
-if test -n "$GTK4_CFLAGS"; then
-    pkg_cv_GTK4_CFLAGS="$GTK4_CFLAGS"
+if test -n "$GTK_CFLAGS"; then
+    pkg_cv_GTK_CFLAGS="$GTK_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk4\""; } >&5
@@ -17331,7 +17323,7 @@ if test -n "$GTK4_CFLAGS"; then
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_GTK4_CFLAGS=`$PKG_CONFIG --cflags "gtk4" 2>/dev/null`
+  pkg_cv_GTK_CFLAGS=`$PKG_CONFIG --cflags "gtk4" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -17339,8 +17331,8 @@ fi
  else
     pkg_failed=untried
 fi
-if test -n "$GTK4_LIBS"; then
-    pkg_cv_GTK4_LIBS="$GTK4_LIBS"
+if test -n "$GTK_LIBS"; then
+    pkg_cv_GTK_LIBS="$GTK_LIBS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk4\""; } >&5
@@ -17348,7 +17340,7 @@ if test -n "$GTK4_LIBS"; then
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_GTK4_LIBS=`$PKG_CONFIG --libs "gtk4" 2>/dev/null`
+  pkg_cv_GTK_LIBS=`$PKG_CONFIG --libs "gtk4" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -17369,30 +17361,29 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        GTK4_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "gtk4" 2>&1`
+	        GTK_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "gtk4" 2>&1`
         else
-	        GTK4_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "gtk4" 2>&1`
+	        GTK_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "gtk4" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
-	echo "$GTK4_PKG_ERRORS" >&5
+	echo "$GTK_PKG_ERRORS" >&5
 
-	have_gtk4=no
+	have_gtk=no
 elif test $pkg_failed = untried; then
      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-	have_gtk4=no
+	have_gtk=no
 else
-	GTK4_CFLAGS=$pkg_cv_GTK4_CFLAGS
-	GTK4_LIBS=$pkg_cv_GTK4_LIBS
+	GTK_CFLAGS=$pkg_cv_GTK_CFLAGS
+	GTK_LIBS=$pkg_cv_GTK_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	have_gtk4=yes
+	have_gtk=yes
 fi
-		# mlconfig supports gtk4, but mlterm-menu and libvte do not support it
-		gtk_version=3.0
-	elif test "$gtk_version" = "" ; then
-		gtk_version=3.0
-	fi
+	else
+		if test "$gtk_version" = "" ; then
+			gtk_version=3.0
+		fi
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for GTK" >&5
@@ -17464,6 +17455,8 @@ else
 $as_echo "yes" >&6; }
 	have_gtk=yes
 fi
+	fi
+
 	if test "$have_gtk" != "yes"; then
 		if test "$gtk_version" = "3.0"; then
 			gtk_version=2.0
@@ -19963,6 +19956,157 @@ fi
 				VTE_ABI=2.90
 			fi
 		fi
+	elif test "${gtk_version}" = "4.0" ; then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for VTE" >&5
+$as_echo_n "checking for VTE... " >&6; }
+
+if test -n "$VTE_CFLAGS"; then
+    pkg_cv_VTE_CFLAGS="$VTE_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"vte-2.91-gtk4\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "vte-2.91-gtk4") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_VTE_CFLAGS=`$PKG_CONFIG --cflags "vte-2.91-gtk4" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$VTE_LIBS"; then
+    pkg_cv_VTE_LIBS="$VTE_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"vte-2.91-gtk4\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "vte-2.91-gtk4") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_VTE_LIBS=`$PKG_CONFIG --libs "vte-2.91-gtk4" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        VTE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "vte-2.91-gtk4" 2>&1`
+        else
+	        VTE_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "vte-2.91-gtk4" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$VTE_PKG_ERRORS" >&5
+
+	have_vte=no
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	have_vte=no
+else
+	VTE_CFLAGS=$pkg_cv_VTE_CFLAGS
+	VTE_LIBS=$pkg_cv_VTE_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_vte=yes
+fi
+		if test "$have_vte" = "yes" ; then
+			VTE_ABI=2.91-gtk4
+		else
+			# Even if vte-2.91-gtk4 is not found, create gtk/Makefile.in for 'make gtk3'.
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for VTE" >&5
+$as_echo_n "checking for VTE... " >&6; }
+
+if test -n "$VTE_CFLAGS"; then
+    pkg_cv_VTE_CFLAGS="$VTE_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"vte-2.91\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "vte-2.91") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_VTE_CFLAGS=`$PKG_CONFIG --cflags "vte-2.91" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$VTE_LIBS"; then
+    pkg_cv_VTE_LIBS="$VTE_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"vte-2.91\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "vte-2.91") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_VTE_LIBS=`$PKG_CONFIG --libs "vte-2.91" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        VTE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "vte-2.91" 2>&1`
+        else
+	        VTE_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "vte-2.91" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$VTE_PKG_ERRORS" >&5
+
+	have_vte=no
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	have_vte=no
+else
+	VTE_CFLAGS=$pkg_cv_VTE_CFLAGS
+	VTE_LIBS=$pkg_cv_VTE_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_vte=yes
+fi
+			if test "$have_vte" = "yes"; then
+				VTE_ABI=2.91
+			fi
+		fi
 	else
 
 pkg_failed=no
@@ -20863,7 +21007,7 @@ for tool in ${tools} ; do
 case ${tool} in
 mlconfig)
 	if test "$gui_for_tool" != "fb" -a "$gui_for_tool" != "console" ; then
-		if test "${have_gtk}" = "yes" -o "${have_gtk4}" = "yes" ; then
+		if test "${have_gtk}" = "yes" ; then
 
    for ac_header in locale.h
 do :
@@ -21654,19 +21798,10 @@ $as_echo "$LINGUAS" >&6; }
 				OUTPUT_FILES="tool/mlconfig/po/Makefile.in ${OUTPUT_FILES}"
 			fi
 			tools_result="$tools_result $tool"
-			if test "$have_gtk4" = "yes" ; then
-				GTK_CFLAGS_FOR_MLCONFIG=$GTK4_CFLAGS
-				GTK_LIBS_FOR_MLCONFIG=$GTK4_LIBS
-			else
-				if test "$gtk_version" = "2.0"; then
-					# for gtkxlfdsel.c
-					X_LIBS_FOR_MLCONFIG=$X_LIBS
-				fi
-				GTK_CFLAGS_FOR_MLCONFIG=$GTK_CFLAGS
-				GTK_LIBS_FOR_MLCONFIG=$GTK_LIBS
+			if test "$gtk_version" = "2.0"; then
+				# for gtkxlfdsel.c
+				X_LIBS_FOR_MLCONFIG=$X_LIBS
 			fi
-
-
 
 		else
 			echo ""
@@ -21677,7 +21812,8 @@ $as_echo "$LINGUAS" >&6; }
 	fi
 	;;
 mlterm-menu)
-	if test "${have_gtk}" = "yes" -a "$gui_for_tool" != "fb" -a "$gui_for_tool" != "console" ; then
+	# gtk4 is not supported.
+	if test "${have_gtk}" = "yes" -a "${gtk_version}" != "4.0" -a "$gui_for_tool" != "fb" -a "$gui_for_tool" != "console" ; then
 		MAKE_DIRS2="contrib/tool/mlterm-menu ${MAKE_DIRS2}"
 		OUTPUT_FILES="contrib/tool/mlterm-menu/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
@@ -28479,17 +28615,9 @@ if test "$ml_cv_is_posix" = "no"; then
 fi
 echo "mosh directory                    : $MOSH_DIR"
 if test "$have_gtk" = "yes"; then
-	if test "$have_gtk4" = "yes"; then
-		echo "GTK+                              : yes ($gtk_version, 4.0)"
-	else
-		echo "GTK+                              : yes ($gtk_version)"
-	fi
+	echo "GTK+                              : yes ($gtk_version)"
 else
-	if test "$have_gtk4" = "yes"; then
-		echo "GTK+                              : yes (4.0)"
-	else
-		echo "GTK+                              : no"
-	fi
+	echo "GTK+                              : no"
 fi
 if test "$VTE_ABI" = ""; then
 	vte_version=""
