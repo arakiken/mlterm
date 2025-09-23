@@ -1,3 +1,10 @@
+2025-09-23  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja: Updated.
+
+	* ui_screen.c: If the color of the selected text is reversed,
+	  pressing ESC or q in copy mode restores it instead of exiting copy mode.
+
 2025-09-21  Araki Ken  <arakiken@users.sf.net>
 
 	* README, gtk/README: Updated.

@@ -1420,7 +1420,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
         次のマークされた行までスクロールダウン
         (OSC 1337;SetMark で行にマークすることができます。)
       o SET_MARK(Control+Shift+m)
-        現在の行にマーク
+        現在の行にマーク又はマークされた行のマークを解除
       o INSERT_SELECTION(Shift+Insert)
         セレクションのペースト
       o INSERT_CLIPBOARD(Shift+Control+v)
@@ -1719,8 +1719,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
     Control+g                       ... 検索文字列の入力の中止
     Space, Return                   ... 領域選択開始、終了
     Mod(Alt)+Space, Mod(Alt)+Return ... 矩形領域選択開始
-    Escape,q                        ... コピーモードから通常モードに復帰
-    その他のキー                    ... 領域選択の中止
+    Escape,q                        ... 選択領域が反転されている場合は反転解除、
+                                        それ以外の場合はコピーモードから通常モードに復帰
 
   o マウス
     ドラッグすれば領域選択できます。

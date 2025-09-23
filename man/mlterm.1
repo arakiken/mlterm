@@ -1453,10 +1453,7 @@ Start or finish selection.
 Start rectangle selection.
 .TP
 \fBEscape\fR or \fBq\fR
-Exit from the copy mode.
-.TP
-\fBAny other keys\fR
-Stop selection.
+If the color of the selected text is reversed, restore it; otherwise, exit from the copy mode.
 .PP
 .\" ********************************************************************
 .SH CONFIGURATION
@@ -2203,7 +2200,7 @@ Scroll down to the next marked line
 (default \fBControl+Shift+Down\fR).
 .TP
 \fBSET_MARK\fR
-Set mark to the current line (default \fBControl+Shift+m\fR).
+Set mark to the current line or unset it (default \fBControl+Shift+m\fR).
 .TP
 \fBINSERT_SELECTION\fR
 Insert selection (default \fBShift+Insert\fR).
