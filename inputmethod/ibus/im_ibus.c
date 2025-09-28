@@ -416,7 +416,11 @@ static void update_lookup_table(IBusInputContext *context, IBusLookupTable *tabl
 #endif
 
 static void connection_handler(void) {
-#ifdef DBUS_H
+#if defined(DBUS_H) || defined(__IBUS_DBUS_H_)
+#ifndef DBUS_H
+#define DBUS_DISPATCH_DATA_REMAINS (0)
+#endif
+
   DBusConnection *connection;
 
   connection = ibus_connection_get_connection(ibus_bus_get_connection(ibus_bus));
@@ -434,7 +438,7 @@ static void connection_handler(void) {
 }
 
 static int add_event_source(void) {
-#ifdef DBUS_H
+#if defined(DBUS_H) || defined(__IBUS_DBUS_H_)
   if (!dbus_connection_get_unix_fd(
           ibus_connection_get_connection(ibus_bus_get_connection(ibus_bus)), &ibus_bus_fd)) {
     return 0;
@@ -477,7 +481,7 @@ static void destroy(ui_im_t *im) {
   ibus = (im_ibus_t*)im;
 
   if (ibus->context) {
-#ifdef DBUS_H
+#if defined(DBUS_H) || defined(__IBUS_DBUS_H_)
     ibus_object_destroy((IBusObject*)ibus->context);
 #else
     ibus_proxy_destroy((IBusProxy*)ibus->context);
@@ -877,7 +881,7 @@ static void disconnected(IBusBus *bus, gpointer data) {
   remove_event_source(0);
 
   for (ibus = ibus_list; ibus; ibus = bl_slist_next(ibus_list)) {
-#ifdef DBUS_H
+#if defined(DBUS_H) || defined(__IBUS_DBUS_H_)
     ibus_object_destroy((IBusObject*)ibus->context);
 #else
     ibus_proxy_destroy((IBusProxy*)ibus->context);

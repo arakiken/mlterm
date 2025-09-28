@@ -1,3 +1,11 @@
+2025-09-28  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/README: Updated.
+
+	* im_ibus.c: #ifdef DBUS_H -> #if defined(DBUS_H) and defined(__IBUS_DBUS_H_)
+
+	* android/jni/bl_config.h: Remove HAVE_DL_H and HAVE_DLFCN_H.
+
 2025-09-23  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, README.ja: Updated.

@@ -66,10 +66,6 @@ How to build & install libvte compatible library using mlterm engine.
          'use_transbg', 'alpha', 'encoding' and 'blink_cursor' options
 	 in ~/.mlterm/main
 
-  o Default value of following options are not same as that of normal mlterm.
-    [Option]       [Default Value]                     [Normal mlterm]
-    type_engine => xft or cairo (if compiled with it)  (xft)
-
   o Following functions which normal mlterm provides are not available.
     - Daemon mode
     - Multiple ptys using Ctrl+F1 / Ctrl+F2 / Ctrl+F3
@@ -89,6 +85,8 @@ How to build & install libvte compatible library using mlterm engine.
     environmental variable which disables XInput2.
 
     $ export GDK_CORE_DEVICE_EVENTS=1
+
+  o The scrollbar is not displayed in gtk4.
 
   o Unsupported vte api functions
     - vte_terminal_copy_primary
