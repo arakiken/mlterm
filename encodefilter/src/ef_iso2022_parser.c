@@ -51,8 +51,8 @@ inline static size_t get_cs_bytelen(ef_charset_t cs) {
 }
 
 inline static ef_charset_t get_charset(u_char ft,                 /* 0x30 - 0x7f */
-                                        int is_mb, int glyph_size, /* 94 or 96 */
-                                        int rev) {
+                                       int is_mb, int glyph_size, /* 94 or 96 */
+                                       int rev, int intermed) {
   ef_charset_t cs;
 
   if (glyph_size == 94) {
@@ -72,9 +72,9 @@ inline static ef_charset_t get_charset(u_char ft,                 /* 0x30 - 0x7f
   }
 
   if (rev == 0) {
-    return cs;
+    return CS_ADD_INTERMEDIATE(cs, intermed);
   } else if (rev == 1) {
-    return CS_REVISION_1(cs);
+    return CS_ADD_INTERMEDIATE(CS_REVISION_N(cs, 1), intermed);
   } else {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " unsupported charset revision.\n");
@@ -188,6 +188,7 @@ static int parse_escape(ef_iso2022_parser_t *iso2022_parser,
       } else if (IS_INTERMEDIATE(*iso2022_parser->parser.str)) {
         int is_mb;
         int rev;
+        int intermed = 0;
         u_char to_GN;
         u_char ft;
 
@@ -263,8 +264,8 @@ static int parse_escape(ef_iso2022_parser_t *iso2022_parser,
             goto reset;
           }
 
-          if (*iso2022_parser->parser.str == ' ') {
-            /* is DRCS */
+          if (IS_INTERMEDIATE(*iso2022_parser->parser.str)) {
+            intermed = *iso2022_parser->parser.str;
 
             if (ef_parser_increment(iso2022_parser) == 0) {
               /* we reach eos */
@@ -288,10 +289,10 @@ static int parse_escape(ef_iso2022_parser_t *iso2022_parser,
         }
 
         if (to_GN == CS94_TO_G0) {
-          iso2022_parser->g0 = get_charset(ft, is_mb, 94, rev);
+          iso2022_parser->g0 = get_charset(ft, is_mb, 94, rev, intermed);
         } else if (to_GN == CS94_TO_G1) {
 #ifdef DECSP_HACK
-          if (ft == '0' && !is_mb) {
+          if (ft == '0' && !is_mb && intermed == 0) {
             iso2022_parser->g1_is_decsp = 1;
           } else
 #endif
@@ -299,21 +300,21 @@ static int parse_escape(ef_iso2022_parser_t *iso2022_parser,
 #ifdef DECSP_HACK
             iso2022_parser->g1_is_decsp = 0;
 #endif
-            iso2022_parser->g1 = get_charset(ft, is_mb, 94, rev);
+            iso2022_parser->g1 = get_charset(ft, is_mb, 94, rev, intermed);
           }
         } else if (to_GN == CS94_TO_G2) {
-          iso2022_parser->g2 = get_charset(ft, is_mb, 94, rev);
+          iso2022_parser->g2 = get_charset(ft, is_mb, 94, rev, intermed);
         } else if (to_GN == CS94_TO_G3) {
-          iso2022_parser->g3 = get_charset(ft, is_mb, 94, rev);
+          iso2022_parser->g3 = get_charset(ft, is_mb, 94, rev, intermed);
         } else if (to_GN == CS96_TO_G1) {
 #ifdef DECSP_HACK
           iso2022_parser->g1_is_decsp = 0;
 #endif
-          iso2022_parser->g1 = get_charset(ft, is_mb, 96, rev);
+          iso2022_parser->g1 = get_charset(ft, is_mb, 96, rev, intermed);
         } else if (to_GN == CS96_TO_G2) {
-          iso2022_parser->g2 = get_charset(ft, is_mb, 96, rev);
+          iso2022_parser->g2 = get_charset(ft, is_mb, 96, rev, intermed);
         } else if (to_GN == CS96_TO_G3) {
-          iso2022_parser->g3 = get_charset(ft, is_mb, 96, rev);
+          iso2022_parser->g3 = get_charset(ft, is_mb, 96, rev, intermed);
         } else {
 #ifdef DEBUG
           bl_warn_printf(BL_DEBUG_TAG " illegal ISO2022 designation char %c\n", to_GN);
@@ -391,8 +392,8 @@ static int next_byte(ef_iso2022_parser_t *iso2022_parser, ef_char_t *ch) {
 
       ch->ch[ch->size++] = *iso2022_parser->parser.str;
 
-      if ((IS_CS94SB(*iso2022_parser->gl) || IS_CS94MB(*iso2022_parser->gl)) &&
-          (*iso2022_parser->parser.str == 0x20 || *iso2022_parser->parser.str == 0x7f)) {
+      if (IS_CS94_STRICT(*iso2022_parser->gl) &&
+          ((*iso2022_parser->parser.str == 0x20 || *iso2022_parser->parser.str == 0x7f))) {
         ch->cs = US_ASCII;
       } else {
         ch->cs = *iso2022_parser->gl;
@@ -408,7 +409,7 @@ static int next_byte(ef_iso2022_parser_t *iso2022_parser, ef_char_t *ch) {
         return next_byte(iso2022_parser, ch);
       }
 
-      if ((IS_CS94SB(*iso2022_parser->gr) || IS_CS94MB(*iso2022_parser->gr)) &&
+      if (IS_CS94_STRICT(*iso2022_parser->gl) &&
           (*iso2022_parser->parser.str == 0xa0 || *iso2022_parser->parser.str == 0xff)) {
 #ifdef DEBUG
         bl_warn_printf(BL_DEBUG_TAG " 0xa0/0xff appears in 94CS. skipping...\n");

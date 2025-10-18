@@ -1,3 +1,27 @@
+2025-10-19  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c:
+	  - cs with intermediate char -> 0x100 | cs in put_char().
+	  - parse_vt100_escape_sequence() supports "ESC $ )".
+
+	* vt_drcs.c:
+	  - vt_drcs_get_font() regards 0x100 in cs for DRCS flag.
+	  - vt_convert_uniocde_pua_to_drcs() sets 0x100 flag to ch->cs.
+
+	* vt_drcs.h: Add CS_TO_DRCS(), DRCS_TO_CS() and IS_DRCS().
+
+	* encodefilter/src/test.c: Add TEST_iso2022_parser().
+
+	* ef_iso2022_parser.c:
+	  - Add 'int intermed' to arguments of get_charset().
+	  - parse_escape() add an additional intermediate character (' ' for
+	    DRCS) to cs.
+
+	* ef_charset.h:
+	  - CS_REVISION_1(), CS_REVISION_2() -> CS_REVISION_N()
+	  - Add CS_ADD_INTERMIDIATE(), CS_DEL_INTERMEDIATE() and CS_INTERMEDIATE().
+	  - Add IS_CSSB() and IS_CS94_STRICT().
+
 2025-09-28  Araki Ken  <arakiken@users.sf.net>
 
 	* gtk/README: Updated.

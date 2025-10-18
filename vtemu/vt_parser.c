@@ -718,7 +718,7 @@ static void write_ttyrec_header(int fd, size_t len, int keep_time) {
     buf[2] = len;
 #endif
 
-#if __DEBUG
+#ifdef __DEBUG
     bl_debug_printf("write len %d at %d\n", len, lseek(fd, 0, SEEK_CUR));
 #endif
 
@@ -943,6 +943,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
   int is_blinking;
   int is_protected;
   int is_reversed;
+  u_char intermed;
 
   if (vt_parser->w_buf.filled_len == PTY_WR_BUFFER_SIZE) {
     flush_buffer(vt_parser);
@@ -965,8 +966,14 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
   }
 
 #ifdef __DEBUG
-  bl_debug_printf("%x %d %x => %s\n", ch, len, cs, is_fullwidth ? "Fullwidth" : "Single");
+  bl_debug_printf("ch %x cs %x => %s\n", ch, cs, is_fullwidth ? "Fullwidth" : "Single");
 #endif
+
+  if ((intermed = CS_INTERMEDIATE(cs))) {
+    if (intermed == ' ' && IS_CSSB(cs)) {
+      cs = CS_TO_DRCS(CS_DEL_INTERMEDIATE(cs));
+    }
+  }
 
   if ((prop & EF_COMBINING)
 #if !defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
@@ -1113,9 +1120,7 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
     int pic_id;
     int pic_pos;
 
-    if (cs != US_ASCII &&
-        (font = vt_drcs_get_font(vt_parser->drcs,
-                                 cs == CS_REVISION_1(US_ASCII) ? US_ASCII : cs, 0)) &&
+    if ((font = vt_drcs_get_font(vt_parser->drcs, cs, 0)) &&
         /* XXX The width of pua is always regarded as 1. (is_fullwidth is ignored) */
         vt_drcs_get_picture(font, &pic_id, &pic_pos, ch)) {
       vt_char_copy(&vt_parser->w_buf.chars[vt_parser->w_buf.filled_len],
@@ -6280,6 +6285,7 @@ inline static int parse_vt100_escape_sequence(
             } else {
               cs = CS96SB_ID(*str_p);
             }
+            cs = CS_TO_DRCS(cs);
 
             if (ps[3] <= 4 || ps[3] >= 255) {
               col_width = 15;
@@ -6604,35 +6610,57 @@ inline static int parse_vt100_escape_sequence(
                                 vt_screen_get_logical_cols(vt_parser->screen),
                                 vt_screen_get_logical_rows(vt_parser->screen));
           }
-        } else if (*(str_p - ic_num) == '(' || *(str_p - ic_num) == '$') {
+        } else if (*(str_p - ic_num) == '(' || *(str_p - ic_num) == ')' ||
+                   *(str_p - ic_num) == '$') {
           /*
-           * "ESC ("(Registered CS),
-           * "ESC ( SP"(DRCS) or "ESC $"
+           * "ESC ("(Registered CS), "ESC ( SP"(DRCS) or "ESC $"
+           * "ESC )"(Registered CS) or "ESC ) SP"(DRCS)
            * See vt_convert_to_internal_ch() about CS94MB_ID.
            */
+          int gn = 0;
 
           if (IS_ENCODING_BASED_ON_ISO2022(vt_parser->encoding)) {
             /* ESC ( will be processed in mef. */
             return 1;
           }
 
-          vt_parser->g0 = (*(str_p - ic_num) == '$') ? CS94MB_ID(*str_p) : CS94SB_ID(*str_p);
+          if (*(str_p - ic_num) == '$') {
+            if (*(str_p - ic_num + 1) == ')') {
+              vt_parser->g1 = CS94MB_ID(*str_p);
+              gn = 1;
+            }
+#if 0
+            else if (*(str_p - ic_num + 1) == '(') {
+              vt_parser->g0 = CS94MB_ID(*str_p);
+            }
+#endif
+            else {
+              vt_parser->g0 = CS94MB_ID(*str_p);
+            }
+          } else {
+            ef_charset_t cs = CS94SB_ID(*str_p);
 
-          if (!vt_parser->is_so) {
-            vt_parser->gl = vt_parser->g0;
+            if (*(str_p - ic_num + 1) == ' ') {
+              /* DRCS */
+              cs = CS_TO_DRCS(cs);
+            }
+
+            if (*(str_p - ic_num) == ')') {
+              vt_parser->g1 = cs;
+              gn = 1;
+            } else {
+              vt_parser->g0 = cs;
+            }
           }
-        } else if (*(str_p - ic_num) == ')') {
-          /* "ESC )"(Registered CS) or "ESC ( SP"(DRCS) */
 
-          if (IS_ENCODING_BASED_ON_ISO2022(vt_parser->encoding)) {
-            /* ESC ) will be processed in mef. */
-            return 1;
-          }
-
-          vt_parser->g1 = (*(str_p - ic_num) == '$') ? CS94MB_ID(*str_p) : CS94SB_ID(*str_p);
-
-          if (vt_parser->is_so) {
-            vt_parser->gl = vt_parser->g1;
+          if (gn == 0) {
+            if (!vt_parser->is_so) {
+              vt_parser->gl = vt_parser->g0;
+            }
+          } else {
+            if (vt_parser->is_so) {
+              vt_parser->gl = vt_parser->g1;
+            }
           }
         } else if (*(str_p - ic_num) == '-') {
           /* "ESC -"(Registered CS) or "ESC - SP"(DRCS) */
@@ -6643,6 +6671,11 @@ inline static int parse_vt100_escape_sequence(
           }
 
           vt_parser->g1 = CS96SB_ID(*str_p);
+
+          if (*(str_p - ic_num) == ' ') {
+            /* DRCS */
+            vt_parser->g1 = CS_TO_DRCS(vt_parser->g1);
+          }
 
           if (vt_parser->is_so) {
             vt_parser->gl = vt_parser->g1;
@@ -7679,15 +7712,6 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
     /* See https://github.com/saitoha/drcsterm/ */
     else if ((vt_parser->unicode_policy & USE_UNICODE_DRCS) &&
              vt_convert_unicode_pua_to_drcs(&ch)) {
-      if (ch.cs == US_ASCII) {
-        vt_drcs_font_t *font;
-
-        if ((font = vt_drcs_get_font(vt_parser->drcs, US_ASCII, 0)) &&
-            vt_drcs_is_picture(font, ch.ch[0])) {
-          ch.cs = CS_REVISION_1(US_ASCII);
-        }
-      }
-
       /*
        * Go to end to skip 'if (ch.ch[0] == 0x7f) { return 0; }' in next block.
        * Otherwise, 0x10XX7f doesn't work.
@@ -7833,7 +7857,7 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
     vt_drcs_font_t *font;
 
     if ((ch.ch[0] == 0x0 || ch.ch[0] == 0x7f) &&
-        (!(font = vt_drcs_get_font(vt_parser->drcs, US_ASCII, 0)) ||
+        (!(font = vt_drcs_get_font(vt_parser->drcs, CS_TO_DRCS(US_ASCII), 0)) ||
          !(vt_drcs_is_picture(font, ch.ch[0])))) {
       /* DECNULM is always set => discarding 0x0 */
 #ifdef DEBUG

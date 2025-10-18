@@ -1,10 +1,10 @@
 /* -*- c-basic-offset:2; tab-width:2; indent-tabs-mode:nil -*- */
 
 #ifdef BL_DEBUG
-#ifndef REMOVE_MAPPING_TABLE
-
 #include <assert.h>
 #include <pobl/bl_debug.h>
+
+#ifndef REMOVE_MAPPING_TABLE
 
 #include "ef_ucs4_jisx0208.h"
 #include "ef_ucs4_jisx0212.h"
@@ -79,9 +79,9 @@
 
 #endif
 
-/* --- global functions --- */
+/* --- static functions --- */
 
-void TEST_encodefilter(void) {
+static void TEST_mapping(void) {
 #ifdef OUTPUT_MAPPING
   FILE *fp;
   int i;
@@ -394,12 +394,44 @@ void TEST_encodefilter(void) {
   fclose(fp);
 #endif
 
-  bl_msg_printf("PASS encodefilter test.\n");
+  bl_msg_printf("PASS encodefilter mapping test.\n");
 }
 
-#else
+#endif /* REMOVE_MAPPING_TABLE */
 
-void TEST_encodefilter(void) {}
+#include <pobl/bl_str.h>
+#include <pobl/bl_mem.h>
+#include "ef_iso2022jp_parser.h"
 
+static void TEST_iso2022_parser(void) {
+  ef_parser_t *parser = ef_iso2022jp_7_parser_new();
+  const char *test[] = { "\x1b( @a", "\x1b(/@a" };
+  ef_char_t ch;
+  int count;
+
+  for (count = 0; count < sizeof(test) / sizeof(test[0]); count++) {
+    size_t len = strlen(test[count]);
+
+    (*parser->init)(parser);
+    (*parser->set_str)(parser, test[count], len);
+    assert((*parser->next_char)(parser, &ch) == 1);
+    assert(CS_INTERMEDIATE(ch.cs) == *(test[count] + len - 3));
+    assert(CS94SB_FT(ch.cs) == *(test[count] + len - 2));
+  }
+
+  (*parser->destroy)(parser);
+
+  bl_msg_printf("PASS encodefilter iso2022 parser test.\n");
+}
+
+/* --- global functions --- */
+
+void TEST_encodefilter(void) {
+#ifndef REMOVE_MAPPING_TABLE
+  TEST_mapping();
 #endif
+
+  TEST_iso2022_parser();
+}
+
 #endif /* BL_DEBUG */

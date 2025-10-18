@@ -10,9 +10,9 @@
  * DEC_SPECIAL(Ft='0').
  */
 
-/* 0x00 - 0x4e (Ft is within 0x30 and 0x7e) (0x30-0x3f is for DRCS) */
+/* 0x00 - 0x4e (Ft is within 0x30 and 0x7e) */
 #define CS94SB_ID(c) ((u_char)(c) - 0x30)
-/* 0x50 - 0x9e (Ft is within 0x30 and 0x7e) (0x30-0x3f is for DRCS) */
+/* 0x50 - 0x9e (Ft is within 0x30 and 0x7e) */
 #define CS96SB_ID(c) ((u_char)(c) + 0x20)
 /* 0xa0 - 0xbf (XXX Ft is within 0x40 and 0x5f) */
 #define CS94MB_ID(c) ((u_char)(c) + 0x60)
@@ -23,10 +23,10 @@
 /* 0xd0 - 0xdf (Ft is within 0x40 and 0x4f) */
 #define NON_ISO2022_2_ID(c) ((u_char)(c) + 0x90)
 
-/* 0x100 - 0x1bf (= 0x100 | CS9XXB_ID) */
-#define CS_REVISION_1(cs) ((cs) + 0x100)
-/* 0x200 - 0x2bf (= 0x200 | CS9XXB_ID) */
-#define CS_REVISION_2(cs) ((cs) + 0x200)
+/* 0x100 - 0x7bf (= 0xX00 | CS9XXB_ID) */
+#define CS_REVISION_N(cs, n) ((cs) + ((n) << 8))
+
+#define CS_ADD_INTERMEDIATE(cs, i) ((cs) + (((i) - 0x1f) << 11))
 
 /*
  * 'and 0xff' should be done because 0x100 - region is used for 'or cs_revision'
@@ -39,8 +39,12 @@
 
 #define IS_CS94SB(cs) ((unsigned int)((cs)&0xff) <= 0x4e) /* same as 0x00 <= .. <= 0x4e */
 #define IS_CS96SB(cs) (0x50 <= ((cs)&0xff) && ((cs)&0xff) <= 0x9e)
+#define IS_CSSB(cs) ((unsigned int)((cs)&0xff) <= 0x9e)
 #define IS_CS94MB(cs) (0xa0 <= ((cs)&0xff) && ((cs)&0xff) <= 0xbf)
 #define IS_CS96MB(cs) (0) /* always false */
+/* IS_CS94_STRICT() always returns false charsets containing intermediate chars. */
+#define IS_CS94_STRICT(cs) (((unsigned int)(cs) & 0xf8ff) <= 0x4e ||    \
+                            (0xa0 <= ((cs) & 0xf8ff) && ((cs) & 0xf8ff) <= 0x9e))
 #define IS_CS_BASED_ON_ISO2022(cs) (0x0 <= ((cs)&0xff) && ((cs)&0xff) <= 0xbf)
 /* without "(cs) != UNKNOWN_CS &&", 0xa0 <= (UNKNOWN_CS & 0xff) returns true. */
 #define IS_NON_ISO2022(cs) ((cs) != UNKNOWN_CS && 0xc0 <= ((cs)&0xff))
@@ -50,7 +54,10 @@
 #define IS_FULLWIDTH_CS(cs) (IS_CS94MB(cs) || IS_CS96MB(cs) || (0x1e0 <= (cs) && (cs) <= 0x1ff))
 #define CS_SIZE(cs) \
   ((cs) == ISO10646_UCS4_1 ? 4 : ((IS_FULLWIDTH_CS(cs) || (cs) == ISO10646_UCS2_1) ? 2 : 1))
-#define IS_ISO10646_UCS4(cs) (((cs) & ~CS_REVISION_1(0)) == ISO10646_UCS4_1)
+#define IS_ISO10646_UCS4(cs) (((cs) & ~CS_REVISION_N(0, 1)) == ISO10646_UCS4_1)
+
+#define CS_DEL_INTERMEDIATE(cs) ((cs) & 0x7ff)
+#define CS_INTERMEDIATE(cs) (((cs) & 0xf800) ? (((cs) >> 11) & 0x1f) + 0x1f : 0)
 
 /*
  * These enumeration numbers are based on iso2022 Ft(0x30-0x7e).
@@ -160,8 +167,8 @@ typedef enum ef_charset {
   /* Followings are ISO2022 based charsets with revisions. */
 
   /* Revision 1 */
-  JISX0208_1990 = CS_REVISION_1(JISX0208_1983),
-  ISO10646_UCS4_1_V = CS_REVISION_1(ISO10646_UCS4_1), /* mef original */
+  JISX0208_1990 = CS_REVISION_N(JISX0208_1983, 1),
+  ISO10646_UCS4_1_V = CS_REVISION_N(ISO10646_UCS4_1, 1), /* mef original */
 
   /* Followings are mef original classifications */
 

@@ -6,6 +6,15 @@
 #include <pobl/bl_types.h>
 #include <mef/ef_char.h>
 
+/*
+ * XXX
+ * 0x100 == CS_REVISION_N(cs, 1) in encdoefilter, but it is assumed that
+ * single byte charsets (0x0-0x9e) doesn't have revisions.
+ */
+#define CS_TO_DRCS(cs) ((cs) | 0x100)
+#define DRCS_TO_CS(cs) ((cs) & 0xff)
+#define IS_DRCS(cs) (((cs) & 0x100) && IS_CSSB(cs))
+
 typedef struct vt_drcs_font {
   /*ef_charset_t cs;*/ /* 0x40-0x7e */
   char *glyphs[0x60];
