@@ -1,5 +1,21 @@
 2025-10-19  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_str_parser.c: Store vt_str_parser_t::comb_left in
+	  ef_parser_t::left in addition to vt_str_parser_t::left.
+	  (Without this fix, copy&paste some characters with combining
+	  characters can fail.)
+
+	* vt_parser.c: Set DRCS charset and code to a base character
+	  combined by a picture character in put_char() to enable
+	  copy&paste DRCS-Sixel pictures in mlterm.
+
+	* vt_drcs.c: vt_convert_drcs_to_unicode_pua() doesn't check
+	  vt_drcs_get_glyph() but check IS_DRCS(cs) because it is
+	  possible to distinguish DRCS from other charsets by ch->cs
+	  after the previous commit.
+
+2025-10-19  Araki Ken  <arakiken@users.sf.net>
+
 	* vt_parser.c:
 	  - cs with intermediate char -> 0x100 | cs in put_char().
 	  - parse_vt100_escape_sequence() supports "ESC $ )".

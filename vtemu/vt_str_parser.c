@@ -9,6 +9,11 @@
 #include "vt_char_encoding.h" /* vt_is_msb_set */
 #include "vt_drcs.h"
 
+/* sizeof(ef_parser_t::left) >= 4 */
+#define LEFT_WITH_COMB_LEFT(left, comb_left) ((left) + ((comb_left) << 24))
+#define LEFT(left_with_comb) ((left_with_comb) & 0xfff)
+#define COMB_LEFT(left_with_comb) (((left_with_comb) >> 24) & 0xf)
+
 typedef struct vt_str_parser {
   ef_parser_t parser;
 
@@ -32,8 +37,9 @@ static int next_char(ef_parser_t *parser, ef_char_t *ch) {
   vt_str_parser = (vt_str_parser_t*)parser;
 
   /* hack for ef_parser_reset */
-  vt_str_parser->str -= (parser->left - vt_str_parser->left);
-  vt_str_parser->left = parser->left;
+  vt_str_parser->str -= (LEFT(parser->left) - vt_str_parser->left);
+  vt_str_parser->left = LEFT(parser->left);
+  vt_str_parser->comb_left = COMB_LEFT(parser->left);
 
   while (1) {
     if (vt_str_parser->parser.is_eos) {
@@ -117,7 +123,7 @@ static int next_char(ef_parser_t *parser, ef_char_t *ch) {
   }
 
   /* hack for ef_parser_reset */
-  parser->left = vt_str_parser->left;
+  parser->left = LEFT_WITH_COMB_LEFT(vt_str_parser->left, vt_str_parser->comb_left);
 
   if (vt_char_is_null(vt_ch)) {
     return next_char(parser, ch);
@@ -127,7 +133,7 @@ static int next_char(ef_parser_t *parser, ef_char_t *ch) {
 
 err:
   /* hack for ef_parser_reset */
-  parser->left = vt_str_parser->left;
+  parser->left = LEFT_WITH_COMB_LEFT(vt_str_parser->left, vt_str_parser->comb_left);
 
   return 0;
 }

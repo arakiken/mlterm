@@ -60,11 +60,7 @@ char *vt_drcs_get_glyph(ef_charset_t cs, u_char idx) {
 }
 
 vt_drcs_font_t *vt_drcs_get_font(vt_drcs_t *drcs, ef_charset_t cs, int create) {
-  if (!drcs) {
-    return NULL;
-  }
-
-  if (!IS_DRCS(cs)) {
+  if (!drcs || !IS_DRCS(cs)) {
     return NULL;
   }
 
@@ -151,7 +147,7 @@ int vt_drcs_get_picture(vt_drcs_font_t *font, int *id, int *pos, u_int ch) {
 }
 
 int vt_convert_drcs_to_unicode_pua(ef_char_t *ch) {
-  if (vt_drcs_get_glyph(ch->cs, ch->ch[0])) {
+  if (IS_DRCS(ch->cs)) {
     if (IS_CS94SB(ch->cs)) {
       ch->ch[2] = CS94SB_FT(ch->cs);
       ch->ch[3] = ch->ch[0] & 0x7f;
