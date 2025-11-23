@@ -435,6 +435,10 @@ static int draw_line(ui_screen_t *screen, vt_line_t *line, int y) {
 
 static int xterm_im_is_active(void *p);
 
+#if 0
+#define FORCE_BOX_CURSOR_IN_PICTURE
+#endif
+
 /*
  * Don't call this function directly.
  * Call this function via highlight_cursor.
@@ -449,7 +453,9 @@ static void draw_cursor(ui_screen_t *screen) {
   vt_char_t ch;
   vt_cursor_style_t cursor_style;
   vt_char_t *pic_ch;
+#ifdef FORCE_BOX_CURSOR_IN_PICTURE
   int is_picture;
+#endif
 #ifdef USE_IM_CURSOR_COLOR
   char *orig_cursor_bg;
   int cursor_bg_is_replaced = 0;
@@ -525,6 +531,7 @@ static void draw_cursor(ui_screen_t *screen) {
   cursor_style = vt_term_get_cursor_style(screen->term);
   vt_char_init(&ch);
   vt_char_copy(&ch, vt_char_at(line, char_index));
+#ifdef FORCE_BOX_CURSOR_IN_PICTURE
   if ((pic_ch = vt_get_picture_char(&ch))) {
     ui_inline_picture_t *pic;
 
@@ -542,6 +549,7 @@ static void draw_cursor(ui_screen_t *screen) {
   } else {
     is_picture = 0;
   }
+#endif
 
   if (cursor_style & (CS_UNDERLINE|CS_BAR|CS_BOX)) {
     /* do nothing */
@@ -590,7 +598,10 @@ static void draw_cursor(ui_screen_t *screen) {
       ui_window_fill(&screen->window, x, y, 2, ui_line_height(screen));
     }
   } else {
-    if (!is_picture) {
+#ifdef FORCE_BOX_CURSOR_IN_PICTURE
+    if (!is_picture)
+#endif
+    {
       ui_draw_str(&screen->window, screen->font_man, screen->color_man, &ch, 1, x, y,
                   ui_line_height(screen), ui_line_ascent(screen), line_top_margin(screen),
                   screen->hide_underline, screen->underline_offset);

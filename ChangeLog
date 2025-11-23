@@ -1,5 +1,7 @@
 2025-11-23  Araki Ken  <arakiken@users.sf.net>
 
+	* ui_screen.c: Draw cursor in a picture with inverted colors.
+
 	* fb/ui_virtual_key.c: Fix arguments of ui_window_copy_area().
 
 	* fb/ui_window.c: Fix compiling error by the previous commit.
