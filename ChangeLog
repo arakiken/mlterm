@@ -1,5 +1,11 @@
 2025-11-23  Araki Ken  <arakiken@users.sf.net>
 
+	* fb/ui_virtual_key.c: Fix arguments of ui_window_copy_area().
+
+	* fb/ui_window.c: Fix compiling error by the previous commit.
+
+2025-11-23  Araki Ken  <arakiken@users.sf.net>
+
 	* ui_draw_str.c:
 	  - get_state() returns pic_glyph with INLINEPIC_REVERSED flag if
 	    vt_char_is_reversed() is true.

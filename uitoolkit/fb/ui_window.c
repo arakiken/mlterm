@@ -1027,7 +1027,7 @@ static void reverse_color(Display *display, u_char *picture,
 
   if (bpp == 4) {
     u_int32_t *p = (u_int32_t*)picture;
-    u_int32_t xor = 0xffffffff & ~ALPHA_TO_PIXEL(0xff, &display->rgbinfo, 32);
+    u_int32_t xor = 0xffffffff & ~ALPHA_TO_PIXEL(0xff, display->rgbinfo, 32);
 
     for (y = 0; y < height; y++) {
       for (x = 0; x < width; x++) {

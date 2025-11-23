@@ -227,7 +227,7 @@ static void window_exposed(ui_window_t *win, int x, int y, u_int width, u_int he
     width = x_off + normal_pixmap->width - x;
   }
 
-  ui_window_copy_area(win, normal_pixmap, None, x - x_off, y, width, height, x, y);
+  ui_window_copy_area(win, normal_pixmap, None, 0, x - x_off, y, width, height, x, y);
 }
 
 static int start_virtual_kbd(ui_display_t *disp) {
@@ -305,7 +305,7 @@ static int start_virtual_kbd(ui_display_t *disp) {
   ui_window_clear_all(kbd_win);
 
   x_off = (disp->width - width) / 2;
-  ui_window_copy_area(kbd_win, normal_pixmap, None, 0, 0, width, height, x_off, 0);
+  ui_window_copy_area(kbd_win, normal_pixmap, None, 0, 0, 0, width, height, x_off, 0);
 
   if (disp->num_roots > 0) {
     ui_window_resize_with_margin(disp->roots[0], disp->width, disp->height - height,
@@ -419,8 +419,8 @@ int ui_virtual_kbd_read(XKeyEvent *kev, XButtonEvent *bev) {
 
   if (bev->type == ButtonRelease) {
     if (is_pressed) {
-      ui_window_copy_area(kbd_win, normal_pixmap, None, pressed_left, pressed_top, pressed_width,
-                          pressed_height, pressed_left + x_off, pressed_top);
+      ui_window_copy_area(kbd_win, normal_pixmap, None, 0, pressed_left, pressed_top,
+                          pressed_width, pressed_height, pressed_left + x_off, pressed_top);
 
       is_pressed = 0;
 
@@ -469,7 +469,7 @@ int ui_virtual_kbd_read(XKeyEvent *kev, XButtonEvent *bev) {
             pressed_left = key_group->keys[count2].left;
             pressed_width = key_group->keys[count2].right - pressed_left + 1;
 
-            ui_window_copy_area(kbd_win, pixmap, None, pressed_left, pressed_top, pressed_width,
+            ui_window_copy_area(kbd_win, pixmap, None, 0, pressed_left, pressed_top, pressed_width,
                                 pressed_height, pressed_left + x_off, pressed_top);
 
             if (ret == 0) {
