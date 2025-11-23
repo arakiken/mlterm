@@ -6,6 +6,7 @@
 #include <stdio.h>        /* sprintf */
 #include <pobl/bl_mem.h>  /* malloc/alloca */
 #include <pobl/bl_util.h> /* DIGIT_STR_LEN */
+#include <vt_drcs.h>
 
 #if 0
 #define __DEBUG
@@ -241,8 +242,13 @@ void ui_font_manager_set_attr(ui_font_manager_t *font_man, int size_attr, int us
 #endif
 }
 
+/* If font is DRCS, return uaascii_font as dummy. */
 ui_font_t *ui_get_font(ui_font_manager_t *font_man, vt_font_t font) {
   ui_font_t *uifont;
+
+  if (IS_DRCS(FONT_CS(font))) {
+    return font_man->font_cache->usascii_font;
+  }
 
   if (!font_man->use_bold_font) {
     font &= ~FONT_BOLD;

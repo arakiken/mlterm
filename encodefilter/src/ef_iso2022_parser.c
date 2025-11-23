@@ -71,17 +71,21 @@ inline static ef_charset_t get_charset(u_char ft,                 /* 0x30 - 0x7f
     return UNKNOWN_CS;
   }
 
+  if (intermed) {
+    cs = CS_ADD_INTERMEDIATE(cs, intermed);
+  }
+
   if (rev == 0) {
-    return CS_ADD_INTERMEDIATE(cs, intermed);
+    return cs;
   } else if (rev == 1) {
-    return CS_ADD_INTERMEDIATE(CS_REVISION_N(cs, 1), intermed);
-  } else {
+    return CS_REVISION_N(cs, 1);
+  }
+
 #ifdef DEBUG
-    bl_warn_printf(BL_DEBUG_TAG " unsupported charset revision.\n");
+  bl_warn_printf(BL_DEBUG_TAG " unsupported charset revision.\n");
 #endif
 
-    return UNKNOWN_CS;
-  }
+  return UNKNOWN_CS;
 }
 
 static int parse_escape(ef_iso2022_parser_t *iso2022_parser,

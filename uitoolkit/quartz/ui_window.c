@@ -187,18 +187,19 @@ static void clear_margin_area(ui_window_t *win) {
     }
 
     if (win->hmargin > 0 || right_margin > 0) {
-      view_copy_area(win->my_window, pic, src_x, src_y, win->hmargin, ACTUAL_HEIGHT(win), 0, 0, 0);
+      view_copy_area(win->my_window, pic, src_x, src_y, win->hmargin, ACTUAL_HEIGHT(win),
+                     0, 0, 0, 0);
       view_copy_area(win->my_window, pic, src_x + win_width + win->hmargin, src_y,
-                     win->hmargin + right_margin, ACTUAL_HEIGHT(win), win_width + win->hmargin, 0,
-                     0);
+                     win->hmargin + right_margin, ACTUAL_HEIGHT(win), win_width + win->hmargin,
+                     0, 0, 0);
     }
 
     if (win->vmargin > 0 || bottom_margin > 0) {
       view_copy_area(win->my_window, pic, src_x + win->hmargin, src_y, win_width, win->vmargin,
-                     win->hmargin, 0, 0);
+                     win->hmargin, 0, 0, 0);
       view_copy_area(win->my_window, pic, src_x + win->hmargin, src_y + win_height + win->vmargin,
                      win_width, win->vmargin + bottom_margin, win->hmargin,
-                     win_height + win->vmargin, 0);
+                     win_height + win->vmargin, 0, 0);
     }
   } else {
     if (win->hmargin > 0 || right_margin > 0) {
@@ -814,7 +815,7 @@ void ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height) 
       src_x = src_y = 0;
     }
 
-    view_copy_area(win->my_window, pic, src_x + x, src_y + y, width, height, x, y, 0);
+    view_copy_area(win->my_window, pic, src_x + x, src_y + y, width, height, x, y, 0, 0);
   } else {
     view_fill_with(win->my_window, &win->bg_color, x, y, width, height);
   }
@@ -1118,11 +1119,9 @@ int ui_window_scroll_rightward_region(ui_window_t *win, int boundary_start, int 
   return 1;
 }
 
-int ui_window_copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x, /* >= 0 */
-                        int src_y,                                                /* >= 0 */
-                        u_int width, u_int height, int dst_x,                     /* >= 0 */
-                        int dst_y                                                 /* >= 0 */
-                        ) {
+int ui_window_copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int reverse,
+                        int src_x /* >= 0 */, int src_y /* >= 0 */, u_int width, u_int height,
+                        int dst_x /* >= 0 */, int dst_y /* >= 0 */) {
   if (dst_x >= win->width || dst_y >= win->height) {
     return 0;
   }
@@ -1136,7 +1135,7 @@ int ui_window_copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x
   }
 
   view_copy_area(win->my_window, src, src_x, src_y, width, height, dst_x + win->hmargin,
-                 dst_y + win->vmargin, mask ? 1 : 0);
+                 dst_y + win->vmargin, reverse ? 1 : 0, mask ? 1 : 0);
 
   return 1;
 }

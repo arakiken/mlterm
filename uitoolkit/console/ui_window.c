@@ -247,12 +247,25 @@ static void draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
 }
 
 #ifdef USE_LIBSIXEL
-static int copy_area(ui_window_t *win, Pixmap src, int src_x, /* can be minus */
-                     int src_y,                               /* can be minus */
-                     u_int width, u_int height, int dst_x,    /* can be minus */
-                     int dst_y,                               /* can be minus */
-                     int accept_margin /* x/y can be minus and over width/height */
-                     ) {
+static void reverse_color(u_char *picture, u_int width, u_int height) {
+  int x;
+  int y;
+
+  for (y = 0; y < height; y++) {
+    for (x = 0; x < width; x++) {
+      *(picture++) ^= 0xff; /* R */
+      *(picture++) ^= 0xff; /* G */
+      *(picture++) ^= 0xff; /* B */
+      picture++; /* A */
+    }
+  }
+}
+
+static int copy_area(ui_window_t *win, Pixmap src, int reverse,
+                     int src_x /* can be minus */, int src_y /* can be minus */,
+                     u_int width, u_int height,
+                     int dst_x /* can be minus */, int dst_y /* can be minus */,
+                     int accept_margin /* x/y can be minus and over width/height */) {
   int hmargin;
   int vmargin;
   int right_margin;
@@ -319,6 +332,10 @@ static int copy_area(ui_window_t *win, Pixmap src, int src_x, /* can be minus */
     }
   }
 
+  if (reverse) {
+    reverse_color(picture, width, height);
+  }
+
   fprintf(win->disp->display->fp, "\x1b[%d;%dH", (win->y + win->vmargin + dst_y) / LINE_HEIGHT + 1,
           (win->x + win->hmargin + dst_x) / COL_WIDTH + 1);
   ui_display_output_picture(win->disp, picture, width, height);
@@ -326,12 +343,14 @@ static int copy_area(ui_window_t *win, Pixmap src, int src_x, /* can be minus */
 
   if (width < src->width) {
     free(picture);
+  } else if (reverse) {
+    reverse_color(picture, width, height);
   }
 
   return 1;
 }
 #else
-#define copy_area(win, src, src_x, src_y, width, height, dst_x, dst_y, accept_margin) (0)
+#define copy_area(win, src, reverse, src_x, src_y, width, height, dst_x, dst_y, accept_margin) (0)
 #endif
 
 static void clear_margin_area(ui_window_t *win) {
@@ -851,7 +870,7 @@ void ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height) 
       src_y = y;
     }
 
-    copy_area(win, pic, src_x, src_y, width, height, x, y, 1);
+    copy_area(win, pic, 0, src_x, src_y, width, height, x, y, 1);
   }
 }
 
@@ -1269,12 +1288,10 @@ int ui_window_scroll_rightward_region(ui_window_t *win, int boundary_start, int 
   return 1;
 }
 
-int ui_window_copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x, /* >= 0 */
-                        int src_y,                                                /* >= 0 */
-                        u_int width, u_int height, int dst_x,                     /* >= 0 */
-                        int dst_y                                                 /* >= 0 */
-                        ) {
-  return copy_area(win, src, src_x, src_y, width, height, dst_x, dst_y, 0);
+int ui_window_copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int reverse,
+                        int src_x /* >= 0 */, int src_y /* >= 0 */, u_int width, u_int height,
+                        int dst_x /* >= 0 */, int dst_y /* >= 0 */) {
+  return copy_area(win, src, reverse, src_x, src_y, width, height, dst_x, dst_y, 0);
 }
 
 void ui_window_set_clip(ui_window_t *win, int x, int y, u_int width, u_int height) {}

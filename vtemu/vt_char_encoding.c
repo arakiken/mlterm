@@ -264,17 +264,30 @@ static void ovrd_iso2022kr_parser_init(ef_parser_t *parser) {
   (*conv->destroy)(conv);
 }
 
-static size_t iso2022_illegal_char(ef_conv_t *conv, u_char *dst, size_t dst_size, int *is_full,
-                                   ef_char_t *ch) {
-  if (ch->cs == ISO10646_UCS4_1) {
-    vt_convert_unicode_pua_to_drcs(ch);
+static size_t iso2022_illegal_char(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                   int *is_full, ef_char_t *ch) {
+  if ((ch->cs == ISO10646_UCS4_1 && vt_convert_unicode_pua_to_drcs(ch))) {
+    ch->cs = CS_ADD_INTERMEDIATE(DRCS_TO_CS(ch->cs), ' ');
+  }
+
+  if ((CS_INTERMEDIATE(ch->cs) == ' ' && IS_CSSB(ch->cs))) {
+    return ef_iso2022_illegal_char(conv, dst, dst_size, is_full, ch);
+  }
+
+  return 0;
+}
+
+static size_t iso2022_illegal_char_loose(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                    int *is_full, ef_char_t *ch) {
+  if (ch->cs == ISO10646_UCS4_1 && vt_convert_unicode_pua_to_drcs(ch)) {
+    ch->cs = CS_ADD_INTERMEDIATE(DRCS_TO_CS(ch->cs), ' ');
   }
 
   return ef_iso2022_illegal_char(conv, dst, dst_size, is_full, ch);
 }
 
-static size_t non_iso2022_illegal_char(ef_conv_t *conv, u_char *dst, size_t dst_size, int *is_full,
-                                       ef_char_t *ch) {
+static size_t non_iso2022_illegal_char_loose(ef_conv_t *conv, u_char *dst, size_t dst_size,
+                                             int *is_full, ef_char_t *ch) {
   *is_full = 0;
 
   if (ch->cs == DEC_SPECIAL) {
@@ -294,7 +307,8 @@ static size_t non_iso2022_illegal_char(ef_conv_t *conv, u_char *dst, size_t dst_
 
     return 7;
   } else {
-    return 0;
+    /* for DRCS */
+    return iso2022_illegal_char(conv, dst, dst_size, is_full, ch);
   }
 }
 
@@ -314,6 +328,36 @@ static size_t utf8_illegal_char(ef_conv_t *conv, u_char *dst, size_t dst_size, i
 
       return 3;
     }
+  } else {
+    /*
+     * Android doesn't support PUA as follows. (tested on Android 4.0)
+     *
+     * e.g.) UTF8:0x4f88819a (U+10805a)
+     * W/dalvikvm( 4527): JNI WARNING: input is not valid Modified UTF-8: illegal
+     *start byte 0xf4
+     * I/dalvikvm( 4527):   at dalvik.system.NativeStart.run(Native Method)
+     * E/dalvikvm( 4527): VM aborting
+     */
+#ifndef __ANDROID__
+    ef_charset_t orig_cs = ch->cs;
+
+    if (CS_INTERMEDIATE(orig_cs) == ' ' && IS_CSSB(orig_cs)) {
+      ch->cs = CS_TO_DRCS(CS_DEL_INTERMEDIATE(orig_cs));
+    }
+
+    if (vt_convert_drcs_to_unicode_pua(ch)) {
+      /* U+100000 - U+10FFFF */
+      u_int32_t ucs_ch = ef_char_to_int(ch);
+      dst[0] = ((ucs_ch >> 18) & 0x07) | 0xf0;
+      dst[1] = ((ucs_ch >> 12) & 0x3f) | 0x80;
+      dst[2] = ((ucs_ch >> 6) & 0x3f) | 0x80;
+      dst[3] = (ucs_ch & 0x3f) | 0x80;
+
+      return 4;
+    } else {
+      ch->cs = orig_cs;
+    }
+#endif
   }
 
   return 0;
@@ -435,6 +479,8 @@ ef_conv_t *vt_char_encoding_conv_new(vt_char_encoding_t encoding) {
   if (encoding == VT_UTF8) {
     conv->illegal_char = utf8_illegal_char;
   } else if (IS_ENCODING_BASED_ON_ISO2022(encoding)) {
+    conv->illegal_char = iso2022_illegal_char;
+
     if (encoding == VT_ISO2022KR) {
       /* overriding init method */
 
@@ -574,12 +620,14 @@ void vt_char_encoding_conv_set_use_loose_rule(ef_conv_t *conv, vt_char_encoding_
                                               int flag) {
   if (flag) {
     if (IS_ENCODING_BASED_ON_ISO2022(encoding)) {
-      conv->illegal_char = iso2022_illegal_char;
+      conv->illegal_char = iso2022_illegal_char_loose;
     } else {
-      conv->illegal_char = non_iso2022_illegal_char;
+      conv->illegal_char = non_iso2022_illegal_char_loose;
     }
   } else {
-    if (encoding == VT_UTF8) {
+    if (IS_ENCODING_BASED_ON_ISO2022(encoding)) {
+      conv->illegal_char = iso2022_illegal_char;
+    } else if (encoding == VT_UTF8) {
       conv->illegal_char = utf8_illegal_char;
     } else {
       conv->illegal_char = NULL;

@@ -1019,12 +1019,40 @@ static void draw_string(ui_window_t *win, ui_font_t *font, ui_color_t *fg_color,
   }
 }
 
-static int copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x, /* can be minus */
-                     int src_y,                                                /* can be minus */
-                     u_int width, u_int height, int dst_x,                     /* can be minus */
-                     int dst_y,                                                /* can be minus */
-                     int accept_margin /* x/y can be minus and over width/height */
-                     ) {
+static void reverse_color(Display *display, u_char *picture,
+                          u_int picture_width, u_int width, u_int height) {
+  int bpp = display->bytes_per_pixel;
+  int x;
+  int y;
+
+  if (bpp == 4) {
+    u_int32_t *p = (u_int32_t*)picture;
+    u_int32_t xor = 0xffffffff & ~ALPHA_TO_PIXEL(0xff, &display->rgbinfo, 32);
+
+    for (y = 0; y < height; y++) {
+      for (x = 0; x < width; x++) {
+        p[x] ^= xor;
+      }
+      p += picture_width;
+    }
+  } else {
+    size_t size = width * bpp;
+    size_t picture_size = picture_width * bpp;
+
+    for (y = 0; y < height; y++) {
+      for (x = 0; x < size; x++) {
+        picture[x] ^= 0xff;
+      }
+      picture += picture_size;
+    }
+  }
+}
+
+static int copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int reverse,
+                     int src_x /* can be minus */, int src_y /* can be minus */,
+                     u_int width, u_int height,
+                     int dst_x /* can be minus */, int dst_y /* can be minus */,
+                     int accept_margin /* x/y can be minus and over width/height */) {
   int hmargin;
   int vmargin;
   int right_margin;
@@ -1032,6 +1060,7 @@ static int copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x, /
   int y_off;
   u_int bpp;
   u_char *picture;
+  u_char *picture_orig;
   size_t src_width_size;
 
   if (!win->is_mapped) {
@@ -1063,6 +1092,11 @@ static int copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x, /
   bpp = win->disp->display->bytes_per_pixel;
   src_width_size = src->width * bpp;
   picture = src->image + src_width_size * (vmargin + src_y) + bpp * (hmargin + src_x);
+
+  if (reverse) {
+    picture_orig = picture;
+    reverse_color(win->disp->display, picture_orig, src->width, width, height);
+  }
 
   if (mask) {
     mask += ((vmargin + src_y) * src->width + hmargin + src_x);
@@ -1096,9 +1130,7 @@ static int copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x, /
       picture += src_width_size;
     }
   } else {
-    size_t size;
-
-    size = width * bpp;
+    size_t size = width * bpp;
 
     for (y_off = 0; y_off < height; y_off++) {
       ui_display_put_image(win->disp, win->x + win->hmargin + dst_x,
@@ -1106,6 +1138,10 @@ static int copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x, /
                            picture, size, 0);
       picture += src_width_size;
     }
+  }
+
+  if (reverse) {
+    reverse_color(win->disp->display, picture_orig, src->width, width, height);
   }
 
   return 1;
@@ -1793,7 +1829,7 @@ void ui_window_clear(ui_window_t *win, int x, int y, u_int width, u_int height) 
       src_y = y;
     }
 
-    copy_area(win, pic, None, src_x, src_y, width, height, x, y, 1);
+    copy_area(win, pic, None, 0, src_x, src_y, width, height, x, y, 1);
   }
 }
 
@@ -2305,12 +2341,10 @@ int ui_window_scroll_rightward_region(ui_window_t *win, int boundary_start, int 
   return 1;
 }
 
-int ui_window_copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x, /* >= 0 */
-                        int src_y,                                                /* >= 0 */
-                        u_int width, u_int height, int dst_x,                     /* >= 0 */
-                        int dst_y                                                 /* >= 0 */
-                        ) {
-  return copy_area(win, src, mask, src_x, src_y, width, height, dst_x, dst_y, 0);
+int ui_window_copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int reverse,
+                        int src_x /* >= 0 */, int src_y /* >= 0 */, u_int width, u_int height,
+                        int dst_x /* >= 0 */, int dst_y /* >= 0 */) {
+  return copy_area(win, src, mask, reverse, src_x, src_y, width, height, dst_x, dst_y, 0);
 }
 
 void ui_window_set_clip(ui_window_t *win, int x, int y, u_int width, u_int height) {

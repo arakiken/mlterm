@@ -27,7 +27,7 @@
 /* For inline pictures (see x_picture.c) */
 #define PICTURE_CHARSET 0x1ff
 #define PICTURE_ID_BITS 9   /* fg or bg color */
-#define PICTURE_POS_BITS 23 /* code (Can be shrunk to 21 bits) */
+#define PICTURE_POS_BITS 22 /* code (Can be shrunk to 21 bits) See ui_draw_str.c */
 
 #define LS_UNDERLINE (LS_UNDERLINE_SINGLE|LS_UNDERLINE_DOUBLE)
 
@@ -234,6 +234,8 @@ int vt_char_is_protected(vt_char_t *ch);
 int vt_char_reverse_color(vt_char_t *ch);
 
 int vt_char_restore_color(vt_char_t *ch);
+
+int vt_char_is_reversed(vt_char_t *ch);
 
 int vt_char_is_null(vt_char_t *ch);
 

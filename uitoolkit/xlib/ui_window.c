@@ -2683,11 +2683,9 @@ int ui_window_scroll_rightward_region(ui_window_t *win, int boundary_start, int 
   return 1;
 }
 
-int ui_window_copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x, /* >= 0 */
-                        int src_y,                                                /* >= 0 */
-                        u_int width, u_int height, int dst_x,                     /* >= 0 */
-                        int dst_y                                                 /* >= 0 */
-                        ) {
+int ui_window_copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int reverse,
+                        int src_x /* >= 0 */, int src_y /* >= 0 */, u_int width, u_int height,
+                        int dst_x /* >= 0 */, int dst_y /* >= 0 */) {
   if (dst_x >= win->width || dst_y >= win->height) {
     return 0;
   }
@@ -2710,8 +2708,23 @@ int ui_window_copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x
                    dst_y + win->vmargin - src_y);
   }
 
+  if (reverse) {
+    if (win->disp->depth == 32) {
+      ui_color_t color;
+      color.pixel = 0x00ffffff;
+      ui_window_fill_with(win, &color, dst_x, dst_y, width, height);
+      XSetFunction(win->disp->display, win->gc->gc, GXxor);
+    } else {
+      XSetFunction(win->disp->display, win->gc->gc, GXcopyInverted);
+    }
+  }
+
   XCopyArea(win->disp->display, src, win->my_window, win->gc->gc, src_x, src_y, width, height,
             dst_x + win->hmargin, dst_y + win->vmargin);
+
+  if (reverse) {
+    XSetFunction(win->disp->display, win->gc->gc, GXcopy);
+  }
 
   return 1;
 }

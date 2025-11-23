@@ -366,8 +366,8 @@ int ui_window_scroll_rightward_region(ui_window_t *win, int boundary_start, int 
 
 int ui_window_scroll_rightward(ui_window_t *win, u_int width);
 
-int ui_window_copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int src_x, int src_y,
-                        u_int width, u_int height, int dst_x, int dst_y);
+int ui_window_copy_area(ui_window_t *win, Pixmap src, PixmapMask mask, int reverse,
+                        int src_x, int src_y, u_int width, u_int height, int dst_x, int dst_y);
 
 void ui_window_set_clip(ui_window_t *win, int x, int y, u_int width, u_int height);
 

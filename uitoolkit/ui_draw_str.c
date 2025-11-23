@@ -8,6 +8,7 @@
 #ifndef NO_IMAGE
 #include "ui_picture.h"
 
+#define INLINEPIC_REVERSED(glyph) ((glyph) & (1 << (PICTURE_POS_BITS + PICTURE_ID_BITS)))
 #define INLINEPIC_ID(glyph) (((glyph) >> PICTURE_POS_BITS) & (MAX_INLINE_PICTURES - 1))
 #define INLINEPIC_POS(glyph) ((glyph) & ((1 << PICTURE_POS_BITS) - 1))
 #endif
@@ -134,6 +135,7 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
   u_int dst_width;
   int need_clear;
   int is_end;
+  u_int32_t is_reversed;
 
   cur_pic = NULL;
   is_end = 0;
@@ -171,7 +173,8 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
 
     if (count == 0) {
       goto new_picture;
-    } else if (w > 0 && pic == cur_pic && src_x + src_width == x) {
+    } else if (w > 0 && pic == cur_pic && is_reversed == INLINEPIC_REVERSED(glyphs[count]) &&
+               src_x + src_width == x) {
       if (draw_bg && !cur_pic->transparent && !need_clear && w < ch_width) {
         draw_background(window, bg_xcolor, dst_x + dst_width, dst_y, ch_width, line_height);
       }
@@ -201,8 +204,8 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
                       dst_y, cur_pic->pixmap, cur_pic->mask, src_x, src_y, src_width, src_height);
 #endif
 
-      ui_window_copy_area(window, cur_pic->pixmap, cur_pic->mask, src_x, src_y, src_width,
-                          src_height, dst_x, dst_y);
+      ui_window_copy_area(window, cur_pic->pixmap, cur_pic->mask, is_reversed,
+                          src_x, src_y, src_width, src_height, dst_x, dst_y);
     }
 
     if (is_end) {
@@ -216,6 +219,7 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
     src_x = x;
     dst_width = ch_width;
     cur_pic = pic;
+    is_reversed = INLINEPIC_REVERSED(glyphs[count]);
     need_clear = 0;
 
     if (src_y + line_height > pic->height) {
@@ -260,8 +264,8 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
                     dst_y, cur_pic->pixmap, cur_pic->mask, src_x, src_y, src_width, src_height);
 #endif
 
-    ui_window_copy_area(window, cur_pic->pixmap, cur_pic->mask, src_x, src_y, src_width, src_height,
-                        dst_x, dst_y);
+    ui_window_copy_area(window, cur_pic->pixmap, cur_pic->mask, is_reversed,
+                        src_x, src_y, src_width, src_height, dst_x, dst_y);
   }
 
   return 1;
@@ -399,7 +403,9 @@ static int get_state(ef_charset_t ch_cs, u_int32_t ch_code, vt_char_t *comb_char
 #ifndef NO_IMAGE
   if (comb_chars && vt_char_cs(comb_chars) == PICTURE_CHARSET) {
     *draw_alone = 0; /* forcibly set 0 regardless of uifont. */
-    *pic_glyph = vt_char_code(comb_chars) | (vt_char_picture_id(comb_chars) << PICTURE_POS_BITS);
+    *pic_glyph = vt_char_code(comb_chars) |
+                 (vt_char_picture_id(comb_chars) << PICTURE_POS_BITS) |
+                 (vt_char_is_reversed(comb_chars) << (PICTURE_ID_BITS + PICTURE_POS_BITS));
     *drcs_glyph = NULL;
 
     return 4;

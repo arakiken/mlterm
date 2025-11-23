@@ -220,9 +220,9 @@ typedef int XFontSet; /* dummy */
 #define Mod4Mask 0
 #define Mod5Mask 0
 #define CommandMask B_COMMAND_KEY
-#define Button1Mask 0
-#define Button2Mask 0
-#define Button3Mask 0
+#define Button1Mask 1 /* B_PRIMARY_MOUSE_BUTTON */
+#define Button2Mask 2 /* B_SECONDARY_MOUSE_BUTTON */
+#define Button3Mask 4 /* B_TERTIARY_MOUSE_BUTTON */
 #define Button4Mask 0
 #define Button5Mask 0
 #define Button1 1

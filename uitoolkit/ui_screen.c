@@ -6502,7 +6502,7 @@ static void xterm_show_tmp_picture(void *p, char *file_path) {
 
   if (!vt_term_get_vertical_mode(screen->term) &&
       ui_load_tmp_picture(screen->window.disp, file_path, &pixmap, &mask, &width, &height)) {
-    ui_window_copy_area(&screen->window, pixmap, mask, 0, 0, width, height, 0, 0);
+    ui_window_copy_area(&screen->window, pixmap, mask, 0, 0, 0, width, height, 0, 0);
     ui_destroy_tmp_picture(screen->window.disp, pixmap, mask);
 
     /*

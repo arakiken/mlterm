@@ -1,3 +1,43 @@
+2025-11-23  Araki Ken  <arakiken@users.sf.net>
+
+	* ui_draw_str.c:
+	  - get_state() returns pic_glyph with INLINEPIC_REVERSED flag if
+	    vt_char_is_reversed() is true.
+	  - draw_picture() reverses the colors if INLINEPIC_REVERSED flag is set.
+
+	* */ui_window.c, ui_window.h:
+	  Add 'int reverse' to arguments of ui_window_copy_area().
+
+	* beos/ui.h: Define Button1Mask - Button3Mask.
+
+	* beos.cpp, beos.h, cocoa.[hm], cocoatouch.m:
+	  Add 'int reverse' to arguments of view_copy_area().
+
+	* ui_font_manager.c: ui_get_font() returns usascii_font for DRCS.
+
+	* vt_char_encoding.c:
+	  - vt_char_encoding_conv_new() set conv->illegal_char to iso2022_illegal_char
+	    (where vt_convert_unicode_pua_to_drcs() is called) by default if encoding
+	    is based on ISO2022.
+	  - Add iso2022_illegal_char_loose which is used if flag of
+	    vt_char_encoding_conv_set_use_loose_rule() is 1.
+	  - utf8_illegal_char() converts DRCS to unicode pua with the use of
+	    vt_convert_drcs_to_unicode_pua().
+
+	* vt_str_parser.c:
+	  - next_char() converts format of drcs charset from vt_drcs style to
+	    ef_charset style.
+	  - Remove vt_convert_drcs_to_unicode_pua() in next_char().
+
+	* vt_char.[ch]:
+	  - vt_char_combine() doesn't execute normalize() for PICTURE_CHARSET.
+	  - Add vt_char_is_reversed().
+	  - PICTURE_POS_BITS 23 -> 22 for INLINEPIC_REVERSED() bit in ui_draw_str.c
+
+	* ef_iso2022_conv.c: designate_to_g0() processes intermidiate bits of cs.
+
+	* ef_iso2022_parser.c: Fix the commit before the previous one.
+
 2025-10-19  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_str_parser.c: Store vt_str_parser_t::comb_left in

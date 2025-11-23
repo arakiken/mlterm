@@ -26,6 +26,7 @@
 /* 0x100 - 0x7bf (= 0xX00 | CS9XXB_ID) */
 #define CS_REVISION_N(cs, n) ((cs) + ((n) << 8))
 
+/* 0x800 - 0x1xxx (0x20 <= i <= 0x2f) */
 #define CS_ADD_INTERMEDIATE(cs, i) ((cs) + (((i) - 0x1f) << 11))
 
 /*

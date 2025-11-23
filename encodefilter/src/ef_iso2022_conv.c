@@ -15,10 +15,13 @@
 /* --- static functions --- */
 
 static size_t designate_to_g0(u_char *dst, size_t dst_size, int *is_full, ef_charset_t cs) {
+  u_char intermed = CS_INTERMEDIATE(cs);
+  u_int len;
+
   *is_full = 0;
 
   if (IS_CS94SB(cs)) {
-    if (3 > dst_size) {
+    if ((len = intermed ? 4 : 3) > dst_size) {
       *is_full = 1;
 
       return 0;
@@ -26,11 +29,12 @@ static size_t designate_to_g0(u_char *dst, size_t dst_size, int *is_full, ef_cha
 
     *(dst++) = '\x1b';
     *(dst++) = '(';
+    if (intermed) {
+      *(dst++) = intermed;
+    }
     *(dst++) = CS94SB_FT(cs);
-
-    return 3;
   } else if (IS_CS94MB(cs)) {
-    if (4 > dst_size) {
+    if ((len = intermed ? 5 : 4) > dst_size) {
       *is_full = 1;
 
       return 0;
@@ -39,11 +43,12 @@ static size_t designate_to_g0(u_char *dst, size_t dst_size, int *is_full, ef_cha
     *(dst++) = '\x1b';
     *(dst++) = '$';
     *(dst++) = '(';
+    if (intermed) {
+      *(dst++) = intermed;
+    }
     *(dst++) = CS94MB_FT(cs);
-
-    return 4;
   } else if (IS_CS96SB(cs)) {
-    if (3 > dst_size) {
+    if ((len = intermed ? 4 : 3) > dst_size) {
       *is_full = 1;
 
       return 0;
@@ -51,11 +56,12 @@ static size_t designate_to_g0(u_char *dst, size_t dst_size, int *is_full, ef_cha
 
     *(dst++) = '\x1b';
     *(dst++) = '-';
+    if (intermed) {
+      *(dst++) = intermed;
+    }
     *(dst++) = CS96SB_FT(cs);
-
-    return 3;
   } else if (IS_CS96MB(cs)) {
-    if (4 > dst_size) {
+    if ((len = intermed ? 5 : 4) > dst_size) {
       *is_full = 1;
 
       return 0;
@@ -64,14 +70,17 @@ static size_t designate_to_g0(u_char *dst, size_t dst_size, int *is_full, ef_cha
     *(dst++) = '\x1b';
     *(dst++) = '$';
     *(dst++) = '-';
+    if (intermed) {
+      *(dst++) = intermed;
+    }
     *(dst++) = CS96MB_FT(cs);
+  } else {
+    /* error */
 
-    return 4;
+    return 0;
   }
 
-  /* error */
-
-  return 0;
+  return len;
 }
 
 /* --- global functions --- */

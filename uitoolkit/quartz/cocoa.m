@@ -49,7 +49,7 @@
                     :(size_t)len;
 - (void)fillWith:(ui_color_t *)color:(int)x:(int)y:(u_int)width:(u_int)height;
 - (void)drawRectFrame:(ui_color_t *)color:(int)x1:(int)y1:(int)x2:(int)y2;
-- (void)copyArea:(Pixmap)src
+- (void)copyArea:(Pixmap)pixmap
                 :(int)src_x
                 :(int)src_y
                 :(u_int)width
@@ -1251,26 +1251,89 @@ static ui_window_t *get_current_window(ui_window_t *win) {
   CGContextFillPath(ctx);
 }
 
-- (void)copyArea:(Pixmap)src
+- (void)copyArea:(Pixmap)pixmap
                 :(int)src_x
                 :(int)src_y
                 :(u_int)width
                 :(u_int)height
                 :(int)dst_x
                 :(int)dst_y
+                :(BOOL)reverse
                 :(BOOL)hasAlpha {
-  CGImageRef clipped = CGImageCreateWithImageInRect(
-      src, CGRectMake(src_x, src_y, width, height));
+#if 1
+  if (width > SSIZE_MAX / 4 / height) {
+    return;
+  }
+
+  u_char *dst;
+  u_char *dst_p;
+  size_t dst_stride = width * 4;
+  size_t dst_len = dst_stride * height;
+
+  if ((dst = dst_p = malloc(dst_len)) == NULL) {
+    return;
+  }
+
+  CFDataRef data = CGDataProviderCopyData(CGImageGetDataProvider(pixmap));
+  u_char *src = (u_char *)CFDataGetBytePtr(data);
+  size_t src_stride = CGImageGetBytesPerRow(pixmap);
+  u_int y;
+
+  src += (src_y * src_stride + src_x * 4);
+
+  if (reverse) {
+    u_char *src_p;
+    u_int x;
+
+    for (y = 0; y < height; y++) {
+      src_p = src;
+      for (x = 0; x < width; x++) {
+#if 0
+        *(dst_p++) = *(src_p++) ^ 0xff; /* red */
+        *(dst_p++) = *(src_p++) ^ 0xff; /* green */
+        *(dst_p++) = *(src_p++) ^ 0xff; /* blue */
+        *(dst_p++) = *(src_p++); /* alpha */
+#else
+        *((u_int32_t*)dst_p) = *((u_int32_t*)src_p) ^ 0xffffffff;
+        dst_p += 4;
+        src_p += 4;
+#endif
+      }
+      src += src_stride;
+    }
+  } else {
+    for (y = 0; y < height; y++) {
+      dst_p = memcpy(dst_p, src, dst_stride) + dst_stride;
+      src += src_stride;
+    }
+  }
+
+  CFDataRef new_data = CFDataCreate(NULL, dst, dst_len);
+  CGDataProviderRef new_provider = CGDataProviderCreateWithCFData(new_data);
+  CGImageRef new_image = CGImageCreate(width, height, CGImageGetBitsPerComponent(pixmap),
+                                       CGImageGetBitsPerPixel(pixmap), dst_stride,
+                                       CGImageGetColorSpace(pixmap),
+                                       CGImageGetBitmapInfo(pixmap), new_provider, NULL,
+                                       CGImageGetShouldInterpolate(pixmap),
+                                       CGImageGetRenderingIntent(pixmap));
+  CFRelease(new_provider);
+  CFRelease(new_data);
+  free(dst);
+#else
+  CGImageRef new_image = CGImageCreateWithImageInRect(pixmap,
+                                                      CGRectMake(src_x, src_y, width, height));
+#endif
+
   if (hasAlpha) {
     CGContextSetBlendMode(ctx, kCGBlendModeNormal /* kCGBlendModeMultiply */);
   }
   CGContextDrawImage(ctx,
                      CGRectMake(dst_x, ACTUAL_HEIGHT(uiwindow) - dst_y - height, width, height),
-                     clipped);
+                     new_image);
   if (hasAlpha) {
     CGContextSetBlendMode(ctx, kCGBlendModeCopy);
   }
-  CGImageRelease(clipped);
+  CGImageRelease(new_image);
 }
 
 #if 0
@@ -1431,8 +1494,9 @@ void view_draw_rect_frame(MLTermView *view, ui_color_t *color, int x1, int y1,
 }
 
 void view_copy_area(MLTermView *view, Pixmap src, int src_x, int src_y,
-                    u_int width, u_int height, int dst_x, int dst_y, int hasAlpha) {
-  [view copyArea:src:src_x:src_y:width:height:dst_x:dst_y:hasAlpha];
+                    u_int width, u_int height, int dst_x, int dst_y,
+                    int reverse, int hasAlpha) {
+  [view copyArea:src:src_x:src_y:width:height:dst_x:dst_y:reverse ? TRUE : FALSE:hasAlpha];
 }
 
 void view_scroll(MLTermView *view, int src_x, int src_y, u_int width,

@@ -29,8 +29,8 @@ void view_fill_with(void *view, ui_color_t *color, int x, int y, u_int width, u_
 
 void view_draw_rect_frame(void *view, ui_color_t *color, int x1, int y1, int x2, int y2);
 
-void view_copy_area(void *view, Pixmap src, int src_x, int src_y, u_int width, u_int height,
-                    int dst_x, int dst_y);
+void view_copy_area(void *view, Pixmap src, int reverse, int src_x, int src_y,
+                    u_int width, u_int height, int dst_x, int dst_y);
 
 void view_scroll(void *view, int src_x, int src_y, u_int width, u_int height, int dst_x, int dst_y);
 

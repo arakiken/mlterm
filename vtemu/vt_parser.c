@@ -943,7 +943,6 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
   int is_blinking;
   int is_protected;
   int is_reversed;
-  u_char intermed;
 
   if (vt_parser->w_buf.filled_len == PTY_WR_BUFFER_SIZE) {
     flush_buffer(vt_parser);
@@ -969,10 +968,8 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
   bl_debug_printf("ch %x cs %x => %s\n", ch, cs, is_fullwidth ? "Fullwidth" : "Single");
 #endif
 
-  if ((intermed = CS_INTERMEDIATE(cs))) {
-    if (intermed == ' ' && IS_CSSB(cs)) {
-      cs = CS_TO_DRCS(CS_DEL_INTERMEDIATE(cs));
-    }
+  if (CS_INTERMEDIATE(cs) == ' ' && IS_CSSB(cs)) {
+    cs = CS_TO_DRCS(CS_DEL_INTERMEDIATE(cs));
   }
 
   if ((prop & EF_COMBINING)

@@ -520,7 +520,9 @@ vt_char_t *vt_char_combine(vt_char_t *ch, u_int32_t code, ef_charset_t cs, int i
               is_bold, is_italic, line_style, is_blinking, is_protected);
 
 #ifdef USE_NORMALIZE
-  normalize(ch, comb_size);
+  if (cs != PICTURE_CHARSET) {
+    normalize(ch, comb_size);
+  }
 #endif
 
   return comb;
@@ -1009,6 +1011,14 @@ int vt_char_restore_color(vt_char_t *ch) {
     }
 
     return 1;
+  }
+}
+
+int vt_char_is_reversed(vt_char_t *ch) {
+  if (IS_SINGLE_CH(ch->u.ch.attr)) {
+    return IS_REVERSED(ch->u.ch.attr) ? 1 : 0;
+  } else {
+    return vt_char_is_reversed(ch->u.multi_ch);
   }
 }
 

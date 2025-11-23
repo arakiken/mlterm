@@ -426,6 +426,7 @@ void MLView::MouseMoved(BPoint where, uint32 code, const BMessage *dragMessage) 
   if (buttons == 0) {
     mev.type = UI_POINTER_MOTION;
   } else {
+#if 0
     if (buttons & B_PRIMARY_MOUSE_BUTTON) {
       mev.state |= Button1Mask;
     }
@@ -435,6 +436,9 @@ void MLView::MouseMoved(BPoint where, uint32 code, const BMessage *dragMessage) 
     if (buttons & B_TERTIARY_MOUSE_BUTTON) {
       mev.state |= Button2Mask;
     }
+#else
+    mev.state = buttons;
+#endif
     mev.type = UI_BUTTON_MOTION;
   }
 
@@ -841,7 +845,7 @@ void view_draw_rect_frame(/* BView */ void *view, ui_color_t *color, int x1, int
   ((BView*)view)->UnlockLooper();
 }
 
-void view_copy_area(/* BView */ void *view, Pixmap src, int src_x, int src_y,
+void view_copy_area(/* BView */ void *view, Pixmap src, int reverse, int src_x, int src_y,
                     u_int width, u_int height, int dst_x, int dst_y) {
   if (((BView*)view)->LockLooperWithTimeout(B_INFINITE_TIMEOUT) != B_OK) {
     return;
@@ -850,6 +854,15 @@ void view_copy_area(/* BView */ void *view, Pixmap src, int src_x, int src_y,
   ((BView*)view)->DrawBitmap((BBitmap*)src,
                              BRect(src_x, src_y, src_x + width - 1, src_y + height - 1),
                              BRect(dst_x, dst_y, dst_x + width - 1, dst_y + height - 1));
+
+  if (reverse) {
+    /* XXX Drawing with both B_OP_COPY and B_OP_INVERT is necessary to invert colors correctly. */
+    ((BView*)view)->SetDrawingMode(B_OP_INVERT);
+    ((BView*)view)->DrawBitmap((BBitmap*)src,
+                               BRect(src_x, src_y, src_x + width - 1, src_y + height - 1),
+                               BRect(dst_x, dst_y, dst_x + width - 1, dst_y + height - 1));
+    ((BView*)view)->SetDrawingMode(B_OP_COPY);
+  }
 
   ((BView*)view)->UnlockLooper();
 }
