@@ -1,3 +1,7 @@
+2025-11-24  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_char_encoding.c: Fix illegal memory access in utf8_illegal_char().
+
 2025-11-23  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_screen.c: Draw cursor in a picture with inverted colors.

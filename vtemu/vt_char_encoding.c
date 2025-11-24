@@ -346,17 +346,22 @@ static size_t utf8_illegal_char(ef_conv_t *conv, u_char *dst, size_t dst_size, i
     }
 
     if (vt_convert_drcs_to_unicode_pua(ch)) {
-      /* U+100000 - U+10FFFF */
-      u_int32_t ucs_ch = ef_char_to_int(ch);
-      dst[0] = ((ucs_ch >> 18) & 0x07) | 0xf0;
-      dst[1] = ((ucs_ch >> 12) & 0x3f) | 0x80;
-      dst[2] = ((ucs_ch >> 6) & 0x3f) | 0x80;
-      dst[3] = (ucs_ch & 0x3f) | 0x80;
+      if (dst_size < 4) {
+        *is_full = 1;
+      } else {
+        /* U+100000 - U+10FFFF */
+        u_int32_t ucs_ch = ef_char_to_int(ch);
 
-      return 4;
-    } else {
-      ch->cs = orig_cs;
+        dst[0] = ((ucs_ch >> 18) & 0x07) | 0xf0;
+        dst[1] = ((ucs_ch >> 12) & 0x3f) | 0x80;
+        dst[2] = ((ucs_ch >> 6) & 0x3f) | 0x80;
+        dst[3] = (ucs_ch & 0x3f) | 0x80;
+
+        return 4;
+      }
     }
+
+    ch->cs = orig_cs;
 #endif
   }
 

@@ -1131,8 +1131,6 @@ static void write_to_pty_intern(vt_term_t *term, const u_char *str, /* str may b
 #endif
 
     vt_term_write(term, str, len);
-  } else {
-    return;
   }
 }
 
