@@ -1120,8 +1120,6 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
     if ((font = vt_drcs_get_font(vt_parser->drcs, cs, 0)) &&
         /* XXX The width of pua is always regarded as 1. (is_fullwidth is ignored) */
         vt_drcs_get_picture(font, &pic_id, &pic_pos, ch)) {
-      ef_char_t dch;
-
       vt_char_copy(&vt_parser->w_buf.chars[vt_parser->w_buf.filled_len],
                    vt_screen_get_bce_ch(vt_parser->screen));
       /* Convert DRCS -> Unicode PUA in vt_str_parser::next_char() */
@@ -3394,59 +3392,73 @@ static void define_macro(vt_parser_t *vt_parser, u_char *param, u_char *data) {
 
   if (ps[2] == 1) {
     p = vt_parser->macros[ps[0]].str = hex_to_text(data);
+  } else if (ps[2] == 2) {
+    p = vt_parser->macros[ps[0]].str = bl_str_unescape(data);
+  } else {
+    vt_parser->macros[ps[0]].str = strdup(data);
+
+    return;
+  }
 
 #ifndef NO_IMAGE
-    if (p && (*p == 0x90 || (*(p++) == '\x1b' && *p == 'P'))) {
-      for (p++; *p == ';' || ('0' <= *p && *p <= '9'); p++)
-        ;
+  if (p && (*p == 0x90 || (*(p++) == '\x1b' && *p == 'P'))) {
+    for (p++; *p == ';' || ('0' <= *p && *p <= '9'); p++)
+      ;
 
-      if (*p == 'q' && (strrchr(p, 0x9c) || ((p = strrchr(p, '\\')) && *(p - 1) == '\x1b'))) {
-        char prefix[5 + MAX_DIGIT_OF_MACRO + 1 + DIGIT_STR_LEN(vt_parser->macros[0].sixel_num) +
-                    2];
-        char *path;
+    if (*p == 'q' && (strrchr(p, 0x9c) || ((p = strrchr(p, '\\')) && *(p - 1) == '\x1b'))) {
+      char prefix[5 + MAX_DIGIT_OF_MACRO + 1 + DIGIT_STR_LEN(vt_parser->macros[0].sixel_num) +
+                  2];
+      char *path;
 
-        sprintf(prefix, "macro%d_%d_", ps[0], vt_parser->macros[ps[0]].sixel_num);
+      sprintf(prefix, "macro%d_%d_", ps[0], vt_parser->macros[ps[0]].sixel_num);
 
-        if ((path =
-                 get_home_file_path(prefix, vt_pty_get_slave_name(vt_parser->pty) + 5, "six"))) {
-          FILE *fp;
+      if ((path =
+           get_home_file_path(prefix, vt_pty_get_slave_name(vt_parser->pty) + 5, "six"))) {
+        FILE *fp;
 
-          if ((fp = fopen(path, "w"))) {
-            fwrite(vt_parser->macros[ps[0]].str, 1, strlen(vt_parser->macros[ps[0]].str), fp);
-            fclose(fp);
+        if ((fp = fopen(path, "w"))) {
+          fwrite(vt_parser->macros[ps[0]].str, 1, strlen(vt_parser->macros[ps[0]].str), fp);
+          fclose(fp);
 
-            free(vt_parser->macros[ps[0]].str);
-            vt_parser->macros[ps[0]].str = path;
-            vt_parser->macros[ps[0]].is_sixel = 1;
+          free(vt_parser->macros[ps[0]].str);
+          vt_parser->macros[ps[0]].str = path;
+          vt_parser->macros[ps[0]].is_sixel = 1;
 
 #ifdef DEBUG
-            bl_debug_printf(BL_DEBUG_TAG " Register %s to macro %d\n", path, ps[0]);
+          bl_debug_printf(BL_DEBUG_TAG " Register %s to macro %d\n", path, ps[0]);
 #endif
-          }
         }
       }
     }
-#endif
-  } else {
-    vt_parser->macros[ps[0]].str = strdup(data);
   }
+#endif
 }
 
 static int write_loopback(vt_parser_t *vt_parser, const u_char *buf, size_t len,
                           int enable_local_echo, int is_visual);
 
 static void invoke_macro(vt_parser_t *vt_parser, int id) {
-  if (id < vt_parser->num_macros && vt_parser->macros[id].str) {
+  if (!vt_parser->invoke_macro &&
+      id < vt_parser->num_macros && vt_parser->macros[id].str) {
 #ifndef NO_IMAGE
     if (vt_parser->macros[id].is_sixel) {
       show_picture(vt_parser, vt_parser->macros[id].str, 0, 0, 0, 0, 0, 0, 0, 3);
     } else
 #endif
     {
+      vt_parser->invoke_macro = 1;
       write_loopback(vt_parser, vt_parser->macros[id].str,
                      strlen(vt_parser->macros[id].str), 0, 0);
+      vt_parser->invoke_macro = 0;
     }
   }
+#ifdef DEBUG
+  else {
+    if (vt_parser->invoke_macro) {
+      bl_debug_printf(BL_DEBUG_TAG " Ignore recursive DECINVM.\n");
+    }
+  }
+#endif
 }
 
 static int response_termcap(vt_pty_t *pty, u_char *key, u_char *value) {

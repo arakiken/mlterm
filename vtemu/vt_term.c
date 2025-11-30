@@ -990,7 +990,7 @@ int vt_term_set_config(vt_term_t *term, const char *key, const char *value) {
 
 #include <assert.h>
 
-void TEST_vt_term(void) {
+static void TEST_dynamic_comb(void) {
   /* test vt_logical_visual (https://github.com/arakiken/mlterm/issues/152) */
   vt_term_t *term = vt_term_new("xterm", 80, 24, 8, 0, VT_UTF8, 0, 0, 0, 0,
                                 1, 1, 1, 1 /* use_ctl */, 0, NULL, 1 /* use_dynamic_comb */,
@@ -1019,6 +1019,54 @@ void TEST_vt_term(void) {
   ch = vt_term_get_line(term, 0)->chars;
   assert(vt_char_code(ch) == 0x782);
   assert(vt_char_code(ch + 1) == 0x7aa);
+
+  vt_term_destroy(term);
+}
+
+static void TEST_decdmac_decinvm(void) {
+  /*
+   * test DECDMAC (Pen=2 extension) and DECINVM
+   * (https://github.com/kmiya-culti/RLogin/issues/151)
+   */
+  vt_term_t *term = vt_term_new("xterm", 80, 24, 8, 0, VT_UTF8, 0, 0, 0, 0,
+                                1, 1, 1, 1, 0, NULL, 0, 0, 0, 0, "mlterm", "mlterm",
+                                1, 0, 0, 0, 0, 0);
+  /*
+   *            +-> DECDMAC   <recursive DECDMAC>      <-+
+   *            |             ^^^^^^^^^^^^^^^^^^^^       |
+   */
+  char seq[] = "\x1bP0;0;2!zAB\\eP0;0;2!zCD\\e\\\\EF\x1b\\\x1b[0*z\r\n\x1b[0*z";
+  char seq2[] = "\x1bP0;0;1!z1b5b2a7a\x1b\\\x1b[*z";
+  vt_char_t *ch;
+  vt_char_t *ch2;
+
+  /*
+   * This sequence shows above in the screen.
+   * ABEF
+   * CD
+   */
+  vt_term_write_loopback(term, seq, sizeof(seq) - 1);
+
+  ch = vt_term_get_line(term, 0)->chars;
+  ch2 = vt_term_get_line(term, 1)->chars;
+
+  assert(vt_char_code(ch) == 'A');
+  assert(vt_char_code(ch + 1) == 'B');
+  assert(vt_char_code(ch + 2) == 'E');
+  assert(vt_char_code(ch + 3) == 'F');
+  assert(vt_char_code(ch2) == 'C');
+  assert(vt_char_code(ch2 + 1) == 'D');
+
+  /* Recursive DECINVM -> Ignore */
+  vt_term_write_loopback(term, seq2, sizeof(seq2) - 1);
+
+  vt_term_destroy(term);
+}
+
+void TEST_vt_term(void) {
+  TEST_dynamic_comb();
+
+  TEST_decdmac_decinvm();
 
   bl_msg_printf("PASS vt_term test.\n");
 }

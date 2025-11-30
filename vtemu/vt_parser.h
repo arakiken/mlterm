@@ -321,6 +321,7 @@ typedef struct vt_parser {
   int is_zmodem_ready : 1;
   int use_local_echo : 1;
   int use_locked_title : 1;
+  int invoke_macro : 1;
 
 #ifdef USE_VT52
   int is_vt52_mode : 1;

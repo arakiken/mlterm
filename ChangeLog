@@ -1,5 +1,12 @@
 2025-11-30  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_term.c: Add TEST_decdmac_decinvm() which tests DECDMAC and DECINVM.
+
+	* vt_parser.c:
+	  - Ignore recursive DECINVM.
+	  - Support Pen=2 extension of DECDMAC.
+	    (https://github.com/kmiya-culti/RLogin/issues/151)
+
 	* vt_logical_visual.c: comb_render() calls comb_visual() to enable
 	  render of other vt_logical_visual.
 	  (https://github.com/arakiken/mlterm/issues/152)
