@@ -14,6 +14,7 @@ void TEST_ui_font_config(void);
 void TEST_ui_emoji(void);
 void TEST_vt_parser(void);
 void TEST_vt_termcap(void);
+void TEST_vt_term(void);
 #ifdef USE_OT_LAYOUT
 void TEST_vt_shape(void);
 #endif
@@ -39,6 +40,7 @@ void test(void) {
   TEST_ui_emoji();
   TEST_vt_parser();
   TEST_vt_termcap();
+  TEST_vt_term();
 #ifdef USE_OT_LAYOUT
   TEST_vt_shape();
 #endif

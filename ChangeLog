@@ -1,3 +1,11 @@
+2025-11-30  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_logical_visual.c: comb_render() calls comb_visual() to enable
+	  render of other vt_logical_visual.
+	  (https://github.com/arakiken/mlterm/issues/152)
+
+	* vt_term.c, test.c: Add TEST_vt_term().
+
 2025-11-24  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_char_encoding.c: Fix illegal memory access in utf8_illegal_char().

@@ -985,3 +985,42 @@ int vt_term_set_config(vt_term_t *term, const char *key, const char *value) {
 
   return 1;
 }
+
+#ifdef BL_DEBUG
+
+#include <assert.h>
+
+void TEST_vt_term(void) {
+  /* test vt_logical_visual (https://github.com/arakiken/mlterm/issues/152) */
+  vt_term_t *term = vt_term_new("xterm", 80, 24, 8, 0, VT_UTF8, 0, 0, 0, 0,
+                                1, 1, 1, 1 /* use_ctl */, 0, NULL, 1 /* use_dynamic_comb */,
+                                0, 0, 0, "mlterm", "mlterm", 1, 0, 0, 0, 0, 0);
+  vt_char_t *ch;
+  vt_char_t *comb;
+  u_int num;
+
+  assert(term->use_dynamic_comb == 1);
+  assert(term->use_ctl == 1);
+  assert(vt_parser_is_using_char_combining(term->parser) != 0);
+  vt_term_update_special_visual(term); /* calls vt_screen_{render|visual}() */
+  /* use_dynamic_comb forcibly disable use_char_combining */
+  assert(vt_parser_is_using_char_combining(term->parser) == 0);
+  vt_term_write_loopback(term, "\xde\x82\xde\xaa", 4); /* U+782 U+7AA */
+
+  /* visual: 0x20(cursor) 0x782 */
+  ch = vt_term_get_line(term, 0)->chars + 1;
+  comb = vt_get_combining_chars(ch, &num);
+  assert(vt_char_code(ch) == 0x782);
+  assert(vt_char_code(comb) == 0x7aa);
+
+  vt_screen_logical(term->screen);
+
+  /* logical: 0x782 0x7aa */
+  ch = vt_term_get_line(term, 0)->chars;
+  assert(vt_char_code(ch) == 0x782);
+  assert(vt_char_code(ch + 1) == 0x7aa);
+
+  bl_msg_printf("PASS vt_term test.\n");
+}
+
+#endif

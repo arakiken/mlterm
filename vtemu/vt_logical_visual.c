@@ -224,7 +224,11 @@ static u_int comb_logical_cols(vt_logical_visual_t *logvis) { return logvis->mod
 
 static u_int comb_logical_rows(vt_logical_visual_t *logvis) { return logvis->model->num_rows; }
 
-static void comb_render(vt_logical_visual_t *logvis) {}
+static int comb_visual(vt_logical_visual_t *logvis);
+static void comb_render(vt_logical_visual_t *logvis) {
+  /* Enable render of other vt_logical_visual */
+  comb_visual(logvis);
+}
 
 static int comb_visual(vt_logical_visual_t *logvis) {
   int row;
@@ -347,13 +351,13 @@ static int comb_logical(vt_logical_visual_t *logvis) {
       vt_char_t *comb;
       u_int size;
 
-      if ((comb = vt_get_combining_chars(c, &size))
-#if 1
-          /* XXX Hack for inline pictures (see x_picture.c) */
-          &&
-          vt_char_cs(comb) != PICTURE_CHARSET
-#endif
-          ) {
+      if ((comb = vt_get_combining_chars(c, &size)) &&
+          /*
+           * XXX
+           * Skip PICTURE_CHARSET and some characters whose property is not
+           * EF_COMBINING.
+           */
+          vt_char_is_comb(comb)) {
         int count;
 
         vt_char_copy(vt_char_at(line, line->num_filled_chars++), vt_get_base_char(c));
