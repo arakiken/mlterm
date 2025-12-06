@@ -1,3 +1,10 @@
+2025-12-06  Araki Ken  <arakiken@users.sf.net>
+
+	* vt_parser.c: Fix carry calculation error after 0x107e7f or 0x107eff
+	  in define_drcs_picture().
+	  (This bug was introduced in d810b3d0ed47906c0119202e6dda77178cee6192)
+	  (https://github.com/arakiken/mlterm/issues/151#issuecomment-3602933164)
+
 2025-11-30  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_term.c: Add TEST_decdmac_decinvm() which tests DECDMAC and DECINVM.

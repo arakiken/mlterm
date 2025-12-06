@@ -2215,10 +2215,10 @@ static void define_drcs_picture(vt_parser_t *vt_parser, char *path, ef_charset_t
         offset += (96 - idx);
         idx = 0;
 
-        if (cs == CS94SB_ID(0x7e)) {
-          cs = CS96SB_ID(0x30);
-        } else if (cs == CS96SB_ID(0x7e)) {
-          cs = CS94SB_ID(0x30);
+        if (cs == CS_TO_DRCS(CS94SB_ID(0x7e))) {
+          cs = CS_TO_DRCS(CS96SB_ID(0x30));
+        } else if (cs == CS_TO_DRCS(CS96SB_ID(0x7e))) {
+          cs = CS_TO_DRCS(CS94SB_ID(0x30));
         } else {
           cs++;
         }
