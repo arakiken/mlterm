@@ -992,9 +992,10 @@ int vt_term_set_config(vt_term_t *term, const char *key, const char *value) {
 
 static void TEST_dynamic_comb(void) {
   /* test vt_logical_visual (https://github.com/arakiken/mlterm/issues/152) */
-  vt_term_t *term = vt_term_new("xterm", 80, 24, 8, 0, VT_UTF8, 0, 0, 0, 0,
-                                1, 1, 1, 1 /* use_ctl */, 0, NULL, 1 /* use_dynamic_comb */,
-                                0, 0, 0, "mlterm", "mlterm", 1, 0, 0, 0, 0, 0);
+  vt_term_t *term = vt_term_new("xterm", 80, 24, 8, 0, VT_UTF8, 0, 0, 0, 0, 1,
+                                1 /* use_char_combining */, 1, 1 /* use_ctl */,
+                                0, NULL, 1 /* use_dynamic_comb */, 0, 0, 0,
+                                "mlterm", "mlterm", 1, 0, 0, 0, 0, 0);
   vt_char_t *ch;
   vt_char_t *comb;
   u_int num;

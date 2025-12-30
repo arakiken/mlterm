@@ -1,5 +1,9 @@
 2025-12-30  Araki Ken  <arakiken@users.sf.net>
 
+	* vt_parser.h: Reorder the members of vt_parser_t.
+
+2025-12-30  Araki Ken  <arakiken@users.sf.net>
+
 	* drcssixel-v3.c, test-v3, DRCS-SIXEL-v3: Add.
 
 	* vt_line.h, vt_ot_layout.h, vt_parser.h: int -> u_int

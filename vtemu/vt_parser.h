@@ -217,11 +217,6 @@ typedef struct vt_parser {
   vt_screen_t *screen;
   vt_termcap_ptr_t termcap;
 
-  ef_parser_t *cc_parser; /* char code parser */
-  ef_conv_t *cc_conv;     /* char code converter */
-  /* vt_char_encoding_t */ u_int16_t encoding;
-  /* ef_charset_t */ u_int cs : 24;
-
 #ifdef USE_COMPACT_TRUECOLOR
   u_int16_t fg_color;
   u_int16_t bg_color;
@@ -268,21 +263,25 @@ typedef struct vt_parser {
   u_int32_t vtmode_flags[2];
   u_int32_t saved_vtmode_flags[2];
 
+  ef_parser_t *cc_parser; /* char code parser */
+  ef_conv_t *cc_conv;     /* char code converter */
+  /* vt_char_encoding_t */ u_int16_t encoding;
+
   /* vt_unicode_policy_t */ int8_t unicode_policy;
+  u_char prev_local_echo_char;
+
+  /* ef_charset_t */ u_int cs : 24;
 
   /* vt_mouse_report_mode_t */ int8_t mouse_mode;
   /* vt_extended_mouse_report_mode_t */ int8_t ext_mouse_mode;
   /* vt_locator_report_mode_t */ int8_t locator_mode;
 
   /* vt_alt_color_mode_t */ int8_t alt_color_mode;
-  u_int8_t col_size_of_width_a; /* 1 or 2 */
   /* vt_cursor_style_t */ int8_t cursor_style;
   /* vt_line_style_t */ int8_t line_style;
   int8_t modify_cursor_keys;
   int8_t modify_function_keys;
   int8_t modify_other_keys;
-  u_char prev_local_echo_char;
-
   u_int8_t hide_pointer_mode;
 
   /* Used for non iso2022 encoding */
@@ -290,7 +289,9 @@ typedef struct vt_parser {
   /* ef_charset_t */ u_int g0 : 24;
   /* ef_charset_t */ u_int g1 : 24;
 
-  /* XXX Use (vt_parser->xxxxx ? 1 : 0) in copying these flags to int, otherwise int is -1. */
+  u_int is_transferring_data : 2; /* 0x1=send 0x2=recv */
+  u_int col_size_of_width_a : 2; /* 1 or 2 */
+
   u_int is_so : 1;
 
   u_int is_bold : 1;
@@ -318,7 +319,6 @@ typedef struct vt_parser {
   u_int set_title_using_utf8 : 1;
   u_int get_title_using_utf8 : 1;
   u_int use_ansi_colors : 1;
-  u_int is_transferring_data : 2; /* 0x1=send 0x2=recv */
   u_int is_zmodem_ready : 1;
   u_int use_local_echo : 1;
   u_int use_locked_title : 1;
