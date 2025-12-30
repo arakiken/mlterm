@@ -1,3 +1,9 @@
+2025-12-31  Araki Ken  <arakiken@users.sf.net>
+
+	* c_pixel.c: Fix illegal memory access in TEST_sixel_realloc_pixels().
+
+	* vt_parser.c: Fix parsing iso2022 in parse_vt100_escape_sequence().
+
 2025-12-30  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.h: Reorder the members of vt_parser_t.

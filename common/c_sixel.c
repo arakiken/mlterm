@@ -1066,7 +1066,7 @@ void TEST_sixel_realloc_pixels(void) {
   }
 
   /* 80 120 -> 200 180 */
-  realloc_pixels((u_char**)&pixels, 200, 180, 80, 120, 150);
+  realloc_pixels((u_char**)&pixels, 200, 180, 80, 120, 120);
 
   for (y = 0; y < 100; y++) {
     for (x = 0; x < 50; x++) {

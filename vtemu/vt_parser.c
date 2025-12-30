@@ -6641,7 +6641,7 @@ inline static int parse_vt100_escape_sequence(
         }
       } while (0x20 <= *str_p && *str_p <= 0x2f);
 
-      if (ic_num == 1 || ic_num == 2) {
+      if (1 <= ic_num && ic_num <= 3) {
         if (ic_num == 1 && *(str_p - 1) == '#') {
           if ('3' <= *str_p && *str_p <= '6') {
             vt_line_t *line;
@@ -6685,8 +6685,8 @@ inline static int parse_vt100_escape_sequence(
         } else if (*(str_p - ic_num) == '(' || *(str_p - ic_num) == ')' ||
                    *(str_p - ic_num) == '$') {
           /*
-           * "ESC ("(Registered CS), "ESC ( SP"(DRCS) or "ESC $"
-           * "ESC )"(Registered CS) or "ESC ) SP"(DRCS)
+           * "ESC ("(Registered 94 CS), "ESC ( SP"(DRCS) or "ESC $"
+           * "ESC )"(Registered 94 CS) or "ESC ) SP"(DRCS)
            * See vt_convert_to_internal_ch() about CS94MB_ID.
            */
           int gn = 0;
@@ -6739,7 +6739,7 @@ inline static int parse_vt100_escape_sequence(
             }
           }
         } else if (*(str_p - ic_num) == '-') {
-          /* "ESC -"(Registered CS) or "ESC - SP"(DRCS) */
+          /* "ESC -"(Registered 96 CS) or "ESC - SP"(DRCS) */
 
           if (IS_ENCODING_BASED_ON_ISO2022(vt_parser->encoding)) {
             /* ESC ) will be processed in mef. */
@@ -6748,7 +6748,7 @@ inline static int parse_vt100_escape_sequence(
 
           vt_parser->g1 = CS96SB_ID(*str_p);
 
-          if (*(str_p - ic_num) == ' ') {
+          if (ic_num == 2 && *(str_p - ic_num + 1) == ' ') {
             /* DRCS */
             vt_parser->g1 = CS_ADD_INTERMEDIATE1(vt_parser->g1, ' ');
           }
