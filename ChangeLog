@@ -1,5 +1,10 @@
 2025-12-31  Araki Ken  <arakiken@users.sf.net>
 
+	* xlib/ui_connect_dialog.c: Fix how elapsed time is calculated with
+	  gettimeofday().
+
+2025-12-31  Araki Ken  <arakiken@users.sf.net>
+
 	* ci.yml: macos-13 -> macos-14
 
 	* xlib/ui_connect_dialog.c: The event loop is not terminated until 1

@@ -125,7 +125,8 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
         } else {
           struct timeval tv;
 
-          if (gettimeofday(&tv, NULL) == 0 && tv.tv_usec > tv_start.tv_usec + 1000000) {
+          if (gettimeofday(&tv, NULL) == 0 &&
+              (tv.tv_sec - tv_start.tv_sec) * 1000000 + tv.tv_usec - tv_start.tv_usec > 1000000) {
             /* Exit loop successfully. */
             ret = 1;
             break;
