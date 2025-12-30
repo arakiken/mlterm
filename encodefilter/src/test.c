@@ -405,7 +405,7 @@ static void TEST_mapping(void) {
 
 static void TEST_iso2022_parser(void) {
   ef_parser_t *parser = ef_iso2022jp_7_parser_new();
-  const char *test[] = { "\x1b( @a", "\x1b(/@a" };
+  const char *test[] = { "\x1b( @a", "\x1b(/@a", "\x1b( /@a" };
   ef_char_t ch;
   int count;
 
@@ -415,7 +415,10 @@ static void TEST_iso2022_parser(void) {
     (*parser->init)(parser);
     (*parser->set_str)(parser, test[count], len);
     assert((*parser->next_char)(parser, &ch) == 1);
-    assert(CS_INTERMEDIATE(ch.cs) == *(test[count] + len - 3));
+    assert(CS_INTERMEDIATE1(ch.cs) == *(test[count] + 2));
+    if (len == 6) {
+      assert(CS_INTERMEDIATE2(ch.cs) == *(test[count] + 3));
+    }
     assert(CS94SB_FT(ch.cs) == *(test[count] + len - 2));
   }
 

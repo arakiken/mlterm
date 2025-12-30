@@ -267,10 +267,16 @@ static void ovrd_iso2022kr_parser_init(ef_parser_t *parser) {
 static size_t iso2022_illegal_char(ef_conv_t *conv, u_char *dst, size_t dst_size,
                                    int *is_full, ef_char_t *ch) {
   if ((ch->cs == ISO10646_UCS4_1 && vt_convert_unicode_pua_to_drcs(ch))) {
-    ch->cs = CS_ADD_INTERMEDIATE(DRCS_TO_CS(ch->cs), ' ');
+    /* vtemu DRCS -> encodefilter DRCS */
+    ch->cs = CS_ADD_INTERMEDIATE1(DRCS_TO_CS(ch->cs), ' ');
+    if (ch->size == 2) {
+      ch->cs = CS_ADD_INTERMEDIATE2(ch->cs, ch->ch[0] + 0x1f);
+      ch->ch[0] = ch->ch[1];
+      ch->size = 1;
+    }
   }
 
-  if ((CS_INTERMEDIATE(ch->cs) == ' ' && IS_CSSB(ch->cs))) {
+  if ((CS_INTERMEDIATE1(ch->cs) == ' ' && IS_CSSB(ch->cs))) {
     return ef_iso2022_illegal_char(conv, dst, dst_size, is_full, ch);
   }
 
@@ -280,7 +286,13 @@ static size_t iso2022_illegal_char(ef_conv_t *conv, u_char *dst, size_t dst_size
 static size_t iso2022_illegal_char_loose(ef_conv_t *conv, u_char *dst, size_t dst_size,
                                     int *is_full, ef_char_t *ch) {
   if (ch->cs == ISO10646_UCS4_1 && vt_convert_unicode_pua_to_drcs(ch)) {
-    ch->cs = CS_ADD_INTERMEDIATE(DRCS_TO_CS(ch->cs), ' ');
+    /* vtemu DRCS -> encodefilter DRCS */
+    ch->cs = CS_ADD_INTERMEDIATE1(DRCS_TO_CS(ch->cs), ' ');
+    if (ch->size == 2) {
+      ch->cs = CS_ADD_INTERMEDIATE2(ch->cs, ch->ch[0] + 0x1f);
+      ch->ch[0] = ch->ch[1];
+      ch->size = 1;
+    }
   }
 
   return ef_iso2022_illegal_char(conv, dst, dst_size, is_full, ch);
@@ -341,7 +353,15 @@ static size_t utf8_illegal_char(ef_conv_t *conv, u_char *dst, size_t dst_size, i
 #ifndef __ANDROID__
     ef_charset_t orig_cs = ch->cs;
 
-    if (CS_INTERMEDIATE(orig_cs) == ' ' && IS_CSSB(orig_cs)) {
+    if (CS_INTERMEDIATE1(orig_cs) == ' ' && IS_CSSB(orig_cs)) {
+      /* encodefilter DRCS -> vtemu DRCS */
+      u_char intermed2 = CS_INTERMEDIATE2(orig_cs);
+
+      if (intermed2) {
+        ch->ch[1] = ch->ch[0];
+        ch->ch[0] = intermed2 - 0x1f;
+        ch->size = 2;
+      }
       ch->cs = CS_TO_DRCS(CS_DEL_INTERMEDIATE(orig_cs));
     }
 

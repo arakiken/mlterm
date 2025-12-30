@@ -1,0 +1,38 @@
+DRCS-SIXEL version 3
+
+https://github.com/kmiya-culti/RLogin/issues/152#issuecomment-3594152181
+
+<DECDLD> = DCS Pfn; Pcn; Pe; Pcmw; Pss; 3; Pcmh; Pcss { SP Dscs <SIXEL> ST
+<SIXEL> = P1; P2; P3; q s...s
+
+ * P1; P2; P3; q is optional.
+ * " Pan; Pad; Ph; Pv in s...s is optional.
+
+DRCSMMv3
+8800=SET, 8801=SET
+Dscs = IXF
+Dcss = 0
+I = 0x20
+X = 0x20 - 0x2F
+F = 0x40 - 0x7E
+C = 0x21 - 0x7E
+U = 0x100000 - 0x10FFFF
+U = 0x100000 + ((X - 0x20) * 63 + (F - 0x40)) * 94 + (C - 0x21)
+X = ((U - 0x100000) / 94) / 63 + 0x20
+F = ((U - 0x100000) / 94) % 63 + 0x40
+C = (U - 0x100000) % 94 + 0x21
+Dscs++ = if ( ++F > 0x7E ) F=0x40 ; if ( ++X > 0x2F ) X=0x20
+
+DRCSMMv2
+8800=SET, 8801=RST
+Dscs = IF
+Dcss = 0 or 1
+I = 0x20
+F = 0x30 - 0x7E
+C = 0x20 - 0x7F
+U = 0x103020 - 0x107EFF
+U = 0x100000 + (F << 8) | (Dcss == 0 ? 0x00 : 0x80) | C
+F = (U >> 8) & 0xFF
+C = U & 0x7F
+Dcss = (U & 0x80) == 0 ? 0 : 1
+Dscs++ = if ( ++F > 0x7E ) F=0x30 ; Dcss ^= 1;

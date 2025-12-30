@@ -3,6 +3,7 @@
 #ifndef __EF_PROPERTY_H__
 #define __EF_PROPERTY_H__
 
+/* Do not forget to change the size of ef_char_t::property according to this. */
 typedef enum ef_property {
   EF_COMBINING = 0x1u,
 

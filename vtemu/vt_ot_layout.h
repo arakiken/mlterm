@@ -36,9 +36,9 @@ typedef struct vt_ot_layout_state {
   u_int8_t *advances;
   u_int16_t num_glyphs; /* size + NULL separators */
 
-  int substituted : 2;
-  int complex_shape : 2;
-  int has_var_width_char : 2;
+  u_int substituted : 2;
+  u_int complex_shape : 2;
+  u_int has_var_width_char : 2;
 
 } * vt_ot_layout_state_t;
 

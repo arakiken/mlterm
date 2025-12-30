@@ -376,12 +376,15 @@ static void check_inline_pictures_drcs(vt_term_t *term, u_int8_t *flags) {
 
   if ((drcs = term->parser->drcs)) {
     size_t count;
+    size_t slot;
 
     for (count = 0; count < BL_ARRAY_SIZE(drcs->fonts); count++) {
-      if (drcs->fonts[count] && vt_drcs_has_picture(drcs->fonts[count])) {
-        flags[drcs->fonts[count]->pic_id] = 1;
+      for (slot = 0; slot < BL_ARRAY_SIZE(drcs->fonts[count]->pictures); slot++) {
+        if (drcs->fonts[count] && vt_drcs_has_picture(drcs->fonts[count], slot)) {
+          flags[drcs->fonts[count]->pictures[slot].id] = 1;
 
-        /* animation check is not necessary. */
+          /* animation check is not necessary. */
+        }
       }
     }
   }

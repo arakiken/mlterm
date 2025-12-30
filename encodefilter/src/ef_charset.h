@@ -23,11 +23,17 @@
 /* 0xd0 - 0xdf (Ft is within 0x40 and 0x4f) */
 #define NON_ISO2022_2_ID(c) ((u_char)(c) + 0x90)
 
-/* 0x100 - 0x7bf (= 0xX00 | CS9XXB_ID) */
+/* 0x100 - 0x1bf (= 0x100 | CS9XXB_ID) (See ef_iso2022_parser.c) */
 #define CS_REVISION_N(cs, n) ((cs) + ((n) << 8))
 
-/* 0x800 - 0x1xxx (0x20 <= i <= 0x2f) */
-#define CS_ADD_INTERMEDIATE(cs, i) ((cs) + (((i) - 0x1f) << 11))
+/* Modify IS_CS94_STRICT() if intermediate character bit in cs is changed */
+/* 0x2xx - 0x20xx (0x20 <= i <= 0x2f) */
+#define CS_ADD_INTERMEDIATE1(cs, i) ((cs) + (((i) - 0x1f) << 9))
+/* 0x40xx - 0x400xx (0x20 <= i <= 0x2f) */
+#define CS_ADD_INTERMEDIATE2(cs, i) ((cs) + (((i) - 0x1f) << 13))
+#define CS_DEL_INTERMEDIATE(cs) ((cs) & 0x1ff)
+#define CS_INTERMEDIATE1(cs) (((cs) & 0x03e00) ? (((cs) >> 9) & 0x1f) + 0x1f : 0)
+#define CS_INTERMEDIATE2(cs) (((cs) & 0x7c000) ? (((cs) >> 13) & 0x1f) + 0x1f : 0)
 
 /*
  * 'and 0xff' should be done because 0x100 - region is used for 'or cs_revision'
@@ -44,8 +50,8 @@
 #define IS_CS94MB(cs) (0xa0 <= ((cs)&0xff) && ((cs)&0xff) <= 0xbf)
 #define IS_CS96MB(cs) (0) /* always false */
 /* IS_CS94_STRICT() always returns false charsets containing intermediate chars. */
-#define IS_CS94_STRICT(cs) (((unsigned int)(cs) & 0xf8ff) <= 0x4e ||    \
-                            (0xa0 <= ((cs) & 0xf8ff) && ((cs) & 0xf8ff) <= 0x9e))
+#define IS_CS94_STRICT(cs) (((unsigned int)(cs) & 0x7feff) <= 0x4e ||    \
+                            (0xa0 <= ((cs) & 0x7feff) && ((cs) & 0x7feff) <= 0x9e))
 #define IS_CS_BASED_ON_ISO2022(cs) (0x0 <= ((cs)&0xff) && ((cs)&0xff) <= 0xbf)
 /* without "(cs) != UNKNOWN_CS &&", 0xa0 <= (UNKNOWN_CS & 0xff) returns true. */
 #define IS_NON_ISO2022(cs) ((cs) != UNKNOWN_CS && 0xc0 <= ((cs)&0xff))
@@ -56,9 +62,6 @@
 #define CS_SIZE(cs) \
   ((cs) == ISO10646_UCS4_1 ? 4 : ((IS_FULLWIDTH_CS(cs) || (cs) == ISO10646_UCS2_1) ? 2 : 1))
 #define IS_ISO10646_UCS4(cs) (((cs) & ~CS_REVISION_N(0, 1)) == ISO10646_UCS4_1)
-
-#define CS_DEL_INTERMEDIATE(cs) ((cs) & 0x7ff)
-#define CS_INTERMEDIATE(cs) (((cs) & 0xf800) ? (((cs) >> 11) & 0x1f) + 0x1f : 0)
 
 /*
  * These enumeration numbers are based on iso2022 Ft(0x30-0x7e).
@@ -196,7 +199,8 @@ typedef enum ef_charset {
   JOHAB = 0x1e8,
   HKSCS = 0x1e9,
 
-  MAX_CHARSET = 0x2ff
+  /* Modify the size of ef_char_t::cs if MAX_CHARSET is changed. */
+  MAX_CHARSET = 0x4ffff
 
 } ef_charset_t;
 

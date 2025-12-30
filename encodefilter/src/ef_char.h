@@ -15,7 +15,10 @@
 #define SET_MSB(ch) ((ch) |= 0x80)
 #define UNSET_MSB(ch) ((ch) &= 0x7f)
 
-/* UCS-4 is the max. */
+/*
+ * UCS-4 is the max.
+ * Do not forget to change the size of ef_char_t::size according to this.
+ */
 #define MAX_CS_BYTELEN 4
 
 /*
@@ -24,9 +27,10 @@
 typedef struct ef_char {
   u_char ch[MAX_CS_BYTELEN]; /* Big Endian */
 
-  u_int8_t size;
-  u_int8_t property; /* ef_property_t */
-  int16_t cs;        /* ef_charset_t */
+  /* Modify the size of vt_parser_t::cs, gl, gr etc if the size of cs is changed. */
+  u_int cs : 24;      /* ef_charset_t */
+  u_int size : 4;     /* 1 - 4 (MAX_CS_BYTELEN) */
+  u_int property : 4; /* ef_property_t */
 
 } ef_char_t;
 

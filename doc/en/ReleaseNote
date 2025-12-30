@@ -1,6 +1,9 @@
 * Support text-input-unstable-v3.
 * Support SGR Mouse Pixel Mode.
 * Support libvte-2.91-gtk4 compatible library. (Experimental)
+* Support DRCSMMv3. (https://github.com/kmiya-culti/RLogin/issues/152)
+* Support selecting regions in pictures with the mouse.
+  (https://github.com/arakiken/mlterm/issues/151)
 * Add --adc/use_arabic_dynamic_comb option.
   (https://github.com/arakiken/mlterm/issues/136)
 * Add vte 0.80 API symbols to libvte compatible library.
@@ -9,6 +12,7 @@
 * Bug fixes:
   https://github.com/arakiken/mlterm/issues/138
   https://github.com/arakiken/mlterm/issues/143
+  https://github.com/arakiken/mlterm/issues/151
 
 ver 3.9.4
 * Support Shift+Control+v and Shift+Control+c to copy&paste via clipboard by default.

@@ -52,7 +52,7 @@ inline static size_t get_cs_bytelen(ef_charset_t cs) {
 
 inline static ef_charset_t get_charset(u_char ft,                 /* 0x30 - 0x7f */
                                        int is_mb, int glyph_size, /* 94 or 96 */
-                                       int rev, int intermed) {
+                                       int rev, int intermed1, int intermed2) {
   ef_charset_t cs;
 
   if (glyph_size == 94) {
@@ -71,8 +71,12 @@ inline static ef_charset_t get_charset(u_char ft,                 /* 0x30 - 0x7f
     return UNKNOWN_CS;
   }
 
-  if (intermed) {
-    cs = CS_ADD_INTERMEDIATE(cs, intermed);
+  if (intermed1) {
+    cs = CS_ADD_INTERMEDIATE1(cs, intermed1);
+
+    if (intermed2) {
+      cs = CS_ADD_INTERMEDIATE2(cs, intermed2);
+    }
   }
 
   if (rev == 0) {
@@ -192,7 +196,8 @@ static int parse_escape(ef_iso2022_parser_t *iso2022_parser,
       } else if (IS_INTERMEDIATE(*iso2022_parser->parser.str)) {
         int is_mb;
         int rev;
-        int intermed = 0;
+        int intermed1 = 0;
+        int intermed2 = 0;
         u_char to_GN;
         u_char ft;
 
@@ -260,6 +265,8 @@ static int parse_escape(ef_iso2022_parser_t *iso2022_parser,
           to_GN = CS94_TO_G0;
           ft = *iso2022_parser->parser.str;
         } else {
+          int count;
+
           to_GN = *iso2022_parser->parser.str;
 
           if (ef_parser_increment(iso2022_parser) == 0) {
@@ -268,8 +275,12 @@ static int parse_escape(ef_iso2022_parser_t *iso2022_parser,
             goto reset;
           }
 
-          if (IS_INTERMEDIATE(*iso2022_parser->parser.str)) {
-            intermed = *iso2022_parser->parser.str;
+          for (count = 0; IS_INTERMEDIATE(*iso2022_parser->parser.str); count++) {
+            if (count == 0) {
+              intermed1 = *iso2022_parser->parser.str;
+            } else if (count == 1) {
+              intermed2 = *iso2022_parser->parser.str;
+            }
 
             if (ef_parser_increment(iso2022_parser) == 0) {
               /* we reach eos */
@@ -278,7 +289,8 @@ static int parse_escape(ef_iso2022_parser_t *iso2022_parser,
             }
           }
 
-          if (!IS_FT(*iso2022_parser->parser.str)) {
+          if (count > 2 /* Not support 3 or more intermediate chars */ ||
+              !IS_FT(*iso2022_parser->parser.str)) {
 #ifdef DEBUG
             bl_warn_printf(BL_DEBUG_TAG " illegal ft(ESC - I - %x %x)\n", to_GN,
                            *iso2022_parser->parser.str);
@@ -293,10 +305,10 @@ static int parse_escape(ef_iso2022_parser_t *iso2022_parser,
         }
 
         if (to_GN == CS94_TO_G0) {
-          iso2022_parser->g0 = get_charset(ft, is_mb, 94, rev, intermed);
+          iso2022_parser->g0 = get_charset(ft, is_mb, 94, rev, intermed1, intermed2);
         } else if (to_GN == CS94_TO_G1) {
 #ifdef DECSP_HACK
-          if (ft == '0' && !is_mb && intermed == 0) {
+          if (ft == '0' && !is_mb && intermed1 == 0) {
             iso2022_parser->g1_is_decsp = 1;
           } else
 #endif
@@ -304,21 +316,21 @@ static int parse_escape(ef_iso2022_parser_t *iso2022_parser,
 #ifdef DECSP_HACK
             iso2022_parser->g1_is_decsp = 0;
 #endif
-            iso2022_parser->g1 = get_charset(ft, is_mb, 94, rev, intermed);
+            iso2022_parser->g1 = get_charset(ft, is_mb, 94, rev, intermed1, intermed2);
           }
         } else if (to_GN == CS94_TO_G2) {
-          iso2022_parser->g2 = get_charset(ft, is_mb, 94, rev, intermed);
+          iso2022_parser->g2 = get_charset(ft, is_mb, 94, rev, intermed1, intermed2);
         } else if (to_GN == CS94_TO_G3) {
-          iso2022_parser->g3 = get_charset(ft, is_mb, 94, rev, intermed);
+          iso2022_parser->g3 = get_charset(ft, is_mb, 94, rev, intermed1, intermed2);
         } else if (to_GN == CS96_TO_G1) {
 #ifdef DECSP_HACK
           iso2022_parser->g1_is_decsp = 0;
 #endif
-          iso2022_parser->g1 = get_charset(ft, is_mb, 96, rev, intermed);
+          iso2022_parser->g1 = get_charset(ft, is_mb, 96, rev, intermed1, intermed2);
         } else if (to_GN == CS96_TO_G2) {
-          iso2022_parser->g2 = get_charset(ft, is_mb, 96, rev, intermed);
+          iso2022_parser->g2 = get_charset(ft, is_mb, 96, rev, intermed1, intermed2);
         } else if (to_GN == CS96_TO_G3) {
-          iso2022_parser->g3 = get_charset(ft, is_mb, 96, rev, intermed);
+          iso2022_parser->g3 = get_charset(ft, is_mb, 96, rev, intermed1, intermed2);
         } else {
 #ifdef DEBUG
           bl_warn_printf(BL_DEBUG_TAG " illegal ISO2022 designation char %c\n", to_GN);

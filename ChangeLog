@@ -1,3 +1,40 @@
+2025-12-30  Araki Ken  <arakiken@users.sf.net>
+
+	* drcssixel-v3.c, test-v3, DRCS-SIXEL-v3: Add.
+
+	* vt_line.h, vt_ot_layout.h, vt_parser.h: int -> u_int
+
+	* vt_parser.c:
+	  - Add DECSET 8801.
+	  - define_drcs_picture() supports DRCSMMv3.
+
+	* vt_drcs.[ch]:
+	  - Add vt_drcs_set_version().
+	  - Support DRCSMMv3.
+
+	* vt_str_parser.c: next_char() supports DRCSMMv3.
+
+	* vt_char_encoding.c: Use CS_INTERMEDIATE2() and CS_ADD_INTERMEDIATE2()
+	  in *_illegal_char().
+
+	* encodefilter/src/test.c: Add "\x1b( /@a" to test.
+
+	* ef_iso2022_parser.c:
+	  'int intermed' -> 'int intermed1, int intermed2' in get_charset().
+
+	* ef_iso2022_conv.c: designate_to_g0() processes not only
+	  CS_INTERMEDIATE1() but also CS_INTERMEDIATE2().
+
+	* ef_charset.h:
+	  - Add CS_ADD_INTERMEDIATE2() and CS_INTERMEDIATE2().
+	  - CS_ADD_INTERMEDIATE() -> CS_ADD_INTERMEDIATE1()
+	  - Modify IS_CS94_STRICT() and CS_DEL_INTERMEDIATE().
+
+	* ef_char.h: Change the size of ef_char_t::cs from 16 to 24 bits to
+	  store intermediate character information.
+
+	* encodefilter/src/Makefile.in: 3.1 -> 4.0
+
 2025-12-06  Araki Ken  <arakiken@users.sf.net>
 
 	* vt_parser.c: Fix carry calculation error after 0x107e7f or 0x107eff

@@ -44,8 +44,8 @@ typedef struct vt_line {
   u_int16_t change_beg_col; /* 0 - 65535 */
   u_int16_t change_end_col; /* 0 - 65535 */
 
-  int is_modified : 4; /* 1: need to redraw. 2: was really changed. */
-  int is_continued_to_next : 4;
+  u_int is_modified : 4; /* 1: need to redraw. 2: was really changed. */
+  u_int is_continued_to_next : 4;
 
   /* public */
   int8_t size_attr;

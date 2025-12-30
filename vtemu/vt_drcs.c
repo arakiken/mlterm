@@ -7,6 +7,7 @@
 #include <pobl/bl_mem.h>
 #include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_debug.h>
+#include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
 
 #ifndef UINT16_MAX
 #define UINT16_MAX ((1 << 16) - 1)
@@ -15,8 +16,15 @@
 /* --- static variables --- */
 
 static vt_drcs_t *cur_drcs;
+static int version = 2; /* 2 or 3 */
 
 /* --- global functions --- */
+
+void vt_drcs_set_version(int v) {
+  if (v == 2 || v == 3) {
+    version = v;
+  }
+}
 
 void vt_drcs_select(vt_drcs_t *drcs) {
   cur_drcs = drcs;
@@ -110,56 +118,56 @@ void vt_drcs_add_glyph(vt_drcs_font_t *font, int idx, const char *seq, u_int wid
   }
 }
 
-void vt_drcs_add_picture(vt_drcs_font_t *font, int id, u_int offset, int beg_idx,
+void vt_drcs_add_picture(vt_drcs_font_t *font, int id, u_int offset,
+                         int beg_idx /* DRCSMMv2: ch - 0x20, DRCSMMv3: ch - 0x21 */,
                          u_int num_cols, u_int num_rows,
                          u_int num_cols_small, u_int num_rows_small) {
+  u_int slot = DRCS_CH_TO_SLOT(beg_idx);
+
   /* 'offset > UINT32_MAX' is not necessary to check. */
-  if (num_cols > UINT16_MAX || num_rows > UINT16_MAX) {
+  if (num_cols > UINT16_MAX || num_rows > UINT16_MAX ||
+      slot >= BL_ARRAY_SIZE(font->pictures)) {
     return;
   }
 
-  if (font) {
-    font->pic_id = id;
-    font->pic_offset = offset;
-    font->pic_beg_idx = beg_idx;
-    font->pic_num_rows = num_rows;
-    font->pic_num_cols = num_cols;
-    font->pic_num_cols_small = num_cols_small;
-    font->pic_num_rows_small = num_rows_small;
+  font->pictures[slot].id = id;
+  font->pictures[slot].offset = offset;
+  if (slot > 0) {
+    font->pictures[slot].beg_idx = (beg_idx & 0x7f);
+  } else {
+    font->pictures[slot].beg_idx = beg_idx;
   }
+  font->pictures[slot].num_rows = num_rows;
+  font->pictures[slot].num_cols = num_cols;
+  font->pictures[slot].num_cols_small = num_cols_small;
+  font->pictures[slot].num_rows_small = num_rows_small;
 }
 
 int vt_drcs_get_picture(vt_drcs_font_t *font, int *id, int *pos, u_int ch) {
-  if (font->pic_num_rows > 0) {
-    ch &= 0x7f;
-    if (ch >= 0x20 && (ch -= 0x20) >= font->pic_beg_idx) {
-      ch += font->pic_offset;
-      /* See MAKE_INLINEPIC_POS() in ui_picture.h */
-      *pos = (ch % font->pic_num_cols_small) * font->pic_num_rows +
-             (ch / font->pic_num_cols_small);
-      *id = font->pic_id;
+  u_int slot;
 
-      return 1;
+  if (ch >= 0x121) {
+    slot = DRCS_CH_TO_SLOT(ch);
+    ch &= 0x7f;
+    if (ch >= 0x21) {
+      ch -= 0x21;
+    } else {
+      return 0;
     }
+  } else if (ch >= 0x20) {
+    slot = 0;
+    ch = (ch & 0x7f) - 0x20;
+  } else {
+    return 0;
   }
 
-  return 0;
-}
+  if (vt_drcs_has_picture(font, slot) && ch >= font->pictures[slot].beg_idx) {
+    ch += font->pictures[slot].offset;
 
-int vt_convert_drcs_to_unicode_pua(ef_char_t *ch) {
-  if (IS_DRCS(ch->cs)) {
-    if (IS_CS94SB(ch->cs)) {
-      ch->ch[2] = CS94SB_FT(ch->cs);
-      ch->ch[3] = ch->ch[0] & 0x7f;
-    } else {
-      ch->ch[2] = CS96SB_FT(ch->cs);
-      ch->ch[3] = ch->ch[0] | 0x80;
-    }
-    ch->ch[1] = 0x10;
-    ch->ch[0] = 0x00;
-    ch->cs = ISO10646_UCS4_1;
-    ch->size = 4;
-    ch->property = 0;
+    /* See MAKE_INLINEPIC_POS() in ui_picture.h */
+    *pos = (ch % font->pictures[slot].num_cols_small) * font->pictures[slot].num_rows +
+           (ch / font->pictures[slot].num_cols_small);
+    *id = font->pictures[slot].id;
 
     return 1;
   } else {
@@ -167,25 +175,76 @@ int vt_convert_drcs_to_unicode_pua(ef_char_t *ch) {
   }
 }
 
-int vt_convert_unicode_pua_to_drcs(ef_char_t *ch) {
-  u_char *c;
+int vt_convert_drcs_to_unicode_pua(ef_char_t *ch) {
+  if (IS_DRCS(ch->cs)) {
+    u_char *bytes = ch->ch;
 
-  c = ch->ch;
-
-  if (c[1] == 0x10 && 0x30 <= c[2] && c[2] <= 0x7e && c[0] == 0x00) {
-    if (0x20 <= c[3] && c[3] <= 0x7f) {
-      ch->cs = CS_TO_DRCS(CS94SB_ID(c[2]));
-    } else if (0xa0 <= c[3] && c[3] <= 0xff) {
-      ch->cs = CS_TO_DRCS(CS96SB_ID(c[2]));
+    if (version == 2) {
+      if (IS_CS94SB(ch->cs)) {
+        bytes[2] = CS94SB_FT(ch->cs);
+        bytes[3] = bytes[0] & 0x7f;
+      } else {
+        bytes[2] = CS96SB_FT(ch->cs);
+        bytes[3] = bytes[0] | 0x80;
+      }
+      bytes[1] = 0x10;
+      bytes[0] = 0x00;
+    } else if (/* version == 3 && */ ch->size == 2) {
+      if (0x1 <= bytes[0] && bytes[0] <= 0x10 && 0x21 <= bytes[1] && bytes[1] <= 0x7e &&
+          IS_CS94SB(ch->cs)) {
+        ef_int_to_bytes(bytes, 4,
+                        0x100000 + ((bytes[0] - 1) * 63 + (CS94SB_FT(ch->cs) - 0x40)) * 94 +
+                        (bytes[1] - 0x21));
+      } else {
+        return 0;
+      }
     } else {
       return 0;
     }
+  } else {
+    return 0;
+  }
 
-    c[0] = c[3];
-    ch->size = 1;
-    ch->property = 0; /* Ignore EF_AWIDTH */
+  ch->cs = ISO10646_UCS4_1;
+  ch->size = 4;
+  ch->property = 0;
 
-    return 1;
+  return 1;
+}
+
+int vt_convert_unicode_pua_to_drcs(ef_char_t *ch) {
+  u_char *bytes = ch->ch;
+
+  if (version == 2) {
+    if (bytes[1] == 0x10 && 0x30 <= bytes[2] && bytes[2] <= 0x7e && bytes[0] == 0x00) {
+      if (0x20 <= bytes[3] && bytes[3] <= 0x7f) {
+        ch->cs = CS_TO_DRCS(CS94SB_ID(bytes[2]));
+      } else if (0xa0 <= bytes[3] && bytes[3] <= 0xff) {
+        ch->cs = CS_TO_DRCS(CS96SB_ID(bytes[2]));
+      } else {
+        return 0;
+      }
+
+      bytes[0] = bytes[3];
+      ch->size = 1;
+      ch->property = 0; /* Ignore EF_AWIDTH */
+
+      return 1;
+    }
+  } else /* if (version == 3) */ {
+    if (bytes[0] == 0x00 && bytes[1] == 0x10) {
+      u_int ucs = ef_char_to_int(ch);
+      u_int intermed = ((ucs - 0x100000) / 94) / 63 + 0x20;
+      u_int ft = ((ucs - 0x100000) / 94) % 63 + 0x40;
+      u_int c = (ucs - 0x100000) % 94 + 0x21;
+
+      ef_int_to_bytes(bytes, 2, ((intermed - 0x1f) << 8) + c);
+      ch->cs = CS_TO_DRCS(CS94SB_ID(ft));
+      ch->size = 2;
+      ch->property = 0;
+
+      return 1;
+    }
   }
 
   return 0;

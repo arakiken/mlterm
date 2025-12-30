@@ -386,7 +386,8 @@ O (Sixel scrolling leaves cursor to right of graphic)       CSI ? 8452 [hl]
 O OSC 1337;Pt ST
 
 <drcsterm>
-O DRCSMMv1                                                  CSI ? 8800 [hl]
+O DRCSMMv1, v2                                              CSI ? 8800 [hl]
+O DRCSMMv3                                                  CSI ? 8801 [hl]
 
 <Tanasinn>
 O TNREPTAMB                                                 CSI ? 8840 n

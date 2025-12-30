@@ -27,7 +27,7 @@
  * SUCH DAMAGE.
 */
 
-#include "drcssixel.c"
+#include "drcssixel-v3.c"
 
 /* src and dst can be overlapped */
 static void pua_to_utf8(unsigned char *dst, unsigned int *src, unsigned int len) {
@@ -44,28 +44,28 @@ static void pua_to_utf8(unsigned char *dst, unsigned int *src, unsigned int len)
 
 static int output(char *path, char *sixel) {
   unsigned int *buf;
-  char charset = '0';
-  int is_96cs = 0;
+  char ft = 0x40;
+  char intermed = 0x20;
   int num_cols;
   int num_rows;
   int col;
   int row;
 
   if (path) {
-    if (!(buf = drcs_sixel_from_file(path, &charset, &is_96cs, &num_cols, &num_rows))) {
+    if (!(buf = drcs_sixel_v3_from_file(path, &intermed, &ft, &num_cols, &num_rows))) {
       return 1;
     }
   } else {
     size_t sixel_len = strlen(sixel);
 
-    if (!(buf = drcs_sixel_from_data(sixel, sixel_len, &charset, &is_96cs, &num_cols, &num_rows))) {
+    if (!(buf = drcs_sixel_v3_from_data(sixel, sixel_len, &intermed, &ft, &num_cols, &num_rows))) {
       return 1;
     }
   }
 
   pua_to_utf8((unsigned char*)buf, buf, num_cols * num_rows);
 
-  printf("cs: 0(94cs)-%c(%s)\n", charset, is_96cs ? "96cs" : "94cs");
+  printf("cs: i 0x20 f 0x40 -> i %x f %x\n", intermed, ft);
 
   for(row = 0; row < num_rows; row++) {
     for (col = 0; col < num_cols; col++) {

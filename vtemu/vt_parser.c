@@ -207,6 +207,7 @@ typedef enum {
   DECMODE_8428,
   DECMODE_8452,
   DECMODE_8800,
+  DECMODE_8801,
 
   /* SM/RM */
   VTMODE_2,
@@ -234,7 +235,7 @@ static u_int16_t vtmodes[] = {
   1003, 1004,
   1005, 1006, 1015, 1016, /* Don't add an entry between 1005 and 1016 (see set_vtmode()) */
   1010, 1034, 1036,
-  1042, 1047, 1048, 1049, 2004, 7727, 8428, 8452, 8800,
+  1042, 1047, 1048, 1049, 2004, 7727, 8428, 8452, 8800, 8801,
 
   /* SM/RM */
   VTMODE(2), VTMODE(4), VTMODE(12), VTMODE(20), VTMODE(33), VTMODE(34),
@@ -965,10 +966,15 @@ static void put_char(vt_parser_t *vt_parser, u_int32_t ch, ef_charset_t cs,
   }
 
 #ifdef __DEBUG
-  bl_debug_printf("ch %x cs %x => %s\n", ch, cs, is_fullwidth ? "Fullwidth" : "Single");
+  bl_debug_printf("ch %x cs %x => %s\n", ch, cs, is_fullwidth ? "Fullwidth" : "Halfwidth");
 #endif
 
-  if (CS_INTERMEDIATE(cs) == ' ' && IS_CSSB(cs)) {
+  if (CS_INTERMEDIATE1(cs) == ' ' && IS_CSSB(cs)) {
+    u_char intermed = CS_INTERMEDIATE2(cs);
+
+    if (intermed) {
+      ch += ((intermed - 0x1f) << 8);
+    }
     cs = CS_TO_DRCS(CS_DEL_INTERMEDIATE(cs));
   }
 
@@ -2165,7 +2171,8 @@ static void show_picture(vt_parser_t *vt_parser, char *file_path, int clip_beg_c
   }
 }
 
-static void define_drcs_picture(vt_parser_t *vt_parser, char *path, ef_charset_t cs, int idx,
+static void define_drcs_picture(vt_parser_t *vt_parser, char *path, ef_charset_t cs,
+                                int idx /* ver2: 0-0x5f, ver3: 0x100 - 0x105d */,
                                 u_int pix_width /* can be 0 */, u_int pix_height /* can be 0 */,
                                 u_int col_width, u_int line_height) {
   if (HAS_XTERM_LISTENER(vt_parser, get_picture_data)) {
@@ -2185,7 +2192,7 @@ static void define_drcs_picture(vt_parser_t *vt_parser, char *path, ef_charset_t
       }
     }
 
-    if (idx <= 0x5f &&
+    if ((idx & 0xff) <= 0x5f && idx <= 0x105d &&
         /*
          * DRCS Sixel doesn't support P2=1 (transparent) for now.
          * (RLogin 2.28.9 also doesn't support it)
@@ -2206,21 +2213,51 @@ static void define_drcs_picture(vt_parser_t *vt_parser, char *path, ef_charset_t
         rows_small = rows;
       }
 
-      for (pages = (cols_small * rows_small + 95) / 96; pages > 0; pages--) {
-        font = vt_drcs_get_font(vt_parser->drcs, cs, 1);
+      if (idx >= 0x100) {
+        printf("%d %d %d %d\n", cols, rows, cols_small, rows_small);
+        for (pages = (cols_small * rows_small + 93) / 94; pages > 0; pages--) {
+          font = vt_drcs_get_font(vt_parser->drcs, cs, 1);
+          if (font) {
+            vt_drcs_add_picture(font, vt_char_picture_id(vt_get_picture_char(data)),
+                                offset, idx, cols, rows, cols_small, rows_small);
+          }
 
-        vt_drcs_add_picture(font, vt_char_picture_id(vt_get_picture_char(data)),
-                            offset, idx, cols, rows, cols_small, rows_small);
+          if (idx & 0xff) {
+            offset += (94 - (idx & 0xff));
+            idx &= 0xff00;
+          } else {
+            offset += 94;
+          }
 
-        offset += (96 - idx);
-        idx = 0;
+          if (cs == CS_TO_DRCS(CS94SB_ID(0x7e))) {
+            if (idx >= 0x1000) {
+              idx = 0x100;
+            } else {
+              idx += 0x100;
+            }
+            cs = CS_TO_DRCS(CS94SB_ID(0x40));
+          } else {
+            cs++;
+          }
+        }
+      } else {
+        for (pages = (cols_small * rows_small + 95) / 96; pages > 0; pages--) {
+          font = vt_drcs_get_font(vt_parser->drcs, cs, 1);
+          if (font) {
+            vt_drcs_add_picture(font, vt_char_picture_id(vt_get_picture_char(data)),
+                                offset, idx, cols, rows, cols_small, rows_small);
+          }
 
-        if (cs == CS_TO_DRCS(CS94SB_ID(0x7e))) {
-          cs = CS_TO_DRCS(CS96SB_ID(0x30));
-        } else if (cs == CS_TO_DRCS(CS96SB_ID(0x7e))) {
-          cs = CS_TO_DRCS(CS94SB_ID(0x30));
-        } else {
-          cs++;
+          offset += (96 - idx);
+          idx = 0;
+
+          if (cs == CS_TO_DRCS(CS94SB_ID(0x7e))) {
+            cs = CS_TO_DRCS(CS96SB_ID(0x30));
+          } else if (cs == CS_TO_DRCS(CS96SB_ID(0x7e))) {
+            cs = CS_TO_DRCS(CS94SB_ID(0x30));
+          } else {
+            cs++;
+          }
         }
       }
 
@@ -4183,6 +4220,14 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
       vt_parser->unicode_policy |= USE_UNICODE_DRCS;
     } else {
       vt_parser->unicode_policy &= ~USE_UNICODE_DRCS;
+    }
+    break;
+
+  case DECMODE_8801:
+    if (flag) {
+      vt_drcs_set_version(3);
+    } else {
+      vt_drcs_set_version(2);
     }
     break;
 
@@ -6265,6 +6310,7 @@ inline static int parse_vt100_escape_sequence(
           }
         } else {
           char *path;
+          u_char intermed = 0;
 
           if (num < 8) {
             /*
@@ -6291,7 +6337,18 @@ inline static int parse_vt100_escape_sequence(
             }
           }
 
+          if (0x20 <= *str_p && *str_p <= 0x2f) {
+            intermed = *str_p;
+
+            if (!increment_str(&str_p, &left)) {
+              return 0;
+            }
+          }
+
           idx = ps[1];
+          if (intermed) {
+            idx = (intermed - 0x1f) << 8;
+          }
 
           if (0x30 <= *str_p && *str_p <= 0x7e) {
             /* Ft */
@@ -6657,7 +6714,11 @@ inline static int parse_vt100_escape_sequence(
 
             if (*(str_p - ic_num + 1) == ' ') {
               /* DRCS */
-              cs = CS_TO_DRCS(cs);
+              cs = CS_ADD_INTERMEDIATE1(cs, ' ');
+              if (ic_num == 3) {
+                /* DRCSMMv3 */
+                cs = CS_ADD_INTERMEDIATE2(cs, *(str_p - ic_num + 2));
+              }
             }
 
             if (*(str_p - ic_num) == ')') {
@@ -6689,7 +6750,7 @@ inline static int parse_vt100_escape_sequence(
 
           if (*(str_p - ic_num) == ' ') {
             /* DRCS */
-            vt_parser->g1 = CS_TO_DRCS(vt_parser->g1);
+            vt_parser->g1 = CS_ADD_INTERMEDIATE1(vt_parser->g1, ' ');
           }
 
           if (vt_parser->is_so) {
@@ -7873,7 +7934,7 @@ int vt_convert_to_internal_ch(vt_parser_t *vt_parser, ef_char_t *orig_ch) {
 
     if ((ch.ch[0] == 0x0 || ch.ch[0] == 0x7f) &&
         (!(font = vt_drcs_get_font(vt_parser->drcs, CS_TO_DRCS(US_ASCII), 0)) ||
-         !(vt_drcs_is_picture(font, ch.ch[0])))) {
+         !(vt_drcs_is_picture(font, 0, ch.ch[0])))) {
       /* DECNULM is always set => discarding 0x0 */
 #ifdef DEBUG
       bl_warn_printf(BL_DEBUG_TAG " 0x0/0x7f sequence is received , ignored...\n");

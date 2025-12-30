@@ -81,24 +81,14 @@ static void write_to_stdout(const char *buf, size_t len) {
   }
 }
 
-static inline void switch_94_96_cs(char *charset, int *is_96cs) {
-  if (*is_96cs == 0) {
-    *is_96cs = 1;
-  } else {
-    *is_96cs = 0;
-  }
-  *charset = '0';
-}
-
 /*
  * Parse DRCS-Sixel and return unicode characters (UTF-32) which represent image
  * pieces of sixel graphics.
  * DCS Pfn; Pcn; Pe; Pcmw; Pss; 3; Pcmh; Pcss { SP Dscs <SIXEL> ST
  */
-unsigned int* drcs_sixel_from_data(const char *sixel, /* DCS P1;P2;P3;q...ST */ size_t sixel_len,
-                                   char *charset /* Dscs (in/out) */,
-                                   int *is_96cs /* Pcss (in/out) */,
-                                   int *num_cols /* out */, int *num_rows /* out */) {
+unsigned int* drcs_sixel_v3_from_data(const char *sixel, /* DCS P1;P2;P3;q...ST */ size_t sixel_len,
+                                      char *intermed /* (in/out) */, char *ft /* Dscs (in/out) */,
+                                      int *num_cols /* out */, int *num_rows /* out */) {
   int width;
   int height;
   const char *sixel_p = sixel;
@@ -106,10 +96,10 @@ unsigned int* drcs_sixel_from_data(const char *sixel, /* DCS P1;P2;P3;q...ST */ 
   int y;
   unsigned int *buf;
   /*
-   * \x1b[?8800h\x1b[?8801l\x1bP1;0;0;%d;1;3;%d;%d{ %c
-   *                                  2      2  1   1
+   * \x1b[?8800h\x1b[?8801h\x1bP1;0;0;%d;1;3;%d;0{ %c%c
+   *                                  2      2     1 1
    */
-  char seq[32 + 2 + 2 + 1 + 1 + 1];
+  char seq[33 + 2 + 2 + 1 + 1 + 1];
 
   if (sixel_p[0] == '\x1b' && sixel_p[1] == 'P') {
     sixel_p += 2;
@@ -141,20 +131,8 @@ unsigned int* drcs_sixel_from_data(const char *sixel, /* DCS P1;P2;P3;q...ST */ 
   *num_cols = (width + col_width - 1) / col_width;
   *num_rows = (height + line_height - 1) / line_height;
 
-#if 0
-  /*
-   * XXX
-   * The way of drcs_charset increment from 0x7e character set may be different
-   * between terminal emulators.
-   */
-  if (*charset > '0' &&
-      ((*num_cols) * (*num_rows) + 0x5f) / 0x60 > 0x7e - *charset + 1) {
-    switch_94_96_cs(charset, is_96cs);
-  }
-#endif
-
-  sprintf(seq, "\x1b[?8800h\x1b[?8801l\x1bP1;0;0;%d;1;3;%d;%d{ %c",
-          col_width, line_height, *is_96cs, *charset);
+  sprintf(seq, "\x1b[?8800h\x1b[?8801h\x1bP1;0;0;%d;1;3;%d;0{ %c%c",
+          col_width, line_height, *intermed, *ft);
   write_to_stdout(seq, strlen(seq));
   write_to_stdout(sixel_p, sixel_len);
   if (strncmp(sixel_p + sixel_len - 2, "\x1b\\", 2) != 0) {
@@ -165,27 +143,22 @@ unsigned int* drcs_sixel_from_data(const char *sixel, /* DCS P1;P2;P3;q...ST */ 
     unsigned int *buf_p = buf;
     int col;
     int row;
-    unsigned int code = 0x100020 + (*is_96cs ? 0x80 : 0) + *charset * 0x100;
+    unsigned int code = 0x100000 + (((*intermed) - 0x20) * 63 + ((*ft) - 0x40)) * 94;
+    int count = 0;
 
     for(row = 0; row < *num_rows; row++) {
       for(col = 0; col < *num_cols; col++) {
         *(buf_p++) = code++;
-        if ((code & 0x7f) == 0x0) {
-          if (*charset == 0x7e) {
-            switch_94_96_cs(charset, is_96cs);
-          } else {
-            (*charset)++;
+        if (++count == 94) {
+          count = 0;
+          if (++(*intermed) == 0x30) {
+            (*intermed) = 0x20;
+            if (++(*ft) == 0x7f) {
+              (*ft) = 0x40;
+            }
           }
-
-          code = 0x100020 + (*is_96cs ? 0x80 : 0) + *charset * 0x100;
         }
       }
-    }
-
-    if (*charset == 0x7e) {
-      switch_94_96_cs(charset, is_96cs);
-    } else {
-      (*charset)++;
     }
 
     return buf;
@@ -194,10 +167,14 @@ unsigned int* drcs_sixel_from_data(const char *sixel, /* DCS P1;P2;P3;q...ST */ 
   return NULL;
 }
 
-unsigned int* drcs_sixel_from_file(const char *file, char *charset /* Dscs (in/out) */,
-                                   int *is_96cs /* Pcss (in/out) */,
-                                   int *num_cols /* out */ , int *num_rows /* out */) {
+unsigned int* drcs_sixel_v3_from_file(const char *file, char *intermed /* (in/out) */,
+                                      char *ft /* Dscs (in/out) */,
+                                      int *num_cols /* out */ , int *num_rows /* out */) {
   FILE *fp;
+
+  if (*intermed < 0x20 || 0x2f < *intermed || *ft < 0x40 || 0x7e < *ft) {
+    return NULL;
+  }
 
   if ((fp = fopen(file, "r"))) {
     struct stat st;
@@ -208,7 +185,7 @@ unsigned int* drcs_sixel_from_file(const char *file, char *charset /* Dscs (in/o
     if ((sixel = malloc(st.st_size + 1))) {
       fread(sixel, 1, st.st_size, fp);
       sixel[st.st_size] = '\0';
-      buf = drcs_sixel_from_data(sixel, st.st_size, charset, is_96cs, num_cols, num_rows);
+      buf = drcs_sixel_v3_from_data(sixel, st.st_size, intermed, ft, num_cols, num_rows);
       free(sixel);
     } else {
       buf = NULL;

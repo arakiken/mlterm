@@ -15,70 +15,73 @@
 /* --- static functions --- */
 
 static size_t designate_to_g0(u_char *dst, size_t dst_size, int *is_full, ef_charset_t cs) {
-  u_char intermed = CS_INTERMEDIATE(cs);
+  u_char intermed1 = CS_INTERMEDIATE1(cs);
+  u_char intermed2 = CS_INTERMEDIATE2(cs);
   u_int len;
+  u_char ft;
 
   *is_full = 0;
+  len = (intermed1 ? (intermed2 ? 2 : 1) : 0);
 
   if (IS_CS94SB(cs)) {
-    if ((len = intermed ? 4 : 3) > dst_size) {
+    if ((len += 3) > dst_size) {
       *is_full = 1;
 
       return 0;
     }
 
+    ft = CS94SB_FT(cs);
+
     *(dst++) = '\x1b';
     *(dst++) = '(';
-    if (intermed) {
-      *(dst++) = intermed;
-    }
-    *(dst++) = CS94SB_FT(cs);
   } else if (IS_CS94MB(cs)) {
-    if ((len = intermed ? 5 : 4) > dst_size) {
+    if ((len += 4) > dst_size) {
       *is_full = 1;
 
       return 0;
     }
+
+    ft = CS94MB_FT(cs);
 
     *(dst++) = '\x1b';
     *(dst++) = '$';
     *(dst++) = '(';
-    if (intermed) {
-      *(dst++) = intermed;
-    }
-    *(dst++) = CS94MB_FT(cs);
   } else if (IS_CS96SB(cs)) {
-    if ((len = intermed ? 4 : 3) > dst_size) {
+    if ((len += 3) > dst_size) {
       *is_full = 1;
 
       return 0;
     }
+
+    ft = CS96SB_FT(cs);
 
     *(dst++) = '\x1b';
     *(dst++) = '-';
-    if (intermed) {
-      *(dst++) = intermed;
-    }
-    *(dst++) = CS96SB_FT(cs);
   } else if (IS_CS96MB(cs)) {
-    if ((len = intermed ? 5 : 4) > dst_size) {
+    if ((len += 4) > dst_size) {
       *is_full = 1;
 
       return 0;
     }
+
+    ft = CS96MB_FT(cs);
 
     *(dst++) = '\x1b';
     *(dst++) = '$';
     *(dst++) = '-';
-    if (intermed) {
-      *(dst++) = intermed;
-    }
-    *(dst++) = CS96MB_FT(cs);
   } else {
     /* error */
 
     return 0;
   }
+
+  if (intermed1) {
+    *(dst++) = intermed1;
+    if (intermed2) {
+      *(dst++) = intermed2;
+    }
+  }
+  *(dst++) = ft;
 
   return len;
 }

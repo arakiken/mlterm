@@ -34,6 +34,7 @@ static int next_char(ef_parser_t *parser, ef_char_t *ch) {
   vt_char_t *vt_ch;
   u_int comb_size;
   ef_charset_t cs;
+  u_int code;
 
   vt_str_parser = (vt_str_parser_t*)parser;
 
@@ -94,15 +95,24 @@ static int next_char(ef_parser_t *parser, ef_char_t *ch) {
   }
 
   cs = vt_char_cs(vt_ch);
+  code = vt_char_code(vt_ch);
   if (IS_DRCS(cs)) {
-    ch->cs = CS_ADD_INTERMEDIATE(DRCS_TO_CS(cs), ' ');
+    /* vtemu DRCS -> encodefilter DRCS */
+    int intermed2 = ((code >> 8) & 0x1f);
+
+    ch->cs = CS_ADD_INTERMEDIATE1(DRCS_TO_CS(cs), ' ');
+
+    if (intermed2) {
+      ch->cs = CS_ADD_INTERMEDIATE2(ch->cs, intermed2 + 0x1f);
+      code &= 0x7f;
+    }
   } else {
     ch->cs = cs;
   }
 
   ch->size = CS_SIZE(ch->cs);
 
-  ef_int_to_bytes(ch->ch, ch->size, vt_char_code(vt_ch));
+  ef_int_to_bytes(ch->ch, ch->size, code);
   if (vt_is_msb_set(ch->cs)) {
     UNSET_MSB(ch->ch[0]);
   }
