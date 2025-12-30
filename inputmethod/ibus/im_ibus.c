@@ -654,9 +654,11 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
                                                                                  : 0)
 #endif
                                                   )) {
+#if !IBUS_CHECK_VERSION(1, 5, 0)
     gboolean is_enabled_old;
 
     is_enabled_old = ibus->is_enabled;
+#endif
     ibus->is_enabled = ibus_input_context_is_enabled(ibus->context);
 
 #if !IBUS_CHECK_VERSION(1, 5, 0)

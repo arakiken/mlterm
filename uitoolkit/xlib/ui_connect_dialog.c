@@ -6,6 +6,7 @@
 #include "../ui_connect_dialog.h"
 
 #include <stdio.h>       /* sprintf */
+#include <sys/time.h>    /* gettimeofday */
 #include <pobl/bl_mem.h> /* alloca */
 #include <pobl/bl_str.h> /* strdup */
 #include <pobl/bl_debug.h>
@@ -43,6 +44,11 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
   char *password;
   size_t pass_len;
   int ret;
+  struct timeval tv_start;
+
+  if (gettimeofday(&tv_start, NULL) != 0) {
+    return 0;
+  }
 
   if (!(title = alloca((ncolumns = 20 + strlen(def_server))))) {
     return 0;
@@ -117,9 +123,15 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
 
           redraw = DRAW;
         } else {
-          /* Exit loop successfully. */
-          ret = 1;
-          break;
+          struct timeval tv;
+
+          if (gettimeofday(&tv, NULL) == 0 && tv.tv_usec > tv_start.tv_usec + 1000000) {
+            /* Exit loop successfully. */
+            ret = 1;
+            break;
+          } else {
+            continue;
+          }
         }
       }
     } else if (ev.type == Expose) {
@@ -152,7 +164,7 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
                    points[2].y - points[0].y - 1, False);
       }
 
-      if (password) {
+      if (pass_len > 0) {
         char *input;
         size_t count;
 
