@@ -2547,7 +2547,7 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
       } else if (!ui_window_is_selection_owner(&screen->window, SEL_CLIPBOARD)) {
         ui_window_set_selection_owner(&screen->window, CurrentTime, SEL_CLIPBOARD);
       }
-    } else if (ksym == XK_Left || ksym == 'h') {
+    } else if (ksym == XK_Left || ksym == 'h' || (ksym == 'b' && (state & ControlMask))) {
       if (vt_line_is_rtl(line) &&
           screen->copymode->cursor_char_index <= get_beg_in_rtl_line(line)) {
         screen->copymode->cursor_char_index = -1;
@@ -2563,7 +2563,7 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
           return;
         }
       }
-    } else if (ksym == XK_Right || ksym == 'l') {
+    } else if (ksym == XK_Right || ksym == 'l' || (ksym == 'f' && (state & ControlMask))) {
       if (screen->copymode->cursor_char_index + 1 < vt_line_get_num_filled_chars_except_sp(line)) {
         screen->copymode->cursor_char_index++;
       } else {
@@ -2576,9 +2576,9 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
           return;
         }
       }
-    } else if (ksym == XK_Up || ksym == 'k') {
+    } else if (ksym == XK_Up || ksym == 'k' || (ksym == 'p' && (state & ControlMask))) {
       copymode_move_vertical(screen, -1);
-    } else if (ksym == XK_Down || ksym == 'j') {
+    } else if (ksym == XK_Down || ksym == 'j' || (ksym == 'n' && (state & ControlMask))) {
       copymode_move_vertical(screen, 1);
     } else if (ksym == XK_Prior || ksym == 'u') {
       copymode_move_vertical(screen, -(vt_term_get_rows(screen->term)));
