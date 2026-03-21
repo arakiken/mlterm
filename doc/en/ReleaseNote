@@ -15,6 +15,7 @@
   https://github.com/arakiken/mlterm/issues/138
   https://github.com/arakiken/mlterm/issues/143
   https://github.com/arakiken/mlterm/issues/151
+  Fix dead lock in mlterm-sdl2.
 
 ver 3.9.4
 * Support Shift+Control+v and Shift+Control+c to copy&paste via clipboard by default.

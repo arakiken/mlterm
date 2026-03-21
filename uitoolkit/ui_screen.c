@@ -2757,12 +2757,15 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
 
 #ifdef USE_WIN32GUI
         /* XXX Is this necessary ? (changeset 2605) */
+        int kchar = ef_bytes_to_int(kstr, size);
+
         if (key == 0 && size > 0) {
           /* utf16 */
-          key = ef_bytes_to_int(kstr, size);
+          key = kchar;
         }
 #else
         /* Note that ksym can be 0 in receiving kstr converted by XCompose. (~/.XCompose) */
+        u_char kchar = kstr[0];
 #endif
         modcode++;
 
@@ -2773,7 +2776,7 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
              * 0x80 on win32, framebuffer and wayland.
              */
             (size == 1 && (key = kstr[0]) < 0x20)) {
-          if (vt_term_write_modified_key(screen->term, key, kstr[0], modcode)) {
+          if (vt_term_write_modified_key(screen->term, key, kchar, modcode)) {
             return;
           }
         }

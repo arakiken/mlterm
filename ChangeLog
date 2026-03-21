@@ -1,3 +1,11 @@
+2026-03-21  Araki Ken <arakiken@users.sf.net>
+
+	* sdl2/ui_display.c, vt_parser.c: When modifyOtherKeys = 1, the usual
+	  shift- and control-modifiers work as expected in windows.
+
+	* sdl2/ui_display.c: Fix dead lock by adding SDL_LockMutex() and
+	  SDL_UnlockMutex() before and after SDL_CondSignal().
+
 2026-02-15  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_display_linux.c: Fix converting EV_ABS to EV_REL.

@@ -52,6 +52,7 @@ static u_char *cur_preedit_text;
 static SDL_threadID main_tid;
 #ifdef MONITOR_PTY
 static SDL_cond *pty_cond;
+static SDL_mutex *mutex;
 #endif
 
 /* --- static functions --- */
@@ -445,7 +446,6 @@ static int init_display(Display *display, char *app_name, int x, int y, int hint
 
 #ifdef MONITOR_PTY
 static int monitor_ptys(void *p) {
-  SDL_mutex *mutex;
   vt_term_t **terms;
   u_int num_terms;
   int ptyfd;
@@ -454,13 +454,17 @@ static int monitor_ptys(void *p) {
   u_int count;
   SDL_Event ev;
 
-  mutex = SDL_CreateMutex();
   SDL_LockMutex(mutex);
 
   while (1) {
     while ((num_terms = vt_get_all_terms(&terms)) == 0) {
       if (num_displays == 0) {
-        goto end;
+#ifdef DEBUG
+        bl_debug_printf("Finish monitoring pty.\n");
+#endif
+        SDL_UnlockMutex(mutex);
+
+        return 0;
       }
       SDL_Delay(100);
     }
@@ -487,21 +491,13 @@ static int monitor_ptys(void *p) {
         ev.type = pty_event_type;
         SDL_PushEvent(&ev);
 
+        /* unlock -> wait -> lock in SDL_CondWait */
         SDL_CondWait(pty_cond, mutex);
       }
     } else {
       SDL_Delay(100);
     }
   }
-
-#ifdef DEBUG
-  bl_debug_printf("Finish monitoring pty.\n");
-#endif
-
-end:
-  SDL_DestroyMutex(mutex);
-
-  return 0;
 }
 #endif
 
@@ -625,7 +621,9 @@ static void poll_event(void) {
 
   if (processing_pty_event) {
     processing_pty_event = 0;
+    SDL_LockMutex(mutex);
     SDL_CondSignal(pty_cond);
+    SDL_UnlockMutex(mutex);
   }
 #endif
 
@@ -989,6 +987,7 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
       SDL_Thread *thrd;
 
       pty_cond = SDL_CreateCond();
+      mutex = SDL_CreateMutex();
       thrd = SDL_CreateThread(monitor_ptys, "pty_thread", NULL);
       SDL_DetachThread(thrd);
     }
@@ -1021,7 +1020,10 @@ void ui_display_close(ui_display_t *disp) {
         cur_preedit_text = NULL;
 
 #ifdef MONITOR_PTY
+        SDL_LockMutex(mutex);
         SDL_CondSignal(pty_cond);
+        SDL_UnlockMutex(mutex);
+        SDL_DestroyMutex(mutex);
         SDL_DestroyCond(pty_cond);
 #endif
         SDL_Quit();

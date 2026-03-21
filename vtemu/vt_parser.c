@@ -7530,9 +7530,17 @@ int vt_parser_write_modified_key(vt_parser_t *vt_parser,
   }
 
   if (vt_parser->modify_other_keys == 1) {
-    /* Assume cases like key = 0x33, modcode = 5, ch = 0x1b. */
+    /*
+     * Assume cases like key = 0x33, modcode = 5, ch = 0x1b.
+     *
+     * In windows, some keys such as ctrl+1 (key = 0x31, modcode = 5, ch = 0
+     * (ch = 0x31 in linux)) do not send modified keys in windows.
+     */
     if (ch < 0x20 || ch == 0x7f) {
-      if (ch == CTL_BS || (ch != CTL_CR && modcode == 5 /* Control */)) {
+      if (ch == CTL_BS ||
+          (ch != CTL_CR && ch != CTL_TAB &&
+           (modcode == 5 /* Control */ || modcode == 6 /* Control+Shift */) /* &&
+           (key == ch + 0x40 || key == ch + 0x60) */)) {
         return 0;
       }
     } else {
