@@ -384,11 +384,12 @@ char *bl_str_replace(const char *str, const char *orig, /* Don't specify "". */
 char *bl_str_escape_by_backslash(const char *str, const char *esc_list) {
   char *escaped_str;
   size_t str_len;
+  const char *cp;
   char *p;
 
   str_len = strlen(str) + 1;
-  for (p = esc_list; *p; p++) {
-    str_len += bl_count_char_in_str(str, *p);
+  for (cp = esc_list; *cp; cp++) {
+    str_len += bl_count_char_in_str(str, *cp);
   }
 
   if (!(p = escaped_str = malloc(str_len))) {

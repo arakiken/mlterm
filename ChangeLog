@@ -1,5 +1,12 @@
 2026-04-12  Araki Ken <arakiken@user.sf.net>
 
+	* Android.mk: ui_mod_meta_mode.c -> ui_screen_flags.c
+
+	* bl_str.c, c_imagelib.c, mc_font.c, mc_wordsep.c, ui_font_config.c, ui_layout.c:
+	  Fix discarded-qualifiers error.
+
+2026-04-12  Araki Ken <arakiken@user.sf.net>
+
 	* man/mlterm.1, PROTOCOL, README.ja: Update.
 
 	* im_ibus.c: Fix segfault in disconnected() in wayland.

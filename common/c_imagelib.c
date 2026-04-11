@@ -32,7 +32,7 @@ static void pixbuf_destroy_notify_emoji(guchar *pixels, gpointer data) {
 #endif
 }
 
-static char *is_otf_emoji(const char *path) {
+static char *is_otf_emoji(char *path) {
   char *p;
 
   while ((p = strchr(path, '.'))) {
@@ -60,7 +60,8 @@ static GdkPixbuf *gdk_pixbuf_new_from_otf(const char *path) {
   unsigned char *buffer;
   GdkPixbuf *pixbuf = NULL;
 
-  if (!(p = is_otf_emoji(path))) {
+  /* path is always changeable (see ui_emoji.c) */
+  if (!(p = is_otf_emoji((char*)path))) {
     return NULL;
   }
 

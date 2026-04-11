@@ -30,7 +30,7 @@ static void set_str_value(const char *value) {
 
   if ((len = strlen(value)) > 0) {
     char *value2;
-    char *p;
+    const char *p;
 
     if (len < 3 && strchr(value, ' ')) {
       /* len must be more than 2 to hold ' ' between other characters. */
@@ -66,14 +66,17 @@ static void set_str_value(const char *value) {
     /* ';' => \x3b */
     if ((p = strchr(value, ';'))) {
       if ((value2 = alloca(len + 3 + 1))) {
+        char *p2;
+
         strncpy(value2, value, p - value);
         strcpy(value2 + (p - value), "\\x3b");
         strcpy(value2 + (p - value) + 4, p + 1);
 
-        p = value2 + (p - value) + 4;
-        while ((p = strchr(p, ';'))) {
-          memmove(p, p + 1, strlen(p + 1));
-          p++;
+        p2 = value2 + (p - value) + 4;
+        while ((p2 = strchr(p2, ';'))) {
+          len = strlen(p2 + 1);
+          memmove(p2, p2 + 1, len);
+          p2[len] = '\0';
         }
 
         value = value2;

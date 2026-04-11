@@ -138,7 +138,7 @@ LOCAL_SRC_FILES := baselib/src/bl_map.c baselib/src/bl_args.c \
 		vtemu/libctl/vt_shape_iscii.c vtemu/libctl/vt_line_iscii.c \
 		vtemu/vt_ot_layout.c vtemu/vt_transfer.c vtemu/zmodem.c \
 		$(OTL_SRC_FILES) $(FRIBIDI_SRC_FILES) $(LIBSSH2_SRC_FILES) $(MOSH_SRC_FILES) \
-		uitoolkit/fb/ui.c uitoolkit/fb/ui_font.c uitoolkit/ui_mod_meta_mode.c uitoolkit/ui_shortcut.c \
+		uitoolkit/fb/ui.c uitoolkit/fb/ui_font.c uitoolkit/ui_screen_flags.c uitoolkit/ui_shortcut.c \
 		uitoolkit/ui_bel_mode.c uitoolkit/ui_font_cache.c uitoolkit/ui_picture.c \
 		uitoolkit/fb/ui_color.c uitoolkit/ui_font_config.c uitoolkit/ui_sb_mode.c \
 		uitoolkit/ui_color_cache.c uitoolkit/ui_font_manager.c uitoolkit/ui_type_engine.c \

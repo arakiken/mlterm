@@ -332,11 +332,12 @@ static void specify_width(GtkWidget *widget, int flag) {
   if (((fontname = new_fontname_list[selected_cs]) ||
        (fontname = gtk_entry_get_text(GTK_ENTRY(fontname_entry)))) &&
       *fontname) {
-    gchar *p;
+    const char *cp;
+    char *p;
     int percent;
     size_t len;
 
-    if (!(p = strrchr(fontname, ':')) || (percent = atoi(p + 1)) == 0) {
+    if (!(cp = strrchr(fontname, ':')) || (percent = atoi(p + 1)) == 0) {
       if (flag == 0) {
         return;
       }
@@ -344,7 +345,7 @@ static void specify_width(GtkWidget *widget, int flag) {
       len = strlen(fontname);
       percent = (flag < 0 ? 100 : 110);
     } else {
-      len = p - fontname;
+      len = cp - fontname;
 
       if (flag == 0) {
         percent = 0;

@@ -1306,7 +1306,7 @@ int ui_layout_add_child(ui_layout_t *layout, ui_screen_t *screen, int horizontal
   int is_percent = 1;
 
   if (sep_str) {
-    char *p;
+    const char *p;
 
     if ((p = strchr(sep_str, '%'))) {
       if (!bl_str_n_to_uint(&sep, sep_str, p - sep_str) || sep >= 100 || sep == 0) {
@@ -1671,7 +1671,7 @@ int ui_layout_resize(ui_layout_t *layout, ui_screen_t *screen, int horizontal,
   struct terminal *child = NULL;
   int size;
   int is_percent;
-  char *p;
+  const char *p;
 
   if ((p = strchr(size_str, '%'))) {
     if (!bl_str_n_to_int(&size, size_str, p - size_str) || size <= 0) {

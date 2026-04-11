@@ -285,7 +285,7 @@ static void parse_value(char **font_name, /* if value is "" or illegal format, n
  * 0: Invalid '%' is found.
  */
 static int is_valid_font_format(const char *format) {
-  char *p;
+  const char *p;
 
   if ((p = strchr(format, '%'))) {
     /* force to be '%d' */
