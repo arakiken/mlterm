@@ -1638,7 +1638,9 @@ const struct xdg_popup_listener xdg_popup_listener = {
 #endif /* Not COMPAT_LIBVTE */
 
 static void update_mime(char **mime, const char *new_mime) {
-  if (strcmp(new_mime, "text/plain;charset=utf-8") == 0) {
+  if (strcmp(new_mime, "text/uri-list") == 0) {
+    *mime = "text/uri-list";
+  } else if (*mime == NULL && strcmp(new_mime, "text/plain;charset=utf-8") == 0) {
     *mime = "text/plain;charset=utf-8";
   } else if (*mime == NULL && strcmp(new_mime, "UTF8_STRING") == 0) {
     *mime = "UTF8_STRING";
@@ -1754,13 +1756,27 @@ static int unescape(char *src) {
   return (src != dst);
 }
 
-static void receive_data(ui_display_t *disp, void *offer, const char *mime, int clipboard) {
+#ifdef DEBUG
+#include <assert.h>
+
+#define receive_data(disp, offer, mime, clipboard) \
+        test_receive_data(disp, offer, mime, clipboard, NULL, NULL, NULL, NULL)
+static void test_receive_data(ui_display_t *disp, void *offer, const char *mime, int clipboard,
+                              char *test_data1, char *test_data2, char *test_result1, char *test_result2)
+#else
+static void receive_data(ui_display_t *disp, void *offer, const char *mime, int clipboard)
+#endif
+{
   int fds[2];
 
   if (pipe(fds) == 0) {
-    char buf[512];
-    ssize_t len;
+    char buf[7 + PATH_MAX * 2 + 1]; /* 7=file:// *2=escaped path */
+    ssize_t read_len;
 
+#ifdef DEBUG
+    if (test_data1) {
+    } else
+#endif
     if (clipboard) {
       wl_data_offer_receive(offer, mime, fds[1]);
     } else {
@@ -1779,49 +1795,116 @@ static void receive_data(ui_display_t *disp, void *offer, const char *mime, int 
 #endif
     }
 
-    wl_display_flush(disp->display->wlserv->display);
+#ifdef DEBUG
+    if (test_data1 == NULL)
+#endif
+    {
+      wl_display_flush(disp->display->wlserv->display);
+    }
     close(fds[1]);
 
-    while ((len = read(fds[0], buf, sizeof(buf) - 1)) > 0) {
-      if (strcmp(mime, "text/uri-list") == 0) {
-        char *p;
+    if (strcmp(mime, "text/uri-list") == 0) {
+      ssize_t read_len;
+      char *file;
+      char *p;
 
-        while (buf[len - 1] == '\n' || buf[len - 1] == '\r') {
-          len--;
+#ifdef DEBUG
+      if (test_data1) {
+        read_len = strlen(test_data1);
+        file = p = test_data1;
+      } else
+#endif
+      {
+        read_len = read(fds[0], buf, sizeof(buf) - 1);
+        buf[read_len] = '\0';
+#ifdef __DEBUG
+        bl_debug_printf("Receive data (len %d, mime %s): %s\n", read_len, mime, buf);
+#endif
+
+        file = p = buf;
+      }
+
+      while (1) {
+        if (*p == 'f' && strncmp(p + 1, "ile://", 6) == 0) {
+          file = (p += 7);
         }
-        buf[len] = '\0';
 
-        for (p = buf; *p; p++) {
-          if (*p == 'f') {
-            if (strncmp(p + 1, "ile://", 6) == 0) {
-              memmove(p, p + 7, len - 7 + 1);
-              p += 6;
-              len -= 7;
-            }
-          } else if (*p == '\r' || *p == '\n') {
-            *p = ' ';
+        if (*p == '\r' || *p == '\n') {
+          *p = '\0';
+          do { p++; } while (*p == '\r' || *p == '\n');
+        } else if (*p != '\0') {
+          p++;
+          continue;
+        }
+
+        unescape(file);
+
+#ifdef DEBUG
+        if (test_data1) {
+          assert(strcmp(file, test_result1) == 0);
+        } else
+#endif
+        {
+          if (disp->display->wlserv->dnd_action ==
+              WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE /* Shift+Drop */ &&
+              disp->roots[0]->set_xdnd_config) {
+            (*disp->roots[0]->set_xdnd_config)(disp->roots[0], NULL, "scp", file);
+          } else if (disp->roots[0]->utf_selection_notified) {
+            (*disp->roots[0]->utf_selection_notified)(disp->roots[0], file, strlen(file), 1);
           }
         }
 
-        if (unescape(buf)) {
-          len = strlen(buf);
+        if (read_len > 0) {
+          char tmp[sizeof(buf)];
+          size_t len = strlen(p);
+
+#ifdef DEBUG
+          if (test_data1) {
+            if (test_data2) {
+              read_len = strlen(test_data2);
+              strcpy(tmp, test_data2);
+              test_data1 = test_data2;
+              test_result1 = test_result2;
+              test_data2 = test_result2 = NULL;
+            } else {
+              read_len = 0;
+            }
+          } else
+#endif
+          {
+            read_len = read(fds[0], tmp, sizeof(tmp) - len - 1);
+          }
+
+          if (read_len > 0) {
+            p = memmove(buf, p, len);
+            memcpy(buf + len, tmp, read_len);
+            buf[len + read_len] = '\0';
+          }
+        }
+
+        if (*p == '\0') {
+          break;
+        }
+
+        file = p;
+
+#ifdef DEBUG
+        if (test_data1 == NULL)
+#endif
+        {
+          if (disp->roots[0]->utf_selection_notified) {
+            (*disp->roots[0]->utf_selection_notified)(disp->roots[0], " ", 1, 0); /* separator */
+          }
         }
       }
+    } else {
+      if (disp->roots[0]->utf_selection_notified) {
+        while ((read_len = read(fds[0], buf, sizeof(buf) - 1)) > 0) {
 #ifdef __DEBUG
-      else {
-        buf[len] = '\0';
-      }
-
-      bl_debug_printf("Receive data (len %d, mime %s): %s\n", len, mime, buf);
+          bl_debug_printf("Receive data (len %d, mime %s): %s\n", read_len, mime, buf);
 #endif
-
-      if (disp->display->wlserv->dnd_action ==
-          WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE /* Shift+Drop */ &&
-          disp->roots[0]->set_xdnd_config) {
-        (*disp->roots[0]->set_xdnd_config)(disp->roots[0], NULL, "scp", buf);
-        break;
-      } else if (disp->roots[0]->utf_selection_notified) {
-        (*disp->roots[0]->utf_selection_notified)(disp->roots[0], buf, len);
+          (*disp->roots[0]->utf_selection_notified)(disp->roots[0], buf, read_len, 0);
+        }
       }
     }
     close(fds[0]);
@@ -1837,7 +1920,8 @@ static void data_device_drop(void *data, struct wl_data_device *data_device) {
 #endif
 
   if ((disp = surface_to_display(wlserv->data_surface))) {
-    receive_data(disp, wlserv->dnd_offer, "text/uri-list", 1);
+    receive_data(disp, wlserv->dnd_offer,
+                 wlserv->sel_offer_mime ? wlserv->sel_offer_mime : "text/uri-list", 1);
   }
 }
 
@@ -2563,7 +2647,6 @@ static const struct zxdg_toplevel_decoration_v1_listener decoration_listener = {
 static void input_enter(void *data, struct zwp_text_input_v3 *text_input,
                         struct wl_surface *surface) {
   ui_display_t *disp = data;
-  ui_window_t *win;
   int x, y;
 
 #ifdef __DEBUG
@@ -3603,7 +3686,7 @@ void ui_display_send_text_selection(ui_display_t *disp, XSelectionRequestEvent *
     close(disp->display->wlserv->sel_fd);
     disp->display->wlserv->sel_fd = -1;
   } else if (ev && ev->target->utf_selection_notified) {
-    (*ev->target->utf_selection_notified)(ev->target, sel_data, sel_len);
+    (*ev->target->utf_selection_notified)(ev->target, sel_data, sel_len, 0);
   }
 }
 
@@ -3827,3 +3910,23 @@ void ui_display_unmap(ui_display_t *disp) {
   }
 }
 #endif /* COMPAT_LIBVTE */
+
+#ifdef DEBUG
+void TEST_ui_display(void) {
+  char test_data1[] = "h g/f g\r\nfile:///あ";
+  char test_data2[] = " いうえお\r\n";
+
+  test_receive_data(NULL, NULL, "text/uri-list", 1, test_data1, test_data2, "h g/f g", "/あ いうえお");
+
+  char test_data3[] = "abcdef/g";
+  char test_data4[] = "hijk\r\n";
+
+  /*
+   * "abcdef/ghijk" is expected, but test_receive_data() splits it by size of
+   * reading pipe each time.
+   */
+  test_receive_data(NULL, NULL, "text/uri-list", 1, test_data3, test_data4, "abcdef/g", "hijk");
+
+  bl_msg_printf("PASS ui_display test.\n");
+}
+#endif

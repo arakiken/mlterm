@@ -3,8 +3,6 @@
 #ifndef __VT_BIDI_H__
 #define __VT_BIDI_H__
 
-#include <pobl/bl_types.h> /* u_int */
-
 typedef enum {
   BIDI_NORMAL_MODE = 0,
   BIDI_ALWAYS_LEFT = 1,

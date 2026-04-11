@@ -96,7 +96,10 @@ int ui_dnd_filter_event(XEvent *event, ui_window_t *win) {
         path_len *= sizeof(utf16_path[0]);
 
         if (win->utf_selection_notified) {
-          (*win->utf_selection_notified)(win, (u_char*)utf16_path, path_len);
+          if (count > 0) {
+            (*win->utf_selection_notified)(win, "\x20\x00", 2, 0); /* separator */
+          }
+          (*win->utf_selection_notified)(win, (u_char*)utf16_path, path_len, 1);
         }
       }
 #else
@@ -121,7 +124,10 @@ int ui_dnd_filter_event(XEvent *event, ui_window_t *win) {
 
         if ((path_len = (*utf16_conv->convert)(utf16_conv, (u_char*)utf16_path, sizeof(utf16_path),
                                                utf8_parser)) > 0) {
-          (*win->utf_selection_notified)(win, (u_char*)utf16_path, path_len);
+          if (count > 0) {
+            (*win->utf_selection_notified)(win, "\x20\x00", 2, 0); /* separator */
+          }
+          (*win->utf_selection_notified)(win, (u_char*)utf16_path, path_len, 1);
         }
       }
 #endif

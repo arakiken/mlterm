@@ -1,3 +1,50 @@
+2026-04-12  Araki Ken <arakiken@user.sf.net>
+
+	* man/mlterm.1, PROTOCOL, README.ja: Update.
+
+	* im_ibus.c: Fix segfault in disconnected() in wayland.
+
+	* test.c: Add TEST_ui_display() in wayland.
+
+	* wayland/ui_display.c:
+	  - update_mime() supports "text/uri-list".
+	  - Add TEST_ui_display().
+
+	* ui_main_config.c: Add --dndesc / dnd_escape_mode option.
+
+	* ui_screen.[ch]:
+	  - Add ui_set_dnd_escape_mode() and escape_file_name() to escape or enclose
+	    a file path passed by DnD.
+	  - Add "dnd_escape_mode" to OSC 5379.
+
+	* beos/ui_window.c, quartz/ui_window.c, sdl2/ui_display.c,
+	  win32/ui_dnd.c, xlib/ui_dnd.c:
+	  If DnD data is received, call win->utf_selection_notified with 1
+	  as the 3rd argument.
+
+	* beos.cpp, cocoa.m, win32/ui_dnd.c, xlib/ui_dnd.c:
+	  Insert white spaces as separators between file paths in processing
+	  DnD data.
+
+	* ui_window.h: Add 'is_dnd' to {utf|xct}_selection_notified() as the
+	  3rd argument.
+
+	* ui_bel_mode.c, ui_sb_mode.c, ui_screen_flags.c, ui_type_engine.c,
+	  vt_logical_visual.c, vt_edit.c, vt_bidi.c:
+	  Use bl_match_str_in_table().
+
+	* ui_screen_flags.[ch]:
+	  - Rename from ui_mod_meta_mode.[ch].
+	  - Add ui_get_dnd_escape_mode_by_name() and ui_get_dnd_escape_mode_name().
+
+	* baselib/src/Makefile.in: 2.1 -> 3.0
+
+	* bl_util.[ch]: Add bl_match_str_in_table().
+
+	* bl_str.[ch]: Add bl_str_escape_backslash().
+
+	* ui_sb_view_factory.c: Fix insufficient memory allocation.
+
 2026-03-21  Araki Ken <arakiken@users.sf.net>
 
 	* sdl2/ui_display.c, vt_parser.c: When modifyOtherKeys = 1, the usual
@@ -9,6 +56,7 @@
 2026-02-15  Araki Ken  <arakiken@users.sf.net>
 
 	* ui_display_linux.c: Fix converting EV_ABS to EV_REL.
+	  (https://github.com/arakiken/mlterm/issues/156)
 
 2026-02-14  Araki Ken  <arakiken@users.sf.net>
 

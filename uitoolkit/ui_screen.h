@@ -10,7 +10,7 @@
 #include "ui_window.h"
 #include "ui_selection.h"
 #include "ui_shortcut.h"
-#include "ui_mod_meta_mode.h"
+#include "ui_screen_flags.h"
 #include "ui_bel_mode.h"
 #include "ui_sb_mode.h"
 #include "ui_im.h"
@@ -171,6 +171,8 @@ void ui_set_mod_meta_prefix(char *prefix);
 void ui_set_trim_trailing_newline_in_pasting(int trim);
 
 void ui_set_mod_keys_to_stop_mouse_report(const char *keys);
+
+void ui_set_dnd_escape_mode(ui_dnd_escape_mode_t mode);
 
 #ifdef USE_IM_CURSOR_COLOR
 void ui_set_im_cursor_color(char *color);

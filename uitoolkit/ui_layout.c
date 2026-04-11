@@ -521,7 +521,7 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
   }
 }
 
-static void utf_selection_notified(ui_window_t *win, u_char *buf, size_t len) {
+static void utf_selection_notified(ui_window_t *win, u_char *buf, size_t len, int is_dnd) {
   ui_layout_t *layout;
   ui_window_t *child;
 
@@ -529,10 +529,10 @@ static void utf_selection_notified(ui_window_t *win, u_char *buf, size_t len) {
   child = get_current_window(layout);
 
   /* dispatch to screen */
-  (*child->utf_selection_notified)(child, buf, len);
+  (*child->utf_selection_notified)(child, buf, len, is_dnd);
 }
 
-static void xct_selection_notified(ui_window_t *win, u_char *buf, size_t len) {
+static void xct_selection_notified(ui_window_t *win, u_char *buf, size_t len, int is_dnd) {
   ui_layout_t *layout;
   ui_window_t *child;
 
@@ -540,7 +540,7 @@ static void xct_selection_notified(ui_window_t *win, u_char *buf, size_t len) {
   child = get_current_window(layout);
 
   /* dispatch to screen */
-  (*child->xct_selection_notified)(child, buf, len);
+  (*child->xct_selection_notified)(child, buf, len, is_dnd);
 }
 
 #ifndef DISABLE_XDND

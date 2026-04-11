@@ -4,25 +4,24 @@
 
 #include <string.h>        /* strcmp */
 #include <pobl/bl_types.h> /* u_int */
+#include <pobl/bl_util.h>  /* bl_match_str_in_table */
 
 /* --- static variables --- */
 
 /* Order of this table must be same as ui_bel_mode_t. */
-static char *bel_mode_name_table[] = {"none", "sound", "visual", "sound|visual"};
+static char *bel_mode_name_table[] = { "none", "sound", "visual", "sound|visual" };
 
 /* --- global functions --- */
 
 ui_bel_mode_t ui_get_bel_mode_by_name(const char *name) {
-  ui_bel_mode_t mode;
+  int mode;
 
-  for (mode = 0; mode < BEL_MODE_MAX; mode++) {
-    if (strcmp(bel_mode_name_table[mode], name) == 0) {
-      return mode;
-    }
+  if ((mode = bl_match_str_in_table(bel_mode_name_table, BEL_MODE_MAX, name)) == -1) {
+    /* default value */
+    return BEL_SOUND;
   }
 
-  /* default value */
-  return BEL_SOUND;
+  return mode;
 }
 
 char *ui_get_bel_mode_name(ui_bel_mode_t mode) {

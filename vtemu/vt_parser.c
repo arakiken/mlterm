@@ -4428,6 +4428,7 @@ static void send_device_attributes(vt_parser_t *vt_parser, int rank) {
        * 22 Color
        * 29 ANSI text locator (i.e., DEC Locator mode)
        * 52 OSC 52 (https://github.com/arakiken/mlterm/issues/144)
+       * (If the default value is changed, modify mlterm.1 and README.ja)
        */
 #ifndef NO_IMAGE
       if (HAS_XTERM_LISTENER(vt_parser, set_selection)) {
@@ -4452,6 +4453,7 @@ static void send_device_attributes(vt_parser_t *vt_parser, int rank) {
        * >=141: vim uses tcap-query.
        * >=277: vim uses sgr mouse tracking.
        * >=279: xterm supports DECSLRM/DECLRMM.
+       * (If the default value is changed, modify mlterm.1 and README.ja)
        */
       seq = "\x1b[>24;279;0c";
     }

@@ -16,8 +16,10 @@
 #include <pobl/bl_types.h>
 #include <pobl/bl_debug.h>
 #include <pobl/bl_util.h> /* BL_ARRAY_SIZE */
+#include <pobl/bl_str.h> /* bl_str_sep */
 #include <mef/ef_utf8_conv.h>
 #include <mef/ef_utf16_parser.h>
+#include <vt_char.h> /* UTF_MAX_SIZE */
 
 #define SUCCESS 0
 #define FAILURE -1
@@ -44,17 +46,13 @@ typedef struct dnd_parser {
   int (*parser)(ui_window_t *, u_char *, int);
 } dnd_parser_t;
 
-#ifdef BL_DEBUG
-static void TEST_dnd(ui_display_t *disp);
-#endif
-
 /********************** parsers **********************************/
 /* XXX: to properly support DnD spec v5, parsers should accept "codeset"*/
 static int parse_text_unicode(ui_window_t *win, u_char *src, int len) {
   int filled_len;
   ef_parser_t *parser;
   ef_conv_t *conv;
-  u_char conv_buf[512] = {0};
+  u_char *conv_buf;
 
   if (!(win->utf_selection_notified)) return FAILURE;
 
@@ -101,12 +99,13 @@ static int parse_text_unicode(ui_window_t *win, u_char *src, int len) {
   }
 
   (parser->set_str)(parser, src, len);
-  /* conversion from utf16 -> utf8. */
-  while (!parser->is_eos) {
-    filled_len = (conv->convert)(conv, conv_buf, sizeof(conv_buf), parser);
-    if (filled_len == 0) break;
-    (*win->utf_selection_notified)(win, conv_buf, filled_len);
+  if ((conv_buf = alloca(len * UTF_MAX_SIZE / 2))) {
+    /* conversion from utf16 -> utf8. */
+    if ((filled_len = (conv->convert)(conv, conv_buf, sizeof(conv_buf), parser)) > 0) {
+      (*win->utf_selection_notified)(win, conv_buf, filled_len, 1);
+    }
   }
+
   if (win->dnd->is_incr) {
     /* keep pointers to parser/converter to use them for next event */
     win->dnd->parser = parser;
@@ -121,9 +120,10 @@ static int parse_text_unicode(ui_window_t *win, u_char *src, int len) {
   return SUCCESS;
 }
 
-static void unescape(u_char *src) {
+static int unescape(u_char *src) {
   u_char *dst;
   int c;
+  int len = 0;
 
   dst = src;
 
@@ -131,11 +131,14 @@ static void unescape(u_char *src) {
     if (*src == '%' && sscanf(src, "%%%2x", &c) == 1) {
       *(dst++) = c;
       src += 3;
+      len += 3;
     } else {
       *(dst++) = *(src++);
     }
   }
   *dst = '\0';
+
+  return len;
 }
 
 static int parse_text_uri_list(ui_window_t *win, u_char *src, int len) {
@@ -146,7 +149,7 @@ static int parse_text_uri_list(ui_window_t *win, u_char *src, int len) {
   pos = src;
   end = src + len;
 
-  while (pos < end) {
+  while (1) {
     u_char *delim;
 
     /*
@@ -175,30 +178,56 @@ static int parse_text_uri_list(ui_window_t *win, u_char *src, int len) {
         win->set_xdnd_config) {
       (*win->set_xdnd_config)(win, NULL, "scp", pos);
     } else if (win->utf_selection_notified) {
-      (*win->utf_selection_notified)(win, pos, strlen(pos));
+      (*win->utf_selection_notified)(win, pos, strlen(pos), 1);
     } else {
       return FAILURE;
     }
 
     /* skip trailing 0x0A */
     pos = delim + 1;
+
+    if (pos < end) {
+      (*win->utf_selection_notified)(win, " ", 1, 0); /* separator */
+    } else {
+      break;
+    }
+  }
+
+  return SUCCESS;
+}
+
+static int parse_text(ui_window_t *win,
+                      void (*selection_notified)(ui_window_t *, u_char *, size_t, int),
+                      char *src, int len) {
+  char *p;
+  int is_first = 1;
+
+  if (selection_notified == NULL) {
+    return FAILURE;
+  }
+
+  len -= unescape(src);
+
+  while ((p = bl_str_sep(&src, "\r\n"))) {
+    if (*p != '\0') {
+      if (!is_first) {
+        (*selection_notified)(win, " ", 1, 0); /* separator */
+      } else {
+        is_first = 0;
+      }
+      (*selection_notified)(win, p, strlen(p), 1);
+    }
   }
 
   return SUCCESS;
 }
 
 static int parse_compound_text(ui_window_t *win, u_char *src, int len) {
-  if (!(win->xct_selection_notified)) return FAILURE;
-  (*win->xct_selection_notified)(win, src, len);
-
-  return SUCCESS;
+  return parse_text(win, win->xct_selection_notified, src, len);
 }
 
 static int parse_utf8_string(ui_window_t *win, u_char *src, int len) {
-  if (!(win->utf_selection_notified)) return FAILURE;
-  (*win->utf_selection_notified)(win, src, len);
-
-  return SUCCESS;
+  return parse_text(win, win->utf_selection_notified, src, len);
 }
 
 static int parse_mlterm_config(ui_window_t *win, u_char *src, int len) {
@@ -717,8 +746,6 @@ static int selection(ui_window_t *win, XEvent *event) {
 /* return 0 if the event should be processed in the mlterm mail loop */
 /* return 1 if nothing to be done is left for the event */
 int ui_dnd_filter_event(XEvent *event, ui_window_t *win) {
-  BL_TESTIT_ONCE(dnd, (win->disp));
-
   switch (event->type) {
     /* case CreateNotify: */
     case MapNotify:
@@ -785,12 +812,39 @@ int ui_dnd_filter_event(XEvent *event, ui_window_t *win) {
 
 #include <assert.h>
 
+static void TEST_parse_text_unicode_utf_selection_notified(ui_window_t *win, u_char *data,
+                                                           size_t len, int type) {
+  u_char *url = "abc";
+
+  data[len] = '\0';
+  assert(strcmp(url, data) == 0);
+}
+
+static void TEST_parse_text_unicode(void) {
+  ui_window_t win;
+  ui_dnd_context_t dnd;
+  u_int16_t url[] = { 0x61, 0x62, 0x63 }; /* abc */
+  int count;
+
+  memset(&win, 0, sizeof(win));
+  win.utf_selection_notified = TEST_parse_text_unicode_utf_selection_notified;
+  memset(&dnd, 0, sizeof(dnd));
+  win.dnd = &dnd;
+
+  parse_text_unicode(&win, (u_char*)url, 6);
+}
+
 static void TEST_parse_text_uri_list_utf_selection_notified(ui_window_t *win, u_char *data,
-                                                            size_t len) {
+                                                            size_t len, int type) {
   static int count;
   u_char *urls[] = {
       "http://hoge.com/foo.bar", "http://abcdefg", "/hijklmn",
   };
+
+  if (strcmp(data, " ") == 0) {
+    /* separator */
+    return;
+  }
 
   data[len] = '\0';
   assert(strcmp(urls[count], data) == 0);
@@ -798,8 +852,9 @@ static void TEST_parse_text_uri_list_utf_selection_notified(ui_window_t *win, u_
   count++;
 }
 
-static void TEST_parse_text_uri_list(ui_display_t *disp) {
+static void TEST_parse_text_uri_list(void) {
   ui_window_t win;
+  ui_display_t disp;
   ui_dnd_context_t dnd;
   u_char *urls[] = {
       "http://hoge.com/foo.bar", "http://abcdefg\r\nfile:///hijklmn",
@@ -809,7 +864,13 @@ static void TEST_parse_text_uri_list(ui_display_t *disp) {
 
   memset(&win, 0, sizeof(win));
   /* disp is used for XInternAtom(win->disp->display, "XdndActionMove", False) */
-  win.disp = disp;
+  if ((disp.display = XOpenDisplay(NULL)) == NULL) {
+    bl_msg_printf("Skip TEST_parse_text_uri_list because XOpenDisplay() failed.\n");
+
+    return;
+  }
+
+  win.disp = &disp;
   win.utf_selection_notified = TEST_parse_text_uri_list_utf_selection_notified;
   memset(&dnd, 0, sizeof(dnd));
   win.dnd = &dnd;
@@ -818,12 +879,48 @@ static void TEST_parse_text_uri_list(ui_display_t *disp) {
     strcpy(buf, urls[count]);
     parse_text_uri_list(&win, buf, strlen(urls[count]));
   }
+
+  XCloseDisplay(disp.display);
 }
 
-static void TEST_dnd(ui_display_t *disp) {
-  TEST_parse_text_uri_list(disp);
+static void TEST_parse_utf8_string_utf_selection_notified(ui_window_t *win, u_char *data,
+                                                      size_t len, int type) {
+  static int count;
+  u_char *urls[] = {
+      "http://hoge.com/foo.bar", "abc",
+  };
 
-  bl_msg_printf("PASS X DnD test.\n");
+  if (strcmp(data, " ") == 0) {
+    /* separator */
+    return;
+  }
+
+  data[len] = '\0';
+  assert(strcmp(urls[count], data) == 0);
+
+  count++;
+}
+
+static void TEST_parse_utf8_string(void) {
+  ui_window_t win;
+  ui_dnd_context_t dnd;
+  u_char url[] = "http://hoge.com/foo.bar\r\nabc\r\n";
+  int count;
+
+  memset(&win, 0, sizeof(win));
+  win.utf_selection_notified = TEST_parse_utf8_string_utf_selection_notified;
+  memset(&dnd, 0, sizeof(dnd));
+  win.dnd = &dnd;
+
+  parse_utf8_string(&win, url, strlen(url));
+}
+
+void TEST_ui_dnd(void) {
+  TEST_parse_text_unicode();
+  TEST_parse_text_uri_list();
+  TEST_parse_utf8_string();
+
+  bl_msg_printf("PASS ui_dnd test.\n");
 }
 
 #endif

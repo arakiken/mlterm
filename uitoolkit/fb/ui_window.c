@@ -2490,11 +2490,11 @@ void ui_window_send_text_selection(ui_window_t *win, XSelectionRequestEvent *req
   if (req_ev) {
     if (req_ev->type == 1) {
       if (req_ev->target->utf_selection_notified) {
-        (*req_ev->target->utf_selection_notified)(req_ev->target, sel_data, sel_len);
+        (*req_ev->target->utf_selection_notified)(req_ev->target, sel_data, sel_len, 0);
       }
     } else {
       if (req_ev->target->xct_selection_notified) {
-        (*req_ev->target->xct_selection_notified)(req_ev->target, sel_data, sel_len);
+        (*req_ev->target->xct_selection_notified)(req_ev->target, sel_data, sel_len, 0);
       }
     }
   }

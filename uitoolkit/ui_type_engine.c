@@ -4,27 +4,24 @@
 
 #include <string.h>        /* strcmp */
 #include <pobl/bl_types.h> /* u_int */
+#include <pobl/bl_util.h>  /* bl_match_str_in_table */
 
 /* --- static variables --- */
 
 /* Order of this table must be same as ui_type_engine_t. */
-static char *type_engine_name_table[] = {
-    "xcore", "xft", "cairo",
-};
+static char *type_engine_name_table[] = { "xcore", "xft", "cairo" };
 
 /* --- global functions --- */
 
 ui_type_engine_t ui_get_type_engine_by_name(const char *name) {
-  if (strcmp("xcore", name) == 0) {
+  int engine;
+
+  if ((engine = bl_match_str_in_table(type_engine_name_table, TYPE_ENGINE_MAX, name)) == -1) {
+    /* default value */
     return TYPE_XCORE;
-  } else if (strcmp("xft", name) == 0) {
-    return TYPE_XFT;
-  } else if (strcmp("cairo", name) == 0) {
-    return TYPE_CAIRO;
   }
 
-  /* default value */
-  return TYPE_XCORE;
+  return engine;
 }
 
 char *ui_get_type_engine_name(ui_type_engine_t engine) {

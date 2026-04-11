@@ -2473,11 +2473,11 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
 
         if (ct.encoding == XA_STRING || ct.encoding == xa_text || ct.encoding == xa_compound_text) {
           if (win->xct_selection_notified) {
-            (*win->xct_selection_notified)(win, ct.value, ct.nitems);
+            (*win->xct_selection_notified)(win, ct.value, ct.nitems, 0);
           }
         } else if (ct.encoding == xa_utf8_string) {
           if (win->utf_selection_notified) {
-            (*win->utf_selection_notified)(win, ct.value, ct.nitems);
+            (*win->utf_selection_notified)(win, ct.value, ct.nitems, 0);
           }
         }
 
@@ -2530,11 +2530,11 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
         if (ct.encoding == XA_STRING || ct.encoding == XA_TEXT(win->disp->display) ||
             ct.encoding == XA_COMPOUND_TEXT(win->disp->display)) {
           if (win->xct_selection_notified) {
-            (*win->xct_selection_notified)(win, ct.value, ct.nitems);
+            (*win->xct_selection_notified)(win, ct.value, ct.nitems, 0);
           }
         } else if (ct.encoding == XA_UTF8_STRING(win->disp->display)) {
           if (win->utf_selection_notified) {
-            (*win->utf_selection_notified)(win, ct.value, ct.nitems);
+            (*win->utf_selection_notified)(win, ct.value, ct.nitems, 0);
           }
         }
 

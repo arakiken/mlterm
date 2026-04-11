@@ -8,6 +8,8 @@
   (https://github.com/arakiken/mlterm/issues/136)
 * Add --crsz/cursor_size option to mlterm-fb.
   (https://github.com/arakiken/mlterm/issues/155)
+* Add --dndesc/dnd_escape_mode option.
+  (https://github.com/arakiken/mlterm/issues/153)
 * Add vte 0.80 API symbols to libvte compatible library.
 * Add 52 to DA1. (https://github.com/arakiken/mlterm/issues/144)
 * Check permissions in Android.
@@ -15,7 +17,11 @@
   https://github.com/arakiken/mlterm/issues/138
   https://github.com/arakiken/mlterm/issues/143
   https://github.com/arakiken/mlterm/issues/151
+  https://github.com/arakiken/mlterm/issues/156
   Fix dead lock in mlterm-sdl2.
+  Fix segfault in using ibus in wayland.
+  Fix DnD in wayland.
+  Fix segfault in loading a scrollbar with the use of pixmap_engine.
 
 ver 3.9.4
 * Support Shift+Control+v and Shift+Control+c to copy&paste via clipboard by default.

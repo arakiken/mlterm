@@ -823,9 +823,6 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
       o cursor_bg_color (#)
         同背景色
 
-      o cursor_size (5,17) (mlterm-fb 用)
-        カーソルの幅と高さ
-
       o it_color (#)
         イタリックの代わりに文字に色を付けるのに使用する色
 
@@ -929,6 +926,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
         16, 256, full のいずれかを指定します。
         XTCOLREG(CSI?Pi;Pa;PvS)により、16か256のいずれか適当な方を判定します。
 
+      o cursor_size (*7,15*) (mlterm-fb 用)
+        カーソルの幅と高さ
+
       o daemon_mode (*none*/blend/genuine)
         daemon process となるかどうか
 
@@ -958,6 +958,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
 
       o display
         X の DISPLAY を指定
+
+      o dnd_escape_mode (none/*backslash*/quote/doublequote)
+        DnD されたファイル名の空白文字のエスケープ方法
 
       o exec_cmd
         指定したコマンドを起動
@@ -1043,7 +1046,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
       o parent_window (*0*)
         親 Window の Window ID を指定
 
-      o primary_da (*63;1;2;3;4;7;29*)
+      o primary_da (*63;1;2;3;4;6;7;15;18;22;29*)
         CSI c に対する応答文字列
 
       o receive_directory (~/.mlterm/recv)
@@ -1058,6 +1061,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
 
         scroll の場合は、全ての文字をスクロールアウトし、wrap の場合は、リサイズ
         後の画面幅に合わせて折り返して表示します。
+
+      o rotate_display (*none*/right/left) (mlterm-fb, mlterm-wl, mlterm-sdl2 用)
+        画面を右又は左に回転
 
       o secondary_da (*24;279;0*)
         CSI > c に対する応答文字列
@@ -1646,6 +1652,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
        --ckm=value     : console_encoding (mlterm-con 用)
        --csc=value     : console_sixel_colors (mlterm-con 用)
        --csz=value     : default_cell_size (mlterm-con 用)
+       --rotate=value  : rotate_display (mlterm-fb, mlterm-wl, mlterm-sdl2 用)
+       --crsz=value    : cursor_size (mlterm-fb 用)
        --trim(=bool)   : trim_trailing_newline_in_pasting
        --bc(=bool)     : broadcast
        --ibc(=bool)    : ignore_broadcasted_chars
@@ -1656,6 +1664,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
        --fk(=bool)     : format_other_keys
        --sdpr=value    : simple_scrollbar_dpr
        --norepkey=value: mod_keys_to_stop_mouse_report
+       --clp(=bool)    : use_clipping
+       --adc(=bool)    : use_arabic_dynamic_comb
+       --dndesc=value  : dnd_escape_mode
        --winsize(=bool): output_xtwinops_in_resizing (win32 用)
        --conpty(=bool) : use_conpty (win32 用)
        --chsel(=bool)  : change_selection_immediately (mlterm and mlterm-wl 以外用)

@@ -21,13 +21,16 @@ void TEST_vt_shape(void);
 #ifdef USE_FRAMEBUFFER
 void TEST_ui_display(void);
 #endif
-
 #ifndef NO_IMAGE
 void TEST_sixel_realloc_pixels(void);
 #endif
-
 #ifndef USE_XLIB
 void TEST_xstringtokeysym(void);
+#elif !defined(DISABLE_XDND)
+void TEST_ui_dnd(void);
+#endif
+#ifdef USE_WAYLAND
+void TEST_ui_display(void);
 #endif
 
 /* -- global functions --- */
@@ -50,13 +53,16 @@ void test(void) {
 #ifdef USE_FRAMEBUFFER
   TEST_ui_display();
 #endif
-
 #ifndef NO_IMAGE
   TEST_sixel_realloc_pixels();
 #endif
-
 #ifndef USE_XLIB
   TEST_xstringtokeysym();
+#elif !defined(DISABLE_XDND)
+  TEST_ui_dnd();
+#endif
+#ifdef USE_WAYLAND
+  TEST_ui_display();
 #endif
 }
 

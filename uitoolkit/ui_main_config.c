@@ -193,20 +193,20 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
 #if !defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
   bl_conf_add_opt(conf, '\0', "bimode", 0, "bidi_mode", "bidi mode [normal]");
   bl_conf_add_opt(conf, '\0', "bisep", 0, "bidi_separators",
-                  "Separator characters to render bidi text");
+                  "separator characters to render bidi text");
 #endif
   bl_conf_add_opt(conf, '\0', "parent", 0, "parent_window", "parent window");
   bl_conf_add_opt(conf, '\0', "bd", 0, "bd_color",
-                  "Color to use to display bold characters (equivalent to colorBD)");
+                  "color to use to display bold characters (equivalent to colorBD)");
   bl_conf_add_opt(conf, '\0', "ul", 0, "ul_color",
-                  "Color to use to display underlined characters (equivalent to colorUL)");
+                  "color to use to display underlined characters (equivalent to colorUL)");
   bl_conf_add_opt(conf, '\0', "bl", 0, "bl_color",
-                  "Color to use to display blinking characters (equivalent to colorBL)");
+                  "color to use to display blinking characters (equivalent to colorBL)");
   bl_conf_add_opt(conf, '\0', "rv", 0, "rv_color",
-                  "Color to use to display reverse characters (equivalent to colorRV)");
+                  "color to use to display reverse characters (equivalent to colorRV)");
   bl_conf_add_opt(conf, '\0', "it", 0, "it_color", "Color to use to display italic characters");
   bl_conf_add_opt(conf, '\0', "co", 0, "co_color",
-                  "Color to use to display crossed-out characters");
+                  "color to use to display crossed-out characters");
   bl_conf_add_opt(conf, '\0', "noul", 1, "hide_underline", "Don't draw underline [false]");
   bl_conf_add_opt(conf, '\0', "ulpos", 0, "underline_offset", "underline position [0]");
   bl_conf_add_opt(conf, '\0', "blpos", 0, "baseline_offset", "baseline position [0]");
@@ -214,7 +214,7 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, '\0', "otl", 1, "use_ot_layout", "OpenType shape [false]");
   bl_conf_add_opt(conf, '\0', "ost", 0, "ot_script", "Script of glyph subsutitution [latn]");
   bl_conf_add_opt(conf, '\0', "oft", 0, "ot_features",
-                  "Features of glyph subsutitution [liga,clig,dlig,hlig,rlig]");
+                  "features of glyph subsutitution [liga,clig,dlig,hlig,rlig]");
 #endif
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
   bl_conf_add_opt(conf, '\0', "serv", 0, "default_server", "connecting server by default");
@@ -343,9 +343,11 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, '\0', "norepkey", 0, "mod_keys_to_stop_mouse_report",
                   "modifier keys to stop mouse reporting [shift,control]");
   bl_conf_add_opt(conf, '\0', "clp", 1, "use_clipping",
-                  "Use clipping to keep from producing dots outside the text drawing area [false]");
+                  "use clipping to keep from producing dots outside the text drawing area [false]");
   bl_conf_add_opt(conf, '\0', "adc", 1, "use_arabic_dynamic_comb",
-                  "Use dynamic combining to show arabic presentation forms [true]");
+                  "use dynamic combining to show arabic presentation forms [true]");
+  bl_conf_add_opt(conf, '\0', "dndesc", 0, "dnd_escape_mode",
+                  "mode in escaping dnd text [backslash]");
 #ifdef USE_WIN32API
   bl_conf_add_opt(conf, '\0', "winsize", 1, "output_xtwinops_in_resizing",
                   "output xtwinops sequence in resizing [false]");
@@ -1500,6 +1502,10 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     if (flag != -1) {
       ui_set_use_clipping(flag);
     }
+  }
+
+  if ((value = bl_conf_get_value(conf, "dnd_escape_mode"))) {
+    ui_set_dnd_escape_mode(ui_get_dnd_escape_mode_by_name(value));
   }
 
 #ifdef USE_WIN32API

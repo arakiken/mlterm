@@ -75,4 +75,6 @@ void bl_rgb_to_hls(int *h, int *l, int *s, int r, int g, int b);
 
 const char *bl_get_user_name(void);
 
+int bl_match_str_in_table(char **table, size_t table_size, const char *str);
+
 #endif

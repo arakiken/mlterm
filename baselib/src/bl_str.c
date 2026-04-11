@@ -381,30 +381,31 @@ char *bl_str_replace(const char *str, const char *orig, /* Don't specify "". */
   return new_str;
 }
 
-#if 0
-char *bl_str_escape_backslash(char *str) {
+char *bl_str_escape_by_backslash(const char *str, const char *esc_list) {
   char *escaped_str;
+  size_t str_len;
   char *p;
 
-  if (!(p = escaped_str = malloc(strlen(str) + bl_count_char_in_str(str, '\\') + 1))) {
-    return str;
+  str_len = strlen(str) + 1;
+  for (p = esc_list; *p; p++) {
+    str_len += bl_count_char_in_str(str, *p);
   }
 
-  while (1) {
-    *(p++) = *str;
+  if (!(p = escaped_str = malloc(str_len))) {
+    return NULL;
+  }
 
-    if (*str == '\0') {
-      g_free(str);
-
-      return escaped_str;
-    } else if (*str == '\\') {
+  while (*str) {
+    if (strchr(esc_list, *str)) {
       *(p++) = '\\';
     }
 
-    str++;
+    *(p++) = *(str++);
   }
+  *p = '\0';
+
+  return escaped_str;
 }
-#endif
 
 char *bl_str_unescape(const char *str) {
   char *new_str;
@@ -471,6 +472,10 @@ void TEST_bl_str(void) {
 
   str = bl_str_replace("abcdefabcdef", "abc", "xxxx");
   assert(strcmp(str, "xxxxdefxxxxdef") == 0);
+  free(str);
+
+  str = bl_str_escape_by_backslash("hoge/a b c\\r\\\\n", " \\");
+  assert(strcmp(str, "hoge/a\\ b\\ c\\\\r\\\\\\\\n") == 0);
   free(str);
 
   str = bl_str_unescape("abc\\n\\r\\t\\e\\E^A\\x1b\033");

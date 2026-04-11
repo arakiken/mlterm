@@ -905,7 +905,7 @@ static void poll_event(void) {
       if ((SDL_GetModState() & KMOD_SHIFT) && win->set_xdnd_config) {
         (*win->set_xdnd_config)(win, NULL, "scp", ev.drop.file);
       } else if (win->utf_selection_notified) {
-        (*win->utf_selection_notified)(win, ev.drop.file, strlen(ev.drop.file));
+        (*win->utf_selection_notified)(win, ev.drop.file, strlen(ev.drop.file), 1);
       }
 
       SDL_free(ev.drop.file);
@@ -1375,7 +1375,7 @@ void ui_display_request_text_selection(ui_display_t *disp) {
   if (SDL_HasClipboardText() && disp->roots[0]->utf_selection_notified) {
     char *text;
     if ((text = SDL_GetClipboardText())) {
-      (*disp->roots[0]->utf_selection_notified)(disp->roots[0], text, strlen(text));
+      (*disp->roots[0]->utf_selection_notified)(disp->roots[0], text, strlen(text), 0);
       SDL_free(text);
 
       return;
@@ -1396,7 +1396,7 @@ void ui_display_request_text_selection(ui_display_t *disp) {
 void ui_display_send_text_selection(ui_display_t *disp, XSelectionRequestEvent *ev,
                                     u_char *sel_data, size_t sel_len) {
   if (ev && ev->target->utf_selection_notified) {
-    (*ev->target->utf_selection_notified)(ev->target, sel_data, sel_len);
+    (*ev->target->utf_selection_notified)(ev->target, sel_data, sel_len, 0);
   } else {
     char *text;
 

@@ -1544,7 +1544,7 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
 
     case WM_APP_PASTE:
       if (win->xct_selection_notified) {
-        (*win->xct_selection_notified)(win, (u_char*)event->lparam, event->wparam);
+        (*win->xct_selection_notified)(win, (u_char*)event->lparam, event->wparam, 0);
         free((void*)event->lparam);
       }
 
@@ -1552,7 +1552,7 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
 
     case WM_APP_WPASTE:
       if (win->utf_selection_notified) {
-        (*win->utf_selection_notified)(win, (u_char*)event->lparam, event->wparam * 2);
+        (*win->utf_selection_notified)(win, (u_char*)event->lparam, event->wparam * 2, 0);
         free((void*)event->lparam);
       }
 

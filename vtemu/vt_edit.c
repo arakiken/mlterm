@@ -747,16 +747,14 @@ void vt_set_resize_mode(vt_resize_mode_t mode) {
 }
 
 vt_resize_mode_t vt_get_resize_mode_by_name(const char *name) {
-  vt_resize_mode_t mode;
+  int mode;
 
-  for (mode = 0; mode < RZ_MODE_MAX; mode++) {
-    if (strcmp(resize_mode_name_table[mode], name) == 0) {
-      return mode;
-    }
+  if ((mode = bl_match_str_in_table(resize_mode_name_table, RZ_MODE_MAX, name)) == -1) {
+    /* default value */
+    return RZ_WRAP;
   }
 
-  /* default value */
-  return RZ_WRAP;
+  return mode;
 }
 
 int vt_edit_init(vt_edit_t *edit, vt_edit_scroll_event_listener_t *scroll_listener,

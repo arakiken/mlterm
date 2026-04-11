@@ -460,15 +460,13 @@ static int add_event_source(void) {
   return 1;
 }
 
-static void remove_event_source(int complete) {
+static void remove_event_source(void) {
   if (ibus_bus_fd >= 0) {
     (*syms->ui_event_source_remove_fd)(ibus_bus_fd);
     ibus_bus_fd = -1;
   }
 
-  if (complete) {
-    (*syms->ui_event_source_remove_fd)(IBUS_ID);
-  }
+  (*syms->ui_event_source_remove_fd)(IBUS_ID);
 }
 
 /*
@@ -505,7 +503,7 @@ static void destroy(ui_im_t *im) {
   free(ibus);
 
   if (--ref_count == 0) {
-    remove_event_source(1);
+    remove_event_source();
 
     ibus_object_destroy((IBusObject*)ibus_bus);
     ibus_bus = NULL;
@@ -864,12 +862,33 @@ static IBusInputContext *context_new(im_ibus_t *ibus, char *engine) {
 static void connected(IBusBus *bus, gpointer data) {
   im_ibus_t *ibus;
 
-  if (bus != ibus_bus || !ibus_bus_is_connected(ibus_bus) || !add_event_source()) {
+  if (bus != ibus_bus || !ibus_bus_is_connected(ibus_bus)) {
     return;
   }
 
+#ifdef DEBUG
+  bl_debug_printf(BL_DEBUG_TAG " ibus is connected.\n");
+#endif
+
   for (ibus = ibus_list; ibus; ibus = bl_slist_next(ibus_list)) {
-    ibus->context = context_new(ibus, NULL);
+    char *engine = NULL;
+
+    if (ibus->context) {
+      IBusEngineDesc *desc = ibus_input_context_get_engine(ibus->context);
+
+      if (desc) {
+        engine = strdup(ibus_engine_desc_get_name(desc));
+      }
+
+#if defined(DBUS_H) || defined(__IBUS_DBUS_H_)
+      ibus_object_destroy((IBusObject*)ibus->context);
+#else
+      ibus_proxy_destroy((IBusProxy*)ibus->context);
+#endif
+    }
+
+    ibus->context = context_new(ibus, engine);
+    free(engine);
   }
 }
 
@@ -880,15 +899,16 @@ static void disconnected(IBusBus *bus, gpointer data) {
     return;
   }
 
-  remove_event_source(0);
+#ifdef DEBUG
+  bl_debug_printf(BL_DEBUG_TAG " ibus was disconnected.\n");
+#endif
 
   for (ibus = ibus_list; ibus; ibus = bl_slist_next(ibus_list)) {
-#if defined(DBUS_H) || defined(__IBUS_DBUS_H_)
-    ibus_object_destroy((IBusObject*)ibus->context);
-#else
-    ibus_proxy_destroy((IBusProxy*)ibus->context);
-#endif
-    ibus->context = NULL;
+    /*
+     * ibus_{object|proxy}_destroy(ibus->context) here causes freeze
+     * in ibus-1.5.33/wayland.
+     * (g_object_unref() should be used?)
+     */
     ibus->is_enabled = FALSE;
   }
 }
@@ -999,7 +1019,7 @@ ui_im_t *im_ibus_new(u_int64_t magic, vt_char_encoding_t term_encoding,
 
 error:
   if (ref_count == 0) {
-    remove_event_source(1);
+    remove_event_source();
 
     ibus_object_destroy((IBusObject*)ibus_bus);
     ibus_bus = NULL;

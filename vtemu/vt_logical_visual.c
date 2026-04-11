@@ -5,6 +5,7 @@
 #include <pobl/bl_mem.h>   /* realloc/free */
 #include <pobl/bl_debug.h> /* bl_msg_printf */
 #include <pobl/bl_str.h>   /* strcmp */
+#include <pobl/bl_util.h>  /* bl_match_str_in_table */
 #include "vt_ctl_loader.h"
 
 #define CURSOR_LINE(logvis) (vt_model_get_line((logvis)->model, (logvis)->cursor->row))
@@ -947,16 +948,14 @@ vt_logical_visual_t *vt_logvis_vert_new(vt_vertical_mode_t vertical_mode) {
 }
 
 vt_vertical_mode_t vt_get_vertical_mode_by_name(const char *name) {
-  vt_vertical_mode_t mode;
+  int mode;
 
-  for (mode = 0; mode < VERT_MODE_MAX; mode++) {
-    if (strcmp(vertical_mode_name_table[mode], name) == 0) {
-      return mode;
-    }
+  if ((mode = bl_match_str_in_table(vertical_mode_name_table, VERT_MODE_MAX, name)) == -1) {
+    /* default value */
+    return 0;
   }
 
-  /* default value */
-  return 0;
+  return mode;
 }
 
 char *vt_get_vertical_mode_name(vt_vertical_mode_t mode) {

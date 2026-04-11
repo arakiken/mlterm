@@ -3,6 +3,8 @@
 #include "vt_bidi.h"
 
 #include <string.h> /* strcmp */
+#include <pobl/bl_types.h> /* u_int */
+#include <pobl/bl_util.h>  /* bl_match_str_in_table */
 
 #if 0
 #define __DEBUG
@@ -11,23 +13,19 @@
 /* --- static variables --- */
 
 /* Order of this table must be same as vt_bidi_mode_t. */
-static char *bidi_mode_name_table[] = {
-    "normal", "left", "right",
-};
+static char *bidi_mode_name_table[] = { "normal", "left", "right" };
 
 /* --- global functions --- */
 
 vt_bidi_mode_t vt_get_bidi_mode_by_name(const char *name) {
-  vt_bidi_mode_t mode;
+  int mode;
 
-  for (mode = 0; mode < BIDI_MODE_MAX; mode++) {
-    if (strcmp(bidi_mode_name_table[mode], name) == 0) {
-      return mode;
-    }
+  if ((mode = bl_match_str_in_table(bidi_mode_name_table, BIDI_MODE_MAX, name)) == -1) {
+    /* default value */
+    return BIDI_NORMAL_MODE;
   }
 
-  /* default value */
-  return BIDI_NORMAL_MODE;
+  return mode;
 }
 
 char *vt_get_bidi_mode_name(vt_bidi_mode_t mode) {

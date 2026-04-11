@@ -254,3 +254,15 @@ const char *bl_get_user_name(void) {
 
   return user;
 }
+
+int bl_match_str_in_table(char **table, size_t table_size, const char *str) {
+  int idx;
+
+  for (idx = 0; idx < table_size; idx++) {
+    if (strcmp(table[idx], str) == 0) {
+      return idx;
+    }
+  }
+
+  return -1;
+}

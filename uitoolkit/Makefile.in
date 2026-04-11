@@ -19,7 +19,7 @@ VPATH = $(top_srcdir)/uitoolkit/@GUI@:$(top_srcdir)/uitoolkit
 OBJ1 = ui_screen_manager.o ui_display.o ui_window.o ui_screen.o \
 	ui_xic.o ui_color_manager.o ui_font_manager.o ui_picture.o ui_font.o \
 	ui_color.o ui_selection.o ui_font_config.o ui_main_config.o \
-	ui_shortcut.o ui_bel_mode.o ui_sb_mode.o ui_mod_meta_mode.o ui_font_cache.o \
+	ui_shortcut.o ui_bel_mode.o ui_sb_mode.o ui_screen_flags.o ui_font_cache.o \
 	ui_draw_str.o ui_gc.o ui_color_cache.o ui_dnd.o ui_scrollbar.o ui_layout.o \
 	ui_sb_view_factory.o ui_simple_sb_view.o ui_imagelib.o ui_connect_dialog.o \
 	ui_type_engine.o ui_im.o ui_im_candidate_screen.o ui_brltty.o \

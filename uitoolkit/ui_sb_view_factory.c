@@ -115,7 +115,7 @@ static ui_sb_engine_new_func_t dlsym_sb_engine_new_func(const char *name) {
 
   bl_dl_close_at_exit(handle);
 
-  len = 16 + strlen(name) + 1;
+  len = 17 + strlen(name) + 1;
   if ((symbol = alloca(len)) == NULL) {
     return NULL;
   }

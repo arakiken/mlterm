@@ -228,8 +228,8 @@ typedef struct ui_window {
   void (*selection_cleared)(struct ui_window *);
   void (*xct_selection_requested)(struct ui_window *, XSelectionRequestEvent *, Atom);
   void (*utf_selection_requested)(struct ui_window *, XSelectionRequestEvent *, Atom);
-  void (*xct_selection_notified)(struct ui_window *, u_char *, size_t);
-  void (*utf_selection_notified)(struct ui_window *, u_char *, size_t);
+  void (*xct_selection_notified)(struct ui_window *, u_char *, size_t, int);
+  void (*utf_selection_notified)(struct ui_window *, u_char *, size_t, int);
   /*
    * Don't remove if DISABLE_XDND is defined to keep the size of ui_window_t
    * for ui_im_xxx_screen_t.

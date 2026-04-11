@@ -55,6 +55,8 @@ int bl_compare_str(const char *str1, const char *str2);
 
 char *bl_str_replace(const char *str, const char *orig_sub, const char *new_sub);
 
+char *bl_str_escape_by_backslash(const char *str, const char *esc_list);
+
 char *bl_str_unescape(const char *str);
 
 #endif
