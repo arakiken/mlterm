@@ -1,5 +1,9 @@
 2026-04-12  Araki Ken <arakiken@user.sf.net>
 
+	* beos.cpp, beos/ui.h, beos/ui_window.c, cocoa.m, quartz/ui.h, quartz/ui_window.c:
+	  - Add is_dnd to XSelectionNotifyEvent.
+	  - ev.is_dnd = 0 for separators (0x20) of DnD paths.
+
 	* Android.mk: ui_mod_meta_mode.c -> ui_screen_flags.c
 
 	* bl_str.c, c_imagelib.c, mc_font.c, mc_wordsep.c, ui_font_config.c, ui_layout.c:

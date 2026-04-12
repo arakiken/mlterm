@@ -534,9 +534,11 @@ void MLView::MessageReceived(BMessage *message) {
         if (count > 0) {
           ev.data = " ";
           ev.len = 1;
+          ev.is_dnd = 0;
           ui_window_receive_event(uiwindow, (XEvent*)&ev); /* separator */
         }
 
+        ev.is_dnd = 1;
         ev.data = (char*)path.Path();
         ev.len = strlen(ev.data);
         ui_window_receive_event(uiwindow, (XEvent*)&ev);

@@ -293,6 +293,7 @@ typedef struct {
   int type;
   char *data;
   unsigned int len;
+  int is_dnd;
 
 } XSelectionNotifyEvent;
 

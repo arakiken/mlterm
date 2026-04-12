@@ -990,7 +990,7 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
       if (win->utf_selection_notified) {
         (*win->utf_selection_notified)(win, ((XSelectionNotifyEvent*)event)->data,
                                        ((XSelectionNotifyEvent*)event)->len,
-                                       1 /* always DnD for now (see performDragOperation()) */);
+                                       ((XSelectionNotifyEvent*)event)->is_dnd);
       }
       break;
 

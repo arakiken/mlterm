@@ -1012,8 +1012,10 @@ static ui_window_t *get_current_window(ui_window_t *win) {
         if (count > 0) {
           ev.data = " ";
           ev.len = 1;
+          ev.is_dnd = 0;
           ui_window_receive_event(uiwindow, (XEvent *)&ev); /* separator */
         }
+        ev.is_dnd = 1;
         /* avoid warning "discard qualifiers" */
         ev.data = (char*)[[files objectAtIndex:count] UTF8String];
         ev.len = strlen(ev.data);
