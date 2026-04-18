@@ -3185,6 +3185,97 @@ static u_char *escape_file_name(const u_char *str, size_t len) {
   return NULL;
 }
 
+#ifdef USE_WIN32GUI
+/* Convert backslash to slash if USE_WIN32API is defined. */
+static u_char *escape_file_name2(const u_int16_t *str, size_t len) {
+  u_int16_t *escaped;
+  u_int16_t *p;
+  u_int num_sp;
+  u_int num_bs; /* backslash */
+  int count;
+
+  num_sp = num_bs = 0;
+  for (count = 0; count < len; count++) {
+    if (str[count] == 0x20) {
+      num_sp++;
+    }
+#ifdef USE_WIN32API
+    else if (str[count] == '\\') {
+      num_bs++;
+    }
+#endif
+  }
+
+#ifdef USE_WIN32API
+  if (dnd_escape_mode == DND_ESCAPE_NONE) {
+    if (num_bs == 0) {
+      return NULL;
+    }
+
+    if ((p = escaped = malloc((len + 1) * sizeof(*str)))) {
+      for (count = 0; count < len; count++) {
+        *(p++) = (*str == '\\') ?  '/' : *str;
+        str++;
+      }
+      *p = 0x0;
+
+      return (u_char*)escaped;
+    }
+  } else
+#endif
+  {
+    if (num_sp + num_bs == 0) {
+      return NULL;
+    }
+
+    if (dnd_escape_mode == DND_ESCAPE_BACKSLASH) {
+      if ((p = escaped = malloc((len + num_sp + 1) * sizeof(*str)))) {
+        for (count = 0; count < len; count++) {
+#ifdef USE_WIN32API
+          if (*str == '\\') {
+            *(p++) = '/';
+          } else
+#endif
+          {
+            if (*str == 0x20) {
+              *(p++) = '\\';
+            }
+            *(p++) = *str;
+          }
+          str++;
+        }
+        *p = 0x0;
+
+        return (u_char*)escaped;
+      }
+    } else {
+      if ((p = escaped = malloc((len + 2 + 1) * sizeof(*str)))) {
+        *(p++) = (dnd_escape_mode == DND_ESCAPE_QUOTE) ? '\'' : '\"';
+#ifdef USE_WIN32API
+        for (count = 0; count < len; count++) {
+          if (*str == '\\') {
+            *(p++) = '/';
+          } else {
+            *(p++) = *str;
+          }
+          str++;
+        }
+#else
+        memcpy(p, str, sizeof(*str) * len);
+        p += sizeof(*str) * len;
+#endif
+        *(p++) = *escaped;  /* quote */
+        *(p++) = 0x0;
+
+        return (u_char*)escaped;
+      }
+    }
+  }
+
+  return NULL;
+}
+#endif
+
 static void xct_selection_notified(ui_window_t *win, u_char *str, size_t len, int is_dnd) {
   ui_screen_t *screen;
   ef_conv_t *utf_conv;
@@ -3288,10 +3379,17 @@ static void utf_selection_notified(ui_window_t *win, u_char *str, size_t len, in
 #endif
 #endif
 
+#ifdef USE_WIN32GUI
+  if (is_dnd && (escaped = escape_file_name2((u_int16_t*)str, len / 2))) {
+    str = escaped;
+    len = wcslen((u_int16_t*)str) * 2;
+  }
+#else
   if (is_dnd && (escaped = escape_file_name(str, len))) {
     str = escaped;
     len = strlen(str);
   }
+#endif
 
   screen = (ui_screen_t *)win;
 

@@ -1,3 +1,11 @@
+2026-04-18  Araki Ken <arakiken@user.sf.net>
+
+	* ui_screen.c: Add escape_file_name2() for USE_WIN32GUI.
+
+	* win32/ui_dnd.c: Minor fixes.
+
+	* man/mlterm.1; Update.
+
 2026-04-12  Araki Ken <arakiken@user.sf.net>
 
 	* beos.cpp, beos/ui.h, beos/ui_window.c, cocoa.m, quartz/ui.h, quartz/ui_window.c:

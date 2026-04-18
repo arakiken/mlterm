@@ -92,15 +92,12 @@ int ui_dnd_filter_event(XEvent *event, ui_window_t *win) {
                                path_len * sizeof(utf16_path[0])) > 0) {
           (*win->set_xdnd_config)(win, NULL, "scp", utf8_path);
         }
-      } else {
-        path_len *= sizeof(utf16_path[0]);
-
-        if (win->utf_selection_notified) {
-          if (count > 0) {
-            (*win->utf_selection_notified)(win, "\x20\x00", 2, 0); /* separator */
-          }
-          (*win->utf_selection_notified)(win, (u_char*)utf16_path, path_len, 1);
+      } else if (win->utf_selection_notified) {
+        if (count > 0) {
+          (*win->utf_selection_notified)(win, "\x20\x00", 2, 0); /* separator */
         }
+        (*win->utf_selection_notified)(win, (u_char*)utf16_path,
+                                       path_len * sizeof(utf16_path[0]), 1);
       }
 #else
       u_char posix_path[MAX_PATH];
