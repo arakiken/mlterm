@@ -3187,7 +3187,7 @@ static u_char *escape_file_name(const u_char *str, size_t len) {
 
 #ifdef USE_WIN32GUI
 /* Convert backslash to slash if USE_WIN32API is defined. */
-static u_char *escape_file_name2(const u_int16_t *str, size_t len) {
+static u_char *escape_file_name2(const u_int16_t *str, size_t len, size_t *len_ret) {
   u_int16_t *escaped;
   u_int16_t *p;
   u_int num_sp;
@@ -3219,6 +3219,8 @@ static u_char *escape_file_name2(const u_int16_t *str, size_t len) {
       }
       *p = 0x0;
 
+      *len_ret = len;
+
       return (u_char*)escaped;
     }
   } else
@@ -3246,6 +3248,8 @@ static u_char *escape_file_name2(const u_int16_t *str, size_t len) {
         }
         *p = 0x0;
 
+        *len_ret = len + num_sp;
+
         return (u_char*)escaped;
       }
     } else {
@@ -3266,6 +3270,8 @@ static u_char *escape_file_name2(const u_int16_t *str, size_t len) {
 #endif
         *(p++) = *escaped;  /* quote */
         *(p++) = 0x0;
+
+        *len_ret = len + 2;
 
         return (u_char*)escaped;
       }
@@ -3380,9 +3386,13 @@ static void utf_selection_notified(ui_window_t *win, u_char *str, size_t len, in
 #endif
 
 #ifdef USE_WIN32GUI
-  if (is_dnd && (escaped = escape_file_name2((u_int16_t*)str, len / 2))) {
-    str = escaped;
-    len = wcslen((u_int16_t*)str) * 2;
+  if (is_dnd) {
+    size_t len_ret;
+
+    if ((escaped = escape_file_name2((u_int16_t*)str, len / 2, &len_ret))) {
+      str = escaped;
+      len = len_ret * 2;
+    }
   }
 #else
   if (is_dnd && (escaped = escape_file_name(str, len))) {

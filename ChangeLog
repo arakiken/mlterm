@@ -1,5 +1,10 @@
 2026-04-18  Araki Ken <arakiken@user.sf.net>
 
+	* ui_screen.c: Remove wcslen() and add 'size_t *len_ret' to arguments
+	  of escape_file_name2().
+
+2026-04-18  Araki Ken <arakiken@user.sf.net>
+
 	* ui_screen.c: Add escape_file_name2() for USE_WIN32GUI.
 
 	* win32/ui_dnd.c: Minor fixes.
