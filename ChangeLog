@@ -1,3 +1,15 @@
+2026-05-02  Araki Ken <arakiken@user.sf.net>
+
+	* sdl2/ui_display.c:
+	  - Process SDL_WINDOWEVENT_EXPOSED.
+	  - Fix dead lock when closing the last window via the close button.
+	  - ui_display_{open|close}() and ui_get_opened_displays() support
+	    genuine daemon mode.
+
+	* ui_event_source.c: ui_event_source_process() calls select() for
+	  additional_fds if NO_DISPLAY_FD is defined and USE_WIN32API is not
+	  defined.
+
 2026-04-18  Araki Ken <arakiken@user.sf.net>
 
 	* ui_screen.c: Remove wcslen() and add 'size_t *len_ret' to arguments

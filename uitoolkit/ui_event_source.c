@@ -346,8 +346,32 @@ int ui_event_source_process(void) {
   }
 
 #ifndef USE_WIN32API
-  for (count = 0; count < num_additional_fds; count++) {
-    (*additional_fds[count].handler)();
+  if (num_additional_fds > 0) {
+    /* Call select() because additional_fds[n].fd (e.g daemon mode) can block. */
+    fd_set read_fds;
+    struct timeval tval;
+    int maxfd = -1;
+
+    FD_ZERO(&read_fds);
+    for (count = 0; count < num_additional_fds; count++) {
+      if (additional_fds[count].fd >= 0) {
+        FD_SET(additional_fds[count].fd, &read_fds);
+        if (additional_fds[count].fd > maxfd) {
+          maxfd = additional_fds[count].fd;
+        }
+      }
+    }
+
+    tval.tv_usec = tval.tv_sec = 0;
+    if (select(maxfd + 1, &read_fds, NULL, NULL, &tval) > 0) {
+      for (count = 0; count < num_additional_fds; count++) {
+        if (additional_fds[count].fd >= 0) {
+          if (FD_ISSET(additional_fds[count].fd, &read_fds)) {
+            (*additional_fds[count].handler)();
+          }
+        }
+      }
+    }
   }
 #endif
 #endif
