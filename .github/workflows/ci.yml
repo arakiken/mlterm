@@ -142,10 +142,11 @@ jobs:
       - name: setup build environment
         run: |
           brew install gtk+3 libssh2
+          brew tap J-x-Z/tap; brew install cocoa-way waypipe-darwin
 
       - name: configure
         run: |
-          CONFIGURE_ARGS="--prefix=$HOME/mlterm --with-gui=quartz"
+          CONFIGURE_ARGS="--prefix=$HOME/mlterm --with-gui=quartz,wayland"
           CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" ./configure ${CONFIGURE_ARGS}
 
       - name: build

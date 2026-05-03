@@ -70,6 +70,32 @@ static int create_tmpfile_cloexec(char *tmpname) {
   return fd;
 }
 
+#ifdef __APPLE__
+/* MacOS does not support posix_fallocate */
+static int posix_fallocate(int fd, off_t offset, off_t len) {
+  fstore_t fst;
+
+  fst.fst_flags = F_ALLOCATEALL;
+  fst.fst_posmode = F_PE_SETCONTRIG; /* continuous area */
+  fst.fst_offset = offset;
+  fst.fst_length = len;
+  fst.fst_bytesalloc = 0;
+
+  if (fcntl(fd, F_PREALLOCATE, &fst) == -1) {
+    fst.fst_posmode = F_PE_SETBUFMODE;
+    if (fcntl(fd, F_PREALLOCATE, &fst) == -1) {
+      return -1;
+    }
+  }
+
+  if (ftruncate(fd, offset + len) == -1) {
+    return -1;
+  }
+
+  return 0;
+}
+#endif
+
 static int create_anonymous_file(off_t size) {
   static const char template[] = "/weston-shared-XXXXXX";
   const char *path;

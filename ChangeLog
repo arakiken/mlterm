@@ -1,3 +1,9 @@
+2026-05-03  Araki Ken <arakiken@user.sf.net>
+
+	* wayland/ui_display.c: Add posix_fallocate() for MacOS.
+
+	* ci.yml: Add wayland to --with-gui option in build-macos.
+
 2026-05-02  Araki Ken <arakiken@user.sf.net>
 
 	* sdl2/ui_display.c:
