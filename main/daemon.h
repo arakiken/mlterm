@@ -5,7 +5,13 @@
 
 #include <pobl/bl_def.h> /* USE_WIN32API */
 
-#if !defined(USE_WIN32API) && !defined(NO_DAEMON)
+#ifndef NO_DAEMON
+#if defined(USE_WIN32API) || defined(USE_QUARTZ) || defined(USE_BEOS) || defined(USE_FRAMEBUFFER)
+#define NO_DAEMON
+#endif
+#endif
+
+#ifndef NO_DAEMON
 
 int daemon_init(void);
 

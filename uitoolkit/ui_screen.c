@@ -3157,6 +3157,28 @@ static void utf_selection_requested(ui_window_t *win, XSelectionRequestEvent *ev
 static u_char *escape_file_name(const u_char *str, size_t len) {
   u_char *p;
 
+#ifdef USE_WIN32API
+  /* SDL2 on win32 */
+  size_t count;
+
+  if ((p = alloca(len + 1))) == NULL) {
+    return NULL;
+  }
+
+  for (count = 0; count < len; count++) {
+    if (str[count] == '\\') {
+      p[count] = '/';
+    } else {
+      p[count] = str[count];
+    }
+  }
+  p[len] = '\0';
+  str = p;
+
+  if (dnd_escape_mode == DND_ESCAPE_NONE) {
+    return strdup(str);
+  }
+#else
   if (dnd_escape_mode == DND_ESCAPE_NONE) {
     return NULL;
   }
@@ -3169,6 +3191,7 @@ static u_char *escape_file_name(const u_char *str, size_t len) {
     p[len] = '\0';
     str = p;
   }
+#endif
 
   if (dnd_escape_mode == DND_ESCAPE_BACKSLASH) {
     return bl_str_escape_by_backslash(str, " ");

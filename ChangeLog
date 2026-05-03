@@ -1,5 +1,19 @@
 2026-05-03  Araki Ken <arakiken@user.sf.net>
 
+	* ui_screen.c: escape_file_name() replaces backslash with slash if
+	  USE_WIN32API is defined.
+
+	* main_loop.c: Drop -j/daemon_mode option if NO_DAEMON is defined.
+
+	* daemon.h: Define NO_DAEMON if USE_WIN32API, USE_QUARTZ, USE_BEOS or
+	  USE_FRAMEBUFFER is defined.
+
+	* README.android, README.beos, README.cocoa{touch}: Update.
+
+	* Android.mk: Add -DNO_DAEMON.
+
+2026-05-03  Araki Ken <arakiken@user.sf.net>
+
 	* wayland/ui_display.c: Add posix_fallocate() for MacOS.
 
 	* ci.yml: Add wayland to --with-gui option in build-macos.

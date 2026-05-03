@@ -29,3 +29,4 @@ BeOS (Haiku) support
 * Caution
   o -L/--ls, -u/--onlyucsfont and --boxdraw options are enabled by default.
   o It is impossible to disable -s/--mdi option.
+  o Daemon mode is unavailable.

@@ -158,3 +158,4 @@ make install
   o Input method plugin is not supported.
   o Scroll upward or downward by flick gesture. If you want to select characters
     instead of scrolling, touch screen for more than 0.5 sec.
+  o Daemon mode is unavailable.

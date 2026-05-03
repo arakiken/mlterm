@@ -227,7 +227,7 @@ int main_loop_init(int argc, char **argv) {
   bl_conf_add_opt(conf, 'c', "cp932", 1, "use_cp932_ucs_for_xft",
                   "use CP932-Unicode mapping table for JISX0208 [false]");
 #endif
-#ifndef USE_WIN32API
+#ifndef NO_DAEMON
   bl_conf_add_opt(conf, 'j', "daemon", 0, "daemon_mode",
 #ifdef USE_WIN32GUI
                   /* 'genuine' is not supported in win32. */
@@ -289,7 +289,7 @@ int main_loop_init(int argc, char **argv) {
 
   is_genuine_daemon = 0;
 
-#ifndef USE_WIN32API
+#ifndef NO_DAEMON
   if ((value = bl_conf_get_value(conf, "daemon_mode"))) {
     int ret;
 

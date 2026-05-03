@@ -39,3 +39,4 @@ MacOS X/Cocoa support (Experimental)
   o ISCII font is unavailable.
     (If you want to show indic characters, build mlterm with harfbuzz and
      enable -otl/use_ot_layout option.)
+  o Daemon mode is unavailable.
