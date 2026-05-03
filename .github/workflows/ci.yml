@@ -141,8 +141,7 @@ jobs:
 
       - name: setup build environment
         run: |
-          brew install gtk+3 libssh2
-          brew tap J-x-Z/tap; brew install cocoa-way waypipe-darwin
+          brew install gtk+3 libssh2 wayland
 
       - name: configure
         run: |
