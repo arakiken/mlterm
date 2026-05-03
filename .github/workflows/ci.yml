@@ -141,11 +141,11 @@ jobs:
 
       - name: setup build environment
         run: |
-          brew install gtk+3 libssh2 wayland
+          brew install gtk+3 libssh2
 
       - name: configure
         run: |
-          CONFIGURE_ARGS="--prefix=$HOME/mlterm --with-gui=quartz,wayland"
+          CONFIGURE_ARGS="--prefix=$HOME/mlterm --with-gui=quartz"
           CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" ./configure ${CONFIGURE_ARGS}
 
       - name: build
