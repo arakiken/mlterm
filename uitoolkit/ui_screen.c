@@ -3161,7 +3161,7 @@ static u_char *escape_file_name(const u_char *str, size_t len) {
   /* SDL2 on win32 */
   size_t count;
 
-  if ((p = alloca(len + 1))) == NULL) {
+  if ((p = alloca(len + 1)) == NULL) {
     return NULL;
   }
 
