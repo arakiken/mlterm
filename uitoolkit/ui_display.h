@@ -8,6 +8,10 @@
 #include "ui.h"
 #include "ui_gc.h"
 
+#if 1
+#define AVOID_CALL_XFILTEREVENT_TWICE
+#endif
+
 #define XC_nil 1000
 
 /* Defined in ui_window.h */

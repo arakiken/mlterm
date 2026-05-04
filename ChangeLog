@@ -1,3 +1,10 @@
+2026-05-04  Araki Ken <arakiken@user.sf.net>
+
+	* xlib/ui_display.c: ui_display_receive_next_event()
+	  replaces event.xany.window to cheat XFilterEvent().
+
+	* xlib/ui_window.c: Drop calling XFilterEvent() twice.
+
 2026-05-03  Araki Ken <arakiken@user.sf.net>
 
 	* ui_screen.c: escape_file_name() replaces backslash with slash if
