@@ -1910,7 +1910,7 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
      * if some window invokes xim window open event and it doesn't have any xic,
      * no xim window will be opened at XFilterEvent() in
      * ui_display_receive_next_event().
-     * Bbut it is desired to open xim window of ui_screen when its event is
+     * But it is desired to open xim window of ui_screen when its event is
      * invoked on scrollbar or title bar.
      * This hack enables it, but this way won't deal with the case that
      * multiple xics exist.
