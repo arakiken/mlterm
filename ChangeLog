@@ -1,3 +1,7 @@
+2026-05-10  Araki Ken <arakiken@user.sf.net>
+
+	* sdl2/ui_display.c: Fix segfault in SDL_Quit() and simplify code.
+
 2026-05-04  Araki Ken <arakiken@user.sf.net>
 
 	* xlib/ui_display.c: ui_display_receive_next_event()

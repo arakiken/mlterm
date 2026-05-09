@@ -11,6 +11,7 @@
 #include <pobl/bl_str.h>  /* strdup/bl_compare_str */
 #include <pobl/bl_util.h> /* BL_SWAP */
 #include <pobl/bl_dialog.h>
+#include <pobl/bl_unistd.h> /* bl_usleep */
 
 #include "../ui_window.h"
 #include "../ui_picture.h"
@@ -54,7 +55,7 @@ static SDL_threadID main_tid;
 static SDL_cond *pty_cond;
 static SDL_mutex *mutex;
 static int processing_pty_event;
-static int thread_counter;
+static int is_cond_waiting;
 #endif
 
 /* --- static functions --- */
@@ -456,58 +457,45 @@ static int monitor_ptys(void *p) {
   u_int count;
   SDL_Event ev;
 
-  thread_counter++;  /* XXX should be enclosed by mutexlock */
   SDL_LockMutex(mutex);
 
   while (1) {
-    while ((num_terms = vt_get_all_terms(&terms)) == 0) {
-      if (num_displays == 0) {
-#ifdef DEBUG
-        bl_debug_printf("Finish monitoring pty.\n");
-#endif
-        thread_counter--; /* XXX should be enclosed by mutexlock */
-        SDL_UnlockMutex(mutex);
+    if ((num_terms = vt_get_all_terms(&terms)) > 0) {
+      maxfd = -1;
+      FD_ZERO(&read_fds);
+      for (count = 0; count < num_terms; count++) {
+        if ((ptyfd = vt_term_get_master_fd(terms[count])) >= 0) {
+          FD_SET(ptyfd, &read_fds);
 
-        if (thread_counter == 0) {
-          processing_pty_event = 0;
-          SDL_DestroyMutex(mutex);
-          SDL_DestroyCond(pty_cond);
-          SDL_Quit();
-        }
-
-        return 0;
-      }
-      SDL_Delay(100);
-    }
-
-    maxfd = -1;
-    FD_ZERO(&read_fds);
-    for (count = 0; count < num_terms; count++) {
-      if ((ptyfd = vt_term_get_master_fd(terms[count])) >= 0) {
-        FD_SET(ptyfd, &read_fds);
-
-        if (ptyfd > maxfd) {
-          maxfd = ptyfd;
+          if (ptyfd > maxfd) {
+            maxfd = ptyfd;
+          }
         }
       }
-    }
 
-    if (maxfd >= 0) {
-      struct timeval tv;
+      if (maxfd >= 0) {
+        struct timeval tv;
 
-      tv.tv_usec = 500000; /* 0.5 sec */
-      tv.tv_sec = 0;
-      if (select(maxfd + 1, &read_fds, NULL, NULL, &tv) > 0) {
-        SDL_zero(ev);
-        ev.type = pty_event_type;
-        SDL_PushEvent(&ev);
+        tv.tv_usec = 500000; /* 0.5 sec */
+        tv.tv_sec = 0;
+        if (select(maxfd + 1, &read_fds, NULL, NULL, &tv) > 0) {
+          if (num_displays > 0) { /* If num_displays == 0, SDL_Quit() has been called. */
+            SDL_zero(ev);
+            ev.type = pty_event_type;
+            SDL_PushEvent(&ev);
 
-        /* unlock -> wait -> lock in SDL_CondWait */
-        SDL_CondWait(pty_cond, mutex);
+            /* unlock -> wait -> lock in SDL_CondWait */
+            is_cond_waiting = 1;
+            SDL_CondWait(pty_cond, mutex);
+            is_cond_waiting = 0;
+
+            continue;
+          }
+        }
       }
-    } else {
-      SDL_Delay(100);
     }
+
+    bl_usleep(100000);
   }
 }
 #endif
@@ -990,36 +978,32 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
 
   if (num_displays == 0) {
 #ifdef MONITOR_PTY
-    if (thread_counter == 0) {
-      SDL_Thread *thrd;
+    static SDL_Thread *thrd;
 #endif
 
-      /* Callback should be set before bl_dialog() is called. */
-      bl_dialog_set_callback(dialog_cb);
+    /* Callback should be set before bl_dialog() is called. */
+    bl_dialog_set_callback(dialog_cb);
 
-      if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        return NULL;
-      }
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+      return NULL;
+    }
 
-      SDL_StartTextInput();
+    SDL_StartTextInput();
 
-      pty_event_type = SDL_RegisterEvents(1);
+    pty_event_type = SDL_RegisterEvents(1);
 
-      main_tid = SDL_GetThreadID(NULL);
+    main_tid = SDL_GetThreadID(NULL);
 
-      SDL_EventState(SDL_DROPFILE, SDL_ENABLE);
+    SDL_EventState(SDL_DROPFILE, SDL_ENABLE);
 
-      num_displays = 1;
+    num_displays = 1;
 
 #ifdef MONITOR_PTY
-      pty_cond = SDL_CreateCond();
-      mutex = SDL_CreateMutex();
-      thread_counter++; /* XXX should be enclosed by mutexlock */
+    pty_cond = SDL_CreateCond();
+    mutex = SDL_CreateMutex();
+    if (!thrd) {
       thrd = SDL_CreateThread(monitor_ptys, "pty_thread", NULL);
       SDL_DetachThread(thrd);
-    } else {
-      num_displays = 1;
-      thread_counter++;
     }
 #endif
   } else {
@@ -1050,28 +1034,25 @@ void ui_display_close(ui_display_t *disp) {
         cur_preedit_text = NULL;
 
 #ifdef MONITOR_PTY
-        thread_counter--; /* XXX should be enclosed by mutexlock */
+        if (SDL_TryLockMutex(mutex) == 0) {
+          /* monitor_ptys() waits in SDL_CondWait() */
 
-        if (processing_pty_event) {
-          processing_pty_event = 0;
-          SDL_LockMutex(mutex);
-          /*
-           * If vt_get_all_terms() returns 1 or greater value, monitor_ptys() thread
-           * does not exit even if SDL_CondSignal() is called here.
-           */
           SDL_CondSignal(pty_cond);
           SDL_UnlockMutex(mutex);
+          /*
+           * monitor_ptys() restarts.
+           * SDL_CondWait() will not be called because num_displays == 0.
+           */
+
+          /* Do not call SDL_Quit() until SDL_CondWait() in monitor_ptys() completely exits. */
+          while (is_cond_waiting) { bl_usleep(1000); }
+          processing_pty_event = 0;
         }
 
-        if (thread_counter == 0) {
-          SDL_DestroyMutex(mutex);
-          SDL_DestroyCond(pty_cond);
+        SDL_DestroyMutex(mutex);
+        SDL_DestroyCond(pty_cond);
 #endif
-          SDL_Quit();
-#ifdef MONITOR_PTY
-        }
-#endif
-        /* monitor_ptys() thread can be alive. It is killed after main() returns. */
+        SDL_Quit();
       } else {
         displays[count] = displays[num_displays];
       }
