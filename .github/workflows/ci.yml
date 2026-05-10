@@ -1,4 +1,4 @@
-name: ci
+ふname: ci
 
 on: [push, pull_request]
 
@@ -48,7 +48,8 @@ jobs:
           case "${{ matrix.container }}" in
           archlinux*)
             CONFIGURE_ARGS="$CONFIGURE_ARGS --with-gtk=4.0"
-          ;;
+            ;;
+          esac
           CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" ./configure ${CONFIGURE_ARGS}
 
       - name: build
