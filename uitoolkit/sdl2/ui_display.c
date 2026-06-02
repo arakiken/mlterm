@@ -51,12 +51,20 @@ static Uint32 vsync_interval_msec;
 static Uint32 next_vsync_msec;
 static u_char *cur_preedit_text;
 static SDL_threadID main_tid;
+static int use_software_renderer;
+static int is_framebuffer;
 #ifdef MONITOR_PTY
 static SDL_cond *pty_cond;
 static SDL_mutex *mutex;
 static int processing_pty_event;
 static int is_cond_waiting;
 #endif
+
+/* --- global variables --- */
+
+/* XXX It is not assumed that display_{width|height} can be changed in runtime. */
+Uint32 display_width;
+Uint32 display_height;
 
 /* --- static functions --- */
 
@@ -343,8 +351,13 @@ static void close_display(ui_display_t *disp) {
 #endif
 
   SDL_DestroyTexture(disp->display->texture);
-  SDL_DestroyRenderer(disp->display->renderer);
-  SDL_DestroyWindow(disp->display->window);
+
+  if (!is_framebuffer ||
+      /* --num_display is placed after close_display() (see ui_display_close()) */
+      num_displays == 1) {
+    SDL_DestroyRenderer(disp->display->renderer);
+    SDL_DestroyWindow(disp->display->window);
+  }
 
   ui_picture_display_closed(disp->display);
 
@@ -354,11 +367,20 @@ static void close_display(ui_display_t *disp) {
 static int init_display(Display *display, char *app_name, int x, int y, int hint) {
   SDL_Rect rect;
 
-  if (!display->window) {
+  if (!display->window) { /* display->window is not NULL in resizing */
     Uint32 flag;
 
     if (display->parent) {
       /* XXX Input Method */
+      if (is_framebuffer) {
+        display->window = (display->parent)->display->window;
+        display->renderer = (display->parent)->display->renderer;
+        display->x = x;
+        display->y = y;
+
+        goto skip_init;
+      }
+
 #if SDL_VERSION_ATLEAST(2, 0, 5)
       flag = SDL_WINDOW_SHOWN | SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE |
              SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_SKIP_TASKBAR | SDL_WINDOW_UTILITY;
@@ -376,12 +398,22 @@ static int init_display(Display *display, char *app_name, int x, int y, int hint
       return 0;
     }
 
-    if (!(display->renderer = SDL_CreateRenderer(display->window, -1,
-                                                 SDL_RENDERER_ACCELERATED
+    if (is_framebuffer) {
+      SDL_SetWindowFullscreen(display->window, SDL_WINDOW_FULLSCREEN);
+    }
+
 #if 1
-                                                 | SDL_RENDERER_PRESENTVSYNC
+    flag = SDL_RENDERER_PRESENTVSYNC;
+#else
+    flag = 0;
 #endif
-                                                 ))) {
+    if (use_software_renderer) {
+      flag |= SDL_RENDERER_SOFTWARE;
+    } else {
+      flag |= SDL_RENDERER_ACCELERATED;
+    }
+
+    if (!(display->renderer = SDL_CreateRenderer(display->window, -1, flag))) {
       SDL_DestroyWindow(display->window);
 
       return 0;
@@ -424,12 +456,19 @@ static int init_display(Display *display, char *app_name, int x, int y, int hint
     SDL_SetRenderDrawColor(display->renderer, 0xff, 0xff, 0xff, 0xff);
   }
 
-  rect.x = 0;
-  rect.y = 0;
-  rect.w = display->width;
-  rect.h = display->height;
-  SDL_RenderSetViewport(display->renderer, &rect);
+  if (!is_framebuffer || !display->parent /* XXX Not Input Method */) {
+    /*
+     * In framebuffer, main window and input method window share renderer, so
+     * only main window can call SDL_RenderSetViewport().
+     */
+    rect.x = 0;
+    rect.y = 0;
+    rect.w = display->width;
+    rect.h = display->height;
+    SDL_RenderSetViewport(display->renderer, &rect);
+  }
 
+skip_init:
   if (display->texture) {
     SDL_DestroyTexture(display->texture);
   }
@@ -445,6 +484,29 @@ static int init_display(Display *display, char *app_name, int x, int y, int hint
                   &display->line_length);
 
   return 1;
+}
+
+static void init_resize_display(ui_display_t *disp, u_int width, u_int height) {
+  if (width != disp->display->width || height != disp->display->height) {
+    disp->display->width = width;
+    disp->display->height = height;
+    if (rotate_display) {
+      disp->width = height;
+      disp->height = width;
+    } else {
+      disp->width = width;
+      disp->height = height;
+    }
+
+    init_display(disp->display, NULL, 0, 0, 0);
+    disp->display->resizing = 0;
+    ui_window_resize_with_margin(disp->roots[0], disp->width, disp->height, NOTIFY_TO_MYSELF);
+
+#if 1
+    /* This is because ui_window_resize_with_margin() redraws screen partially. */
+    ui_window_update_all(disp->roots[0]);
+#endif
+  }
 }
 
 #ifdef MONITOR_PTY
@@ -497,6 +559,9 @@ static int monitor_ptys(void *p) {
 
     bl_usleep(100000);
   }
+
+  /* not reach */
+  return 0;
 }
 #endif
 
@@ -514,6 +579,7 @@ static ui_display_t *get_display(Uint32 window_id) {
 
 static void present_displays(void) {
   u_int count;
+  int fb_render_present = 0;
 
   for (count = 0; count < num_displays; count++) {
     Display *display = displays[count]->display;
@@ -538,17 +604,51 @@ static void present_displays(void) {
       }
 #endif
 
-#if 1
-      SDL_RenderCopy(display->renderer, display->texture, NULL, NULL);
-#else
-      SDL_RenderCopyEx(display->renderer, display->texture, NULL, NULL, 20.0, NULL, SDL_FLIP_NONE);
-#endif
-
 #ifdef MEASURE_TIME
       msec[2] = SDL_GetTicks();
 #endif
 
-      SDL_RenderPresent(display->renderer);
+      if (is_framebuffer) {
+        if (display->parent) {
+          SDL_Rect src, dst;
+
+          src.x = src.y = 0;
+          src.w = display->width;
+          src.h = display->height;
+          dst.x = display->x;
+          dst.y = display->y;
+          dst.w = display->width;
+          dst.h = display->height;
+
+          SDL_RenderCopy(display->renderer, display->texture, &src, &dst);
+        } else {
+          u_int count2;
+
+#if 1
+          SDL_RenderCopy(display->renderer, display->texture, NULL, NULL);
+#else
+          SDL_RenderCopyEx(display->renderer, display->texture, NULL, NULL, 20.0, NULL, SDL_FLIP_NONE);
+#endif
+
+          for (count2 = 0; count2 < num_displays; count2++) {
+            if (displays[count2]->display->parent == displays[count]) {
+              /* damage input method */
+              displays[count2]->display->damaged = 1;
+            }
+          }
+        }
+
+        fb_render_present = 1;
+      } else {
+#if 1
+        SDL_RenderCopy(display->renderer, display->texture, NULL, NULL);
+#else
+        SDL_RenderCopyEx(display->renderer, display->texture, NULL, NULL, 20.0, NULL, SDL_FLIP_NONE);
+#endif
+
+        SDL_RenderPresent(display->renderer);
+      }
+
       next_vsync_msec = SDL_GetTicks() + vsync_interval_msec;
 
 #ifdef MEASURE_TIME
@@ -565,6 +665,10 @@ static void present_displays(void) {
 
       display->damaged = 0;
     }
+  }
+
+  if (fb_render_present == 1) {
+    SDL_RenderPresent(displays[0]->display->renderer);
   }
 }
 
@@ -681,7 +785,7 @@ static void poll_event(void) {
         }
       }
     }
-    
+
     break;
 
   case SDL_KEYDOWN:
@@ -693,8 +797,71 @@ static void poll_event(void) {
     xev.xkey.parser = NULL;
     xev.xkey.state = get_mod_state(ev.key.keysym.mod);
 
+    if (is_framebuffer) {
+      /*
+       * Ignore Modkey's (ctrl, shift, alt and GUI) repeats.
+       * https://github.com/chu-hai/mlterm/issues/1
+       */
+      if (ev.key.repeat != 0
+          && (ev.key.keysym.sym == SDLK_LCTRL  || ev.key.keysym.sym == SDLK_RCTRL
+            ||  ev.key.keysym.sym == SDLK_LSHIFT || ev.key.keysym.sym == SDLK_RSHIFT
+            ||  ev.key.keysym.sym == SDLK_LALT   || ev.key.keysym.sym == SDLK_RALT
+            ||  ev.key.keysym.sym == SDLK_LGUI   || ev.key.keysym.sym == SDLK_RGUI)) {
+        break;
+      }
+
+      switch (xev.xkey.keycode) {
+        case SDL_SCANCODE_INTERNATIONAL1:
+        case SDL_SCANCODE_INTERNATIONAL3:
+          xev.xkey.ksym = SDLK_BACKSLASH;
+          break;
+
+        case SDL_SCANCODE_GRAVE:
+          xev.xkey.ksym = XK_Zenkaku_Hankaku;
+          break;
+
+        case SDL_SCANCODE_INTERNATIONAL5:
+          xev.xkey.ksym = XK_Muhenkan;
+          break;
+
+        case SDL_SCANCODE_INTERNATIONAL4:
+          xev.xkey.ksym = XK_Henkan_Mode;
+          break;
+
+        case SDL_SCANCODE_INTERNATIONAL2:
+          xev.xkey.ksym = XK_Hiragana_Katakana;
+          break;
+
+        case SDL_SCANCODE_DELETE:
+          xev.xkey.ksym = XK_Delete;
+          break;
+      }
+
+#if 1
+      /* https://github.com/chu-hai/mlterm/blob/d00e3b0/uitoolkit/sdl2/ui.h#L290 */
+      if (xev.xkey.ksym == SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_DELETE)) {
+        xev.xkey.ksym == XK_Delete;
+      }
+#endif
+
+      if (xev.xkey.keycode == 0 && xev.xkey.ksym == 0) {
+        /*
+         * XXX
+         * Receive keycode == 0 and ksym == 0 event irregularly in inputting text
+         * on Linux 7.0.3-arch1-2.
+         */
+        break;
+      }
+    }
+
     if (!cur_preedit_text &&
         (xev.xkey.ksym < 0x20 || xev.xkey.ksym >= 0x7f || (xev.xkey.state & ControlMask) ||
+         (is_framebuffer &&
+          ((xev.xkey.ksym == XK_Zenkaku_Hankaku) ||
+           (xev.xkey.ksym == XK_Muhenkan) ||
+           (xev.xkey.ksym == XK_Henkan_Mode) ||
+           (xev.xkey.ksym == XK_Hiragana_Katakana) ||
+           (xev.xkey.state & Mod1Mask))) ||
          (xev.xkey.state & CommandMask))) {
       ui_window_receive_event(get_display(ev.key.windowID)->roots[0], &xev);
     }
@@ -705,7 +872,13 @@ static void poll_event(void) {
     {
       ui_window_t *win = get_display(ev.text.windowID)->roots[0];
 
-      update_ime_text(win, "");
+      if (is_framebuffer) {
+        if ((SDL_GetModState() & (KMOD_CTRL | KMOD_ALT)) != 0) {
+          break;
+        }
+      } else {
+        update_ime_text(win, "");
+      }
 
       xev.xkey.type = KeyPress;
       xev.xkey.time = ev.text.timestamp;
@@ -760,7 +933,7 @@ static void poll_event(void) {
     xev.xbutton.y = ev.button.y;
 
     receive_mouse_event(disp, &xev.xbutton);
- 
+
     break;
 
   case SDL_MOUSEWHEEL:
@@ -797,6 +970,7 @@ static void poll_event(void) {
     if (ev.motion.state & SDL_BUTTON_RMASK) {
       xev.xmotion.state |= Button3Mask;
     }
+    xev.xmotion.state |= get_mod_state(SDL_GetModState());
 
     xev.xmotion.x = ev.motion.x;
     xev.xmotion.y = ev.motion.y;
@@ -858,25 +1032,8 @@ static void poll_event(void) {
         SDL_SetWindowSize(disp->display->window, width, height);
       } else
 #endif
-      if (width != disp->display->width || height != disp->display->height) {
-        disp->display->width = width;
-        disp->display->height = height;
-        if (rotate_display) {
-          disp->width = height;
-          disp->height = width;
-        } else {
-          disp->width = width;
-          disp->height = height;
-        }
-
-        init_display(disp->display, NULL, 0, 0, 0);
-        disp->display->resizing = 0;
-        ui_window_resize_with_margin(disp->roots[0], disp->width, disp->height, NOTIFY_TO_MYSELF);
-
-#if 1
-        /* This is because ui_window_resize_with_margin() redraws screen partially. */
-        ui_window_update_all(disp->roots[0]);
-#endif
+      {
+        init_resize_display(disp, width, height);
       }
     } else if (ev.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
       ui_window_t *win;
@@ -954,9 +1111,7 @@ static void poll_event(void) {
   prev_ev_type = ev.type;
 }
 
-/* --- global functions --- */
-
-ui_display_t *ui_display_open(char *disp_name, u_int depth) {
+static ui_display_t *open_display(char *disp_name, u_int depth) {
   ui_display_t *disp;
   void *p;
   struct rgb_info rgbinfo = {0, 0, 0, 16, 8, 0};
@@ -980,12 +1135,38 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
 #ifdef MONITOR_PTY
     static SDL_Thread *thrd;
 #endif
+    SDL_DisplayMode mode;
 
     /* Callback should be set before bl_dialog() is called. */
     bl_dialog_set_callback(dialog_cb);
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
       return NULL;
+    }
+
+    if (SDL_GetDesktopDisplayMode(0, &mode) != 0) {
+      SDL_Quit();
+
+      return NULL;
+    }
+
+    if (display_width < mode.w / 2) {
+      if (display_width > 0) {
+        bl_msg_printf("Fix invalid fb_resolution (%s) %d -> %d\n", "width", display_width, mode.w);
+      }
+      display_width = mode.w;
+    }
+    if (display_height < mode.h / 2) {
+      if (display_height > 0) {
+        bl_msg_printf("Fix invalid fb_resolution (%s) %d -> %d\n", "height", display_height, mode.h);
+      }
+      display_height = mode.h;
+    }
+
+    if (strcasecmp(SDL_GetCurrentVideoDriver(), "KMSDRM") == 0 ||
+        strcasecmp(SDL_GetCurrentVideoDriver(), "DIRECTFB") == 0 ||
+        strcasecmp(SDL_GetCurrentVideoDriver(), "FBCON") == 0) {
+      is_framebuffer = 1;
     }
 
     SDL_StartTextInput();
@@ -1018,6 +1199,17 @@ ui_display_t *ui_display_open(char *disp_name, u_int depth) {
   ui_picture_display_opened(disp->display);
 
   return disp;
+}
+
+/* --- global functions --- */
+
+ui_display_t *ui_display_open(char *disp_name, u_int depth) {
+  if (is_framebuffer && num_displays > 0) {
+    /* ui_screen_t::open_screen() fails. */
+    return NULL;
+  }
+
+  return open_display(disp_name, depth);
 }
 
 void ui_display_close(ui_display_t *disp) {
@@ -1068,7 +1260,7 @@ void ui_display_close(ui_display_t *disp) {
 
 void ui_display_close_all(void) {
   while (num_displays > 0) {
-    close_display(displays[0]);
+    ui_display_close(displays[0]);
   }
 }
 
@@ -1087,12 +1279,12 @@ int ui_display_fd(ui_display_t *disp) { return -1; }
 int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, int hint,
                          char *app_name, char *wm_role, Window parent_window) {
   void *p;
+  int is_input_method = (disp->num_roots > 0); /* XXX Input Method */
 
-  if (disp->num_roots > 0) {
-    /* XXX Input Method */
+  if (is_input_method) {
     ui_display_t *parent = disp;
 
-    disp = ui_display_open(disp->name, disp->depth);
+    disp = open_display(disp->name, disp->depth);
     disp->display->parent = parent;
   }
 
@@ -1125,14 +1317,25 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
    */
   disp->roots[disp->num_roots++] = root;
 
-  disp->width = ACTUAL_WIDTH(root);
-  disp->height = ACTUAL_HEIGHT(root);
-  if (rotate_display) {
-    disp->display->width = disp->height;
-    disp->display->height = disp->width;
+  if (is_framebuffer && !is_input_method) {
+    if (rotate_display) {
+      disp->display->width = disp->height = display_width;
+      disp->display->height = disp->width = display_height;
+    } else {
+      disp->display->width = disp->width = display_width;
+      disp->display->height = disp->height = display_height;
+    }
   } else {
-    disp->display->width = disp->width;
-    disp->display->height = disp->height;
+    disp->width = ACTUAL_WIDTH(root);
+    disp->height = ACTUAL_HEIGHT(root);
+
+    if (rotate_display) {
+      disp->display->width = disp->height;
+      disp->display->height = disp->width;
+    } else {
+      disp->display->width = disp->width;
+      disp->display->height = disp->height;
+    }
   }
 
   if (!init_display(disp->display, root->app_name, x, y, hint)) {
@@ -1140,6 +1343,18 @@ int ui_display_show_root(ui_display_t *disp, ui_window_t *root, int x, int y, in
   }
 
   ui_window_show(root, hint);
+
+  if (is_framebuffer && !is_input_method) {
+    ui_window_resize_with_margin(root, disp->width, disp->height, NOTIFY_TO_MYSELF);
+  } else {
+    /*
+     * Don't call ui_window_update_all() before ui_window_resize_with_margin()
+     * in framebuffer.
+     * If win->width and height is over disp->with and disp->height, ui_winodw_update_all()
+     * cause illegal memory access.
+     */
+    ui_window_update_all(root);
+  }
 
   return 1;
 }
@@ -1247,7 +1462,16 @@ int ui_display_resize(ui_display_t *disp, u_int width, u_int height) {
     }
 
     disp->display->resizing = 1;
-    SDL_SetWindowSize(disp->display->window, width, height);
+    if (is_framebuffer) {
+      if (disp->display->parent) {
+        /* XXX Input Method */
+        init_resize_display(disp, width, height);
+      } else {
+        /* Not resize */
+      }
+    } else {
+      SDL_SetWindowSize(disp->display->window, width, height);
+    }
 
     return 1;
   } else {
@@ -1256,7 +1480,12 @@ int ui_display_resize(ui_display_t *disp, u_int width, u_int height) {
 }
 
 int ui_display_move(ui_display_t *disp, int x, int y) {
-  SDL_SetWindowPosition(disp->display->window, x, y);
+  if (is_framebuffer) {
+    disp->display->x = x;
+    disp->display->y = y;
+  } else {
+    SDL_SetWindowPosition(disp->display->window, x, y);
+  }
 
   return 1;
 }
@@ -1512,3 +1741,23 @@ void ui_display_set_wall_picture(ui_display_t *disp, u_char *image, u_int width,
   }
 }
 #endif
+
+ui_display_t *ui_get_actual_size_display(ui_display_t *disp) {
+  static ui_display_t actual_disp;
+
+  if (disp->display->parent) {
+    /* XXX Input Method */
+    actual_disp = *disp->display->parent;
+  } else {
+    actual_disp = *disp;
+  }
+
+  actual_disp.width = display_width;
+  actual_disp.height = display_height;
+
+  return &actual_disp;
+}
+
+void ui_display_use_software_renderer(void) {
+  use_software_renderer = 1;
+}

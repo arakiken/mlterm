@@ -2210,8 +2210,13 @@ static void vte_terminal_size_allocate(GtkWidget *widget, int width, int height,
 #endif
 #if _VTE_GTK >= 4
     /* XXX */
+#if 0
     diff_x += 60;
     diff_y += 50;
+#else
+    diff_x += 25;
+    diff_y += 25;
+#endif
 #endif
     /* Multiple displays can coexist on wayland, so '&disp' isn't used. */
     display_move(terminal, allocation->x + diff_x, allocation->y + diff_y);

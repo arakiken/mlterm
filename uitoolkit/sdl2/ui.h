@@ -83,6 +83,10 @@ typedef struct {
   unsigned int width;
   unsigned int height;
 
+  /* for Input Method in framebuffer */
+  int x;
+  int y;
+
   int damaged;
   int resizing;
 

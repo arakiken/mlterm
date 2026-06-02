@@ -90,6 +90,11 @@ int ui_display_receive_next_event(ui_display_t *disp);
 void ui_display_sync(ui_display_t *disp);
 #endif
 
+#if defined(MANAGE_SUB_WINDOWS_BY_MYSELF) && !defined(MANAGE_ROOT_WINDOWS_BY_MYSELF)
+/* USE_SDL2 or USE_WAYLAND */
+ui_display_t *ui_get_actual_size_display(ui_display_t *disp);
+#endif
+
 /*
  * Folloing functions called from ui_window.c
  */
@@ -148,6 +153,10 @@ void ui_display_set_default_cell_size(u_int width, u_int height);
 
 #ifdef NO_DISPLAY_FD
 void ui_display_trigger_pty_read(void);
+#endif
+
+#ifdef USE_SDL2
+void ui_display_use_software_renderer(void);
 #endif
 
 #endif

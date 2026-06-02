@@ -164,7 +164,7 @@ int wcwidth(wchar_t c);
 
 /*
  * If VTMODE_NUM >= 64, enlarge the size of vt_parser_t::vtmode_flags.
- * See get_initial_vtmode_flags() to check initial values of these modes.
+ * See INITIAL_VTMODE_FLAG_{0|1} to check initial values of these modes.
  */
 typedef enum {
   /* DECSET/DECRST */
@@ -7388,6 +7388,12 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap, vt_cha
   vt_parser->sixel_scrolling = 1;
   vt_parser->use_ansi_colors = use_ansi_colors;
   vt_parser->alt_color_mode = alt_color_mode;
+#ifdef DEBUG
+  if (VTMODE_NUM >= sizeof(vt_parser->vtmode_flags) * 8) {
+    bl_error_printf("VTMODE_NUM is %d or higher.\n", sizeof(vt_parser->vtmode_flags) * 8);
+    exit(1);
+  }
+#endif
   vt_parser->saved_vtmode_flags[0] = vt_parser->vtmode_flags[0] = INITIAL_VTMODE_FLAGS_0;
   vt_parser->saved_vtmode_flags[1] = vt_parser->vtmode_flags[1] = INITIAL_VTMODE_FLAGS_1;
   vt_parser->ignore_broadcasted_chars = ignore_broadcasted_chars;

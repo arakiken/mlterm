@@ -1,3 +1,36 @@
+2026-05-30  Araki Ken <arakiken@user.sf.net>
+
+	* main_loop.c: Add --res/fb_resolution (for SDL2 and framebuffer) and
+	  --softrend/use_software_renderer (for SDL2) options.
+
+	* im_uim.c: im_uim_t::mode works if USE_IM_CURSOR_COLOR is defined,
+
+	* ui_screen.c:
+	  - Input method cursor color works in copy mode.
+	  - Ignore "mod_meta_mode = esc" for special keys.
+
+	* ui_im_candidate_screen.c:
+	  - Use ui_get_actual_size_display() for DISPLAY() macro in SDL2 and wayland.
+	  - Fix garbage in clearing empty area in draw_screen_vertical().
+
+	* ui_im_status_screen.c: Use ui_get_actual_size_display() for DISPLAY()
+	  macro in SDL2 and wayland.
+
+	* sdl2/ui_window.c: Fix segfault in ui_window_show() in SDL2.
+
+	* sdl2/ui.h: Add x and y to Display for framebuffer.
+
+	* ui_display.h: Add ui_display_use_software_renderer() (for SDL2) and
+	  ui_get_actual_size_display() (for SDL2 and wayland).
+
+	* wayland/ui_display.c:
+	  - Add ui_get_actual_size_display().
+	  - Update version in registry_global().
+	  - Fix xdg_positioner and zxdg_positioner_v6 to show
+	    ui_im_{candidate|status}_screen() in correct position.
+
+	* sdl2/ui_display.c: Support framebuffer.
+
 2026-05-10  Araki Ken <arakiken@user.sf.net>
 
 	* ci.yml:

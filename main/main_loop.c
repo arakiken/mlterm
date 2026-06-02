@@ -58,6 +58,11 @@ static void sig_fatal(int sig) {
   signal(sig, SIG_DFL);
 
   kill(getpid(), sig);
+
+#ifdef USE_SDL2
+  /* Reset the screen to the correct state in framebuffer. */
+  SDL_Quit();
+#endif
 }
 #endif /* USE_WIN32API */
 
@@ -245,6 +250,14 @@ int main_loop_init(int argc, char **argv) {
                   "interval seconds to send keepalive. [0 = not send]");
 #endif
   bl_conf_add_opt(conf, '\0', "deffont", 0, "default_font", "default font");
+#if (defined(USE_FRAMEBUFFER) && (defined(__OpenBSD__) || defined(__NetBSD__))) || defined(USE_SDL2)
+  bl_conf_add_opt(conf, '\0', "res", 0, "fb_resolution", "resolution in framebuffer");
+#endif
+#ifdef USE_SDL2
+  bl_conf_add_opt(conf, '\0', "softrend", 1,
+                  "use_software_renderer", "use software renderer in SDL2 [false]");
+#endif
+
 #ifdef SUPPORT_POINT_SIZE_FONT
   bl_conf_add_opt(conf, '\0', "point", 1, "use_point_size",
                   "treat fontsize as point instead of pixel [false]");
@@ -409,8 +422,7 @@ int main_loop_init(int argc, char **argv) {
   }
 #endif
 
-#ifdef USE_FRAMEBUFFER
-#if defined(__OpenBSD__) || defined(__NetBSD__)
+#if defined(USE_FRAMEBUFFER) && (defined(__OpenBSD__) || defined(__NetBSD__))
   if ((value = bl_conf_get_value(conf, "fb_resolution"))) {
     extern u_int fb_width;
     extern u_int fb_height;
@@ -419,6 +431,21 @@ int main_loop_init(int argc, char **argv) {
     sscanf(value, "%dx%dx%d", &fb_width, &fb_height, &fb_depth);
   }
 #endif
+#ifdef USE_SDL2
+  if ((value = bl_conf_get_value(conf, "fb_resolution"))) {
+    extern Uint32 display_width;
+    extern Uint32 display_height;
+
+    sscanf(value, "%dx%d", &display_width, &display_height);
+  }
+#endif
+
+#ifdef USE_SDL2
+  if ((value = bl_conf_get_value(conf, "use_software_renderer"))) {
+    if (strcmp(value, "true") == 0) {
+      ui_display_use_software_renderer();
+    }
+  }
 #endif
 
 #if defined(USE_FREETYPE) && defined(USE_FONTCONFIG)

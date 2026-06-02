@@ -330,9 +330,13 @@ static void registry_global(void *data, struct wl_registry *registry, uint32_t n
                             const char *interface, uint32_t version) {
   ui_wlserv_t *wlserv = data;
 
-  if(strcmp(interface, "wl_compositor") == 0) {
+#ifdef __DEBUG
+  bl_debug_printf("%s %d\n", interface, version);
+#endif
+
+  if (strcmp(interface, "wl_compositor") == 0) {
     wlserv->compositor = wl_registry_bind(registry, name,
-                                          &wl_compositor_interface, 1);
+                                          &wl_compositor_interface, BL_MIN(version, 5));
   }
 #ifdef COMPAT_LIBVTE
   else if (strcmp(interface, "wl_subcompositor") == 0) {
@@ -390,23 +394,25 @@ static void registry_global(void *data, struct wl_registry *registry, uint32_t n
     }
 #endif
     if (wlserv->shell == NULL) {
-      wlserv->xdg_shell = wl_registry_bind(registry, name, &xdg_wm_base_interface, 1);
+      wlserv->xdg_shell = wl_registry_bind(registry, name, &xdg_wm_base_interface,
+                                           BL_MIN(version, 3)); /* >= 3 for reposition */
       xdg_wm_base_add_listener(wlserv->xdg_shell, &xdg_shell_listener, NULL);
     }
   }
 #endif
 #endif /* COMPAT_LIBVTE */
   else if (strcmp(interface, "wl_shm") == 0) {
-    wlserv->shm = wl_registry_bind(registry, name, &wl_shm_interface, 1);
+    wlserv->shm = wl_registry_bind(registry, name, &wl_shm_interface, BL_MIN(version, 2));
   } else if (strcmp(interface, "wl_seat") == 0) {
-    wlserv->seat = wl_registry_bind(registry, name,
-                                    &wl_seat_interface, 4); /* 4 is for keyboard_repeat_info */
+    /* XXX BL_MIN(version, 10) makes 'rate' of keyboard_repeat_info() 0 unexpectedly in kde-plasma 6.6.5. */
+    wlserv->seat = wl_registry_bind(registry, name, &wl_seat_interface,
+                                    BL_MIN(version, 4 /* 10 */)); /* >= 4 for keyboard_repeat_info */
     wl_seat_add_listener(wlserv->seat, &seat_listener, wlserv);
   } else if (strcmp(interface, "wl_output") == 0) {
-    wlserv->output = wl_registry_bind(registry, name, &wl_output_interface, 1);
+    wlserv->output = wl_registry_bind(registry, name, &wl_output_interface, BL_MIN(version, 4));
   } else if (strcmp(interface, "wl_data_device_manager") == 0) {
     wlserv->data_device_manager = wl_registry_bind(registry, name,
-                                                   &wl_data_device_manager_interface, 3);
+                                                   &wl_data_device_manager_interface, BL_MIN(version, 3));
   }
 #ifdef GTK_PRIMARY
   else if (strcmp(interface, "gtk_primary_selection_device_manager") == 0) {
@@ -1047,12 +1053,53 @@ static void pointer_axis(void *data, struct wl_pointer *pointer,
   }
 }
 
+#if 0
+/* version 5 or later */
+static void pointer_frame(void *data, struct wl_pointer *wl_pointer) {
+#ifdef DEBUG
+  bl_debug_printf("pointer_frame\n");
+#endif
+}
+
+/* version 5 or later */
+static void pointer_axis_source(void *data, struct wl_pointer *wl_pointer, uint32_t axis_source) {
+#ifdef DEBUG
+  bl_debug_printf("pointer_axis_source\n");
+#endif
+}
+
+/* version 5 or later */
+static void pointer_axis_stop(void *data, struct wl_pointer *wl_pointer, uint32_t time, uint32_t axis) {
+#ifdef DEBUG
+  bl_debug_printf("pointer_axis_stop\n");
+#endif
+}
+
+/* version 8 or later */
+static void pointer_axis_discrete(void *data, struct wl_pointer *wl_pointer, uint32_t axis, int32_t discrete) {
+#ifdef DEBUG
+  bl_debug_printf("pointer_axis_discrete\n");
+#endif
+}
+
+/* version 8 or later */
+static void pointer_axis_value120(void *data, struct wl_pointer *wl_pointer, uint32_t axis, int32_t value120) {
+}
+
+/* version 9 or later */
+static void pointer_axis_relative_direction(void *data, struct wl_pointer *wl_pointer, uint32_t axis, uint32_t direction) {
+#ifdef DEBUG
+  bl_debug_printf("pointer_axis_relative_direction\n");
+#endif
+}
+#endif
+
 static const struct wl_pointer_listener pointer_listener = {
-  pointer_enter,
-  pointer_leave,
-  pointer_motion,
-  pointer_button,
-  pointer_axis,
+  pointer_enter, pointer_leave, pointer_motion, pointer_button, pointer_axis,
+#if 0
+  pointer_frame, pointer_axis_source, pointer_axis_stop,
+  pointer_axis_discrete, pointer_axis_value120, pointer_axis_relative_direction
+#endif
 };
 
 static void seat_capabilities(void *data, struct wl_seat *seat, enum wl_seat_capability caps) {
@@ -1112,9 +1159,28 @@ static void surface_leave(void *data, struct wl_surface *surface, struct wl_outp
   }
 }
 
+#if 0
+/* version 6 or later */
+static void surface_preferred_buffer_scale(void *data, struct wl_surface *wl_surface, int32_t factor) {
+#ifdef DEBUG
+  bl_debug_printf("surface_preferred_buffer_scale\n");
+#endif
+}
+
+/* version 6 or later */
+static void surface_preferred_buffer_transform(void *data, struct wl_surface *wl_surface,
+                                               uint32_t transform) {
+#ifdef DEBUG
+  bl_debug_printf("surface_preferred_buffer_transform\n");
+#endif
+}
+#endif
+
 static const struct wl_surface_listener surface_listener = {
-  surface_enter,
-  surface_leave
+  surface_enter, surface_leave,
+#if 0
+  surface_preferred_buffer_scale, surface_preferred_buffer_transform
+#endif
 };
 
 /* Call this after display->surface was created. */
@@ -1419,12 +1485,16 @@ static void zxdg_surface_configure(void *data, struct zxdg_surface_v6 *zxdg_surf
 
   disp->display->zxdg_surface_configured = 1;
 
-  /* See flush_damage() */
+  if (disp->display->zxdg_popup) {
+    wl_surface_commit(disp->display->surface);
+  } else {
+    /* See flush_damage() */
 #if 0
-  wl_surface_attach(disp->display->surface, disp->display->buffer, 0, 0);
-  wl_surface_damage(disp->display->surface, 0, 0, disp->display->width, disp->display->height);
-  wl_surface_commit(disp->display->surface);
+    wl_surface_attach(disp->display->surface, disp->display->buffer, 0, 0);
+    wl_surface_damage(disp->display->surface, 0, 0, disp->display->width, disp->display->height);
+    wl_surface_commit(disp->display->surface);
 #endif
+  }
 }
 
 static const struct zxdg_surface_v6_listener zxdg_surface_listener = {
@@ -1501,8 +1571,8 @@ static void zxdg_popup_configure(void *data, struct zxdg_popup_v6 *zxdg_popup, i
   int resized;
 
 #ifdef __DEBUG
-  bl_debug_printf("Configuring size from w %d h %d to w %d h %d.\n",
-                  disp->display->width, disp->display->height, width, height);
+  bl_debug_printf("Configuring size from w %d h %d to x %d y %d w %d h %d.\n",
+                  disp->display->width, disp->display->height, x, y, width, height);
 #endif
 
   if (width == 0) {
@@ -1540,19 +1610,23 @@ static void xdg_surface_configure(void *data, struct xdg_surface *xdg_surface,
   ui_display_t *disp = data;
 
 #ifdef __DEBUG
-  bl_debug_printf("xdg_surface_configure\n");
+  bl_debug_printf("xdg_surface_configure %p\n", xdg_surface);
 #endif
 
   xdg_surface_ack_configure(xdg_surface, serial);
 
   disp->display->xdg_surface_configured = 1;
 
-  /* See flush_damage() */
+  if (disp->display->xdg_popup) {
+    wl_surface_commit(disp->display->surface);
+  } else {
+    /* See flush_damage() */
 #if 0
-  wl_surface_attach(disp->display->surface, disp->display->buffer, 0, 0);
-  wl_surface_damage(disp->display->surface, 0, 0, disp->display->width, disp->display->height);
-  wl_surface_commit(disp->display->surface);
+    wl_surface_attach(disp->display->surface, disp->display->buffer, 0, 0);
+    wl_surface_damage(disp->display->surface, 0, 0, disp->display->width, disp->display->height);
+    wl_surface_commit(disp->display->surface);
 #endif
+  }
 }
 
 static const struct xdg_surface_listener xdg_surface_listener = {
@@ -1619,8 +1693,27 @@ static void xdg_toplevel_close(void *data, struct xdg_toplevel *toplevel) {
   close_toplevel_window(data);
 }
 
+#if 0
+/* version 4 or later */
+static void xdg_toplevel_configure_bounds(void *data, struct xdg_toplevel *xdg_toplevel, int32_t width, int32_t height) {
+#ifdef DEBUG
+  bl_debug_printf("xdg_toplevel_configure_bounds");
+#endif
+}
+
+/* version 5 or later */
+static void xdg_toplevel_wm_capabilities(void *data, struct xdg_toplevel *xdg_toplevel, struct wl_array *capabilities) {
+#ifdef DEBUG
+  bl_debug_printf("xdg_toplevel_wm_capabilities");
+#endif
+}
+#endif
+
 const struct xdg_toplevel_listener xdg_toplevel_listener = {
-  xdg_toplevel_configure, xdg_toplevel_close
+  xdg_toplevel_configure, xdg_toplevel_close,
+#if 0
+  xdg_toplevel_configure_bounds, xdg_toplevel_wm_capabilities
+#endif
 };
 
 static void xdg_popup_configure(void *data, struct xdg_popup *xdg_popup, int32_t x, int32_t y,
@@ -1629,8 +1722,8 @@ static void xdg_popup_configure(void *data, struct xdg_popup *xdg_popup, int32_t
   int resized;
 
 #ifdef __DEBUG
-  bl_debug_printf("Configuring size from w %d h %d to w %d h %d.\n",
-                  disp->display->width, disp->display->height, width, height);
+  bl_debug_printf("Configuring size from w %d h %d to x %d y %d w %d h %d.\n",
+                  disp->display->width, disp->display->height, x, y, width, height);
 #endif
 
   if (width == 0) {
@@ -1657,8 +1750,15 @@ static void xdg_popup_done(void *data, struct xdg_popup *popup) {
   ui_window_final(disp->roots[0]);
 }
 
+/* version 3 or later */
+static void xdg_popup_repositioned(void *data, struct xdg_popup *xdg_popup, uint32_t token) {
+#ifdef __DEBUG
+  bl_debug_printf("xdg_popup_repositioned %d\n", token);
+#endif
+}
+
 const struct xdg_popup_listener xdg_popup_listener = {
-  xdg_popup_configure, xdg_popup_done
+  xdg_popup_configure, xdg_popup_done, xdg_popup_repositioned
 };
 #endif
 #endif /* Not COMPAT_LIBVTE */
@@ -2584,7 +2684,6 @@ static int flush_damage(Display *display) {
 
     return 1;
   } else {
-
     return 0;
   }
 }
@@ -2790,21 +2889,11 @@ static void create_surface(ui_display_t *disp, int x, int y, u_int width, u_int 
       /* Input Method */
       struct zxdg_positioner_v6 *pos = zxdg_shell_v6_create_positioner(wlserv->zxdg_shell);
       zxdg_positioner_v6_set_size(pos, width, height);
-      zxdg_positioner_v6_set_anchor_rect(pos, x, y, width, height);
+      zxdg_positioner_v6_set_anchor_rect(pos, x + width / 2, y, 1, 1);
       zxdg_positioner_v6_set_offset(pos, 0, 0);
       zxdg_positioner_v6_set_anchor(pos,
                                     ZXDG_POSITIONER_V6_ANCHOR_TOP|ZXDG_POSITIONER_V6_ANCHOR_LEFT);
-#if 0
-      zxdg_positioner_v6_set_gravity(pos, ZXDG_POSITIONER_GRAVITY_TOP);
-      zxdg_positioner_v6_set_constraint_adjustment(
-        pos,
-        ZXDG_POSITIONER_V6_CONSTRAINT_ADJUSTMENT_SLIDE_X |
-        ZXDG_POSITIONER_V6_CONSTRAINT_ADJUSTMENT_SLIDE_Y |
-        ZXDG_POSITIONER_V6_CONSTRAINT_ADJUSTMENT_FLIP_X |
-        ZXDG_POSITIONER_V6_CONSTRAINT_ADJUSTMENT_FLIP_Y |
-        ZXDG_POSITIONER_V6_CONSTRAINT_ADJUSTMENT_RESIZE_X |
-        ZXDG_POSITIONER_V6_CONSTRAINT_ADJUSTMENT_RESIZE_Y);
-#endif
+      zxdg_positioner_v6_set_gravity(pos, ZXDG_POSITIONER_V6_GRAVITY_BOTTOM);
       display->zxdg_popup = zxdg_surface_v6_get_popup(display->zxdg_surface,
                                                       display->parent->display->zxdg_surface,
                                                       pos);
@@ -2830,19 +2919,10 @@ static void create_surface(ui_display_t *disp, int x, int y, u_int width, u_int 
       /* Input Method */
       struct xdg_positioner *pos = xdg_wm_base_create_positioner(wlserv->xdg_shell);
       xdg_positioner_set_size(pos, width, height);
-      xdg_positioner_set_anchor_rect(pos, x, y, width, height);
+      xdg_positioner_set_anchor_rect(pos, x + width / 2, y, 1, 1);
       xdg_positioner_set_offset(pos, 0, 0);
-      xdg_positioner_set_anchor(pos, XDG_POSITIONER_ANCHOR_TOP|XDG_POSITIONER_ANCHOR_LEFT);
-#if 0
-      xdg_positioner_set_gravity(pos, XDG_POSITIONER_GRAVITY_TOP);
-      xdg_positioner_set_constraint_adjustment(pos,
-                                               XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_SLIDE_X |
-                                               XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_SLIDE_Y |
-                                               XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_FLIP_X |
-                                               XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_FLIP_Y |
-                                               XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_RESIZE_X |
-                                               XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_RESIZE_Y);
-#endif
+      xdg_positioner_set_anchor(pos, XDG_POSITIONER_ANCHOR_TOP_LEFT);
+      xdg_positioner_set_gravity(pos, XDG_POSITIONER_GRAVITY_BOTTOM);
       display->xdg_popup = xdg_surface_get_popup(display->xdg_surface,
                                                  display->parent->display->xdg_surface,
                                                  pos);
@@ -3474,7 +3554,16 @@ int ui_display_move(ui_display_t *disp, int x, int y) {
   } else
 #endif
 #ifdef XDG_SHELL
-  if (display->xdg_toplevel || display->xdg_popup) {
+  if (display->xdg_popup) {
+    struct xdg_positioner *pos = xdg_wm_base_create_positioner(display->wlserv->xdg_shell);
+    xdg_positioner_set_size(pos, display->width, display->height);
+    xdg_positioner_set_anchor_rect(pos, x + display->width / 2, y, 1, 1);
+    xdg_positioner_set_offset(pos, 0, 0);
+    xdg_positioner_set_anchor(pos, XDG_POSITIONER_ANCHOR_TOP_LEFT);
+    xdg_positioner_set_gravity(pos, XDG_POSITIONER_GRAVITY_BOTTOM);
+    xdg_popup_reposition(display->xdg_popup, pos, 1);
+    xdg_positioner_destroy(pos);
+  } else if (display->xdg_toplevel) {
     /* XXX */
     static int output_msg;
     if (!output_msg) {
@@ -3808,6 +3897,28 @@ void ui_display_set_text_input_spot(ui_display_t *disp, int x, int y, u_int line
   disp->display->text_input_line_height = line_height;
   zwp_text_input_v3_set_cursor_rectangle(disp->display->text_input, x, y, 0, line_height);
   zwp_text_input_v3_commit(disp->display->text_input);
+}
+
+ui_display_t *ui_get_actual_size_display(ui_display_t *disp) {
+  ui_display_t *parent = disp->display->parent;
+
+  if (parent) {
+    /* XXX Input Method */
+    static ui_display_t actual_disp;
+
+    actual_disp = *parent;
+
+    if (parent->width < disp->width) {
+      actual_disp.width = disp->width;
+    }
+    if (parent->height < disp->height) {
+      actual_disp.height = disp->height;
+    }
+
+    return &actual_disp;
+  } else {
+    return disp;
+  }
 }
 
 #ifdef COMPAT_LIBVTE

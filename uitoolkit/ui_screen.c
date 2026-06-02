@@ -2712,6 +2712,9 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
         exit_backscroll_mode(screen);
       }
 
+#ifdef USE_IM_CURSOR_COLOR
+      update_window(win, UPDATE_CURSOR);
+#endif
       return;
     }
   }
@@ -2941,7 +2944,9 @@ static void key_pressed(ui_window_t *win, XKeyEvent *event) {
     if (screen->mod_meta_mask & event->state) {
       /* XXX Fix to check if kstr is ASCII (mod_meta_mode should work only for ASCII chars) */
       if (screen->mod_meta_mode == MOD_META_OUTPUT_ESC) {
-        write_to_pty(screen, mod_meta_prefix, strlen(mod_meta_prefix), NULL);
+        if (spkey == -1) {
+          write_to_pty(screen, mod_meta_prefix, strlen(mod_meta_prefix), NULL);
+        }
       } else if (screen->mod_meta_mode == MOD_META_SET_MSB) {
         size_t count;
 
@@ -7350,7 +7355,7 @@ int ui_screen_exec_cmd(ui_screen_t *screen, char *cmd) {
                  * echo -e "\x1b]5379;mlclient -e cat"
                  * => mlclient -e cat
                  *             ^  ^
-                 *             p p+3        
+                 *             p p+3
                  */
                 !permit_exec_cmd(p + 3)))) {
             if (p[-1] == '-') { /* for --xxx style option */

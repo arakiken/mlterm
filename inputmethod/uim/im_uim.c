@@ -92,7 +92,7 @@ typedef struct im_uim {
 
   int is_mozc;
 
-#ifdef SHOW_STATUS_SCREEN
+#if defined(SHOW_STATUS_SCREEN) || defined(USE_IM_CURSOR_COLOR)
   int mode;
 #endif
 
@@ -455,7 +455,7 @@ static void prop_label_update(void *p, const char *str) {
 #undef PROP_LABEL_FORMAT
 }
 
-#ifdef SHOW_STATUS_SCREEN
+#if defined(SHOW_STATUS_SCREEN) || defined(USE_IM_CURSOR_COLOR)
 static void mode_update(void *p, int mode) {
   im_uim_t *uim = NULL;
 
@@ -978,7 +978,7 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
 static int switch_mode(ui_im_t *im) { return 0; }
 
 static int is_active(ui_im_t *im) {
-#ifdef SHOW_STATUS_SCREEN
+#if defined(SHOW_STATUS_SCREEN) || defined(USE_IM_CURSOR_COLOR)
   if (((im_uim_t *)im)->mode > 0) {
     return 1;
   } else
@@ -1346,7 +1346,7 @@ ui_im_t *im_uim_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   uim_set_prop_list_update_cb(uim->context, prop_list_update);
   uim_set_prop_label_update_cb(uim->context, prop_label_update);
 
-#ifdef SHOW_STATUS_SCREEN
+#if defined(SHOW_STATUS_SCREEN) || defined(USE_IM_CURSOR_COLOR)
   uim_set_mode_cb(uim->context, mode_update);
 #endif
 

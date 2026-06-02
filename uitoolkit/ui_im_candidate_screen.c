@@ -43,8 +43,17 @@
 #define INVALID_INDEX (cand_screen->num_candidates)
 
 #if defined(MANAGE_SUB_WINDOWS_BY_MYSELF) && !defined(MANAGE_ROOT_WINDOWS_BY_MYSELF)
-/* USE_SDL2 || USE_WAYLAND (Display : Window = 1 : 1)  */
-#define DISPLAY(cand_screen) ((cand_screen)->window.disp->display->parent)
+/*
+ * USE_SDL2 or USE_WAYLAND
+ * (Display : Window = 1 : 1)
+ *
+ * DISPLAY(cand_screen) is the actual display size in SDL2.
+ * DISPLAY(cand_screen) is not the actual display size but ui_screen or ui_layout
+ * size in wayland.
+ * x and y in adjust_xxx functions indicate the relative position from ui_screen
+ * or ui_layout in wayland.
+ */
+#define DISPLAY(cand_screen) ui_get_actual_size_display((cand_screen)->window.disp)
 #else
 #define DISPLAY(cand_screen) ((cand_screen)->window.disp)
 #endif
@@ -130,12 +139,6 @@ static u_int total_candidate_width(ui_font_manager_t *font_man, ui_im_candidate_
 }
 
 static void adjust_window_position_by_size(ui_im_candidate_screen_t *cand_screen, int *x, int *y) {
-#if defined(MANAGE_SUB_WINDOWS_BY_MYSELF) && !defined(MANAGE_ROOT_WINDOWS_BY_MYSELF)
-  /* USE_SDL2 || USE_WAYLAND (Display : Window = 1 : 1) */
-  if (ACTUAL_WIDTH(&cand_screen->window) > DISPLAY(cand_screen)->width) {
-    /* do nothing */
-  } else
-#endif
   if (*x + ACTUAL_WIDTH(&cand_screen->window) > DISPLAY(cand_screen)->width) {
     if (cand_screen->is_vertical_term) {
       /* ui_im_candidate_screen doesn't know column width. */
@@ -145,12 +148,6 @@ static void adjust_window_position_by_size(ui_im_candidate_screen_t *cand_screen
     }
   }
 
-#if defined(MANAGE_SUB_WINDOWS_BY_MYSELF) && !defined(MANAGE_ROOT_WINDOWS_BY_MYSELF)
-  /* USE_SDL2 || USE_WAYLAND (Display : Window = 1 : 1) */
-  if (ACTUAL_HEIGHT(&cand_screen->window) > DISPLAY(cand_screen)->height) {
-    /* do nothing */
-  } else
-#endif
   if (*y + ACTUAL_HEIGHT(&cand_screen->window) > DISPLAY(cand_screen)->height) {
     *y -= ACTUAL_HEIGHT(&cand_screen->window);
 
@@ -347,11 +344,9 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
    */
   if (cand_screen->num_candidates > cand_screen->num_per_window &&
       last - top < cand_screen->num_per_window) {
-    u_int y;
+    u_int y = (font->height + LINE_SPACE) * (last - top + 1);
 
-    y = (font->height + LINE_SPACE) * (last - top + 1);
-
-    ui_window_clear(&cand_screen->window, 0, y, win_width, win_height - y - 1);
+    ui_window_clear(&cand_screen->window, 0, y, win_width, win_height - y);
   }
 
   /*
@@ -367,12 +362,6 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
     u_int width;
     size_t len;
     int x;
-
-#ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
-    ui_window_clear(&cand_screen->window, 0,
-                    (font->height + LINE_SPACE) * cand_screen->num_per_window + LINE_SPACE,
-                    win_width, font->height);
-#endif
 
     len = bl_snprintf(navi, MAX_NUM_OF_DIGITS * 2 + 2, "%d/%d", cand_screen->index + 1,
                       cand_screen->num_candidates);

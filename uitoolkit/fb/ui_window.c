@@ -1597,7 +1597,9 @@ int ui_window_show(ui_window_t *win,
     ui_window_show(win->children[count], 0);
   }
 
-#ifdef MANAGE_ROOT_WINDOWS_BY_MYSELF
+#if defined(USE_SDL2)
+  /* ui_window_resize_with_margin() or ui_window_update_all() is called in ui_display_show() */
+#elif defined(MANAGE_ROOT_WINDOWS_BY_MYSELF)
   if (!win->parent && win->x == 0 && win->y == 0) {
     ui_window_resize_with_margin(win, win->disp->width, win->disp->height, NOTIFY_TO_MYSELF);
   }

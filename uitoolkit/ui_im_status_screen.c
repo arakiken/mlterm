@@ -25,8 +25,17 @@
 #endif
 
 #if defined(MANAGE_SUB_WINDOWS_BY_MYSELF) && !defined(MANAGE_ROOT_WINDOWS_BY_MYSELF)
-/* USE_SDL2 || USE_WAYLAND */
-#define DISPLAY(stat_screen) ((stat_screen)->window.disp->display->parent)
+/*
+ * USE_SDL2 or USE_WAYLAND
+ * (Display : Window = 1 : 1)
+ *
+ * DISPLAY(cand_screen) is the actual display size in SDL2.
+ * DISPLAY(cand_screen) is not the actual display size but ui_screen or ui_layout
+ * size in wayland.
+ * x and y in adjust_xxx functions indicate the relative position from ui_screen
+ * or ui_layout in wayland.
+ */
+#define DISPLAY(stat_screen) ui_get_actual_size_display((stat_screen)->window.disp)
 #else
 #define DISPLAY(stat_screen) ((stat_screen)->window.disp)
 #endif
@@ -34,12 +43,6 @@
 /* --- static functions --- */
 
 static void adjust_window_position_by_size(ui_im_status_screen_t *stat_screen, int *x, int *y) {
-#if defined(MANAGE_SUB_WINDOWS_BY_MYSELF) && !defined(MANAGE_ROOT_WINDOWS_BY_MYSELF)
-  /* USE_SDL2 || USE_WAYLAND (Display : Window = 1 : 1) */
-  if (ACTUAL_HEIGHT(&stat_screen->window) > DISPLAY(stat_screen)->height) {
-    /* do nothing */
-  } else
-#endif
   if (*y + ACTUAL_HEIGHT(&stat_screen->window) > DISPLAY(stat_screen)->height) {
     *y -= ACTUAL_HEIGHT(&stat_screen->window);
     if (!stat_screen->is_vertical) {
@@ -47,12 +50,6 @@ static void adjust_window_position_by_size(ui_im_status_screen_t *stat_screen, i
     }
   }
 
-#if defined(MANAGE_SUB_WINDOWS_BY_MYSELF) && !defined(MANAGE_ROOT_WINDOWS_BY_MYSELF)
-  /* USE_SDL2 || USE_WAYLAND (Display : Window = 1 : 1) */
-  if (ACTUAL_WIDTH(&stat_screen->window) > DISPLAY(stat_screen)->width) {
-    /* do nothing */
-  } else
-#endif
   if (*x + ACTUAL_WIDTH(&stat_screen->window) > DISPLAY(stat_screen)->width) {
     if (stat_screen->is_vertical) {
       /* ui_im_stat_screen doesn't know column width. */
