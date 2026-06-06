@@ -1,3 +1,8 @@
+2026-06-06  Araki Ken <arakiken@user.sf.net>
+
+	* ui_draw_str.c: Fix segfault by uninitialized values in draw_picture().
+	  (https://github.com/arakiken/mlterm/issues/163)
+
 2026-05-30  Araki Ken <arakiken@user.sf.net>
 
 	* main_loop.c: Add --res/fb_resolution (for SDL2 and framebuffer) and

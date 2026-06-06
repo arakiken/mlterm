@@ -4,6 +4,7 @@
 * Support DRCSMMv3. (https://github.com/kmiya-culti/RLogin/issues/152)
 * Support selecting regions in pictures with the mouse.
   (https://github.com/arakiken/mlterm/issues/151)
+* Support kmsdrm in mlterm-sdl2.
 * Add --adc/use_arabic_dynamic_comb option.
   (https://github.com/arakiken/mlterm/issues/136)
 * Add --crsz/cursor_size option to mlterm-fb.

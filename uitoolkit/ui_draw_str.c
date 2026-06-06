@@ -114,7 +114,8 @@ static void draw_line(ui_window_t *window, ui_color_t *color, int is_vertical, i
 #endif
 
 #ifndef NO_IMAGE
-void draw_background(ui_window_t *win, ui_color_t *color, int x, int y, u_int width, u_int height) {
+static void draw_background(ui_window_t *win, ui_color_t *color, int x, int y,
+                            u_int width, u_int height) {
   if (!color) {
     ui_window_clear(win, x, y, width, height);
   } else {
@@ -122,12 +123,14 @@ void draw_background(ui_window_t *win, ui_color_t *color, int x, int y, u_int wi
   }
 }
 
-static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs, int dst_x,
-                        int dst_y, u_int ch_width, u_int line_height, ui_color_t *bg_xcolor,
-                        int draw_bg) {
+static void draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs, int dst_x,
+                         int dst_y, u_int ch_width, u_int line_height, ui_color_t *bg_xcolor,
+                         int draw_bg) {
   u_int count;
   ui_inline_picture_t *cur_pic;
   u_int num_rows;
+
+  /* These variables are initialized in new_picture: block */
   int src_x;
   int src_y;
   u_int src_width;
@@ -138,7 +141,6 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
   u_int32_t is_reversed;
 
   cur_pic = NULL;
-  is_end = 0;
 
   for (count = 0; count < num_glyphs; count++) {
     ui_inline_picture_t *pic;
@@ -147,7 +149,18 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
     u_int w;
 
     if (!(pic = ui_get_inline_picture(INLINEPIC_ID(glyphs[count])))) {
-      dst_x += ch_width;
+      if (cur_pic == NULL) {
+        if (count + 1 == num_glyphs) {
+          /*
+           * Draw no pictures
+           * XXX Skip redrawing background.
+           */
+          return;
+        }
+        dst_x += ch_width;
+      } else {
+        dst_width += ch_width;
+      }
 
       continue;
     }
@@ -209,7 +222,7 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
     }
 
     if (is_end) {
-      return 1;
+      return;
     }
 
     dst_x += dst_width;
@@ -221,6 +234,7 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
     cur_pic = pic;
     is_reversed = INLINEPIC_REVERSED(glyphs[count]);
     need_clear = 0;
+    is_end = 0;
 
     if (src_y + line_height > pic->height) {
       need_clear = 1;
@@ -267,8 +281,6 @@ static int draw_picture(ui_window_t *window, u_int32_t *glyphs, u_int num_glyphs
     ui_window_copy_area(window, cur_pic->pixmap, cur_pic->mask, is_reversed,
                         src_x, src_y, src_width, src_height, dst_x, dst_y);
   }
-
-  return 1;
 }
 #endif
 
