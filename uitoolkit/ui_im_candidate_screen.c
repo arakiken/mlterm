@@ -18,6 +18,10 @@
 #define LINE_SPACE 2
 #endif
 
+#if 0
+#define CANDIDATE_SEQUENTIAL_INDEX
+#endif
+
 #define VISIBLE_INDEX(n, p, i, t, l) \
   do {                               \
     (t) = ((i) / p) * p;             \
@@ -39,6 +43,8 @@
       (n)++;                \
     }                       \
   } while (0)
+
+#define MAX_NUM_OF_DIGITS 4 /* max is 9999. enough? */
 
 #define INVALID_INDEX (cand_screen->num_candidates)
 
@@ -188,10 +194,8 @@ static void draw_str(ui_im_candidate_screen_t *cand_screen, vt_char_t *str, u_in
       LINE_SPACE / 2, 1 /* no need to draw underline */, 0);
 }
 
-#define MAX_NUM_OF_DIGITS 4 /* max is 9999. enough? */
-
 static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int top, u_int last,
-                                 u_int draw_index, int do_resize) {
+                                 u_int draw_index, int do_resize, int draw_cands_alone) {
   ui_font_t *font;
   u_int i;
   u_int num_digits;
@@ -199,11 +203,15 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
   u_int win_height;
   vt_char_t *p;
 
+#ifdef CANDIDATE_SEQUENTIAL_INDEX
   if (cand_screen->num_candidates > cand_screen->num_per_window) {
     NUM_OF_DIGITS(num_digits, cand_screen->num_per_window);
   } else {
     NUM_OF_DIGITS(num_digits, last);
   }
+#else
+  num_digits = 1; /* 1,2,...9,0 */
+#endif
 
   /*
    * resize window
@@ -224,7 +232,7 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
    *   |7  cand6           |  |
    *   |8  cand7           |  |
    *   |9  widest candidate| /
-   *   |10 cand9           |/
+   *   |10 cand9           |/  (Not 10 but 0 if CANDIDATE_SEQUENTIAL_INDEX is not defined)
    *   |    index/total    |--> show if total > num_per_window
    *   +-------------------+
    */
@@ -295,6 +303,7 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
      * |1 cand0   |
      *  ^^
      */
+#ifdef CANDIDATE_SEQUENTIAL_INDEX
     if (cand_screen->candidates[i].info) {
       char byte2;
 
@@ -308,6 +317,9 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
     } else {
       bl_snprintf(digit, MAX_NUM_OF_DIGITS + 1, "%i    ", i - top + 1);
     }
+#else
+    bl_snprintf(digit, MAX_NUM_OF_DIGITS + 1, "%i    ", (i - top + 1) > 9 ? 0 : i - top + 1);
+#endif
 
     p = digit_str;
     for (j = 0; j < num_digits + 1; j++) {
@@ -330,23 +342,29 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
              font->width * (num_digits + 1), i - top, font->height, font->ascent, 1);
   }
 
-  if (draw_index != INVALID_INDEX) {
+  if (draw_cands_alone) {
     return;
   }
 
-  /*
-   * |7 cand6         |
-   * |8 last candidate|
-   * |                |\
-   * |                | }-- clear this area
-   * |                |/
-   * +----------------+
-   */
-  if (cand_screen->num_candidates > cand_screen->num_per_window &&
-      last - top < cand_screen->num_per_window) {
-    u_int y = (font->height + LINE_SPACE) * (last - top + 1);
+  if (draw_index == INVALID_INDEX) {
+    /*
+     * |7 cand6         |
+     * |8 last candidate|
+     * |                |\
+     * |                | }-- clear this area
+     * |                |/
+     * +----------------+
+     */
+    if (cand_screen->num_candidates > cand_screen->num_per_window &&
+        last - top < cand_screen->num_per_window) {
+      u_int y = (font->height + LINE_SPACE) * (last - top + 1);
 
-    ui_window_clear(&cand_screen->window, 0, y, win_width, win_height - y);
+      ui_window_clear(&cand_screen->window, 0, y, win_width, win_height - y);
+    }
+  } else {
+    /* clear navi area */
+    ui_window_clear(&cand_screen->window, 0, cand_screen->num_per_window * (font->height + LINE_SPACE),
+                    win_width, font->height + LINE_SPACE);
   }
 
   /*
@@ -525,8 +543,8 @@ static void draw_screen(ui_im_candidate_screen_t *cand_screen, u_int old_index, 
 
     if (old_top == top && old_last == last) {
       if (cand_screen->is_vertical_direction) {
-        draw_screen_vertical(cand_screen, top, last, old_index, 0);
-        draw_screen_vertical(cand_screen, top, last, cand_screen->index, 0);
+        draw_screen_vertical(cand_screen, top, last, old_index, 0, 1);
+        draw_screen_vertical(cand_screen, top, last, cand_screen->index, 0, 0);
       } else {
         draw_screen_horizontal(cand_screen, top, last, old_index, 0);
         draw_screen_horizontal(cand_screen, top, last, cand_screen->index, 0);
@@ -537,7 +555,7 @@ static void draw_screen(ui_im_candidate_screen_t *cand_screen, u_int old_index, 
   }
 
   if (cand_screen->is_vertical_direction) {
-    draw_screen_vertical(cand_screen, top, last, INVALID_INDEX, do_resize);
+    draw_screen_vertical(cand_screen, top, last, INVALID_INDEX, do_resize, 0);
   } else {
     draw_screen_horizontal(cand_screen, top, last, INVALID_INDEX, do_resize);
   }

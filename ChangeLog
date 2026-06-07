@@ -1,5 +1,9 @@
 2026-06-07  Araki Ken <arakiken@user.sf.net>
 
+	* ui_im_candidate_screen.c:
+	  - Index number for each candidate is 1...0
+	  - Update 'index/total' every time.
+
 	* vte.c: Add vte 0.82 and 0.84 apis.
 
 2026-06-06  Araki Ken <arakiken@user.sf.net>
