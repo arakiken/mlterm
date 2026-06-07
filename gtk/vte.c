@@ -5965,7 +5965,7 @@ GMenuModel *vte_terminal_get_context_menu_model(VteTerminal *terminal) {
 
 void vte_terminal_set_context_menu(VteTerminal *terminal, GtkWidget *menu) {}
 
-GtkWidget *vte_terminal_get_context_menu(VteTerminal* terminal) {
+GtkWidget *vte_terminal_get_context_menu(VteTerminal *terminal) {
 #if _VTE_GTK >= 4
   return PVT(terminal)->menu;
 #else
@@ -6142,37 +6142,65 @@ GVariant *vte_terminal_ref_termprop_variant_by_id(VteTerminal *terminal, int pro
 #endif
 
 #if VTE_CHECK_VERSION(0, 80, 0)
-cairo_surface_t *vte_terminal_ref_termprop_image_surface_by_id(VteTerminal* terminal,
+cairo_surface_t *vte_terminal_ref_termprop_image_surface_by_id(VteTerminal *terminal,
                                                                int prop) {
   return NULL;
 }
 
-cairo_surface_t *vte_terminal_ref_termprop_image_surface(VteTerminal* terminal,
-                                                         char const* prop) {
+cairo_surface_t *vte_terminal_ref_termprop_image_surface(VteTerminal *terminal,
+                                                         char const *prop) {
   return NULL;
 }
 
 #if _VTE_GTK == 3
-GdkPixbuf *vte_terminal_ref_termprop_image_pixbuf_by_id(VteTerminal* terminal,
+GdkPixbuf *vte_terminal_ref_termprop_image_pixbuf_by_id(VteTerminal *terminal,
                                                         int prop) {
   return NULL;
 }
 
-GdkPixbuf *vte_terminal_ref_termprop_image_pixbuf(VteTerminal* terminal,
-                                                  char const* prop) {
+GdkPixbuf *vte_terminal_ref_termprop_image_pixbuf(VteTerminal *terminal,
+                                                  char const *prop) {
   return NULL;
 }
 #elif _VTE_GTK >= 4
-GdkTexture *vte_terminal_ref_termprop_image_texture_by_id(VteTerminal* terminal,
+GdkTexture *vte_terminal_ref_termprop_image_texture_by_id(VteTerminal *terminal,
                                                           int prop) {
   return NULL;
 }
 
-GdkTexture *vte_terminal_ref_termprop_image_texture(VteTerminal* terminal,
-                                                    char const* prop) {
+GdkTexture *vte_terminal_ref_termprop_image_texture(VteTerminal *terminal,
+                                                    char const *prop) {
   return NULL;
 }
 #endif
+#endif
+
+#if VTE_CHECK_VERSION(0, 82, 0)
+gboolean vte_terminal_get_termprop_enum_by_id(VteTerminal *terminal, int prop, GType gtype,
+                                              int64_t *valuep) {
+  return FALSE;
+}
+
+gboolean vte_terminal_get_termprop_enum(VteTerminal *terminal, char const *prop, GType gtype,
+                                        int64_t *valuep) {
+  return FALSE;
+}
+
+gboolean vte_terminal_get_termprop_flags_by_id(VteTerminal *terminal, int prop, GType gtype,
+                                               gboolean ignore_unknown_flags, uint64_t *valuep) {
+  return FALSE;
+}
+
+gboolean vte_terminal_get_termprop_flags(VteTerminal *terminal, char const *prop, GType gtype,
+                                         gboolean ignore_unknown_flags, uint64_t *valuep) {
+  return FALSE;
+}
+#endif
+
+#if VTE_CHECK_VERSION(0, 84, 0)
+void vte_terminal_reset_termprop_by_id(VteTerminal *terminal, int prop) {}
+
+void vte_terminal_reset_termprop(VteTerminal *terminal, char const *prop) {}
 #endif
 
 #if VTE_CHECK_VERSION(0, 56, 0)

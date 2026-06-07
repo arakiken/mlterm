@@ -1,3 +1,7 @@
+2026-06-07  Araki Ken <arakiken@user.sf.net>
+
+	* vte.c: Add vte 0.82 and 0.84 apis.
+
 2026-06-06  Araki Ken <arakiken@user.sf.net>
 
 	* ui_draw_str.c: Fix segfault by uninitialized values in draw_picture().
