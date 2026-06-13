@@ -27,7 +27,7 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
                       char **privkey,  /* in/out */
                       int *x11_fwd,    /* in/out */
                       char *display_name, Window parent_window,
-                      char *def_server /* (<user>@)(<proto>:)<server address>(:<encoding>). */) {
+                      const char *def_server /* (<user>@)(<proto>:)<server address>(:<encoding>). */) {
   int ret;
 
   ui_display_show_dialog(def_server, *privkey);
