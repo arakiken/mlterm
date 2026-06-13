@@ -1,3 +1,11 @@
+2026-06-13  Araki Ken <arakiken@user.sf.net>
+
+	* ui_screen_manager.c: Remove free(main_config.default_server) in
+	  open_pty_intern() because open_cloned_screen() changes it temporarily.
+
+	* ui_connect_dialog.[ch]: Change the type of 'def_server' argument of
+	  ui_connect_dialog() from char* to const char*.
+
 2026-06-07  Araki Ken <arakiken@user.sf.net>
 
 	* ui_im_candidate_screen.c:

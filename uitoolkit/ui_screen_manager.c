@@ -394,29 +394,20 @@ static int open_pty_intern(vt_term_t *term, char *cmd_path, char **cmd_argv,
 #endif
 
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-  if (uri) {
-    if (ret && bl_compare_str(uri, main_config.default_server) != 0) {
-      free(main_config.default_server);
-      main_config.default_server = uri;
-    } else {
-      free(uri);
-    }
-
-    free(pass);
+  free(uri);
+  free(pass);
 
 #ifdef USE_LIBSSH2
-    if (privkey != main_config.private_key) {
-      free(privkey);
-    }
-#endif
+  if (privkey != main_config.private_key) {
+    free(privkey);
   }
+#endif
 #endif
 
   return ret;
 }
 
 #ifndef NO_IMAGE
-
 static vt_char_t *get_picture_data(void *p, char *file_path, int *num_cols /* can be 0 */,
                                    int *num_rows /* can be 0 */,
                                    int *num_cols_small /* set only if drcs_sixel is 1. */,
@@ -987,14 +978,12 @@ static void open_cloned_screen(ui_screen_t *cur_screen, ui_layout_t *layout, int
   encoding = main_config.encoding;
   main_config.encoding = vt_term_get_encoding(cur_screen->term);
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-  if (!show_dialog) {
-    default_server = main_config.default_server;
-    main_config.default_server = vt_term_get_uri(cur_screen->term);
+  default_server = main_config.default_server;
+  main_config.default_server = vt_term_get_uri(cur_screen->term);
 #ifdef USE_LIBSSH2
-    privkey = main_config.private_key;
-    main_config.private_key = vt_term_get_privkey(cur_screen->term);
+  privkey = main_config.private_key;
+  main_config.private_key = vt_term_get_privkey(cur_screen->term);
 #endif
-  }
 
   if ((new_cmd_line = vt_term_get_cmd_line(cur_screen->term)) &&
       (new_cmd_line_dup = alloca(strlen(new_cmd_line) + 1))) {
@@ -1022,12 +1011,10 @@ static void open_cloned_screen(ui_screen_t *cur_screen, ui_layout_t *layout, int
 
   main_config.encoding = encoding;
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
-  if (!show_dialog) {
-    main_config.default_server = default_server;
+  main_config.default_server = default_server;
 #ifdef USE_LIBSSH2
-    main_config.private_key = privkey;
+  main_config.private_key = privkey;
 #endif
-  }
 
   if (new_cmd_line) {
     main_config.cmd_path = cmd_path;

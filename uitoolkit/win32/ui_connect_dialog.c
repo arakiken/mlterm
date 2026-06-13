@@ -22,7 +22,7 @@
 
 static int selected_proto = -1;
 
-static char *default_server;
+static const char *default_server;
 
 /* These variables are set in IDOK. If empty string is input, nothing is set
  * (==NULL). */
@@ -403,7 +403,7 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
                       char **privkey,  /* in/out */
                       int *x11_fwd,    /* in/out */
                       char *display_name, Window parent_window,
-                      char *def_server /* (<user>@)(<proto>:)<server address>(:<encoding>). */
+                      const char *def_server /* (<user>@)(<proto>:)<server address>(:<encoding>). */
                       ) {
   int ret;
   char *proto;
@@ -411,16 +411,17 @@ int ui_connect_dialog(char **uri,      /* Should be free'ed by those who call th
   use_x11_forwarding = *x11_fwd;
   selected_ssh_privkey = *privkey;
 
-  if ((!def_server || *def_server == '\0' || strcmp(def_server, "?") == 0) &&
-      (default_server = alloca(1024))) {
-    if ((default_server = exec_servman(default_server, 1024))) {
+  if (!def_server || *def_server == '\0' || strcmp(def_server, "?") == 0) {
+    char buf[1024];
+
+    if ((default_server = exec_servman(buf, sizeof(buf)))) {
       char **argv;
 
-      if ((argv = bl_argv_alloca(default_server))) {
+      if ((argv = bl_argv_alloca(buf))) {
         int num;
         int count;
 
-        bl_arg_str_to_array(argv, &num, default_server);
+        bl_arg_str_to_array(argv, &num, buf);
 
         default_server = argv[0];
 
