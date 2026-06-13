@@ -1,3 +1,9 @@
+2026-06-14  Araki Ken <arakiken@user.sf.net>
+
+	* config.sub, config.guess: Updated.
+
+	* uitoolkit/wayland/*-protocol.[ch]: Updated by rescanproto.sh.
+
 2026-06-13  Araki Ken <arakiken@user.sf.net>
 
 	* ui_screen_manager.c: Remove free(main_config.default_server) in
