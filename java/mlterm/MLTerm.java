@@ -841,11 +841,13 @@ public class MLTerm extends StyledText {
     (new Thread(new Runnable() {
       public void run() {
         while (true) {
-          /* display.isDisposed() should be checked just before display.wake(). */
-          if (display.isDisposed()) {
+          /* display.isDisposed() is unreliable on a thread except UI thread. */
+          try {
+            display.wake();
+          } catch (SWTException e) {
+	    /* display is disposed */
             break;
           }
-          display.wake();
 
           if (readyReadPty) {
             if (false) {

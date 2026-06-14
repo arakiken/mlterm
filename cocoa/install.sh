@@ -15,9 +15,9 @@ prefix="${1}"
 cd $HOME/mlterm.app
 mkdir -p Contents/Resources/mlterm
 cp -f $prefix/etc/mlterm/* Contents/Resources/mlterm/
-rm mlterm/*aafont
-rm mlterm/font-fb
-rm mlterm/[tv]font
+rm Contents/Resources/mlterm/*aafont
+rm Contents/Resources/mlterm/font-fb
+rm Contents/Resources/mlterm/[tv]font
 
 mkdir -p $HOME/mlterm.app/Contents/MacOS
 cd $HOME/mlterm.app/Contents/MacOS

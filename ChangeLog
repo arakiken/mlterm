@@ -1,5 +1,15 @@
 2026-06-14  Araki Ken <arakiken@user.sf.net>
 
+	* vt_parser.[ch]: Change vt_parset_set_{xterm|config}_listener()
+	  from functions to macros.
+
+	* MLTerm.java: Fix SWTException in exiting mlterm.
+
+	* java/Makefile, ci.yml: Update.
+
+	* cocoa/install*.sh: Fix the directory where configuration files are
+	  placed.
+
 	* config.sub, config.guess: Updated.
 
 	* uitoolkit/wayland/*-protocol.[ch]: Updated by rescanproto.sh.

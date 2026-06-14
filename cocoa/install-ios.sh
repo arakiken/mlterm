@@ -15,7 +15,7 @@ prefix="${1}"
 cd $HOME/mlterm-ios.app
 mkdir -p etc/mlterm
 cp -f $prefix/etc/mlterm/* etc/mlterm/
-rm mlterm/*aafont
-rm mlterm/font-fb
-rm mlterm/[tv]font
+rm etc/mlterm/*aafont
+rm etc/mlterm/font-fb
+rm etc/mlterm/[tv]font
 cp $prefix/bin/mlterm .

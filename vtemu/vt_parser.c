@@ -7461,16 +7461,6 @@ void vt_parser_set_pty(vt_parser_t *vt_parser, vt_pty_t *pty) {
   vt_parser->pty = pty;
 }
 
-void vt_parser_set_xterm_listener(vt_parser_t *vt_parser,
-                                  vt_xterm_event_listener_t *xterm_listener) {
-  vt_parser->xterm_listener = xterm_listener;
-}
-
-void vt_parser_set_config_listener(vt_parser_t *vt_parser,
-                                   vt_config_event_listener_t *config_listener) {
-  vt_parser->config_listener = config_listener;
-}
-
 int vt_parse_vt100_sequence(vt_parser_t *vt_parser) {
   clock_t beg;
 

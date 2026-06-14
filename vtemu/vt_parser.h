@@ -379,15 +379,15 @@ int vt_parser_destroy(vt_parser_t *vt_parser);
 
 void vt_parser_set_pty(vt_parser_t *vt_parser, vt_pty_t *pty);
 
-void vt_parser_set_xterm_listener(vt_parser_t *vt_parser,
-                                        vt_xterm_event_listener_t *xterm_listener);
+#define vt_parser_set_xterm_listener(vt_parser, listener) \
+  ((vt_parser)->xterm_listener = (listener))
 
-void vt_parser_set_config_listener(vt_parser_t *vt_parser,
-                                         vt_config_event_listener_t *config_listener);
+#define vt_parser_set_config_listener(vt_parser, listener) \
+  ((vt_parser)->config_listener = (listener))
 
-#define vt_parser_is_sending_data(parser) ((parser)->is_transferring_data & 0x1)
+#define vt_parser_is_sending_data(vt_parser) ((vt_parser)->is_transferring_data & 0x1)
 
-#define vt_parser_is_zmodem_ready(parser) ((parser)->is_zmodem_ready)
+#define vt_parser_is_zmodem_ready(vt_parser) ((vt_parser)->is_zmodem_ready)
 
 int vt_parse_vt100_sequence(vt_parser_t *vt_parser);
 
