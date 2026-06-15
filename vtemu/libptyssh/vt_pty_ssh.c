@@ -2207,7 +2207,7 @@ void vt_pty_ssh_set_keepalive_interval(u_int interval_sec) {
   keepalive_msec_left = keepalive_msec = interval_sec * 1000;
 }
 
-u_int vt_pty_ssh_keepalive(u_int spent_msec) {
+void vt_pty_ssh_keepalive(u_int spent_msec) {
   if (keepalive_msec_left <= spent_msec) {
     u_int count;
 
@@ -2219,8 +2219,6 @@ u_int vt_pty_ssh_keepalive(u_int spent_msec) {
   } else {
     keepalive_msec_left -= spent_msec;
   }
-
-  return keepalive_msec_left;
 }
 
 void vt_pty_ssh_set_use_x11_forwarding(void *session, int use) {

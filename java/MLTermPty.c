@@ -393,7 +393,6 @@ Java_mlterm_MLTermPty_nativeOpen(JNIEnv *env, jobject obj, jstring jstr_host,
   const char *host;
   const char *pass;
   char *envv[4];
-  char *cmd_path;
 
   if (!str_parser) {
     str_parser = vt_str_parser_new();
@@ -568,7 +567,6 @@ JNIEXPORT jint JNICALL Java_mlterm_MLTermPty_waitForReading(JNIEnv *env, jclass 
 #ifdef USE_LIBSSH2
   int *xssh_fds;
   u_int num_xssh_fds;
-  static u_int keepalive_msec_left;
 #endif
 
   pthread_mutex_lock(&mutex);
@@ -633,7 +631,7 @@ JNIEXPORT jint JNICALL Java_mlterm_MLTermPty_waitForReading(JNIEnv *env, jclass 
    */
   if (select(maxfd + 1, &read_fds, NULL, NULL, &tval) == 0) {
 #ifdef USE_LIBSSH2
-    keepalive_msec_left = vt_pty_ssh_keepalive(tval.tv_sec * 1000);
+    vt_pty_ssh_keepalive(tval.tv_sec * 1000);
 #endif
 
     return -1;
@@ -1285,6 +1283,7 @@ Java_mlterm_MLTermPty_getColorRGB(JNIEnv *env, jclass class, jstring jstr_color)
   u_int8_t red;
   u_int8_t green;
   u_int8_t blue;
+  u_int8_t alpha;
   int error;
 
   color_name = (*env)->GetStringUTFChars(env, jstr_color, NULL);
@@ -1296,7 +1295,7 @@ Java_mlterm_MLTermPty_getColorRGB(JNIEnv *env, jclass class, jstring jstr_color)
    * in fb/ui_color.c and win32/ui_color.c.
    */
 
-  if (vt_color_parse_rgb_name(&red, &green, &blue, NULL, color_name)) {
+  if (vt_color_parse_rgb_name(&red, &green, &blue, &alpha, color_name)) {
     /* do nothing */
   } else if ((color = vt_get_color(color_name)) != VT_UNKNOWN_COLOR && IS_VTSYS_BASE_COLOR(color)) {
     /*

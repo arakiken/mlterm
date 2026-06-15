@@ -24,7 +24,7 @@ public class MLTermPty {
 
       while (urls.hasMoreElements()) {
         URL url = (URL) urls.nextElement();
-        int beg_pos = url.getPath().indexOf("mlterm");
+        int beg_pos = url.getPath().lastIndexOf("mlterm");
         if (beg_pos != -1) {
           int end_pos = url.getPath().indexOf(".jar", beg_pos);
           if (end_pos != -1 && /* is jar file. */

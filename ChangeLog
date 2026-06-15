@@ -1,3 +1,14 @@
+2026-06-16  Araki Ken <arakiken@user.sf.net>
+
+	* vt_pty_ssh.c, vt_pty.h: Change the return value type of
+	  vt_pty_ssh_keepalive() from u_int to void.
+
+	* MLTermPty.c: Fix segfault by passing NULL to 'alpha' argument of
+	  vt_color_parse_rgb_name() in Java_mlterm_MLTermPty_getColorRGB.
+
+	* MLTermPty.java: Fix loadLibraryFromJar() failure if mlterm.jar is placed
+	  in path which contains 'mlterm' as a directory name.
+
 2026-06-14  Araki Ken <arakiken@user.sf.net>
 
 	* vt_parser.[ch]: Change vt_parset_set_{xterm|config}_listener()
