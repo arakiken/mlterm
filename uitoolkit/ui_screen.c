@@ -5328,6 +5328,12 @@ static void get_config_intern(ui_screen_t *screen, const char *dev, /* can be NU
     } else {
       value = "false";
     }
+  } else if (strcmp(key, "allow_xtwinops_resize") == 0) {
+    if (screen->xterm_listener.resize) {
+      value = "true";
+    } else {
+      value = "false";
+    }
   } else if (strcmp(key, "pty_list") == 0) {
     value = vt_get_pty_list();
   } else if (strcmp(key, "trim_trailing_newline_in_pasting") == 0) {
@@ -6897,7 +6903,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
                            ui_mod_meta_mode_t mod_meta_mode, ui_bel_mode_t bel_mode,
                            int receive_string_via_ucs, char *pic_file_path, int use_transbg,
                            int use_vertical_cursor, int borderless, int line_space,
-                           char *input_method, int allow_osc52, u_int hmargin,
+                           char *input_method, ui_xterm_ops_t xterm_ops, u_int hmargin,
                            u_int vmargin, int hide_underline, int underline_offset,
                            int baseline_offset) {
   ui_screen_t *screen;
@@ -6995,7 +7001,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->xterm_listener.start = start_vt100_cmd;
   screen->xterm_listener.stop = stop_vt100_cmd;
   screen->xterm_listener.interrupt = interrupt_vt100_cmd;
-  screen->xterm_listener.resize = xterm_resize;
+  screen->xterm_listener.resize = ((xterm_ops & XTOPS_WINDOW_RESIZE) ? xterm_resize : NULL);
   screen->xterm_listener.reverse_video = xterm_reverse_video;
   screen->xterm_listener.set_mouse_report = xterm_set_mouse_report;
   screen->xterm_listener.request_locator = xterm_request_locator;
@@ -7004,7 +7010,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   screen->xterm_listener.bel = xterm_bel;
   screen->xterm_listener.im_is_active = xterm_im_is_active;
   screen->xterm_listener.switch_im_mode = xterm_switch_im_mode;
-  screen->xterm_listener.set_selection = (allow_osc52 ? xterm_set_selection : NULL);
+  screen->xterm_listener.set_selection = ((xterm_ops & XTOPS_OSC52) ? xterm_set_selection : NULL);
   screen->xterm_listener.get_rgb = xterm_get_rgb;
   screen->xterm_listener.get_window_size = xterm_get_window_size;
   screen->xterm_listener.get_display_size = xterm_get_display_size;
@@ -7824,6 +7830,12 @@ int ui_screen_set_config(ui_screen_t *screen, const char *dev, /* can be NULL */
       } else {
         screen->xterm_listener.set_selection = NULL;
       }
+    }
+  } else if (strcmp(key, "allow_xtwinops_resize") == 0) {
+    if (true_or_false(value) > 0) {
+      screen->xterm_listener.resize = xterm_resize;
+    } else {
+      screen->xterm_listener.resize = NULL;
     }
   } else if (strcmp(key, "allow_scp") == 0) {
     /*

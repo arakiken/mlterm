@@ -880,6 +880,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
         false の場合は、転送先ホストの "." (~/.mlterm/recv) ディレクトリ以下に
         保存されます。
 
+      o allow_xtwinops_resize (*true*/false)
+        XTWINOPS (CSI t) sequence によるウィンドウのリサイズを許可
+
       o always_show_dialog (true/*false*)
         既に確立された SSH セッションがあり、そのセッション上に新しいチャンネル
         を開くことができる場合でも、必ず接続先のサーバを指定するためのダイアロ

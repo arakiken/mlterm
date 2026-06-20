@@ -1234,6 +1234,10 @@ static void reset_input_focus(ui_window_t *win) {
 static void check_update_window(ui_window_t *win, int x /* parent */, int y /* parent */) {
   u_int count;
 
+  if (!win->is_mapped) {
+    return;
+  }
+
   x += win->x;
   y += win->y;
 

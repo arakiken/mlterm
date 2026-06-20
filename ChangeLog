@@ -1,3 +1,22 @@
+2026-06-20  Araki Ken <arakiken@user.sf.net>
+
+	* man/mlterm.1, README.ja, PROTOCOL, ControlSequences: Update.
+
+	* ui_screen_manager.c: Set the size of a new pty opened by Ctrl+F2
+	  same as the size of the current pty.
+
+	* ui_main_config.[ch]: Add --xtrz/allow_xtwinops_resize option.
+
+	* ui_screen.[ch]:
+	  - Add allow_xtwinops_resize to OSC 5379 - 5381.
+	  - Add ui_xterm_ops_t.
+
+	* wayland/ui_window.c: check_update_window() does nothing for unmapped
+	  windows. (Pressing Ctrl+F1 continuously caused segfault in sway.)
+
+	* MLTerm.java: Call setForeground() and setBackground for a new window
+	  opened by Ctrl+F1.
+
 2026-06-16  Araki Ken <arakiken@user.sf.net>
 
 	* vt_pty_ssh.c, vt_pty.h: Change the return value type of

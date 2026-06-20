@@ -36,10 +36,10 @@ version 20250330
                   vresize_screen (+<columns>|-<columns>|<columns>|<percent>%) |
                   vsplit_screen (<columns>|<percent>%) | zmodem_start
 
-  set key       = alpha | allow_osc52 (*) | allow_scp (*) | auto_detect_encodings | auto_restart |
-                  baseline_offset | bd_color | bel_mode | bg_color | bidi_mode |
-                  bidi_separators | bl_color | borderless | box_drawing_font | brightness |
-                  click_interval | co_color | col_size_of_width_a | console_encoding |
+  set key       = alpha | allow_osc52 (*) | allow_scp (*) | allow_xtwinops_resize |
+                  auto_detect_encodings | auto_restart | baseline_offset | bd_color | bel_mode |
+                  bg_color | bidi_mode | bidi_separators | bl_color | borderless | box_drawing_font |
+                  brightness | click_interval | co_color | col_size_of_width_a | console_encoding |
                   console_sixel_colors | contrast | cursor_bg_color | cursor_fg_color |
                   cursor_size | dnd_escape_mode | emoji_path | emoji_file_format | encoding |
                   exit_backscroll_by_pty | fade_ratio | fg_color | fontsize | format_other_keys |
@@ -59,9 +59,9 @@ version 20250330
                   use_urgent_bell | use_variable_column_width | use_vertical_cursor |
                   vertical_mode | vt_color_mode | vt_seq_format | wall_picture | word_separators
 
-  get key       = alpha | allow_osc52 | allow_scp | auto_detect_encodings | baseline_offset |
-                  bd_color | bel_mode | bg_color | bidi_mode | bidi_separators | bl_color |
-                  borderless | box_drawing_font | brightness | click_interval | co_color |
+  get key       = alpha | allow_osc52 | allow_scp | allow_xtwinops_resize | auto_detect_encodings |
+                  baseline_offset | bd_color | bel_mode | bg_color | bidi_mode | bidi_separators |
+                  bl_color | borderless | box_drawing_font | brightness | click_interval | co_color |
                   col_size_of_width_a | cols | contrast | cursor_bg_color | cursor_fg_color |
                   depth | dnd_escape_mode | emoji_path | emoji_file_format | encoding |
                   fade_ratio | fg_color | fontconfig | fontsize | format_other_keys | gamma |

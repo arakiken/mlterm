@@ -246,6 +246,8 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "extra space between letters in pixels [0]");
   bl_conf_add_opt(conf, '\0', "osc52", 1, "allow_osc52",
                   "allow access to clipboard by OSC 52 sequence [false]");
+  bl_conf_add_opt(conf, '\0', "xtrz", 1, "allow_xtwinops_resize",
+                  "allow resizing window by XTWINOPS sequence [true]");
   bl_conf_add_opt(conf, '\0', "blink", 1, "blink_cursor", "blink cursor [false]");
   bl_conf_add_opt(conf, '\0', "border", 0, "inner_border", "inner border [2]");
   bl_conf_add_opt(conf, '\0', "lborder", 0, "layout_inner_border",
@@ -1183,9 +1185,13 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
   }
 #endif
 
+  if (!(value = bl_conf_get_value(conf, "allow_xtwinops_resize")) || strcmp(value, "false") != 0) {
+    main_config->xterm_ops = XTOPS_WINDOW_RESIZE;
+  }
+
   if ((value = bl_conf_get_value(conf, "allow_osc52"))) {
     if (strcmp(value, "true") == 0) {
-      main_config->allow_osc52 = 1;
+      main_config->xterm_ops |= XTOPS_OSC52;
     }
   }
 

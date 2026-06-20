@@ -17,6 +17,12 @@
 #include "ui_picture.h"
 #include "ui_copymode.h"
 
+typedef enum ui_xterm_ops {
+  XTOPS_OSC52 = 0x0,
+  XTOPS_WINDOW_RESIZE = 0x1,
+
+} ui_xterm_ops_t;
+
 typedef struct ui_screen *ui_screen_ptr_t;
 
 typedef struct ui_system_event_listener {
@@ -185,7 +191,7 @@ ui_screen_t *ui_screen_new(vt_term_t *term, ui_font_manager_t *font_man,
                            ui_mod_meta_mode_t mod_meta_mode, ui_bel_mode_t bel_mode,
                            int receive_string_via_ucs, char *pic_file_path, int use_transbg,
                            int use_vertical_cursor, int borderless, int line_space,
-                           char *input_method, int allow_osc52, u_int hmargin,
+                           char *input_method, ui_xterm_ops_t xterm_ops, u_int hmargin,
                            u_int vmargin, int hide_underline, int underline_offset,
                            int baseline_offset);
 

@@ -25,6 +25,7 @@ typedef struct ui_main_config {
   u_int num_log_lines;
   ui_mod_meta_mode_t mod_meta_mode;
   ui_bel_mode_t bel_mode;
+  ui_xterm_ops_t xterm_ops;
   ui_sb_mode_t sb_mode;
   vt_char_encoding_t encoding;
   int is_auto_encoding;
@@ -98,7 +99,6 @@ typedef struct ui_main_config {
   int8_t borderless;
   int8_t use_dynamic_comb;
   int8_t logging_vt_seq;
-  int8_t allow_osc52;
   int8_t blink_cursor;
   u_int8_t hmargin;
   u_int8_t vmargin;

@@ -18,6 +18,10 @@ public class MLTerm extends StyledText {
 
   final private static boolean DEBUG = false;
 
+  /* Same as vt_color_t in vt_color.h */
+  final private static int FG_COLOR = 0x1f0;
+  final private static int BG_COLOR = 0x1f1;
+
   private MLTermListener listener = null;
   private MLTermPty pty = null;
   private int ptyCols = 80;
@@ -563,28 +567,28 @@ public class MLTerm extends StyledText {
       if (color != null) {
         long pixel = MLTermPty.getColorRGB(color);
         if (pixel != -1) {
-          colors[0x1f0] = new Color(getDisplay(), (int) ((pixel >> 16) & 0xff),
+          colors[FG_COLOR] = new Color(getDisplay(), (int) ((pixel >> 16) & 0xff),
               (int) ((pixel >> 8) & 0xff), (int) (pixel & 0xff));
-          setForeground(colors[0x1f0]);
+          setForeground(colors[FG_COLOR]);
         }
       }
 
-      if (colors[0x1f0] == null) {
-        colors[0x1f0] = getForeground();
+      if (colors[FG_COLOR] == null) {
+        colors[FG_COLOR] = getForeground();
       }
 
       color = getProperty("bg_color");
       if (color != null) {
         long pixel = MLTermPty.getColorRGB(color);
         if (pixel != -1) {
-          colors[0x1f1] = new Color(getDisplay(), (int) ((pixel >> 16) & 0xff),
+          colors[BG_COLOR] = new Color(getDisplay(), (int) ((pixel >> 16) & 0xff),
               (int) ((pixel >> 8)) & 0xff, (int) (pixel & 0xff));
-          setBackground(colors[0x1f1]);
+          setBackground(colors[BG_COLOR]);
         }
       }
 
-      if (colors[0x1f1] == null) {
-        colors[0x1f1] = getBackground();
+      if (colors[BG_COLOR] == null) {
+        colors[BG_COLOR] = getBackground();
       }
 
       /* font and color objects will be disposed when display is disposed. */
@@ -602,6 +606,9 @@ public class MLTerm extends StyledText {
           colors = null;
         }
       });
+    } else {
+      setForeground(colors[FG_COLOR]);
+      setBackground(colors[BG_COLOR]);
     }
 
     setTextLimit(100000);

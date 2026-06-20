@@ -597,7 +597,7 @@ static ui_screen_t *open_screen_intern(char *disp_name, vt_term_t *term, ui_layo
                               main_config.pic_file_path, main_config.use_transbg,
                               main_config.use_vertical_cursor, main_config.borderless,
                               main_config.line_space, main_config.input_method,
-                              main_config.allow_osc52, main_config.hmargin, main_config.vmargin,
+                              main_config.xterm_ops, main_config.hmargin, main_config.vmargin,
                               main_config.hide_underline, main_config.underline_offset,
                               main_config.baseline_offset)) == NULL) {
 #ifdef DEBUG
@@ -779,6 +779,8 @@ static void open_pty(void *p, ui_screen_t *screen, char *dev) {
     }
   } else {
     vt_char_encoding_t encoding;
+    u_int cols;
+    u_int rows;
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
     char *default_server;
     char *privkey;
@@ -790,11 +792,19 @@ static void open_pty(void *p, ui_screen_t *screen, char *dev) {
     int ret;
 
     encoding = main_config.encoding;
+    cols = main_config.cols;
+    rows = main_config.rows;
     main_config.encoding = vt_term_get_encoding(screen->term);
+    main_config.cols = vt_term_get_cols(screen->term);
+    main_config.rows = vt_term_get_rows(screen->term);
 
-    if ((new = create_term_intern()) == NULL) {
-      main_config.encoding = encoding;
+    new = create_term_intern();
 
+    main_config.encoding = encoding;
+    main_config.cols = cols;
+    main_config.rows = rows;
+
+    if (new == NULL) {
       return;
     }
 
@@ -832,7 +842,6 @@ static void open_pty(void *p, ui_screen_t *screen, char *dev) {
     ret = open_pty_intern(new, main_config.cmd_path, main_config.cmd_argv, &screen->window, 0);
 #endif
 
-    main_config.encoding = encoding;
 #if defined(USE_WIN32API) || defined(USE_LIBSSH2)
     if (!main_config.show_dialog) {
       main_config.default_server = default_server;

@@ -12,6 +12,8 @@
   (https://github.com/arakiken/mlterm/issues/155)
 * Add --dndesc/dnd_escape_mode option.
   (https://github.com/arakiken/mlterm/issues/153)
+* Add --xtrz/allow_xtwinops_resize option.
+  (https://github.com/arakiken/mlterm/issues/165)
 * Add vte 0.84 API symbols to libvte compatible library.
 * Add 52 to DA1. (https://github.com/arakiken/mlterm/issues/144)
 * Check permissions in Android.

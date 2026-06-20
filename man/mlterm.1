@@ -902,6 +902,10 @@ Working directory.
 Enable x11 forwarding for ssh connection.
 The default is \fBfalse\fR.
 (If mlterm -v doesn't output "ssh", this option is unavailable.)
+.TP
+\fB\-\-xtrz\fR(=\fIbool\fR)
+Allow resizing by XTWINOPS sequence.
+The default is \fBtrue\fR.
 
 .\" ********************************************************************
 .SH GUI CONFIGURATOR
@@ -1549,6 +1553,9 @@ Allow access to clipboard(selection) by OSC 52 sequence.
 .TP
 \fBallow_scp=\fIbool\fR (\fB\-\-scp\fR)
 Allow OSC 5379 scp.
+.TP
+\fBallow_xtwinops_resize=\fIbool\fR (\fB\-\-xtrz\fR)
+Allow resizing by XTWINOPS sequence.
 .TP
 \fBallow_change_shortcut=\fIbool\fR (\fB\-\-shortcut\fR)
 Allow dynamic change of shortcut keys by OSC 5379 set_shortcut sequence.
