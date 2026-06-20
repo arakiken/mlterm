@@ -68,6 +68,9 @@ all: $(PROG)
 $(PROG): $(OBJ)
 	$(LIBTOOL_LINK) $(CFLAGS) -o $(PROG) $(OBJ:.o=.lo) $(LIBS)
 
+png: libpng.o
+	$(LIBTOOL_LINK) $(CFLAGS) -o $(PROG) libpng.lo $(LIBS1) $(LIBS2_@GUI@_libpng) -lpng
+
 .SUFFIXES: .c .o
 
 .c.o:

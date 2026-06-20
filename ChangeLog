@@ -1,5 +1,11 @@
 2026-06-20  Araki Ken <arakiken@user.sf.net>
 
+	* vtec: allow_osc52 -> xterm_ops
+
+	* mlimgloader/Makefile.in: Add 'png' target.
+
+2026-06-20  Araki Ken <arakiken@user.sf.net>
+
 	* man/mlterm.1, README.ja, PROTOCOL, ControlSequences: Update.
 
 	* ui_screen_manager.c: Set the size of a new pty opened by Ctrl+F2
