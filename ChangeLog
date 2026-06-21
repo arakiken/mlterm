@@ -1,3 +1,11 @@
+2026-06-21  Araki Ken <arakiken@user.sf.net>
+
+	* ui_font_ft.c: cairo_font_open_intern() enables italic fonts forcibly.
+
+	* stb_image_resize2.h: v2.07 -> v2.18
+
+	* ui_screen.h: Add 1 to XTOPS_OSC52 and XTOPS_WINDOW_RESIZE.
+
 2026-06-20  Araki Ken <arakiken@user.sf.net>
 
 	* vtec: allow_osc52 -> xterm_ops

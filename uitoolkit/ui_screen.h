@@ -18,8 +18,8 @@
 #include "ui_copymode.h"
 
 typedef enum ui_xterm_ops {
-  XTOPS_OSC52 = 0x0,
-  XTOPS_WINDOW_RESIZE = 0x1,
+  XTOPS_OSC52 = 0x1,
+  XTOPS_WINDOW_RESIZE = 0x2,
 
 } ui_xterm_ops_t;
 

@@ -424,14 +424,23 @@ static int is_same_family(FcPattern *pattern, const char *family) {
   return 0;
 }
 
+#if CAIRO_VERSION_ENCODE(1, 12, 0) > CAIRO_VERSION
 static cairo_scaled_font_t *cairo_font_open_intern(cairo_t *cairo, FcPattern *match,
-                                                   cairo_font_options_t *options) {
+                                                   FcPattern *pattern, cairo_font_options_t *options)
+#else
+static cairo_scaled_font_t *cairo_font_open_intern(cairo_t *cairo, FcPattern *match,
+                                                   cairo_font_options_t *options)
+#endif
+{
   cairo_font_face_t *font_face;
   double pixel_size;
   double pixel_size2;
   cairo_matrix_t font_matrix;
   cairo_matrix_t ctm;
   cairo_scaled_font_t *scaled_font;
+#if CAIRO_VERSION_ENCODE(1, 12, 0) > CAIRO_VERSION
+  int val;
+#endif
 
   font_face = cairo_ft_font_face_create_for_pattern(match);
 
@@ -449,6 +458,27 @@ static cairo_scaled_font_t *cairo_font_open_intern(cairo_t *cairo, FcPattern *ma
 
   cairo_matrix_init_scale(&font_matrix, pixel_size2, pixel_size2);
   cairo_get_matrix(cairo, &ctm);
+
+#if CAIRO_VERSION_ENCODE(1, 12, 0) > CAIRO_VERSION
+  /*
+   * XXX
+   * FcFontMatch() can change FC_SLANT value from FC_SLANT_ITALIC to FC_SLANT_OBLIQUE
+   * if the candidate font does not have italic style.
+   * cairo_ft_font_face_create_for_pattern(pattern) creates cairo_font_face_t which does not slant
+   * if pattern has FC_SLANT_OBLIQUE for FC_SLANT and CAIRO_FT_SYNTHESIZE_OBLIQUE is not set.
+   * (See output of 'fc-list : family style slant')
+   */
+  if (FcPatternGetInteger(pattern, FC_SLANT, 0, &val) == FcResultMatch) {
+    if (val == FC_SLANT_ITALIC) {
+      if (FcPatternGetInteger(match, FC_SLANT, 0, &val) == FcResultMatch &&
+          val != FC_SLANT_ITALIC) {
+        font_matrix.xy = pixel_size2 * -0.2;
+      }
+    }
+  }
+#else
+  cairo_ft_font_face_set_synthesize(font_face, CAIRO_FT_SYNTHESIZE_OBLIQUE);
+#endif
 
   scaled_font = cairo_scaled_font_create(font_face, &font_matrix, &ctm, options);
 
@@ -549,7 +579,12 @@ static cairo_scaled_font_t *cairo_font_open(ui_font_t *font, char *family, /* ca
   FcPatternPrint(match);
 #endif
 
-  if (!(xfont = cairo_font_open_intern(cairo, match, options))) {
+#if CAIRO_VERSION_ENCODE(1, 12, 0) > CAIRO_VERSION
+  if (!(xfont = cairo_font_open_intern(cairo, match, pattern, options)))
+#else
+  if (!(xfont = cairo_font_open_intern(cairo, match, options)))
+#endif
+  {
     goto error2;
   }
 
@@ -834,7 +869,12 @@ static int cairo_compl_font_open(ui_font_t *font, int num_compl_fonts, FcPattern
     /* For performance */
     cairo_font_options_set_hint_style(options, CAIRO_HINT_STYLE_NONE);
 
-    if (!(xfont = cairo_font_open_intern(cairo, match, options))) {
+#if CAIRO_VERSION_ENCODE(1, 12, 0) > CAIRO_VERSION
+    if (!(xfont = cairo_font_open_intern(cairo, match, orig_pattern, options)))
+#else
+    if (!(xfont = cairo_font_open_intern(cairo, match, options)))
+#endif
+    {
       break;
     }
 
