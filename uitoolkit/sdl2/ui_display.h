@@ -49,6 +49,10 @@ void ui_display_set_title(ui_display_t *disp, const u_char *name);
 
 void ui_display_set_maximized(ui_display_t *disp, int flag);
 
+void ui_display_set_use_text_input(ui_display_t *disp, int use);
+
+void ui_display_set_text_input_spot(ui_display_t *disp, int x, int y);
+
 #ifdef USE_BG_TEXTURE
 void ui_display_set_bg_color(ui_display_t *disp, u_long bg);
 

@@ -77,16 +77,21 @@ int ui_xic_set_spot(ui_window_t *win) {
     return 0;
   }
 
+#ifdef USE_WAYLAND
   ui_display_set_text_input_spot(win->disp, x, y,
                                  win->xim_listener->get_line_height
                                    ? (*win->xim_listener->get_line_height)(win->xim_listener->self)
                                    : 20);
+#else /* USE_SDL2 */
+  ui_display_set_text_input_spot(win->disp, x, y);
+#endif
 
   return 1;
 }
 
 size_t ui_xic_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parser_t **parser,
                       KeySym *keysym, XKeyEvent *event) {
+#ifdef USE_WAYLAND
   if (win->xic == NULL || event->utf8 == NULL) {
     *parser = NULL;
 
@@ -101,6 +106,9 @@ size_t ui_xic_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parser_t
 
     return len;
   }
+#else /* USE_SDL2 */
+  return 0;
+#endif
 }
 
 size_t ui_xic_get_utf8_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parser_t **parser,

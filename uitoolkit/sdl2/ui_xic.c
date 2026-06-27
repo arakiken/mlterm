@@ -1,1 +1,1 @@
-../fb/ui_xic.c
+../wayland/ui_xic.c
