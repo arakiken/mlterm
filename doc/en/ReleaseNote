@@ -17,6 +17,8 @@
 * Add vte 0.84 API symbols to libvte compatible library.
 * Add 52 to DA1. (https://github.com/arakiken/mlterm/issues/144)
 * Check permissions in Android.
+* Merge patches:
+  https://github.com/arakiken/mlterm/pull/166
 * Bug fixes:
   https://github.com/arakiken/mlterm/issues/138
   https://github.com/arakiken/mlterm/issues/143

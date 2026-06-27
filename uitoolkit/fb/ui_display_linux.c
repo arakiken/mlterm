@@ -20,6 +20,14 @@ char *strcasestr(const char *haystack, const char *needle);
 #define READ_CTRL_KEYMAP
 #endif
 
+/* see /usr/include/linux/input.h */
+#ifndef input_event_sec
+#define input_event_sec time.tv_sec
+#endif
+#ifndef input_event_usec
+#define input_event_usec time.tv_usec
+#endif
+
 /* --- static variables --- */
 
 static int console_id = -1;
