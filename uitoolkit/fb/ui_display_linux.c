@@ -682,7 +682,7 @@ static int receive_mouse_event(int fd) {
         continue;
       }
 
-      xev.time = ev.time.tv_sec * 1000 + ev.time.tv_usec / 1000;
+      xev.time = ev.input_event_sec * 1000 + ev.input_event_usec / 1000;
       if (rotate_display) {
         if (rotate_display > 0) {
           xev.x = _mouse.y;
@@ -769,7 +769,7 @@ static int receive_mouse_event(int fd) {
         xev.x = _mouse.x;
         xev.y = _mouse.y;
       }
-      xev.time = ev.time.tv_sec * 1000 + ev.time.tv_usec / 1000;
+      xev.time = ev.input_event_sec * 1000 + ev.input_event_usec / 1000;
       xev.state = _mouse.button_state | _display.key_state;
 
 #ifdef __DEBUG
