@@ -902,7 +902,7 @@ static void poll_event(void) {
     break;
 
   case SDL_TEXTEDITING:
-    if (strlen(ev.edit.text) > 0) {
+    if (strlen(ev.edit.text) > 0 || cur_preedit_text) {
       update_ime_text(get_display(ev.edit.windowID)->roots[0], ev.edit.text);
     }
 #ifdef DEBUG

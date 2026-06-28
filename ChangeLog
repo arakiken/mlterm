@@ -1,3 +1,7 @@
+2026-06-28  Araki Ken <arakiken@user.sf.net>
+
+	* sdl2/ui_display.c: Clear preedited text in SDL_TEXTEDITING.
+
 2026-06-27  Araki Ken <arakiken@user.sf.net>
 
 	* ui_font_ft.c: Apply CAIRO_FT_SYNTHESIZE_OBLIQUE for oblique fonts alone.
