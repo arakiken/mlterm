@@ -67,13 +67,13 @@ void fcitx_client_close_ic(FcitxClient *self);
 #define IM_FCITX_DEBUG 1
 #endif
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_SDL2)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 #define KeyPress 2 /* see uitoolkit/fb/ui_display.h */
 #define USE_IM_CANDIDATE_SCREEN
-#elif defined(USE_WAYLAND)
+#elif defined(USE_WAYLAND) || defined(USE_SDL2)
 /*
- * It is assumed that fcitx installed to the system supports wayland.
- * (Old fcitx doesn't show caandidate window correctly on wayland.)
+ * It is assumed that fcitx installed to the system supports wayland and sdl2.
+ * (Old fcitx doesn't show caandidate window correctly on wayland and sdl2.)
  */
 #define KeyPress 2 /* see uitoolkit/fb/ui_display.h */
 #endif
