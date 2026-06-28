@@ -1,5 +1,12 @@
 2026-06-28  Araki Ken <arakiken@user.sf.net>
 
+	* wayland/ui_xic.c: Always ativate win->xic in sdl2.
+
+	* sdl2/ui_display.c: Move SDL_StartTextInput() from
+	  ui_display_set_use_text_input() to open_display().
+
+2026-06-28  Araki Ken <arakiken@user.sf.net>
+
 	* im_fcitx.c: Undefine USE_IM_CANDIDATE_SCREEN in SDL2.
 
 	* sdl2/ui_display.c: Clear preedited text in SDL_TEXTEDITING.

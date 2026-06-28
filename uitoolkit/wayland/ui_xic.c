@@ -18,9 +18,15 @@ int ui_xic_activate(ui_window_t *win, char *xim_name, char *xim_locale) {
     return 0;
   }
 
+  /*
+   * win->xic is always activated on sdl2 because IME is always enabled
+   * even if the value of "input_method" option is not "default".
+   */
+#ifndef USE_SDL2
   if (strcmp(xim_name, "unused") == 0) {
     return 0;
   }
+#endif
 
   if ((win->xic = malloc(sizeof(ui_xic_t))) == NULL) {
     return 0;

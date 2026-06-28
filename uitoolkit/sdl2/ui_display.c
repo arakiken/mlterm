@@ -1169,6 +1169,8 @@ static ui_display_t *open_display(char *disp_name, u_int depth) {
       is_framebuffer = 1;
     }
 
+    SDL_StartTextInput();
+
     pty_event_type = SDL_RegisterEvents(1);
 
     main_tid = SDL_GetThreadID(NULL);
@@ -1697,15 +1699,10 @@ void ui_display_set_title(ui_display_t *disp, const u_char *name) {
 }
 
 void ui_display_set_use_text_input(ui_display_t *disp, int use) {
-  if (use) {
-#if 0
-    SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
-    SDL_SetHint(SDL_HINT_IME_INTERNAL_EDITING, "0");
-#endif
-    SDL_StartTextInput();
-  } else {
-    SDL_StopTextInput();
-  }
+  /*
+   * XXX
+   * It is impossible to enable or disable IME (ibus or fcitx5).
+   */
 }
 
 void ui_display_set_text_input_spot(ui_display_t *disp, int x, int y) {
