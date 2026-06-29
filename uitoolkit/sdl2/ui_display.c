@@ -910,6 +910,16 @@ static void poll_event(void) {
 #endif
     break;
 
+  case SDL_TEXTEDITING_EXT:
+    if (strlen(ev.editExt.text) > 0 || cur_preedit_text) {
+      update_ime_text(get_display(ev.editExt.windowID)->roots[0], ev.editExt.text);
+    }
+#ifdef DEBUG
+    bl_debug_printf("SDL_TEXTEDITING_EXT event: %s(%x...)\n", ev.editExt.text, ev.editExt.text[0]);
+#endif
+    SDL_free(ev.editExt.text);
+    break;
+
   case SDL_MOUSEBUTTONDOWN:
   case SDL_MOUSEBUTTONUP:
     disp = get_display(ev.window.windowID);
@@ -1139,6 +1149,9 @@ static ui_display_t *open_display(char *disp_name, u_int depth) {
 
     /* Callback should be set before bl_dialog() is called. */
     bl_dialog_set_callback(dialog_cb);
+
+    /* Enable SDL_TEXTEDITING_EXT event */
+    SDL_SetHint(SDL_HINT_IME_SUPPORT_EXTENDED_TEXT, "1");
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
       return NULL;
