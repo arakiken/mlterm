@@ -18,15 +18,9 @@ int ui_xic_activate(ui_window_t *win, char *xim_name, char *xim_locale) {
     return 0;
   }
 
-  /*
-   * win->xic is always activated on sdl2 because IME is always enabled
-   * even if the value of "input_method" option is not "default".
-   */
-#ifndef USE_SDL2
   if (strcmp(xim_name, "unused") == 0) {
     return 0;
   }
-#endif
 
   if ((win->xic = malloc(sizeof(ui_xic_t))) == NULL) {
     return 0;
@@ -83,21 +77,16 @@ int ui_xic_set_spot(ui_window_t *win) {
     return 0;
   }
 
-#ifdef USE_WAYLAND
   ui_display_set_text_input_spot(win->disp, x, y,
                                  win->xim_listener->get_line_height
                                    ? (*win->xim_listener->get_line_height)(win->xim_listener->self)
                                    : 20);
-#else /* USE_SDL2 */
-  ui_display_set_text_input_spot(win->disp, x, y);
-#endif
 
   return 1;
 }
 
 size_t ui_xic_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parser_t **parser,
                       KeySym *keysym, XKeyEvent *event) {
-#ifdef USE_WAYLAND
   if (win->xic == NULL || event->utf8 == NULL) {
     *parser = NULL;
 
@@ -112,9 +101,6 @@ size_t ui_xic_get_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parser_t
 
     return len;
   }
-#else /* USE_SDL2 */
-  return 0;
-#endif
 }
 
 size_t ui_xic_get_utf8_str(ui_window_t *win, u_char *seq, size_t seq_len, ef_parser_t **parser,

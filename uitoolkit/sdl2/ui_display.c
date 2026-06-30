@@ -53,6 +53,7 @@ static u_char *cur_preedit_text;
 static SDL_threadID main_tid;
 static int use_software_renderer;
 static int is_framebuffer;
+static int is_jp106_kbd;
 #ifdef MONITOR_PTY
 static SDL_cond *pty_cond;
 static SDL_mutex *mutex;
@@ -810,46 +811,41 @@ static void poll_event(void) {
         break;
       }
 
-      switch (xev.xkey.keycode) {
-        case SDL_SCANCODE_INTERNATIONAL1:
-        case SDL_SCANCODE_INTERNATIONAL3:
-          xev.xkey.ksym = SDLK_BACKSLASH;
-          break;
-
-        case SDL_SCANCODE_GRAVE:
-          xev.xkey.ksym = XK_Zenkaku_Hankaku;
-          break;
-
-        case SDL_SCANCODE_INTERNATIONAL5:
-          xev.xkey.ksym = XK_Muhenkan;
-          break;
-
-        case SDL_SCANCODE_INTERNATIONAL4:
-          xev.xkey.ksym = XK_Henkan_Mode;
-          break;
-
-        case SDL_SCANCODE_INTERNATIONAL2:
-          xev.xkey.ksym = XK_Hiragana_Katakana;
-          break;
-
-        case SDL_SCANCODE_DELETE:
-          xev.xkey.ksym = XK_Delete;
-          break;
-      }
-
-#if 1
       /* https://github.com/chu-hai/mlterm/blob/d00e3b0/uitoolkit/sdl2/ui.h#L290 */
-      if (xev.xkey.ksym == SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_DELETE)) {
+      if (xev.xkey.ksym == SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_DELETE) ||
+          xev.xkey.keycode == SDL_SCANCODE_DELETE) {
         xev.xkey.ksym == XK_Delete;
-      }
-#endif
-
-      if (xev.xkey.keycode == 0 && xev.xkey.ksym == 0) {
+      } else if (xev.xkey.keycode == 0 && xev.xkey.ksym == 0) {
         /*
          * XXX
          * Receive keycode == 0 and ksym == 0 event irregularly in inputting text
          * on Linux 7.0.3-arch1-2.
          */
+        break;
+      }
+    }
+
+    if (is_jp106_kbd) {
+      switch (xev.xkey.keycode) {
+      case SDL_SCANCODE_INTERNATIONAL1:
+      case SDL_SCANCODE_INTERNATIONAL3:
+        xev.xkey.ksym = SDLK_BACKSLASH;
+        break;
+
+      case SDL_SCANCODE_INTERNATIONAL2:
+        xev.xkey.ksym = XK_Hiragana_Katakana;
+        break;
+
+      case SDL_SCANCODE_INTERNATIONAL4:
+        xev.xkey.ksym = XK_Henkan_Mode;
+        break;
+
+      case SDL_SCANCODE_INTERNATIONAL5:
+        xev.xkey.ksym = XK_Muhenkan;
+        break;
+
+      case SDL_SCANCODE_GRAVE:
+        xev.xkey.ksym = XK_Zenkaku_Hankaku;
         break;
       }
     }
@@ -910,6 +906,7 @@ static void poll_event(void) {
 #endif
     break;
 
+#if SDL_VERSION_ATLEAST(2, 0, 22)
   case SDL_TEXTEDITING_EXT:
     if (strlen(ev.editExt.text) > 0 || cur_preedit_text) {
       update_ime_text(get_display(ev.editExt.windowID)->roots[0], ev.editExt.text);
@@ -919,6 +916,7 @@ static void poll_event(void) {
 #endif
     SDL_free(ev.editExt.text);
     break;
+#endif
 
   case SDL_MOUSEBUTTONDOWN:
   case SDL_MOUSEBUTTONUP:
@@ -1121,6 +1119,12 @@ static void poll_event(void) {
   prev_ev_type = ev.type;
 }
 
+static void check_kbd_layout(void) {
+  if (SDL_GetKeyFromScancode(SDL_SCANCODE_LEFTBRACKET) == SDLK_AT) {
+    is_jp106_kbd = 1;
+  }
+}
+
 static ui_display_t *open_display(char *disp_name, u_int depth) {
   ui_display_t *disp;
   void *p;
@@ -1150,8 +1154,10 @@ static ui_display_t *open_display(char *disp_name, u_int depth) {
     /* Callback should be set before bl_dialog() is called. */
     bl_dialog_set_callback(dialog_cb);
 
+#if SDL_VERSION_ATLEAST(2, 0, 22)
     /* Enable SDL_TEXTEDITING_EXT event */
     SDL_SetHint(SDL_HINT_IME_SUPPORT_EXTENDED_TEXT, "1");
+#endif
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
       return NULL;
@@ -1181,6 +1187,8 @@ static ui_display_t *open_display(char *disp_name, u_int depth) {
         strcasecmp(SDL_GetCurrentVideoDriver(), "FBCON") == 0) {
       is_framebuffer = 1;
     }
+
+    check_kbd_layout();
 
     SDL_StartTextInput();
 

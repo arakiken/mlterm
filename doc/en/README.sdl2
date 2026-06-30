@@ -42,3 +42,7 @@ SDL2 support
      also available.)
   o OPEN_SCREEN, OPEN_PTY, NEXT_PTY and PREV_PTY shortcut keys are
     Command+F1, Command+F2, Command+F3 and Command+F4 on MacOSX.
+  o To use IME, specify --im=default option if SDL2 directly supports ibus or fcitx5
+    and it works as a daemon.
+    Otherwise, specify --im=ibus, --im=fcitx, --im=uim or etc which makes mlterm
+    connect to ibus, fcitx5 or uim server directly.

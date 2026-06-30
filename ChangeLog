@@ -1,3 +1,14 @@
+2026-07-01  Araki Ken <arakiken@user.sf.net>
+
+	* README.sdl2, README.wayland: Update.
+
+	* sdl2/ui_display.c:
+	  - Convert SDL_SCANCODE_INTERNATIONAL1-5 regardless of is_framebuffer.
+	  - Enclose SDL_TEXTEDITING_EXT by "if SDL_VERSION_ATLEAST(2, 0, 22)".
+	  - Add check_kbd_layout().
+
+	* wayland/ui_xic.c -> wayland/ui_xic.c and sdl2/ui_xic.c
+
 2026-06-28  Araki Ken <arakiken@user.sf.net>
 
 	* wayland/ui_xic.c: Always ativate win->xic in sdl2.

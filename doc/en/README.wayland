@@ -53,6 +53,7 @@ Wayland support
      also available.)
   o The default value of "input_method" option is "ibus".
   o The position of a candidate window might be incorrect with xdg-shell.
+  o --im=default option makes mlterm connect to input method server via text input protocol.
 
 * Unsupported features
   o geometry option
