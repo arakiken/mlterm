@@ -24,10 +24,12 @@
 #define ibus_input_context_enable(context) (0)
 #endif
 
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+/*
+ * Define USE_IM_CANDIDATE_SCREEN in USE_SDL2 for kmsdrm.
+ * (Recommend --im=default which shows the ibus's candidate screen in X11)
+ */
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_SDL2)
 #define USE_IM_CANDIDATE_SCREEN
-#define NO_XKB
-#elif defined(USE_SDL2)
 #define NO_XKB
 #endif
 

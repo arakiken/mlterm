@@ -1,3 +1,9 @@
+2026-07-02  Araki Ken <arakiken@user.sf.net>
+
+	* sdl2/ui_display.c: Add jp106 check in linux to check_kbd_layout().
+
+	* im_fcitx.c, im_ibus.c: Undefine USE_IM_CANDIDATE_SCREEN in sdl2.
+
 2026-07-01  Araki Ken <arakiken@user.sf.net>
 
 	* README.sdl2, README.wayland: Update.

@@ -13,6 +13,14 @@
 #include <pobl/bl_dialog.h>
 #include <pobl/bl_unistd.h> /* bl_usleep */
 
+/* for check_kbd_layout */
+#ifdef __linux__
+#include <linux/input-event-codes.h>
+#include <linux/kd.h>
+#include <linux/keyboard.h>
+#include <sys/ioctl.h>
+#endif
+
 #include "../ui_window.h"
 #include "../ui_picture.h"
 #include "../ui_imagelib.h"
@@ -53,7 +61,7 @@ static u_char *cur_preedit_text;
 static SDL_threadID main_tid;
 static int use_software_renderer;
 static int is_framebuffer;
-static int is_jp106_kbd;
+static int is_jp106;
 #ifdef MONITOR_PTY
 static SDL_cond *pty_cond;
 static SDL_mutex *mutex;
@@ -825,7 +833,7 @@ static void poll_event(void) {
       }
     }
 
-    if (is_jp106_kbd) {
+    if (is_jp106) {
       switch (xev.xkey.keycode) {
       case SDL_SCANCODE_INTERNATIONAL1:
       case SDL_SCANCODE_INTERNATIONAL3:
@@ -1120,9 +1128,35 @@ static void poll_event(void) {
 }
 
 static void check_kbd_layout(void) {
+  /*
+   * XXX
+   * Note that SDL_GetKeyFromScancode(SDL_SCANCODE_LEFTBRACKET) always does not
+   * return SDLK_AT but SDL_LEFTBLACKET on kmsdrm even if you use jp106 keyboard.
+   *
+   * Pressing LEFTBRACKET in jp106
+   * (kmsdrm) SDL_KEYDOWN: ev.key.keycode == 0x2f ev.key.keysym.sym == 0x5f
+   *          SDL_TEXTINPUT: 0x40 (SDL_AT)
+   * (X11)    SDL_KEYDOWN: ev.key.keycode == 0x2f ev.key.keysym.sym == 0x40
+   *          SDL_TEXTINPUT: 0x40 (SDL_AT)
+   */
   if (SDL_GetKeyFromScancode(SDL_SCANCODE_LEFTBRACKET) == SDLK_AT) {
-    is_jp106_kbd = 1;
+    is_jp106 = 1;
   }
+#ifdef __linux__
+  else if (is_framebuffer) {
+    /* Same code as ui_display_linux.c */
+    struct kbentry ent;
+
+    ent.kb_table = (1 << KG_SHIFT);
+    ent.kb_index = KEY_MINUS;
+
+    if (ioctl(STDIN_FILENO, KDGKBENT, &ent) == 0 && ent.kb_value != K_HOLE &&
+        ent.kb_value != K_NOSUCHMAP && ent.kb_value == '=') {
+      /* is jp106 or netherland */
+      is_jp106 = 1;
+    }
+  }
+#endif
 }
 
 static ui_display_t *open_display(char *disp_name, u_int depth) {
@@ -1188,7 +1222,7 @@ static ui_display_t *open_display(char *disp_name, u_int depth) {
       is_framebuffer = 1;
     }
 
-    check_kbd_layout();
+    check_kbd_layout(); /* Place after setting is_framebuffer */
 
     SDL_StartTextInput();
 
