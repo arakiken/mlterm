@@ -1192,8 +1192,12 @@ static ui_display_t *open_display(char *disp_name, u_int depth) {
     /* Enable SDL_TEXTEDITING_EXT event */
     SDL_SetHint(SDL_HINT_IME_SUPPORT_EXTENDED_TEXT, "1");
 #endif
+#if SDL_VERSION_ATLEAST(2, 0, 18)
     SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
+#endif
+#if SDL_VERSION_ATLEAST(2, 0, 4)
     SDL_SetHint(SDL_HINT_IME_INTERNAL_EDITING, "0");
+#endif
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
       return NULL;

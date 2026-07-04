@@ -1,5 +1,9 @@
 2026-07-05  Araki Ken <arakiken@user.sf.net>
 
+	* README>sdl2: Update.
+
+	* im_fcitx.c: Undefine USE_IM_CANDIDATE_SCREEN in sdl2.
+
 	* sdl2/ui_display.c: Set SDL_HINT_IME_SHOW_UI and
 	  SDL_HINT_IME_INTERNAL_EDITING hints.
 

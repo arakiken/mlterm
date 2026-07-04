@@ -68,15 +68,15 @@ void fcitx_client_close_ic(FcitxClient *self);
 #endif
 
 /*
- * Define USE_IM_CANDIDATE_SCREEN in USE_SDL2 for kmsdrm.
- * (Recommend --im=default which shows the fcitx's candidate screen in X11)
+ * Even if USE_IM_CANDIDATE_SCREEN is defined in sdl2kmsdrm,
+ * update_client_side_ui() is not called. So undefine USE_IM_CANDIDATE_SCREEN.
  *
- * In addition, old fcitx doesn't show caandidate window correctly on wayland and sdl2.
+ * But note that old fcitx doesn't show caandidate window correctly on wayland and sdl2.
  */
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_SDL2)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
 #define KeyPress 2 /* see uitoolkit/fb/ui_display.h */
 #define USE_IM_CANDIDATE_SCREEN
-#elif defined(USE_WAYLAND)
+#elif defined(USE_WAYLAND) || defined(USE_SDL2)
 #define KeyPress 2 /* see uitoolkit/fb/ui_display.h */
 #endif
 
