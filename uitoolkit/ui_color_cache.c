@@ -256,6 +256,26 @@ void ui_color_cache_unload(ui_color_cache_t *color_cache) {
     free(cache_256ext);
     color_cache->cache_256ext = NULL;
   }
+
+#ifndef USE_COMPACT_TRUECOLOR
+  if (color_cache->cache_true) {
+    u_int num;
+    u_int count;
+
+    if (color_cache->cache_true->need_unload) {
+      num = BL_ARRAY_SIZE(color_cache->cache_true->xcolors);
+    } else {
+      num = color_cache->cache_true->next_idx;
+    }
+
+    for (count = 0; count < num; count++) {
+      ui_unload_xcolor(color_cache->disp, color_cache->cache_true->xcolors + count);
+    }
+
+    free(color_cache->cache_true);
+    color_cache->cache_true = NULL;
+  }
+#endif
 }
 
 void ui_color_cache_unload_all(void) {
