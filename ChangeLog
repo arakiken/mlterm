@@ -1,5 +1,7 @@
 2026-07-05  Araki Ken <arakiken@user.sf.net>
 
+	* ci.yml: FreeBSD 14.2 -> 15.1
+
 	* ui_color_cache.c: ui_color_cache_unload() unloads color_cache->cache_true.
 
 	* README>sdl2: Update.

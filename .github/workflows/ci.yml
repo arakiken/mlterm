@@ -247,7 +247,7 @@ jobs:
       - name: Install packages and run configure and make (on the FreeBSD VM)
         uses: vmactions/freebsd-vm@v1
         with:
-          release: "14.2"
+          release: "15.1"
           copyback: false
           prepare: |
             pkg install -y pkgconf perl5 libtool desktop-file-utils glib cairo gdk-pixbuf2 gtk3 vte3 libssh2 fontconfig freetype2 fribidi uim m17n-lib scim ibus ja-FreeWnn-lib ja-canna-lib sdl2
