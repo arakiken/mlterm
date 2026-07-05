@@ -238,7 +238,7 @@ jobs:
             (cd gtk && make && make install)
 
   build-freebsd:
-    name: "build-freebsd (FreeBSD/amd64 14.2 with ports)"
+    name: "build-freebsd (FreeBSD/amd64 15.1 with ports)"
     runs-on: ubuntu-latest
 
     steps:

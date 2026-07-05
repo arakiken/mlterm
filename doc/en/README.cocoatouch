@@ -3,7 +3,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 iOS/Cocoa Touch support (Experimental)
 
 * Tested environment
-  iOS 4.3
+  iOS Simulator 4.3
+  iOS Simulator 7.1
 
 * Build
   ./configure --with-gui=quartz --prefix=/foo/bar --disable-shared \

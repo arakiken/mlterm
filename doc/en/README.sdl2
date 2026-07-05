@@ -3,9 +3,11 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 SDL2 support
 
 * Tested environment
-  Arch Linux
-  MacOSX 10.6
-  MS Windows 10 + Cygwin 3.5.7 / GDI (CC="i686-pc-mingw32-gcc")
+  Arch Linux (X11, wayland, kmsdrm)
+  MacOSX 10.6.8
+  MacOSX 10.8.5
+  MacOS 10.13.6
+  MS Windows 11
   Haiku R1 Beta5
 
 * Build

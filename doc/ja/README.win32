@@ -3,7 +3,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
 Windows GDI 対応に関するメモ
 
 * テスト環境
-  MS Windows 10 + MSYS2 3.5.7 or Cygwin 3.5.7
+  MS Windows 11 + MSYS2 3.5.7 or Cygwin 3.5.7
 
 * ビルド
   (PKG_CONFIG=i686-w64-mingw32-pkg-config CC=i686-pc-mingw32-gcc) ./configure \

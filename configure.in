@@ -1143,7 +1143,7 @@ if test "$enable_use_tools" = "no" ; then
 fi
 AC_SUBST(TOOLS_CFLAGS)
 
-AM_INIT_AUTOMAKE(mlterm,3.9.4)
+AM_INIT_AUTOMAKE(mlterm,3.9.5)
 
 if test "$gui_list" != ""; then
 	# Enable all tools by default

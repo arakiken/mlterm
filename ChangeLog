@@ -1,5 +1,17 @@
 2026-07-05  Araki Ken <arakiken@user.sf.net>
 
+	* 3.9.5 released.
+	  (tag "3.9.5")
+
+	* configure.in, mlterm.spec, main/version.h.in, mlterm.c, mlterm.spec,
+	  android/jni/version.h, vt_parser.c:
+	  Update for 3.9.5.
+
+	* README, README.cocoa, README.cocoatouch, README>sdl2, README.win32,
+	  etc/main, etc/main.ja, gtk/README, man/mlterm.1: Update.
+
+2026-07-05  Araki Ken <arakiken@user.sf.net>
+
 	* ci.yml: FreeBSD 14.2 -> 15.1
 
 	* ui_color_cache.c: ui_color_cache_unload() unloads color_cache->cache_true.

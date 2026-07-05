@@ -29,6 +29,8 @@
 
 # receive_string_via_ucs = false
 
+# use_arabic_dynamic_combining = true
+
 # use_auto_detect = false
 
 # use_combining = true
@@ -179,6 +181,8 @@
 
 # allow_scp = false
 
+# allow_xtwinops_resize = true
+
 # always_show_dialog = false
 
 # app_name = mlterm
@@ -204,6 +208,9 @@
 # (Available for mlterm-con)
 # console_sixel_colors = 16
 
+# (Available fo mlterm-fb)
+# cursor_size = 7,15
+
 # (none,blend,genuine)
 # daemon_mode = none
 
@@ -216,6 +223,9 @@
 # depth = 0
 
 # display =
+
+# (none,backslash,quote,doublequote)
+# dnd_escape_mode = backslash
 
 # exec_cmd =
 

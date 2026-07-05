@@ -37,6 +37,10 @@
 # を、一旦 UNICODE を経由してから端末エンコーディングに変換する
 # receive_string_via_ucs = false
 
+# アラビア表示形のグリフを表示する場合に、2カラム分の文字を1カラム分となる
+# グリフを表示する。
+# use_arabic_dynamic_combining = true
+
 # 文字コードの自動判定を行う
 # use_auto_detect = false
 
@@ -259,6 +263,9 @@
 # ssh 接続時に OSC 5379 scp を許可
 # allow_scp = false
 
+# XTWINOPS (CSI t) sequence によるウィンドウのリサイズを許可
+# allow_xtwinops_resize = true
+
 # 既に確立された SSH セッションがあり、そのセッション上に新しいチャンネルを開く
 # ことができる場合でも、必ず接続先のサーバを指定するためのダイアログを表示
 # always_show_dialog = false
@@ -297,6 +304,10 @@
 # (mlterm-con 用)
 # console_sixel_colors = 16
 
+# カーソルの幅と高さ
+# (mlterm-fb 用)
+# cursor_size = 7,15
+
 # daemon process となるかどうか(none,blend,genuine)
 # daemon_mode = none
 
@@ -312,6 +323,9 @@
 
 # X の DISPLAY を指定
 # display =
+
+# DnD されたファイル名の空白文字のエスケープ方法(none,backslash,quote,doublequote)
+# dnd_escape_mode = backslash
 
 # 指定したコマンドを起動
 # exec_cmd =

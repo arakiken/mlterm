@@ -3,7 +3,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil -*-
 MacOS X/Cocoa support (Experimental)
 
 * Tested environment
-  MacOS X 10.6
+  MacOS X 10.6.8
+  MacOS X 10.8.5
+  MacoS 10.13.6
 
 * Build
   ./configure --with-gui=quartz (--config-cache) --prefix=/foo/bar
