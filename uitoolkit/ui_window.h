@@ -16,8 +16,10 @@
 #define ACTUAL_HEIGHT(win) ((win)->height + (win)->vmargin * 2)
 
 /*
- * Don't use win->parent in xlib to check if win is root window or not
- * because mlterm can work as libvte.
+ * FYI, this macro can be used to exclude a window of libvte compatible library.
+ * (Now ui_window_show() does not use it but uses HINT_CHILD_WINDOW_ATTR to
+ * distinguish whether it is libvte compatible library or not, though.)
+ *
  *   vte window
  *      |
  *   mlterm window ... ui_window_t::parent == NULL

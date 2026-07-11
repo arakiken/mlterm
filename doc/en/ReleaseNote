@@ -1,3 +1,4 @@
+ver 3.9.5
 * Support text-input-unstable-v3.
 * Support SGR Mouse Pixel Mode.
 * Support libvte-2.91-gtk4 compatible library. (Experimental)

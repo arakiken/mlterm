@@ -1,3 +1,13 @@
+2026-07-11  Araki Ken <arakiken@user.sf.net>
+
+	* xlib/ui_window.c:
+	  - Skip XSizeHints, XClassHint and XWMHints for child windows.
+	    (Enbugged at 3.9.5 / 4eb3aa4bba9d918b1923b5a46a67c92142ecaade)
+	  - Not FocusIn event but XA_TAKE_FOCUS message calls
+	    ensure_input_focus().
+
+	* version.h: 3.9.4 -> 3.9.4post
+
 2026-07-05  Araki Ken <arakiken@user.sf.net>
 
 	* 3.9.5 released.
