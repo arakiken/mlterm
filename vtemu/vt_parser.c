@@ -4264,7 +4264,7 @@ static void set_vtmode(vt_parser_t *vt_parser, int mode, int flag) {
     /* WYSTCURM */
     if (flag) {
       vt_parser->cursor_style &= ~CS_BLINK;
-    } else {
+    } else if (vt_parser->blink_cursor) {
       vt_parser->cursor_style |= CS_BLINK;
     }
     break;
@@ -5307,15 +5307,15 @@ inline static int parse_vt100_escape_sequence(
           /* "CSI SP q" DECSCUSR */
 
           if (ps[0] < 2) {
-            vt_parser->cursor_style = CS_BLOCK|CS_BLINK;
+            vt_parser->cursor_style = vt_parser->blink_cursor ? CS_BLOCK|CS_BLINK : CS_BLOCK;
           } else if (ps[0] == 2) {
             vt_parser->cursor_style = CS_BLOCK;
           } else if (ps[0] == 3) {
-            vt_parser->cursor_style = CS_UNDERLINE|CS_BLINK;
+            vt_parser->cursor_style = vt_parser->blink_cursor ? CS_UNDERLINE|CS_BLINK : CS_UNDERLINE;
           } else if (ps[0] == 4) {
             vt_parser->cursor_style = CS_UNDERLINE;
           } else if (ps[0] == 5) {
-            vt_parser->cursor_style = CS_BAR|CS_BLINK;
+            vt_parser->cursor_style = vt_parser->blink_cursor ? CS_BAR|CS_BLINK : CS_BAR;
           } else if (ps[0] == 6) {
             vt_parser->cursor_style = CS_BAR;
           }
@@ -7354,6 +7354,7 @@ vt_parser_t *vt_parser_new(vt_screen_t *screen, vt_termcap_ptr_t termcap, vt_cha
   vt_parser->logging_vt_seq = logging_vt_seq;
   vt_parser->unicode_policy = policy;
   vt_parser->cursor_style = cursor_style;
+  vt_parser->blink_cursor = (cursor_style & CS_BLINK) ? 1 : 0;
   vt_parser->is_visible_cursor = 1;
   vt_parser->hide_pointer_mode = 1; /* Compatible with xterm 370 */
 
@@ -8442,8 +8443,10 @@ int vt_parser_set_config(vt_parser_t *vt_parser, const char *key, const char *va
   } else if (strcmp(key, "blink_cursor") == 0) {
     if (strcmp(value, "true") == 0) {
       vt_parser->cursor_style |= CS_BLINK;
+      vt_parser->blink_cursor = 1;
     } else {
       vt_parser->cursor_style &= ~CS_BLINK;
+      vt_parser->blink_cursor = 0;
     }
   } else if (strcmp(key, "ignore_broadcasted_chars") == 0) {
     int flag;
