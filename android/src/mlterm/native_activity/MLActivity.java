@@ -645,14 +645,16 @@ public class MLActivity extends NativeActivity {
         .setView(layout)
         .setPositiveButton("Send", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-              execCommand("scp \"local:" + local_edit.getText().toString() + "\" \"remote:" +
-                          remote_edit.getText().toString() + "\"");
+              String localPath = local_edit.getText().toString().replace("\\", "\\\\").replace("\"", "\\\"");
+              String remotePath = remote_edit.getText().toString().replace("\\", "\\\\").replace("\"", "\\\"");
+              execCommand("scp \"local:" + localPath + "\" \"remote:" + remotePath + "\"");
             }
           })
         .setNeutralButton("Receive", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-              execCommand("scp \"remote:" + remote_edit.getText().toString() + "\" \"local:" +
-                          local_edit.getText().toString() + "\"");
+              String localPath = local_edit.getText().toString().replace("\\", "\\\\").replace("\"", "\\\"");
+              String remotePath = remote_edit.getText().toString().replace("\\", "\\\\").replace("\"", "\\\"");
+              execCommand("scp \"remote:" + remotePath + "\" \"local:" + localPath + "\"");
             }
           })
         .setNegativeButton("Cancel", null)
