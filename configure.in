@@ -354,92 +354,95 @@ GDK_PIXBUF_LIBS="$GDK_PIXBUF_LIBS $GIO_LIBS"
 AC_CHECK_PROG(have_gdk_pixbuf1,gdk-pixbuf-config,yes)
 
 if test "$gui" = "xlib" ; then
+	# --without-imagelib removes mlimgloader from $tools (see --with-tools)
 	AC_ARG_WITH(imagelib,
-		[  --with-imagelib@<:@=ARG@:>@   image library (gdk-pixbuf) @<:@default=no@:>@],
+		[  --with-imagelib@<:@=ARG@:>@   image library (gdk-pixbuf|mlimgloader) @<:@default=mlimgloader@:>@],
 		imagelib=$with_imagelib)
-else
-	# Don't link an external image library on win32gdi or framebuffer.
-	with_imagelib=""
-fi
+	if test "$imagelib" = ""; then
+		imagelib="mlimgloader"
+	fi
 
-case ${imagelib} in
-imlib)
-	AC_CHECK_PROG(imlib_config,imlib-config,yes,no)
-	if test "x$imlib_config" = "xno" ; then
+	case ${imagelib} in
+	imlib)
+		AC_CHECK_PROG(imlib_config,imlib-config,yes,no)
+		if test "x$imlib_config" = "xno" ; then
+			echo ""
+			echo "** ERROR **"
+			echo "Could not find imlib-config."
+			echo ""
+			exit 1
+		fi
 		echo ""
 		echo "** ERROR **"
-		echo "Could not find imlib-config."
+		echo " imlib is no longer supported."
 		echo ""
 		exit 1
-	fi
-	echo ""
-	echo "** WARNING **"
-	echo " imlib is no longer supported."
-	echo ""
-	IMAGELIB_CFLAGS="`imlib-config --cflags` -DBUILTIN_IMAGELIB"
-	IMAGELIB_LIBS="`imlib-config --libs`"
-	;;
-imlib2)
-	AC_CHECK_PROG(imlib2_config,imlib2-config,yes,no)
-	if test "x$imlib2_config" = "xno" ; then
+		IMAGELIB_CFLAGS="`imlib-config --cflags` -DBUILTIN_IMAGELIB"
+		IMAGELIB_LIBS="`imlib-config --libs`"
+		;;
+	imlib2)
+		AC_CHECK_PROG(imlib2_config,imlib2-config,yes,no)
+		if test "x$imlib2_config" = "xno" ; then
+			echo ""
+			echo "** ERROR **"
+			echo "Could not find imlib2-config."
+			echo ""
+			exit 1
+		fi
 		echo ""
 		echo "** ERROR **"
-		echo "Could not find imlib2-config."
+		echo " imlib2 is no longer supported."
 		echo ""
 		exit 1
-	fi
-	echo ""
-	echo "** WARNING **"
-	echo " imlib2 is no longer supported."
-	echo ""
-	IMAGELIB_CFLAGS="`imlib2-config --cflags` -DBUILTIN_IMAGELIB"
-	IMAGELIB_LIBS="`imlib2-config --libs`"
-	;;
-gdk-pixbuf)
-	if test "$have_gdk_pixbuf2" = "yes" ; then
-		gdk_pixbuf_version=2
-	elif test "$have_gdk_pixbuf1" = "yes" ; then
-		gdk_pixbuf_version=1
-	else
-		echo ""
-		echo "** ERROR **"
-		echo "Could not find gdk-pixbuf"
-		echo ""
-		exit 1
-	fi
-	;;
-gdk-pixbuf2)
-	if test "$have_gdk_pixbuf2" = "yes" ; then
-		gdk_pixbuf_version=2
-	else
-		echo ""
-		echo "** ERROR **"
-		echo "Could not find gdk-pixbuf2"
-		echo ""
-		exit 1
-	fi
-	;;
-gdk-pixbuf1)
-	if test "$have_gdk_pixbuf1" = "yes" ; then
-		gdk_pixbuf_version=1
-	else
-		echo ""
-		echo "** ERROR **"
-		echo "Could not find gdk-pixbuf1"
-		echo ""
-		exit 1
-	fi
-	;;
-*)
-	if test "${imagelib}" != "" ; then
-		echo ""
-		echo "** ERROR **"
-		echo "${imagelib} library is NOT supported."
-		echo ""
-		exit 1
-	fi
-	;;
-esac
+		IMAGELIB_CFLAGS="`imlib2-config --cflags` -DBUILTIN_IMAGELIB"
+		IMAGELIB_LIBS="`imlib2-config --libs`"
+		;;
+	gdk-pixbuf)
+		if test "$have_gdk_pixbuf2" = "yes" ; then
+			gdk_pixbuf_version=2
+		elif test "$have_gdk_pixbuf1" = "yes" ; then
+			gdk_pixbuf_version=1
+		else
+			echo ""
+			echo "** ERROR **"
+			echo "Could not find gdk-pixbuf"
+			echo ""
+			exit 1
+		fi
+		;;
+	gdk-pixbuf2)
+		if test "$have_gdk_pixbuf2" = "yes" ; then
+			gdk_pixbuf_version=2
+		else
+			echo ""
+			echo "** ERROR **"
+			echo "Could not find gdk-pixbuf2"
+			echo ""
+			exit 1
+		fi
+		;;
+	gdk-pixbuf1)
+		if test "$have_gdk_pixbuf1" = "yes" ; then
+			gdk_pixbuf_version=1
+		else
+			echo ""
+			echo "** ERROR **"
+			echo "Could not find gdk-pixbuf1"
+			echo ""
+			exit 1
+		fi
+		;;
+	*)
+		if test "$imagelib" != "no" -a "${imagelib}" != "mlimgloader" ; then
+			echo ""
+			echo "** ERROR **"
+			echo "${imagelib} library is NOT supported."
+			echo ""
+			exit 1
+		fi
+		;;
+	esac
+fi
 
 PKG_CHECK_MODULES(FT, freetype2, have_ft=yes, have_ft=no)
 if test "$have_ft" = "no" ; then
@@ -745,7 +748,7 @@ if test "$anti_alias" != "no"; then
 fi
 
 AC_ARG_WITH(type_engines,
-	[  --with-type-engines@<:@=ARG@:>@ type engines (xcore, xft, cairo) @<:@default=xcore,xft,cairo@:>@],
+	[  --with-type-engines@<:@=ARG@:>@ type engines (xcore|xft|cairo) @<:@default=xcore,xft,cairo@:>@],
 	type_engines=$with_type_engines)
 
 if test "$gui" != "xlib" ; then
@@ -1118,7 +1121,7 @@ else
 fi
 AC_ARG_WITH(tools,
 	[  --with-tools@<:@=ARG@:>@      external tools @<:@default=mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader,registobmp,mlfc@:>@]
-                          (mlimgloader is automatically added unless --disable-image or --with-imagelib is specified),
+                          (mlimgloader is automatically added unless --disable-image, --with-imagelib=gdk-pixbuf or --without-imagelib is specified),
 	[
 	# if given --without-tools
 	if test "${with_tools}" = "no" ; then
@@ -1127,12 +1130,16 @@ AC_ARG_WITH(tools,
 		if test "${with_tools}" != "yes" ; then
 			tools=${with_tools}
 		fi
-		if test -z "$IMAGELIB_CFLAGS" -a "`echo ${tools}|$GREP mlimgloader`" = "" -a "$image" = "yes"; then
-			# If --with-imagelib option is not specified, mlimgloader is always built.
+		if test "$imagelib" = "mlimgloader"  -a "`echo ${tools}|$GREP mlimgloader`" = "" -a "$image" = "yes"; then
 			tools=${tools},mlimgloader
 		fi
 	fi
+	], [
+	if test "$imagelib" = "no"; then
+		tools=`echo ${tools} | sed 's/mlimgloader//g'`
+	fi
 	])
+
 tools=`echo ${tools} | sed 's/,/ /g'`
 
 AC_ARG_ENABLE(use-tools,
@@ -1678,7 +1685,7 @@ SB_CFLAGS=""
 scrollbars="sample,extra,pixmap_engine"
 
 AC_ARG_WITH(scrollbars,
-	[  --with-scrollbars@<:@=ARG@:>@ scrollbar plugins (sample, extra, pixmap_engine) @<:@default=sample,extra,pixmap_engine@:>@],
+	[  --with-scrollbars@<:@=ARG@:>@ scrollbar plugins (sample|extra|pixmap_engine) @<:@default=sample,extra,pixmap_engine@:>@],
 	[
 	# If given --without-scrollbars or --with-scrollbars with no args.
 	if test "${with_scrollbars}" = "no" ; then
@@ -2236,7 +2243,7 @@ AC_SUBST(PTY_NAME)
 #
 
 AC_ARG_WITH(utmp,
-	[  --with-utmp@<:@=ARG@:>@       utmp (utempter,sysv,login,bsd,none)],
+	[  --with-utmp@<:@=ARG@:>@       utmp (utempter|sysv|login|bsd|none)],
 	utmp_type=$with_utmp)
 
 UTMP_NAME=
@@ -2440,7 +2447,9 @@ else
 fi
 echo "External tools                    :$tools_result"
 echo "Image processing                  : $image"
-echo "Built-in image library            : $with_imagelib"
+if test "$gui" = "xlib"; then
+	echo "Built-in image library            : $imagelib"
+fi
 echo "utmp support                      : $UTMP_NAME"
 if test "$gui" = "fb" -o "$gui" = "wayland" -o "$gui" = "sdl2"; then
 	if test "$have_ft" = "yes"; then

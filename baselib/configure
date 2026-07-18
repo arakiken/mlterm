@@ -1388,7 +1388,7 @@ Optional Packages:
   --with-sysroot[=DIR]    Search for dependent libraries within DIR (or the
                           compiler's sysroot if not specified).
   --with-libltdl[=PREFIX] load modules with libltdl [default=without]
-  --with-utmp[=ARG]       utmp (utempter,sysv,login,bsd,none)
+  --with-utmp[=ARG]       utmp (utempter|sysv|login|bsd|none)
   --without-funcs-mlterm-unuse remove functions mlterm does not use [default=with]
 
 Some influential environment variables:

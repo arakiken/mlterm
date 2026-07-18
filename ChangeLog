@@ -1,3 +1,17 @@
+2026-07-19  Araki Ken <arakiken@user.sf.net>
+
+	* README: Update.
+
+	* configure: 2.69 -> 2.73
+
+	* configure.in:
+	  - Fix unexpected exit if --without-imagelib is specified.
+	  - --without-imagelib removes mlimgloader from --with-tools.
+	  - Explicitly document the default value of --with-imagelib as
+	    'mlimgloader'.
+
+	* script/compile: Add.
+
 2026-07-11  Araki Ken <arakiken@user.sf.net>
 
 	* xlib/ui_window.c:

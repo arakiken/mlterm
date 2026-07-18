@@ -31,13 +31,12 @@ Options for configure
     Use specified gui library
     See "Supported platforms" below.
 
-  --with-imagelib=(gdk-pixbuf)
-    Link specified image library to mlterm for image processing.
-    Note that this option is not necessary for image processing, because
-    mlimgloader (see --with-tools) processes images instead and passes them
-    to mlterm.
-    This option is recommended only if you build libvte which depends
-    on gdk-pixbuf anyway.
+  --with-imagelib=(gdk-pixbuf|mlimgloader)
+    'gdk-pixbuf' links mlterm to gdk-pixbuf library directly.
+    Instead 'mlimgloader' makes mlterm to load images with mlimgloader.
+    mlimgloader (see --with-tools) processes images and passes them to mlterm.
+    The default value is 'mlimgloader'.
+    'gdk-pixbuf' is recommended only if you build libvte which depends on gdk-pixbuf anyway.
     (Imlib is not supported since mlterm 3.0.2)
 
   --with-libltdl
@@ -45,7 +44,7 @@ Options for configure
 
   --with-type-engines=(xcore|xft|cairo)
     Use specified type engines for rendering text.
-    xcore is possible to disable only when --with-type-engines=(except xcore)
+    'xcore' is possible to disable only when --with-type-engines=(except xcore)
     is specified with --disable-dl-type option.
 
   --disable-anti-alias
@@ -107,8 +106,8 @@ Options for configure
 
   --with-tools
     Build specified tools in tool/ and contrib/tool/ directories
-    mlimgloader is automatically added unless --disable-image or --with-imagelib
-    is specified.
+    'mlimgloader' is automatically added unless --disable-image,
+    --with-imagelib=gdk-pixbuf or --without-imagelib is specified.
     registobmp is necessary to process ReGIS.
 
   --disable-use-tools
@@ -157,7 +156,7 @@ Options for configure
 
   --with-gtk=(2.0|3.0|4.0)
     Use specified version of GTK+
-    The default is 3.0.
+    The default is '3.0'.
 
   --enable-vt52
     Support vt52 emulation

@@ -331,7 +331,7 @@ AC_SUBST(PTY_NAME)
 #
 
 AC_ARG_WITH(utmp,
-	[  --with-utmp@<:@=ARG@:>@       utmp (utempter,sysv,login,bsd,none)],
+	[  --with-utmp@<:@=ARG@:>@       utmp (utempter|sysv|login|bsd|none)],
 	utmp_type=$with_utmp)
 
 UTMP_NAME=
