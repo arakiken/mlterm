@@ -1565,6 +1565,13 @@ error:
   height = ACTUAL_HEIGHT(win);
   if (load_file(win->disp, path, &width, &height, 0, pic_mod, &pixmap, NULL)) {
     return pixmap;
+  } else if (strcasecmp(path + strlen(path) - 4, ".six") == 0 &&
+             load_sixel(win->disp, path, &pixmap, NULL, NULL, NULL, NULL)) {
+    /*
+     * Even if mlimgloader is not found (--without-imagelib), sixel is supported.
+     * The pixmap size does not fit to the screen size, though.
+     */
+    return pixmap;
   } else {
     return None;
   }

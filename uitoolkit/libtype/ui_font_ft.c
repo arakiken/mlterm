@@ -237,21 +237,7 @@ static u_int get_fc_col_width(ui_font_t *font, double fontsize_d, u_int percent,
   }
 
   if (strcmp(fc_size_type, FC_SIZE) == 0) {
-    double dpi;
-
-    if (dpi_for_fc) {
-      dpi = dpi_for_fc;
-    } else {
-      double widthpix;
-      double widthmm;
-
-      widthpix = DisplayWidth(font->display, DefaultScreen(font->display));
-      widthmm = DisplayWidthMM(font->display, DefaultScreen(font->display));
-
-      dpi = (widthpix * 254) / (widthmm * 10);
-    }
-
-    return DIVIDE_ROUNDINGUP(dpi * fontsize_d * cols * percent, 72 * 100 * 2);
+    return DIVIDE_ROUNDINGUP(dpi_for_fc * fontsize_d * cols * percent, 72 * 100 * 2);
   } else {
     return DIVIDE_ROUNDINGUP(fontsize_d * cols * percent, 100 * 2);
   }
@@ -305,7 +291,7 @@ created:
   if (aa_opt) {
     FcPatternAddBool(pattern, FC_ANTIALIAS, aa_opt == 1 ? True : False);
   }
-  if (dpi_for_fc) {
+  if (strcmp(fc_size_type, FC_SIZE) == 0) {
     FcPatternAddDouble(pattern, FC_DPI, dpi_for_fc);
   }
 #ifdef USE_TYPE_XFT
@@ -1290,6 +1276,34 @@ font_found:
   return 1;
 }
 
+static double get_dpi(ui_font_t *font) {
+  int dpi = 0;
+  const char *p = XResourceManagerString(font->display);
+  char *rs;
+
+  if ((rs = alloca(strlen(p))) != NULL) {
+    strcpy(rs, p);
+
+    while ((p = bl_str_sep(&rs, "\n")) != NULL) {
+      if (strncmp(p, "Xft.dpi:", 8) == 0) {
+        p += 8;
+        while (*p < '0' || '9' < *p) { p++; }
+        dpi = atoi(p);
+        break;
+      }
+    }
+  }
+
+  if (dpi > 0) {
+    return (double)dpi;
+  } else {
+    double widthpix = DisplayWidth(font->display, DefaultScreen(font->display));
+    double widthmm = DisplayWidthMM(font->display, DefaultScreen(font->display));
+
+    return (widthpix * 254) / (widthmm * 10);
+  }
+}
+
 /* --- global functions --- */
 
 #ifdef USE_TYPE_XFT
@@ -1304,7 +1318,13 @@ int xft_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
     fc_size_type = FC_PIXEL_SIZE;
   }
 
-  dpi_for_fc = dpi;
+  if (dpi == 0.0) {
+    if (dpi_for_fc == 0.0) {
+      dpi_for_fc = get_dpi(font);
+    }
+  } else {
+    dpi_for_fc = dpi;
+  }
 
   return fc_set_font(font, fontname, fontsize, col_width, letter_space, aa_opt, 1);
 }
@@ -1429,7 +1449,14 @@ int cairo_set_font(ui_font_t *font, const char *fontname, u_int fontsize,
   } else {
     fc_size_type = FC_PIXEL_SIZE;
   }
-  dpi_for_fc = dpi;
+
+  if (dpi == 0.0) {
+    if (dpi_for_fc == 0.0) {
+      dpi_for_fc = get_dpi(font);
+    }
+  } else {
+    dpi_for_fc = dpi;
+  }
 
   return fc_set_font(font, fontname, fontsize, col_width, letter_space, aa_opt, 0);
 }

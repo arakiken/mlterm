@@ -1,3 +1,11 @@
+2026-07-20  Araki Ken <arakiken@user.sf.net>
+
+	* ui_font_ft.c: Set dpi_for_fc with the use of get_dpi() which checks
+	  Xft.dpi or calculates DPI by DisplayWidth() and DisplayWidthMM().
+
+	* xlib/ui_imagelib.c: ui_imagelib_load_file_for_background() calls
+	  load_sixel() if mlimgloader is not found.
+
 2026-07-19  Araki Ken <arakiken@user.sf.net>
 
 	* README: Update.
