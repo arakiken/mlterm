@@ -1281,7 +1281,7 @@ static double get_dpi(ui_font_t *font) {
   const char *p = XResourceManagerString(font->display);
   char *rs;
 
-  if ((rs = alloca(strlen(p))) != NULL) {
+  if ((rs = alloca(strlen(p) + 1)) != NULL) {
     strcpy(rs, p);
 
     while ((p = bl_str_sep(&rs, "\n")) != NULL) {
