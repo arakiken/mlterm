@@ -1,3 +1,7 @@
+2026-07-25  Araki Ken <arakiken@user.sf.net>
+
+	* ui_font_ft.c: Fix buffer overflow in get_dpi().
+
 2026-07-20  Araki Ken <arakiken@user.sf.net>
 
 	* ui_font_ft.c: Set dpi_for_fc with the use of get_dpi() which checks

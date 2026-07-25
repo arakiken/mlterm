@@ -1278,22 +1278,24 @@ font_found:
 
 static double get_dpi(ui_font_t *font) {
   int dpi = 0;
-  const char *p = XResourceManagerString(font->display);
-  char *rs;
+  char *rs = XResourceManagerString(font->display);
 
-  if ((rs = alloca(strlen(p))) != NULL) {
-    strcpy(rs, p);
-
-    while ((p = bl_str_sep(&rs, "\n")) != NULL) {
-      if (strncmp(p, "Xft.dpi:", 8) == 0) {
-        p += 8;
-        while (*p < '0' || '9' < *p) { p++; }
-        dpi = atoi(p);
-        break;
-      }
+  while (1) {
+    if (strncmp(rs, "Xft.dpi:", 8) == 0) {
+      rs += 8;
+      while (*rs < '0' || '9' < *rs) { rs++; }
+      dpi = atoi(rs);
+      break;
+    } else {
+      do {
+        if (*rs == '\0') {
+          goto end;
+        }
+      } while (*(rs++) != '\n');
     }
   }
 
+end:
   if (dpi > 0) {
     return (double)dpi;
   } else {
