@@ -1,5 +1,13 @@
 2026-07-26  Araki Ken <arakiken@user.sf.net>
 
+	* im_ibus.c:
+	  - set_engine() calls ibus_bus_set_global_engine() instead of
+	    ibus_input_context_set_engine() if
+	    org.freedesktop.ibus.general.use-global-engine is true
+	    in ibus 1.5 or later.
+	  - is_active() checks the name of the current ibus engine in ibus 1.5
+	    or later.
+
 	* im_fcitx.c:
 	  - Define USE_IM_CANDIDATE_SCREEN in sdl2.
 	  - Add (1ull << 39) to CAPACITY_CLIENT_SIDE_UI.

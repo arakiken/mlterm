@@ -55,6 +55,8 @@ typedef struct im_ibus {
   /*
    * Cache a result of ibus_input_context_is_enabled() which uses
    * DBus connection internally.
+   *
+   * is_enabled is always TRUE in ibus 1.5.0 or later.
    */
   gboolean is_enabled;
 
@@ -658,15 +660,13 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
     gboolean is_enabled_old;
 
     is_enabled_old = ibus->is_enabled;
-#endif
     ibus->is_enabled = ibus_input_context_is_enabled(ibus->context);
 
-#if !IBUS_CHECK_VERSION(1, 5, 0)
     if (ibus->is_enabled != is_enabled_old) {
       return 0;
     } else
 #endif
-        if (ibus->is_enabled) {
+    if (ibus->is_enabled) {
 #ifndef DBUS_H
 #if 0
       g_dbus_connection_flush_sync(ibus_bus_get_connection(ibus_bus), NULL, NULL);
@@ -692,11 +692,42 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
 }
 
 static void set_engine(IBusInputContext *context, gchar *name) {
+#if IBUS_CHECK_VERSION(1, 5, 0)
+  static int use_global = -1;
+#endif
+
 #ifdef DEBUG
   bl_msg_printf("iBus engine %s -> %s\n",
                 ibus_engine_desc_get_name(ibus_input_context_get_engine(context)), name);
 #endif
+
+#if IBUS_CHECK_VERSION(1, 5, 0)
+  if (use_global == -1) {
+    GSettingsSchemaSource *src;
+    GSettingsSchema *schema;
+
+    /*
+     * If "org.freedesktop.ibus.general" is not found, g_settings_new() kill
+     * this process, so check by g_settings_schema_source_lookup in advande.
+     */
+    if ((src = g_settings_schema_source_get_default()) != NULL &&
+        (schema = g_settings_schema_source_lookup (src, "org.freedesktop.ibus.general", TRUE)) != NULL) {
+      GSettings *settings = g_settings_new_full(schema, NULL, NULL);
+      use_global = g_settings_get_boolean(settings, "use-global-engine");
+      g_object_unref(settings);
+    } else {
+      use_global = 0;
+    }
+  }
+
+  if (use_global) {
+    ibus_bus_set_global_engine(ibus_bus, name);
+  } else {
+    ibus_input_context_set_engine(context, name);
+  }
+#else
   ibus_input_context_set_engine(context, name);
+#endif
 }
 
 #if IBUS_CHECK_VERSION(1, 5, 0)
@@ -767,7 +798,6 @@ static int switch_mode(ui_im_t *im) {
 
 #if IBUS_CHECK_VERSION(1, 5, 0)
   next_engine(ibus->context);
-  ibus->is_enabled = !ibus->is_enabled;
 #else
   if (ibus->is_enabled) {
     ibus_input_context_disable(ibus->context);
@@ -781,7 +811,19 @@ static int switch_mode(ui_im_t *im) {
   return 1;
 }
 
+#if IBUS_CHECK_VERSION(1, 5, 0)
+static int is_active(ui_im_t *im) {
+  const char *name = ibus_engine_desc_get_name(ibus_input_context_get_engine(((im_ibus_t*)im)->context));
+
+  if (strncmp(name, "xkb:", 4) == 0 || strcmp(name, "dummy") == 0) {
+    return 0;
+  } else {
+    return 1;
+  }
+}
+#else
 static int is_active(ui_im_t *im) { return ((im_ibus_t*)im)->is_enabled; }
+#endif
 
 static void focused(ui_im_t *im) {
   im_ibus_t *ibus;
@@ -997,7 +1039,11 @@ ui_im_t *im_ibus_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     goto error;
   }
 
+#if IBUS_CHECK_VERSION(1, 5, 0)
+  ibus->is_enabled = TRUE;
+#else
   ibus->is_enabled = FALSE;
+#endif
 
   /*
    * set methods of ui_im_t

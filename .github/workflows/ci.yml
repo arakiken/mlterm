@@ -230,7 +230,7 @@ jobs:
             # vmactions/netbsd-builder for fuse-sshfs
             pkg_add -u glib2
             pkg_add -u pkgconf gettext-tools libtool-base
-            pkg_add -u cairo Canna-lib fribidi gdk-pixbuf2 gtk3+ fcitx ibus m17n-lib harfbuzz scim uim ja-FreeWnn-lib libXft SDL2 libssh2 vte3
+            pkg_add -uf cairo Canna-lib fribidi gdk-pixbuf2 gtk3+ fcitx ibus m17n-lib harfbuzz scim uim ja-FreeWnn-lib libXft SDL2 libssh2 vte3
           run: |
             CFLAGS="-Wall -Werror=incompatible-pointer-types -g -O2" CPPFLAGS="-I/usr/pkg/include" ./configure --x-includes=/usr/X11R7/include --x-libraries=/usr/X11R7/lib --with-imagelib=gdk-pixbuf --with-gui=xlib,wscons,sdl2 --with-type-engins=xcore,xft,cairo --enable-anti-alias
             make
