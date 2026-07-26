@@ -1,3 +1,15 @@
+2026-07-26  Araki Ken <arakiken@user.sf.net>
+
+	* im_fcitx.c:
+	  - Define USE_IM_CANDIDATE_SCREEN in sdl2.
+	  - Add (1ull << 39) to CAPACITY_CLIENT_SIDE_UI.
+	  - Handle "current-im" signal.
+	  - Fix delaying connection to fcitx server.
+	  (Implement by referring to https://github.com/chu-hai/mlterm/tree/improve_im_fcitx)
+
+	* im_fcitx.c: switch_mode() changes the current input method
+	  to the next one in the list.
+
 2026-07-25  Araki Ken <arakiken@user.sf.net>
 
 	* ui_font_ft.c: Fix buffer overflow in get_dpi().

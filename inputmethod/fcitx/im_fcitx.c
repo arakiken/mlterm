@@ -50,7 +50,12 @@
 #define FCITX_RELEASE_KEY (1)
 
 /* See fcitx-utils/capabilityflags.h */
-#define CAPACITY_CLIENT_SIDE_UI (1 << 0) /* (1ull << 39) */
+#ifdef USE_FCITX5
+/* (1null << 39): ClientSideInputPanel (since 5.0.5) */
+#define CAPACITY_CLIENT_SIDE_UI ((guint64)(1 << 0) | (guint64)(1ull << 39))
+#else
+#define CAPACITY_CLIENT_SIDE_UI (1 << 0)
+#endif
 #define CAPACITY_PREEDIT (1 << 1)
 #define CAPACITY_CLIENT_SIDE_CONTROL_STATE (1 << 2)
 #define CAPACITY_FORMATTED_PREEDIT (1 << 4)
@@ -68,15 +73,16 @@ void fcitx_client_close_ic(FcitxClient *self);
 #endif
 
 /*
- * Even if USE_IM_CANDIDATE_SCREEN is defined in sdl2kmsdrm,
- * update_client_side_ui() is not called. So undefine USE_IM_CANDIDATE_SCREEN.
+ * Define USE_IM_CANDIDATE_SCREEN in sdl2 for kmsdrm.
+ * Recommend --im=default which shows the fcitx's candidate screen in X11.
  *
- * But note that old fcitx doesn't show caandidate window correctly on wayland and sdl2.
+ * Note that old fcitx doesn't show candidate window correctly on wayland and sdl2
+ * if USE_IM_CANDIDATE_SCREEN is not defined.
  */
-#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE)
+#if defined(USE_FRAMEBUFFER) || defined(USE_CONSOLE) || defined(USE_SDL2)
 #define KeyPress 2 /* see uitoolkit/fb/ui_display.h */
 #define USE_IM_CANDIDATE_SCREEN
-#elif defined(USE_WAYLAND) || defined(USE_SDL2)
+#elif defined(USE_WAYLAND)
 #define KeyPress 2 /* see uitoolkit/fb/ui_display.h */
 #endif
 
@@ -88,6 +94,10 @@ typedef struct im_fcitx {
   ui_im_t im;
 
   FcitxClient *client;
+#ifdef USE_FCITX5
+  FcitxGWatcher *watcher;
+  char *current_im;
+#endif
 
   vt_char_encoding_t term_encoding;
 
@@ -104,6 +114,10 @@ typedef struct im_fcitx {
 
   XKeyEvent prev_key;
 
+#ifdef USE_FCITX5
+  gboolean is_connected;
+#endif
+
 } im_fcitx_t;
 
 /* --- static variables --- */
@@ -114,10 +128,43 @@ static ui_im_export_syms_t *syms = NULL; /* mlterm internal symbols */
 #ifdef DEBUG_MODKEY
 static int mod_key_debug = 0;
 #endif
+#ifdef USE_FCITX5
+static im_fcitx_t *fcitx_waiting;
+#endif
 
 /* --- static functions --- */
 
-static void connection_handler(void) { g_main_context_iteration(g_main_context_default(), FALSE); }
+
+static void connection_handler(void) {
+#ifdef USE_FCITX5
+  /* Without this processing, it can take a few seconds to connect to fcitx server. */
+  if (fcitx_waiting) {
+    gint64 deadline = g_get_monotonic_time() + (gint64)3000 * G_TIME_SPAN_MILLISECOND;
+
+    while (!fcitx_waiting->is_connected) {
+      while (g_main_context_pending(NULL)) {
+        g_main_context_iteration(g_main_context_default(), FALSE);
+      }
+
+      if (fcitx_waiting->is_connected) {
+        break;
+      }
+
+      if (g_get_monotonic_time() >= deadline) {
+#ifdef DEBUG
+        bl_debug_printf(BL_DEBUG_TAG " Failed to connect to fcitx5 server: Connection timed out.\n");
+#endif
+        break;
+      }
+      usleep(1000);
+    }
+
+    fcitx_waiting = NULL;
+  }
+#endif
+
+  g_main_context_iteration(g_main_context_default(), FALSE);
+}
 
 /*
  * methods of ui_im_t
@@ -127,6 +174,12 @@ static void destroy(ui_im_t *im) {
   im_fcitx_t *fcitx;
 
   fcitx = (im_fcitx_t*)im;
+
+#ifdef USE_FCITX5
+  fcitx_g_watcher_unwatch(fcitx->watcher);
+  g_object_unref(fcitx->watcher);
+  free(fcitx->current_im);
+#endif
 
   g_signal_handlers_disconnect_by_data(fcitx->client, fcitx);
   g_object_unref(fcitx->client);
@@ -290,7 +343,14 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
                  event->time
 #endif
                  )) {
+    /*
+     * XXX
+     * I have no test environment to check whether this code works in fcitx4 or
+     * before, but it does not work in fcitx5.
+     */
+#ifndef USE_FCITX5
     fcitx->is_enabled = TRUE;
+#endif
     event->state = state;
     memcpy(&fcitx->prev_key, event, sizeof(XKeyEvent));
 
@@ -298,7 +358,14 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
 
     return 0;
   } else {
+    /*
+     * XXX
+     * I have no test environment to check whether this code works in fcitx4 or
+     * before, but it does not work in fcitx5.
+     */
+#ifndef USE_FCITX5
     fcitx->is_enabled = FALSE;
+#endif
 
     if (fcitx->im.preedit.filled_len > 0) {
       g_main_context_iteration(g_main_context_default(), FALSE);
@@ -308,6 +375,102 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
   return 1;
 }
 
+#ifdef USE_FCITX5
+static int switch_mode(ui_im_t *im) {
+  im_fcitx_t *fcitx;
+  GDBusConnection *conn;
+  GError *error = NULL;
+  GVariant *group;
+  gsize next_idx = -1;
+  const gchar *im_name;
+
+  fcitx = (im_fcitx_t*)im;
+
+  conn = fcitx_g_watcher_get_connection(fcitx->watcher);
+  if (!conn) {
+    return 1;
+  }
+
+  if (fcitx->current_im == NULL) {
+    return 1;
+  }
+
+  group = g_dbus_connection_call_sync(conn, "org.fcitx.Fcitx5", "/controller",
+                                      "org.fcitx.Fcitx.Controller1",
+                                      "CurrentInputMethodGroup", NULL,
+                                      G_VARIANT_TYPE("(s)"),
+                                      G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
+  if (error) {
+#ifdef DEBUG
+    bl_debug_printf(BL_DEBUG_TAG " g_dbus_connection_call_sync failed: %s\n", error->message);
+#endif
+    g_error_free(error);
+  } else {
+    const gchar *group_name;
+    GVariant *group_info;
+
+    g_variant_get(group, "(&s)", &group_name);
+    group_info =
+      g_dbus_connection_call_sync(conn, "org.fcitx.Fcitx5", "/controller",
+                                  "org.fcitx.Fcitx.Controller1",
+                                  "InputMethodGroupInfo",
+                                  g_variant_new("(s)", group_name),
+                                  G_VARIANT_TYPE("(sa(ss))"),
+                                  G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
+    g_variant_unref(group);
+    if (error) {
+#ifdef DEBUG
+      bl_debug_printf(BL_DEBUG_TAG " g_dbus_connection_call_sync failed: %s\n", error->message);
+#endif
+      g_error_free(error);
+    } else {
+      GVariant *im_list;
+      gsize num_ims;
+      GVariant *item;
+      gsize idx;
+
+      /* get a(ss) which is the 2nd argument of (sa(ss)) */
+      im_list = g_variant_get_child_value(group_info, 1);
+      num_ims = g_variant_n_children(im_list);
+
+      for (idx = 0; idx < num_ims; idx++) {
+        item = g_variant_get_child_value(im_list, idx);
+        g_variant_get(item, "(&s&s)", &im_name, NULL);
+        if (strcmp(im_name, fcitx->current_im) == 0) {
+          next_idx = (idx + 1) % num_ims;
+          g_variant_unref(item);
+          break;
+        }
+        g_variant_unref(item);
+      }
+
+
+      if (next_idx >= 0) {
+        item = g_variant_get_child_value(im_list, next_idx);
+        g_variant_get(item, "(&s&s)", &im_name, NULL);
+        /* This calls current_im() which updates fcitx->current_im. */
+        g_dbus_connection_call_sync(conn, "org.fcitx.Fcitx5", "/controller",
+                                    "org.fcitx.Fcitx.Controller1", "SetCurrentIM",
+                                    g_variant_new("(s)", im_name), NULL,
+                                    G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
+        if (error) {
+#ifdef DEBUG
+          bl_debug_printf(BL_DEBUG_TAG " g_dbus_connection_call_sync failed: %s\n", error->message);
+#endif
+          g_error_free(error);
+        }
+
+        g_variant_unref(item);
+      }
+
+      g_variant_unref(im_list);
+      g_variant_unref(group_info);
+    }
+  }
+
+  return 1;
+}
+#else
 static int switch_mode(ui_im_t *im) {
   im_fcitx_t *fcitx;
 
@@ -323,6 +486,7 @@ static int switch_mode(ui_im_t *im) {
 
   return 1;
 }
+#endif
 
 static int is_active(ui_im_t *im) { return ((im_fcitx_t*)im)->is_enabled; }
 
@@ -413,6 +577,10 @@ static void connected(FcitxClient *client, void *data) {
     fcitx_client_set_cursor_rect(fcitx->client, x, y - line_height, 0, line_height);
   }
 #endif
+
+#ifdef USE_FCITX5
+  fcitx->is_connected = TRUE;
+#endif
 }
 
 #ifndef USE_FCITX5
@@ -430,7 +598,9 @@ static void disconnected(FcitxClient *client, void *data) {
 }
 
 #if 0
+#ifndef USE_FCITX5
 static void enable_im(FcitxClient *client, void *data) {}
+#endif
 #endif
 
 static void close_im(FcitxClient *client, void *data) { disconnected(client, data); }
@@ -921,6 +1091,23 @@ static void update_client_side_ui(FcitxClient *client, char *auxup, char *auxdow
 #endif
 #endif
 
+#ifdef USE_FCITX5
+static void current_im(FcitxClient *client, char *name, char *unique_name, char *lang_code,
+                       void *data) {
+  im_fcitx_t *fcitx;
+
+  fcitx = (im_fcitx_t*)data;
+
+  if (strncmp(unique_name, "keyboard-", 9) == 0) {
+    fcitx->is_enabled = FALSE;
+  } else {
+    fcitx->is_enabled = TRUE;
+  }
+
+  free(fcitx->current_im);
+  fcitx->current_im = strdup(unique_name);
+}
+#endif
 
 /* --- global functions --- */
 
@@ -957,16 +1144,12 @@ ui_im_t *im_fcitx_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   }
 
 #ifdef USE_FCITX5
-#if 0
+#if 1
   {
-    FcitxGWatcher *watcher;
+    fcitx->watcher = fcitx_g_watcher_new();
+    fcitx_g_watcher_watch(fcitx->watcher);
 
-    watcher = fcitx_g_watcher_new();
-    fcitx_g_watcher_set_watch_portal(watcher, TRUE);
-    fcitx_g_watcher_watch(watcher);
-    g_object_ref_sink(watcher);
-
-    if (!(fcitx->client = fcitx_g_client_new_with_watcher(watcher))) {
+    if (!(fcitx->client = fcitx_g_client_new_with_watcher(fcitx->watcher))) {
       goto error;
     }
   }
@@ -989,12 +1172,12 @@ ui_im_t *im_fcitx_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   g_signal_connect(fcitx->client, "connected", G_CALLBACK(connected), fcitx);
 #ifndef USE_FCITX5
   g_signal_connect(fcitx->client, "disconnected", G_CALLBACK(disconnected), fcitx);
-#endif
+  g_signal_connect(fcitx->client, "close-im", G_CALLBACK(close_im), fcitx);
 #if 0
   g_signal_connect(fcitx->client, "enable-im", G_CALLBACK(enable_im), fcitx);
 #endif
-#ifndef USE_FCITX5
-  g_signal_connect(fcitx->client, "close-im", G_CALLBACK(close_im), fcitx);
+#else
+  g_signal_connect(fcitx->client, "current-im", G_CALLBACK(current_im), fcitx);
 #endif
   g_signal_connect(fcitx->client, "forward-key", G_CALLBACK(forward_key), fcitx);
   g_signal_connect(fcitx->client, "commit-string", G_CALLBACK(commit_string), fcitx);
@@ -1043,13 +1226,12 @@ ui_im_t *im_fcitx_new(u_int64_t magic, vt_char_encoding_t term_encoding,
     }
   }
 
-#ifdef IM_FCITX_DEBUG
-  bl_debug_printf("New object was created. ref_count is %d.\n", ref_count);
+#ifdef USE_FCITX5
+  fcitx_waiting = fcitx;
 #endif
 
-#ifdef USE_FCITX5
-  /* I don't know why, but connected() is not called without this. */
-  usleep(100000);
+#ifdef IM_FCITX_DEBUG
+  bl_debug_printf("New object was created. ref_count is %d.\n", ref_count);
 #endif
 
   return (ui_im_t*)fcitx;
