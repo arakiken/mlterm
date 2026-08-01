@@ -80,7 +80,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt upgrade -y
-          sudo apt install -y build-essential flex libsdl2-dev
+          sudo apt install -y build-essential flex libsdl2-dev libwayland-dev wayland-protocols libxkbcommon-dev
 
       - name: configure
         run: |
