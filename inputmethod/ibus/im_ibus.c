@@ -437,7 +437,7 @@ static void connection_handler(void) {
 #if 0
   g_dbus_connection_flush_sync(ibus_bus_get_connection(ibus_bus), NULL, NULL);
 #endif
-  g_main_context_iteration(g_main_context_default(), FALSE);
+  while (g_main_context_iteration(g_main_context_default(), FALSE));
 #endif
 }
 
@@ -671,7 +671,7 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
 #if 0
       g_dbus_connection_flush_sync(ibus_bus_get_connection(ibus_bus), NULL, NULL);
 #endif
-      g_main_context_iteration(g_main_context_default(), FALSE);
+      while (g_main_context_iteration(g_main_context_default(), FALSE));
 #endif
 
       memcpy(&ibus->prev_key, event, sizeof(XKeyEvent));
@@ -684,7 +684,7 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
 #if 0
     g_dbus_connection_flush_sync(ibus_bus_get_connection(ibus_bus), NULL, NULL);
 #endif
-    g_main_context_iteration(g_main_context_default(), FALSE);
+    while (g_main_context_iteration(g_main_context_default(), FALSE));
 #endif
   }
 

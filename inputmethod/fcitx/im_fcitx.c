@@ -142,9 +142,7 @@ static void connection_handler(void) {
     gint64 deadline = g_get_monotonic_time() + (gint64)3000 * G_TIME_SPAN_MILLISECOND;
 
     while (!fcitx_waiting->is_connected) {
-      while (g_main_context_pending(NULL)) {
-        g_main_context_iteration(g_main_context_default(), FALSE);
-      }
+      while (g_main_context_iteration(g_main_context_default(), FALSE));
 
       if (fcitx_waiting->is_connected) {
         break;
@@ -163,7 +161,7 @@ static void connection_handler(void) {
   }
 #endif
 
-  g_main_context_iteration(g_main_context_default(), FALSE);
+  while (g_main_context_iteration(g_main_context_default(), FALSE));
 }
 
 /*
@@ -354,7 +352,7 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
     event->state = state;
     memcpy(&fcitx->prev_key, event, sizeof(XKeyEvent));
 
-    g_main_context_iteration(g_main_context_default(), FALSE);
+    while (g_main_context_iteration(g_main_context_default(), FALSE));
 
     return 0;
   } else {
@@ -368,7 +366,7 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
 #endif
 
     if (fcitx->im.preedit.filled_len > 0) {
-      g_main_context_iteration(g_main_context_default(), FALSE);
+      while (g_main_context_iteration(g_main_context_default(), FALSE));
     }
   }
 
@@ -677,38 +675,32 @@ static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int c
     vt_char_t *p;
     u_int num_chars;
     guint count;
+#ifndef USE_IM_CANDIDATE_SCREEN
+    int orig_filled_len = fcitx->im.preedit.filled_len;
+    int orig_segment_offset = fcitx->im.preedit.segment_offset;
+#endif
 
-    if (fcitx->im.preedit.filled_len == 0) {
-      /* Start preediting. */
-      int x;
-      int y;
-
-      if ((*fcitx->im.listener->get_spot)(fcitx->im.listener->self, NULL, 0, &x, &y)) {
-        u_int line_height;
-
-        line_height = (*fcitx->im.listener->get_line_height)(fcitx->im.listener->self);
-        fcitx_client_set_cursor_rect(fcitx->client, x, y - line_height, 0, line_height);
-      }
-    }
-
-    fcitx->im.preedit.cursor_offset = num_chars = 0;
+    fcitx->im.preedit.cursor_offset = fcitx->im.preedit.segment_offset = num_chars = 0;
 
     for (count = 0; count < list->len; count++) {
-      size_t str_len;
+      size_t len;
 
       item = g_ptr_array_index(list, count);
 
-      str_len = strlen(item->string);
-
-      if (cursor_pos >= 0 && (cursor_pos -= str_len) < 0) {
-        fcitx->im.preedit.cursor_offset = num_chars;
-      }
+      len = strlen(item->string);
 
       (*parser_utf8->init)(parser_utf8);
-      (*parser_utf8->set_str)(parser_utf8, (u_char*)item->string, str_len);
+      (*parser_utf8->set_str)(parser_utf8, (u_char*)item->string, len);
 
       while ((*parser_utf8->next_char)(parser_utf8, &ch)) {
         num_chars++;
+        if (cursor_pos > 0) {
+          if ((cursor_pos -= (len - parser_utf8->left)) == 0) {
+            fcitx->im.preedit.cursor_offset = fcitx->im.preedit.segment_offset = num_chars;
+          } else {
+            len = parser_utf8->left;
+          }
+        }
       }
     }
 
@@ -729,15 +721,45 @@ static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int c
       while ((*parser_utf8->next_char)(parser_utf8, &ch)) {
         int is_fullwidth = 0;
         int is_comb = 0;
+        int is_bold = 0;
+        int is_italic = 0;
+        vt_line_style_t line_style = 0;
         vt_color_t fg_color;
         vt_color_t bg_color;
 
-        if (item->type != 0) {
+        /* See TextFormatFlag in fcitx-utils/textformatflags.h */
+
+#if 1
+        /*
+         * XXX
+         * I do not know why, but (item->type & (1 << 3)) is 0 in mlterm-sdl2
+         * in kmsdrm
+         */
+        line_style |= LS_UNDERLINE_SINGLE;
+#else
+        if (item->type & (1 << 3)) {
+          line_style |= LS_UNDERLINE_SINGLE;
+        }
+#endif
+
+        if (item->type & (1 << 4)) {
           fg_color = VT_BG_COLOR;
           bg_color = VT_FG_COLOR;
         } else {
           fg_color = VT_FG_COLOR;
           bg_color = VT_BG_COLOR;
+        }
+
+        if (item->type & (1 << 6)) {
+          is_bold = 1;
+        }
+
+        if (item->type & (1 << 7)) {
+          line_style |= LS_CROSSED_OUT;
+        }
+
+        if (item->type & (1 << 8)) {
+          is_italic = 1;
         }
 
         if ((*syms->vt_convert_to_internal_ch)(fcitx->im.vtparser, &ch) <= 0) {
@@ -756,7 +778,7 @@ static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int c
 
           if ((*syms->vt_char_combine)(p - 1, ef_char_to_int(&ch), ch.cs, is_fullwidth,
                                        (ch.property & EF_AWIDTH) ? 1 : 0, is_comb,
-                                       fg_color, bg_color, 0, 0, LS_UNDERLINE_SINGLE, 0, 0)) {
+                                       fg_color, bg_color, is_bold, is_italic, line_style, 0, 0)) {
             continue;
           }
 
@@ -767,12 +789,28 @@ static void update_formatted_preedit(FcitxClient *client, GPtrArray *list, int c
 
         (*syms->vt_char_set)(p, ef_char_to_int(&ch), ch.cs, is_fullwidth,
                              (ch.property & EF_AWIDTH) ? 1 : 0, is_comb, fg_color,
-                             bg_color, 0, 0, LS_UNDERLINE_SINGLE, 0, 0);
+                             bg_color, is_bold, is_italic, line_style, 0, 0);
 
         p++;
         fcitx->im.preedit.filled_len++;
       }
     }
+
+#ifndef USE_IM_CANDIDATE_SCREEN
+    if (orig_filled_len == 0 || orig_segment_offset != fcitx->im.preedit.segment_offset) {
+      int x;
+      int y;
+
+      if ((*fcitx->im.listener->get_spot)(fcitx->im.listener->self,
+                                          fcitx->im.preedit.chars,
+                                          fcitx->im.preedit.segment_offset, &x, &y)) {
+        u_int line_height;
+
+        line_height = (*fcitx->im.listener->get_line_height)(fcitx->im.listener->self);
+        fcitx_client_set_cursor_rect(fcitx->client, x, y - line_height, 0, line_height);
+      }
+    }
+#endif
   } else {
 #ifdef USE_IM_CANDIDATE_SCREEN
     /* Fcitx5 */
