@@ -1,4 +1,13 @@
-2026-08-09  Araki Ken <arakiken@user.sf.net>
+2026-08-10  Araki Ken <arakiken@user.sf.net>
+
+	* ui_screen.c: ui_window_update() -> redraw_screen() in
+	  draw_preedit_str() to avoid screen flickering in linux/kmsdrm.
+
+	* ui_window.[ch]: Add ui_window_flush() for mlterm-fb in linux/kmsdrm.
+
+	* ui_display_linux.c: ui_display_update() -> ui_display_flush(). 
+
+2026-08-09  araki ken <arakiken@user.sf.net>
 
 	* fb/ui_display.[ch], fb/ui.h, fb/ui_window.c:
 	  #ifdef USE_KMSDRM -> #if defined(USE_KMSDRM) && defined(__linux__)

@@ -1912,10 +1912,6 @@ void ui_window_update(ui_window_t *win, int flag) {
 
   if (win->update_window) {
     (*win->update_window)(win, flag);
-
-#if defined(USE_KMSDRM) && defined(__linux__)
-    ui_display_update();
-#endif
   }
 }
 
@@ -2572,6 +2568,14 @@ void ui_window_set_input_focus(ui_window_t *win) {
     (*win->window_focused)(win);
   }
 }
+
+#if defined(USE_KMSDRM) && defined(__linux__)
+void ui_display_flush(void);
+
+void ui_window_flush(ui_window_t *win) {
+    ui_display_flush();
+}
+#endif
 
 /* for ui_display.c */
 

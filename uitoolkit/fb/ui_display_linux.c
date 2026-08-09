@@ -605,7 +605,7 @@ error1:
   return 0;
 }
 
-void ui_display_update(void) {
+void ui_display_flush(void) {
   if (_display.drm_resource != NULL) {
     _display.drm_damaged = 1;
     if (!waiting_for_flip) {
