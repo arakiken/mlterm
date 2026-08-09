@@ -1912,6 +1912,10 @@ void ui_window_update(ui_window_t *win, int flag) {
 
   if (win->update_window) {
     (*win->update_window)(win, flag);
+
+#ifdef USE_KMSDRM
+    ui_display_update();
+#endif
   }
 }
 

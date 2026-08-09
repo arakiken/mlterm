@@ -1,3 +1,5 @@
+* Support KMSDRM in linux.
+
 ver 3.9.5
 * Support text-input-unstable-v3.
 * Support SGR Mouse Pixel Mode.

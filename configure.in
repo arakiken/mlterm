@@ -600,6 +600,9 @@ else
 		else
 			# for NetBSD/x68k
 			# <machine/vuid_event.h> is also checked not to enable USE_GRF on NetBSD/macppc.
+			#
+			# for Linux
+			# If <xf86drm.h> exists, kmsdrm support is enabled.
 			AC_CHECK_HEADER(machine/grfioctl.h,
 				AC_CHECK_HEADER(machine/vuid_event.h,
 					[
@@ -613,6 +616,12 @@ else
 		GUI_CFLAGS="${GUI_CFLAGS} -DUSE_GRF"
 	elif test "$fbtype" = "pc98"; then
 		GUI_CFLAGS="${GUI_CFLAGS} -DPC98"
+	else
+		PKG_CHECK_MODULES(DRM, libdrm, have_libdrm=yes, have_libdrm=no)
+		if test "$have_libdrm" = "yes"; then
+			GUI_CFLAGS="${GUI_CFLAGS} -DUSE_KMSDRM ${DRM_CFLAGS}"
+			AC_SUBST(DRM_LIBS)
+		fi
 	fi
 
 	GUI_CFLAGS="${GUI_CFLAGS} -DUSE_FRAMEBUFFER"

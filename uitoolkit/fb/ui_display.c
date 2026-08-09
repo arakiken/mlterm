@@ -1536,7 +1536,27 @@ void ui_display_close_all(void) {
       close(_display.fd);
     }
 
-    munmap(_display.fb, _display.smem_len);
+#ifdef USE_KMSDRM
+    if (_display.drm_resource) {
+      free(_display.fb);
+
+      close_kmsdrm_dumb(&_display.drm_dumb[0]);
+      close_kmsdrm_dumb(&_display.drm_dumb[1]);
+
+      drmModeSetCrtc(_display.fb_fd, _display.drm_saved_crtc->crtc_id,
+                     _display.drm_saved_crtc->buffer_id,
+                     _display.drm_saved_crtc->x, _display.drm_saved_crtc->y,
+                     &_display.drm_connector->connector_id,
+                     1, &_display.drm_saved_crtc->mode);
+      drmModeFreeCrtc(_display.drm_saved_crtc);
+      drmModeFreeConnector(_display.drm_connector);
+      drmModeFreeResources(_display.drm_resource);
+    } else
+#endif
+    {
+      munmap(_display.fb, _display.smem_len);
+    }
+
     close(_display.fb_fd);
 
     free(_disp.roots);

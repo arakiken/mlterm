@@ -810,6 +810,8 @@ REGEX_LIBS
 REGEX_CFLAGS
 GUI_CFLAGS
 GUI
+DRM_LIBS
+DRM_CFLAGS
 SDL2GUI
 sdl2_config
 SDL2_LIBS
@@ -1044,6 +1046,8 @@ WAYLAND_CFLAGS
 WAYLAND_LIBS
 SDL2_CFLAGS
 SDL2_LIBS
+DRM_CFLAGS
+DRM_LIBS
 FRIBIDI_CFLAGS
 FRIBIDI_LIBS
 FONTCONFIG_CFLAGS
@@ -1822,6 +1826,8 @@ Some influential environment variables:
               linker flags for WAYLAND, overriding pkg-config
   SDL2_CFLAGS C compiler flags for SDL2, overriding pkg-config
   SDL2_LIBS   linker flags for SDL2, overriding pkg-config
+  DRM_CFLAGS  C compiler flags for DRM, overriding pkg-config
+  DRM_LIBS    linker flags for DRM, overriding pkg-config
   FRIBIDI_CFLAGS
               C compiler flags for FRIBIDI, overriding pkg-config
   FRIBIDI_LIBS
@@ -19911,6 +19917,9 @@ else
 		else
 			# for NetBSD/x68k
 			# <machine/vuid_event.h> is also checked not to enable USE_GRF on NetBSD/macppc.
+			#
+			# for Linux
+			# If <xf86drm.h> exists, kmsdrm support is enabled.
 			ac_fn_c_check_header_compile "$LINENO" "machine/grfioctl.h" "ac_cv_header_machine_grfioctl_h" "$ac_includes_default"
 if test "x$ac_cv_header_machine_grfioctl_h" = xyes
 then :
@@ -19932,6 +19941,82 @@ fi
 		GUI_CFLAGS="${GUI_CFLAGS} -DUSE_GRF"
 	elif test "$fbtype" = "pc98"; then
 		GUI_CFLAGS="${GUI_CFLAGS} -DPC98"
+	else
+
+pkg_failed=no
+{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for DRM" >&5
+printf %s "checking for DRM... " >&6; }
+
+if test -n "$DRM_CFLAGS"; then
+    pkg_cv_DRM_CFLAGS="$DRM_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { printf '%s\n' "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libdrm\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libdrm") 2>&5
+  ac_status=$?
+  printf '%s\n' "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_DRM_CFLAGS=`$PKG_CONFIG --cflags "libdrm" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$DRM_LIBS"; then
+    pkg_cv_DRM_LIBS="$DRM_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { printf '%s\n' "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libdrm\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libdrm") 2>&5
+  ac_status=$?
+  printf '%s\n' "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_DRM_LIBS=`$PKG_CONFIG --libs "libdrm" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf '%s\n' "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        DRM_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libdrm" 2>&1`
+        else
+	        DRM_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libdrm" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$DRM_PKG_ERRORS" >&5
+
+	have_libdrm=no
+elif test $pkg_failed = untried; then
+     	{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf '%s\n' "no" >&6; }
+	have_libdrm=no
+else
+	DRM_CFLAGS=$pkg_cv_DRM_CFLAGS
+	DRM_LIBS=$pkg_cv_DRM_LIBS
+        { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf '%s\n' "yes" >&6; }
+	have_libdrm=yes
+fi
+		if test "$have_libdrm" = "yes"; then
+			GUI_CFLAGS="${GUI_CFLAGS} -DUSE_KMSDRM ${DRM_CFLAGS}"
+
+		fi
 	fi
 
 	GUI_CFLAGS="${GUI_CFLAGS} -DUSE_FRAMEBUFFER"

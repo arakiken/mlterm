@@ -376,20 +376,258 @@ static void convert_input_num(int *input_num, u_int size, const char *str) {
   } while (--size > 0 && (str = p));
 }
 
-static int open_display(u_int depth) {
-  char *dev;
-  struct fb_fix_screeninfo finfo;
-  struct fb_var_screeninfo vinfo;
-  int kbd_num[] = { -1, -1 };
-  int mouse_num[] = { -1, -1 };
-  struct termios tm;
-  char kbd_type;
+#ifdef USE_KMSDRM
+#include <dirent.h>
+
+static void close_kmsdrm_dumb(struct drm_dumb *dumb) {
+  struct drm_mode_destroy_dumb destroy_req;
+
+  if (dumb->fb != NULL) {
+    munmap(dumb->fb, _display.smem_len);
+  }
+
+  if (dumb->fb_id > 0) {
+    drmModeRmFB(_display.fb_fd, dumb->fb_id);
+  }
+
+  memset(&destroy_req, 0, sizeof(destroy_req));
+  destroy_req.handle = dumb->create_handle;
+  drmIoctl(_display.fb_fd, DRM_IOCTL_MODE_DESTROY_DUMB, &destroy_req);
+}
+
+static int open_kmsdrm_dumb(struct drm_dumb *dumb, struct drm_mode_create_dumb *create_req) {
+  if (drmIoctl(_display.fb_fd, DRM_IOCTL_MODE_CREATE_DUMB, create_req) < 0) {
+    return 0;
+  }
+  dumb->create_handle = create_req->handle;
+
+  if (drmModeAddFB(_display.fb_fd, create_req->width, create_req->height,
+                   create_req->bpp >= 24 ? 24 : create_req->bpp,
+                   create_req->bpp, create_req->pitch, create_req->handle,
+                   &dumb->fb_id) >= 0) {
+    struct drm_mode_map_dumb map_req;
+
+    memset(&map_req, 0, sizeof(map_req));
+    map_req.handle = create_req->handle;
+    if (drmIoctl(_display.fb_fd, DRM_IOCTL_MODE_MAP_DUMB, &map_req) >= 0) {
+      u_char *fb = mmap(0, create_req->size, PROT_READ | PROT_WRITE, MAP_SHARED,
+                        _display.fb_fd, map_req.offset);
+      if (fb != MAP_FAILED) {
+        dumb->fb = fb;
+
+        return 1;
+      }
+    }
+  }
+
+  close_kmsdrm_dumb(dumb);
+
+  return 0;
+}
+
+static int waiting_for_flip;
+
+static void page_flip(void) {
+  static int flip;
+
+  memcpy(_display.drm_dumb[flip].fb, _display.fb, _display.smem_len);
+  drmModePageFlip(_display.fb_fd, _display.drm_resource->crtcs[0] /* crtc_id */,
+                  _display.drm_dumb[flip].fb_id, DRM_MODE_PAGE_FLIP_EVENT, NULL);
+  waiting_for_flip = 1;
+  _display.drm_damaged = 0;
+  flip ^= 1;
+}
+
+static void page_flip_handler(int fd, unsigned int frame, unsigned int sec, unsigned int usec,
+                              void *data) {
+  waiting_for_flip = 0;
+
+  if (_display.drm_damaged) {
+    page_flip();
+  }
+}
+
+static void process_drm_event(void) {
+  static drmEventContext drm_event;
+
+  if (drm_event.version == 0) {
+    drm_event.version = 2;
+    drm_event.page_flip_handler = page_flip_handler;
+  }
+  drmHandleEvent(_display.fb_fd, &drm_event);
+}
+
+/* ui_event_source.h */
+int ui_event_source_add_fd(int fd, void (*handler)(void));
+
+static int open_kmsdrm(char *dev) {
+  drmModeModeInfo mode;
+  struct drm_mode_create_dumb create_req;
+  uint32_t crtc_id;
+  int count;
+
+  if (dev == NULL) {
+    DIR *dir;
+
+    if ((dir = opendir("/dev/dri")) != NULL) {
+      struct dirent *ent;
+
+      while (1) {
+        if ((ent = readdir(dir)) == NULL) {
+          closedir(dir);
+
+          return 0;
+        }
+
+        if (strncmp(ent->d_name, "card", 4) == 0) {
+          if ((dev = alloca(9 + strlen(ent->d_name) + 1)) == NULL) {
+            closedir(dir);
+
+            return 0;
+          }
+          sprintf(dev, "/dev/dri/%s", ent->d_name);
+
+          break;
+        }
+      }
+
+      closedir(dir);
+    }
+  }
 
   bl_priv_restore_euid();
   bl_priv_restore_egid();
 
-  dev = getenv("FRAMEBUFFER");
-  dev = dev ? dev : "/dev/fb0";
+  _display.fb_fd = open(dev, O_RDWR | O_CLOEXEC);
+
+  bl_priv_change_euid(bl_getuid());
+  bl_priv_change_egid(bl_getgid());
+
+  if (_display.fb_fd < 0) {
+    bl_error_printf("Couldn't open %s.\n", dev);
+
+    return 0;
+  }
+
+  _display.drm_resource = drmModeGetResources(_display.fb_fd);
+  if (_display.drm_resource == NULL) {
+    goto error1;
+  }
+
+  for (count = 0; count < _display.drm_resource->count_connectors; count++) {
+    _display.drm_connector = drmModeGetConnector(_display.fb_fd,
+                                                 _display.drm_resource->connectors[count]);
+    if (_display.drm_connector->connection == DRM_MODE_CONNECTED &&
+        _display.drm_connector->count_modes > 0) {
+      break;
+    }
+    drmModeFreeConnector(_display.drm_connector);
+    _display.drm_connector = NULL;
+  }
+
+  if (_display.drm_connector == NULL) {
+    goto error2;
+  }
+
+  mode = _display.drm_connector->modes[0];
+  bl_msg_printf("Resolution: %dx%d @ %dHz\n", mode.hdisplay, mode.vdisplay, mode.vrefresh);
+
+  crtc_id = _display.drm_resource->crtcs[0];
+  _display.drm_saved_crtc = drmModeGetCrtc(_display.fb_fd, crtc_id);
+
+  create_req.width = mode.hdisplay;
+  create_req.height = mode.vdisplay;
+  create_req.bpp = 32; /* ARGB8888 */
+  if (!open_kmsdrm_dumb(&_display.drm_dumb[0], &create_req)) {
+    goto error3;
+  }
+
+  memset(&create_req, 0, sizeof(create_req));
+  create_req.width = mode.hdisplay;
+  create_req.height = mode.vdisplay;
+  create_req.bpp = 32; /* ARGB8888 */
+  if (!open_kmsdrm_dumb(&_display.drm_dumb[1], &create_req)) {
+    goto error4;
+  }
+
+  if ((_display.fb = _display.fb_base = malloc(create_req.size)) == NULL) {
+    goto error5;
+  }
+  _display.smem_len = create_req.size;
+
+  if (drmModeSetCrtc(_display.fb_fd, crtc_id, _display.drm_dumb[1].fb_id, 0, 0,
+                     &_display.drm_connector->connector_id, 1, &mode) < 0) {
+    goto error6;
+  }
+
+  _display.line_length = create_req.pitch;
+  _display.xoffset = _display.yoffset = 0;
+
+  _display.width = _disp.width = mode.hdisplay;
+  _display.height = _disp.height = mode.vdisplay;
+
+  _display.rgbinfo.r_limit = _display.rgbinfo.g_limit =
+    _display.rgbinfo.b_limit = _display.rgbinfo.a_limit = 0;
+  _display.rgbinfo.r_offset = 16;
+  _display.rgbinfo.g_offset = 8;
+  _display.rgbinfo.b_offset = 0;
+  _display.rgbinfo.a_offset = 24;
+
+  _disp.depth = 32;
+  _display.pixels_per_byte = 1;
+  _display.bytes_per_pixel = 4;
+
+  ui_event_source_add_fd(_display.fb_fd, process_drm_event);
+
+  return 1;
+
+error6:
+  free(_display.fb);
+
+error5:
+  close_kmsdrm_dumb(&_display.drm_dumb[1]);
+
+error4:
+  close_kmsdrm_dumb(&_display.drm_dumb[0]);
+
+error3:
+  drmModeFreeCrtc(_display.drm_saved_crtc);
+  drmModeFreeConnector(_display.drm_connector);
+
+error2:
+  drmModeFreeResources(_display.drm_resource);
+
+error1:
+  close(_display.fb_fd);
+
+  memset(&_display, 0, sizeof(_display));
+
+  return 0;
+}
+
+void ui_display_update(void) {
+  if (_display.drm_resource != NULL) {
+    _display.drm_damaged = 1;
+    if (!waiting_for_flip) {
+      page_flip();
+    }
+  }
+}
+#else
+#define open_kmsdrm(dev) (0)
+#endif
+
+static int open_fb(char *dev) {
+  struct fb_fix_screeninfo finfo;
+  struct fb_var_screeninfo vinfo;
+
+  if (dev == NULL) {
+    dev = "/dev/fb0";
+  }
+
+  bl_priv_restore_euid();
+  bl_priv_restore_egid();
+
   _display.fb_fd = open(dev, O_RDWR);
 
   bl_priv_change_euid(bl_getuid());
@@ -457,6 +695,31 @@ static int open_display(u_int depth) {
   _display.rgbinfo.g_offset = vinfo.green.offset;
   _display.rgbinfo.b_offset = vinfo.blue.offset;
   _display.rgbinfo.a_offset = vinfo.transp.offset;
+
+  return 1;
+
+error:
+  if (_display.fb) {
+    munmap(_display.fb, _display.smem_len);
+    _display.fb = _display.fb_base = NULL;
+  }
+
+  close(_display.fb_fd);
+
+  return 0;
+}
+
+static int open_display(u_int depth) {
+  char *dev;
+  int kbd_num[] = { -1, -1 };
+  int mouse_num[] = { -1, -1 };
+  struct termios tm;
+  char kbd_type;
+
+  dev = getenv("FRAMEBUFFER");
+  if (!open_kmsdrm(dev) && !open_fb(dev)) {
+    return 0;
+  }
 
   get_event_device_num(kbd_num, mouse_num);
 
@@ -557,15 +820,6 @@ static int open_display(u_int depth) {
 
   return 1;
 
-error:
-  if (_display.fb) {
-    munmap(_display.fb, _display.smem_len);
-    _display.fb = _display.fb_base = NULL;
-  }
-
-  close(_display.fb_fd);
-
-  return 0;
 }
 
 static int receive_mouse_event(int fd) {

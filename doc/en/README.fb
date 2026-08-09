@@ -80,6 +80,8 @@ Framebuffer support
     on FreeBSD 5.0 or later.
     $ /etc/rc.d/moused onestart
   o mlterm-fb works with 4 bpp alone on FreeBSD(98).
+  o If libdrm is installed in your system, KMSDRM support is enabled in building
+    mlterm-fb.
 
   (for NetBSD)
   o See https://gist.github.com/tsutsui/5689730

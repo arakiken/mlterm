@@ -20,6 +20,10 @@
 #include <dev/wscons/wsconsio.h>
 #include <dev/wscons/wsksymdef.h>
 #endif
+#ifdef USE_KMSDRM
+#include <xf86drm.h>
+#include <xf86drmMode.h>
+#endif
 
 #include <pobl/bl_types.h>
 
@@ -101,6 +105,18 @@ typedef struct {
   int mask;
 
   size_t plane_offset[8];
+
+#ifdef USE_KMSDRM
+  drmModeRes *drm_resource;
+  drmModeConnector *drm_connector;
+  struct drm_dumb {
+    uint32_t create_handle;
+    uint32_t fb_id;
+    u_char *fb;
+  } drm_dumb[2];
+  drmModeCrtc *drm_saved_crtc;
+  int drm_damaged;
+#endif
 
 } Display;
 

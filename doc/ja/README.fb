@@ -74,6 +74,8 @@ Framebuffer 対応に関するメモ
     定することも可能です。)
   o マウスを使用する場合、gpm は停止しておいてください。
     (/etc/init.d/gpm stop)
+  o libdrm がシステムにインストールされている場合、KMSDRM サポートを組み込んだ
+    mlterm-fb がビルドされます。
 
   (for FreeBSD)
   o あらかじめ、SC_PIXEL_MODE 及び VESA オプション付きのカーネルで起動(又は起動
