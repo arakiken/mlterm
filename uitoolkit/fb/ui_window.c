@@ -1913,7 +1913,7 @@ void ui_window_update(ui_window_t *win, int flag) {
   if (win->update_window) {
     (*win->update_window)(win, flag);
 
-#ifdef USE_KMSDRM
+#if defined(USE_KMSDRM) && defined(__linux__)
     ui_display_update();
 #endif
   }

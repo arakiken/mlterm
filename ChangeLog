@@ -1,10 +1,15 @@
 2026-08-09  Araki Ken <arakiken@user.sf.net>
 
+	* fb/ui_display.[ch], fb/ui.h, fb/ui_window.c:
+	  #ifdef USE_KMSDRM -> #if defined(USE_KMSDRM) && defined(__linux__)
+
+2026-08-09  Araki Ken <arakiken@user.sf.net>
+
 	* doc/en/README.fb, doc/ja/README.fb: Update.
 
 	* configure.in, main/Makefile.in: Check libdrm.
 
-	* fb/ui_display_linux.c, fb/ui.h, fb/ui_display.c: Support KMSDRM. 
+	* fb/ui_display_linux.c, fb/ui.h, fb/ui_display.c: Support KMSDRM.
 
 2026-08-01  Araki Ken <arakiken@user.sf.net>
 

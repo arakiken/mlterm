@@ -20,7 +20,7 @@
 #include <dev/wscons/wsconsio.h>
 #include <dev/wscons/wsksymdef.h>
 #endif
-#ifdef USE_KMSDRM
+#if defined(USE_KMSDRM) && defined(__linux__)
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 #endif
@@ -106,7 +106,7 @@ typedef struct {
 
   size_t plane_offset[8];
 
-#ifdef USE_KMSDRM
+#if defined(USE_KMSDRM) && defined(__linux__)
   drmModeRes *drm_resource;
   drmModeConnector *drm_connector;
   struct drm_dumb {

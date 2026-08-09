@@ -49,7 +49,7 @@ int ui_cmap_get_closest_color(u_long *closest, int red, int green, int blue);
 
 int ui_cmap_get_pixel_rgb(u_int8_t *red, u_int8_t *green, u_int8_t *blue, u_long pixel);
 
-#ifdef USE_KMSDRM
+#if defined(USE_KMSDRM) && defined(__linux__)
 void ui_display_update(void);
 #endif
 

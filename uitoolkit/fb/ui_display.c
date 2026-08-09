@@ -1536,7 +1536,7 @@ void ui_display_close_all(void) {
       close(_display.fd);
     }
 
-#ifdef USE_KMSDRM
+#if defined(USE_KMSDRM) && defined(__linux__)
     if (_display.drm_resource) {
       free(_display.fb);
 
