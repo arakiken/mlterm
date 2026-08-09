@@ -6038,6 +6038,7 @@ end1:
   ReleaseDC(screen->window.my_window, screen->window.gc->gc);
   ui_set_gc(screen->window.gc, None);
 #endif
+  ;
 }
 
 /* used for changing IM from plugin side */
