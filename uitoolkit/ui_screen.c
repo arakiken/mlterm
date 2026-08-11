@@ -5824,30 +5824,41 @@ static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars, int cur
 
   screen = p;
 
-#ifdef USE_WIN32GUI
-  ui_set_gc(screen->window.gc, GetDC(screen->window.my_window));
-#endif
-
   if (screen->is_preediting) {
     ui_im_t *im;
 
     vt_term_set_modified_lines_in_screen(screen->term, screen->im_preedit_beg_row,
                                          screen->im_preedit_end_row);
 
+#ifdef USE_WIN32GUI
+    ui_set_gc(screen->window.gc, GetDC(screen->window.my_window));
+#endif
+
     /* Avoid recursive call of ui_im_redraw_preedit() in redraw_screen(). */
     im = screen->im;
     screen->im = NULL;
+    /* ui_window_update() here which calls ui_window_flush() invokes flickering in kmsdrm */
     redraw_screen(screen);
     screen->im = im;
+
+    if (num_chars == 0) {
+#if 0
+      highlight_cursor(screen);
+#endif
+      screen->is_preediting = 0;
+
+      goto end1;
+    }
+  } else {
+    if (num_chars == 0) {
+      return;
+    }
+
+#ifdef USE_WIN32GUI
+    ui_set_gc(screen->window.gc, GetDC(screen->window.my_window));
+#endif
+    screen->is_preediting = 1;
   }
-
-  if (!num_chars) {
-    screen->is_preediting = 0;
-
-    goto end1;
-  }
-
-  screen->is_preediting = 1;
 
   if (screen->copymode) {
     /* copymode doesn't support vertical mode */

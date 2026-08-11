@@ -1,5 +1,8 @@
 2026-08-11  Araki Ken <arakiken@user.sf.net>
 
+	* ui_screen.c: Fix unexpectedly disappearing cursor issue in inputting
+	  text with the use of a input method plugin.
+
 	* win32/ui_window.c: Fix division-by-zero error.
 
 2026-08-10  Araki Ken <arakiken@user.sf.net>
