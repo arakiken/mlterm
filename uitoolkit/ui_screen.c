@@ -5830,35 +5830,33 @@ static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars, int cur
     vt_term_set_modified_lines_in_screen(screen->term, screen->im_preedit_beg_row,
                                          screen->im_preedit_end_row);
 
-#ifdef USE_WIN32GUI
-    ui_set_gc(screen->window.gc, GetDC(screen->window.my_window));
-#endif
-
     /* Avoid recursive call of ui_im_redraw_preedit() in redraw_screen(). */
     im = screen->im;
     screen->im = NULL;
-    /* ui_window_update() here which calls ui_window_flush() invokes flickering in kmsdrm */
+#if defined(USE_KMSDRM) && defined(__linux__)
+    /*
+     * ui_window_update() here which calls ui_window_flush() invokes screen
+     * flickering in kmsdrm.
+     */
+    vt_term_select_drcs(screen->term);
     redraw_screen(screen);
+#else
+    /*
+     * It is necessary to call flush_glyphs() here via update_window() ->
+     * ui_window_flush() to draw screen correctly in cairo.
+     */
+    ui_window_update(&screen->window, UPDATE_SCREEN);
+#endif
     screen->im = im;
-
-    if (num_chars == 0) {
-#if 0
-      highlight_cursor(screen);
-#endif
-      screen->is_preediting = 0;
-
-      goto end1;
-    }
-  } else {
-    if (num_chars == 0) {
-      return;
-    }
-
-#ifdef USE_WIN32GUI
-    ui_set_gc(screen->window.gc, GetDC(screen->window.my_window));
-#endif
-    screen->is_preediting = 1;
   }
+
+  if (!num_chars) {
+    screen->is_preediting = 0;
+
+    return;
+  }
+
+  screen->is_preediting = 1;
 
   if (screen->copymode) {
     /* copymode doesn't support vertical mode */
@@ -5877,13 +5875,13 @@ static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars, int cur
     bl_warn_printf(BL_DEBUG_TAG " cursor line doesn't exist ?.\n");
 #endif
 
-    goto end1;
+    return;
   }
 
   if (!vt_term_get_vertical_mode(screen->term)) {
     row -= vt_term_convert_scr_row_to_abs(screen->term, 0);
     if (row < 0) {
-      goto end1;
+      return;
     }
 
     beg_row = row;
@@ -5919,6 +5917,10 @@ static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars, int cur
 
   total_width = 0;
 
+#ifdef USE_WIN32GUI
+  ui_set_gc(screen->window.gc, GetDC(screen->window.my_window));
+#endif
+
   ui_font_manager_set_attr(screen->font_man, line->size_attr, 0);
 
   for (i = 0, start = 0; i < num_chars; i++) {
@@ -5953,14 +5955,14 @@ static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars, int cur
           x -= ui_col_width(screen);
 
           if (x < 0) {
-            goto end2;
+            goto end;
           }
         } else /* VERT_LRT */
         {
           x += ui_col_width(screen);
 
           if (x >= screen->width) {
-            goto end2;
+            goto end;
           }
         }
         _x = x;
@@ -5989,7 +5991,7 @@ static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars, int cur
 
       if (!vt_term_get_vertical_mode(screen->term) &&
           _y + ui_line_height(screen) > screen->height) {
-        goto end2;
+        goto end;
       }
 
       x = _x;
@@ -6040,16 +6042,14 @@ static void draw_preedit_str(void *p, vt_char_t *chars, u_int num_chars, int cur
     }
   }
 
-end2:
-  screen->im_preedit_beg_row = beg_row;
-  screen->im_preedit_end_row = end_row;
-
-end1:
+end:
 #ifdef USE_WIN32GUI
   ReleaseDC(screen->window.my_window, screen->window.gc->gc);
   ui_set_gc(screen->window.gc, None);
 #endif
-  ;
+
+  screen->im_preedit_beg_row = beg_row;
+  screen->im_preedit_end_row = end_row;
 }
 
 /* used for changing IM from plugin side */

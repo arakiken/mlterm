@@ -1,3 +1,9 @@
+2026-08-12  Araki Ken <arakiken@user.sf.net>
+
+	* ui_screen.c: Revert draw_preedit_str() to the one in
+	  2026/08/10 (a04071a41d38a4dc249698509263be8e82fbb47f) and
+	  call redraw_screen() instead of ui_window_update() in kmsdrm alone.
+
 2026-08-11  Araki Ken <arakiken@user.sf.net>
 
 	* ui_screen.c: Fix unexpectedly disappearing cursor issue in inputting
