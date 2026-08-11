@@ -2165,8 +2165,18 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
           if (IsZoomed(ui_get_root_window(win)->my_window)) {
             width_surplus = height_surplus = 0;
           } else {
-            width_surplus = (width - min_width - win->hmargin * 2) % max_width_inc(win);
-            height_surplus = (height - min_height - win->vmargin * 2) % max_height_inc(win);
+            u_int inc;
+
+            if ((inc = max_width_inc(win)) == 0) {
+              width_surplus = 0;
+            } else {
+              width_surplus = (width - min_width - win->hmargin * 2) % inc;
+            }
+            if ((inc = max_height_inc(win)) == 0) {
+              height_surplus = 0;
+            } else {
+              height_surplus = (height - min_height - win->vmargin * 2) % inc;
+            }
           }
 
           win->width = width - win->hmargin * 2;
