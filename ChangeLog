@@ -1,3 +1,12 @@
+2026-08-14  Araki Ken <arakiken@user.sf.net>
+
+	* ui_im_candidate_screen.[ch]:
+	  Change the type of the 2nd argument of ui_im_candidate_screen_t::select
+	  and ui_im_candidate_screen_t::index from u_int to int to support
+	  minus value.  (for fcitx5 + mozc)
+
+	* ci.yml: Add build-haikuos and build-solaris.
+
 2026-08-12  Araki Ken <arakiken@user.sf.net>
 
 	* ui_screen.c: Revert draw_preedit_str() to the one in

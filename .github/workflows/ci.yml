@@ -374,3 +374,39 @@ jobs:
         with:
           name: mlterm-msys2
           path: dist/**
+
+  build-haikuos:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - name: Test in Haiku
+      uses: vmactions/haiku-vm@v1
+      with:
+        usesh: true
+        prepare: |
+          pkgman refresh
+          pkgman install -y gcc make libsdl2_devel gtk3_devel
+
+        run: |
+          CFLAGS="-Wall -g -O2" ./configure --with-gui=beos,sdl2 --enable-debug
+          make
+          make install
+          /usr/local/bin/mlterm --test --logmsg=false
+
+  build-solaris:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - name: Test in Solaris
+      uses: vmactions/solaris-vm@v1
+      with:
+        usesh: true
+        prepare: |
+          pkgutil -U
+          pkgutil -y -i make gcccore libsdl2_dev libssh2_dev gtk2
+
+        run: |
+          CFLAGS="-Wall -g -O2" ./configure --enable-debug
+          make
+          make install
+          /usr/local/bin/mlterm --test --logmsg=false

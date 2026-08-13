@@ -6,6 +6,7 @@
 
 #include <pobl/bl_mem.h>
 #include <pobl/bl_str.h>
+#include <pobl/bl_util.h> /* BL_MAX */
 #include <vt_str.h>
 #include <vt_parser.h>
 #include "ui_draw_str.h"
@@ -22,9 +23,10 @@
 #define CANDIDATE_SEQUENTIAL_INDEX
 #endif
 
+/* i (ui_im_candidate_screen_t::index) can be minus */
 #define VISIBLE_INDEX(n, p, i, t, l) \
   do {                               \
-    (t) = ((i) / p) * p;             \
+    (t) = (BL_MAX((i), 0) / p) * p;  \
     (l) = (t) + p - 1;               \
     if ((l) > (n)-1) {               \
       (l) = (n)-1;                   \
@@ -768,12 +770,16 @@ static int set_candidate(ui_im_candidate_screen_t *cand_screen, ef_parser_t *par
   return 1;
 }
 
-static int select_candidate(ui_im_candidate_screen_t *cand_screen, u_int index) {
+/*
+ * index can be minus value in fcitx5+mozc.
+ * https://x.com/chuhai72517494/status/2086425839051448753
+ */
+static int select_candidate(ui_im_candidate_screen_t *cand_screen, int index) {
   ui_im_candidate_t *cand;
   u_int i;
   u_int old_index;
 
-  if (index >= cand_screen->num_candidates) {
+  if (index >= (int)cand_screen->num_candidates) {
 #ifdef DEBUG
     bl_debug_printf(BL_DEBUG_TAG " Selected index [%d] is larger than number of candidates [%d].\n",
                     index, cand_screen->num_candidates);
@@ -782,21 +788,25 @@ static int select_candidate(ui_im_candidate_screen_t *cand_screen, u_int index) 
     return 0;
   }
 
-  cand = &cand_screen->candidates[cand_screen->index];
+  if (cand_screen->index >= 0) {
+    cand = &cand_screen->candidates[cand_screen->index];
 
-  if (cand->chars) {
-    for (i = 0; i < cand->filled_len; i++) {
-      vt_char_set_fg_color(&cand->chars[i], VT_FG_COLOR);
-      vt_char_set_bg_color(&cand->chars[i], VT_BG_COLOR);
+    if (cand->chars) {
+      for (i = 0; i < cand->filled_len; i++) {
+        vt_char_set_fg_color(&cand->chars[i], VT_FG_COLOR);
+        vt_char_set_bg_color(&cand->chars[i], VT_BG_COLOR);
+      }
     }
   }
 
-  cand = &cand_screen->candidates[index];
+  if (index >= 0) {
+    cand = &cand_screen->candidates[index];
 
-  if (cand->chars) {
-    for (i = 0; i < cand->filled_len; i++) {
-      vt_char_set_fg_color(&cand->chars[i], VT_BG_COLOR);
-      vt_char_set_bg_color(&cand->chars[i], VT_FG_COLOR);
+    if (cand->chars) {
+      for (i = 0; i < cand->filled_len; i++) {
+        vt_char_set_fg_color(&cand->chars[i], VT_BG_COLOR);
+        vt_char_set_bg_color(&cand->chars[i], VT_FG_COLOR);
+      }
     }
   }
 
