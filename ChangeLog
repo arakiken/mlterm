@@ -1,3 +1,10 @@
+2026-08-14  sporteka <sporteka2@disroot.org>
+
+	* main/main_loop.c:
+	  Fix misleading "font size range for GUI configurator [1-100]"
+	  help description. The actual default range is 1-200 when
+	  USE_FREETYPE is enabled and 1-10000 otherwise.
+
 2026-08-14  Araki Ken <arakiken@user.sf.net>
 
 	* ui_im_candidate_screen.[ch]:
