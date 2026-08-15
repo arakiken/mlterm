@@ -212,16 +212,16 @@ jobs:
           path: dist/**
 
   build-netbsd:
-    name: "build-netbsd (NetBSD/amd64 10.1 with pkgsrc)"
+    name: "build-netbsd (NetBSD/amd64 11.0 with pkgsrc)"
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install packages and run configure and make (on the NetBSD VM)
         uses: vmactions/netbsd-vm@v1
         with:
-          release: "10.1"
+          release: "11.0"
           copyback: false
           prepare: |
             ftp -o - https://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/xbase.tar.xz | tar -C / -zxpf - ./usr/X11R7/bin ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
@@ -242,7 +242,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install packages and run configure and make (on the FreeBSD VM)
         uses: vmactions/freebsd-vm@v1
@@ -385,13 +385,14 @@ jobs:
         usesh: true
         prepare: |
           pkgman refresh
+          pkgman update
           pkgman install -y gcc make libsdl2_devel gtk3_devel
 
         run: |
           CFLAGS="-Wall -g -O2" ./configure --with-gui=beos,sdl2 --enable-debug
           make
           make install
-          /usr/local/bin/mlterm --test --logmsg=false
+          (cd main; ./mlterm --test --logmsg=false)
 
   build-solaris:
     runs-on: ubuntu-latest
@@ -403,10 +404,10 @@ jobs:
         usesh: true
         prepare: |
           pkgutil -U
-          pkgutil -y -i make gcccore libsdl2_dev libssh2_dev gtk2
+          pkgutil -y -i gcc5core libsdl2_dev libssh2_dev gtk2
 
         run: |
           CFLAGS="-Wall -g -O2" ./configure --enable-debug
           make
           make install
-          /usr/local/bin/mlterm --test --logmsg=false
+          (cd main; ./mlterm --test --logmsg=false)
