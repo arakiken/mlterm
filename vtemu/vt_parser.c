@@ -260,6 +260,8 @@ static struct {
 } * auto_detect;
 static u_int num_auto_detect_encodings;
 
+static u_char *ignored_csi_list;
+
 static int use_ttyrec_format;
 
 static clock_t timeout_read_pty = CLOCKS_PER_SEC / 100; /* 0.01 sec */
@@ -4592,6 +4594,31 @@ static char *get_pt_in_esc_seq(
   return pt;
 }
 
+static int check_ignored_csi(const u_char *seq, size_t seq_len) {
+  if (ignored_csi_list) {
+    u_char *ign = ignored_csi_list;
+    const u_char *p = seq;
+    const u_char *seq_end = seq + seq_len;
+
+    while (1) {
+      while (1) {
+        if (*ign == '\0' || *ign == ',' || p == seq_end) {
+          return 1;
+        } else if (*(p++) != *(ign++)) {
+          break;
+        }
+      }
+      for (; *ign != ','; ign++) {
+        if (*ign == '\0') {
+          return 0;
+        }
+      }
+      ign++;
+      p = seq;
+    }
+  }
+}
+
 #ifdef USE_VT52
 inline static int parse_vt52_escape_sequence(
     vt_parser_t *vt_parser /* vt_parser->r_buf.left must be more than 0 */
@@ -4811,8 +4838,11 @@ inline static int parse_vt100_escape_sequence(
 
       u_char para_ch = '\0';
       u_char intmed_ch = '\0';
+      int is_ignored_csi;
       int ps[MAX_NUM_OF_PS];
       int num;
+
+      is_ignored_csi = (left > 1) && check_ignored_csi(str_p + 1, left - 1);
 
       num = 0;
       while (1) {
@@ -4902,7 +4932,9 @@ inline static int parse_vt100_escape_sequence(
         }
       }
 
-      if (para_ch == '?') {
+      if (is_ignored_csi) {
+        /* ignore */
+      } else if (para_ch == '?') {
         if (intmed_ch == '$') {
           if (*str_p == 'p' && num > 0) {
             /* "CSI ? $ p" DECRQM */
@@ -7262,6 +7294,18 @@ void vt_set_half_width_areas(char *areas) {
   half_width_areas = set_area_to_table(half_width_areas, &num_half_width_areas, areas);
 }
 
+void vt_set_ignored_csi_list(const u_char *list) {
+  free(ignored_csi_list);
+
+  /* "" -> NULL */
+  if (list && *list) {
+    ignored_csi_list = strdup(list);
+  } else {
+    ignored_csi_list = NULL;
+  }
+}
+
+
 void vt_set_use_ttyrec_format(int use) { use_ttyrec_format = use; }
 
 #ifdef USE_LIBSSH2
@@ -8215,6 +8259,8 @@ int vt_parser_get_config(
     response_area_table(vt_parser->pty, key, half_width_areas, num_half_width_areas, to_menu);
 
     return 1;
+  } else if (strcmp(key, "ignored_csi_list") == 0) {
+    value = ignored_csi_list;
   } else if (strcmp(key, "blink_cursor") == 0) {
     if (vt_parser->cursor_style & CS_BLINK) {
       value = "true";
@@ -8364,7 +8410,14 @@ int vt_parser_set_config(vt_parser_t *vt_parser, const char *key, const char *va
     if ((tmp = alloca(strlen(value) + 1))) {
       vt_set_half_width_areas(strcpy(tmp, value));
     }
-  } else if (strcmp(key, "tabsize") == 0) {
+  }
+  /* Prohibit changes via OSC 5379. If ignored_csi_list is "" or ",", all csi sequences are ignored. */
+#if 0
+  else if (strcmp(key, "ignored_csi_list") == 0) {
+    vt_set_ignored_csi_list(value);
+  }
+#endif
+  else if (strcmp(key, "tabsize") == 0) {
     u_int tab_size;
 
     if (bl_str_to_uint(&tab_size, value)) {
@@ -8830,6 +8883,27 @@ void vt_parser_report_mouse_tracking(vt_parser_t *vt_parser, int col, int row,
 
 #include <assert.h>
 
+static void TEST_ignored_csi_list(void) {
+  u_char *seq[] = {
+    "?11hefg", "?13h?13h", "?13l?12l", "?12habc", "abcdefg",
+  };
+  int result[] = { 1, 1, 0, 1, 0 };
+  size_t count;
+  u_char *orig_list = ignored_csi_list;
+
+  ignored_csi_list = "?11h,?12h,?13h";
+
+  for (count = 0; count < sizeof(seq) / sizeof(seq[0]); count++) {
+    assert(check_ignored_csi(seq[count], strlen(seq[count])) == result[count]);
+  }
+
+  ignored_csi_list = ",efg";
+
+  assert(check_ignored_csi("abc", 3) == 1);
+
+  ignored_csi_list = orig_list;
+}
+
 void TEST_vt_parser(void) {
 #ifndef NO_IMAGE
   u_char a[] = "\x1b]8k @\x1f\x1bP;1";
@@ -8845,9 +8919,11 @@ void TEST_vt_parser(void) {
   assert(is_separated_sixel(d, sizeof(d) - 1) == 0);
   assert(is_separated_sixel(e, sizeof(e) - 1) == 0);
   assert(is_separated_sixel(f, sizeof(f) - 1) == 1);
+#endif
+
+  TEST_ignored_csi_list();
 
   bl_msg_printf("PASS vt_parser test.\n");
-#endif
 }
 
 #endif

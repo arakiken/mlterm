@@ -281,6 +281,8 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
                   "encodings detected automatically");
   bl_conf_add_opt(conf, '\0', "auto", 1, "use_auto_detect",
                   "detect character encoding automatically");
+  bl_conf_add_opt(conf, '\0', "igncsi", 0, "ignored_csi_list",
+                  "ignore specified CSI sequence");
   bl_conf_add_opt(conf, '\0', "ldd", 1, "leftward_double_drawing",
                   "embold glyphs by drawing doubly at 1 pixel leftward "
                   "instead of rightward");
@@ -811,6 +813,10 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
 
   if ((value = bl_conf_get_value(conf, "unicode_half_width_areas"))) {
     vt_set_half_width_areas(value);
+  }
+
+  if ((value = bl_conf_get_value(conf, "ignored_csi_list"))) {
+    vt_set_ignored_csi_list(value);
   }
 
   if ((value = bl_conf_get_value(conf, "only_use_unicode_font"))) {

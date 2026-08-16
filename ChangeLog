@@ -1,3 +1,10 @@
+2026-08-16  Araki Ken <arakiken@user.sf.net>
+
+	* vt_parser.[ch]: Add vt_set_ignored_csi_list() which sets sequence list
+	  to ignore csi.
+
+	* ui_main_config.c: Add --igncsi/ignored_csi_list option. 
+
 2026-08-14  Araki Ken <arakiken@user.sf.net>
 
 	* ui_im_candidate_screen.[ch]:
