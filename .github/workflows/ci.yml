@@ -384,8 +384,11 @@ jobs:
       with:
         usesh: true
         prepare: |
-          #pkgman refresh
-          #pkgman update
+          # workaround until R1 Beta6 is released.
+          pkgman drop-repo HaikuPorts
+          pkgman add-repo https://eu.hpkg.haiku-os.org/haikuports/master/$(getarch)/current
+          pkgman refresh
+          pkgman update
           pkgman install -y gcc make libsdl2_devel gtk3_devel
 
         run: |
@@ -404,7 +407,7 @@ jobs:
         usesh: true
         prepare: |
           pkgutil -U
-          pkgutil -y -i gcc5core libsdl2_dev libssh2_dev gtk2
+          pkgutil -y -i gcc5core libfreetype_dev libsdl2_dev libssh2_dev gtk2
 
         run: |
           CFLAGS="-Wall -g -O2 -I/opt/csw/include/freetype2" ./configure --enable-debug

@@ -82,6 +82,12 @@ void ui_display_idling(ui_display_t *disp);
 
 int ui_display_receive_next_event(ui_display_t *disp);
 
+/*
+ * receive_next_event() and interrupt_vt100_cmd() in ui_event_source.c call
+ * ui_display_sync().
+ * (update_window(), draw_preedit_str() and window_exposed() in ui_screen.c and
+ * draw_screen() in ui_im_{candidate|status}_screen.c call ui_window_flush().)
+ */
 #ifndef NEED_DISPLAY_SYNC_EVERY_TIME
 #define ui_display_sync(disp) (0)
 #elif defined(USE_WIN32GUI)

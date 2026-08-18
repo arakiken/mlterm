@@ -474,6 +474,15 @@ void ui_window_translate_coordinates(ui_window_t *win, int x, int y, int *global
 
 void ui_window_set_input_focus(ui_window_t *win);
 
+/*
+ * update_window(), draw_preedit_str() and window_exposed() in ui_screen.c and
+ * draw_screen() in ui_im_{candidate|status}_screen.c call ui_window_flush().
+ * (receive_next_event() and interrupt_vt100_cmd() in ui_event_source.c call
+ * ui_display_sync().)
+ *
+ * Flush buffer in cairo.
+ * Page Flip in framebuffer/kmsdrm.
+ */
 #if defined(USE_XLIB) || (defined(USE_KMSDRM) && defined(__linux__))
 void ui_window_flush(ui_window_t *win);
 #else
