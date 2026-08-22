@@ -1,5 +1,10 @@
 2026-08-22  Araki Ken <arakiken@user.sf.net>
 
+	* ci.yml: Fix build-solaris and build-haikuos.
+
+	* vt_term.c: Skip TEST_dynamic_comb() unless mlterm is build with bidi
+	  support.
+
 	* im_ibus.c: Call ibus_input_context_set_cursor_location() in
 	  key_event() for mozc.
 
