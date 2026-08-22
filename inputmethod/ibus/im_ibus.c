@@ -646,7 +646,31 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
   if (event->state & IBUS_IGNORED_MASK) {
     /* Is put back in forward_key_event */
     event->state &= ~IBUS_IGNORED_MASK;
-  } else if (ibus_input_context_process_key_event(ibus->context, native_to_ibus_ksym(ksym),
+
+    return 1;
+  }
+
+#if IBUS_CHECK_VERSION(1, 5, 0)
+  /*
+   * XXX
+   * To show candidate screen of mozc in the correct position.
+   * (ibus 1.5.34 and mozc 3.34.6239)
+   */
+  if (ibus->im.preedit.filled_len == 0) {
+    /* Start preediting. */
+    int x;
+    int y;
+
+    if ((*ibus->im.listener->get_spot)(ibus->im.listener->self, NULL, 0, &x, &y)) {
+      u_int line_height;
+
+      line_height = (*ibus->im.listener->get_line_height)(ibus->im.listener->self);
+      ibus_input_context_set_cursor_location(ibus->context, x, y - line_height, 0, line_height);
+    }
+  }
+#endif
+
+  if (ibus_input_context_process_key_event(ibus->context, native_to_ibus_ksym(ksym),
 #ifdef NO_XKB
                                                   event->keycode, event->state
 #else
