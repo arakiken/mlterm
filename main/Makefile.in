@@ -59,8 +59,7 @@ LIBS2_win32 = -mwindows -limm32 ../uitoolkit/winrs.o # @SUBSYSTEM@
 
 LIBS2_quartz = @COCOA_LIBS@
 
-# While libsocket.so existed in BeOS, it has been replaced by libnetwork.so in HaikuOS and later versions.
-LIBS2_beos = -lbe -ltranslation -lnetwork
+LIBS2_beos = -lbe -ltranslation @SOCK_LIBS@
 
 LIBS2_console = @SIXEL_LIBS@ @MATH_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ @SOCK_LIBS@
 

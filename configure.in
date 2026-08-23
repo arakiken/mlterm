@@ -134,7 +134,9 @@ else
 fi
 AC_SUBST(LIBTOOL)
 
-AC_CHECK_LIB(socket,connect,SOCK_LIBS=-lsocket)
+# -lnetwork is for HaikuOS (While libsocket.so existed in BeOS, it has been
+# replaced by libnetwork.so in HaikuOS and later versions.)
+AC_CHECK_LIB(socket,connect,SOCK_LIBS=-lsocket,AC_CHECK_LIB(network,connect,SOCK_LIBS=-lnetwork))
 AC_SUBST(SOCK_LIBS)
 
 AC_PATH_XTRA

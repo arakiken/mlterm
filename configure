@@ -17238,6 +17238,8 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 fi
 
 
+# -lnetwork is for HaikuOS (While libsocket.so existed in BeOS, it has been
+# replaced by libnetwork.so in HaikuOS and later versions.)
 { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for connect in -lsocket" >&5
 printf %s "checking for connect in -lsocket... " >&6; }
 if test ${ac_cv_lib_socket_connect+y}
@@ -17284,6 +17286,56 @@ printf '%s\n' "$ac_cv_lib_socket_connect" >&6; }
 if test "x$ac_cv_lib_socket_connect" = xyes
 then :
   SOCK_LIBS=-lsocket
+else case e in #(
+  e) { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for connect in -lnetwork" >&5
+printf %s "checking for connect in -lnetwork... " >&6; }
+if test ${ac_cv_lib_network_connect+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) ac_check_lib_save_LIBS=$LIBS
+LIBS="-lnetwork  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char connect (void);
+int
+main (void)
+{
+return connect ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_network_connect=yes
+else case e in #(
+  e) ac_cv_lib_network_connect=no ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS ;;
+esac
+fi
+{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_network_connect" >&5
+printf '%s\n' "$ac_cv_lib_network_connect" >&6; }
+if test "x$ac_cv_lib_network_connect" = xyes
+then :
+  SOCK_LIBS=-lnetwork
+fi
+ ;;
+esac
 fi
 
 
