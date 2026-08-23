@@ -996,9 +996,8 @@ static void TEST_dynamic_comb(void) {
                                 1 /* use_char_combining */, 1, 1 /* use_ctl */,
                                 0, NULL, 1 /* use_dynamic_comb */, 0, 0, 0,
                                 "mlterm", "mlterm", 1, 0, 0, 0, 0, 0);
-  vt_char_t *ch;
-  vt_char_t *comb;
   u_int num;
+  vt_line_t *line;
 
   assert(term->use_dynamic_comb == 1);
   assert(term->use_ctl == 1);
@@ -1008,18 +1007,27 @@ static void TEST_dynamic_comb(void) {
   assert(vt_parser_is_using_char_combining(term->parser) == 0);
   vt_term_write_loopback(term, "\xde\x82\xde\xaa", 4); /* U+782 U+7AA */
 
-  /* visual: 0x20(cursor) 0x782 */
-  ch = vt_term_get_line(term, 0)->chars + 1;
-  comb = vt_get_combining_chars(ch, &num);
-  assert(vt_char_code(ch) == 0x782);
-  assert(vt_char_code(comb) == 0x7aa);
+  line = vt_term_get_line(term, 0);
 
-  vt_screen_logical(term->screen);
+  if (line->ctl_info_type == VINFO_BIDI) {
+    vt_char_t *ch;
+    vt_char_t *comb;
 
-  /* logical: 0x782 0x7aa */
-  ch = vt_term_get_line(term, 0)->chars;
-  assert(vt_char_code(ch) == 0x782);
-  assert(vt_char_code(ch + 1) == 0x7aa);
+    /* visual: 0x20(cursor) 0x782 */
+    ch = line->chars + 1;
+    comb = vt_get_combining_chars(ch, &num);
+    assert(vt_char_code(ch) == 0x782);
+    assert(vt_char_code(comb) == 0x7aa);
+
+    vt_screen_logical(term->screen);
+
+    /* logical: 0x782 0x7aa */
+    ch = line->chars;
+    assert(vt_char_code(ch) == 0x782);
+    assert(vt_char_code(ch + 1) == 0x7aa);
+  } else {
+    bl_debug_printf("Skip TEST_dynamic_comb because bidi is not supported.\n");
+  }
 
   vt_term_destroy(term);
 }

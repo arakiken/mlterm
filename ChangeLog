@@ -1,3 +1,30 @@
+2026-08-23  Araki Ken <arakiken@user.sf.net>
+
+	* ReleaseNote, README.ja, man/mlterm.1: Update.
+
+	* vt_parser.c: Fix indeterminate return value of check_ignored_csi().
+
+	* ui_main_config.c, main_loop.c:
+	  Move --igncsi / ignored_csi_list option from ui_main_config.c to
+	  main_loop.c.
+
+2026-08-22  Araki Ken <arakiken@user.sf.net>
+
+	* ci.yml: Fix build-solaris and build-haikuos.
+
+	* vt_term.c: Skip TEST_dynamic_comb() unless mlterm is build with bidi
+	  support.
+
+	* im_ibus.c: Call ibus_input_context_set_cursor_location() in
+	  key_event() for mozc.
+
+2026-08-16  Araki Ken <arakiken@user.sf.net>
+
+	* vt_parser.[ch]: Add vt_set_ignored_csi_list() which sets sequence list
+	  to ignore csi.
+
+	* ui_main_config.c: Add --igncsi/ignored_csi_list option. 
+
 2026-08-14  sporteka <sporteka2@disroot.org>
 
 	* man/mlterm.1, etc/main, etc/main.ja, doc/ja/README.ja:

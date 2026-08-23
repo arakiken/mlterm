@@ -701,6 +701,12 @@ The default is \fBfalse\fR.
 \fB\-\-iconpath\fR=\fIpath\fR
 Specify the file to be used as a window icon.
 .TP
+\fB\-\-igncsi\fR=\fIlist\fR
+Specify CSI sequences which should be ignored.
+For example, \fB?8800h\fR ignores ^[[?8800h sequence.
+It is possible to specify multiple sequences separated by comma such as \fB?8800h,?8800l\fR.
+Note that \fB,\fR ignores all CSI sequences.
+.TP
 \fB\-\-it\fR=\fIcolor\fR
 Specify the color to use to display italic characters.
 .TP
@@ -1713,6 +1719,9 @@ Path for the image file to be used as window icon.
 .TP
 \fBignore_broadcasted_chars=\fIbool\fR (\fB\-\-ibc\fR)
 Whether to ignore broadcasted characters.
+.TP
+\fBignored_csi_list=\fIlist\fR (\fB\-\-igncsi\fR)
+Specify CSI sequences which should be ignored.
 .TP
 \fBinner_border=\fInumber\fR\fB[\fR\fI,number2\fR\fB]\fR (\fB\-\-border\fR)
 Specify inner border width.

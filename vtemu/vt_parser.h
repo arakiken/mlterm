@@ -338,6 +338,8 @@ void vt_set_full_width_areas(char *areas);
 
 void vt_set_half_width_areas(char *areas);
 
+void vt_set_ignored_csi_list(const u_char *list);
+
 void vt_set_use_ttyrec_format(int use);
 
 #ifdef USE_LIBSSH2

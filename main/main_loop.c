@@ -261,7 +261,6 @@ int main_loop_init(int argc, char **argv) {
   bl_conf_add_opt(conf, '\0', "softrend", 1,
                   "use_software_renderer", "use software renderer in SDL2 [false]");
 #endif
-
 #ifdef SUPPORT_POINT_SIZE_FONT
   bl_conf_add_opt(conf, '\0', "point", 1, "use_point_size",
                   "treat fontsize as point instead of pixel [false]");
@@ -276,6 +275,8 @@ int main_loop_init(int argc, char **argv) {
 #endif
                   );
 #endif
+  bl_conf_add_opt(conf, '\0', "igncsi", 0, "ignored_csi_list",
+                  "ignore specified CSI sequence");
 #ifdef BL_DEBUG
   bl_conf_add_opt(conf, '\0', "test", 1, "test", "execute tests");
 #endif
@@ -502,6 +503,10 @@ int main_loop_init(int argc, char **argv) {
     }
   }
 #endif
+
+  if ((value = bl_conf_get_value(conf, "ignored_csi_list"))) {
+    vt_set_ignored_csi_list(value);
+  }
 
 #ifdef BL_DEBUG
   if ((value = bl_conf_get_value(conf, "test"))) {

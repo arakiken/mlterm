@@ -993,6 +993,13 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
       o ignore_broadcasted_chars (true/*false*)
         broadcast オプションが true の場合でも、ブロードキャストを受け付けない。
 
+      o ignored_csi_list
+        無視する CSI シーケンスを指定
+
+        例えば ?8800h を指定すると、^[[?8800h というシーケンスを無視する。
+        ?8800h,?8800l のように、コンマで区切って複数指定することも可能。
+	なお、,を指定すると、全ての CSI シーケンスを無視することになるので注意してください。
+
       o init_str
         pty をオープンしたときに、端末に送られる初期化文字列を指定
 
@@ -1677,6 +1684,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
        --aafont(=bool) : use_aafont (mlterm-fb, mlterm-wl or mlterm-sdl2 用)
        --multivram(=bool) : separate_wall_picture (mlterm-fb on NetBSD/x68k 用)
        --slp(=bool)    : start_with_local_pty (Android 用)
+       --igncsi=value  : ignored_csi_list
 
     -e ...             : exec_cmd
 
