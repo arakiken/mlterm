@@ -88,7 +88,7 @@
 # fontsize = 16
 
 # 変更可能なフォントサイズの範囲
-# font_size_range = 1-100
+# font_size_range = 1-200
 
 # アンダーラインを描画しない。
 # hide_underline = false
