@@ -1,5 +1,7 @@
 2026-08-23  Araki Ken <arakiken@user.sf.net>
 
+	* main/Makefile.in: -lsocket -> -lnetwork in LIB2_beos.
+
 	* etc/main, etc/main.ja, man/mlterm.1, README.ja, main_loop.c:
 	  Fix descriptions for font_size_range option.
 	  (https://github.com/arakiken/mlterm/pull/175)
