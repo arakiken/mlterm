@@ -385,8 +385,8 @@ jobs:
         usesh: true
         prepare: |
           # workaround until R1 Beta6 is released.
-          pkgman drop-repo -y HaikuPorts
-          pkgman add-repo -y https://eu.hpkg.haiku-os.org/haikuports/master/$(getarch)/current
+          yes | pkgman drop-repo HaikuPorts
+          pkgman add-repo https://eu.hpkg.haiku-os.org/haikuports/master/$(getarch)/current
           pkgman refresh
           pkgman update
           pkgman install -y gcc make libsdl2_devel gtk3_devel

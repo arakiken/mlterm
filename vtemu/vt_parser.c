@@ -4616,6 +4616,8 @@ static int check_ignored_csi(const u_char *seq, size_t seq_len) {
       ign++;
       p = seq;
     }
+  } else {
+    return 0;
   }
 }
 
