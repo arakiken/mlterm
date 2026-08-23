@@ -2,6 +2,7 @@
 
 	* etc/main, etc/main.ja, man/mlterm.1, README.ja, main_loop.c:
 	  Fix descriptions for font_size_range option.
+	  (https://github.com/arakiken/mlterm/pull/175)
 
 	* ReleaseNote, README.ja, man/mlterm.1: Update.
 

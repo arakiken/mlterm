@@ -390,7 +390,8 @@ jobs:
           (pkgman refresh && pkgman update && pkgman install -y libsdl2_devel gtk3_devel) || echo libsdl2_devel or gtk3_devel is not installed.
 
         run: |
-          CFLAGS="-Wall -g -O2" ./configure --with-gui=beos,sdl2 --enable-debug
+          if pkg-config sdl2 --modversion; then gui="beos,sdl2"; else gui="beos"; fi
+          CFLAGS="-Wall -g -O2" ./configure --with-gui=$gui --enable-debug
           make
           make install
           (cd main; ./mlterm --test --logmsg=false)
