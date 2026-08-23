@@ -63,7 +63,8 @@
 
 # fontsize = 16
 
-# font_size_range = 1-100
+# 1-200 for mlterm-fb, mlterm-wl or mlterm-sdl2 with freetype support.
+# font_size_range = 1-10000
 
 # hide_underline = false
 

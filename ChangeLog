@@ -1,5 +1,8 @@
 2026-08-23  Araki Ken <arakiken@user.sf.net>
 
+	* etc/main, etc/main.ja, man/mlterm.1, README.ja, main_loop.c:
+	  Fix descriptions for font_size_range option.
+
 	* ReleaseNote, README.ja, man/mlterm.1: Update.
 
 	* vt_parser.c: Fix indeterminate return value of check_ignored_csi().

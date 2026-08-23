@@ -88,7 +88,8 @@
 # fontsize = 16
 
 # 変更可能なフォントサイズの範囲
-# font_size_range = 1-100
+# (freetype が有効な mlterm-fb, mlterm-wl, mlterm-sdl2 では 1-200)
+# font_size_range = 1-10000
 
 # アンダーラインを描画しない。
 # hide_underline = false
