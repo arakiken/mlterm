@@ -28,14 +28,10 @@
 #endif
 #endif
 #ifndef B_HANGUL
-#ifdef B_HANGUL_KEY
-#define B_HANGUL B_HANGUL_KEY
-#endif
+#define B_HANGUL 0xf0
 #endif
 #ifndef B_HANGUL_HANJA
-#ifdef B_HANGUL_HANJA_KEY
-#define B_HANGUL_HANJA B_HANGUL_HANJA_KEY
-#endif
+#define B_HANGUL_HANJA 0xf1
 #endif
 
 extern "C" {
