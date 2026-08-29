@@ -1,5 +1,8 @@
 2026-08-29  Araki Ken <arakiken@user.sf.net>
 
+	* beos.cpp: Define PTHREAD_RECURSIVE_MUTEX_INITIALIZER, B_HANGUL and
+	  B_HANGUL_HANJA macros which are dropped in r1beta6.
+
 	* ui_font_manager.c: ui_get_font() returns a font with size_attr for
 	  DRCS charset.
 

@@ -21,6 +21,23 @@
 
 #include <pthread.h>
 
+/* Backward compatibility macros for R1 Beta6 or later */
+#ifndef PTHREAD_RECURSIVE_MUTEX_INITIALIZER
+#ifdef PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
+#define PTHREAD_RECURSIVE_MUTEX_INITIALIZER PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
+#endif
+#endif
+#ifndef B_HANGUL
+#ifdef B_HANGUL_KEY
+#define B_HANGUL B_HANGUL_KEY
+#endif
+#endif
+#ifndef B_HANGUL_HANJA
+#ifdef B_HANGUL_HANJA_KEY
+#define B_HANGUL_HANJA B_HANGUL_HANJA_KEY
+#endif
+#endif
+
 extern "C" {
 #include "ui_window.h"
 #include "beos.h"
