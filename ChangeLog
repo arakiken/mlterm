@@ -1,3 +1,8 @@
+2026-08-29  Araki Ken <arakiken@user.sf.net>
+
+	* ui_font_manager.c: ui_get_font() returns a font with size_attr for
+	  DRCS charset.
+
 2026-08-23  Araki Ken <arakiken@user.sf.net>
 
 	* configure.in: Check libnetwork for @SOCK_LIBS@ if libsocket doesn't exist.

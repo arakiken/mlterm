@@ -51,11 +51,11 @@ O DECCRA (Copy Rectangular Area)                            CSI Pts;Pls;Pbs;Prs;
 - DECCRTST (CRT Saver Timing)                               CSI Ps - q
 O DECCTR (Color Table Request)                              CSI 2;Pu $ u
 O DECDC (Delete Column)                                     CSI Pn ' ~
-O DECDHL (Double-WidthDouble-Height Line)                   ESC # [34]
+O DECDHL (Double-Width Double-Height Line)                  ESC # [34]
 O DECDLD (Dynamically Redefinable Character Sets)           DCS Pfn;Pcn;Pe;Pcmw;Pss;Pt;Pcmh;Pcss f Dscs Sxbp1;...;Sxbpn ST
 O DECDMAC (Define Macro)                                    DCS Pid;Pdt;Pen ! z D...D ST
 - DECDLDA (Down Line Load Allocation)                       CSI Ps , z
-O DECDWL (Double-WidthSingle-Height Line)                   ESC # 6
+O DECDWL (Double-Width Single-Height Line)                  ESC # 6
 O DECECM (Erase Color Mode)                                 CSI ? 117 [hl]
 - DECEKBD (Extended Keyboard Report)                        APC : ppp mm ST
 - DECELF (Enable Local Functions)                           CSI Pf1;Pc1;...;Pfn;Pcn + q

@@ -409,7 +409,7 @@ jobs:
           pkgutil -y -i gcc5core libfribidi_dev libfreetype_dev libsdl2_dev libssh2_dev gtk2
 
         run: |
-          CFLAGS="-Wall -g -O2 -I/opt/csw/include/freetype2" ./configure --enable-debug
+          CFLAGS="-Wall -g -O2 -I/opt/csw/include/freetype2" ./configure --enable-debug --prefix=$HOME/mlterm
           make
           make install
           (cd main; ./mlterm --test --logmsg=false)

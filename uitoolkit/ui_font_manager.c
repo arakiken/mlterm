@@ -247,7 +247,10 @@ ui_font_t *ui_get_font(ui_font_manager_t *font_man, vt_font_t font) {
   ui_font_t *uifont;
 
   if (IS_DRCS(FONT_CS(font))) {
-    return font_man->font_cache->usascii_font;
+    if (font_man->size_attr == 0) {
+      return font_man->font_cache->usascii_font;
+    }
+    font = US_ASCII;
   }
 
   if (!font_man->use_bold_font) {
