@@ -1,4 +1,5 @@
 /* -*- c-basic-offset:4; tab-width:4; indent-tabs-mode:nil -*- */
+/* vim: set ts=4 sw=4 et : */
 /*
  * zmodem.c
  *
@@ -322,7 +323,7 @@ static void set_transfer_stats_last_message(const char * format, ...) {
     va_list arglist;
     memset(outbuf, 0, sizeof(outbuf));
     va_start(arglist, format);
-    vsprintf((char *) (outbuf + strlen(outbuf)), format, arglist);
+    vsnprintf((char *) outbuf, sizeof(outbuf), format, arglist);
     va_end(arglist);
 
     if (q_transfer_stats.last_message != NULL) {
@@ -918,7 +919,7 @@ static void stats_increment_errors(const char * format, ...) {
     va_list arglist;
     memset(outbuf, 0, sizeof(outbuf));
     va_start(arglist, format);
-    vsprintf((char *) (outbuf + strlen(outbuf)), format, arglist);
+    vsnprintf((char *) outbuf, sizeof(outbuf), format, arglist);
     va_end(arglist);
     set_transfer_stats_last_message(outbuf);
 
@@ -2788,8 +2789,8 @@ static Q_BOOL receive_zcrc_wait(unsigned char * output,
                          * Add a numeric suffix and see if the file doesn't
                          * exist.  If so, we can use that filename.
                          */
-                        sprintf(status.file_fullname, "%s/%s.%04d",
-                                download_path, status.file_name, i);
+                        snprintf(status.file_fullname, sizeof(status.file_fullname),
+                                 "%s/%s.%04d", download_path, status.file_name, i);
 
                         rc = stat(status.file_fullname, &fstats);
                         if (rc < 0) {
@@ -3323,7 +3324,9 @@ static Q_BOOL receive_zfile() {
     /*
      * Open the file
      */
-    sprintf(status.file_fullname, "%s/%s", download_path, status.file_name);
+    snprintf(status.file_fullname, sizeof(status.file_fullname),
+                 "%s/%s", download_path, status.file_name);
+
     rc = stat(status.file_fullname, &fstats);
     if (rc < 0) {
         if (errno == ENOENT) {
@@ -3393,8 +3396,8 @@ static Q_BOOL receive_zfile() {
             /*
              * Change the filename
              */
-            sprintf(status.file_fullname, "%s/%s.%04d", download_path,
-                    status.file_name, i);
+            snprintf(status.file_fullname, sizeof(status.file_fullname),
+                     "%s/%s.%04d", download_path, status.file_name, i);
 
             rc = stat(status.file_fullname, &fstats);
             if (rc < 0) {

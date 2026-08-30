@@ -1,3 +1,11 @@
+2026-08-31  Araki Ken <arakiken@user.sf.net>
+
+	* ci.yml: Add test of building libvte compatible library to build-solaris.
+
+	* mlterm-menu/Makefile.in, mlconfig/Makefile.in: Add LIBS2_beos.
+
+	* zmodem.c: Fix buffer overflow caused by sprintf().
+
 2026-08-29  Araki Ken <arakiken@user.sf.net>
 
 	* beos.cpp: Define PTHREAD_RECURSIVE_MUTEX_INITIALIZER, B_HANGUL and

@@ -36,6 +36,8 @@ LIBS2_win32 = -mwindows ${top_builddir}/baselib/src/.libs/libpobl.a
 
 LIBS2_quartz = $(LPOBL)
 
+LIBS2_beos = $(LPOBL)
+
 LIBS = $(LIBS1) $(LIBS2_@GUI@)
 
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
