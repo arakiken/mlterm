@@ -405,7 +405,7 @@ jobs:
         usesh: true
         prepare: |
           pkgutil -U
-          pkgutil -y -i gcc5core libfribidi_dev libfreetype_dev libsdl2_dev libssh2_dev gtk2 vte
+          pkgutil -y -i gcc5core libfribidi_dev libfreetype_dev libsdl2_dev libssh2_dev libgtk2_dev vte
 
         run: |
           CFLAGS="-Wall -g -O2 -I/opt/csw/include/freetype2" ./configure --enable-debug --prefix=$HOME/mlterm

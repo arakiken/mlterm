@@ -579,7 +579,8 @@ static void keyboard_leave(void *data, struct wl_keyboard *keyboard,
   bl_debug_printf("keyboard_leave %p\n", surface);
 #endif
 
-#if 0
+  /* for labwc 0.20.2 (https://github.com/arakiken/mlterm/issues/177) */
+#if 1
   wlserv->prev_kev.type = 0;
 #endif
 
