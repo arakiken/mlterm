@@ -371,7 +371,7 @@ static int draw_drcs(ui_window_t *window, char **glyphs, u_int num_glyphs, int x
         }
       }
 
-      if (n_smpl <= hit * 2) {
+      if (0 < n_smpl && n_smpl <= hit * 2) {
         w++;
 
         if (x_off_sum + 1 == ch_width * num_glyphs) {

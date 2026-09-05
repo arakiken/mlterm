@@ -1,6 +1,9 @@
 2026-09-05  Araki Ken <arakiken@user.sf.net>
 
-	* wayland/ui_display.c: keyboard_leave() set wlserv->prev_key.type = 0.
+	* ui_draw_str.c: Fix draw_drcs() not to draw garbage.
+	  (https://github.com/arakiken/mlterm/issues/176#issuecomment-5463271145)
+
+	* wayland/ui_display.c: keyboard_leave() sets wlserv->prev_key.type = 0.
 	  (https://github.com/arakiken/mlterm/issues/177)
 
 2026-08-31  Araki Ken <arakiken@user.sf.net>

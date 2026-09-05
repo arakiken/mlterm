@@ -386,7 +386,8 @@ jobs:
         prepare: |
           #yes | pkgman drop-repo HaikuPorts
           #pkgman add-repo https://eu.hpkg.haiku-os.org/haikuports/master/$(getarch)/current
-          (pkgman refresh && pkgman update && pkgman install -y libsdl2_devel gtk3_devel) || echo libsdl2_devel or gtk3_devel is not installed.
+          #(pkgman refresh && pkgman update && pkgman install -y libsdl2_devel gtk3_devel) || echo libsdl2_devel or gtk3_devel is not installed.
+          pkgman install -y libsdl2_devel gtk3_devel || echo libsdl2_devel or gtk3_devel is not installed.
 
         run: |
           if pkg-config sdl2 --modversion; then gui="beos,sdl2"; else gui="beos"; fi
@@ -405,7 +406,7 @@ jobs:
         usesh: true
         prepare: |
           pkgutil -U
-          pkgutil -y -i gcc5core libfribidi_dev libfreetype_dev libsdl2_dev libssh2_dev libgtk2_dev vte
+          pkgutil -y -i gcc5core pkgconfig libfribidi_dev libfreetype_dev libsdl2_dev libssh2_dev libgtk2_dev vte
 
         run: |
           CFLAGS="-Wall -g -O2 -I/opt/csw/include/freetype2" ./configure --enable-debug --prefix=$HOME/mlterm
