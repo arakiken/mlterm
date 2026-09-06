@@ -339,14 +339,17 @@ static int draw_drcs(ui_window_t *window, char **glyphs, u_int num_glyphs, int x
 
       left_x = (x_off * glyph_width * 10 / ch_width + 5) / 10 - smpl_width / 2;
       top_y = (y_off * glyph_height * 10 / line_height + 5) / 10 - smpl_height / 2;
-      /*
-       * If top_y < 0 or top_y >= glyph_height, w is always 0
-       * regardless of content of glyph.
-       */
+
+      /* n_smpl becomes always greater than 0 by these adjustments. */
       if (top_y < 0) {
         top_y = 0;
       } else if (top_y >= glyph_height) {
         top_y = glyph_height - 1;
+      }
+      if (left_x < 0) {
+        left_x = 0;
+      } else if (left_x >= glyph_width) {
+        left_x = glyph_width - 1;
       }
 
 #if 0
@@ -360,18 +363,19 @@ static int draw_drcs(ui_window_t *window, char **glyphs, u_int num_glyphs, int x
       hit = n_smpl = 0;
 
       for (smpl_y = 0; smpl_y < smpl_height; smpl_y++) {
-        for (smpl_x = 0; smpl_x < smpl_width; smpl_x++) {
-          if (0 <= left_x + smpl_x && left_x + smpl_x < glyph_width && 0 <= top_y + smpl_y &&
-              top_y + smpl_y < glyph_height) {
-            if (get_drcs_bitmap(glyph, glyph_width, left_x + smpl_x, top_y + smpl_y)) {
-              hit++;
+        if (top_y + smpl_y < glyph_height) {
+          for (smpl_x = 0; smpl_x < smpl_width; smpl_x++) {
+            if (left_x + smpl_x < glyph_width) {
+              if (get_drcs_bitmap(glyph, glyph_width, left_x + smpl_x, top_y + smpl_y)) {
+                hit++;
+              }
+              n_smpl++;
             }
-            n_smpl++;
           }
         }
       }
 
-      if (0 < n_smpl && n_smpl <= hit * 2) {
+      if (/* 0 < n_smpl && */ n_smpl <= hit * 2) {
         w++;
 
         if (x_off_sum + 1 == ch_width * num_glyphs) {
