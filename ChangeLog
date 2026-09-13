@@ -1,3 +1,18 @@
+2026-09-13  Araki Ken <arakiken@user.sf.net>
+
+	* mlconfig/main.c: #ifdef GTK_CHECK_VERSION -> #if GTK_CHECK_VERSION
+
+	* ui_main_config.[ch]:
+	  - Add --cursor / cursor_style option.
+	  - blink_cursor -> cursor_style in ui_main_config_t.
+	  - Rearrange ui_main_config_t.
+
+	* vt_parser.c:
+	  - Add get_cursor_style_name() and vt_get_cursor_style_by_name().
+	  - ignored_csi_list option supports \d which matches number parameters in CSI.
+
+	* main_loop.c: Add --decscusr/allow_decscusr option.
+
 2026-09-06  Araki Ken <arakiken@user.sf.net>
 
 	* ui_draw_str.c: Fix draw_drcs() again.

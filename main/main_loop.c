@@ -278,6 +278,7 @@ int main_loop_init(int argc, char **argv) {
 #endif
   bl_conf_add_opt(conf, '\0', "igncsi", 0, "ignored_csi_list",
                   "ignore specified CSI sequence");
+  bl_conf_add_opt(conf, '\0', "decscusr", 1, "allow_decscusr", "allow DECSCUSR [true]");
 #ifdef BL_DEBUG
   bl_conf_add_opt(conf, '\0', "test", 1, "test", "execute tests");
 #endif
@@ -505,8 +506,27 @@ int main_loop_init(int argc, char **argv) {
   }
 #endif
 
-  if ((value = bl_conf_get_value(conf, "ignored_csi_list"))) {
-    vt_set_ignored_csi_list(value);
+  {
+    char *decscusr;
+
+    if ((value = bl_conf_get_value(conf, "allow_decscusr")) && strcmp(value, "false") == 0) {
+      decscusr = "\\d q,33l"; /* XXX 33l is not DECSCUSR */
+    } else {
+      decscusr = NULL;
+    }
+
+    if ((value = bl_conf_get_value(conf, "ignored_csi_list"))) {
+      char *list;
+
+      if (decscusr && (list = alloca(strlen(decscusr) + 1 + strlen(value) + 1))) {
+        sprintf(list, "%s,%s", decscusr, value);
+      } else {
+        list = value;
+      }
+      vt_set_ignored_csi_list(list);
+    } else if (decscusr) {
+      vt_set_ignored_csi_list(decscusr);
+    }
   }
 
 #ifdef BL_DEBUG

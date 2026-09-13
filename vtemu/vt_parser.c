@@ -286,6 +286,8 @@ static char *recv_dir;
 
 static int format_other_keys;
 
+static char *cursor_style_name_table[] = { "blink|block", "blink|underline", "blink|bar", };
+
 /* --- static functions --- */
 
 #ifdef DEBUG
@@ -302,6 +304,31 @@ static void debug_print_unknown(const char *format, ...) {
 }
 #endif
 #endif
+
+static char *get_cursor_style_name(vt_cursor_style_t style) {
+  int count;
+
+  if (style & CS_BOX) {
+    style &= ~CS_BOX;
+#if 0
+    style |= CS_BLOCK; /* 0 */
+#endif
+  }
+
+  for (count = 1; count < BL_ARRAY_SIZE(cursor_style_name_table); count++) {
+    if (style & (1 << (count - 1))) {
+      goto return_value;
+    }
+  }
+  count = 0; /* CS_BLOCK */
+
+return_value:
+  if (style & CS_BLINK) {
+    return cursor_style_name_table[count];
+  } else {
+    return cursor_style_name_table[count] + 6;
+  }
+}
 
 /* XXX This function should be moved to pobl */
 static void str_replace(char *str, int c1, int c2) {
@@ -4369,7 +4396,7 @@ static void send_device_status(vt_parser_t *vt_parser, int num, int id) {
 
   if (num == 6) {
     /* XCPR */
-    if ((seq = alloca(6 + DIGIT_STR_LEN(int)+1))) {
+    if ((seq = alloca(6 + DIGIT_STR_LEN(int) * 3 + 1))) {
       sprintf(seq, "\x1b[?%d;%d;%dR", vt_screen_cursor_logical_row(vt_parser->screen) + 1,
               vt_screen_cursor_logical_col(vt_parser->screen) + 1,
               vt_screen_get_page_id(vt_parser->screen) + 1);
@@ -4604,8 +4631,16 @@ static int check_ignored_csi(const u_char *seq, size_t seq_len) {
       while (1) {
         if (*ign == '\0' || *ign == ',' || p == seq_end) {
           return 1;
-        } else if (*(p++) != *(ign++)) {
-          break;
+        } else if (*p != *ign) {
+          if (*(ign++) == '\\' && *(ign++) == 'd') {
+            /* \d == [0-9]* */
+            while ('0' <= *p && *p <= '9') { p++; }
+          } else {
+            break;
+          }
+        } else {
+          p++;
+          ign++;
         }
       }
       for (; *ign != ','; ign++) {
@@ -7307,7 +7342,6 @@ void vt_set_ignored_csi_list(const u_char *list) {
   }
 }
 
-
 void vt_set_use_ttyrec_format(int use) { use_ttyrec_format = use; }
 
 #ifdef USE_LIBSSH2
@@ -7352,6 +7386,24 @@ void vt_set_local_echo_wait(u_int msec) {
 
 void vt_set_format_other_keys(int flag) {
   format_other_keys = flag;
+}
+
+vt_cursor_style_t vt_get_cursor_style_by_name(const char *name) {
+  int count;
+  vt_cursor_style_t style = 0; /* CS_BLOCK */
+
+  for (count = 1; count < BL_ARRAY_SIZE(cursor_style_name_table); count++) {
+    if (strstr(name, cursor_style_name_table[count] + 6)) {
+      style |= (1 << (count - 1));
+      break;
+    }
+  }
+
+  if (strstr(name, "blink")) {
+    style |= CS_BLINK;
+  }
+
+  return style;
 }
 
 void vt_parser_final(void) {
@@ -8269,6 +8321,8 @@ int vt_parser_get_config(
     } else {
       value = "false";
     }
+  } else if (strcmp(key, "cursor_style") == 0) {
+    value = get_cursor_style_name(vt_parser->cursor_style);
   } else if (strcmp(key, "ignore_broadcasted_chars") == 0) {
     if (vt_parser->ignore_broadcasted_chars) {
       value = "true";
@@ -8500,6 +8554,8 @@ int vt_parser_set_config(vt_parser_t *vt_parser, const char *key, const char *va
     } else {
       vt_parser->cursor_style &= ~CS_BLINK;
     }
+  } else if (strcmp(key, "cursor_style") == 0) {
+    vt_parser->cursor_style = vt_get_cursor_style_by_name(value);
   } else if (strcmp(key, "ignore_broadcasted_chars") == 0) {
     int flag;
 
@@ -8887,13 +8943,13 @@ void vt_parser_report_mouse_tracking(vt_parser_t *vt_parser, int col, int row,
 
 static void TEST_ignored_csi_list(void) {
   u_char *seq[] = {
-    "?11hefg", "?13h?13h", "?13l?12l", "?12habc", "abcdefg",
+    "?11hefg", "?13h?13h", "?13l?12l", "?12habc", "abcdefg", "10000 q", " q"
   };
-  int result[] = { 1, 1, 0, 1, 0 };
+  int result[] = { 1, 1, 0, 1, 0, 1, 1 };
   size_t count;
   u_char *orig_list = ignored_csi_list;
 
-  ignored_csi_list = "?11h,?12h,?13h";
+  ignored_csi_list = "?11h,?12h,?13h,\\d q";
 
   for (count = 0; count < sizeof(seq) / sizeof(seq[0]); count++) {
     assert(check_ignored_csi(seq[count], strlen(seq[count])) == result[count]);

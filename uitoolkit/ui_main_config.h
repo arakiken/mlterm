@@ -23,19 +23,7 @@ typedef struct ui_main_config {
   u_int tab_size;
   u_int screen_width_ratio;
   u_int num_log_lines;
-  ui_mod_meta_mode_t mod_meta_mode;
-  ui_bel_mode_t bel_mode;
-  ui_xterm_ops_t xterm_ops;
-  ui_sb_mode_t sb_mode;
-  vt_char_encoding_t encoding;
-  int is_auto_encoding;
-  ui_type_engine_t type_engine;
-  ui_font_present_t font_present;
-  vt_bidi_mode_t bidi_mode;
-  vt_vertical_mode_t vertical_mode;
-  vt_bs_mode_t bs_mode;
-  vt_unicode_policy_t unicode_policy;
-  vt_alt_color_mode_t alt_color_mode;
+
   u_long parent_window;
 
   char *disp_name;
@@ -78,15 +66,35 @@ typedef struct ui_main_config {
   char *cmd_path;
   char **cmd_argv;
 
-  u_int16_t brightness;
-  u_int16_t contrast;
-  u_int16_t gamma;
+  /* vt_char_encoding_t */ u_int16_t encoding;
+  int8_t is_auto_encoding;
+
+  /* ui_mod_meta_mode_t */ u_int8_t mod_meta_mode;
+  /* ui_bel_mode_t */ u_int8_t bel_mode;
+  /* ui_xterm_ops_t */ u_int8_t xterm_ops;
+  /* ui_sb_mode_t */ u_int8_t sb_mode;
+  /* ui_type_engine_t */ u_int8_t type_engine;
+  /* ui_font_present_t */ u_int8_t font_present;
+  /* vt_bidi_mode_t */ u_int8_t bidi_mode;
+  /* vt_vertical_mode_t */ u_int8_t vertical_mode;
+  /* vt_bs_mode_t */ u_int8_t bs_mode;
+  /* vt_unicode_policy_t */ u_int8_t unicode_policy;
+  /* vt_alt_color_mode_t */ u_int8_t alt_color_mode;
+  /* vt_cursor_style_t */ u_int8_t cursor_style;
+
+  u_int8_t brightness;
+  u_int8_t contrast;
+  u_int8_t gamma;
+  u_int8_t alpha;
   u_int8_t col_size_of_width_a;
   u_int8_t step_in_changing_font_size;
-  u_int8_t alpha;
   u_int8_t fade_ratio;
   int8_t line_space;
   int8_t letter_space;
+  u_int8_t hmargin;
+  u_int8_t vmargin;
+  u_int8_t layout_hmargin;
+  u_int8_t layout_vmargin;
   int8_t use_mdi;
   int8_t use_login_shell;
   int8_t use_ctl;
@@ -99,11 +107,6 @@ typedef struct ui_main_config {
   int8_t borderless;
   int8_t use_dynamic_comb;
   int8_t logging_vt_seq;
-  int8_t blink_cursor;
-  u_int8_t hmargin;
-  u_int8_t vmargin;
-  u_int8_t layout_hmargin;
-  u_int8_t layout_vmargin;
   int8_t hide_underline;
   int8_t underline_offset;
   int8_t baseline_offset;

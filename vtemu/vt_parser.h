@@ -360,6 +360,8 @@ void vt_set_local_echo_wait(u_int msec);
 
 void vt_set_format_other_keys(int flag);
 
+vt_cursor_style_t vt_get_cursor_style_by_name(const char *name);
+
 /*
  * Ignore the return value of vt_config_proto_init().
  * Mlterm starts normally even if ~/.mlterm/challenge cannot be generated due to

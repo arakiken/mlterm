@@ -30,8 +30,7 @@ static char *default_display = "";
 /* --- static functions --- */
 
 static vt_char_encoding_t get_encoding(const char *value,
-                                       int *is_auto_encoding /* overwritten only if auto encoding */
-                                       ) {
+                                       int8_t *is_auto_encoding /* overwritten only if auto encoding */) {
   vt_char_encoding_t encoding;
 
   if (!value) {
@@ -249,6 +248,7 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
   bl_conf_add_opt(conf, '\0', "xtrz", 1, "allow_xtwinops_resize",
                   "allow resizing window by XTWINOPS sequence [true]");
   bl_conf_add_opt(conf, '\0', "blink", 1, "blink_cursor", "blink cursor [false]");
+  bl_conf_add_opt(conf, '\0', "cursor", 0, "cursor_style", "cursor style [block]");
   bl_conf_add_opt(conf, '\0', "border", 0, "inner_border", "inner border [2]");
   bl_conf_add_opt(conf, '\0', "lborder", 0, "layout_inner_border",
                   "inner border of layout manager [0]");
@@ -1195,10 +1195,16 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
     }
   }
 
+  main_config->cursor_style = CS_BLOCK;
+
   if ((value = bl_conf_get_value(conf, "blink_cursor"))) {
     if (strcmp(value, "true") == 0) {
-      main_config->blink_cursor = 1;
+      main_config->cursor_style |= CS_BLINK;
     }
+  }
+
+  if ((value = bl_conf_get_value(conf, "cursor_style"))) {
+    main_config->cursor_style = vt_get_cursor_style_by_name(value);
   }
 
   main_config->hmargin = main_config->vmargin = 2;

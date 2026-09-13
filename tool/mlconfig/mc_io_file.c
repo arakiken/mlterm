@@ -466,7 +466,7 @@ next_step:
     char *rgb = get_value(conf, color);
 
     if (rgb == NULL && color_num >= 0) {
-      char buf[3];
+      char buf[DIGIT_STR_LEN(color_num) + 1];
 
       sprintf(buf, "%d", color_num);
       if ((rgb = get_value(conf, buf)) == NULL && color_num < 16) {

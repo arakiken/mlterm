@@ -28,6 +28,7 @@ jobs:
             apt install -y build-essential autoconf flex libutempter-dev libgtk-3-dev libvterm-dev libvte-2.91-dev libsdl2-dev libfribidi-dev libuim-dev libfcitx5core-dev libfcitx5gclient-dev libscim-dev libibus-1.0-dev libm17n-dev libcanna1g-dev libssh2-1-dev curl unzip protobuf-compiler libprotobuf-dev libncurses-dev libssl-dev default-jdk libswt-gtk-4-java libvte-2.91-gtk4-dev
             ;;
           ubuntu:22.04|debian*)
+            apt clean
             apt update
             apt upgrade -y
             # ubuntu:22.04 and debian:11 do not support libvte-2.91-gtk4-dev.
@@ -409,7 +410,7 @@ jobs:
           pkgutil -y -i gcc5core pkgconfig libfribidi_dev libfreetype_dev libsdl2_dev libssh2_dev libgtk2_dev vte
 
         run: |
-          export PKG_CONFIG_PATH=/opt/csw/lib/pkgconfig:/opt/csw/lib/64/pkgconfig:$PKG_CONFIG_PATH
+          export PKG_CONFIG_PATH=/opt/csw/lib/pkgconfig:/opt/csw/lib/64/pkgconfig:${PKG_CONFIG_PATH:-}
           CFLAGS="-Wall -g -O2 -I/opt/csw/include/freetype2" ./configure --enable-debug --prefix=$HOME/mlterm
           make
           make install

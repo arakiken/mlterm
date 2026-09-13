@@ -123,7 +123,9 @@ static void reset_layout(struct terminal *term, int x, int y, u_int width, u_int
   }
 
   if (term->sb_mode != SBM_NONE) {
+#ifdef MANAGE_SUB_WINDOWS_BY_MYSELF
     int sep_x;
+#endif
     int sb_moved;
     int sb_resized;
 
@@ -131,11 +133,15 @@ static void reset_layout(struct terminal *term, int x, int y, u_int width, u_int
       screen_moved = ui_window_move(&term->screen->window, x, y);
       sb_moved = ui_window_move(&term->scrollbar.window,
                                  x + child_width - ACTUAL_WIDTH(&term->scrollbar.window), y);
+#ifdef MANAGE_SUB_WINDOWS_BY_MYSELF
       sep_x = x + child_width - SCROLLBAR_WIDTH(term->scrollbar);
+#endif
     } else {
       screen_moved = ui_window_move(&term->screen->window, x + SCROLLBAR_WIDTH(term->scrollbar), y);
       sb_moved = ui_window_move(&term->scrollbar.window, x, y);
+#ifdef MANAGE_SUB_WINDOWS_BY_MYSELF
       sep_x = x + ACTUAL_WIDTH(&term->scrollbar.window);
+#endif
     }
 
     /*

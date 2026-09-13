@@ -24,7 +24,9 @@
 static vt_pty_t *(*mosh_new)(const char *, char **, char **, const char *, const char *,
                              const char *, const char *, u_int, u_int, u_int, u_int);
 static int (*mosh_set_use_loopback)(vt_pty_t *, int);
+#ifdef USE_WIN32API
 static int (*mosh_set_pty_read_trigger)(void (*func)(void));
+#endif
 
 static int is_tried;
 static bl_dl_handle_t handle;

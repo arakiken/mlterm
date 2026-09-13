@@ -667,7 +667,6 @@ static u_int charset_cache_size;
 static u_int max_charset_cache_size;
 
 static int search_nearest_pos_in_cache(const char *family, int beg, int end) {
-  int count = 0;
   while (1) {
     if (beg + 1 == end) {
       return beg;
@@ -682,7 +681,6 @@ static int search_nearest_pos_in_cache(const char *family, int beg, int end) {
         end = pos;
       }
     }
-    count++;
   }
 }
 

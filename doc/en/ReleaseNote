@@ -1,5 +1,6 @@
 * Support KMSDRM in linux.
 * Add --igncsi/ignored_csi_list option.
+* Add --decscusr/allow_decscusr option.
 
 ver 3.9.5
 * Support text-input-unstable-v3.

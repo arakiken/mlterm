@@ -453,8 +453,8 @@ static void draw_cursor(ui_screen_t *screen) {
   vt_line_t *orig;
   vt_char_t ch;
   vt_cursor_style_t cursor_style;
-  vt_char_t *pic_ch;
 #ifdef FORCE_BOX_CURSOR_IN_PICTURE
+  vt_char_t *pic_ch;
   int is_picture;
 #endif
 #ifdef USE_IM_CURSOR_COLOR
