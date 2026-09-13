@@ -1,5 +1,10 @@
 2026-09-13  Araki Ken <arakiken@user.sf.net>
 
+	* ci.yml: deb.debian.org, security.debian.org -> archive.debian.org in
+	  /etc/apt/sources.list in debian:11.
+
+	* vte.c: blink_cursor -> cursor_style in vte_terminal_init().
+
 	* mlconfig/main.c: #ifdef GTK_CHECK_VERSION -> #if GTK_CHECK_VERSION
 
 	* ui_main_config.[ch]:
