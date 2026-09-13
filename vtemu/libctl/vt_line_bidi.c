@@ -217,6 +217,9 @@ int vt_line_bidi_visual(vt_line_t *line) {
   int count;
   vt_char_t *src;
   int prev = -1;
+#ifdef DEBUG
+  int max_vis_pos = 0;
+#endif
 
   if (line->ctl_info.bidi->size == 0 || !HAS_RTL(line->ctl_info.bidi)) {
 #ifdef __DEBUG
@@ -232,9 +235,6 @@ int vt_line_bidi_visual(vt_line_t *line) {
   vt_str_init(src, line->ctl_info.bidi->size);
   vt_str_copy(src, line->chars, line->ctl_info.bidi->size);
 
-#ifdef DEBUG
-  int max_vis_pos = 0;
-#endif
   for (count = 0; count < line->ctl_info.bidi->size; count++) {
     int vis_pos = line->ctl_info.bidi->visual_order[count];
 

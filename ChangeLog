@@ -1,5 +1,13 @@
 2026-09-13  Araki Ken <arakiken@user.sf.net>
 
+	* ui_emoji.c: Execute ui_emoji_set_path("/boot/system") in HaikuOS in TEST_ui_emoji().
+
+	* ci.yml:
+	  - Remove libXft in build-netbsd.
+	  - Remove sudo in debian:11.
+
+2026-09-13  Araki Ken <arakiken@user.sf.net>
+
 	* ci.yml: deb.debian.org, security.debian.org -> archive.debian.org in
 	  /etc/apt/sources.list in debian:11.
 

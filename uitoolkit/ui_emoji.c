@@ -226,7 +226,17 @@ void TEST_ui_emoji(void) {
 
   emoji_path = emoji_file_format1 = emoji_file_format2 = NULL;
 
-#ifndef USE_WIN32API
+#if defined(USE_WIN32API)
+  ui_emoji_set_path("c:\\Users");
+  assert(strcmp("c:\\Users", emoji_path) == 0);
+  free(emoji_path);
+  emoji_path = NULL;
+#elif defined(USE_BEOS)
+  ui_emoji_set_path("/boot/system");
+  assert(strcmp("/boot/system", emoji_path) == 0);
+  free(emoji_path);
+  emoji_path = NULL;
+#else
   ui_emoji_set_path("/usr");
   assert(strcmp("/usr", emoji_path) == 0);
   free(emoji_path);
@@ -239,11 +249,6 @@ void TEST_ui_emoji(void) {
 
   ui_emoji_set_path("/etc/profile");
   assert(strcmp("/etc/profile", emoji_path) == 0);
-  free(emoji_path);
-  emoji_path = NULL;
-#else
-  ui_emoji_set_path("c:\\Users");
-  assert(strcmp("c:\\Users", emoji_path) == 0);
   free(emoji_path);
   emoji_path = NULL;
 #endif
