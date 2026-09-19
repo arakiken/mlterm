@@ -159,7 +159,7 @@
 
 # vt_color_mode = high
 
-# -- Scrollbar 関連 --
+# -- Scrollbar --
 
 # sb_fg_color =
 
@@ -174,9 +174,11 @@
 
 # use_mdi = true
 
-# -- その他 --
+# -- Others --
 
 # allow_change_shortcut = false
+
+# allow_decscusr = true
 
 # allow_osc52 = false
 
@@ -212,6 +214,9 @@
 # (Available fo mlterm-fb)
 # cursor_size = 7,15
 
+# (block, unserline, bar, block|blink, underline|blink, bar|blink)
+# cursor_style = block
+
 # (none,blend,genuine)
 # daemon_mode = none
 
@@ -242,6 +247,8 @@
 # icon_name = mlterm
 
 # icon_path =
+
+# ignored_csi_list =
 
 # ignore_broadcasted_chars = false
 

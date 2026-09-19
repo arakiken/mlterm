@@ -867,6 +867,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
         OSC 5379 の "set_shortcut" による動的なショートカットキー定義を有効にす
         る。
 
+      o allow_decscusr (*true*/false)
+        DECSCUSR シーケンスによるカーソル形状の変更を許可
+
       o allow_osc52 (true/*false*)
         OSC 52 sequence によるクリップボード(セレクション)へのアクセスを許可
         なお、このオプションを動的に変更するには、"proto:allow_osc52=switch"
@@ -931,6 +934,12 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
 
       o cursor_size (*7,15*) (mlterm-fb 用)
         カーソルの幅と高さ
+
+      o cursor_style (block)
+        カーソルの形状を指定
+
+        指定できる値は次のとおり。
+        block, underline, bar, block|blink, underline|blink, bar|blink
 
       o daemon_mode (*none*/blend/genuine)
         daemon process となるかどうか
@@ -998,7 +1007,8 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
 
         例えば ?8800h を指定すると、^[[?8800h というシーケンスを無視する。
         ?8800h,?8800l のように、コンマで区切って複数指定することも可能。
-	なお、,を指定すると、全ての CSI シーケンスを無視することになるので注意してください。
+        \d は、数値のパラメータにマッチする(例:\d q)。
+        なお、,を指定すると、全ての CSI シーケンスを無視することになるので注意してください。
 
       o init_str
         pty をオープンしたときに、端末に送られる初期化文字列を指定
@@ -1630,6 +1640,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
        --csp=value     : letter_space
        --osc52(=bool)  : allow_osc52
        --blink(=bool)  : blink_cursor
+       --cursor=value  : cursor_style
        --border=value  : inner_border
        --lborder=value : layout_inner_border
        --restart(=bool): auto_restart
@@ -1685,6 +1696,7 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
        --multivram(=bool) : separate_wall_picture (mlterm-fb on NetBSD/x68k 用)
        --slp(=bool)    : start_with_local_pty (Android 用)
        --igncsi=value  : ignored_csi_list
+       --decscusr(=bool) : allow_decscusr
 
     -e ...             : exec_cmd
 

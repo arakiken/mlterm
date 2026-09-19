@@ -1,6 +1,18 @@
 * Support KMSDRM in linux.
 * Add --igncsi/ignored_csi_list option.
+* Add --cursor/cursor_style option.
 * Add --decscusr/allow_decscusr option.
+* Bug fixes:
+  https://github.com/arakiken/mlterm/issues/74
+  https://github.com/arakiken/mlterm/issues/171
+  https://github.com/arakiken/mlterm/pull/173
+  https://github.com/arakiken/mlterm/pull/175
+  https://github.com/arakiken/mlterm/issues/176
+  https://github.com/arakiken/mlterm/issues/177
+  Fix the cursor position in preediting text.
+  (Related to https://github.com/chu-hai/mlterm/commit/111cb6a)
+  Fix delaying connection to fcitx server.
+  (Related to https://github.com/chu-hai/mlterm/tree/improve_im_fcitx)
 
 ver 3.9.5
 * Support text-input-unstable-v3.

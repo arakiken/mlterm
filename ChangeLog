@@ -1,3 +1,9 @@
+2026-09-19  Araki Ken <arakiken@user.sf.net>
+
+	* PROTOCOL, README.ja, man/mlterm.1, etc/main, etc/main.ja: Update.
+
+	* ci.yml: Fix PKG_CONFIG_PATH in build-solaris.
+
 2026-09-13  Araki Ken <arakiken@user.sf.net>
 
 	* ui_emoji.c: Execute ui_emoji_set_path("/boot/system") in HaikuOS in TEST_ui_emoji().

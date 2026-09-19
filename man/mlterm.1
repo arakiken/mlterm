@@ -60,12 +60,12 @@ the current locale (default \fBAUTO\fR).
 Specify a foreground color of a scrollbar.
 See \fB\-\-sbbg\fR option for valid values.
 .TP
-\fB\-G\fR, \fB\-\-vertical=\fImode\fR
+\fB\-G\fR, \fB\-\-vertical\fR=\fImode\fR
 Specify vertical writing mode.
 \fBcjk\fR for RTL vertical writing and \fBmongol\fR for LTR one.
 The default is \fBnone\fR which means horizontal writing mode.
 .TP
-\fB\-H\fR, \fB\-\-bright=\fIpercent\fR
+\fB\-H\fR, \fB\-\-bright\fR=\fIpercent\fR
 Brightness of background images in percent.
 See \fB\-p\fR option for details of background images.
 The default is \fB100\fR (keep original).
@@ -620,6 +620,12 @@ The default is \fBtrue\fR.
 Whether to use ConPTY.
 The default is \fBtrue\fR.
 .TP
+\fB\-\-cursor\fR=\fIstyle\fR
+Specify cursor style.
+A valid value is \fBblock\fR, \fBunderline\fR, \fBbar\fR, \fBblock|blink\fR,
+\fBunderline|blink\fR or \fBbar|blink\fR.
+The default is \fBblock\fR.
+.TP
 \fB\-\-crsz\fR=\fIwidth,height\fR (Available for mlterm-fb)
 Specify cursor width and height in pixel.
 The default is \fB7,15\fR.
@@ -644,6 +650,11 @@ The default is \fB63;1;2;3;4;6;7;15;18;22;29\fR.
 \fB\-\-da2\fR=\fIstring\fR
 Specify secondary device attributes string.
 The default is \fB24;279;0\fR.
+.TP
+\fB\-\-decscusr(=\fIbool\fR)
+Whether to allow DECSCUSR.
+If this option is false, it sets \fB"\\d q,33l"\fR to \fB\-\-igncsi\fR option.
+The default is \fBtrue\fR.
 .TP
 \fB\-\-depth\fR=\fInumber\fR
 Specify visual depth. (\fB8\fR, \fB16\fR, \fB24\fR or \fB32\fR)
@@ -687,12 +698,12 @@ The default is \fBfalse\fR.
 \fB\-\-fullwidth\fR=\fIranges\fR
 Force full width regardless of EastAsianWidth.txt.
 
-e.g.) --fullwidth=U+1234-5678,U+0123-4567
+e.g.) \-\-fullwidth=U+1234-5678,U+0123-4567
 .TP
 \fB\-\-halfwidth\fR=\fIranges\fR
 Force half width regardless of EastAsianWidth.txt.
 
-e.g.) --halfwidth=U+1234-5678,U+0123-4567
+e.g.) \-\-halfwidth=U+1234-5678,U+0123-4567
 .TP
 \fB\-\-ibc\fR(=\fIbool\fR)
 Whether to ignore broadcasted characters.
@@ -883,7 +894,7 @@ The default is \fB0\fR.
 \fB\-\-ucsnoconv\fR=\fIranges\fR
 Use unicode fonts partially regardless of -n option.
 
-e.g.) --ucsnoconv=U+1234-5678,U+0123-4567
+e.g.) \-\-ucsnoconv=U+1234-5678,U+0123-4567
 .TP
 \fB\-\-urgent\fR(=\fIbool\fR)
 Draw the user's attention when making a bell sound in the unfocused window.
@@ -1552,258 +1563,265 @@ The main configuration file "\fBmain\fR" has the following keys.
 Parentheses show the corresponding command-line options.
 See the explanation on these command-line options for detail.
 .TP
-\fBauto_detect_encodings=\fIencodings\fR (\fB\-\-ade\fR)
-Specify character encodings detected automatically.
+\fBallow_decscusr\fR=\fIbool\fR (\fB\-\-decscusr\fR)
+Allow DECSCUSR.
 .TP
-\fBallow_osc52=\fIbool\fR (\fB\-\-osc52\fR)
+\fBallow_osc52\fR=\fIbool\fR (\fB\-\-osc52\fR)
 Allow access to clipboard(selection) by OSC 52 sequence.
 .TP
-\fBallow_scp=\fIbool\fR (\fB\-\-scp\fR)
+\fBallow_scp\fR=\fIbool\fR (\fB\-\-scp\fR)
 Allow OSC 5379 scp.
 .TP
-\fBallow_xtwinops_resize=\fIbool\fR (\fB\-\-xtrz\fR)
+\fBallow_xtwinops_resize\fR=\fIbool\fR (\fB\-\-xtrz\fR)
 Allow resizing by XTWINOPS sequence.
 .TP
-\fBallow_change_shortcut=\fIbool\fR (\fB\-\-shortcut\fR)
+\fBallow_change_shortcut\fR=\fIbool\fR (\fB\-\-shortcut\fR)
 Allow dynamic change of shortcut keys by OSC 5379 set_shortcut sequence.
 .TP
-\fBalpha=\fIname\fR (\fB\-X\fR, \fB\-\-alpha\fR)
+\fBalpha\fR=\fIname\fR (\fB\-X\fR, \fB\-\-alpha\fR)
 Alpha in pseudo or true transparent.
 .TP
-\fBapp_name=\fIname\fR (\fB\-N\fR, \fB\-\-name\fR)
+\fBapp_name\fR=\fIname\fR (\fB\-N\fR, \fB\-\-name\fR)
 Application name. (WM_CLASS property)
-\fBauto_restart=\fIbool\fR (\fB\-\-restart\fR)
+.TP
+\fBauto_detect_encodings\fR=\fIencodings\fR (\fB\-\-ade\fR)
+Specify character encodings detected automatically.
+.TP
+\fBauto_restart\fR=\fIbool\fR (\fB\-\-restart\fR)
 Restart mlterm with all opened ptys except ssh if SIGSEGV, SIGBUS, SIGFPE or
 SIGILL is received.
 If you want to get core image, specify "false".
 .TP
-\fBbaseline_offset=\fInumber\fR (\fB\-\-blpos\fR)
+\fBbaseline_offset\fR=\fInumber\fR (\fB\-\-blpos\fR)
 Specify the position of baseline.
 The default is \fB0\fR.
 .TP
-\fBbel_mode=\fImode\fR (\fB\-7\fR, \fB\-\-bel\fR)
+\fBbel_mode\fR=\fImode\fR (\fB\-7\fR, \fB\-\-bel\fR)
 Behavior when BEL (0x07) is received.
 .TP
-\fBbd_color=\fIcolor\fR (\fB\-\-bd\fR)
+\fBbd_color\fR=\fIcolor\fR (\fB\-\-bd\fR)
 Specify the color to use to display bold characters.
 .TP
-\fBbl_color=\fIcolor\fR (\fB\-\-bl\fR)
+\fBbl_color\fR=\fIcolor\fR (\fB\-\-bl\fR)
 Specify the color to use to display blinking characters.
 .TP
-\fBbg_color=\fIcolor\fR (\fB\-b\fR, \fB\-\-bg\fR)
+\fBbg_color\fR=\fIcolor\fR (\fB\-b\fR, \fB\-\-bg\fR)
 Background color.
 .TP
-\fBbidi_mode=\fImode\fR (\fB\-\-bimode\fR)
+\fBbidi_mode\fR=\fImode\fR (\fB\-\-bimode\fR)
 Specify bidi mode.
 .TP
-\fBbidi_separators=\fIcharacterlist\fR (\fB\-\-bisep\fR)
+\fBbidi_separators\fR=\fIcharacterlist\fR (\fB\-\-bisep\fR)
 Specify separator characters (\\x00-\\xFF is also available) to render bidi text.
 .TP
-\fBbig5_buggy=\fIbool\fR (\fB\-5\fR, \fB\-\-big5bug\fR)
+\fBbig5_buggy\fR=\fIbool\fR (\fB\-5\fR, \fB\-\-big5bug\fR)
 Support Big5 CTEXT bugs (which exist in XFree86 4.1.0 or before).
 .TP
-\fBblink_cursor=\fIbool\fR (\fB\-\-blink\fR)
+\fBblink_cursor\fR=\fIbool\fR (\fB\-\-blink\fR)
 Blink cursor.
 .TP
-\fBbox_drawing_font=\fImode\fR (\fB\-\-boxdraw\fR)
+\fBbox_drawing_font\fR=\fImode\fR (\fB\-\-boxdraw\fR)
 Use either unicode font or DEC Special font forcibly to draw box-drawing characters.
 .TP
-\fBborderless=\fIbool\fR (\fB\-&\fR, \fB\-\-borderless\fR)
+\fBborderless\fR=\fIbool\fR (\fB\-&\fR, \fB\-\-borderless\fR)
 Don't draw window decorations.
 .TP
-\fBbrightness=\fIpercent\fR (\fB\-H\fR, \fB\-\-brightness\fR)
+\fBbrightness\fR=\fIpercent\fR (\fB\-H\fR, \fB\-\-brightness\fR)
 Specify the amount of darkening or lightening the background image.
 .TP
-\fBbroadcast=\fIbool\fR (\fB\-H\fR, \fB\-\-bc\fR)
+\fBbroadcast\fR=\fIbool\fR (\fB\-H\fR, \fB\-\-bc\fR)
 Whether to broadcast input or pasted characters to all ptys whose value of
 "ignore_broadcasted_chars" option is false.
 .TP
-\fBchange_selection_immediately=\fIbool\fR (\-\-chsel\fR) (Available for platforms except x11 and wayland)
+\fBchange_selection_immediately\fR=\fIbool\fR (\-\-chsel\fR) (Available for platforms except x11 and wayland)
 Whether to enable to change selection just after selecting text by mouse.
 .TP
 \fBcipher_list\fR=\fIciphers\fR (\fB\-\-ciphlist\fR)
 Specify ciphers (comma separated list) for encrypting the ssh session.
 .TP
-\fBco_color=\fIcolor\fR (\fB\-\-co\fR)
+\fBco_color\fR=\fIcolor\fR (\fB\-\-co\fR)
 Specify the color to use to display crossed-out characters.
 .TP
-\fBcol_size_of_width_a=\fInumber\fR (\fB\-a\fR, \fB\-\-ac\fR)
+\fBcol_size_of_width_a\fR=\fInumber\fR (\fB\-a\fR, \fB\-\-ac\fR)
 Number of columns of Unicode characters with EastAsianAmbiguous property.
 .TP
-\fBcompose_dec_special_font=\fIbool\fR (\fB\-Y\fR, \fB\-\-decsp\fR)
+\fBcompose_dec_special_font\fR=\fIbool\fR (\fB\-Y\fR, \fB\-\-decsp\fR)
 Compose line drawing character set.
 .TP
-\fBconsole_encoding=\fIencoding\fR (\fB\-\-ckm\fR) (Available for mlterm-con)
+\fBconsole_encoding\fR=\fIencoding\fR (\fB\-\-ckm\fR) (Available for mlterm-con)
 Specify encoding of the console where mlterm-con works.
 .TP
-\fBconsole_sixel_colors=\fImode\fR (\fB\-\-csc\fR) (Available for mlterm-con)
+\fBconsole_sixel_colors\fR=\fImode\fR (\fB\-\-csc\fR) (Available for mlterm-con)
 Specify the number of sixel graphics colors of the console where mlterm-con works.
 .TP
-\fBcontrast=\fIpercent\fR (\fB\-3\fR, \fB\-\-contrast\fR)
+\fBcontrast\fR=\fIpercent\fR (\fB\-3\fR, \fB\-\-contrast\fR)
 Contrast of background image in percent.
 .TP
-\fBcursor_bg_color=\fIcolor\fR (\fB\-0\fR, \fB\-\-crbg\fR)
+\fBcursor_bg_color\fR=\fIcolor\fR (\fB\-0\fR, \fB\-\-crbg\fR)
 Specify background color for cursor.
 .TP
-\fBcursor_fg_color=\fIcolor\fR (\fB\-9\fR, \fB\-\-crfg\fR)
+\fBcursor_fg_color\fR=\fIcolor\fR (\fB\-9\fR, \fB\-\-crfg\fR)
 Specify foreground color for cursor.
 .TP
-\fBcursor_size=\fIwidth,height\fR (\fB\-\-crsz\fR) (Available for mlterm-fb)
+\fBcursor_size\fR=\fIwidth,height\fR (\fB\-\-crsz\fR) (Available for mlterm-fb)
 Specify cursor width and height in pixel.
 .TP
-\fBdaemon_mode=\fImode\fR (\fB\-j\fR, \fB\-\-daemon\fR)
+\fBcursor_style\fR=\fIstyle\fR (\fB\-\-cursor\fR)
+Specify cursor style.
+.TP
+\fBdaemon_mode\fR=\fImode\fR (\fB\-j\fR, \fB\-\-daemon\fR)
 Start as a daemon process.
 .TP
-\fBdefault_cell_size=\fIwidth,height\fR (\fB\-\-csz\fR) (Available for mlterm-con)
+\fBdefault_cell_size\fR=\fIwidth,height\fR (\fB\-\-csz\fR) (Available for mlterm-con)
 Specify cell width and height in pixel which mlterm-con uses if it doesn't get them.
 .TP
-\fBdefault_server=\fIserver\fR (\fB\-\-serv\fR)
+\fBdefault_server\fR=\fIserver\fR (\fB\-\-serv\fR)
 Specify a host you want to connect via ssh etc.
 .TP
 \fBdepth\fR=\fInumber\fR (\fB\-\-depth\fR)
 Specify visual depth.
 .TP
-\fBdisplay=\fIdisplay\fR (\fB\-d\fR, \fB\-\-display\fR)
+\fBdisplay\fR=\fIdisplay\fR (\fB\-d\fR, \fB\-\-display\fR)
 Specify X server to connect.
 .TP
-\fBdnd_escape_mode=\fImode\fR (\fB\-\-dndesc\fR)
+\fBdnd_escape_mode\fR=\fImode\fR (\fB\-\-dndesc\fR)
 Specify mode in escaping DnD text.
 .TP
-\fBemoji_path=\fIpath\fR (\fB\-\-emoji\fR)
+\fBemoji_path\fR=\fIpath\fR (\fB\-\-emoji\fR)
 Specify path of a directory where emoji image files exist or a open type emoji
 font to show unicode emoji characters.
 .TP
-\fBemoji_file_format=\fIformat\fR (\fB\-\-emojifmt\fR)
+\fBemoji_file_format\fR=\fIformat\fR (\fB\-\-emojifmt\fR)
 Specify filename format of emoji image files in the directory specified by
 \-\-emoji option.
 .TP
-\fBencoding=\fIencoding\fR (\fB\-E\fR, \fB\-\-km\fR)
+\fBencoding\fR=\fIencoding\fR (\fB\-E\fR, \fB\-\-km\fR)
 Specify encoding.
 .TP
-\fBexit_backscroll_by_pty=\fIbool\fR (\fB\-\-exitbs\fR)
+\fBexit_backscroll_by_pty\fR=\fIbool\fR (\fB\-\-exitbs\fR)
 Exit backscroll mode on receiving data from pty.
 .TP
-\fBformat_other_keys=\fIbool\fR (\fB\-\-fk\fR)
+\fBformat_other_keys\fR=\fIbool\fR (\fB\-\-fk\fR)
 Send modified keys as parameter for CSI u.
 (Equivalent to "formatOtherKeys" of xterm)
 .TP
-\fBfade_ratio=\fIratio\fR (\fB\-r\fR, \fB\-\-fade_ratio\fR)
+\fBfade_ratio\fR=\fIratio\fR (\fB\-r\fR, \fB\-\-fade_ratio\fR)
 Specify fading ratio when window is unfocused.
 .TP
-\fBfb_resolution=\fIratio\fR (Available for mlterm-fb on NetBSD/x68k or OpenBSD)
+\fBfb_resolution\fR=\fIratio\fR (Available for mlterm-fb on NetBSD/x68k or OpenBSD)
 Specify the screen resolution and depth. (e.g. 768x512x4)
 .TP
-\fBfg_color=\fIcolor\fR (\fB\-f\fR, \fB\-\-fg\fR)
+\fBfg_color\fR=\fIcolor\fR (\fB\-f\fR, \fB\-\-fg\fR)
 Foreground color.
 .TP
-\fBfontsize=\fInumber\fR (\fB\-w\fR, \fB\-\-fontsize\fR)
+\fBfontsize\fR=\fInumber\fR (\fB\-w\fR, \fB\-\-fontsize\fR)
 Font size in pixel.
 .TP
-\fBfont_size_range=\fIrange\fR (\fB\-R\fR, \fB\-\-fsrange\fR)
+\fBfont_size_range\fR=\fIrange\fR (\fB\-R\fR, \fB\-\-fsrange\fR)
 Range of size of usable fonts.
 .TP
-\fBgamma=\fIpercent\fR (\fB\-4\fR, \fB\-\-gamma\fR)
+\fBgamma\fR=\fIpercent\fR (\fB\-4\fR, \fB\-\-gamma\fR)
 Gamma of background image in percent.
 .TP
-\fBgeometry=\fIgeomery\fR (\fB\-g\fR, \fB\-\-geometry\fR)
+\fBgeometry\fR=\fIgeomery\fR (\fB\-g\fR, \fB\-\-geometry\fR)
 Specify size and position of the window; see \fBX\fR(7).
 .TP
-\fBhide_underline=\fIbool\fR (\fB\-\-noul\fR)
+\fBhide_underline\fR=\fIbool\fR (\fB\-\-noul\fR)
 Don't draw underline.
 .TP
-\fBicon_name=\fIname\fR (\fB\-I\fR, \fB\-\-icon\fR)
+\fBicon_name\fR=\fIname\fR (\fB\-I\fR, \fB\-\-icon\fR)
 Icon name.
 .TP
-\fBicon_path=\fIpath\fR
+\fBicon_path\fR=\fIpath\fR
 Path for the image file to be used as window icon.
 .TP
-\fBignore_broadcasted_chars=\fIbool\fR (\fB\-\-ibc\fR)
+\fBignore_broadcasted_chars\fR=\fIbool\fR (\fB\-\-ibc\fR)
 Whether to ignore broadcasted characters.
 .TP
-\fBignored_csi_list=\fIlist\fR (\fB\-\-igncsi\fR)
+\fBignored_csi_list\fR=\fIlist\fR (\fB\-\-igncsi\fR)
 Specify CSI sequences which should be ignored.
 .TP
-\fBinner_border=\fInumber\fR\fB[\fR\fI,number2\fR\fB]\fR (\fB\-\-border\fR)
+\fBinner_border\fR=\fInumber\fB[\fI,number2\fB]\fR (\fB\-\-border\fR)
 Specify inner border width.
 .TP
-\fBinput_method\fR= \fIinput method\fR : \fB[\fR\fI arguments\fR \fB... ]\fR (\fB\-M\fR, \fB\-\-im\fR)
+\fBinput_method\fR=\fIinput method\fR : \fB[\fR\fI arguments\fR \fB... ]\fR (\fB\-M\fR, \fB\-\-im\fR)
 Specify input method.
 .TP
-\fBiso88591_font_for_usascii=\fIbool\fR (\fB\-8\fR, \fB\-\-88591\fR)
+\fBiso88591_font_for_usascii\fR=\fIbool\fR (\fB\-8\fR, \fB\-\-88591\fR)
 Use ISO8859-1 fonts for US-ASCII part of various encodings.
 .TP
-\fBit_color=\fIcolor\fR (\fB\-\-it\fR)
+\fBit_color\fR=\fIcolor\fR (\fB\-\-it\fR)
 Specify the color to use to display italic characters.
 .TP
-\fBlayout_inner_border=\fInumber\fR\fB[\fR\fI,number2\fR\fB]\fR (\fB\-\-lborder\fR)
+\fBlayout_inner_border\fR=\fInumber\fR\fB[\fR\fI,number2\fR\fB]\fR (\fB\-\-lborder\fR)
 Specify inner border width of a layout manager.
 .TP
-\fBleftward_double_drawing=\fIbool\fR (\fB\-\-ldd\fR)
+\fBleftward_double_drawing\fR=\fIbool\fR (\fB\-\-ldd\fR)
 Embold glyphs by drawing doubly at 1 pixel leftward instead of rightward.
 .TP
-\fBletter_space=\fInumber\fR (\fB\-\-csp\fR)
+\fBletter_space\fR=\fInumber\fR (\fB\-\-csp\fR)
 Specify number of extra dots between letters. (ignored if you specify \fB\-\-V\fR option.)
 If you use multiple fonts whose widths are different, adjust this option.
 .TP
-\fBline_space=\fInumber\fR (\fB\-o\fR, \fB\-\-lsp\fR)
+\fBline_space\fR=\fInumber\fR (\fB\-o\fR, \fB\-\-lsp\fR)
 Specify number of extra dots between lines. (Negative value is available.)
 If you use multiple fonts whose heights are different, adjust this option.
 .TP
-\fBlocale=\fIlocale\fR (\fB\-\-locale\fR)
+\fBlocale\fR=\fIlocale\fR (\fB\-\-locale\fR)
 Specify locale.
 .TP
-\fBlocal_echo_wait=\fInumber\fR (\fB\-\-lew\fR)
+\fBlocal_echo_wait\fR=\fInumber\fR (\fB\-\-lew\fR)
 Specify time (msec) to keep local echo mode.
 .TP
-\fBlogging_msg=\fIbool\fR (\fB\-\-logmsg\fR)
+\fBlogging_msg\fR=\fIbool\fR (\fB\-\-logmsg\fR)
 Enable logging messages of mlterm to ~/.mlterm/msg[pid].log.
 .TP
-\fBlogging_vt_seq=\fIbool\fR (\fB\-\-logseq\fR)
+\fBlogging_vt_seq\fR=\fIbool\fR (\fB\-\-logseq\fR)
 Enable logging vt100 sequences to ~/.mlterm/[device].log.
 .TP
-\fBlogsize=\fInumber\fR (\fB\-l\fR, \fB\-\-sl\fR)
+\fBlogsize\fR=\fInumber\fR (\fB\-l\fR, \fB\-\-sl\fR)
 Specify number of lines of backlog or "unlimited".
 .TP
-\fBmax_ptys=\fInumber\fR (\fB\-\-maxptys\fR)
+\fBmax_ptys\fR=\fInumber\fR (\fB\-\-maxptys\fR)
 Specify maximum number of ptys (sessions) to be opened simultaneously.
 .TP
-\fBmeta_prefix=\fIstring\fR (\fB\-\-metaprefix\fR)
+\fBmeta_prefix\fR=\fIstring\fR (\fB\-\-metaprefix\fR)
 Specify prefix characters in pressing meta key if mod_meta_mode = esc.
 .TP
-\fBmod_keys_to_stop_mouse_report=\fImode\fR (\fB\-\-norepkey\fR)
+\fBmod_keys_to_stop_mouse_report\fR=\fImode\fR (\fB\-\-norepkey\fR)
 Specify modifier keys to stop mouse reporting.
 .TP
-\fBmod_meta_mode=\fImode\fR (\fB\-k\fR, \fB\-\-meta\fR)
+\fBmod_meta_mode\fR=\fImode\fR (\fB\-k\fR, \fB\-\-meta\fR)
 Behavior of META key.
 .TP
-\fBmod_meta_key=\fIkey\fR (\fB\-K\fR, \fB\-\-metakey\fR)
+\fBmod_meta_key\fR=\fIkey\fR (\fB\-K\fR, \fB\-\-metakey\fR)
 Specify a key to be regarded as META.
 .TP
-\fBnot_use_unicode_font=\fIbool\fR (\fB\-n\fR, \fB\-\-noucsfont\fR)
+\fBnot_use_unicode_font\fR=\fIbool\fR (\fB\-n\fR, \fB\-\-noucsfont\fR)
 Use non-Unicode fonts even when \fBmlterm\fR encoding is UTF-8.
 .TP
-\fBonly_use_unicode_font=\fIbool\fR (\fB\-u\fR, \fB\-\-onlyucsfont\fR)
+\fBonly_use_unicode_font\fR=\fIbool\fR (\fB\-u\fR, \fB\-\-onlyucsfont\fR)
 Use Unicode fonts even when \fBmlterm\fR encoding is not UTF-8.
 .TP
-\fBoutput_xtwinops_in_resizing=\fIbool\fR (\fB\-\-winsize\fR)
+\fBoutput_xtwinops_in_resizing\fR=\fIbool\fR (\fB\-\-winsize\fR)
 Output XTWINOPS sequence when the screen is resized unless \-\-conpty option is specified.
 .TP
-\fBot_features=\fIfeatures\fR (\-\-oft\fR)
+\fBot_features\fR=\fIfeatures\fR (\-\-oft\fR)
 Specify features of glyph substitution.
 .TP
-\fBot_script=\fIscript\fR (\-\-ost\fR)
+\fBot_script\fR=\fIscript\fR (\-\-ost\fR)
 Specify script of glyph substitution.
 .TP
-\fBparent_window=\fIID\fR (\fB\-\-parent\fR)
+\fBparent_window\fR=\fIID\fR (\fB\-\-parent\fR)
 Specify parent Window ID.
 .TP
-\fBprimary_da=\fIstring\fR (\fB\-\-da1\fR)
+\fBprimary_da\fR=\fIstring\fR (\fB\-\-da1\fR)
 Specify primary device attributes string.
 .TP
-\fBreceive_directory=\fIpath\fR (\fB\-\-recvdir\fR)
+\fBreceive_directory\fR=\fIpath\fR (\fB\-\-recvdir\fR)
 Specify the directory to save received files via zmodem or scp.
 .TP
-\fBreceive_string_via_ucs=\fIbool\fR (\fB\-U\fR, \fB\-\-viaucs\fR)
+\fBreceive_string_via_ucs\fR=\fIbool\fR (\fB\-U\fR, \fB\-\-viaucs\fR)
 If the received selection (i.e., copy-and-paste strings) or strings received
 from XIM is not UTF8_STRING type, convert it into Unicode and then to the
 current mlterm encoding, in order to identify equivalent characters
@@ -1811,37 +1829,37 @@ current mlterm encoding, in order to identify equivalent characters
 character sets.
 See \fBSELECTION\fR section below for detail.
 .TP
-\fBregard_uri_as_word=\fIbool\fR (\fB\-\-uriword\fR)
+\fBregard_uri_as_word\fR=\fIbool\fR (\fB\-\-uriword\fR)
 Select URI by double clicking it regardless of \-\-W option.
 .TP
-\fBresize_mode=\fImode\fR (\fB\-\-rz\fR)
+\fBresize_mode\fR=\fImode\fR (\fB\-\-rz\fR)
 Specify the way to display text on the screen when it is resized.
 .TP
-\fBrotate_display=\fImode\fR (\fB\-\-rotate\fR) (Available for mlterm-fb, mlterm-wl and mlterm-sdl2)
+\fBrotate_display\fR=\fImode\fR (\fB\-\-rotate\fR) (Available for mlterm-fb, mlterm-wl and mlterm-sdl2)
 Specify display rotation.
 .TP
-\fBrv_color=\fIcolor\fR (\fB\-\-rv\fR)
+\fBrv_color\fR=\fIcolor\fR (\fB\-\-rv\fR)
 Specify the color to use to display reverse characters.
 .TP
-\fBsb_bg_color=\fIcolor\fR (\fB\-B\fR, \fB\-\-sbbg\fR)
+\fBsb_bg_color\fR=\fIcolor\fR (\fB\-B\fR, \fB\-\-sbbg\fR)
 Background color for scrollbar.
 .TP
-\fBsb_fg_color=\fIcolor\fR (\fB\-F\fR, \fB\-\-sbfg\fR)
+\fBsb_fg_color\fR=\fIcolor\fR (\fB\-F\fR, \fB\-\-sbfg\fR)
 Foreground color for scrollbar.
 .TP
-\fBscreen_width_ratio=\fIpercent\fR (\fB\-1\fR, \fB\-\-wscr\fR)
+\fBscreen_width_ratio\fR=\fIpercent\fR (\fB\-1\fR, \fB\-\-wscr\fR)
 Specify actual screen width (screen height in vertical mode).
 .TP
-\fBscrollbar_mode=\fImode\fR (\fB\-O\fR, \fB\-\-sbmod\fR)
+\fBscrollbar_mode\fR=\fImode\fR (\fB\-O\fR, \fB\-\-sbmod\fR)
 Specify scrollbar position.
 .TP
-\fBscrollbar_view_name=\fIname\fR (\fB\-S\fR, \fB\-\-sbview\fR)
+\fBscrollbar_view_name\fR=\fIname\fR (\fB\-S\fR, \fB\-\-sbview\fR)
 Specify name of scrollbar.
 .TP
-\fBsecondary_da=\fIstring\fR (\fB\-\-da2\fR)
+\fBsecondary_da\fR=\fIstring\fR (\fB\-\-da2\fR)
 Specify secondary device attributes string.
 .TP
-\fBseparate_wall_picture=\fIbool\fR (\fB\-\-multivram\fR) (Available for mlterm-fb on NetBSD/x68k)
+\fBseparate_wall_picture\fR=\fIbool\fR (\fB\-\-multivram\fR) (Available for mlterm-fb on NetBSD/x68k)
 Draw the wall picture on Text VRAM instead of Graphic VRAM to improve
 the performance of scrolling.
 .TP
@@ -1869,25 +1887,25 @@ Start mlterm with local pty instead of ssh connection.
 \fBstep_in_changing_font_size\fR (\fB\-z\fR, \fB\-\-largesmall\fR)
 Specify changing size when font size becomes larger or smaller.
 .TP
-\fBtabsize=\fInumber\fR (\fB\-x\fR, \fB\-\-tw\fR)
+\fBtabsize\fR=\fInumber\fR (\fB\-x\fR, \fB\-\-tw\fR)
 Specify tab width.
 .TP
-\fBtermtype=\fIstring\fR (\fB\-y\fR, \fB\-\-term\fR)
+\fBtermtype\fR=\fIstring\fR (\fB\-y\fR, \fB\-\-term\fR)
 Terminal type.
 .TP
-\fBtitle=\fIname\fR (\fB\-T\fR, \fB\-\-title\fR)
+\fBtitle\fR=\fIname\fR (\fB\-T\fR, \fB\-\-title\fR)
 Title name.
 .TP
-\fBtrim_trailing_newline_in_pasting=\fIbool\fR (\fB\-\-trim\fR)
+\fBtrim_trailing_newline_in_pasting\fR=\fIbool\fR (\fB\-\-trim\fR)
 Trim new line characters at the end in pasting text.
 .TP
-\fBtype_engine=\fIengine\fR (\fB\-*\fR, \fB\-\-type\fR)
+\fBtype_engine\fR=\fIengine\fR (\fB\-*\fR, \fB\-\-type\fR)
 Rendering engine for drawing fonts.
 .TP
-\fBul_color=\fIcolor\fR (\fB\-\-ul\fR)
+\fBul_color\fR=\fIcolor\fR (\fB\-\-ul\fR)
 Specify the color to use to display underlined characters.
 .TP
-\fBunderline_offset=\fInumber\fR (\fB\-\-ulpos\fR)
+\fBunderline_offset\fR=\fInumber\fR (\fB\-\-ulpos\fR)
 Specify the position (offset from the baseline) of underline.
 The default is \fB0\fR.
 .TP
@@ -1900,108 +1918,108 @@ Force half width regardless of EastAsianWidth.txt.
 \fBunicode_noconv_areas\fR=\fIranges\fR (\fB\-\-ucsnoconv\fR)
 Use unicode fonts partially regardless of -n option.
 .TP
-\fBuse_aafont=\fIbool\fR (\fB\-\-aafont\fR) (Available for mlterm-fb, mlterm-wl or mlterm-sdl2)
+\fBuse_aafont\fR=\fIbool\fR (\fB\-\-aafont\fR) (Available for mlterm-fb, mlterm-wl or mlterm-sdl2)
 Use ~/.mlterm/*aafont configurations with the use of fontconfig.
 .TP
-\fBuse_alt_buffer=\fIbool\fR (\fB\-\-altbuf\fR)
+\fBuse_alt_buffer\fR=\fIbool\fR (\fB\-\-altbuf\fR)
 Use alternate screen buffer.
 .TP
-\fBuse_ansi_colors=\fIbool\fR (\fB\-\-colors\fR)
+\fBuse_ansi_colors\fR=\fIbool\fR (\fB\-\-colors\fR)
 Recognize ANSI color change escape sequences.
 .TP
-\fBuse_anti_alias=\fIbool\fR (\fB\-A\fR, \fB\-\-aa\fR)
+\fBuse_anti_alias\fR=\fIbool\fR (\fB\-A\fR, \fB\-\-aa\fR)
 Use anti alias font.
 .TP
-\fBuse_arabic_dynamic_combining=\fIbool\fR (\fB\-\-adc\fR)
+\fBuse_arabic_dynamic_combining\fR=\fIbool\fR (\fB\-\-adc\fR)
 Use dynamic combining to show arabic presentation forms.
 .TP
-\fBuse_auto_detect=\fIbool\fR (\fB\-\-auto\fR)
+\fBuse_auto_detect\fR=\fIbool\fR (\fB\-\-auto\fR)
 Automatically detect appropriate character encoding from the encodings
 specified by auto_detect_encodings option.
 .TP
-\fBuse_bold_font=\fIbool\fR (\fB\-\-bdfont\fR)
+\fBuse_bold_font\fR=\fIbool\fR (\fB\-\-bdfont\fR)
 Use bold font for characters with the bold attribute.
 .TP
-\fBuse_clipping=\fIbool\fR (\fB\-\-clp\fR)
+\fBuse_clipping\fR=\fIbool\fR (\fB\-\-clp\fR)
 Use clipping to keep from producing dots outside the text drawing area.
 .TP
-\fBuse_combining=\fIbool\fR (\fB\-m\fR, \fB\-\-comb\fR)
+\fBuse_combining\fR=\fIbool\fR (\fB\-m\fR, \fB\-\-comb\fR)
 Enable combining characters.
 .TP
-\fBuse_conpty=\fIbool\fR (\fB\-\-conpty\fR) (Available for win32)
+\fBuse_conpty\fR=\fIbool\fR (\fB\-\-conpty\fR) (Available for win32)
 Use ConPTY.
 .TP
-\fBuse_cp932_ucs_for_xft=\fIbool\fR (\fB\-c\fR, \fB\-\-cp932\fR)
+\fBuse_cp932_ucs_for_xft\fR=\fIbool\fR (\fB\-c\fR, \fB\-\-cp932\fR)
 Use CP932 - UCS mapping for displaying JISX0208 by Xft or cairo.
 .TP
-\fBuse_ctl=\fIbool\fR (\fB\-C\fR, \fB\-\-ctl\fR)
+\fBuse_ctl\fR=\fIbool\fR (\fB\-C\fR, \fB\-\-ctl\fR)
 Enable complex text layouting on UTF8 encoding.
 .TP
-\fBuse_dynamic_comb=\fIbool\fR (\fB\-J\fR, \fB\-\-dyncomb\fR)
+\fBuse_dynamic_comb\fR=\fIbool\fR (\fB\-J\fR, \fB\-\-dyncomb\fR)
 Enable dynamic character combining.
 .TP
-\fBuse_italic_font=\fIbool\fR (\fB\-\-itfont\fR)
+\fBuse_italic_font\fR=\fIbool\fR (\fB\-\-itfont\fR)
 Use italic font for characters with the italic attribute.
 .TP
-\fBuse_local_echo=\fIbool\fR (\fB\-\-loecho\fR)
+\fBuse_local_echo\fR=\fIbool\fR (\fB\-\-loecho\fR)
 Use local echo mode.
 .TP
-\fBuse_locked_title=\fIbool\fR (\fB\-\-locktitle\fR)
+\fBuse_locked_title\fR=\fIbool\fR (\fB\-\-locktitle\fR)
 Lock the title for a mlterm window.  If a title is locked then
 OSC 0, 1 and 2 esc sequences to change it are ignored.
 .TP
-\fBuse_login_shell=\fIbool\fR (\fB\-L\fR, \fB\-\-ls\fR)
+\fBuse_login_shell\fR=\fIbool\fR (\fB\-L\fR, \fB\-\-ls\fR)
 Whether to use login shell or not.
 .TP
-\fBuse_multi_column_char=\fIbool\fR (\fB\-Z\fR, \fB\-\-multicol\fR)
+\fBuse_multi_column_char\fR=\fIbool\fR (\fB\-Z\fR, \fB\-\-multicol\fR)
 Process full width characters.
 .TP
-\fBuse_ot_layout=\fIbool\fR (\-\-otl\fR)
+\fBuse_ot_layout\fR=\fIbool\fR (\-\-otl\fR)
 Whether to show substituting glyphs in open type fonts with the use of libotf or harfbuzz.
 .TP
-\fBuse_point_size=\fIbool\fR (\fB\-\-point\fR)
+\fBuse_point_size\fR=\fIbool\fR (\fB\-\-point\fR)
 Treat the value of \-w option as point instead of pixel.
 .TP
-\fBuse_mdi=\fIbool\fR (\fB\-s\fR, \fB\-\-mdi\fR)
+\fBuse_mdi\fR=\fIbool\fR (\fB\-s\fR, \fB\-\-mdi\fR)
 Use multiple document interface.
 .TP
-\fBuse_transbg=\fIbool\fR (\fB\-t\fR, \fB\-\-transbg\fR)
+\fBuse_transbg\fR=\fIbool\fR (\fB\-t\fR, \fB\-\-transbg\fR)
 Use pseudo transparent background.
 .TP
-\fBuse_urgent_bell=\fIbool\fR (\fB\-\-urgent\fR)
+\fBuse_urgent_bell\fR=\fIbool\fR (\fB\-\-urgent\fR)
 Draw the user's attention when making a bell sound in the unfocused window.
 .TP
-\fBuse_variable_column_width=\fIbool\fR (\fB\-V\fR, \fB\-\-varwidth\fR)
+\fBuse_variable_column_width\fR=\fIbool\fR (\fB\-V\fR, \fB\-\-varwidth\fR)
 Use variable column width.
 .TP
-\fBuse_vertical_cursor=\fIbool\fR (\fB\-Q\fR, \fB\-\-vcur\fR)
+\fBuse_vertical_cursor\fR=\fIbool\fR (\fB\-Q\fR, \fB\-\-vcur\fR)
 Use cursor movement for vertical writing.
 .TP
-\fBuse_xim=\fIbool\fR (\fB\-i\fR, \fB\-\-xim\fR)
+\fBuse_xim\fR=\fIbool\fR (\fB\-i\fR, \fB\-\-xim\fR)
 Use XIM (X Input Method).
 .TP
-\fBvt_color_mode=\fImode\fR (\fB\-\-vtcolor\fR)
+\fBvt_color_mode\fR=\fImode\fR (\fB\-\-vtcolor\fR)
 Set vt color mode.
 .TP
-\fBvertical_mode=\fImode\fR (\fB\-G\fR, \fB\-\-vertical\fR)
+\fBvertical_mode\fR=\fImode\fR (\fB\-G\fR, \fB\-\-vertical\fR)
 Use vertical writing.
 .TP
-\fBwall_picture=\fIpath\fR (\fB\-p\fR, \fB\-\-pic\fR)
+\fBwall_picture\fR=\fIpath\fR (\fB\-p\fR, \fB\-\-pic\fR)
 Path for wallpaper image.
 .TP
-\fBword_separators=\fIcharacterlist\fR (\fB\-W\fR, \fB\-\-sep\fR)
+\fBword_separators\fR=\fIcharacterlist\fR (\fB\-W\fR, \fB\-\-sep\fR)
 Delimiter characters (\\xNN is also available) used for word selection.
 .TP
-\fBworking_directory=\fIpath\fR (\fB\-\-working\-directory\fR)
+\fBworking_directory\fR=\fIpath\fR (\fB\-\-working\-directory\fR)
 Working directory.
 .TP
-\fBstatic_backscroll_mode=\fIbool\fR (\fB\-6\fR, \fB\-\-stbs\fR)
+\fBstatic_backscroll_mode\fR=\fIbool\fR (\fB\-6\fR, \fB\-\-stbs\fR)
 Don't exit backscroll mode when console applications output something.
 .TP
-\fBvt_seq_format=\fImode\fR (\fB\-\-seqfmt\fR)
+\fBvt_seq_format\fR=\fImode\fR (\fB\-\-seqfmt\fR)
 Specify the format of logging vt100 sequence.
 .TP
-\fBwm_role=\fIrole\fR (\fB\-\-role\fR)
+\fBwm_role\fR=\fIrole\fR (\fB\-\-role\fR)
 Specify application role. (WM_WINDOW_ROLE property)
 .\" ******************************************************
 .SS Font Configuration Files
@@ -2009,43 +2027,43 @@ The font configuration files "\fBfont\fR", "\fBvfont\fR", "\fBtfont\fR",
 "\fBaafont\fR", "\fBvaafont\fR", and "\fBtaafont\fR" have the following keys.
 .PP
 .nf
-\fBDEFAULT=\fIfont\fR
-\fBDEC_SPECIAL=\fIfont\fR
-\fBISO8859_\fIn\fB=\fIfont\fR
-\fBTIS620=\fIfont\fR
-\fBISCII_HINDI=\fIfont\fR
-\fBISCII_MALAYALAM=\fIfont\fR
-\fBISCII_ASSAMESE=\fIfont\fR
-\fBISCII_BENGALI=\fIfont\fR
-\fBISCII_GUJARATI=\fIfont\fR
-\fBISCII_KANNADA=\fIfont\fR
-\fBISCII_MALAYALAM=\fIfont\fR
-\fBISCII_ORIYA=\fIfont\fR
-\fBISCII_PUNJABI=\fIfont\fR
-\fBISCII_TAMIL=\fIfont\fR
-\fBISCII_TELUGU=\fIfont\fR
-\fBVISCII=\fIfont\fR
-\fBKOI8_R=\fIfont\fR
-\fBKOI8_U=\fIfont\fR
-\fBTCVN5712=\fIfont\fR
-\fBJISX0201_ROMAN=\fIfont\fR
-\fBJISX0201_KATA=\fIfont\fR
-\fBJISX0208_1978=\fIfont\fR
-\fBJISX0208_1983=\fIfont\fR
-\fBJISX0208_1990=\fIfont\fR
-\fBJISX0213_2000_1=\fIfont\fR
-\fBJISX0213_2000_2=\fIfont\fR
-\fBKSX1001_1997=\fIfont\fR
-\fBUHC=\fIfont\fR (not used)
-\fBJOHAB=\fIfont\fR (not used)
-\fBGB2312_80=\fIfont\fR
-\fBGBK=\fIfont\fR
-\fBBIG5=\fIfont\fR
-\fBHKSCS=\fIfont\fR
-\fBCNS11643_1992_\fIn\fB=\fIfont\fR
-\fBISO10646_UCS4_1=\fIfont\fR
-\fBISO10646_UCS4_1_FULLWIDTH=\fIfont\fR
-\fBU+XXXX-XXXX=\fIfont\fR
+\fBDEFAULT\fR=\fIfont\fR
+\fBDEC_SPECIAL\fR=\fIfont\fR
+\fBISO8859_\fIn\fR=\fIfont\fR
+\fBTIS620\fR=\fIfont\fR
+\fBISCII_HINDI\fR=\fIfont\fR
+\fBISCII_MALAYALAM\fR=\fIfont\fR
+\fBISCII_ASSAMESE\fR=\fIfont\fR
+\fBISCII_BENGALI\fR=\fIfont\fR
+\fBISCII_GUJARATI\fR=\fIfont\fR
+\fBISCII_KANNADA\fR=\fIfont\fR
+\fBISCII_MALAYALAM\fR=\fIfont\fR
+\fBISCII_ORIYA\fR=\fIfont\fR
+\fBISCII_PUNJABI\fR=\fIfont\fR
+\fBISCII_TAMIL\fR=\fIfont\fR
+\fBISCII_TELUGU\fR=\fIfont\fR
+\fBVISCII\fR=\fIfont\fR
+\fBKOI8_R\fR=\fIfont\fR
+\fBKOI8_U\fR=\fIfont\fR
+\fBTCVN5712\fR=\fIfont\fR
+\fBJISX0201_ROMAN\fR=\fIfont\fR
+\fBJISX0201_KATA\fR=\fIfont\fR
+\fBJISX0208_1978\fR=\fIfont\fR
+\fBJISX0208_1983\fR=\fIfont\fR
+\fBJISX0208_1990\fR=\fIfont\fR
+\fBJISX0213_2000_1\fR=\fIfont\fR
+\fBJISX0213_2000_2\fR=\fIfont\fR
+\fBKSX1001_1997\fR=\fIfont\fR
+\fBUHC\fR=\fIfont\fR (not used)
+\fBJOHAB\fR=\fIfont\fR (not used)
+\fBGB2312_80\fR=\fIfont\fR
+\fBGBK\fR=\fIfont\fR
+\fBBIG5\fR=\fIfont\fR
+\fBHKSCS\fR=\fIfont\fR
+\fBCNS11643_1992_\fIn\fR=\fIfont\fR
+\fBISO10646_UCS4_1\fR=\fIfont\fR
+\fBISO10646_UCS4_1_FULLWIDTH\fR=\fIfont\fR
+\fBU+XXXX-XXXX\fR=\fIfont\fR
 .fi
 .RS
 Specify fonts for corresponding character sets.  The format is
@@ -2319,41 +2337,41 @@ Configuration(s) for other TERM will follow after new line.
 .PP
 Followings are available keys for each TERM value.
 .TP
-\fBkD=\fIsequence\fR
+\fBkD\fR=\fIsequence\fR
 Specify sequence to be outputted when Delete key is pushed
 (default \fB\\E[3~\fR).
 .TP
-\fBkb=\fIsequence\fR
+\fBkb\fR=\fIsequence\fR
 Specify sequence to be outputted when BackSpace key is pushed
 (default \fB^H\fR).
 .TP
-\fBkh=\fIsequence\fR
+\fBkh\fR=\fIsequence\fR
 Specify sequence to be outputted when HOME key is pushed
 in application cursor key mode.
 (default \fB\\EOH\fR).
 .TP
-\fB@7=\fIsequence\fR
+\fB@7\fR=\fIsequence\fR
 Specify sequence to be outputted when END key is pushed
 in application cursor key mode.
 (default \fB\\EOF\fR).
 .TP
-\fBk1=\fIsequence\fR
+\fBk1\fR=\fIsequence\fR
 Specify sequence to be outputted when F1 key is pushed
 (default \fB\\EOP\fR).
 .TP
-\fBk2=\fIsequence\fR
+\fBk2\fR=\fIsequence\fR
 Specify sequence to be outputted when F2 key is pushed
 (default \fB\\EOQ\fR).
 .TP
-\fBk3=\fIsequence\fR
+\fBk3\fR=\fIsequence\fR
 Specify sequence to be outputted when F3 key is pushed
 (default \fB\\EOR\fR).
 .TP
-\fBk4=\fIsequence\fR
+\fBk4\fR=\fIsequence\fR
 Specify sequence to be outputted when F4 key is pushed
 (default \fB\\EOS\fR).
 .TP
-\fBk5=\fIsequence\fR
+\fBk5\fR=\fIsequence\fR
 Specify sequence to be outputted when F5 key is pushed
 (default \fB\\E[15~\fR).
 .TP

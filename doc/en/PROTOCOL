@@ -41,14 +41,15 @@ version 20260705
                   bg_color | bidi_mode | bidi_separators | bl_color | borderless | box_drawing_font |
                   brightness | click_interval | co_color | col_size_of_width_a | console_encoding |
                   console_sixel_colors | contrast | cursor_bg_color | cursor_fg_color |
-                  cursor_size | dnd_escape_mode | emoji_path | emoji_file_format | encoding |
-                  exit_backscroll_by_pty | fade_ratio | fg_color | fontsize | format_other_keys |
-                  gamma | geometry | hide_underline | icon_path | input_method | it_color |
-                  letter_space | line_space | local_echo_wait | locale | logging_msg |
-                  logging_vt_seq | logsize | mod_keys_to_stop_mouse_report | mod_meta_key |
-                  mod_meta_mode | not_use_unicode_font | only_use_unicode_font | ot_features |
-                  ot_script | receive_string_via_ucs | regard_uri_as_word | rotate_display |
-                  rv_color | sb_bg_color | sb_fg_color | screen_width_ratio | scrollbar_mode |
+                  cursor_size | cursor_style | dnd_escape_mode | emoji_path | emoji_file_format |
+                  encoding | exit_backscroll_by_pty | fade_ratio | fg_color | fontsize |
+                  format_other_keys | gamma | geometry | hide_underline | icon_path |
+                  ignored_csi_list | input_method | it_color | letter_space | line_space |
+                  local_echo_wait | locale | logging_msg | logging_vt_seq | logsize |
+                  mod_keys_to_stop_mouse_report | mod_meta_key | mod_meta_mode |
+                  not_use_unicode_font | only_use_unicode_font | ot_features | ot_script |
+                  receive_string_via_ucs | regard_uri_as_word | rotate_display | rv_color |
+                  sb_bg_color | sb_fg_color | screen_width_ratio | scrollbar_mode |
                   scrollbar_view_name | send_file static_backscroll_mode | tabsize |
                   trim_trailing_newline_in_pasting | type_engine | ul_color |
                   underline_offset | unicode_full_width_areas | unicode_half_width_areas |
@@ -59,19 +60,20 @@ version 20260705
                   use_urgent_bell | use_variable_column_width | use_vertical_cursor |
                   vertical_mode | vt_color_mode | vt_seq_format | wall_picture | word_separators
 
-  get key       = alpha | allow_osc52 | allow_scp | allow_xtwinops_resize | auto_detect_encodings |
-                  baseline_offset | bd_color | bel_mode | bg_color | bidi_mode | bidi_separators |
-                  bl_color | borderless | box_drawing_font | brightness | click_interval | co_color |
-                  col_size_of_width_a | cols | contrast | cursor_bg_color | cursor_fg_color |
-                  depth | dnd_escape_mode | emoji_path | emoji_file_format | encoding |
-                  fade_ratio | fg_color | fontconfig | fontsize | format_other_keys | gamma |
-                  gui | hide_underline | icon_path | input_method | is_auto_encoding | it_color |
-                  letter_space | line_space | local_echo_wait | locale | logging_vt_seq |
-                  logsize | mod_meta_key | mod_meta_mode | not_use_unicode_font |
-                  only_use_unicode_font | ot_features | ot_script | pty_list | pty_name | pwd |
-                  receive_directory | receive_string_via_ucs | regard_uri_as_word | rows |
-                  rv_color | sb_bg_color | sb_fg_color | screen_width_ratio | scrollbar_mode |
-                  scrollbar_view_name | send_file | static_backscroll_mode | tabsize |
+  get key       = alpha | allow_osc52 | allow_scp | allow_xtwinops_resize |
+                  auto_detect_encodings | baseline_offset | bd_color | bel_mode | bg_color |
+                  bidi_mode | bidi_separators | bl_color | borderless | box_drawing_font |
+                  brightness | click_interval | co_color | col_size_of_width_a | cols | contrast |
+                  cursor_bg_color | cursor_fg_color | cursor_style | depth | dnd_escape_mode |
+                  emoji_path | emoji_file_format | encoding | fade_ratio | fg_color | fontconfig |
+                  fontsize | format_other_keys | gamma | gui | hide_underline | icon_path |
+                  ignored_csi_list | input_method | is_auto_encoding | it_color | letter_space |
+                  line_space | local_echo_wait | locale | logging_vt_seq | logsize | mod_meta_key |
+                  mod_meta_mode | not_use_unicode_font | only_use_unicode_font | ot_features |
+                  ot_script | pty_list | pty_name | pwd | receive_directory |
+                  receive_string_via_ucs | regard_uri_as_word | rows | rv_color | sb_bg_color |
+                  sb_fg_color | screen_width_ratio | scrollbar_mode | scrollbar_view_name |
+                  send_file | static_backscroll_mode | tabsize |
                   trim_trailing_newline_in_pasting | type_engine | ul_color | underline_offset |
                   unicode_full_width_areas | unicode_half_width_areas | unicode_noconv_areas |
                   use_aafont | use_alt_buffer | use_ansi_colors | use_anti_alias |
@@ -119,6 +121,7 @@ version 20260705
   cursor_bg_color = <color name> | <color rgb>
   cursor_fg_color = <color name> | <color rgb>
   cursor_size = <any ASCII decimal digit>,<any ASCII decimal digit>
+  cursor_style = block | underline | bar | blink
   depth = 8 | 16 | 24 | 32 (xlib only)
   dnd_escape_mode = none | backslash | quote | doublequote
   emoji_path = <directory> | <open type font file>
@@ -131,6 +134,7 @@ version 20260705
   gamma = <any ASCII decimal digit>
   hide_underline = true | false | switch
   icon_path = <file path>
+  ignored_csi_list = (<csi>,)*
   input_method = <input method> ":" <input method specific options> ...
   it_color = <color name> | <color rgb>
   line_space = <any ASCII decimal digit>

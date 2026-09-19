@@ -261,6 +261,9 @@
 # OSC 52 シーケンスによるクリップボード操作
 # allow_osc52 = false
 
+# DECSCUSR シーケンスによるカーソル形状の変更を許可
+# allow_decscusr = true
+
 # ssh 接続時に OSC 5379 scp を許可
 # allow_scp = false
 
@@ -309,6 +312,10 @@
 # (mlterm-fb 用)
 # cursor_size = 7,15
 
+# カーソル形状
+# (block, unserline, bar, block|blink, underline|blink, bar|blink)
+# cursor_style = block
+
 # daemon process となるかどうか(none,blend,genuine)
 # daemon_mode = none
 
@@ -349,6 +356,9 @@
 
 # アイコン画像のファイル名
 # icon_path =
+
+# 無視する CSI シーケンス
+# ignored_csi_list =
 
 # broadcast オプションが true の場合でも、ブロードキャストを受け付けない。
 # ignore_broadcasted_chars = false
