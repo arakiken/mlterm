@@ -1047,6 +1047,9 @@ static int receive_mouse_event(int fd) {
 
       save_hidden_region();
       draw_mouse_cursor();
+#ifdef USE_KMSDRM
+      ui_display_flush();
+#endif
     }
   }
 

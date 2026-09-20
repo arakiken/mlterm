@@ -409,7 +409,7 @@ jobs:
           pkgutil -y -i gcc5core pkgconfig libfribidi_dev libfreetype_dev libsdl2_dev libssh2_dev libgtk2_dev vte
 
         run: |
-          PATH="/opt/csw/bin:${PATH:-}" PKG_CONFIG_PATH="/opt/csw/lib/amd64/pkgconfig:/opt/csw/lib/pkgconfig:${PKG_CONFIG_PATH:-}" CFLAGS="-Wall -g -O2 -I/opt/csw/include/freetype2" ./configure --enable-debug --prefix=$HOME/mlterm
+          PKG_CONFIG=/opt/csw/bin/pkg-config PKG_CONFIG_PATH="/opt/csw/lib/amd64/pkgconfig:/opt/csw/lib/pkgconfig:${PKG_CONFIG_PATH:-}" CFLAGS="-Wall -g -O2 -I/opt/csw/include/freetype2" ./configure --enable-debug --prefix=$HOME/mlterm
           make
           make install
           if test -f gtk/Makefile; then (cd gtk; make; make install); fi

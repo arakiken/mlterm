@@ -2589,6 +2589,7 @@ static void copymode_key(ui_screen_t *screen, int ksym, u_int state, u_char *str
       ui_stop_selecting(&screen->sel);
     } else if (ksym == XK_Escape || ksym == 'q') {
       if (ui_sel_is_reversed(&screen->sel)) {
+        ui_stop_selecting(&screen->sel);
         ui_restore_selected_region_color(&screen->sel);
       } else {
       copymode_end:
