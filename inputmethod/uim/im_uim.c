@@ -64,6 +64,10 @@
 #define SHOW_STATUS_SCREEN
 #endif
 
+#if 1
+#define ENABLE_MODE
+#endif
+
 /*
  * When uim encoding is the same as terminal, parser_uim and conv are NULL,
  * so encoding of received string will not be converted.
@@ -92,8 +96,9 @@ typedef struct im_uim {
 
   int is_mozc;
 
-#if defined(SHOW_STATUS_SCREEN) || defined(USE_IM_CURSOR_COLOR)
+#ifdef ENABLE_MODE
   int mode;
+  int prev_mode;
 #endif
 
   struct im_uim *next;
@@ -455,12 +460,13 @@ static void prop_label_update(void *p, const char *str) {
 #undef PROP_LABEL_FORMAT
 }
 
-#if defined(SHOW_STATUS_SCREEN) || defined(USE_IM_CURSOR_COLOR)
+#ifdef ENABLE_MODE
 static void mode_update(void *p, int mode) {
   im_uim_t *uim = NULL;
 
   uim = (im_uim_t *)p;
 
+  uim->prev_mode = uim->mode;
   uim->mode = mode;
 
   update_stat_screen(uim, 1);
@@ -975,10 +981,26 @@ static int key_event(ui_im_t *im, u_char key_char, KeySym ksym, XKeyEvent *event
   return ret;
 }
 
-static int switch_mode(ui_im_t *im) { return 0; }
+static int switch_mode(ui_im_t *im) {
+#ifdef ENABLE_MODE
+  im_uim_t *uim;
+  int mode;
+
+  uim = (im_uim_t*)im;
+
+  mode = uim->mode;
+  uim->mode = uim->prev_mode;
+  uim->prev_mode = mode;
+  uim_set_mode(uim->context, uim->mode);
+
+  return 1;
+#else
+  return 0;
+#endif
+}
 
 static int is_active(ui_im_t *im) {
-#if defined(SHOW_STATUS_SCREEN) || defined(USE_IM_CURSOR_COLOR)
+#ifdef ENABLE_MODE
   if (((im_uim_t *)im)->mode > 0) {
     return 1;
   } else
@@ -1346,7 +1368,7 @@ ui_im_t *im_uim_new(u_int64_t magic, vt_char_encoding_t term_encoding,
   uim_set_prop_list_update_cb(uim->context, prop_list_update);
   uim_set_prop_label_update_cb(uim->context, prop_label_update);
 
-#if defined(SHOW_STATUS_SCREEN) || defined(USE_IM_CURSOR_COLOR)
+#ifdef ENABLE_MODE
   uim_set_mode_cb(uim->context, mode_update);
 #endif
 

@@ -718,6 +718,9 @@ For example, \fB?8800h\fR ignores ^[[?8800h sequence.
 It is possible to specify multiple sequences separated by comma such as \fB?8800h,?8800l\fR.
 Note that \fB,\fR ignores all CSI sequences.
 .TP
+\fB\-\-imcolor\fR=\fIcolor\fR
+Specify the color to show cursor in preediting text via input method.
+.TP
 \fB\-\-it\fR=\fIcolor\fR
 Specify the color to use to display italic characters.
 .TP
@@ -1740,6 +1743,9 @@ Whether to ignore broadcasted characters.
 .TP
 \fBignored_csi_list\fR=\fIlist\fR (\fB\-\-igncsi\fR)
 Specify CSI sequences which should be ignored.
+.TP
+\fBim_cursor_color\fR=\fIcolor\fR (\fB\-\-imcolor\fR)
+Specify the color to show cursor in preediting text via input method.
 .TP
 \fBinner_border\fR=\fInumber\fB[\fI,number2\fB]\fR (\fB\-\-border\fR)
 Specify inner border width.

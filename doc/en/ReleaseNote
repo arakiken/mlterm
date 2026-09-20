@@ -2,6 +2,7 @@
 * Add --igncsi/ignored_csi_list option.
 * Add --cursor/cursor_style option.
 * Add --decscusr/allow_decscusr option.
+* Enable --imcolor/im_cursor_color option by default.
 * Bug fixes:
   https://github.com/arakiken/mlterm/issues/74
   https://github.com/arakiken/mlterm/issues/171

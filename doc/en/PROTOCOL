@@ -44,8 +44,8 @@ version 20260705
                   cursor_size | cursor_style | dnd_escape_mode | emoji_path | emoji_file_format |
                   encoding | exit_backscroll_by_pty | fade_ratio | fg_color | fontsize |
                   format_other_keys | gamma | geometry | hide_underline | icon_path |
-                  ignored_csi_list | input_method | it_color | letter_space | line_space |
-                  local_echo_wait | locale | logging_msg | logging_vt_seq | logsize |
+                  ignored_csi_list | im_cursor_color | input_method | it_color | letter_space |
+                  line_space | local_echo_wait | locale | logging_msg | logging_vt_seq | logsize |
                   mod_keys_to_stop_mouse_report | mod_meta_key | mod_meta_mode |
                   not_use_unicode_font | only_use_unicode_font | ot_features | ot_script |
                   receive_string_via_ucs | regard_uri_as_word | rotate_display | rv_color |
@@ -67,10 +67,10 @@ version 20260705
                   cursor_bg_color | cursor_fg_color | cursor_style | depth | dnd_escape_mode |
                   emoji_path | emoji_file_format | encoding | fade_ratio | fg_color | fontconfig |
                   fontsize | format_other_keys | gamma | gui | hide_underline | icon_path |
-                  ignored_csi_list | input_method | is_auto_encoding | it_color | letter_space |
-                  line_space | local_echo_wait | locale | logging_vt_seq | logsize | mod_meta_key |
-                  mod_meta_mode | not_use_unicode_font | only_use_unicode_font | ot_features |
-                  ot_script | pty_list | pty_name | pwd | receive_directory |
+                  ignored_csi_list | im_cursor_color | input_method | is_auto_encoding | it_color |
+                  letter_space | line_space | local_echo_wait | locale | logging_vt_seq | logsize |
+                  mod_meta_key | mod_meta_mode | not_use_unicode_font | only_use_unicode_font |
+                  ot_features | ot_script | pty_list | pty_name | pwd | receive_directory |
                   receive_string_via_ucs | regard_uri_as_word | rows | rv_color | sb_bg_color |
                   sb_fg_color | screen_width_ratio | scrollbar_mode | scrollbar_view_name |
                   send_file | static_backscroll_mode | tabsize |
@@ -135,6 +135,7 @@ version 20260705
   hide_underline = true | false | switch
   icon_path = <file path>
   ignored_csi_list = (<csi>,)*
+  im_cursor_color = <color name> | <color rgb>
   input_method = <input method> ":" <input method specific options> ...
   it_color = <color name> | <color rgb>
   line_space = <any ASCII decimal digit>

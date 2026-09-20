@@ -5397,6 +5397,11 @@ static void get_config_intern(ui_screen_t *screen, const char *dev, /* can be NU
   } else if (strcmp(key, "dnd_escape_mode") == 0) {
     value = ui_get_dnd_escape_mode_name(dnd_escape_mode);
   }
+#ifdef USE_IM_CURSOR_COLOR
+  else if (strcmp(key, "im_cursor_color") == 0) {
+    value = im_cursor_color == NULL ? "" : im_cursor_color;
+  }
+#endif
 #ifdef USE_XLIB
   else if (strcmp(key, "depth") == 0) {
     sprintf(digit, "%d", screen->window.disp->depth);
@@ -6900,7 +6905,15 @@ void ui_set_dnd_escape_mode(ui_dnd_escape_mode_t mode) {
 }
 
 #ifdef USE_IM_CURSOR_COLOR
-void ui_set_im_cursor_color(char *color) { im_cursor_color = strdup(color); }
+void ui_set_im_cursor_color(const char *color) {
+  free(im_cursor_color);
+
+  if (*color == '\0') {
+    im_cursor_color = NULL;
+  } else {
+    im_cursor_color = strdup(color);
+  }
+}
 #endif
 
 /*
@@ -7925,6 +7938,11 @@ int ui_screen_set_config(ui_screen_t *screen, const char *dev, /* can be NULL */
       ui_set_use_clipping(flag);
     }
   }
+#ifdef USE_IM_CURSOR_COLOR
+  else if (strcmp(key, "im_cursor_color") == 0) {
+    ui_set_im_cursor_color(value);
+  }
+#endif
 #ifdef ROTATABLE_DISPLAY
   else if (strcmp(key, "rotate_display") == 0) {
     ui_display_rotate(strcmp(value, "right") == 0 ? 1 : (strcmp(value, "left") == 0 ? -1 : 0));

@@ -21,7 +21,6 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @TRUECOLOR_CFLAGS@		\
 	 @CFLAGS@			\
 	 @CPPFLAGS@			\
-	 @IM_CFLAGS@			\
 	 @M17NLIB_CFLAGS@		\
 	 -I$(top_srcdir)/vtemu		\
 	 -I${top_srcdir}/uitoolkit	\

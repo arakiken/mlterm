@@ -17,6 +17,10 @@
 #include "ui_picture.h"
 #include "ui_copymode.h"
 
+#if 1
+#define USE_IM_CURSOR_COLOR
+#endif
+
 typedef enum ui_xterm_ops {
   XTOPS_OSC52 = 0x1,
   XTOPS_WINDOW_RESIZE = 0x2,
@@ -181,7 +185,7 @@ void ui_set_mod_keys_to_stop_mouse_report(const char *keys);
 void ui_set_dnd_escape_mode(ui_dnd_escape_mode_t mode);
 
 #ifdef USE_IM_CURSOR_COLOR
-void ui_set_im_cursor_color(char *color);
+void ui_set_im_cursor_color(const char *color);
 #endif
 
 ui_screen_t *ui_screen_new(vt_term_t *term, ui_font_manager_t *font_man,

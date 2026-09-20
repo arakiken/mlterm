@@ -1424,7 +1424,6 @@ if test "x$iiimf" != xno ; then
 	fi
 
 	if test "x$found_iiimcf" = xyes ; then
-		IM_CFLAGS="$IM_CFLAGS -DUSE_IIIMF"
 		MAKE_DIRS2="inputmethod/iiimf ${MAKE_DIRS2}"
 		OUTPUT_FILES="inputmethod/iiimf/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != xno ; then

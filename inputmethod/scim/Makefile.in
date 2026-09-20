@@ -22,7 +22,6 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @CFLAGS@			\
 	 @CPPFLAGS@			\
 	 @CXXFLAGS@			\
-	 @IM_CFLAGS@			\
 	 @SCIM_CFLAGS@			\
 	 -I$(top_srcdir)/vtemu		\
 	 -I${top_srcdir}/uitoolkit	\

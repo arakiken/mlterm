@@ -823,6 +823,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
       o cursor_bg_color (#)
         同背景色
 
+      o im_cursor_color
+        Input Method で入力中である場合のカーソルの色
+
       o it_color (#)
         イタリックの代わりに文字に色を付けるのに使用する色
 

@@ -1,3 +1,17 @@
+2026-09-20  Araki Ken <arakiken@user.sf.net>
+
+	* PROTOCOL, README.ja, man/mlterm.1, etc/main, etc/main.ja: Update.
+
+	* ui_screen.h: Define USE_IM_CURSOR_COLOR by default.
+
+	* ui_screen.c: Add im_cursor_color to OSC 5379 - 5381.
+
+	* im_uim.c:
+	  - Enable mode_update() by default.
+	  - Implement switch_mode(), which calls uim_set_mode().
+
+	* inputmethod/*/Makefile.in: Remove @IM_CFLAGS@.
+
 2026-09-19  Araki Ken <arakiken@user.sf.net>
 
 	* PROTOCOL, README.ja, man/mlterm.1, etc/main, etc/main.ja: Update.

@@ -363,7 +363,7 @@ void ui_prepare_for_main_config(bl_conf_t *conf) {
 #endif
 #ifdef USE_IM_CURSOR_COLOR
   bl_conf_add_opt(conf, '\0', "imcolor", 0, "im_cursor_color",
-                  "cursor color when input method is activated. [false]");
+                  "cursor color when input method is activated.");
 #endif
   bl_conf_set_end_opt(conf, 'e', NULL, "exec_cmd", "execute external command");
 }
@@ -1541,9 +1541,7 @@ void ui_main_config_init(ui_main_config_t *main_config, bl_conf_t *conf, int arg
 
 #ifdef USE_IM_CURSOR_COLOR
   if ((value = bl_conf_get_value(conf, "im_cursor_color"))) {
-    if (*value) {
-      ui_set_im_cursor_color(value);
-    }
+    ui_set_im_cursor_color(value);
   }
 #endif
 
