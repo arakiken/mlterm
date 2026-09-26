@@ -2093,10 +2093,16 @@ int ui_window_receive_event(ui_window_t *win, XEvent *event) {
       win->prev_button_press_event = event->xbutton;
     }
 
-    /* XXX Note that win->is_focused is always true on override redirect mode.
-     */
-    if (!win->is_focused && win->inputtable && event->xbutton.button == Button1 &&
-        !event->xbutton.state) {
+    /* XXX Note that win->is_focused is always true on override redirect mode. */
+    if (!win->is_focused && win->inputtable && event->xbutton.button == Button1
+#if 0
+        /*
+         * ui_window_get_mod_ignore_mask() is necessary because Mod2Mask is
+         * always set if NumLock is on.
+         */
+        && (event->xbutton.state & ui_window_get_mod_ignore_mask(win, NULL)) == 0
+#endif
+        ) {
       ui_window_set_input_focus(win);
     }
   } else if (event->type == NoExpose) {

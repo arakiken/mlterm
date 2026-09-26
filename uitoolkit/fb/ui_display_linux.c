@@ -834,8 +834,8 @@ static int receive_mouse_event(int fd) {
 #ifdef EVIOCGABS
       static int max_abs_x;
       static int max_abs_y;
-      static int prev_abs_x = -1;
-      static int prev_abs_y = -1;
+      static int abs_x_init;
+      static int abs_y_init;
       int tmp;
 #ifdef ABS_MT_TRACKING_ID
       static int mttrackingid;
@@ -855,7 +855,7 @@ static int receive_mouse_event(int fd) {
       if (ev.code == ABS_MT_TRACKING_ID) {
         if (((int)ev.value) != mttrackingid) {
           mttrackingid = ev.value;
-          prev_abs_x = prev_abs_y = -1;
+          abs_x_init = abs_y_init = 0;
         }
       } else
 #endif
@@ -864,26 +864,26 @@ static int receive_mouse_event(int fd) {
         ev.code = BTN_LEFT;
         ev.value = 1; /* ButtonPress */
       } else if (ev.code == ABS_X) {
-        if (prev_abs_x == -1) {
-          prev_abs_x = ev.value;
+        tmp = ((int)ev.value) * ((int)_display.width) / max_abs_x;
+        if (!abs_x_init) {
+          abs_x_init = 1;
+          _mouse.x = tmp;
           continue;
         } else {
           ev.type = EV_REL;
           ev.code = REL_X;
-          tmp = (((int)ev.value) - prev_abs_x) * ((int)_display.width) / max_abs_x;
-          prev_abs_x = ev.value;
-          ev.value = tmp;
+          ev.value = tmp - _mouse.x;
         }
       } else if (ev.code == ABS_Y) {
-        if (prev_abs_y == -1) {
-          prev_abs_y = ev.value;
+        tmp = ((int)ev.value) * ((int)_display.height) / max_abs_y;
+        if (!abs_y_init) {
+          abs_y_init = 1;
+          _mouse.y = tmp;
           continue;
         } else {
           ev.type = EV_REL;
           ev.code = REL_Y;
-          tmp = (((int)ev.value) - prev_abs_y) * ((int)_display.height) / max_abs_y;
-          prev_abs_y = ev.value;
-          ev.value = tmp;
+          ev.value = tmp - _mouse.y;
         }
       } else
 #endif

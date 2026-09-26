@@ -1278,18 +1278,20 @@ static double get_dpi(ui_font_t *font) {
   int dpi = 0;
   char *rs = XResourceManagerString(font->display);
 
-  while (1) {
-    if (strncmp(rs, "Xft.dpi:", 8) == 0) {
-      rs += 8;
-      while (*rs < '0' || '9' < *rs) { rs++; }
-      dpi = atoi(rs);
-      break;
-    } else {
-      do {
-        if (*rs == '\0') {
-          goto end;
-        }
-      } while (*(rs++) != '\n');
+  if (rs) {
+    while (1) {
+      if (strncmp(rs, "Xft.dpi:", 8) == 0) {
+        rs += 8;
+        while (*rs < '0' || '9' < *rs) { rs++; }
+        dpi = atoi(rs);
+        break;
+      } else {
+        do {
+          if (*rs == '\0') {
+            goto end;
+          }
+        } while (*(rs++) != '\n');
+      }
     }
   }
 

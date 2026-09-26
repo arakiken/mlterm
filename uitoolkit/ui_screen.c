@@ -4051,7 +4051,7 @@ static void button_press_continued(ui_window_t *win, XButtonEvent *event) {
 
 static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num) {
   ui_screen_t *screen;
-  u_int state;
+  u_int masked_state;
 
   screen = (ui_screen_t *)win;
 
@@ -4080,7 +4080,8 @@ static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num)
     return;
   }
 
-  state = (Button1Mask << (event->button - Button1)) | event->state;
+  masked_state = (Button1Mask << (event->button - Button1)) |
+                 (event->state & screen->mod_ignore_mask);
 
   if (event->button == Button1) {
     if (click_num == 2) {
@@ -4096,7 +4097,8 @@ static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num)
     }
   }
 
-  if (shortcut_match(screen, 0, state) || shortcut_str(screen, 0, state, event->x, event->y)) {
+  if (shortcut_match(screen, 0, masked_state) ||
+      shortcut_str(screen, 0, masked_state, event->x, event->y)) {
     return;
   }
 
@@ -4118,9 +4120,9 @@ static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num)
       vt_term_write_special_key(screen->term, SPKEY_UP, 0, 0);
     } else {
       enter_backscroll_mode(screen);
-      if (event->state & ShiftMask) {
+      if (masked_state & ShiftMask) {
         bs_scroll_downward(screen, 1, 1);
-      } else if (event->state & ControlMask) {
+      } else if (masked_state & ControlMask) {
         bs_page_downward(screen);
       } else {
         bs_half_page_downward(screen);
@@ -4136,9 +4138,9 @@ static void button_pressed(ui_window_t *win, XButtonEvent *event, int click_num)
       vt_term_write_special_key(screen->term, SPKEY_DOWN, 0, 0);
     } else {
       enter_backscroll_mode(screen);
-      if (event->state & ShiftMask) {
+      if (masked_state & ShiftMask) {
         bs_scroll_upward(screen, 1, 1);
-      } else if (event->state & ControlMask) {
+      } else if (masked_state & ControlMask) {
         bs_page_upward(screen);
       } else {
         bs_half_page_upward(screen);

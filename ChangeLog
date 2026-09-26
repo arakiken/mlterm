@@ -1,3 +1,17 @@
+2026-09-26  Araki Ken <arakiken@user.sf.net>
+
+	* ui_font_ft.c: get_dpi() checks if XResourceManagerString() returns
+	  NULL to avoid a segfault when starting mlterm in environments where X
+	  server is not working.
+
+	* fb/ui_display_linux.c: Fix conversion from EV_ABS to EV_REL.
+
+	* ui_screen.c: Pass (event->state & screen->mod_ignore_mask) to
+	  ui_shortcut_str() and ui_shortcut_match().
+
+	* ui_shortcut.c: Remove NumLock (Mod2Mask) hack from ui_shortcut_str()
+	  and ui_shortcut_match().
+
 2026-09-21  Araki Ken <arakiken@user.sf.net>
 
 	* ui_display_linux.c: Refresh the screen every time the cursor moves.
