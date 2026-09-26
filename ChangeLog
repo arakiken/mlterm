@@ -1,5 +1,8 @@
 2026-09-26  Araki Ken <arakiken@user.sf.net>
 
+	* ui_display_linux.c: get_event_device_num() searches multiple mouse
+	  devices.
+
 	* ui_font_ft.c: get_dpi() checks if XResourceManagerString() returns
 	  NULL to avoid a segfault when starting mlterm in environments where X
 	  server is not working.

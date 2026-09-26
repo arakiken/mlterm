@@ -259,37 +259,49 @@ static void set_use_console_backscroll(int use) {
   bl_priv_change_egid(bl_getgid());
 }
 
-static void get_event_device_num_intern(int *kbd, int *mouse, const char *fmt) {
+static void get_event_device_num_intern(int *kbd, int *mouse, u_int m_size, const char *fmt) {
   char *class;
-  int count;
+  int dev_num;
+  u_int m_count;
   FILE* fp;
+  int err_count;
 
-  *kbd = *mouse = -1;
+  *kbd = -1;
+  for (m_count = 0; m_count < m_size; m_count++) {
+    mouse[m_count] = -1;
+  }
 
   if (!(class = alloca(strlen(fmt) - 2 /* %d */ + 3 /* 0 - 999 */ + 1))) {
     return;
   }
 
-  for (count = 0;; count++) {
-    sprintf(class, fmt, count);
+  m_count = 0;
+  err_count = 0;
+  for (dev_num = 0;; dev_num++) {
+    sprintf(class, fmt, dev_num);
 
     if (!(fp = fopen(class, "r"))) {
-      break;
+      if (++err_count >= 2) {
+        break;
+      } else {
+        continue;
+      }
     } else {
       char buf[128];
 
       if (fgets(buf, sizeof(buf), fp)) {
         if (strcasestr(buf, "key")) {
-          *kbd = count;
+          *kbd = dev_num;
         } else {
           static char *mouse_names[] = {"mouse", "touch"};
-          u_int idx;
+          u_int count;
 
-          for (idx = 0; idx < BL_ARRAY_SIZE(mouse_names); idx++) {
-            if (strcasestr(buf, mouse_names[idx])) {
-              *mouse = count;
-
-              break;
+          for (count = 0; count < BL_ARRAY_SIZE(mouse_names); count++) {
+            if (strcasestr(buf, mouse_names[count])) {
+              mouse[m_count++] = dev_num;
+              if (m_count >= m_size) {
+                break;
+              }
             }
           }
         }
@@ -297,15 +309,15 @@ static void get_event_device_num_intern(int *kbd, int *mouse, const char *fmt) {
 
       fclose(fp);
 
-      if (*kbd != -1 && *mouse != -1) {
+      if (*kbd != -1 && m_count >= m_size) {
         break;
       }
     }
   }
 }
 
-static void get_event_device_num(int *kbd, int *mouse) {
-  get_event_device_num_intern(kbd, mouse, "/sys/class/input/event%d/device/name");
+static void get_event_device_num(int *kbd, int *mouse, u_int m_size) {
+  get_event_device_num_intern(kbd, mouse, m_size, "/sys/class/input/event%d/device/name");
 
   if (*kbd == -1 || *mouse == -1) {
     int k;
@@ -316,7 +328,7 @@ static void get_event_device_num(int *kbd, int *mouse) {
      * /sys/class/input/input%d/event%d
      * => Note that The first %d and the second %d might not be the same number.
      */
-    get_event_device_num_intern(&k, &m, "/sys/class/input/input%d/name");
+    get_event_device_num_intern(&k, &m, 1, "/sys/class/input/input%d/name");
 
     if (*kbd == -1) {
       *kbd = k;
@@ -721,7 +733,7 @@ static int open_display(u_int depth) {
     return 0;
   }
 
-  get_event_device_num(kbd_num, mouse_num);
+  get_event_device_num(kbd_num, mouse_num, BL_ARRAY_SIZE(mouse_num));
 
   if ((dev = getenv("KBD_INPUT_NUM"))) {
     convert_input_num(kbd_num, BL_ARRAY_SIZE(kbd_num), dev);
