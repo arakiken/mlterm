@@ -18,7 +18,7 @@ If you are using an older version, we strongly recommend upgrading to the latest
 
 To report a vulnerability safely and confidentially, please use **GitHub Private Vulnerability Reporting**:
 
-1. Go to the [Security](https://github.com) tab of this repository.
+1. Go to the [Security](https://github.com/arakiken/mlterm/security) tab of this repository.
 2. Select **Advisories** on the left sidebar.
 3. Click **Report a vulnerability** to securely submit your report.
 
