@@ -1,3 +1,11 @@
+2026-09-27  Araki Ken <arakiken@user.sf.net>
+
+	* c_sixel.c:
+	  - Limit 'rep' to MAX_REPEAT.
+	  - Allocate 'pixels' according to 'pix_y + 6' and 'pix_x + rep'.
+	  - Ensure that 'color' is <=128 in ormode.
+	  - Clear the all allocated memory of 'ext_palette' by memset().
+
 2026-09-26  Araki Ken <arakiken@user.sf.net>
 
 	* ui_display_linux.c: get_event_device_num() searches multiple mouse

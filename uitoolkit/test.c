@@ -22,7 +22,7 @@ void TEST_vt_shape(void);
 void TEST_ui_display(void);
 #endif
 #ifndef NO_IMAGE
-void TEST_sixel_realloc_pixels(void);
+void TEST_c_sixel(void);
 #endif
 #ifndef USE_XLIB
 void TEST_xstringtokeysym(void);
@@ -54,7 +54,7 @@ void test(void) {
   TEST_ui_display();
 #endif
 #ifndef NO_IMAGE
-  TEST_sixel_realloc_pixels();
+  TEST_c_sixel();
 #endif
 #ifndef USE_XLIB
   TEST_xstringtokeysym();

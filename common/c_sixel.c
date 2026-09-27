@@ -61,6 +61,8 @@
 
 #define PIXEL_SIZE sizeof(pixel_t)
 
+#define MAX_REPEAT (1024*8) /* XXX It is better to use ui_display_t::width. */
+
 /* --- static variables --- */
 
 #if !defined(SIXEL_1BPP) && !defined(SIXEL_SHAREPALETTE)
@@ -549,17 +551,16 @@ body:
       u_char *line;
 
       if (height < pix_y + 6) {
-        new_height = height + 516 /* 6*86 */;
+        new_height = BL_MAX(pix_y + 6, height + 516 /* 6*86 */);
       } else {
         new_height = height;
       }
 
       if (width < pix_x + rep) {
-        u_int expand = BL_MAX(rep, 512);
         u_int h;
 
-        new_width = width + expand;
-        stride += (expand * PIXEL_SIZE);
+        new_width = BL_MAX(pix_x + rep, width + 512);
+        stride = new_width * PIXEL_SIZE;
         h = width * height / new_width;
         /*
          * h=17, pix_y=6
@@ -586,17 +587,20 @@ body:
 
 #ifdef SIXEL_ORMODE
       if (ormode) {
-        for (y = 0; y < 6; y++) {
-          if ((b & a) != 0) {
-            int x = 0;
+        if (color <= 128) {
+          /* XXX strictly color = 1, 2, 4, 8, 16, 32, 64, 128 */
+          for (y = 0; y < 6; y++) {
+            if ((b & a) != 0) {
+              int x = 0;
 
-            do {
-              ((pixel_t*)line)[x++] |= color;
-            } while (x < rep); /* rep >= 1 */
+              do {
+                ((pixel_t*)line)[x++] |= color;
+              } while (x < rep); /* rep >= 1 */
+            }
+
+            a <<= 1;
+            line += stride;
           }
-
-          a <<= 1;
-          line += stride;
         }
       } else
 #endif
@@ -666,6 +670,13 @@ body:
 
         rep *= asp_x;
       }
+
+      if (rep > MAX_REPEAT) {
+#ifdef DEBUG
+        bl_debug_printf(BL_DEBUG_TAG " rep %d is too large -> %d.\n", rep, MAX_REPEAT);
+#endif
+        rep = MAX_REPEAT;
+      }
     } else if (*p == '$' || *p == '-') {
       pix_x = 0;
       rep = asp_x; /* always >= 1 */
@@ -719,7 +730,7 @@ body:
                 color = 0;
                 goto use_base_palette;
               }
-              memset(ext_palette, 0, 1024 - SIXEL_PALETTE_SIZE);
+              memset(ext_palette, 0, sizeof(pixel_t) * (1024 - SIXEL_PALETTE_SIZE));
             }
 
             palette = ext_palette;
@@ -886,6 +897,12 @@ body:
         width = new_width;
         stride = new_width * PIXEL_SIZE;
         height = new_height;
+      } else {
+        /*
+         * Even if realloc_pixels() fails, it is safe to continue processing
+         * because the necessary memory will be allocated within
+         * 'if (*p >= '?' && *p <= '\x7E')' block.
+         */
       }
     } else if (*p == '\x1b') {
       if (*(++p) == '\\') {
@@ -1005,7 +1022,7 @@ pixel_t *ui_set_custom_sixel_palette(pixel_t *palette /* NULL -> Create new pale
 #define PIXEL_DATA(b1, b2, b4) \
   (sizeof(pixel_t) == 1 ? (b1) : (sizeof(pixel_t) == 2 ? (b2) : /* sizeof(pixel_t) == 4 */ (b4)))
 
-void TEST_sixel_realloc_pixels(void) {
+static void TEST_sixel_realloc_pixels(void) {
   pixel_t *pixels = NULL;
   int x;
   int y;
@@ -1096,7 +1113,34 @@ void TEST_sixel_realloc_pixels(void) {
 
   free(pixels);
 
-  bl_msg_printf("PASS realloc_pixels test\n");
+}
+
+static void TEST_sixel_load(void) {
+  /*
+   * image size: 2147483647x2147483647
+   * repeat 2147483647 times.
+   * 200 new lines.
+   */
+  char *sixel = "\x1bPq\"1;1;2147483647;2147483647#65;2;0;0;100#65!2147483647@"
+                "--------------------------------------------------"
+                "--------------------------------------------------"
+                "--------------------------------------------------"
+                "--------------------------------------------------"
+                "#65!2147483647@\x1b\\";
+  u_int width, height;
+  int transparent;
+
+  load_sixel_from_data(sixel, &width, &height, &transparent);
+  assert(width == MAX_REPEAT);
+  assert(height == 50 * 4 * 6 + 1);
+  assert(transparent == 0);
+}
+
+void TEST_c_sixel(void) {
+  TEST_sixel_load();
+  TEST_sixel_realloc_pixels();
+
+  bl_msg_printf("PASS c_sixel test\n");
 }
 
 #endif
