@@ -1,3 +1,9 @@
+2026-10-04  Araki Ken <arakiken@user.sf.net>
+
+	* ui_im_candidate_screen.c: Fix segfault by drawing outside the screen
+	  in draw_screen_vertical().
+	  (https://github.com/arakiken/mlterm/issues/180)
+
 2026-09-27  Araki Ken <arakiken@user.sf.net>
 
 	* c_sixel.c:

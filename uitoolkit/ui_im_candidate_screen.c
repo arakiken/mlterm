@@ -363,7 +363,7 @@ static void draw_screen_vertical(ui_im_candidate_screen_t *cand_screen, u_int to
 
       ui_window_clear(&cand_screen->window, 0, y, win_width, win_height - y);
     }
-  } else {
+  } else if (cand_screen->num_candidates > cand_screen->num_per_window) {
     /* clear navi area */
     ui_window_clear(&cand_screen->window, 0, cand_screen->num_per_window * (font->height + LINE_SPACE),
                     win_width, font->height + LINE_SPACE);
