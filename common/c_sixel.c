@@ -560,6 +560,7 @@ body:
       if (width < pix_x + rep) {
         u_int h;
 
+        /* XXX pix_x + rep is always <= MAX_WIDTH (see GRI), but width + 512 can exceed MAX_WIDTH */
         new_width = BL_MAX(pix_x + rep, width + 512);
         stride = new_width * PIXEL_SIZE;
         h = width * height / new_width;
@@ -672,7 +673,9 @@ body:
         rep *= asp_x;
       }
 
-      if (pix_x + rep >= MAX_WIDTH) {
+      if (rep < 0) {
+        rep = asp_x; /* always >= 1 */
+      } else if ((u_int)pix_x + (u_int)rep >= (u_int)MAX_WIDTH) {
 #ifdef DEBUG
         bl_debug_printf(BL_DEBUG_TAG " rep %d is too large -> %d.\n", rep, MAX_WIDTH - pix_x);
 #endif
