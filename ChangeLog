@@ -1,5 +1,10 @@
 2026-10-04  Araki Ken <arakiken@user.sf.net>
 
+	* c_sixel.c: Drop MAX_REPEAT. Add MAX_WIDTH and MAX_HEIGHT which limit
+	  the size of sixel graphics images.
+
+	* main_loop.c: --test option checks memory leaks.
+
 	* ui_im_candidate_screen.c: Fix segfault by drawing outside the screen
 	  in draw_screen_vertical().
 	  (https://github.com/arakiken/mlterm/issues/180)

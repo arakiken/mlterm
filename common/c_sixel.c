@@ -61,7 +61,8 @@
 
 #define PIXEL_SIZE sizeof(pixel_t)
 
-#define MAX_REPEAT (1024*8) /* XXX It is better to use ui_display_t::width. */
+#define MAX_WIDTH (1024*8)
+#define MAX_HEIGHT (1024*8)
 
 /* --- static variables --- */
 
@@ -671,11 +672,11 @@ body:
         rep *= asp_x;
       }
 
-      if (rep > MAX_REPEAT) {
+      if (pix_x + rep >= MAX_WIDTH) {
 #ifdef DEBUG
-        bl_debug_printf(BL_DEBUG_TAG " rep %d is too large -> %d.\n", rep, MAX_REPEAT);
+        bl_debug_printf(BL_DEBUG_TAG " rep %d is too large -> %d.\n", rep, MAX_WIDTH - pix_x);
 #endif
-        rep = MAX_REPEAT;
+        rep = MAX_WIDTH - pix_x;
       }
     } else if (*p == '$' || *p == '-') {
       pix_x = 0;
@@ -702,6 +703,10 @@ body:
         }
 
         pix_y += 6;
+        /* XXX pix_y can exceed MAX_HEIGHT */
+        if (pix_y >= MAX_HEIGHT) {
+          break;
+        }
       }
     } else if (*p == '#') /* # Pc ; Pu; Px; Py; Pz */ {
       if (*(++p) == '\0') {
@@ -1130,8 +1135,8 @@ static void TEST_sixel_load(void) {
   u_int width, height;
   int transparent;
 
-  load_sixel_from_data(sixel, &width, &height, &transparent);
-  assert(width == MAX_REPEAT);
+  free(load_sixel_from_data(sixel, &width, &height, &transparent));
+  assert(width == MAX_WIDTH);
   assert(height == 50 * 4 * 6 + 1);
   assert(transparent == 0);
 }

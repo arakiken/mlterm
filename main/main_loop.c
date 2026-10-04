@@ -533,6 +533,28 @@ int main_loop_init(int argc, char **argv) {
   if ((value = bl_conf_get_value(conf, "test"))) {
     if (strcmp(value, "true") == 0) {
       test();
+
+      bl_conf_destroy(conf);
+      ui_main_config_final(&main_config);
+      vt_term_final(); /* for TEST_vt_term */
+      ui_set_im_cursor_color("");
+
+      /* same as main_loop_final() */
+      daemon_final();
+      vt_free_word_separators();
+      ui_free_mod_meta_prefix();
+      bl_set_msg_log_file_name(NULL);
+#ifdef USE_XLIB
+      ui_xim_final();
+#endif
+      bl_sig_child_final();
+      bl_locale_final();
+      bl_alloca_garbage_collect();
+
+      bl_msg_printf("reporting unfreed memories --->\n");
+      bl_mem_free_all();
+      bl_dl_close_all();
+
       exit(0);
     }
   }
@@ -571,6 +593,7 @@ int main_loop_init(int argc, char **argv) {
   return 1;
 }
 
+/* If you modify this function, modify codes after test() above. */
 void main_loop_final(void) {
 #ifdef USE_BRLAPI
   ui_brltty_final();
