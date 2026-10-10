@@ -323,6 +323,7 @@ typedef struct vt_parser {
   u_int use_local_echo : 1;
   u_int use_locked_title : 1;
   u_int invoke_macro : 1;
+  u_int blink_cursor : 1;
 
 #ifdef USE_VT52
   u_int is_vt52_mode : 1;
