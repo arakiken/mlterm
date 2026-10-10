@@ -1,3 +1,8 @@
+2026-10-10  Araki Ken <arakiken@user.sf.net>
+
+	* ui_display_linux.c: Call ioctl(EVIOCGLED) in startup
+	  (open_display()) to reflect NumLock state.
+
 2026-10-04  Araki Ken <arakiken@user.sf.net>
 
 	* c_sixel.c: Drop MAX_REPEAT. Add MAX_WIDTH and MAX_HEIGHT which limit

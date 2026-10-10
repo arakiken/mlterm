@@ -770,10 +770,21 @@ static int open_display(u_int depth) {
 #endif
     _display.fd = STDIN_FILENO;
   } else {
+#ifdef EVIOCGLED
+    u_long leds = 0;
+#endif
+
 #ifdef DEBUG
     bl_debug_printf("KBD1: /dev/input/event%d\n", kbd_num[0]);
 #endif
     bl_file_set_cloexec(_display.fd);
+
+#ifdef EVIOCGLED
+    if (ioctl(_display.fd, EVIOCGLED(sizeof(leds)), &leds) >= 0 &&
+        (leds & (1UL << LED_NUML))) {
+      _display.lock_state |= NLKED;
+    }
+#endif
   }
 
   /* K_UNICODE is the default value. */
@@ -818,6 +829,11 @@ static int open_display(u_int depth) {
     static InputDevice _kbd2;
     static ui_display_t _disp_kbd2;
 
+    /*
+     * XXX
+     * _display.lock_state, _display.key_state etc are shared by _display.fd and
+     * _kbd2.fd. (see receive_key_event())
+     */
     if ((_kbd2.fd = open_event_device(kbd_num[1], NULL)) != -1) {
 #ifdef DEBUG
       bl_debug_printf("KBD2: /dev/input/event%d\n", kbd_num[1]);
