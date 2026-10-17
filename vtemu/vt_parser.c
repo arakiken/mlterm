@@ -75,7 +75,7 @@ int wcwidth(wchar_t c);
   ((vt_parser)->config_listener && ((vt_parser)->config_listener->method))
 
 #if 1
-#define MAX_PS_DIGIT 0xffff
+#define MAX_PS_DIGIT 0xffff /* see c_sixel.c */
 #endif
 
 #if 0

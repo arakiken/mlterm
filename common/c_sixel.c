@@ -63,6 +63,7 @@
 
 #define MAX_WIDTH (1024*8)
 #define MAX_HEIGHT (1024*8)
+#define MAX_PS_DIGIT 0xffff /* see vt_parser.c */
 
 /* --- static variables --- */
 
@@ -74,36 +75,36 @@ static pixel_t *custom_palette;
 
 #ifndef __GET_PARAMS__
 #define __GET_PARAMS__
-static u_int get_params(int *params, u_int max_params, const char **p) {
+static u_int get_params(u_int *params, u_int max_params, const char **p) {
   u_int count;
-  const char *start;
 
-  memset(params, 0, sizeof(int) * max_params);
+  memset(params, 0, sizeof(u_int) * max_params);
 
-  for (start = *p, count = 0; count < max_params; count++) {
-    while (1) {
-      if ('0' <= **p && **p <= '9') {
-        params[count] = params[count] * 10 + (**p - '0');
-      } else if (**p == ';') {
-        (*p)++;
-        break;
-      } else {
-        if (start == *p) {
-          return 0;
-        } else {
-          (*p)--;
-
-          return count + 1;
-        }
-      }
-
-      (*p)++;
-    }
+  if ('0' <= **p && **p <= '9') {
+    params[0] = (**p - '0');
+    count = 0;
+  } else if (**p == ';') {
+    count = 1;
+  } else {
+    return 0;
   }
 
-  (*p)--;
+  while (1) {
+    (*p)++;
+    if ('0' <= **p && **p <= '9') {
+      params[count] = params[count] * 10 + (**p - '0');
+    } else {
+      if (params[count] > MAX_PS_DIGIT) {
+        params[count] = MAX_PS_DIGIT;
+      }
 
-  return count;
+      if (++count >= max_params || **p != ';') {
+        (*p)--;
+
+        return count;
+      }
+    }
+  }
 }
 #endif /* __GET_PARAMS__ */
 
@@ -146,12 +147,12 @@ static char *read_sixel_file(const char *path) {
 
 #ifndef __REALLOC_PIXELS_INTERN__
 #define __REALLOC_PIXELS_INTERN__
-static int realloc_pixels_intern(u_char **pixels, size_t new_stride, int new_height,
-                                 size_t cur_stride, int cur_height, int n_copy_rows) {
+static int realloc_pixels_intern(u_char **pixels, size_t new_stride, u_int new_height,
+                                 size_t cur_stride, u_int cur_height, u_int n_copy_rows) {
   u_char *p;
   u_char *src;
   u_char *dst;
-  int y;
+  u_int y;
 
   if (new_stride < cur_stride) {
     if (new_height > cur_height) {
@@ -272,9 +273,9 @@ static int realloc_pixels_intern(u_char **pixels, size_t new_stride, int new_hei
  * Correct the height which is always multiple of 6, but this doesn't
  * necessarily work.
  */
-static void correct_height(pixel_t *pixels, int width, int *height /* multiple of 6 */) {
-  int x;
-  int y;
+static void correct_height(pixel_t *pixels, u_int width, u_int *height /* multiple of 6 */) {
+  u_int x;
+  u_int y;
 
   pixels += (width * (*height - 1));
 
@@ -299,19 +300,19 @@ static u_char *load_sixel_from_data(const char *file_data, u_int *width_ret, u_i
                                     int *transparent) {
   const char *p = file_data;
   u_char *pixels;
-  int params[6];
+  u_int params[6];
   u_int n; /* number of params */
-  int init_width;
-  int pix_x;
-  int pix_y;
-  int stride;
-  int cur_width;
-  int cur_height;
-  int width;
-  int height;
-  int rep;
-  int color;
-  int asp_x;
+  u_int init_width;
+  u_int pix_x;
+  u_int pix_y;
+  u_int stride;
+  u_int cur_width;
+  u_int cur_height;
+  u_int width;
+  u_int height;
+  u_int rep;
+  u_int color;
+  u_int asp_x;
 #ifdef SIXEL_ORMODE
   int ormode = 0;
 #endif
@@ -546,9 +547,9 @@ body:
     if (*p >= '?' && *p <= '\x7E') {
       u_int new_width;
       u_int new_height;
-      int a;
-      int b;
-      int y;
+      u_int a;
+      u_int b;
+      u_int y;
       u_char *line;
 
       if (height < pix_y + 6) {
@@ -560,8 +561,17 @@ body:
       if (width < pix_x + rep) {
         u_int h;
 
-        /* XXX pix_x + rep is always <= MAX_WIDTH (see GRI), but width + 512 can exceed MAX_WIDTH */
-        new_width = BL_MAX(pix_x + rep, width + 512);
+        if (width + 512 > MAX_WIDTH) {
+          if (pix_x >= MAX_WIDTH) {
+            continue;
+          }
+          if (width >= MAX_WIDTH) {
+            rep = MAX_WIDTH - pix_x;
+          }
+          new_width = MAX_WIDTH;
+        } else {
+          new_width = BL_MAX(pix_x + rep, width + 512);
+        }
         stride = new_width * PIXEL_SIZE;
         h = width * height / new_width;
         /*
@@ -593,7 +603,7 @@ body:
           /* XXX strictly color = 1, 2, 4, 8, 16, 32, 64, 128 */
           for (y = 0; y < 6; y++) {
             if ((b & a) != 0) {
-              int x = 0;
+              u_int x = 0;
 
               do {
                 ((pixel_t*)line)[x++] |= color;
@@ -611,7 +621,7 @@ body:
         for (y = 0; y < 6; y++) {
           if ((b & a) != 0) {
 #ifdef USE_GRF
-            int x = 0;
+            u_int x = 0;
 
             do {
               ((u_int16_t*)line)[x++] = color_indexes[color];
@@ -626,7 +636,7 @@ body:
 #else
         for (y = 0; y < 6; y++) {
           if ((b & a) != 0) {
-            int x = 0;
+            u_int x = 0;
 
             do {
 #ifdef SIXEL_1BPP
@@ -672,24 +682,15 @@ body:
 
         rep *= asp_x;
       }
-
-      if (rep < 0) {
-        rep = asp_x; /* always >= 1 */
-      } else if ((u_int)pix_x + (u_int)rep >= (u_int)MAX_WIDTH) {
-#ifdef DEBUG
-        bl_debug_printf(BL_DEBUG_TAG " rep %d is too large -> %d.\n", rep, MAX_WIDTH - pix_x);
-#endif
-        rep = MAX_WIDTH - pix_x;
-      }
     } else if (*p == '$' || *p == '-') {
       pix_x = 0;
       rep = asp_x; /* always >= 1 */
 
       if (*p == '-') {
         if (!init_width && width > cur_width && cur_width > 0) {
-          int y;
+          u_int y;
 
-#ifdef DEBUG
+#if 1//def DEBUG
           bl_debug_printf("Sixel width is shrunk (%d -> %d)\n", width, cur_width);
 #endif
 
@@ -880,6 +881,13 @@ body:
 #endif
       }
 
+      if (new_width > MAX_WIDTH) {
+        new_width = MAX_WIDTH;
+      }
+      if (new_height > MAX_HEIGHT) {
+        new_height = MAX_HEIGHT;
+      }
+
       if (width < new_width) {
         /* w200 h100 -> w400 h0 case is ignored. */
         if (new_height > 0) {
@@ -912,6 +920,8 @@ body:
          * 'if (*p >= '?' && *p <= '\x7E')' block.
          */
       }
+
+      init_width = 1; /* Not shrink if the width of the 1st line is less than 'width' above. */
     } else if (*p == '\x1b') {
       if (*(++p) == '\\') {
 #ifdef DEBUG
@@ -955,7 +965,7 @@ end:
 
 #ifdef SIXEL_ORMODE
     if (ormode) {
-      int x, y;
+      u_int x, y;
       pixel_t *p = (pixel_t*)pixels;
 
       for (y = 0; y < cur_height; y++) {
@@ -1129,12 +1139,18 @@ static void TEST_sixel_load(void) {
    * repeat 2147483647 times.
    * 200 new lines.
    */
-  char *sixel = "\x1bPq\"1;1;2147483647;2147483647#65;2;0;0;100#65!2147483647@"
+  char *sixel = "\x1bPq\"1;1;2147483647;2147483647#65;2;0;0;100#65@!2147483647@"
                 "--------------------------------------------------"
                 "--------------------------------------------------"
                 "--------------------------------------------------"
                 "--------------------------------------------------"
-                "#65!2147483647@\x1b\\";
+                "#65@!2147483647@\x1b\\";
+  char *sixel2 = "\x1bPq\"1;1;4294967295;4294967295#65;2;0;0;100#65@!4294967295@"
+                 "--------------------------------------------------"
+                 "--------------------------------------------------"
+                 "--------------------------------------------------"
+                 "--------------------------------------------------"
+                 "#65@!4294967295@\x1b\\";
   u_int width, height;
   int transparent;
 
@@ -1142,11 +1158,33 @@ static void TEST_sixel_load(void) {
   assert(width == MAX_WIDTH);
   assert(height == 50 * 4 * 6 + 1);
   assert(transparent == 0);
+
+  free(load_sixel_from_data(sixel2, &width, &height, &transparent));
+  assert(width == MAX_WIDTH);
+  assert(height == 50 * 4 * 6 + 1);
+  assert(transparent == 0);
+}
+
+static void TEST_get_params(void) {
+  char seq[] = ";4294967295;4294967296;65535;65536;hoge";
+  const char *p = seq;
+  u_int params[5];
+  u_int num;
+
+  num = get_params(params, BL_ARRAY_SIZE(params), &p);
+  assert(num == 5);
+  assert(params[0] == 0);
+  assert(params[1] == MAX_PS_DIGIT);
+  assert(params[2] == 0);
+  assert(params[3] == MAX_PS_DIGIT);
+  assert(params[4] == MAX_PS_DIGIT);
+  assert(strcmp(p, ":hoge"));
 }
 
 void TEST_c_sixel(void) {
   TEST_sixel_load();
   TEST_sixel_realloc_pixels();
+  TEST_get_params();
 
   bl_msg_printf("PASS c_sixel test\n");
 }

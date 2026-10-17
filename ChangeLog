@@ -1,3 +1,10 @@
+2026-10-11  Araki Ken <arakiken@user.sf.net>
+
+	* c_sixel.c:
+	  - Ensure the width of the Cixel Graphics image stays within
+	    MAX_WIDTH limit.
+	  - Add TEST_get_params().
+
 2026-10-10  Araki Ken <arakiken@user.sf.net>
 
 	* ui_display_linux.c: Call ioctl(EVIOCGLED) in startup
