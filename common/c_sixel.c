@@ -690,7 +690,7 @@ body:
         if (!init_width && width > cur_width && cur_width > 0) {
           u_int y;
 
-#if 1//def DEBUG
+#ifdef DEBUG
           bl_debug_printf("Sixel width is shrunk (%d -> %d)\n", width, cur_width);
 #endif
 

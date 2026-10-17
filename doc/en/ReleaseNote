@@ -3,6 +3,9 @@
 * Add --cursor/cursor_style option.
 * Add --decscusr/allow_decscusr option.
 * Enable --imcolor/im_cursor_color option by default.
+* Security fixes:
+  GHSA-hm5h-prh4-xcxv
+  GHSA-f28h-6h59-mm6f
 * Bug fixes:
   https://github.com/arakiken/mlterm/issues/74
   https://github.com/arakiken/mlterm/issues/171
@@ -15,6 +18,7 @@
   (Related to https://github.com/chu-hai/mlterm/commit/111cb6a)
   Fix delaying connection to fcitx server.
   (Related to https://github.com/chu-hai/mlterm/tree/improve_im_fcitx)
+  Check NumLock state in starting mlterm-fb on linux.
 
 ver 3.9.5
 * Support text-input-unstable-v3.
