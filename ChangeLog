@@ -1,3 +1,9 @@
+2026-10-18  Araki Ken <arakiken@user.sf.net>
+
+	* c_sixel.c:
+	  - Ensure 'pix_x + rep' <= MAX_WIDTH in load_sixel_from_data().
+	  - Check the return value of fstat() in read_sixel_file().
+
 2026-10-11  Araki Ken <arakiken@user.sf.net>
 
 	* c_sixel.c:

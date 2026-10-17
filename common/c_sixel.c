@@ -124,14 +124,12 @@ static char *read_sixel_file(const char *path) {
     return NULL;
   }
 
-  fstat(fileno(fp), &st);
-
   /*
    * - malloc() should be used here because alloca() could return insufficient
    * memory.
    * - Cast to char* is necessary because this function can be compiled by g++.
    */
-  if (!(data = (char*)malloc(st.st_size + 1))) {
+  if (fstat(fileno(fp), &st) != 0 || !(data = (char*)malloc(st.st_size + 1))) {
     fclose(fp);
 
     return NULL;
@@ -547,6 +545,7 @@ body:
     if (*p >= '?' && *p <= '\x7E') {
       u_int new_width;
       u_int new_height;
+      u_int new_x;
       u_int a;
       u_int b;
       u_int y;
@@ -558,19 +557,22 @@ body:
         new_height = height;
       }
 
-      if (width < pix_x + rep) {
+      if (width < (new_x = pix_x + rep)) {
         u_int h;
 
-        if (width + 512 > MAX_WIDTH) {
+        if (new_x > MAX_WIDTH) {
           if (pix_x >= MAX_WIDTH) {
+            rep = asp_x; /* always >= 1 */
             continue;
           }
-          if (width >= MAX_WIDTH) {
-            rep = MAX_WIDTH - pix_x;
-          }
+          rep = MAX_WIDTH - pix_x;
           new_width = MAX_WIDTH;
         } else {
-          new_width = BL_MAX(pix_x + rep, width + 512);
+          if ((new_width = width + 512) > MAX_WIDTH) {
+            new_width = MAX_WIDTH;
+          } else if (new_width < new_x) {
+            new_width = new_x;
+          }
         }
         stride = new_width * PIXEL_SIZE;
         h = width * height / new_width;
