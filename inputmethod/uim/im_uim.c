@@ -112,6 +112,10 @@ static int ref_count = 0;
 static int initialized = 0;
 static int helper_fd = -1;
 static im_uim_t *focused_uim = NULL;
+/* The im_uim_t that the terminal currently has input focus on, i.e. between
+ * focused() and unfocused().  Unlike focused_uim it is not touched by the
+ * "focus_in" messages other uim clients broadcast through uim-helper-server. */
+static im_uim_t *active_uim = NULL;
 static ui_im_export_syms_t *syms = NULL; /* mlterm internal symbols */
 static int mod_key_debug = 0;
 
@@ -849,6 +853,10 @@ static void destroy(ui_im_t *im) {
     focused_uim = NULL;
   }
 
+  if (active_uim == uim) {
+    active_uim = NULL;
+  }
+
   if (uim->parser_uim) {
     (*uim->parser_uim->destroy)(uim->parser_uim);
   }
@@ -1018,6 +1026,7 @@ static void focused(ui_im_t *im) {
   uim_helper_client_focus_in(uim->context);
 
   focused_uim = uim;
+  active_uim = uim;
 
   uim_prop_list_update(uim->context);
   uim_prop_label_update(uim->context);
@@ -1037,6 +1046,10 @@ static void unfocused(ui_im_t *im) {
   uim = (im_uim_t *)im;
 
   uim_helper_client_focus_out(uim->context);
+
+  if (active_uim == uim) {
+    active_uim = NULL;
+  }
 
   if (uim->im.cand_screen) {
     (*uim->im.cand_screen->hide)(uim->im.cand_screen);
@@ -1215,7 +1228,15 @@ static void helper_read_handler(void) {
           helper_update_custom(second_line, message);
         }
       } else if (strcmp(first_line, "focus_in") == 0) {
-        focused_uim = NULL;
+        /*
+         * Another uim client got focus.  If the terminal itself still
+         * has input focus (e.g. a background application sent focus_in),
+         * keep focused_uim, otherwise prop_activate/commit_string from
+         * the toolbar are silently dropped until the next focused().
+         */
+        if (!active_uim) {
+          focused_uim = NULL;
+        }
       } else if (strcmp(first_line, "commit_string") == 0) {
         if ((second_line = bl_str_sep(&message, "\n"))) {
           helper_commit_string(second_line);
