@@ -337,7 +337,7 @@ static void specify_width(GtkWidget *widget, int flag) {
     int percent;
     size_t len;
 
-    if (!(cp = strrchr(fontname, ':')) || (percent = atoi(p + 1)) == 0) {
+    if (!(cp = strrchr(fontname, ':')) || (percent = atoi(cp + 1)) == 0) {
       if (flag == 0) {
         return;
       }
