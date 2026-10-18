@@ -619,7 +619,7 @@ else
 	elif test "$fbtype" = "pc98"; then
 		GUI_CFLAGS="${GUI_CFLAGS} -DPC98"
 	else
-		PKG_CHECK_MODULES(DRM, libdrm, have_libdrm=yes, have_libdrm=no)
+		PKG_CHECK_MODULES(DRM, [libdrm >= 2.4.0], have_libdrm=yes, have_libdrm=no)
 		if test "$have_libdrm" = "yes"; then
 			GUI_CFLAGS="${GUI_CFLAGS} -DUSE_KMSDRM ${DRM_CFLAGS}"
 			AC_SUBST(DRM_LIBS)

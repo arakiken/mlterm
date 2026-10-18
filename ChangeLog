@@ -1,5 +1,9 @@
 2026-10-18  Araki Ken <arakiken@user.sf.net>
 
+	* configure.in: Check if libdrm >= 2.4.0.
+
+	* mc_opentype.c: mlconfig works in gtk+ < 2.14.0.
+
 	* c_sixel.c:
 	  - Ensure 'pix_x + rep' <= MAX_WIDTH in load_sixel_from_data().
 	  - Check the return value of fstat() in read_sixel_file().

@@ -302,6 +302,26 @@ static void edit_script(GtkWidget *widget, gpointer data) {
 #endif
 }
 
+#else /* GTK_CHECK_VERSION(2, 14, 0) */
+
+static GtkWidget *features_button;
+static GtkWidget *script_button;
+
+static void edit_features(GtkWidget *widget, gpointer data) {
+  GtkWidget *dialog;
+
+  dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
+                                  GTK_BUTTONS_CLOSE, "This dialog requires GTK+-2.14 or later");
+  gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
+}
+
+static void edit_script(GtkWidget *widget, gpointer data) {
+  edit_features(widget, data);
+}
+
+#endif /* GTK_CHECK_VERSION(2, 14, 0) */
+
 static void button_checked(GtkWidget *widget, gpointer data) {
   if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
     gtk_widget_set_sensitive(features_button, 1);
@@ -342,28 +362,12 @@ GtkWidget *mc_opentype_config_widget_new(void) {
 }
 
 void mc_update_opentype(void) {
+#if GTK_CHECK_VERSION(2, 14, 0)
   if (features) {
     mc_set_str_value("ot_features", features);
   }
   if (script) {
     mc_set_str_value("ot_script", script);
   }
-}
-
-#else
-
-GtkWidget *mc_opentype_config_widget_new(void) {
-  GtkWidget *dialog;
-
-  dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR,
-                                  GTK_BUTTONS_CLOSE, "This dialog requires GTK+-2.14 or later");
-  gtk_dialog_run(GTK_DIALOG(dialog));
-  gtk_widget_destroy(dialog);
-
-  return NULL;
-}
-
-void mc_update_opentype(void) {
-}
-
 #endif
+}
