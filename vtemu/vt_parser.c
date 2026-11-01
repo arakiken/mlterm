@@ -4509,6 +4509,7 @@ static void set_use_status_line(vt_parser_t *vt_parser, int ps) {
   u_int height;
 
   if (ps <= 1) {
+    vt_focus_main_screen(vt_parser->screen);
     vt_screen_set_use_status_line(vt_parser->screen, 0);
   } else if (ps == 2) {
     vt_screen_set_use_status_line(vt_parser->screen, 1);

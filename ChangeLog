@@ -1,5 +1,9 @@
 2026-11-01  Araki Ken <arakiken@user.sf.net>
 
+	* vt_parser.c: Call vt_focus_main_screen() before disabling status
+	  line by vt_screen_set_use_status_line(.., 0).
+	  (https://github.com/arakiken/mlterm/issues/184)
+
 	* vt_str_parser.c: 0xfff -> 0xffffff in LEFT() macro.
 	  This fixes a bug that prevented copying and pasting text longer than
 	  4096 characters.
