@@ -11,7 +11,7 @@
 
 /* sizeof(ef_parser_t::left) >= 4 */
 #define LEFT_WITH_COMB_LEFT(left, comb_left) ((left) + ((comb_left) << 24))
-#define LEFT(left_with_comb) ((left_with_comb) & 0xfff)
+#define LEFT(left_with_comb) ((left_with_comb) & 0xffffff)
 #define COMB_LEFT(left_with_comb) (((left_with_comb) >> 24) & 0xf)
 
 typedef struct vt_str_parser {

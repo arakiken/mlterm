@@ -1,3 +1,12 @@
+2026-11-01  Araki Ken <arakiken@user.sf.net>
+
+	* vt_str_parser.c: 0xfff -> 0xffffff in LEFT() macro.
+	  This fixes a bug that prevented copying and pasting text longer than
+	  4096 characters.
+
+	* im_uim.c: Ignore "focus_in" messages from uim-helper-server,
+	  except when a "commit_string" message is received.
+
 2026-10-18  Araki Ken <arakiken@user.sf.net>
 
 	* configure.in: Check if libdrm >= 2.4.0.

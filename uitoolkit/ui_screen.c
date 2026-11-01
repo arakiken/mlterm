@@ -1101,8 +1101,7 @@ static void write_to_pty_intern(vt_term_t *term, const u_char *str, /* str may b
 #endif
 
     while (!parser->is_eos) {
-      if ((filled_len = vt_term_convert_to(term, conv_buf, sizeof(conv_buf), parser)) ==
-          0) {
+      if ((filled_len = vt_term_convert_to(term, conv_buf, sizeof(conv_buf), parser)) == 0) {
         break;
       }
 
@@ -1111,7 +1110,15 @@ static void write_to_pty_intern(vt_term_t *term, const u_char *str, /* str may b
         size_t i;
 
         for (i = 0; i < filled_len; i++) {
+#if 1
           bl_msg_printf("[%.2x]", conv_buf[i]);
+#else
+          if (conv_buf[i] == '\r') {
+            bl_msg_printf("\n");
+          } else {
+            bl_msg_printf("%c", conv_buf[i]);
+          }
+#endif
         }
       }
 #endif

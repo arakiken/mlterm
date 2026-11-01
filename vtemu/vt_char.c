@@ -1132,7 +1132,14 @@ void vt_char_dump(vt_char_t *ch) {
       bl_msg_printf("**");
     }
   } else {
-    bl_msg_printf("%c", vt_char_code(ch));
+#if 1
+    if (vt_char_code(ch) == 0x0d) {
+      bl_msg_printf("\n");
+    } else
+#endif
+    {
+      bl_msg_printf("%c", vt_char_code(ch));
+    }
   }
 #endif
 

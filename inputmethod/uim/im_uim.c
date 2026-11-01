@@ -112,6 +112,7 @@ static int ref_count = 0;
 static int initialized = 0;
 static int helper_fd = -1;
 static im_uim_t *focused_uim = NULL;
+static int is_app_active; /* checks "focus_in" message of uim_helper_get_message() */
 static ui_im_export_syms_t *syms = NULL; /* mlterm internal symbols */
 static int mod_key_debug = 0;
 
@@ -1018,6 +1019,7 @@ static void focused(ui_im_t *im) {
   uim_helper_client_focus_in(uim->context);
 
   focused_uim = uim;
+  is_app_active = 1;
 
   uim_prop_list_update(uim->context);
   uim_prop_label_update(uim->context);
@@ -1215,9 +1217,13 @@ static void helper_read_handler(void) {
           helper_update_custom(second_line, message);
         }
       } else if (strcmp(first_line, "focus_in") == 0) {
+        /* https://github.com/arakiken/mlterm/pull/183 */
+#if 0
         focused_uim = NULL;
+#endif
+        is_app_active = 0;
       } else if (strcmp(first_line, "commit_string") == 0) {
-        if ((second_line = bl_str_sep(&message, "\n"))) {
+        if ((second_line = bl_str_sep(&message, "\n")) && is_app_active) {
           helper_commit_string(second_line);
         }
       }
