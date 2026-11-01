@@ -1,5 +1,7 @@
 2026-11-01  Araki Ken <arakiken@user.sf.net>
 
+	* configure: 2.73 -> 2.69
+
 	* vt_parser.c: Call vt_focus_main_screen() before disabling status
 	  line by vt_screen_set_use_status_line(.., 0).
 	  (https://github.com/arakiken/mlterm/issues/184)
