@@ -1,13 +1,15 @@
+ver 3.9.6
 * Support KMSDRM in linux framebuffer.
 * Add --igncsi/ignored_csi_list option.
 * Add --decscusr/allow_decscusr option.
 * Add --cursor/cursor_style option.
 * Enable --imcolor/im_cursor_color option by default.
-* Merge paches:
-  https://github.com/arakiken/mlterm/pull/182
 * Security fixes:
   GHSA-hm5h-prh4-xcxv
   GHSA-f28h-6h59-mm6f
+* Merge paches:
+  https://github.com/arakiken/mlterm/pull/181
+  https://github.com/arakiken/mlterm/pull/182
 * Bug fixes:
   https://github.com/arakiken/mlterm/issues/74
   https://github.com/arakiken/mlterm/issues/171
@@ -17,6 +19,7 @@
   https://github.com/arakiken/mlterm/issues/177
   https://github.com/arakiken/mlterm/issues/180
   https://github.com/arakiken/mlterm/pull/183
+  https://github.com/arakiken/mlterm/issues/184
   Fix the cursor position in preediting text.
   (Related to https://github.com/chu-hai/mlterm/commit/111cb6a)
   Fix delaying connection to fcitx server.

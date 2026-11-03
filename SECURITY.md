@@ -9,8 +9,8 @@ If you are using an older version, we strongly recommend upgrading to the latest
 
 | Version | Supported |
 | :--- | :---: |
-| 3.9.5 | :white_check_mark: Yes |
-| < 3.9.5 | :x: No |
+| 3.9.6 | :white_check_mark: Yes |
+| < 3.9.6 | :x: No |
 
 ## Reporting a Vulnerability
 
