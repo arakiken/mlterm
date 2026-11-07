@@ -216,11 +216,13 @@ static ui_display_t *open_display(char *name, u_int depth) {
 
   disp->modmap.map = XGetModifierMapping(disp->display);
 
-  default_error_handler = XSetErrorHandler(error_handler);
+  if (default_error_handler == NULL) {
+    default_error_handler = XSetErrorHandler(error_handler);
 #ifdef __DEBUG
-  XSetIOErrorHandler(ioerror_handler);
-  XSynchronize(disp->display, True);
+    XSetIOErrorHandler(ioerror_handler);
+    XSynchronize(disp->display, True);
 #endif
+  }
 
   ui_xim_display_opened(disp->display);
   ui_picture_display_opened(disp->display);

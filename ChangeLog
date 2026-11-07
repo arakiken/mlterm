@@ -1,3 +1,16 @@
+2026-11-07  Araki Ken <arakiken@user.sf.net>
+
+	* xlib/ui_display.c: Call XSetErrorHandler() once.
+
+	* vt_parser.c: Fix response for OSC 5381 ignored_csi_list, when
+	  its value is NULL.
+
+	* ui_main_config.c, main_loop.c: Move processing primary_da and
+	  secondary_da options from ui_prepare_for_main_config() to
+	  main_loop_init().
+
+	* version.h: 3.8.6 -> 3.8.6post
+
 2026-11-03  Araki Ken <arakiken@user.sf.net>
 
 	* 3.9.6 released.

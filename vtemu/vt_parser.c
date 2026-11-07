@@ -8315,7 +8315,11 @@ int vt_parser_get_config(
 
     return 1;
   } else if (strcmp(key, "ignored_csi_list") == 0) {
-    value = ignored_csi_list;
+    if (ignored_csi_list) {
+      value = ignored_csi_list;
+    } else {
+      value = "";
+    }
   } else if (strcmp(key, "blink_cursor") == 0) {
     if (vt_parser->cursor_style & CS_BLINK) {
       value = "true";
