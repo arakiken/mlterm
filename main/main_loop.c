@@ -279,6 +279,7 @@ int main_loop_init(int argc, char **argv) {
   bl_conf_add_opt(conf, '\0', "igncsi", 0, "ignored_csi_list",
                   "ignore specified CSI sequence");
   bl_conf_add_opt(conf, '\0', "decscusr", 1, "allow_decscusr", "allow DECSCUSR [true]");
+  bl_conf_add_opt(conf, '\0', "decrqcra", 1, "allow_decrqcra", "allow DECRQCRA [false]");
   bl_conf_add_opt(conf, '\0', "da1", 0, "primary_da",
                   "primary device attributes string "
 #ifndef NO_IMAGE
@@ -536,6 +537,12 @@ int main_loop_init(int argc, char **argv) {
       vt_set_ignored_csi_list(list);
     } else if (decscusr) {
       vt_set_ignored_csi_list(decscusr);
+    }
+  }
+
+  if ((value = bl_conf_get_value(conf, "allow_decrqcra"))) {
+    if (strcmp(value, "true") == 0) {
+      vt_allow_decrqcra(1);
     }
   }
 

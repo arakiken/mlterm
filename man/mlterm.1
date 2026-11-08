@@ -651,6 +651,10 @@ The default is \fB63;1;2;3;4;6;7;15;18;22;29\fR.
 Specify secondary device attributes string.
 The default is \fB24;279;0\fR.
 .TP
+\fB\-\-decrqcra(=\fIbool\fR)
+Whether to allow DECRQCRA.
+The default is \fBfalse\fR.
+.TP
 \fB\-\-decscusr(=\fIbool\fR)
 Whether to allow DECSCUSR.
 If this option is false, it sets \fB"\\d q,33l"\fR to \fB\-\-igncsi\fR option.
@@ -1565,6 +1569,9 @@ overridden by command line options.
 The main configuration file "\fBmain\fR" has the following keys.
 Parentheses show the corresponding command-line options.
 See the explanation on these command-line options for detail.
+.TP
+\fBallow_decrqcra\fR=\fIbool\fR (\fB\-\-decrqcra\fR)
+Allow DECRQCRA.
 .TP
 \fBallow_decscusr\fR=\fIbool\fR (\fB\-\-decscusr\fR)
 Allow DECSCUSR.

@@ -146,7 +146,7 @@ jobs:
   build-macos:
     strategy:
       matrix:
-        os: [ macos-latest, macos-14 ]
+        os: [ macos-latest, macos-15 ]
 
     runs-on: ${{ matrix.os }}
 

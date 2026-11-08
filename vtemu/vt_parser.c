@@ -261,6 +261,8 @@ static struct {
 static u_int num_auto_detect_encodings;
 
 static u_char *ignored_csi_list;
+/* Add this flag to Avoid to set ignored_csi_list by default. */
+static int allow_decrqcra;
 
 static int use_ttyrec_format;
 
@@ -5433,7 +5435,7 @@ inline static int parse_vt100_escape_sequence(
           resize(vt_parser, -1, ps[0], 1);
         } else if (*str_p == 'y') {
           /* "CSI Pn * y" DECRQCRA */
-          if (num >= 1) {
+          if (allow_decrqcra && num >= 1) {
             u_int16_t checksum;
             char seq[6+DIGIT_STR_LEN(ps[0])+4+1];
 
@@ -7341,6 +7343,10 @@ void vt_set_ignored_csi_list(const u_char *list) {
   } else {
     ignored_csi_list = NULL;
   }
+}
+
+void vt_allow_decrqcra(int flag) {
+  allow_decrqcra = flag;
 }
 
 void vt_set_use_ttyrec_format(int use) { use_ttyrec_format = use; }

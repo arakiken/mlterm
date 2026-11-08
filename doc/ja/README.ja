@@ -870,6 +870,9 @@ comment -*- mode: text; tab-width:2; indent-tabs-mode:nil; coding:euc-jp -*-
         OSC 5379 の "set_shortcut" による動的なショートカットキー定義を有効にす
         る。
 
+      o allow_decrqcra (true/*false*)
+        DECRQCRA シーケンスによるチェックサムの取得を許可
+
       o allow_decscusr (*true*/false)
         DECSCUSR シーケンスによるカーソル形状の変更を許可
 

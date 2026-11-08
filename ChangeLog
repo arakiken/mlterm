@@ -1,3 +1,10 @@
+2026-11-08  Araki Ken <arakiken@user.sf.net>
+
+	* mlterm.1, README.ja: Update.
+
+	* vt_parser.[ch], main_loop.c: Disable DECRQCRA by default unless
+	  --decrqcra option is specified.
+
 2026-11-07  Araki Ken <arakiken@user.sf.net>
 
 	* xlib/ui_display.c: Call XSetErrorHandler() once.

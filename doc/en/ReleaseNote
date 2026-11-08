@@ -1,3 +1,6 @@
+* Disable DECRQCRA by default and add --decrqcra/allow_decrqcra option to enable it.
+  (https://github.com/arakiken/mlterm/issues/186)
+
 ver 3.9.6
 * Support KMSDRM in linux framebuffer.
 * Add --igncsi/ignored_csi_list option.
