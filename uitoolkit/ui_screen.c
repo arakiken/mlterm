@@ -71,6 +71,7 @@ static char *im_cursor_color = NULL;
 static int has_transparent_inline_pics;
 #endif
 static ui_dnd_escape_mode_t dnd_escape_mode = DND_ESCAPE_BACKSLASH;
+static int resize_by_pixel;
 
 /* --- static functions --- */
 
@@ -6914,6 +6915,10 @@ void ui_set_dnd_escape_mode(ui_dnd_escape_mode_t mode) {
   dnd_escape_mode = mode;
 }
 
+void ui_set_resize_by_pixel(int flag) {
+  resize_by_pixel = flag;
+}
+
 #ifdef USE_IM_CURSOR_COLOR
 void ui_set_im_cursor_color(const char *color) {
   free(im_cursor_color);
@@ -6945,6 +6950,8 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   ui_screen_t *screen;
   u_int col_width;
   u_int line_height;
+  u_int width_inc;
+  u_int height_inc;
 
 #ifdef USE_OT_LAYOUT
   vt_ot_layout_set_shape_func((u_int (*)(void*, u_int32_t*, u_int, int8_t*, int8_t*,
@@ -7016,11 +7023,19 @@ ui_screen_t *ui_screen_new(vt_term_t *term, /* can be NULL */
   col_width = ui_col_width(screen);
   line_height = ui_line_height(screen);
 
+  if (resize_by_pixel) {
+    /* Use 1 because 0 might mean 'unresizable' in some WMs. */
+    width_inc = height_inc = 1;
+  } else {
+    width_inc = col_width;
+    height_inc = line_height;
+  }
+
   /* min: 1x1 */
   if (!ui_window_init(&screen->window,
                       (screen->width = screen->term ? screen_width(screen) : col_width),
                       (screen->height = screen->term ? screen_height(screen) : line_height),
-                      col_width, line_height, col_width, line_height, hmargin, vmargin, 0, 1)) {
+                      col_width, line_height, width_inc, height_inc, hmargin, vmargin, 0, 1)) {
 #ifdef DEBUG
     bl_warn_printf(BL_DEBUG_TAG " ui_window_init failed.\n");
 #endif

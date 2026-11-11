@@ -184,6 +184,8 @@ void ui_set_mod_keys_to_stop_mouse_report(const char *keys);
 
 void ui_set_dnd_escape_mode(ui_dnd_escape_mode_t mode);
 
+void ui_set_resize_by_pixel(int flag);
+
 #ifdef USE_IM_CURSOR_COLOR
 void ui_set_im_cursor_color(const char *color);
 #endif

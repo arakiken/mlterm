@@ -290,6 +290,7 @@ int main_loop_init(int argc, char **argv) {
                   );
   bl_conf_add_opt(conf, '\0', "da2", 0, "secondary_da",
                   "secondary device attributes string [24;279;0]");
+  bl_conf_add_opt(conf, '\0', "rzpx", 1, "resize_by_pixel", "resize screen by pixel [false]");
 #ifdef BL_DEBUG
   bl_conf_add_opt(conf, '\0', "test", 1, "test", "execute tests");
 #endif
@@ -552,6 +553,12 @@ int main_loop_init(int argc, char **argv) {
 
   if ((value = bl_conf_get_value(conf, "secondary_da"))) {
     vt_set_secondary_da(value);
+  }
+
+  if ((value = bl_conf_get_value(conf, "resize_by_pixel"))) {
+    if (strcmp(value, "true") == 0) {
+      ui_set_resize_by_pixel(1);
+    }
   }
 
 #ifdef BL_DEBUG
