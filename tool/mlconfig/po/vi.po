@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mlterm\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-09 14:22+0900\n"
+"POT-Creation-Date: 2026-10-01 16:14-0400\n"
 "PO-Revision-Date: 2006-04-17 21:11+0700\n"
 "Last-Translator: Pham Thanh Long <ptlong@gmail.com>\n"
 "Language-Team: Vietnam <gnome-vi-list@gnome.org>\n"
@@ -326,7 +326,7 @@ msgstr "Danh sách PTY"
 msgid " New "
 msgstr " Mới "
 
-#: tool/mlconfig/main.c:585 tool/mlconfig/mc_font.c:895
+#: tool/mlconfig/main.c:585 tool/mlconfig/mc_font.c:896
 #: tool/mlconfig/mc_wall_pic.c:86
 #, fuzzy
 msgid "Select"
@@ -556,36 +556,36 @@ msgstr ""
 msgid "Send keys to all windows"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:817
+#: tool/mlconfig/mc_font.c:818
 msgid "Font size (pixels)"
 msgstr "Cỡ chữ (pixel)"
 
-#: tool/mlconfig/mc_font.c:879
+#: tool/mlconfig/mc_font.c:880
 #, fuzzy
 msgid "Font name"
 msgstr "Phông"
 
-#: tool/mlconfig/mc_font.c:905
+#: tool/mlconfig/mc_font.c:906
 msgid "Font width"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:909
+#: tool/mlconfig/mc_font.c:910
 msgid "Narrow"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:914
+#: tool/mlconfig/mc_font.c:915
 msgid "Widen"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:919
+#: tool/mlconfig/mc_font.c:920
 msgid "Default"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:934
+#: tool/mlconfig/mc_font.c:935
 msgid "Unicode areas you won't convert to other charsets"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:937
+#: tool/mlconfig/mc_font.c:938
 msgid " Edit "
 msgstr ""
 
@@ -810,7 +810,7 @@ msgid ""
 "Format: U+XXXX-XXXX or U+XXXX (U+ is optional)"
 msgstr ""
 
-#: tool/mlconfig/mc_wordsep.c:112
+#: tool/mlconfig/mc_wordsep.c:115
 msgid "Word separators"
 msgstr ""
 

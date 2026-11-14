@@ -710,6 +710,10 @@ u_int vt_char_cols(vt_char_t *ch) {
 
   attr = ch->u.ch.attr;
 
+  if (vt_char_is_zerowidth(ch)) {
+    return 0;
+  }
+
   if (IS_SINGLE_CH(attr)) {
     if (!use_multi_col_char) {
       return 1;
