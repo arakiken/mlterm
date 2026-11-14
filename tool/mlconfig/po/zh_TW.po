@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mlconfig\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-09 14:22+0900\n"
+"POT-Creation-Date: 2026-10-01 16:14-0400\n"
 "PO-Revision-Date: 2003-02-09 21:26+0800\n"
 "Last-Translator: Ambrose Li <acli@ada.dhs.org>\n"
 "Language-Team: Chinese (Traditional) <zh-l10n@linux.org.tw>\n"
@@ -327,7 +327,7 @@ msgstr "PTY 清單"
 msgid " New "
 msgstr "新增"
 
-#: tool/mlconfig/main.c:585 tool/mlconfig/mc_font.c:895
+#: tool/mlconfig/main.c:585 tool/mlconfig/mc_font.c:896
 #: tool/mlconfig/mc_wall_pic.c:86
 #, fuzzy
 msgid "Select"
@@ -561,36 +561,36 @@ msgstr ""
 msgid "Send keys to all windows"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:817
+#: tool/mlconfig/mc_font.c:818
 msgid "Font size (pixels)"
 msgstr "字型大小 (像素值)"
 
-#: tool/mlconfig/mc_font.c:879
+#: tool/mlconfig/mc_font.c:880
 #, fuzzy
 msgid "Font name"
 msgstr "字型"
 
-#: tool/mlconfig/mc_font.c:905
+#: tool/mlconfig/mc_font.c:906
 msgid "Font width"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:909
+#: tool/mlconfig/mc_font.c:910
 msgid "Narrow"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:914
+#: tool/mlconfig/mc_font.c:915
 msgid "Widen"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:919
+#: tool/mlconfig/mc_font.c:920
 msgid "Default"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:934
+#: tool/mlconfig/mc_font.c:935
 msgid "Unicode areas you won't convert to other charsets"
 msgstr ""
 
-#: tool/mlconfig/mc_font.c:937
+#: tool/mlconfig/mc_font.c:938
 msgid " Edit "
 msgstr ""
 
@@ -818,7 +818,7 @@ msgid ""
 "Format: U+XXXX-XXXX or U+XXXX (U+ is optional)"
 msgstr ""
 
-#: tool/mlconfig/mc_wordsep.c:112
+#: tool/mlconfig/mc_wordsep.c:115
 msgid "Word separators"
 msgstr ""
 
